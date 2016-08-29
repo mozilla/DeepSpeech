@@ -43,16 +43,16 @@ class DataSet(object):
         return self._inputs.shape[0]
 
 
-def read_data_sets(data_dir, numcep, numcontext):
+def read_data_sets(data_dir, batch_size, numcep, numcontext):
     # Get train data
-    train_outputs = read_text_data_sets(data_dir, 'train')
-    train_inputs, train_seq_len = read_audio_data_sets(data_dir, numcep, numcontext, 'train')
+    train_outputs = read_text_data_sets(data_dir, 'train', batch_size)
+    train_inputs, train_seq_len = read_audio_data_sets(data_dir, numcep, numcontext, 'train', batch_size)
     # Get validation data
-    validation_outputs = read_text_data_sets(data_dir, 'validation')
-    validation_inputs, validation_seq_len = read_audio_data_sets(data_dir, numcep, numcontext, 'validation')
+    validation_outputs = read_text_data_sets(data_dir, 'validation', batch_size)
+    validation_inputs, validation_seq_len = read_audio_data_sets(data_dir, numcep, numcontext, 'validation', batch_size)
     # Get test data
-    test_outputs = read_text_data_sets(data_dir, 'test')
-    test_inputs, test_seq_len = read_audio_data_sets(data_dir, numcep, numcontext, 'test')
+    test_outputs = read_text_data_sets(data_dir, 'test', batch_size)
+    test_inputs, test_seq_len = read_audio_data_sets(data_dir, numcep, numcontext, 'test', batch_size)
     
     # Create train, validation, and test DataSet's
     train = DataSet(inputs=train_inputs, outputs=train_outputs, seq_len=train_seq_len)
@@ -63,7 +63,7 @@ def read_data_sets(data_dir, numcep, numcontext):
     return DataSets(train=train, validation=validation, test=test)
     
 
-def read_text_data_sets(data_dir, data_type):
+def read_text_data_sets(data_dir, data_type, batch_size):
     # TODO: Do not ignore data_type = ['train'|'validation'|'test']
     
     # Create file names
@@ -74,13 +74,13 @@ def read_text_data_sets(data_dir, data_type):
         for line in f.readlines():
             original = ' '.join(line.strip().lower().split(' ')[2:]).replace('.', '')
     
-    return text_to_sparse_tuple([original])
+    return text_to_sparse_tuple([original for x in range(batch_size) ])
 
-def read_audio_data_sets(data_dir, numcep, numcontext, data_type):
+def read_audio_data_sets(data_dir, numcep, numcontext, data_type, batch_size):
     # TODO: Do not ignore data_type = ['train'|'validation'|'test']
      
     # Create file name
     audio_filename = path.join(data_dir, 'LDC93S1.wav') 
 
     # Return properly formatted data
-    return audiofiles_to_audio_data_sets([audio_filename], numcep, numcontext)
+    return audiofiles_to_audio_data_sets([audio_filename for x in range(batch_size) ], numcep, numcontext)
