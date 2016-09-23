@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 # Constants
 SPACE_TOKEN = '<space>'
@@ -47,4 +48,4 @@ def sparse_tuple_from(sequences, dtype=np.int32):
     values = np.asarray(values, dtype=dtype)
     shape = np.asarray([len(sequences), np.asarray(indices).max(0)[1]+1], dtype=np.int64)
 
-    return indices, values, shape
+    return tf.SparseTensor(indices=indices, values=values, shape=shape)
