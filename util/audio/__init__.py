@@ -22,7 +22,7 @@ def audiofiles_to_audio_data_sets(audio_filenames, numcep, numcontext):
         #  - numcep dimensions for the current mfcc feature set
         #  - numcontext*numcep dimensions for each of the past and future (x2) mfcc feature set
         # => so numcep + 2*numcontext*numcep
-        train_inputs = np.array([], np.float)
+        train_inputs = np.array([], np.float32)
         train_inputs.resize((orig_inputs.shape[0], numcep + 2*numcep*numcontext))
          
         # Prepare pre-fix post fix context (TODO: Fill empty_mfcc with MCFF of silence)
