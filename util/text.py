@@ -7,14 +7,16 @@ SPACE_INDEX = 0
 FIRST_INDEX = ord('a') - 1  # 0 is reserved to space
 
 
-def text_to_sparse_tuple(originals):
+def texts_to_sparse_tuple(originals):
     # Define list to hold results
     results = []
 
     # Process each original in originals
     for original in originals:
         # Create list of sentence's words w/spaces replaced by ''
-        result = original.replace(' ', '  ')
+        result = original.replace(" '", "") # TODO: Deal with this properly
+        result = result.replace("'", "")    # TODO: Deal with this properly
+        result = result.replace(' ', '  ')
         result = result.split(' ')
         
         # Tokenize words into letters adding in SPACE_TOKEN where required
@@ -39,13 +41,13 @@ def sparse_tuple_from(sequences, dtype=np.int32):
     """
     indices = []
     values = []
-
+     
     for n, seq in enumerate(sequences):
         indices.extend(zip([n]*len(seq), xrange(len(seq))))
         values.extend(seq)
-
+     
     indices = np.asarray(indices, dtype=np.int64)
     values = np.asarray(values, dtype=dtype)
     shape = np.asarray([len(sequences), np.asarray(indices).max(0)[1]+1], dtype=np.int64)
-
+     
     return tf.SparseTensor(indices=indices, values=values, shape=shape)
