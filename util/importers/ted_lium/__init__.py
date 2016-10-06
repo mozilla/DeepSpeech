@@ -1,7 +1,7 @@
 import numpy as np
 
 from os import path
-from util.text import text_to_sparse_tuple 
+from util.text import text_to_sparse_tensor
 from util.audio import audiofiles_to_audio_data_sets
 
 class DataSets(object):
@@ -53,34 +53,34 @@ def read_data_sets(data_dir, numcep, numcontext):
     # Get test data
     test_outputs = read_text_data_sets(data_dir, 'test')
     test_inputs, test_seq_len = read_audio_data_sets(data_dir, numcep, numcontext, 'test')
-    
+
     # Create train, validation, and test DataSet's
     train = DataSet(inputs=train_inputs, outputs=train_outputs, seq_len=train_seq_len)
     validation = DataSet(inputs=validation_inputs, outputs=validation_outputs, seq_len=validation_seq_len)
     test = DataSet(inputs=test_inputs, outputs=test_outputs, seq_len=test_seq_len)
-     
+
     # Return DataSets
     return DataSets(train=train, validation=validation, test=test)
-    
+
 
 def read_text_data_sets(data_dir, data_type):
     # TODO: Do not ignore data_type = ['train'|'validation'|'test']
-    
+
     # Create file names
-    text_filename = path.join(data_dir, 'LDC93S1.txt') 
+    text_filename = path.join(data_dir, 'LDC93S1.txt')
 
     # Read text file and create list of sentence's words w/spaces replaced by ''
     with open(text_filename, 'rb') as f:
         for line in f.readlines():
             original = ' '.join(line.strip().lower().split(' ')[2:]).replace('.', '')
-    
-    return text_to_sparse_tuple([original])
+
+    return text_to_sparse_tensor([original])
 
 def read_audio_data_sets(data_dir, numcep, numcontext, data_type):
     # TODO: Do not ignore data_type = ['train'|'validation'|'test']
-     
+
     # Create file name
-    audio_filename = path.join(data_dir, 'LDC93S1.wav') 
+    audio_filename = path.join(data_dir, 'LDC93S1.wav')
 
     # Return properly formatted data
     return audiofiles_to_audio_data_sets([audio_filename], numcep, numcontext)
