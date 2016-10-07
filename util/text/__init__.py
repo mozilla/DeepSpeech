@@ -70,6 +70,19 @@ def sparse_tuple_to_text(tuple):
     # List of strings
     return results
 
+def wer(original, result):
+    return levenshtein(original, result) / float(len(original.split(' ')))
+
+def wers(originals, results):
+    count = len(originals)
+    rates = []
+    mean = 0.0
+    assert count == len(results)
+    for i in range(count):
+        rate = wer(originals[i], results[i])
+        mean = mean + rate
+        rates.append(mean)
+    return rates, mean / float(count)
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
 
