@@ -172,36 +172,14 @@ def read_data_sets(graph, data_dir, batch_size, numcep, numcontext, thread_count
     _maybe_split_transcriptions(work_dir, "test-clean", "test-clean-wav")
     _maybe_split_transcriptions(work_dir, "test-other", "test-other-wav")
     
-    # Remove source dirs
-    rmtree(os.path.join(work_dir, "train-clean-100"))
-    rmtree(os.path.join(work_dir, "train-clean-360"))
-    rmtree(os.path.join(work_dir, "train-other-500"))
-    
-    rmtree(os.path.join(work_dir, "dev-clean"))
-    rmtree(os.path.join(work_dir, "dev-other"))
-    
-    rmtree(os.path.join(work_dir, "test-clean"))
-    rmtree(os.path.join(work_dir, "test-other"))
-    
-    # Rename processed dirs
-    os.rename(os.path.join(work_dir, "train-clean-100-wav"), os.path.join(work_dir, "train-clean-100"))
-    os.rename(os.path.join(work_dir, "train-clean-360-wav"), os.path.join(work_dir, "train-clean-360"))
-    os.rename(os.path.join(work_dir, "train-other-500-wav"), os.path.join(work_dir, "train-other-500"))
-    
-    os.rename(os.path.join(work_dir, "dev-clean-wav"), os.path.join(work_dir, "dev-clean"))
-    os.rename(os.path.join(work_dir, "dev-other-wav"), os.path.join(work_dir, "dev-other"))
-    
-    os.rename(os.path.join(work_dir, "test-clean-wav"), os.path.join(work_dir, "test-clean"))
-    os.rename(os.path.join(work_dir, "test-other-wav"), os.path.join(work_dir, "test-other"))
-    
     # Create train DataSet from all the train archives
-    train = _read_data_set(graph, work_dir, "train-*", thread_count, batch_size, numcep, numcontext)
+    train = _read_data_set(graph, work_dir, "train-*-wav", thread_count, batch_size, numcep, numcontext)
     
     # Create dev DataSet from all the dev archives
-    dev = _read_data_set(graph, work_dir, "dev-*", thread_count, batch_size, numcep, numcontext)
+    dev = _read_data_set(graph, work_dir, "dev-*-wav", thread_count, batch_size, numcep, numcontext)
     
     # Create test DataSet from all the test archives
-    test = _read_data_set(graph, work_dir, "test-*", thread_count, batch_size, numcep, numcontext)
+    test = _read_data_set(graph, work_dir, "test-*-wav", thread_count, batch_size, numcep, numcontext)
     
     # Return DataSets
     return DataSets(train, dev, test)
