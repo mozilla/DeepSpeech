@@ -8,8 +8,8 @@ from glob import glob
 from itertools import cycle
 from math import ceil
 from pydub import AudioSegment
-from queue import PriorityQueue
-from queue import Queue
+from Queue import PriorityQueue
+from Queue import Queue
 from shutil import rmtree
 from tensorflow.contrib.learn.python.learn.datasets import base
 from tensorflow.python.platform import gfile
@@ -54,7 +54,7 @@ class DataSet(object):
         return max(len(available_gpus), 1)
     
     def _start_queue_threads(self):
-        batch_threads = [Thread(target=self._populate_batch_queue) for i in range(self._thread_count)]
+        batch_threads = [Thread(target=self._populate_batch_queue) for i in xrange(self._thread_count)]
         for batch_thread in batch_threads:
             batch_thread.daemon = True
             batch_thread.start()
@@ -234,7 +234,7 @@ def _maybe_split_transcriptions(extracted_dir, data_set, dest_dir):
                     first_space = line.find(" ")
                     txt_file = line[:first_space] + ".txt"
                     with open(os.path.join(target_dir, txt_file), "w") as fout:
-                        fout.write(line[first_space+1:])
+                        fout.write(line[first_space+1:].lower())
             os.remove(trans_filename)
 
 def _read_data_set(graph, work_dir, data_set, thread_count, batch_size, numcep, numcontext):
