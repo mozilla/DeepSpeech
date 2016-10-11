@@ -234,7 +234,7 @@ def _maybe_split_transcriptions(extracted_dir, data_set, dest_dir):
                     first_space = line.find(" ")
                     txt_file = line[:first_space] + ".txt"
                     with open(os.path.join(target_dir, txt_file), "w") as fout:
-                        fout.write(line[first_space+1:].lower())
+                        fout.write(line[first_space+1:].lower().strip("\n"))
             os.remove(trans_filename)
 
 def _read_data_set(graph, work_dir, data_set, thread_count, batch_size, numcep, numcontext):
