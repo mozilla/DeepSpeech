@@ -2,12 +2,13 @@ import fnmatch
 import numpy as np
 import os
 import random
+import subprocess
 import tarfile
 
 from glob import glob
 from itertools import cycle
 from math import ceil
-from pydub import AudioSegment
+from sox import Transformer
 from Queue import PriorityQueue
 from Queue import Queue
 from shutil import rmtree
@@ -104,6 +105,12 @@ class DataSet(object):
 
 
 def read_data_sets(graph, data_dir, batch_size, numcep, numcontext, thread_count=8):
+    # Check if we can convert FLAC with SoX before we start
+    sox_help_out = subprocess.check_output(["sox", "-h"])
+    if sox_help_out.find("flac") == -1:
+        print("Error: SoX doesn't support FLAC. Please install SoX with FLAC support and try again.")
+        exit(1)
+    
     # Conditionally download data to data_dir
     TRAIN_CLEAN_100_URL = "http://www.openslr.org/resources/12/train-clean-100.tar.gz"
     TRAIN_CLEAN_360_URL = "http://www.openslr.org/resources/12/train-clean-360.tar.gz"
@@ -204,12 +211,12 @@ def _maybe_convert_wav(data_dir, extracted_data, converted_data):
         # Loop over FLAC files in source_dir and convert each to wav
         for root, dirnames, filenames in os.walk(source_dir):
             for filename in fnmatch.filter(filenames, '*.flac'):
-                flac_filename = os.path.join(root, filename)
-                wav_filename = os.path.splitext(os.path.basename(flac_filename))[0] + ".wav"
+                flac_file = os.path.join(root, filename)
+                wav_filename = os.path.splitext(os.path.basename(flac_file))[0] + ".wav"
                 wav_file = os.path.join(target_dir, wav_filename)
-                transformer = AudioSegment.from_file(flac_filename, format="flac")
-                transformer.export(wav_file, format="wav")
-                os.remove(flac_filename)
+                transformer = Transformer()
+                transformer.build(flac_file, wav_file)
+                os.remove(flac_file)
 
 def _maybe_split_transcriptions(extracted_dir, data_set, dest_dir):
     source_dir = os.path.join(extracted_dir, data_set)
