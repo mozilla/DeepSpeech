@@ -6,21 +6,17 @@ SPACE_TOKEN = '<space>'
 SPACE_INDEX = 0
 FIRST_INDEX = ord('a') - 1  # 0 is reserved to space
 
-def text_to_sparse_tensor(originals):
-    return tf.SparseTensor.from_value(text_to_sparse_tensor_value(originals))
 
-def text_to_sparse_tensor_value(originals):
-    tuple = text_to_sparse_tuple(originals)
-    return tf.SparseTensorValue(indices=tuple[0], values=tuple[1], shape=tuple[2])
-
-def text_to_sparse_tuple(originals):
+def texts_to_sparse_tensor(originals):
     # Define list to hold results
     results = []
 
     # Process each original in originals
     for original in originals:
         # Create list of sentence's words w/spaces replaced by ''
-        result = original.replace(' ', '  ')
+        result = original.replace(" '", "") # TODO: Deal with this properly
+        result = result.replace("'", "")    # TODO: Deal with this properly
+        result = result.replace(' ', '  ')
         result = result.split(' ')
 
         # Tokenize words into letters adding in SPACE_TOKEN where required
@@ -34,6 +30,7 @@ def text_to_sparse_tuple(originals):
 
     # Creating sparse representation to feed the placeholder
     return sparse_tuple_from(results)
+
 
 def sparse_tuple_from(sequences, dtype=np.int32):
     """Create a sparse representention of x.
@@ -53,12 +50,12 @@ def sparse_tuple_from(sequences, dtype=np.int32):
     values = np.asarray(values, dtype=dtype)
     shape = np.asarray([len(sequences), np.asarray(indices).max(0)[1]+1], dtype=np.int64)
 
-    return (indices, values, shape);
+    return tf.SparseTensor(indices=indices, values=values, shape=shape)
 
-def sparse_tensor_value_to_text(value):
-    return sparse_tuple_to_text((value.indices, value.values, value.shape))
+def sparse_tensor_value_to_texts(value):
+    return sparse_tuple_to_texts((value.indices, value.values, value.shape))
 
-def sparse_tuple_to_text(tuple):
+def sparse_tuple_to_texts(tuple):
     indices = tuple[0]
     values = tuple[1]
     results = [''] * tuple[2][0]
