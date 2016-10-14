@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>DeepSpeech reports</title>
+
+    <link rel="stylesheet" href="resources/bootstrap.min.css">
+    <link rel="stylesheet" href="resources/jquery-ui.min.css">
+    <link rel="stylesheet" href="resources/rickshaw.min.css">
+
+    <script src="resources/jquery-3.1.1.min.js"></script>
+    <script src="resources/jquery-ui.min.js"></script>
+    <script src="resources/d3.v3.min.js"></script>
+    <script src="resources/rickshaw.min.js"></script>
+
+    <script src="logs/hyper.js"></script>
+
+    <style type="text/css">
+        .rickshaw_legend {
+            color: black;
+            background: transparent;
+        }
+        .rickshaw_legend .line {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">DeepSpeech</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#overall_wer">Overall WER</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Parameter WER <span class="caret"></span></a>
+                        <ul id="parameter_menu" class="dropdown-menu">
+
+                        </ul>
+                    </li>
+                    <!-- <li><a href="#contact">Runs</a></li> -->
+                </ul>
+                <!-- <ul class="nav navbar-nav navbar-right">
+                    <li><a href="../navbar/">Default</a></li>
+                    <li class="active"><a href="./">Static top <span class="sr-only">(current)</span></a></li>
+                    <li><a href="../navbar-fixed-top/">Fixed top</a></li>
+                </ul> -->
+            </div>
+        </div>
+    </nav>
+
+    <div id="panels" class="container"></div>
+
+    <script src="resources/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+
+        const createChart = (id, title, fineprint, series, isTimeBased) => {
+
+            var panelRoot = $('#panels');
+
+            var panel = $('<div/>').attr('id', id); panelRoot.append(panel);
+
+            panel.append('<h1>' + title + '</h1>');
+            panel.append('<p>' + fineprint + '</p>');
+
+            var cContainer = $('<div/>'); panel.append(cContainer);
+            var cChart =     $('<div/>'); cContainer.append(cChart);
+            var cPreview =   $('<div/>'); cContainer.append(cPreview);
+            var cLegend =    $('<div/>'); cContainer.append(cLegend);
+
+            var graph = new Rickshaw.Graph({
+                element: cChart[0],
+                height: 500,
+                renderer: 'area',
+                unstack: 'true',
+                stroke: true,
+                preserve: true,
+                max: 105,
+                series: series
+            });
+
+            graph.render();
+
+            var preview = new Rickshaw.Graph.RangeSlider({
+                graph: graph,
+                element: cPreview[0]
+            });
+
+            var hoverDetail = new Rickshaw.Graph.HoverDetail({
+                graph: graph,
+                xFormatter: function(x) {
+                    if (isTimeBased)
+                        return new Date(x * 1000.0).toString();
+                    else
+                        return x;
+                }
+            });
+
+            var legend = new Rickshaw.Graph.Legend({
+                graph: graph,
+                element: cLegend[0]
+            });
+
+            var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+                graph: graph,
+                legend: legend
+            });
+
+            var order = new Rickshaw.Graph.Behavior.Series.Order({
+                graph: graph,
+                legend: legend
+            });
+
+            var highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
+                graph: graph,
+                legend: legend
+            });
+
+            var ticksTreatment = 'glow';
+
+            if (isTimeBased) {
+                var xAxis = new Rickshaw.Graph.Axis.Time({
+                    graph: graph,
+                    ticksTreatment: ticksTreatment,
+                    timeFixture: new Rickshaw.Fixtures.Time.Local()
+                });
+
+                xAxis.render();
+            }
+
+            var yAxis = new Rickshaw.Graph.Axis.Y({
+                graph: graph,
+                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                ticksTreatment: ticksTreatment
+            });
+
+            yAxis.render();
+        };
+
+
+        const groupBy = (array, getProperties) => {
+            var groups = {};
+            array.forEach(o => {
+                var group = JSON.stringify(getProperties(o));
+                (groups[group] = groups[group] || []).push(o);
+            });
+            return Object.keys(groups).map(group => groups[group]);
+        };
+
+        var ds = window.ALL_THE_DATA,
+            i,
+            reports  = {},
+            overall_test_wer = [],
+            overall_validation_wer = [],
+            overall_train_wer = [];
+
+        ds.forEach(item => {
+            var time = item.context.time_started =
+                new Date(item.context.time_started).getTime() / 1000.0;
+            item.context.time_finished =
+                new Date(item.context.time_finished).getTime() / 1000.0;
+            var test_wer =
+                100.0 - 100.0 / (1.0 + item.results.test_wer);
+            var validation_wer =
+                100.0 - 100.0 / (1.0 + item.results.last_validation_wer);
+            var train_wer =
+                100.0 - 100.0 / (1.0 + item.results.last_train_wer);
+            overall_test_wer        .push({ x: time, y: test_wer });
+            overall_validation_wer  .push({ x: time, y: validation_wer });
+            overall_train_wer       .push({ x: time, y: train_wer });
+        });
+
+        const stdtext = 'Lower is better. Please use the legend to turn and and off data series.';
+
+        createChart(
+            'overall_wer',
+            'DeepSpeech Word Error Rate over time',
+            stdtext,
+            [
+                { color: 'rgba(100,100,255,0.5)', data: overall_validation_wer, name: 'Train WER' },
+                { color: 'rgba(255,100,100,0.5)', data: overall_train_wer, name: 'Validate WER' },
+                { color: 'rgba(100,255,100,0.5)', data: overall_test_wer, name: 'Test WER' }
+            ],
+            true
+        );
+
+        var params = Object.keys(keys = ds[0].parameters);
+        var parameterGroups = {};
+        params.forEach(param => {
+
+            // We group by the other parameters to find series of values that don't differ by other parameters
+            var others = params.filter(p => p !== param);
+            var groups = parameterGroups[param] = groupBy(ds, item => others.map(p => item.parameters[p]));
+
+            // Remove single values
+            groups = groups.filter(g => g.length > 1);
+
+            // Produce { x, y } objects with x being unique and y being the validation WER
+            groups = groups.map(group => {
+                var o = {};
+                group.forEach(item => o[item.parameters[param]] = item.results.last_validation_wer);
+                return {
+                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] })),
+                    parameters: group[0].parameters,
+                    context: group[0].context
+                };
+            });
+
+            // Exclude singular values
+            groups = groups.filter(g => g.values.length > 1);
+
+            // If there is more than one group, we produce a chart
+            if (groups.length > 0) {
+
+                var id = 'parameter_' + param;
+                var title = param.split('_').map(p => p[0].toUpperCase() + p.slice(1)).join(' ');
+                $('#parameter_menu').append('<li><a href="#' + id + '">' + title + '</a></li>');
+
+                var series = [],
+                    cc1 = 150, cc2 = 50;
+                groups.forEach(group => {
+                    // Color cycling
+                    cc1 = (cc1 + 40) % 255; cc2 = (cc2 + 200) % 255;
+                    series.push({
+                        color: 'rgba(100,' + cc1 + ',' + cc2 + ',0.75)',
+                        data: group.values,
+                        name: 'WER from ' + new Date(group.context.time_finished * 1000.0).toString(),
+                        meta: group.context
+                    });
+                });
+
+                createChart(id, title, stdtext, series, false);
+            }
+        });
+
+
+        jQuery(document).ready(function ($) {
+            $('#tabs').tab();
+        });
+    </script>
+
+</body>
+</html>
