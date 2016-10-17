@@ -78,7 +78,7 @@ def wers(originals, results):
     for i in range(count):
         rate = wer(originals[i], results[i])
         mean = mean + rate
-        rates.append(mean)
+        rates.append(rate)
     return rates, mean / float(count)
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
