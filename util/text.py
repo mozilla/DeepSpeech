@@ -93,6 +93,8 @@ def wers(originals, results):
 
 def levenshtein(a,b):
     "Calculates the Levenshtein distance between a and b."
+    a = a.split()
+    b = b.split()
     n, m = len(a), len(b)
     if n > m:
         # Make sure n <= m, to use O(min(n,m)) space
