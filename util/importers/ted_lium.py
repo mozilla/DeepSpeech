@@ -146,7 +146,6 @@ def _maybe_extract(data_dir, extracted_data, archive):
       tar = tarfile.open(archive)
       tar.extractall(data_dir)
       tar.close()
-      remove(archive)
 
 def _maybe_convert_wav(data_dir, extracted_data):
     # Create extracted_data dir
