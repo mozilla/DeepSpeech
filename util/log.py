@@ -9,6 +9,9 @@ def merge_logs(logs_dir):
     # All direct sub directories of the logs directory
     dirs = [os.path.join(logs_dir, o) for o in os.listdir(logs_dir) if os.path.isdir(os.path.join(logs_dir, o))]
 
+    # Make sure directories are sorted otherwise Rickshaw will complain
+    dirs.sort()
+
     # Let's first populate a temporal file and rename it afterwards - guarantees an interruption free web experience
     nhf = '%s/%s' % (logs_dir, 'new_hyper.js')
 
