@@ -100,8 +100,7 @@ class DataSet(object):
                 self._batch_queue.put((source, target))
 
     def next_batch(self):
-        source, target = self._batch_queue.get()
-        return (source, target, source.shape[1])
+        return self._batch_queue.get()
 
     @property
     def total_batches(self):
