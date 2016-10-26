@@ -2,5 +2,6 @@
 *.pyc
 .DS_Store
 /logs
+/data/ldc93s1
 /data/ted/TEDLIUM_release2
 /data/ted/TEDLIUM_release2.tar.gz
