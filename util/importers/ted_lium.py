@@ -84,15 +84,7 @@ class DataSet(object):
             targets = []
             batch_index = 0
             for txt_file, wav_file in self._files_circular_list:
-                if batch_index < self._batch_size:
-                    next_source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
-                    if n_steps < next_source.shape[0]:
-                        n_steps = next_source.shape[0]
-                    sources.append(next_source)
-                    with open(txt_file) as open_txt_file:
-                        targets.append(open_txt_file.read())
-                    batch_index = batch_index + 1
-                else:
+                if batch_index == self._batch_size:
                     # Put batch on queue
                     target = texts_to_sparse_tensor(targets)
                     for index, next_source in enumerate(sources):
@@ -100,15 +92,17 @@ class DataSet(object):
                         sources[index] = np.pad(next_source, pad_width=npad, mode='constant')
                     source = np.array(sources)
                     self._batch_queue.put((source, target))
-                    # Deal with current txt_file, wav_file pair
-                    next_source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
-                    n_steps = next_source.shape[0]
+                    n_steps = 0
                     sources = []
-                    sources.append(next_source)
                     targets = []
-                    with open(txt_file) as open_txt_file:
-                        targets.append(open_txt_file.read())
-                    batch_index = 1
+                    batch_index = 0
+                next_source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
+                if n_steps < next_source.shape[0]:
+                    n_steps = next_source.shape[0]
+                sources.append(next_source)
+                with open(txt_file) as open_txt_file:
+                    targets.append(open_txt_file.read())
+                batch_index = batch_index + 1
 
     def next_batch(self):
         source, target = self._batch_queue.get()
