@@ -73,25 +73,30 @@ class DataSet(object):
     
     def _populate_batch_queue(self):
         with self._graph.as_default():
-            while True:
-                n_steps = 0
-                sources = []
-                targets = []
-                for index, (txt_file, wav_file) in enumerate(self._files_circular_list):
-                    if index >= self._batch_size:
-                        break
-                    next_source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
-                    if n_steps < next_source.shape[0]:
-                        n_steps = next_source.shape[0]
-                    sources.append(next_source)
-                    with open(txt_file) as open_txt_file:
-                        targets.append(open_txt_file.read())
-                target = texts_to_sparse_tensor(targets)
-                for index, next_source in enumerate(sources):
-                    npad = ((0,(n_steps - next_source.shape[0])), (0,0))
-                    sources[index] = np.pad(next_source, pad_width=npad, mode='constant')
-                source = np.array(sources)
-                self._batch_queue.put((source, target))
+            n_steps = 0
+            sources = []
+            targets = []
+            batch_index = 0
+            for txt_file, wav_file in self._files_circular_list:
+                if batch_index == self._batch_size:
+                    # Put batch on queue
+                    target = texts_to_sparse_tensor(targets)
+                    for index, next_source in enumerate(sources):
+                        npad = ((0,(n_steps - next_source.shape[0])), (0,0))
+                        sources[index] = np.pad(next_source, pad_width=npad, mode='constant')
+                    source = np.array(sources)
+                    self._batch_queue.put((source, target))
+                    n_steps = 0
+                    sources = []
+                    targets = []
+                    batch_index = 0
+                next_source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
+                if n_steps < next_source.shape[0]:
+                    n_steps = next_source.shape[0]
+                sources.append(next_source)
+                with open(txt_file) as open_txt_file:
+                    targets.append(open_txt_file.read())
+                batch_index = batch_index + 1
     
     def next_batch(self):
         source, target = self._batch_queue.get()
