@@ -106,7 +106,7 @@ class DataSet(object):
 
     def next_batch(self):
         source, target = self._batch_queue.get()
-        return (source, target, source.shape[1])
+        return (source, target)
 
     @property
     def total_batches(self):
