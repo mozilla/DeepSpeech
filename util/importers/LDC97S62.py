@@ -59,7 +59,7 @@ class DataSet(object):
         self._files_circular_list = self._create_files_circular_list()
 
     def _get_device_count(self):
-        available_gpus = [] # get_available_gpus()
+        available_gpus = get_available_gpus()
         return  max(len(available_gpus), 1)
 
     def start_queue_threads(self, session):
