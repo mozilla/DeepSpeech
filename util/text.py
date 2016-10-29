@@ -173,19 +173,21 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
 def validate_label(label):
     # For now we can only handle [a-z ']
     if "(" in label or \
-       "<" in label or \
-       "[" in label or \
-       "]" in label or \
-       "&" in label or \
-       "*" in label or \
-       re.search(r"[0-9]", label) != None:
-       return None
-    
+                    "<" in label or \
+                    "[" in label or \
+                    "]" in label or \
+                    "&" in label or \
+                    "*" in label or \
+                    "{" in label or \
+            re.search(r"[0-9]", label) != None:
+        return None
+
     label = label.replace("-", "")
     label = label.replace("_", "")
     label = label.replace(".", "")
     label = label.replace(",", "")
     label = label.replace("?", "")
     label = label.strip()
-    
+
     return label
+
