@@ -788,7 +788,7 @@ def create_execution_context(set_name):
             apply_gradient_op = apply_gradients(optimizer, avg_tower_gradients)
 
         # Create a saver to checkpoint the model
-        saver = tf.train.Saver(tf.all_variables())
+        saver = tf.train.Saver(tf.all_variables(), write_version=tf.train.SaverDef.V2)
 
         if is_train:
             # Prepare tensor board logging
@@ -1159,7 +1159,7 @@ if __name__ == "__main__":
             # TODO: Transform the decoded output to a string
 
             # Create a saver and exporter using variables from the above newly created graph
-            saver = tf.train.Saver(tf.all_variables())
+            saver = tf.train.Saver(tf.all_variables(), write_version=tf.train.SaverDef.V2)
             model_exporter = exporter.Exporter(saver)
 
             # Restore variables from training checkpoint
