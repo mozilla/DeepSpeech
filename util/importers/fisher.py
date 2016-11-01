@@ -150,10 +150,11 @@ def _maybe_convert_wav(data_dir, original_data, converted_data):
     for root, dirnames, filenames in os.walk(source_dir):
         for filename in fnmatch.filter(filenames, "*.sph"):
             sph_file = os.path.join(root, filename)
-            wav_filename = os.path.splitext(os.path.basename(sph_file))[0] + ".wav"
-            wav_file = os.path.join(target_dir, wav_filename)
-            print("converting {} to {}".format(sph_file, wav_file))
-            subprocess.check_call(["sph2pipe", "-p", "-f", "rif", sph_file, wav_file])
+            for channel in ["1", "2"]:
+                wav_filename = os.path.splitext(os.path.basename(sph_file))[0] + "_c" + channel + ".wav"
+                wav_file = os.path.join(target_dir, wav_filename)
+                print("converting {} to {}".format(sph_file, wav_file))
+                subprocess.check_call(["sph2pipe", "-c", channel, "-p", "-f", "rif", sph_file, wav_file])
 
 def _parse_transcriptions(trans_file):
     segments = []
@@ -200,12 +201,12 @@ def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
             segments = _parse_transcriptions(trans_file)
             
             # Open wav corresponding to transcription file
-            wav_filename = os.path.splitext(os.path.basename(trans_file))[0] + ".wav"
-            wav_file = os.path.join(source_dir, wav_filename)
+            wav_filenames = [os.path.splitext(os.path.basename(trans_file))[0] + "_c" + channel + ".wav" for channel in ["1", "2"]]
+            wav_files = [os.path.join(source_dir, wav_filename) for wav_filename in wav_filenames]
             
-            print("splitting {} according to {}".format(wav_file, trans_file))
+            print("splitting {} according to {}".format(wav_files, trans_file))
             
-            origAudio = wave.open(wav_file, "r")
+            origAudios = [wave.open(wav_file, "r") for wav_file in wav_files]
             
             # Loop over segments and split wav_file for each segment
             for segment in segments:
@@ -217,13 +218,12 @@ def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
                 
                 # If the wav segment filename does not exist create it
                 if not os.path.exists(new_wav_file):
-                    _split_wav(origAudio, start_time, stop_time, new_wav_file)
+                    channel = 0 if segment["speaker"] == "A:" else 1
+                    _split_wav(origAudios[channel], start_time, stop_time, new_wav_file)
             
-            # Close origAudio
-            origAudio.close()
-            
-            # Remove wav_file
-            # os.remove(wav_file)
+            # Close origAudios
+            for origAudio in origAudios:
+                origAudio.close()
 
 def _split_wav(origAudio, start_time, stop_time, new_wav_file):
     frameRate = origAudio.getframerate()
