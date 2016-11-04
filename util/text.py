@@ -68,7 +68,18 @@ def sparse_tuple_to_texts(tuple):
     return results
 
 def wer(original, result):
-    return levenshtein(original, result) / float(len(original.split(' ')))
+    """
+    The WER is defined as the editing/Levenshtein distance on word level
+    divided by the amount of words in the original text.
+    In case of the original having more words (N) than the result and both
+    being totally different (all N words resulting in 1 edit operation each),
+    the WER will always be 1 (N / N = 1).
+    """
+    # The WER ist calculated on word (and NOT on character) level.
+    # Therefore we split the strings into words first:
+    original = original.split()
+    result = result.split()
+    return levenshtein(original, result) / float(len(original))
 
 def wers(originals, results):
     count = len(originals)
@@ -93,8 +104,6 @@ def wers(originals, results):
 
 def levenshtein(a,b):
     "Calculates the Levenshtein distance between a and b."
-    a = a.split()
-    b = b.split()
     n, m = len(a), len(b)
     if n > m:
         # Make sure n <= m, to use O(min(n,m)) space
