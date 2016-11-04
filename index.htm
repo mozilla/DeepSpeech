@@ -86,7 +86,6 @@
                 unstack: 'true',
                 stroke: true,
                 preserve: true,
-                max: 105,
                 series: series
             });
 
@@ -170,15 +169,9 @@
                 new Date(item.context.time_started).getTime() / 1000.0;
             item.context.time_finished =
                 new Date(item.context.time_finished).getTime() / 1000.0;
-            var test_wer =
-                100.0 - 100.0 / (1.0 + item.results.test_wer);
-            var validation_wer =
-                100.0 - 100.0 / (1.0 + item.results.last_validation_wer);
-            var train_wer =
-                100.0 - 100.0 / (1.0 + item.results.last_train_wer);
-            overall_test_wer        .push({ x: time, y: test_wer });
-            overall_validation_wer  .push({ x: time, y: validation_wer });
-            overall_train_wer       .push({ x: time, y: train_wer });
+            overall_test_wer        .push({ x: time, y: item.results.test_wer * 100 });
+            overall_validation_wer  .push({ x: time, y: item.results.last_validation_wer * 100 });
+            overall_train_wer       .push({ x: time, y: item.results.last_train_wer * 100 });
         });
 
         const stdtext = 'Lower is better. Please use the legend to turn and and off data series.';
@@ -211,7 +204,7 @@
                 var o = {};
                 group.forEach(item => o[item.parameters[param]] = item.results.last_validation_wer);
                 return {
-                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] })),
+                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] * 100 })),
                     parameters: group[0].parameters,
                     context: group[0].context
                 };
