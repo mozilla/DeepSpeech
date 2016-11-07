@@ -21,7 +21,7 @@ The tracking of WER is made using the following workflow:
  * BeautifulSoup4
  * GitPython
  * pysftp
- * xdg
+ * pyxdg
  * requests
 * Construct cron job:
 ```
