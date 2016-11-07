@@ -16,53 +16,19 @@ from itertools import cycle
 from os.path import getsize
 from threading import Thread
 from Queue import PriorityQueue
+from util.datasets import BaseDataSet, DataSets
 from util.stm import parse_stm_file
-from util.gpu import get_available_gpus
-from util.text import texts_to_sparse_tensor
+from util.text import text_to_char_array
 from tensorflow.python.platform import gfile
 from util.audio import audiofile_to_input_vector
 from tensorflow.contrib.learn.python.learn.datasets import base
 
-class DataSets(object):
-    def __init__(self, train, dev, test):
-        self._dev = dev
-        self._test = test
-        self._train = train
-
-    @property
-    def train(self):
-        return self._train
-
-    @property
-    def dev(self):
-        return self._dev
-
-    @property
-    def test(self):
-        return self._test
-
-class DataSet(object):
-    def __init__(self, graph, txt_files, thread_count, batch_size, numcep, numcontext):
-        self._graph = graph
-        self._numcep = numcep
-        self._batch_queue = Queue(2 * self._get_device_count())
-        self._txt_files = txt_files
-        self._batch_size = batch_size
-        self._numcontext = numcontext
-        self._thread_count = thread_count
+class DataSet(BaseDataSet):
+    def __init__(self, *args, **kwargs):
+        super(DataSet, self).__init__(*args, **kwargs)
         self._files_circular_list = self._create_files_circular_list()
         self._start_queue_threads()
-
-    def _get_device_count(self):
-        available_gpus = get_available_gpus()
-        return max(len(available_gpus), 1)
-
-    def _start_queue_threads(self):
-        batch_threads = [Thread(target=self._populate_batch_queue) for i in xrange(self._thread_count)]
-        for batch_thread in batch_threads:
-            batch_thread.daemon = True
-            batch_thread.start()
-
+    
     def _create_files_circular_list(self):
         priorityQueue = PriorityQueue()
         for txt_file in self._txt_files:
@@ -78,43 +44,19 @@ class DataSet(object):
         return cycle(files_list)
 
     def _populate_batch_queue(self):
-        with self._graph.as_default():
-            n_steps = 0
-            sources = []
-            targets = []
-            batch_index = 0
-            for txt_file, wav_file in self._files_circular_list:
-                if batch_index == self._batch_size:
-                    # Put batch on queue
-                    target = texts_to_sparse_tensor(targets)
-                    for index, next_source in enumerate(sources):
-                        npad = ((0,(n_steps - next_source.shape[0])), (0,0))
-                        sources[index] = np.pad(next_source, pad_width=npad, mode='constant')
-                    source = np.array(sources)
-                    self._batch_queue.put((source, target))
-                    n_steps = 0
-                    sources = []
-                    targets = []
-                    batch_index = 0
-                next_source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
-                if n_steps < next_source.shape[0]:
-                    n_steps = next_source.shape[0]
-                sources.append(next_source)
-                with open(txt_file) as open_txt_file:
-                    targets.append(open_txt_file.read())
-                batch_index = batch_index + 1
+        for txt_file, wav_file in self._files_circular_list:
+            source = audiofile_to_input_vector(wav_file, self._num_mfcc_features, self._num_context)
+            source_len = len(source)
+            with open(txt_file) as open_txt_file:
+                target = text_to_char_array(open_txt_file.read())
+            target_len = len(target)
+            self._session.run(self._enqueue_op, feed_dict={
+                self._x: source,
+                self._x_length: source_len,
+                self._y: target,
+                self._y_length: target_len})
 
-    def next_batch(self):
-        source, target = self._batch_queue.get()
-        return (source, target)
-
-    @property
-    def total_batches(self):
-        # Note: If len(_txt_files) % _batch_size != 0, this re-uses initial _txt_files
-        return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
-
-
-def read_data_sets(graph, data_dir, batch_size, numcep, numcontext, thread_count=8):
+def read_data_sets(session, data_dir, batch_size, numcep, numcontext, thread_count=8):
     # Conditionally download data
     TED_DATA = "TEDLIUM_release2.tar.gz"
     TED_DATA_URL = "http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz"
@@ -134,13 +76,13 @@ def read_data_sets(graph, data_dir, batch_size, numcep, numcontext, thread_count
     _maybe_split_stm(data_dir, TED_DIR)
 
     # Create dev DataSet
-    dev = _read_data_set(graph, data_dir, TED_DIR, "dev", thread_count, batch_size, numcep, numcontext)
+    dev = _read_data_set(session, data_dir, TED_DIR, "dev", thread_count, batch_size, numcep, numcontext)
 
     # Create test DataSet
-    test = _read_data_set(graph, data_dir, TED_DIR, "test", thread_count, batch_size, numcep, numcontext)
+    test = _read_data_set(session, data_dir, TED_DIR, "test", thread_count, batch_size, numcep, numcontext)
 
     # Create train DataSet
-    train = _read_data_set(graph, data_dir, TED_DIR, "train", thread_count, batch_size, numcep, numcontext)
+    train = _read_data_set(session, data_dir, TED_DIR, "train", thread_count, batch_size, numcep, numcontext)
 
     # Return DataSets
     return DataSets(train, dev, test)
@@ -287,7 +229,7 @@ def _maybe_split_stm_dataset(extracted_dir, data_set):
         # Remove stm_file
         remove(stm_file)
 
-def _read_data_set(graph, data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext):
+def _read_data_set(session, data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext):
     # Create stm dir
     stm_dir = path.join(data_dir, extracted_data, data_set, "stm")
 
@@ -295,4 +237,4 @@ def _read_data_set(graph, data_dir, extracted_data, data_set, thread_count, batc
     txt_files = glob(path.join(stm_dir, "*.txt"))
 
     # Return DataSet
-    return DataSet(graph, txt_files, thread_count, batch_size, numcep, numcontext)
+    return DataSet(session, txt_files, thread_count, batch_size, numcep, numcontext)
