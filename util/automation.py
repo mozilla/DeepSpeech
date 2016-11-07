@@ -3,11 +3,11 @@ import os
 import git
 import requests
 import sys
-import xdg
 import shutil
 import subprocess
 
 from glob import glob
+from xdg import BaseDirectory
 
 GITHUB_API_BASE        = 'https://api.github.com'
 MOZILLA_GITHUB_ACCOUNT = os.environ.get('ds_github_account', 'mozilla')
@@ -16,11 +16,11 @@ DEEPSPEECH_GITHUB_REF  = os.environ.get('ds_github_ref',     'refs/heads/wer-tra
 
 DEEPSPEECH_CLONE_PATH  = os.path.abspath(os.environ.get('ds_clone_path', './ds_exec_clone/'))
 
-CACHE_DIR = os.path.join(xdg.XDG_CACHE_HOME, 'deepspeech_wer')
+CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'deepspeech_wer')
 LOCKFILE  = os.path.join(CACHE_DIR, 'lock')
 SHA1FILE  = os.path.join(CACHE_DIR, 'last_sha1')
 
-DATA_DIR  = os.path.join(xdg.XDG_DATA_HOME, 'deepspeech_wer')
+DATA_DIR  = os.path.join(BaseDirectory.xdg_data_home, 'deepspeech_wer')
 CKPT_DIR  = os.path.join(DATA_DIR, 'checkpoint')
 
 def try_get_lock():
