@@ -65,7 +65,7 @@
 
     <script type="text/javascript">
 
-        const createChart = (id, title, fineprint, series, isTimeBased) => {
+        const createChart = (id, title, fineprint, series, times) => {
 
             var panelRoot = $('#panels');
 
@@ -77,16 +77,17 @@
             var cContainer = $('<div/>'); panel.append(cContainer);
             var cChart =     $('<div/>'); cContainer.append(cChart);
             var cPreview =   $('<div/>'); cContainer.append(cPreview);
+            var cTimeline =  $('<div/>'); cContainer.append(cTimeline);
             var cLegend =    $('<div/>'); cContainer.append(cLegend);
 
             var graph = new Rickshaw.Graph({
                 element: cChart[0],
                 height: 500,
                 renderer: 'area',
+                interpolation: 'linear',
                 unstack: 'true',
                 stroke: true,
                 preserve: true,
-                max: 105,
                 series: series
             });
 
@@ -100,7 +101,7 @@
             var hoverDetail = new Rickshaw.Graph.HoverDetail({
                 graph: graph,
                 xFormatter: function(x) {
-                    if (isTimeBased)
+                    if (times)
                         return new Date(x * 1000.0).toString();
                     else
                         return x;
@@ -129,12 +130,20 @@
 
             var ticksTreatment = 'glow';
 
-            if (isTimeBased) {
+            if (times) {
                 var xAxis = new Rickshaw.Graph.Axis.Time({
                     graph: graph,
                     ticksTreatment: ticksTreatment,
                     timeFixture: new Rickshaw.Fixtures.Time.Local()
                 });
+
+                var annotator = new Rickshaw.Graph.Annotate({
+                    graph: graph,
+                    element: cTimeline[0]
+                });
+
+                times.forEach(time => annotator.add(time, new Date(time * 1000.0).toString()));
+                annotator.update();
 
                 xAxis.render();
             }
@@ -146,6 +155,7 @@
             });
 
             yAxis.render();
+
         };
 
 
@@ -163,25 +173,21 @@
             reports  = {},
             overall_test_wer = [],
             overall_validation_wer = [],
-            overall_train_wer = [];
+            overall_train_wer = [],
+            times = [];
 
         ds.forEach(item => {
             var time = item.context.time_started =
                 new Date(item.context.time_started).getTime() / 1000.0;
             item.context.time_finished =
                 new Date(item.context.time_finished).getTime() / 1000.0;
-            var test_wer =
-                100.0 - 100.0 / (1.0 + item.results.test_wer);
-            var validation_wer =
-                100.0 - 100.0 / (1.0 + item.results.last_validation_wer);
-            var train_wer =
-                100.0 - 100.0 / (1.0 + item.results.last_train_wer);
-            overall_test_wer        .push({ x: time, y: test_wer });
-            overall_validation_wer  .push({ x: time, y: validation_wer });
-            overall_train_wer       .push({ x: time, y: train_wer });
+            overall_test_wer        .push({ x: time, y: item.results.test_wer * 100 });
+            overall_validation_wer  .push({ x: time, y: item.results.last_validation_wer * 100 });
+            overall_train_wer       .push({ x: time, y: item.results.last_train_wer * 100 });
+            times.push(time);
         });
 
-        const stdtext = 'Lower is better. Please use the legend to turn and and off data series.';
+        const stdtext = 'Lower is better. Please use the legend for turning on/off data series.';
 
         createChart(
             'overall_wer',
@@ -192,7 +198,7 @@
                 { color: 'rgba(255,100,100,0.5)', data: overall_train_wer, name: 'Validate WER' },
                 { color: 'rgba(100,255,100,0.5)', data: overall_test_wer, name: 'Test WER' }
             ],
-            true
+            times
         );
 
         var params = Object.keys(keys = ds[0].parameters);
@@ -211,7 +217,7 @@
                 var o = {};
                 group.forEach(item => o[item.parameters[param]] = item.results.last_validation_wer);
                 return {
-                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] })),
+                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] * 100 })),
                     parameters: group[0].parameters,
                     context: group[0].context
                 };
