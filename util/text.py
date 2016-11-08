@@ -67,6 +67,12 @@ def sparse_tuple_to_texts(tuple):
     # List of strings
     return results
 
+def ndarray_to_text(value):
+    results = ''
+    for i in range(len(value)):
+        results += chr(value[i] + FIRST_INDEX)
+    return results.replace('`', ' ')
+
 def wer(original, result):
     """
     The WER is defined as the editing/Levenshtein distance on word level
