@@ -15,6 +15,11 @@ class DataSets(object):
         self._test = test
         self._train = train
 
+    def start_queue_threads(self, sesssion):
+        self._dev.start_queue_threads(sesssion)
+        self._test.start_queue_threads(sesssion)
+        self._train.start_queue_threads(sesssion)
+
     @property
     def train(self):
         return self._train
@@ -28,8 +33,7 @@ class DataSets(object):
         return self._test
 
 class DataSet(object):
-    def __init__(self, session, txt_files, thread_count, batch_size, numcep, numcontext):
-        self._session = session
+    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext):
         self._numcep = numcep
         self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
         self._x_length = tf.placeholder(tf.int32, [])
@@ -43,14 +47,13 @@ class DataSet(object):
         self._batch_size = batch_size
         self._numcontext = numcontext
         self._thread_count = thread_count
-        self._start_queue_threads()
 
     def _get_device_count(self):
         available_gpus = get_available_gpus()
         return max(len(available_gpus), 1)
 
-    def _start_queue_threads(self):
-        batch_threads = [Thread(target=self._populate_batch_queue) for i in xrange(self._thread_count)]
+    def start_queue_threads(self, session):
+        batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in xrange(self._thread_count)]
         for batch_thread in batch_threads:
             batch_thread.daemon = True
             batch_thread.start()
@@ -68,10 +71,10 @@ class DataSet(object):
 
         return audio_waves, len(audio_waves), target, len(target)
 
-    def _populate_batch_queue(self):
+    def _populate_batch_queue(self, session):
         source, source_len, target, target_len = self._compute_source_target()
         while True:
-            self._session.run(self._enqueue_op, feed_dict={
+            session.run(self._enqueue_op, feed_dict={
                 self._x: source,
                 self._x_length: source_len,
                 self._y: target,
@@ -88,7 +91,7 @@ class DataSet(object):
         return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
 
 
-def read_data_sets(session, data_dir, batch_size, numcep, numcontext, thread_count=1):
+def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=1):
     # Conditionally download data
     LDC93S1_BASE = "LDC93S1"
     LDC93S1_BASE_URL = "https://catalog.ldc.upenn.edu/desc/addenda/"
@@ -96,14 +99,14 @@ def read_data_sets(session, data_dir, batch_size, numcep, numcontext, thread_cou
     _ = base.maybe_download(LDC93S1_BASE + ".txt", data_dir, LDC93S1_BASE_URL + LDC93S1_BASE + ".txt")
 
     # Create all DataSets, we do not really need separation
-    train = dev = test = _read_data_set(session, data_dir, thread_count, batch_size, numcep, numcontext)
+    train = dev = test = _read_data_set(data_dir, thread_count, batch_size, numcep, numcontext)
 
     # Return DataSets
     return DataSets(train, dev, test)
 
-def _read_data_set(session, data_dir, thread_count, batch_size, numcep, numcontext):
+def _read_data_set(data_dir, thread_count, batch_size, numcep, numcontext):
     # Obtain list of txt files
     txt_files = glob(path.join(data_dir, "*.txt"))
 
     # Return DataSet
-    return DataSet(session, txt_files, thread_count, batch_size, numcep, numcontext)
+    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext)
