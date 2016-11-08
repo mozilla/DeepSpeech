@@ -4,6 +4,8 @@ import tarfile
 import threading
 import numpy as np
 import tensorflow as tf
+import unicodedata
+import codecs
 
 from os import path
 from os import rmdir
@@ -92,8 +94,9 @@ class DataSet(object):
         for txt_file, wav_file in self._files_circular_list:
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
-            with open(txt_file) as open_txt_file:
-                target = text_to_char_array(open_txt_file.read())
+            with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
+                target = unicodedata.normalize("NFKD", open_txt_file.read()).encode("ascii", "ignore")
+                target = text_to_char_array(target)
             target_len = len(target)
             session.run(self._enqueue_op, feed_dict={
                 self._x: source,
