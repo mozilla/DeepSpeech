@@ -5,6 +5,7 @@ import requests
 import sys
 import shutil
 import subprocess
+import datetime
 
 from glob import glob
 from xdg import BaseDirectory
@@ -102,6 +103,25 @@ def get_github_compare_url(last_sha1):
     """
     return '%s/repos/%s/%s/compare/%s...%s' % (GITHUB_API_BASE, MOZILLA_GITHUB_ACCOUNT, DEEPSPEECH_GITHUB_PROJ, last_sha1, DEEPSPEECH_GITHUB_REF)
 
+def git_date(d):
+    """
+    Returns datetime object from a git date
+    """
+    return datetime.datetime.strptime(d, '%Y-%m-%dT%H:%M:%SZ')
+
+def is_webflow(commit):
+    """
+    Check if commit is a valid "webflow" commit, i.e., whose committer is web-flow
+    """
+    return commit['committer'] and (commit['committer']['login'] == 'web-flow')
+
+def is_newer(refdate, commit):
+    """
+    Check is a merge commit is a GitHub newer one
+    """
+    c = commit['commit']['committer']
+    return c and (c['name'] == 'GitHub') and (git_date(c['date']) >= refdate)
+
 def get_current_sha1():
     r = requests.get(get_github_ref_url())
     if r.status_code is not 200:
@@ -115,14 +135,20 @@ def get_new_commits(sha1_from):
         return None, r.status_code
     payload = json.loads(r.text)
 
+    this_merge_date = git_date(payload['base_commit']['commit']['committer']['date'])
+
     if payload['status'] == 'identical':
         # When there is no change, just nicely output no new commits
         return [], r.status_code
     elif payload['status'] == 'ahead':
         # Let us just keep the merges commits, we can identify them because they
         # are the commits with two parents
-        merges = filter(lambda x: len(x['parents']) >= 2, payload['commits'])
-        return map(lambda x: x['sha'], merges), r.status_code
+        all_merges = filter(lambda x: len(x['parents']) >= 2, payload['commits'])
+        # Keep only merges made from Github UI
+        gh_merges = filter(lambda x: is_webflow(x), all_merges)
+        # Keep only merges with committer date >= this_merge_date
+        new_merges = filter(lambda x: is_newer(this_merge_date, x), gh_merges)
+        return map(lambda x: x['sha'], new_merges), r.status_code
 
     # Should not happen
     return None, r.status_code
@@ -289,6 +315,8 @@ for sha in sha_to_run:
     if not ensure_git_clone(sha):
         print "Error with git repo handling."
         sys_exit_safe()
+
+    print "Ready for", sha
 
     print "Let us place ourselves into the git clone directory ..."
     root_dir = os.getcwd()
