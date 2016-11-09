@@ -115,7 +115,7 @@ class DataSet(object):
         return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
 
 
-def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8):
+def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0):
     # Conditionally download data
     TED_DATA = "TEDLIUM_release2.tar.gz"
     TED_DATA_URL = "http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz"
@@ -135,13 +135,13 @@ def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8):
     _maybe_split_stm(data_dir, TED_DIR)
 
     # Create dev DataSet
-    dev = _read_data_set(data_dir, TED_DIR, "dev", thread_count, batch_size, numcep, numcontext)
+    dev = _read_data_set(data_dir, TED_DIR, "dev", thread_count, batch_size, numcep, numcontext, limit=limit_dev)
 
     # Create test DataSet
-    test = _read_data_set(data_dir, TED_DIR, "test", thread_count, batch_size, numcep, numcontext)
+    test = _read_data_set(data_dir, TED_DIR, "test", thread_count, batch_size, numcep, numcontext, limit=limit_test)
 
     # Create train DataSet
-    train = _read_data_set(data_dir, TED_DIR, "train", thread_count, batch_size, numcep, numcontext)
+    train = _read_data_set(data_dir, TED_DIR, "train", thread_count, batch_size, numcep, numcontext, limit=limit_train)
 
     # Return DataSets
     return DataSets(train, dev, test)
@@ -288,12 +288,14 @@ def _maybe_split_stm_dataset(extracted_dir, data_set):
         # Remove stm_file
         remove(stm_file)
 
-def _read_data_set(data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext):
+def _read_data_set(data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext, limit=0):
     # Create stm dir
     stm_dir = path.join(data_dir, extracted_data, data_set, "stm")
 
     # Obtain list of txt files
     txt_files = glob(path.join(stm_dir, "*.txt"))
+    if limit > 0:
+        txt_files = txt_files[:limit]
 
     # Return DataSet
     return DataSet(txt_files, thread_count, batch_size, numcep, numcontext)
