@@ -246,10 +246,6 @@ def exec_wer_run():
     if not os.path.isdir(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-    # Remove if existing
-    if os.path.isdir(CKPT_DIR):
-        shutil.rmtree(CKPT_DIR)
-
     # Create if non existent
     if not os.path.isdir(CKPT_DIR):
         os.makedirs(CKPT_DIR)

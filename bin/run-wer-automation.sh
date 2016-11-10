@@ -11,7 +11,10 @@ export ds_importer
 ds_batch_size=32
 export ds_batch_size
 
-ds_training_iters=6
+ds_training_iters=15
 export ds_training_iters
+
+ds_validation_step=15
+export ds_validation_step
 
 jupyter-nbconvert --to script DeepSpeech.ipynb --stdout | python
