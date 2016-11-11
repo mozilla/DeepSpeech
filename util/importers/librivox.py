@@ -107,7 +107,7 @@ class DataSet(object):
         return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
 
 
-def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8):
+def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0):
     # Check if we can convert FLAC with SoX before we start
     sox_help_out = subprocess.check_output(["sox", "-h"])
     if sox_help_out.find("flac") == -1:
@@ -183,13 +183,13 @@ def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8):
     _maybe_split_transcriptions(work_dir, "test-other", "test-other-wav")
     
     # Create train DataSet from all the train archives
-    train = _read_data_set(work_dir, "train-*-wav", thread_count, batch_size, numcep, numcontext)
+    train = _read_data_set(work_dir, "train-*-wav", thread_count, batch_size, numcep, numcontext, limit=limit_train)
     
     # Create dev DataSet from all the dev archives
-    dev = _read_data_set(work_dir, "dev-*-wav", thread_count, batch_size, numcep, numcontext)
+    dev = _read_data_set(work_dir, "dev-*-wav", thread_count, batch_size, numcep, numcontext, limit=limit_dev)
     
     # Create test DataSet from all the test archives
-    test = _read_data_set(work_dir, "test-*-wav", thread_count, batch_size, numcep, numcontext)
+    test = _read_data_set(work_dir, "test-*-wav", thread_count, batch_size, numcep, numcontext, limit=limit_test)
     
     # Return DataSets
     return DataSets(train, dev, test)
@@ -247,12 +247,14 @@ def _maybe_split_transcriptions(extracted_dir, data_set, dest_dir):
                         fout.write(line[first_space+1:].lower().strip("\n"))
             os.remove(trans_filename)
 
-def _read_data_set(work_dir, data_set, thread_count, batch_size, numcep, numcontext):
+def _read_data_set(work_dir, data_set, thread_count, batch_size, numcep, numcontext, limit=0):
     # Create data set dir
     dataset_dir = os.path.join(work_dir, data_set)
     
     # Obtain list of txt files
     txt_files = glob(os.path.join(dataset_dir, "*.txt"))
+    if limit > 0:
+        txt_files = txt_files[:limit]
     
     # Return DataSet
     return DataSet(txt_files, thread_count, batch_size, numcep, numcontext)
