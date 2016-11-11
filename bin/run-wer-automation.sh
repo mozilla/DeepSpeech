@@ -17,4 +17,9 @@ export ds_training_iters
 ds_validation_step=15
 export ds_validation_step
 
+ds_export_dir="/data/exports/`git rev-parse --short HEAD`"
+export ds_export_dir
+
 jupyter-nbconvert --to script DeepSpeech.ipynb --stdout | python
+
+ln -sf $ds_export_dir $ds_export_dir/../latest
