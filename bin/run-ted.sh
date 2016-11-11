@@ -2,7 +2,7 @@
 
 set -xe
 
-ds_dataset_path="./data/ted/"
+ds_dataset_path="/data/LIUM/"
 export ds_dataset_path
 
 ds_importer="ted"
