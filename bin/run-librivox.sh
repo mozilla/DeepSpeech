@@ -2,7 +2,7 @@
 
 set -xe
 
-ds_dataset_path="./data/librivox/"
+ds_dataset_path="/data/OpenSLR/"
 export ds_dataset_path
 
 ds_importer="librivox"
