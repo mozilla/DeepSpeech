@@ -91,7 +91,7 @@ class DataSet(object):
         return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
 
 
-def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=1):
+def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=1, limit_dev=0, limit_test=0, limit_train=0):
     # Conditionally download data
     LDC93S1_BASE = "LDC93S1"
     LDC93S1_BASE_URL = "https://catalog.ldc.upenn.edu/desc/addenda/"
