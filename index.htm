@@ -153,7 +153,7 @@
 
             var yAxis = new Rickshaw.Graph.Axis.Y({
                 graph: graph,
-                tickFormat: function(x) { return (x * 100) + '%'; },
+                tickFormat: function(y) { return (y * 100).toFixed(0) + '%'; },
                 ticksTreatment: ticksTreatment
             });
 
