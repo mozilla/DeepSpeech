@@ -105,6 +105,9 @@
                         return new Date(x * 1000.0).toString();
                     else
                         return x;
+                },
+                yFormatter: function(y) {
+                    return (y * 100).toFixed(2) + '%';
                 }
             });
 
@@ -150,7 +153,7 @@
 
             var yAxis = new Rickshaw.Graph.Axis.Y({
                 graph: graph,
-                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                tickFormat: function(y) { return (y * 100).toFixed(0) + '%'; },
                 ticksTreatment: ticksTreatment
             });
 
@@ -181,18 +184,23 @@
                 new Date(item.context.time_started).getTime() / 1000.0;
             item.context.time_finished =
                 new Date(item.context.time_finished).getTime() / 1000.0;
-            overall_test_wer        .push({ x: time, y: item.results.test_wer * 100 });
-            overall_validation_wer  .push({ x: time, y: item.results.last_validation_wer * 100 });
-            overall_train_wer       .push({ x: time, y: item.results.last_train_wer * 100 });
+            overall_test_wer        .push({ x: time, y: item.results.test_wer });
+            overall_validation_wer  .push({ x: time, y: item.results.last_validation_wer });
+            overall_train_wer       .push({ x: time, y: item.results.last_train_wer });
             times.push(time);
         });
 
-        const stdtext = 'Lower is better. Please use the legend for turning on/off data series.';
+        const stdtext =
+            'The Y axis plots the mean word error rate WER (of the training\'s last epoch). ' +
+            'Lower is better: 0% WER equates to "all words were understood correctly", ' +
+            'while 100% WER equates to "every single word was wrong". ' +
+            'Percentages greater than 100% may occur, if the "understood" phrase got longer than the original one. ' +
+            'Please use the legend for turning on/off data series.';
 
         createChart(
             'overall_wer',
             'DeepSpeech Word Error Rate over time',
-            stdtext,
+            'The X axis plots all trainings by their start times. ' + stdtext,
             [
                 { color: 'rgba(100,100,255,0.5)', data: overall_validation_wer, name: 'Train WER' },
                 { color: 'rgba(255,100,100,0.5)', data: overall_train_wer, name: 'Validate WER' },
@@ -217,7 +225,7 @@
                 var o = {};
                 group.forEach(item => o[item.parameters[param]] = item.results.last_validation_wer);
                 return {
-                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] * 100 })),
+                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] })),
                     parameters: group[0].parameters,
                     context: group[0].context
                 };
@@ -246,7 +254,7 @@
                     });
                 });
 
-                createChart(id, title, stdtext, series, false);
+                createChart(id, title, 'The X axis plots all trainings by the value of ' + title + '. ' + stdtext, series, false);
             }
         });
 
