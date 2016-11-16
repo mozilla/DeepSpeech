@@ -19,4 +19,4 @@ if [ ! -f DeepSpeech.ipynb ]; then
     exit 1
 fi;
 
-jupyter-nbconvert --to script DeepSpeech.ipynb --stdout | python
+jupyter-nbconvert --to script DeepSpeech.ipynb --stdout | python -u
