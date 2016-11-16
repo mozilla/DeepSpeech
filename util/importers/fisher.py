@@ -13,7 +13,7 @@ from Queue import PriorityQueue
 from threading import Thread
 from util.audio import audiofile_to_input_vector
 from util.gpu import get_available_gpus
-from util.text import text_to_char_array, ctc_label_dense_to_sparse, validate_label
+from util.text import text_to_char_array, validate_label
 
 class DataSets(object):
     def __init__(self, train, dev, test):
@@ -93,8 +93,7 @@ class DataSet(object):
     
     def next_batch(self):
         source, source_lengths, target, target_lengths = self._example_queue.dequeue_many(self._batch_size)
-        sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, self._batch_size)
-        return source, source_lengths, sparse_labels
+        return source, source_lengths, target, target_lengths
     
     @property
     def total_batches(self):
