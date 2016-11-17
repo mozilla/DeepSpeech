@@ -8,7 +8,7 @@ export ds_dataset_path
 ds_importer="ted"
 export ds_importer
 
-ds_batch_size=48
+ds_batch_size=40
 export ds_batch_size
 
 ds_training_iters=30
@@ -22,6 +22,12 @@ export ds_learning_rate
 
 ds_display_step=10
 export ds_display_step
+
+ds_dropout_rate=0.0
+export ds_dropout_rate
+
+ds_default_stddev=0.05
+export ds_default_stddev
 
 ds_export_dir="/data/exports/`git rev-parse --short HEAD`"
 export ds_export_dir
