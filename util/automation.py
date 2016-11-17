@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
 import json
 import os
 import git
@@ -6,9 +10,20 @@ import sys
 import shutil
 import subprocess
 import datetime
+import copy
+import csv
 
 from glob import glob
 from xdg import BaseDirectory
+from threading import Thread
+from time import time
+from scipy.interpolate import spline
+
+# Do this to be able to use without X
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
 
 GITHUB_API_BASE        = 'https://api.github.com'
 MOZILLA_GITHUB_ACCOUNT = os.environ.get('ds_github_account', 'mozilla')
@@ -23,6 +38,142 @@ SHA1FILE  = os.path.join(CACHE_DIR, 'last_sha1')
 
 DATA_DIR  = os.path.join(BaseDirectory.xdg_data_home, 'deepspeech_wer')
 CKPT_DIR  = os.path.join(DATA_DIR, 'checkpoint')
+
+class GPUUsage(Thread):
+    def __init__(self, csvfile=None):
+        super(GPUUsage, self).__init__()
+
+        self._cmd        = [ 'nvidia-smi', 'dmon', '-d', '1', '-s', 'pucvmet' ]
+        self._names      = []
+        self._units      = []
+        self._process    = None
+
+        self._csv_output = csvfile or os.environ.get('ds_gpu_usage_csv', self.make_basename(prefix='ds-gpu-usage', extension='csv'))
+
+    def make_basename(self, prefix, extension):
+        # Let us assume that this code is executed in the current git clone
+        return '%s.%s.%s.%s' % (prefix, git.Repo('.').git.describe('--always', '--dirty', '--abbrev'), int(time()), extension)
+
+    def stop(self):
+        if not self._process:
+            print "Trying to stop nvidia-smi but no more process, please fix."
+            return
+
+        print "Ending nvidia-smi monitoring: PID", self._process.pid
+        self._process.terminate()
+        print "Ended nvidia-smi monitoring ..."
+
+    def run(self):
+        print "Starting nvidia-smi monitoring"
+
+        # If the system has no CUDA setup, then this will fail.
+        try:
+            self._process = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
+        except OSError as ex:
+            print "Unable to start monitoring, check your environment:", ex
+            return
+
+        writer = None
+        with open(self._csv_output, 'w') as f:
+            for line in iter(self._process.stdout.readline, ''):
+                d = self.ingest(line)
+
+                if line.startswith('# '):
+                    if len(self._names) == 0:
+                        self._names = d
+                        writer = csv.DictWriter(f, delimiter=str(','), quotechar=str('"'), fieldnames=d)
+                        writer.writeheader()
+                        continue
+                    if len(self._units) == 0:
+                        self._units = d
+                        continue
+                else:
+                    assert len(self._names) == len(self._units)
+                    assert len(d) == len(self._names)
+                    assert len(d) > 1
+                    writer.writerow(self.merge_line(d))
+                    f.flush()
+
+    def ingest(self, line):
+        return map(lambda x: x.replace('-', '0'), filter(lambda x: len(x) > 0, map(lambda x: x.strip(), line.split(' ')[1:])))
+
+    def merge_line(self, line):
+        return dict(zip(self._names, line))
+
+class GPUUsageChart():
+    def __init__(self, source, basename=None):
+        self._rows    = [ 'pwr', 'temp', 'sm', 'mem']
+        self._titles  = {
+            'pwr':  "Power (W)",
+            'temp': "Temperature (°C)",
+            'sm':   "Streaming Multiprocessors (%)",
+            'mem':  "Memory (%)"
+        }
+        self._data     = { }.fromkeys(self._rows)
+        self._csv      = source
+        self._basename = basename or os.environ.get('ds_gpu_usage_charts', 'gpu_usage_%%s_%d.png' % int(time.time()))
+
+        # This should make sure we start from anything clean.
+        plt.close("all")
+
+        try:
+            self.read()
+            for plot in self._rows:
+                self.produce_plot(plot)
+        except IOError as ex:
+            print "Unable to read", ex
+
+    def append_data(self, row):
+        for bucket, value in row.iteritems():
+            if not bucket in self._rows:
+                continue
+
+            if not self._data[bucket]:
+                self._data[bucket] = {}
+
+            gpu = int(row['gpu'])
+            if not self._data[bucket].has_key(gpu):
+                self._data[bucket][gpu]  = [ value ]
+            else:
+                self._data[bucket][gpu] += [ value ]
+
+    def read(self):
+        print "Reading data from", self._csv
+        with open(self._csv, 'r') as f:
+            for r in csv.DictReader(f):
+                self.append_data(r)
+
+    def produce_plot(self, key, with_spline=True):
+        png = self._basename % (key, )
+        print "Producing plot for", key, "as", png
+        fig, axis = plt.subplots()
+        data = self._data[key]
+        if data is None:
+            print "Data was empty, aborting"
+            return
+
+        x = range(len(data[0]))
+        if with_spline:
+            x = map(lambda x: float(x), x)
+            x_sm = np.array(x)
+            x_smooth = np.linspace(x_sm.min(), x_sm.max(), 300)
+
+        for gpu, y in data.iteritems():
+            if with_spline:
+                y = map(lambda x: float(x), y)
+                y_sm = np.array(y)
+                y_smooth = spline(x, y, x_smooth, order=1)
+                axis.plot(x_smooth, y_smooth, label='GPU %d' % (gpu))
+            else:
+                axis.plot(x, y, label='GPU %d' % (gpu))
+
+        axis.legend(loc="upper right", frameon=False)
+        axis.set_xlabel("Time (s)")
+        axis.set_ylabel("%s" % self._titles[key])
+        fig.set_size_inches(24, 18)
+        plt.title("GPU Usage: %s" % self._titles[key])
+        plt.savefig(png, dpi=100)
+        plt.close(fig)
 
 def try_get_lock():
     """
@@ -153,6 +304,22 @@ def get_new_commits(sha1_from):
     # Should not happen
     return None, r.status_code
 
+def get_git_repo_path():
+    """
+    Build the path to git repo
+    """
+    return os.path.join(DEEPSPEECH_CLONE_PATH, '.git')
+
+def get_git_desc():
+    """
+    Produce git --describe --always --abbrev --dirty from git repo
+    """
+
+    gitdir = get_git_repo_path()
+    assert os.path.isdir(gitdir)
+
+    return git.Repo(gitdir).git.describe('--always', '--dirty', '--abbrev')
+
 def ensure_git_clone(sha):
     """
     Ensure that there is an existing git clone of the root repo and make sure we
@@ -161,8 +328,7 @@ def ensure_git_clone(sha):
     We will wipe everything after the run(s).
     """
 
-    gitdir = os.path.join(DEEPSPEECH_CLONE_PATH, '.git')
-
+    gitdir = get_git_repo_path()
     # If non-existent, create a clone
     if not os.path.isdir(gitdir):
         source = get_github_repo_url()
@@ -235,6 +401,28 @@ def save_logs():
             os.makedirs(os.path.dirname(final_path))
         shutil.copy(hyperJson, final_path)
 
+def ensure_gpu_usage(root_dir):
+    """
+    Prepare storing of GPU usage CSV file and PNG charts. Will use the directory
+    specified within ds_gpu_usage_root as a root.
+
+    Returns two strings to build env
+    """
+
+    gpu_usage_root = os.path.abspath(os.environ.get('ds_gpu_usage_root', root_dir))
+    gpu_usage_path = os.path.join(gpu_usage_root, get_git_desc())
+
+    print "Will produce CSV and charts in %s" % gpu_usage_path
+    if not os.path.isdir(gpu_usage_path):
+        os.makedirs(gpu_usage_path)
+
+    rundate = int(time())
+
+    ds_gpu_usage_csv    = os.path.join(gpu_usage_path, 'gpu-usage-%d.csv' % rundate)
+    ds_gpu_usage_charts = os.path.join(gpu_usage_path, 'gpu-usage-%d-%%s.png' % rundate)
+
+    return ds_gpu_usage_csv, ds_gpu_usage_charts
+
 def exec_wer_run():
     """
     Execute one run, blocking for the completion of the process. We default
@@ -254,8 +442,11 @@ def exec_wer_run():
     if not os.path.isfile(ds_script):
         raise Exception('invalid-script')
 
+    # Copy current process environment to be able to augment it
+    local_env = copy.deepcopy(os.environ)
+
     # Force automation to use a user-local checkpoint dir
-    local_env = os.environ.update({'ds_checkpoint_dir': CKPT_DIR})
+    local_env.update({'ds_checkpoint_dir': CKPT_DIR})
 
     # Pass the current environment, it is required for user to supply the upload
     # informations used by the notebook, and it also makes us able to run all
@@ -269,71 +460,91 @@ def exec_wer_run():
 # TO A PARALLEL UNIVERSE #
 ##########################
 
-try_get_lock()
+def exec_main():
+    """
+    This is the main function. We isolate it to be able to load automation as a
+    module from other places
+    """
 
-# Allow user to force a SHA1 from env, mostly for testing purpose without
-# putting pressure on Github API (anon is rate-limited to 60 reqs/hr from the
-# same IP address.
-try:
-    sha_to_run = os.environ.get('ds_automation_force_sha').split(',')
-except:
-    sha_to_run = [ ]
+    try_get_lock()
 
-# ensure we have a real dir name
-assert len(DEEPSPEECH_CLONE_PATH) > 3
-assert os.path.isabs(DEEPSPEECH_CLONE_PATH)
+    # Allow user to force a SHA1 from env, mostly for testing purpose without
+    # putting pressure on Github API (anon is rate-limited to 60 reqs/hr from the
+    # same IP address.
+    try:
+        sha_to_run = os.environ.get('ds_automation_force_sha').split(',')
+    except:
+        sha_to_run = [ ]
 
-if len(sha_to_run) == 0:
-    current = get_last_sha1()
-    if len(current) == 40:
-        print 'Existing SHA1:', current, 'fetching changes'
-        sha_to_run, rt = get_new_commits(current)
-        if sha_to_run is not None and len(sha_to_run) is 0:
-            print "No new SHA1, got HTTP status:", rt
-            sys_exit_safe()
-        elif sha_to_run is None:
-            print "Something went badly wrong, unable to use Github compare"
-            sys_exit_safe()
+    # ensure we have a real dir name
+    assert len(DEEPSPEECH_CLONE_PATH) > 3
+    assert os.path.isabs(DEEPSPEECH_CLONE_PATH)
+
+    if len(sha_to_run) == 0:
+        current = get_last_sha1()
+        if len(current) == 40:
+            print 'Existing SHA1:', current, 'fetching changes'
+            sha_to_run, rt = get_new_commits(current)
+            if sha_to_run is not None and len(sha_to_run) is 0:
+                print "No new SHA1, got HTTP status:", rt
+                sys_exit_safe()
+            elif sha_to_run is None:
+                print "Something went badly wrong, unable to use Github compare"
+                sys_exit_safe()
+        else:
+            # Ok, we do not have an existing SHA1, let us get one
+            print 'No pre-existing SHA1, fetching refs'
+            sha1, rt = get_current_sha1()
+            if sha1 is None:
+                print "No SHA1, got HTTP status:", rt
+                sys_exit_safe()
+            sha_to_run = [ sha1 ]
     else:
-        # Ok, we do not have an existing SHA1, let us get one
-        print 'No pre-existing SHA1, fetching refs'
-        sha1, rt = get_current_sha1()
-        if sha1 is None:
-            print "No SHA1, got HTTP status:", rt
+        print "Using forced SHA1 from env"
+
+    print "Will execute for", sha_to_run
+
+    for sha in sha_to_run:
+        if not ensure_git_clone(sha):
+            print "Error with git repo handling."
             sys_exit_safe()
-        sha_to_run = [ sha1 ]
-else:
-    print "Using forced SHA1 from env"
 
-print "Will execute for", sha_to_run
+        print "Ready for", sha
 
-for sha in sha_to_run:
-    if not ensure_git_clone(sha):
-        print "Error with git repo handling."
-        sys_exit_safe()
+        print "Let us place ourselves into the git clone directory ..."
+        root_dir = os.getcwd()
+        os.chdir(DEEPSPEECH_CLONE_PATH)
 
-    print "Ready for", sha
+        print "Copy previous run logs from backup"
+        populate_previous_logs()
 
-    print "Let us place ourselves into the git clone directory ..."
-    root_dir = os.getcwd()
-    os.chdir(DEEPSPEECH_CLONE_PATH)
+        print "Starting GPU nvidia-smi monitoring"
+        gpu_usage_csv, gpu_usage_charts = ensure_gpu_usage(root_dir)
+        gu = GPUUsage(csvfile=gpu_usage_csv)
+        gu.start()
 
-    print "Copy previous run logs from backup"
-    populate_previous_logs()
+        print "Do the training for getting WER computation"
+        exec_wer_run()
 
-    print "Do the training for getting WER computation"
-    exec_wer_run()
+        print "Producing GPU monitoring charts"
+        gu.join(5.0)
+        gu.stop()
+        GPUUsageChart(source=gpu_usage_csv, basename=gpu_usage_charts)
 
-    print "Backup the logs we just produced"
-    save_logs()
+        print "Backup the logs we just produced"
+        save_logs()
 
-    print "Save progress"
-    write_last_sha1(sha)
+        print "Save progress"
+        write_last_sha1(sha)
 
-    print "Let us place back to the previous directory %s ..." % root_dir
-    os.chdir(root_dir)
+        print "Let us place back to the previous directory %s ..." % root_dir
+        os.chdir(root_dir)
 
-print "Getting rid of git clone"
-wipe_git_clone()
+    print "Getting rid of git clone"
+    wipe_git_clone()
 
-release_lock()
+    release_lock()
+
+# Only execute when triggered directly. If loaded as a module don't do this.
+if __name__ == "__main__":
+    exec_main()
