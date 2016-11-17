@@ -8,7 +8,7 @@ export ds_dataset_path
 ds_importer="ted"
 export ds_importer
 
-ds_batch_size=64
+ds_batch_size=48
 export ds_batch_size
 
 ds_training_iters=30
