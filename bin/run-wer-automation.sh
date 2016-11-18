@@ -11,7 +11,7 @@ export ds_importer
 ds_batch_size=40
 export ds_batch_size
 
-ds_training_iters=30
+ds_training_iters=50
 export ds_training_iters
 
 ds_validation_step=15
