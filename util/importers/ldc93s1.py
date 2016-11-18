@@ -82,7 +82,8 @@ class DataSet(object):
 
     def next_batch(self):
         source, source_lengths, target, target_lengths = self._example_queue.dequeue_many(self._batch_size)
-        return source, source_lengths, target, target_lengths
+        sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, self._batch_size)
+        return source, source_lengths, sparse_labels
 
     @property
     def total_batches(self):
