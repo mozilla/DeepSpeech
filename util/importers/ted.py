@@ -75,6 +75,7 @@ class DataSet(object):
         for batch_thread in batch_threads:
             batch_thread.daemon = True
             batch_thread.start()
+        return batch_threads
 
     def _create_files_circular_list(self):
         priorityQueue = PriorityQueue()
@@ -98,11 +99,14 @@ class DataSet(object):
                 target = unicodedata.normalize("NFKD", open_txt_file.read()).encode("ascii", "ignore")
                 target = text_to_char_array(target)
             target_len = len(target)
-            session.run(self._enqueue_op, feed_dict={
-                self._x: source,
-                self._x_length: source_len,
-                self._y: target,
-                self._y_length: target_len})
+            try:
+                session.run(self._enqueue_op, feed_dict={
+                    self._x: source,
+                    self._x_length: source_len,
+                    self._y: target,
+                    self._y_length: target_len})
+            except (RuntimeError, tf.errors.CancelledError):
+                return
 
     def next_batch(self):
         source, source_lengths, target, target_lengths = self._example_queue.dequeue_many(self._batch_size)

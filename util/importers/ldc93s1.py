@@ -57,13 +57,14 @@ class DataSet(object):
         for batch_thread in batch_threads:
             batch_thread.daemon = True
             batch_thread.start()
+        return batch_threads
 
     def _compute_source_target(self):
         txt_file = self._txt_files[0]
         wav_file = path.splitext(txt_file)[0] + ".wav"
 
         audio_waves = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
-        
+
         with open(txt_file) as open_txt_file:
             original = ' '.join(open_txt_file.read().strip().lower().split(' ')[2:]).replace('.', '')
 
@@ -74,11 +75,14 @@ class DataSet(object):
     def _populate_batch_queue(self, session):
         source, source_len, target, target_len = self._compute_source_target()
         while True:
-            session.run(self._enqueue_op, feed_dict={
-                self._x: source,
-                self._x_length: source_len,
-                self._y: target,
-                self._y_length: target_len})
+            try:
+                session.run(self._enqueue_op, feed_dict={
+                    self._x: source,
+                    self._x_length: source_len,
+                    self._y: target,
+                    self._y_length: target_len})
+            except (RuntimeError, tf.errors.CancelledError):
+                return
 
     def next_batch(self):
         source, source_lengths, target, target_lengths = self._example_queue.dequeue_many(self._batch_size)
