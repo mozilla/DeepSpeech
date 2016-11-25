@@ -50,7 +50,7 @@ class DataSets(object):
         return self._test
 
 class DataSet(object):
-    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext):
+    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext, limit=0):
         self._numcep = numcep
         self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
         self._x_length = tf.placeholder(tf.int32, [])
@@ -65,6 +65,9 @@ class DataSet(object):
         self._numcontext = numcontext
         self._thread_count = thread_count
         self._files_circular_list = self._create_files_circular_list()
+        self._limit = limit
+        if limit is 0:
+            self._limit = len(txt_files)
 
     def _get_device_count(self):
         available_gpus = get_available_gpus()
@@ -112,10 +115,10 @@ class DataSet(object):
     @property
     def total_batches(self):
         # Note: If len(_txt_files) % _batch_size != 0, this re-uses initial _txt_files
-        return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
+        return int(ceil(float(self._limit) /float(self._batch_size)))
 
 
-def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0):
+def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8, limits=(0, 0, 0), rotate=True):
     # Conditionally download data
     TED_DATA = "TEDLIUM_release2.tar.gz"
     TED_DATA_URL = "http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz"
@@ -135,13 +138,13 @@ def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=8, lim
     _maybe_split_stm(data_dir, TED_DIR)
 
     # Create dev DataSet
-    dev = _read_data_set(data_dir, TED_DIR, "dev", thread_count, batch_size, numcep, numcontext, limit=limit_dev)
+    dev = _read_data_set(data_dir, TED_DIR, "dev", thread_count, batch_size, numcep, numcontext, limit=limits[0], rotate=rotate)
 
     # Create test DataSet
-    test = _read_data_set(data_dir, TED_DIR, "test", thread_count, batch_size, numcep, numcontext, limit=limit_test)
+    test = _read_data_set(data_dir, TED_DIR, "test", thread_count, batch_size, numcep, numcontext, limit=limits[1], rotate=rotate)
 
     # Create train DataSet
-    train = _read_data_set(data_dir, TED_DIR, "train", thread_count, batch_size, numcep, numcontext, limit=limit_train)
+    train = _read_data_set(data_dir, TED_DIR, "train", thread_count, batch_size, numcep, numcontext, limit=limits[2], rotate=rotate)
 
     # Return DataSets
     return DataSets(train, dev, test)
@@ -288,14 +291,15 @@ def _maybe_split_stm_dataset(extracted_dir, data_set):
         # Remove stm_file
         remove(stm_file)
 
-def _read_data_set(data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext, limit=0):
+def _read_data_set(data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext, limit=0, rotate=True):
     # Create stm dir
     stm_dir = path.join(data_dir, extracted_data, data_set, "stm")
 
     # Obtain list of txt files
     txt_files = glob(path.join(stm_dir, "*.txt"))
-    if limit > 0:
+    if limit > 0 and rotate is False:
         txt_files = txt_files[:limit]
+        limit = 0
 
     # Return DataSet
-    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext)
+    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, limit)
