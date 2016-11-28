@@ -8,8 +8,14 @@ export ds_dataset_path
 ds_importer="librivox"
 export ds_importer
 
-ds_batch_size=32
-export ds_batch_size
+ds_train_batch_size=32
+export ds_train_batch_size
+
+ds_dev_batch_size=32
+export ds_dev_batch_size
+
+ds_test_batch_size=32
+export ds_test_batch_size
 
 ds_training_iters=15
 export ds_training_iters
