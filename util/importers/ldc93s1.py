@@ -95,7 +95,7 @@ class DataSet(object):
         return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
 
 
-def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=1, limit_dev=0, limit_test=0, limit_train=0):
+def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=1, limit_dev=0, limit_test=0, limit_train=0):
     # Conditionally download data
     LDC93S1_BASE = "LDC93S1"
     LDC93S1_BASE_URL = "https://catalog.ldc.upenn.edu/desc/addenda/"
@@ -103,7 +103,9 @@ def read_data_sets(data_dir, batch_size, numcep, numcontext, thread_count=1, lim
     _ = base.maybe_download(LDC93S1_BASE + ".txt", data_dir, LDC93S1_BASE_URL + LDC93S1_BASE + ".txt")
 
     # Create all DataSets, we do not really need separation
-    train = dev = test = _read_data_set(data_dir, thread_count, batch_size, numcep, numcontext)
+    train = _read_data_set(data_dir, thread_count, train_batch_size, numcep, numcontext)
+    dev   = _read_data_set(data_dir, thread_count, dev_batch_size, numcep, numcontext)
+    test  = _read_data_set(data_dir, thread_count, test_batch_size, numcep, numcontext)
 
     # Return DataSets
     return DataSets(train, dev, test)
