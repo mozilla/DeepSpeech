@@ -8,13 +8,19 @@ export ds_dataset_path
 ds_importer="ted"
 export ds_importer
 
-ds_batch_size=48
-export ds_batch_size
+ds_train_batch_size=48
+export ds_train_batch_size
+
+ds_dev_batch_size=32
+export ds_dev_batch_size
+
+ds_test_batch_size=32
+export ds_test_batch_size
 
 ds_training_iters=100
 export ds_training_iters
 
-ds_validation_step=200
+ds_validation_step=20
 export ds_validation_step
 
 ds_learning_rate=0.001
@@ -32,7 +38,7 @@ export ds_default_stddev
 ds_use_warpctc=1
 export ds_use_warpctc
 
-ds_checkpoint_step=5
+ds_checkpoint_step=1
 export ds_checkpoint_step
 
 ds_export_dir="/data/exports/`git rev-parse --short HEAD`"

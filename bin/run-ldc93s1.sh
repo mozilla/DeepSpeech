@@ -8,8 +8,14 @@ export ds_dataset_path
 ds_importer="ldc93s1"
 export ds_importer
 
-ds_batch_size=4
-export ds_batch_size
+ds_train_batch_size=4
+export ds_train_batch_size
+
+ds_dev_batch_size=4
+export ds_dev_batch_size
+
+ds_test_batch_size=4
+export ds_test_batch_size
 
 ds_training_iters=5
 export ds_training_iters
