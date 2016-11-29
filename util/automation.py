@@ -33,11 +33,20 @@ DEEPSPEECH_GITHUB_REF  = os.environ.get('ds_github_ref',     'refs/heads/wer-tra
 DEEPSPEECH_CLONE_PATH  = os.path.abspath(os.environ.get('ds_clone_path', './ds_exec_clone/'))
 
 CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'deepspeech_wer')
+DATA_DIR  = os.path.join(BaseDirectory.xdg_data_home, 'deepspeech_wer')
+
+# Lock file to prevent execution: avoid multiple simultaneous execution, blocks
+# execution if needed
 LOCKFILE  = os.path.join(CACHE_DIR, 'lock')
+
+# File holding the last SHA1 we processed
 SHA1FILE  = os.path.join(CACHE_DIR, 'last_sha1')
 
-DATA_DIR  = os.path.join(BaseDirectory.xdg_data_home, 'deepspeech_wer')
-CKPT_DIR  = os.path.join(DATA_DIR, 'checkpoint')
+# Checkpoint to force restore, should point to a valid checkpoint directory
+CKPTFILE  = os.path.join(CACHE_DIR, 'checkpoint_file')
+
+# Checkpoint base dir, will output in subdir based on git sha1
+CKPT_BASE_DIR  = os.path.join(DATA_DIR, 'checkpoint')
 
 class GPUUsage(Thread):
     def __init__(self, csvfile=None):
@@ -220,8 +229,6 @@ def sys_exit_safe(rcode=1):
 def get_last_sha1():
     # Let us create empty file in case nothing exists
     if not os.path.isfile(SHA1FILE):
-        if not os.path.isdir(CACHE_DIR):
-            os.makedirs(CACHE_DIR)
         with open(SHA1FILE, 'w') as fd:
             fd.write('')
 
@@ -367,10 +374,6 @@ def populate_previous_logs():
     If the target directory exists, it means we probably already have everything
     """
 
-    # Creating holding directory if needed
-    if not os.path.isdir(DATA_DIR):
-        os.makedirs(DATA_DIR)
-
     src_logs_dir = os.path.join(DATA_DIR, 'logs')
     dst_logs_dir = os.path.join(DEEPSPEECH_CLONE_PATH, 'logs')
     if not os.path.isdir(src_logs_dir):
@@ -389,9 +392,6 @@ def save_logs():
     Copy the logs that have been produced by the WER run to the backup location
     We will just take hyper.json files
     """
-    # Creating holding directory if needed
-    if not os.path.isdir(DATA_DIR):
-        os.makedirs(DATA_DIR)
 
     src_logs_dir = os.path.join(DEEPSPEECH_CLONE_PATH, 'logs')
     glob_mask    = '%s/*/hyper.json' % src_logs_dir
@@ -423,30 +423,73 @@ def ensure_gpu_usage(root_dir):
 
     return ds_gpu_usage_csv, ds_gpu_usage_charts
 
+def ensure_checkpoint_directory():
+    """
+    Take care of handling checkpoint directory:
+      - setting proper value
+      - handling of force restore file
+    """
+
+    # Defaulting to re-using checkpoint from the same SHA1 directory, but setting
+    # the checkpoint_restore boolean only of the directory actually exists
+    # If it exists but it is empty, then notebook will likely fail.
+    checkpoint_dir     = os.path.join(CKPT_BASE_DIR, get_git_desc())
+    checkpoint_restore = False
+
+    # Check if a force restore checkpoint file exists
+    if os.path.isfile(CKPTFILE):
+        with open(CKPTFILE, 'r') as ckpt_file:
+            maybe_checkpoint_dir = ckpt_file.read().strip()
+
+        # This file is intended to be a one-time use, let us remove it whatever
+        # happens after. It is up to the user to re-set it. This is to avoid
+        # restarting from a past checkpoint if not explicitely done on purpose.
+        os.unlink(CKPTFILE)
+
+        # Make sure the targetted path actually exists.
+        # We check here to not change the value of checkpoint_dir in case
+        # it does not exists.
+        # If it actually exists, the later os.path.isdir(checkpoint_dir) will
+        # take care of setting the checkpoint_restore value
+        print "Trying with maybe_checkpoint_dir", maybe_checkpoint_dir
+        if not os.path.isdir(maybe_checkpoint_dir):
+            print "Trying to force-restore checkpoint from non-existent directory", maybe_checkpoint_dir
+        else:
+            checkpoint_dir = maybe_checkpoint_dir
+
+    # Create if non existent
+    if not os.path.isdir(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+    else:
+        print "Found existing checkpoint dir, re-using it"
+        checkpoint_restore = True
+
+    print "Ensured checkpoint infos: ", checkpoint_dir, checkpoint_restore
+
+    return checkpoint_dir, checkpoint_restore
+
 def exec_wer_run():
     """
     Execute one run, blocking for the completion of the process. We default
     to ./bin/run-wer-automation.sh
-    We also create a clean checkpoint directory in local user dir
     """
-
-    # Creating holding directory if needed
-    if not os.path.isdir(DATA_DIR):
-        os.makedirs(DATA_DIR)
-
-    # Create if non existent
-    if not os.path.isdir(CKPT_DIR):
-        os.makedirs(CKPT_DIR)
 
     ds_script = os.environ.get('ds_wer_automation', './bin/run-wer-automation.sh')
     if not os.path.isfile(ds_script):
         raise Exception('invalid-script')
 
+    # Collect expected checkpoint directory depending on what the user wants
+    # defaulting to re-using checkpoint from the same SHA1
+    ckpt_dir, force_ckpt_restore = ensure_checkpoint_directory()
+
     # Copy current process environment to be able to augment it
     local_env = copy.deepcopy(os.environ)
 
     # Force automation to use a user-local checkpoint dir
-    local_env.update({'ds_checkpoint_dir': CKPT_DIR})
+    local_env.update({
+        'ds_checkpoint_dir':     ckpt_dir,
+        'ds_restore_checkpoint': "1" if force_ckpt_restore else "0"
+    })
 
     # Pass the current environment, it is required for user to supply the upload
     # informations used by the notebook, and it also makes us able to run all
@@ -479,6 +522,13 @@ def exec_main():
     # ensure we have a real dir name
     assert len(DEEPSPEECH_CLONE_PATH) > 3
     assert os.path.isabs(DEEPSPEECH_CLONE_PATH)
+
+    # Creating holding directories if needed
+    if not os.path.isdir(CACHE_DIR):
+        os.makedirs(CACHE_DIR)
+
+    if not os.path.isdir(DATA_DIR):
+        os.makedirs(DATA_DIR)
 
     if len(sha_to_run) == 0:
         current = get_last_sha1()
