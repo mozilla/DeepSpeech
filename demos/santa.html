@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>DeepSpeech Talking Santa</title>
+    <meta charset="UTF-8">
+    <script>
+      window.onload = function() {
+        var talking = false;
+        var synth = window.speechSynthesis;
+        var mic = document.getElementById('mic');
+        var head = document.getElementById('head');
+        window.s = new WebSocket('ws://localhost:9876/');
+        var lastText = null;
+
+        window.talk = function(text) {
+          if (talking) {
+            return;
+          }
+
+          console.log('Saying: ' + text);
+
+          utt = new SpeechSynthesisUtterance(text);
+          utt.pitch = 2.5;
+          utt.rate = 1.5;
+
+          synth.speak(utt);
+
+          talking = true;
+          s.send('STOP');
+          head.classList.toggle('talking', true);
+          utt.onend = function() {
+            talking = false;
+            head.classList.toggle('talking', false);
+            s.send('START');
+          }
+        };
+
+        s.onopen = function(e) { console.log('Connected:', e); }
+        s.onclose = function(e) { console.log('Connection closed:', e); }
+        s.onerror = function(e) { console.error('Error:', e); }
+        s.onmessage = function(e) {
+          if (e.data == 'END') {
+            if (lastText) {
+              talk(lastText);
+              lastText = null;
+            }
+            mic.classList.toggle('recording', false);
+            return;
+          } else if (e.data == 'RECORD') {
+            mic.classList.toggle('recording', true);
+            return;
+          }
+          lastText = e.data;
+        }
+      };
+    </script>
+    <style>
+      html {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      div.word {
+        display: block;
+        animation: 0.5s ease-in forwards fade-in;
+        font-size: 3vw;
+        margin: 2vw;
+        font-family: sans;
+        font-weight: 600;
+      }
+
+      #head, #mouth {
+        position: fixed;
+        width: 50vw;
+        top: 50%;
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, -50%);
+      }
+
+      #head {
+        z-index: 1;
+        animation: unset;
+      }
+
+      #head.talking {
+        animation: steps(10) 1s infinite talking;
+      }
+
+      @keyframes talking {
+        0% { transform: translate(-50%, -50%); }
+        10% { transform: translate(-50%, -55%) rotate(-20deg); }
+        20% { transform: translate(-50%, -55%) rotate(10deg); }
+        30% { transform: translate(-50%, -50%) rotate(20deg); }
+        40% { transform: translate(-50%, -55%) rotate(-10deg); }
+        50% { transform: translate(-50%, -50%) rotate(10deg); }
+        60% { transform: translate(-50%, -55%) rotate(20deg); }
+        70% { transform: translate(-50%, -50%) rotate(-20deg); }
+        80% { transform: translate(-50%, -50%) rotate(10deg); }
+        90% { transform: translate(-50%, -55%) rotate(20deg); }
+        100% { transform: translate(-50%, -50%) rotate(-10deg); }
+      }
+
+      #mic {
+        position: fixed;
+        width: 9vw;
+        bottom: 0;
+        right: 3vw;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      #mic.recording {
+        opacity: 1;
+      }
+
+      @keyframes fade-in {
+        from { opacity: 0; } to { opacity: 1; }
+      }
+    </style>
+  </head>
+    <body>
+      <img id='head' src='images/santa-head.png'></img>
+      <img id='mouth' src='images/santa-mouth.png'></img>
+      <img id='mic' src='images/microphone.png'></img>
+    </body>
+</html>

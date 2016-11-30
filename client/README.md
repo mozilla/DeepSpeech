@@ -12,7 +12,7 @@ Create a symbolic link in the Tensorflow Serving checkout to the deepspeech clie
 
 ```
 cd serving
-ln -s ../DeepSpeech/deepspeech_client ./
+ln -s ../DeepSpeech/client ./deepspeech_client
 ```
 
 If you haven't already, you'll need to build the Tensorflow Server.
