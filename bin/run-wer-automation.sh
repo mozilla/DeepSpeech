@@ -17,11 +17,8 @@ export ds_dev_batch_size
 ds_test_batch_size=32
 export ds_test_batch_size
 
-ds_training_iters=100
-export ds_training_iters
-
-ds_validation_step=200
-export ds_validation_step
+ds_epochs=100
+export ds_epochs
 
 ds_learning_rate=0.001
 export ds_learning_rate
