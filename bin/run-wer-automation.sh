@@ -20,9 +20,6 @@ export ds_test_batch_size
 ds_epochs=100
 export ds_epochs
 
-ds_validation_step=200
-export ds_validation_step
-
 ds_learning_rate=0.001
 export ds_learning_rate
 
