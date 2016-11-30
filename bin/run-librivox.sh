@@ -8,7 +8,7 @@ export ds_train_batch_size=32
 export ds_dev_batch_size=32
 export ds_test_batch_size=32
 
-export ds_training_iters=50
+export ds_epochs=50
 export ds_display_step=5
 export ds_checkpoint_step=1
 
