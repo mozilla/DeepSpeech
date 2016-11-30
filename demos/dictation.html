@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>DeepSpeech continuous speech recognition</title>
+    <meta charset="UTF-8">
+    <script>
+      function add_word(text) {
+        var div = document.createElement('div');
+        div.className = 'word';
+        div.innerHTML = text;
+        document.body.appendChild(div);
+        if (window.scrollY !== window.scrollMaxY) {
+          window.scrollTo(0, window.scrollMaxY);
+        }
+        return div;
+      }
+      window.onload = function() {
+        var lastWord = null;
+        var s = new WebSocket('ws://localhost:9876/');
+        s.onopen = function(e) { console.log('Connected:', e); }
+        s.onclose = function(e) { console.log('Connection closed:', e); }
+        s.onerror = function(e) { console.error('Error:', e); }
+
+        var mic = document.getElementById('mic');
+
+        s.onmessage = function(e) {
+          if (e.data == 'END') {
+            lastWord = null;
+            mic.classList.toggle('recording', false);
+            return;
+          } else if (e.data == 'RECORD') {
+            mic.classList.toggle('recording', true);
+            return;
+          }
+          if (lastWord) {
+            lastWord.textContent = e.data;
+          } else {
+            lastWord = add_word(e.data);
+          }
+        }
+      };
+    </script>
+    <style>
+      html {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      div.word {
+        display: block;
+        animation: 0.5s ease-in forwards fade-in;
+        font-size: 3vw;
+        margin: 2vw;
+        font-family: sans;
+        font-weight: 600;
+      }
+
+      #mic {
+        position: fixed;
+        width: 9vw;
+        bottom: 0;
+        right: 3vw;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      #mic.recording {
+        opacity: 1;
+      }
+
+      @keyframes fade-in {
+        from { opacity: 0; } to { opacity: 1; }
+      }
+    </style>
+  </head>
+    <body>
+      <img id='mic' src='images/microphone.png'></img>
+    </body>
+</html>
