@@ -20,7 +20,7 @@ export ds_test_batch_size
 ds_training_iters=100
 export ds_training_iters
 
-ds_validation_step=20
+ds_validation_step=200
 export ds_validation_step
 
 ds_learning_rate=0.001
