@@ -2,26 +2,15 @@
 
 set -xe
 
-ds_dataset_path="/data/OpenSLR/"
-export ds_dataset_path
+export ds_importer="librivox"
 
-ds_importer="librivox"
-export ds_importer
+export ds_train_batch_size=32
+export ds_dev_batch_size=32
+export ds_test_batch_size=32
 
-ds_train_batch_size=32
-export ds_train_batch_size
-
-ds_dev_batch_size=32
-export ds_dev_batch_size
-
-ds_test_batch_size=32
-export ds_test_batch_size
-
-ds_training_iters=15
-export ds_training_iters
-
-ds_validation_step=15
-export ds_validation_step
+export ds_epochs=50
+export ds_display_step=5
+export ds_checkpoint_step=1
 
 if [ ! -f DeepSpeech.ipynb ]; then
     echo "Please make sure you run this from DeepSpeech's top level directory."

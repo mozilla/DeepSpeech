@@ -17,7 +17,7 @@ If you have a capable (nVidia) GPU, it is highly recommended to install TensorFl
 
 ## Training a model
 
-Open a terminal, change to the directory of the DeepSpeech checkout and run `ipython DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can inspect the notebook and alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the training parameters.
+Open a terminal, change to the directory of the DeepSpeech checkout and run `ipython notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can inspect the notebook and alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the training parameters.
 
 Once you are satisfied with the settings, you can begin to train a model by selecting 'Cell' from the notebook menu bar and choosing 'Run All'.
 
