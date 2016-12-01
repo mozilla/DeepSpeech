@@ -12,6 +12,10 @@ Typical usage example:
 
 import os
 import sys
+
+local_tf = os.path.join(os.path.dirname(os.path.dirname(os.path.join(os.path.abspath(__file__)))), 'local_tf')
+sys.path.append(local_tf)
+
 import threading
 from grpc.beta import implementations
 import numpy as np
