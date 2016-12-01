@@ -5,21 +5,23 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 ## Prerequisites
 
 * [TensorFlow](https://www.tensorflow.org/versions/r0.11/get_started/os_setup.html#download-and-setup)
-* [IronPython](http://ironpython.net/download/)
-* [SciPy](http://scipy.org/install.html)
+* [Jupyter/IPython](https://jupyter.org/install.html)
+* [SciPy](https://scipy.org/install.html)
 * [PyXDG](https://pypi.python.org/pypi/pyxdg)
 * [python_speech_features](https://pypi.python.org/pypi/python_speech_features)
-* [python sox] (https://pypi.python.org/pypi/sox)
+* [python sox](https://pypi.python.org/pypi/sox)
 
 ## Recommendations
 
-If you have a capable (nVidia) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU.
+If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU.
 
 ## Training a model
 
-Open a terminal, change to the directory of the DeepSpeech checkout and run `ipython notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can inspect the notebook and alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the training parameters.
+Open a terminal, change to the directory of the DeepSpeech checkout and run `./bin/run-ldc93s1.sh`. This should train the network on [LDC93S1](https://catalog.ldc.upenn.edu/ldc93s1), a small corpus with a single sample, and report progress as the training happens.
 
-Once you are satisfied with the settings, you can begin to train a model by selecting 'Cell' from the notebook menu bar and choosing 'Run All'.
+To inspect the main notebook code, run `jupyter notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the training parameters.
+
+You can also use the other utility scripts in `bin/`, but keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
 
 ## Exporting a model for serving
 
