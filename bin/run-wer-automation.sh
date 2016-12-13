@@ -35,6 +35,9 @@ export ds_dropout_rate
 ds_default_stddev=0.1
 export ds_default_stddev
 
+ds_relu_clip=2.0
+export ds_relu_clip
+
 ds_use_warpctc=1
 export ds_use_warpctc
 
