@@ -455,13 +455,12 @@ def get_tower_results(batch_set, optimizer=None):
         with tf.device(available_devices[i]):
             # Create a scope for all operations of tower i
             with tf.name_scope('tower_%d' % i) as scope:
-                # Calculate the avg_loss and accuracy and retrieve the decoded
-                # batch along with the original batch's labels (Y) of this tower
-                total_loss, avg_loss, distance, accuracy, decoded, labels = \
-                    calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
-
                 # Allow for variables to be re-used by the next tower
-                tf.get_variable_scope().reuse_variables()
+                with tf.variable_scope(tf.get_variable_scope(), reuse=True if i > 0 else None):
+                    # Calculate the avg_loss and accuracy and retrieve the decoded
+                    # batch along with the original batch's labels (Y) of this tower
+                    total_loss, avg_loss, distance, accuracy, decoded, labels = \
+                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
 
                 # Retain tower's labels (Y)
                 tower_labels.append(labels)
