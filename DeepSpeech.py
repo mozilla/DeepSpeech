@@ -450,44 +450,45 @@ def get_tower_results(batch_set, optimizer=None):
     # To calculate the mean of the losses
     tower_avg_losses = []
 
-    # Loop over available_devices
-    for i in xrange(len(available_devices)):
-        # Execute operations of tower i on device i
-        with tf.device(available_devices[i]):
-            # Create a scope for all operations of tower i
-            with tf.name_scope('tower_%d' % i) as scope:
-                # Calculate the avg_loss and accuracy and retrieve the decoded
-                # batch along with the original batch's labels (Y) of this tower
-                total_loss, avg_loss, distance, accuracy, decoded, labels = \
-                    calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
+    with tf.variable_scope(tf.get_variable_scope()):
+        # Loop over available_devices
+        for i in xrange(len(available_devices)):
+            # Execute operations of tower i on device i
+            with tf.device(available_devices[i]):
+                # Create a scope for all operations of tower i
+                with tf.name_scope('tower_%d' % i) as scope:
+                    # Calculate the avg_loss and accuracy and retrieve the decoded
+                    # batch along with the original batch's labels (Y) of this tower
+                    total_loss, avg_loss, distance, accuracy, decoded, labels = \
+                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
 
-                # Allow for variables to be re-used by the next tower
-                tf.get_variable_scope().reuse_variables()
+                    # Allow for variables to be re-used by the next tower
+                    tf.get_variable_scope().reuse_variables()
 
-                # Retain tower's labels (Y)
-                tower_labels.append(labels)
+                    # Retain tower's labels (Y)
+                    tower_labels.append(labels)
 
-                # Retain tower's decoded batch
-                tower_decodings.append(decoded)
+                    # Retain tower's decoded batch
+                    tower_decodings.append(decoded)
 
-                # Retain tower's distances
-                tower_distances.append(distance)
+                    # Retain tower's distances
+                    tower_distances.append(distance)
 
-                # Retain tower's total losses
-                tower_total_losses.append(total_loss)
+                    # Retain tower's total losses
+                    tower_total_losses.append(total_loss)
 
-                if optimizer is not None:
-                    # Compute gradients for model parameters using tower's mini-batch
-                    gradients = optimizer.compute_gradients(avg_loss)
+                    if optimizer is not None:
+                        # Compute gradients for model parameters using tower's mini-batch
+                        gradients = optimizer.compute_gradients(avg_loss)
 
-                    # Retain tower's gradients
-                    tower_gradients.append(gradients)
+                        # Retain tower's gradients
+                        tower_gradients.append(gradients)
 
-                # Retain tower's accuracy
-                tower_accuracies.append(accuracy)
+                    # Retain tower's accuracy
+                    tower_accuracies.append(accuracy)
 
-                # Retain tower's avg losses
-                tower_avg_losses.append(avg_loss)
+                    # Retain tower's avg losses
+                    tower_avg_losses.append(avg_loss)
 
     # Return the results tuple, the gradients, and the means of accuracies and losses
     return (tower_labels, tower_decodings, tower_distances, tower_total_losses), \
