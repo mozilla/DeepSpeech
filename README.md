@@ -17,11 +17,9 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ## Training a model
 
-Open a terminal, change to the directory of the DeepSpeech checkout and run `./bin/run-ldc93s1.sh`. This should train the network on [LDC93S1](https://catalog.ldc.upenn.edu/ldc93s1), a small corpus with a single sample, and report progress as the training happens.
+Open a terminal, change to the directory of the DeepSpeech checkout and run `jupyter-notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters. Then, to train the network, select `Cell` from the notebook menu bar and choose `Run All`. By default, the notebook will train on a small sample dataset called LDC93S1, which can be easily overfitted on any CPU in a few minutes for demonstration purposes.
 
-To inspect the main notebook code, run `jupyter notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the training parameters.
-
-You can also use the other utility scripts in `bin/`, but keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
+You can also use the utility scripts in `bin/` to train on different data sets, but keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
 
 ## Exporting a model for serving
 
