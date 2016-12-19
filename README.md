@@ -5,21 +5,21 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 ## Prerequisites
 
 * [TensorFlow](https://www.tensorflow.org/versions/r0.11/get_started/os_setup.html#download-and-setup)
-* [IronPython](http://ironpython.net/download/)
-* [SciPy](http://scipy.org/install.html)
+* [Jupyter/IPython](https://jupyter.org/install.html)
+* [SciPy](https://scipy.org/install.html)
 * [PyXDG](https://pypi.python.org/pypi/pyxdg)
 * [python_speech_features](https://pypi.python.org/pypi/python_speech_features)
-* [python sox] (https://pypi.python.org/pypi/sox)
+* [python sox](https://pypi.python.org/pypi/sox)
 
 ## Recommendations
 
-If you have a capable (nVidia) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU.
+If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU.
 
 ## Training a model
 
-Open a terminal, change to the directory of the DeepSpeech checkout and run `ipython notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can inspect the notebook and alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the training parameters.
+Open a terminal, change to the directory of the DeepSpeech checkout and run `jupyter-notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters. Then, to train the network, select `Cell` from the notebook menu bar and choose `Run All`. By default, the notebook will train on a small sample dataset called LDC93S1, which can be easily overfitted on any CPU in a few minutes for demonstration purposes.
 
-Once you are satisfied with the settings, you can begin to train a model by selecting 'Cell' from the notebook menu bar and choosing 'Run All'.
+You can also use the utility scripts in `bin/` to train on different data sets, but keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
 
 ## Exporting a model for serving
 
