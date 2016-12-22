@@ -31,8 +31,9 @@ from util.audio import audiofile_to_input_vector
 tf.app.flags.DEFINE_string('server', '', 'PredictionService host:port')
 tf.app.flags.DEFINE_string('file', '', 'Wave audio file')
 # These need to match the constants used when training the deepspeech model
-tf.app.flags.DEFINE_string('n_input', 26, 'Number of MFCC features')
-tf.app.flags.DEFINE_string('n_context', 9, 'Number of frames of context')
+tf.app.flags.DEFINE_integer('n_input', 26, 'Number of MFCC features')
+tf.app.flags.DEFINE_integer('n_context', 9, 'Number of frames of context')
+tf.app.flags.DEFINE_integer('stride', 2, 'CTC stride on time axis')
 FLAGS = tf.app.flags.FLAGS
 
 def _create_rpc_callback(event):
@@ -71,7 +72,7 @@ def main(_):
         return
 
     audio_waves = audiofile_to_input_vector(
-                  FLAGS.file, FLAGS.n_input, FLAGS.n_context)
+                  FLAGS.file, FLAGS.n_input, FLAGS.n_context, FLAGS.stride)
     audio = np.array([ audio_waves ])
     do_inference(FLAGS.server, audio)
 

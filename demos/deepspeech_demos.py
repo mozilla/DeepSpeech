@@ -41,6 +41,7 @@ tf.app.flags.DEFINE_string('server', '', 'PredictionService host:port')
 # These need to match the constants used when training the deepspeech model
 tf.app.flags.DEFINE_integer('n_input', 26, 'Number of MFCC features')
 tf.app.flags.DEFINE_integer('n_context', 9, 'Number of frames of context')
+tf.app.flags.DEFINE_integer('stride', 2, 'CTC stride on time axis')
 FLAGS = tf.app.flags.FLAGS
 
 FRAME_SIZE = 160
@@ -63,7 +64,7 @@ def _create_rpc_callback(event, server):
 
 def do_inference(hostport, audio_file, server):
     audio_waves = audiofile_to_input_vector(
-                  audio_file, FLAGS.n_input, FLAGS.n_context)
+                  audio_file, FLAGS.n_input, FLAGS.n_context, FLAGS.stride)
     audio = np.array([ audio_waves ])
 
     host, port = hostport.split(':')
@@ -236,4 +237,3 @@ if __name__ == '__main__':
         tf.app.run()
     except KeyboardInterrupt:
         os._exit(0)
-
