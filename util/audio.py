@@ -10,6 +10,9 @@ def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     # Get mfcc coefficients
     orig_inputs = mfcc(audio, samplerate=fs, numcep=numcep)
 
+    # We only keep every second feature (BiRNN stride = 2)
+    orig_inputs = orig_inputs[::2]
+
     # For each time slice of the training set, we need to copy the context this makes
     # the numcep dimensions vector into a numcep + 2*numcep*numcontext dimensions
     # because of:
