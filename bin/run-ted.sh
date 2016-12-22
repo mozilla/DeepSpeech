@@ -4,9 +4,12 @@ set -xe
 
 export ds_importer="ted"
 
-export ds_train_batch_size=48
-export ds_dev_batch_size=32
-export ds_test_batch_size=32
+export ds_train_batch_size=20
+export ds_dev_batch_size=10
+export ds_test_batch_size=10
+
+export ds_learning_rate=0.0001
+export ds_validation_step=20
 
 export ds_epochs=150
 export ds_display_step=10
