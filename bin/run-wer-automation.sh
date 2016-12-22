@@ -35,9 +35,6 @@ export ds_dropout_rate
 ds_default_stddev=0.1
 export ds_default_stddev
 
-ds_use_warpctc=1
-export ds_use_warpctc
-
 ds_checkpoint_step=1
 export ds_checkpoint_step
 
