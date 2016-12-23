@@ -8,16 +8,16 @@ export ds_dataset_path
 ds_importer="ted"
 export ds_importer
 
-ds_train_batch_size=48
+ds_train_batch_size=20
 export ds_train_batch_size
 
-ds_dev_batch_size=32
+ds_dev_batch_size=10
 export ds_dev_batch_size
 
-ds_test_batch_size=32
+ds_test_batch_size=10
 export ds_test_batch_size
 
-ds_epochs=500
+ds_epochs=100
 export ds_epochs
 
 ds_learning_rate=0.0001
@@ -32,11 +32,8 @@ export ds_validation_step
 ds_dropout_rate=0.05
 export ds_dropout_rate
 
-ds_default_stddev=0.1
+ds_default_stddev=0.046875
 export ds_default_stddev
-
-ds_use_warpctc=1
-export ds_use_warpctc
 
 ds_checkpoint_step=1
 export ds_checkpoint_step
