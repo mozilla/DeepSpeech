@@ -218,9 +218,8 @@ def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
                 new_wav_file = os.path.join(target_dir, new_wav_filename)
                 
                 # If the wav segment filename does not exist create it
-                if not os.path.exists(new_wav_file):
-                    channel = 0 if segment["speaker"] == "A:" else 1
-                    _split_wav(origAudios[channel], start_time, stop_time, new_wav_file)
+                channel = 0 if segment["speaker"] == "A:" else 1
+                _split_wav(origAudios[channel], start_time, stop_time, new_wav_file)
             
             # Close origAudios
             for origAudio in origAudios:
