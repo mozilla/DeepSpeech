@@ -123,6 +123,14 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
     _maybe_split_sets(data_dir, "fisher-2004-split-wav", "fisher-2004-split-wav-sets")
     _maybe_split_sets(data_dir, "fisher-2005-split-wav", "fisher-2005-split-wav-sets")
     
+    # The following file has an incorrect transcript that is much longer than
+    # the audio source. The result is that we end up with more labels than time
+    # slices, which breaks CTC. We fix this directly since it's a single occurrence
+    # in the entire corpus.
+    problematic_file = os.path.join(data_dir, "fisher-2004-split-wav-sets", "train", "fe_03_00265-33.53-33.81.txt")
+    with open(problematic_file, "w") as f:
+        f.write("correct")
+
     # Create train DataSet
     train = _read_data_set(data_dir, "fisher-200?-split-wav-sets/train", thread_count, train_batch_size, numcep, numcontext, limit=limit_train)
 
