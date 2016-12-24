@@ -8,13 +8,13 @@ export ds_dataset_path
 ds_importer="ted"
 export ds_importer
 
-ds_train_batch_size=20
+ds_train_batch_size=16
 export ds_train_batch_size
 
-ds_dev_batch_size=10
+ds_dev_batch_size=8
 export ds_dev_batch_size
 
-ds_test_batch_size=10
+ds_test_batch_size=8
 export ds_test_batch_size
 
 ds_epochs=100
