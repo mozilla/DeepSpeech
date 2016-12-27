@@ -1,7 +1,6 @@
 import fnmatch
 import numpy as np
 import os
-import random
 import subprocess
 import wave
 import tensorflow as tf
@@ -42,7 +41,7 @@ class DataSets(object):
 
 
 class DataSet(object):
-    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext, dataset_dir):
+    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext):
         self._numcep = numcep
         self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
         self._x_length = tf.placeholder(tf.int32, [])
@@ -110,6 +109,7 @@ class DataSet(object):
 
 
 def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0):
+    data_dir = os.path.join(data_dir, "LDC97S62")
 
     # Conditionally convert swb sph data to wav
     _maybe_convert_wav(data_dir, "swb1_d1", "swb1_d1-wav")
@@ -239,17 +239,10 @@ def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
                 new_wav_filename = os.path.splitext(os.path.basename(trans_file))[0] + "-" + str(
                     start_time) + "-" + str(stop_time) + ".wav"
                 new_wav_file = os.path.join(target_dir, new_wav_filename)
-
-                # If the wav segment filename does not exist create it
-                if not os.path.exists(new_wav_file):
-                    _split_wav(origAudio, start_time, stop_time, new_wav_file)
+                _split_wav(origAudio, start_time, stop_time, new_wav_file)
 
             # Close origAudio
             origAudio.close()
-
-            # Remove wav_file
-            # os.remove(wav_file)
-
 
 def _split_wav(origAudio, start_time, stop_time, new_wav_file):
     frameRate = origAudio.getframerate()
@@ -275,7 +268,6 @@ def _maybe_split_transcriptions(data_dir, original_data):
     # each utterance
     for root, dirnames, filenames in os.walk(source_dir):
         for filename in fnmatch.filter(filenames, "*.text"):
-
             if "trans" not in filename:
                 continue
 
@@ -351,13 +343,10 @@ def _maybe_split_dataset(filelist, target_dir):
 
 
 def _read_data_set(work_dir, data_set, thread_count, batch_size, numcep, numcontext, limit=0):
-    # Create data set dir
-    dataset_dir = os.path.join(work_dir, data_set)
-
     # Obtain list of txt files
     txt_files = glob(os.path.join(work_dir, data_set, "*.txt"))
     if limit > 0:
         txt_files = txt_files[:limit]
 
     # Return DataSet
-    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, dataset_dir)
+    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext)
