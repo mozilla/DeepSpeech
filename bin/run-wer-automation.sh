@@ -26,10 +26,10 @@ export ds_learning_rate
 ds_display_step=10
 export ds_display_step
 
-ds_validation_step=20
+ds_validation_step=10
 export ds_validation_step
 
-ds_dropout_rate=0.05
+ds_dropout_rate=0.10
 export ds_dropout_rate
 
 ds_default_stddev=0.046875
