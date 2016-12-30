@@ -10,9 +10,9 @@ export ds_test_batch_size=1
 
 export ds_epochs=50
 
-if [ ! -f DeepSpeech.ipynb ]; then
+if [ ! -f DeepSpeech.py ]; then
     echo "Please make sure you run this from DeepSpeech's top level directory."
     exit 1
 fi;
 
-jupyter-nbconvert --to script DeepSpeech.ipynb --stdout | python -u
+python -u DeepSpeech.py
