@@ -3,7 +3,6 @@
 set -xe
 
 export ds_importer="fisher"
-export ds_dataset_path="/data/LDC/"
 
 export ds_train_batch_size=32
 export ds_dev_batch_size=32
