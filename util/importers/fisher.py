@@ -225,7 +225,6 @@ def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
                 new_wav_filename = os.path.splitext(os.path.basename(trans_file))[0] + "-" + str(start_time) + "-" + str(stop_time) + ".wav"
                 new_wav_file = os.path.join(target_dir, new_wav_filename)
                 
-                # If the wav segment filename does not exist create it
                 channel = 0 if segment["speaker"] == "A:" else 1
                 _split_wav(origAudios[channel], start_time, stop_time, new_wav_file)
             
@@ -268,9 +267,8 @@ def _maybe_split_transcriptions(data_dir, original_data, converted_data):
                 
                 transcript = validate_label(segment["transcript"])
                 
-                # If the transcript is valid and the txt segment filename does
-                # not exist create it
-                if transcript != None and not os.path.exists(txt_file):
+                # If the transcript is valid, write it to the segment file
+                if transcript != None:
                     with open(txt_file, "w") as fout:
                         fout.write(transcript)
     
