@@ -17,7 +17,7 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ## Training a model
 
-Open a terminal, change to the directory of the DeepSpeech checkout and run `jupyter-notebook DeepSpeech.ipynb`. This should open your default browser with the DeepSpeech notebook. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters. Then, to train the network, select `Cell` from the notebook menu bar and choose `Run All`. By default, the notebook will train on a small sample dataset called LDC93S1, which can be easily overfitted on any CPU in a few minutes for demonstration purposes.
+Open a terminal, change to the directory of the DeepSpeech checkout and run `python DeepSpeech.py`. This should open your default browser with the DeepSpeech notebook. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters. Then, to train the network, select `Cell` from the notebook menu bar and choose `Run All`. By default, the notebook will train on a small sample dataset called LDC93S1, which can be easily overfitted on any CPU in a few minutes for demonstration purposes.
 
 You can also use the utility scripts in `bin/` to train on different data sets, but keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
 
