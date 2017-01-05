@@ -41,20 +41,11 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li class="active"><a href="#overall_wer">Overall WER</a></li>
-                    <li class="dropdown">
+                    <li id="parameter_menubar_item" class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Parameter WER <span class="caret"></span></a>
-                        <ul id="parameter_menu" class="dropdown-menu">
-
-                        </ul>
+                        <ul id="parameter_menu" class="dropdown-menu"></ul>
                     </li>
-                    <!-- <li><a href="#contact">Runs</a></li> -->
                 </ul>
-                <!-- <ul class="nav navbar-nav navbar-right">
-                    <li><a href="../navbar/">Default</a></li>
-                    <li class="active"><a href="./">Static top <span class="sr-only">(current)</span></a></li>
-                    <li><a href="../navbar-fixed-top/">Fixed top</a></li>
-                </ul> -->
             </div>
         </div>
     </nav>
@@ -216,6 +207,7 @@
 
         var params = Object.keys(keys = ds[0].parameters);
         var parameterGroups = {};
+        var chartCount = 0;
         params.forEach(param => {
 
             // We group by the other parameters to find series of values that don't differ by other parameters
@@ -241,7 +233,7 @@
 
             // If there is more than one group, we produce a chart
             if (groups.length > 0) {
-
+                chartCount++;
                 var id = 'parameter_' + param;
                 var title = param.split('_').map(p => p[0].toUpperCase() + p.slice(1)).join(' ');
                 $('#parameter_menu').append('<li><a href="#' + id + '">' + title + '</a></li>');
@@ -263,6 +255,8 @@
             }
         });
 
+        if (chartCount === 0)
+            $('#parameter_menubar_item').hide();
 
         jQuery(document).ready(function ($) {
             $('#tabs').tab();
