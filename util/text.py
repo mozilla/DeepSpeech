@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import re
 
 # Constants
 SPACE_TOKEN = '<space>'
@@ -166,3 +167,27 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
     vals_sparse = gather_nd(labels, indices, shape)
     
     return tf.SparseTensor(tf.to_int64(indices), vals_sparse, tf.to_int64(label_shape))
+
+# Validate and normalize transcriptions. Returns a cleaned version of the label
+# or None if it's invalid.
+def validate_label(label):
+    # For now we can only handle [a-z ']
+    if "(" in label or \
+                    "<" in label or \
+                    "[" in label or \
+                    "]" in label or \
+                    "&" in label or \
+                    "*" in label or \
+                    "{" in label or \
+            re.search(r"[0-9]", label) != None:
+        return None
+
+    label = label.replace("-", "")
+    label = label.replace("_", "")
+    label = label.replace(".", "")
+    label = label.replace(",", "")
+    label = label.replace("?", "")
+    label = label.strip()
+
+    return label
+

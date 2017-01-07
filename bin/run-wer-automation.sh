@@ -17,7 +17,7 @@ export ds_dev_batch_size
 ds_test_batch_size=8
 export ds_test_batch_size
 
-ds_epochs=100
+ds_epochs=50
 export ds_epochs
 
 ds_learning_rate=0.0001
@@ -29,7 +29,7 @@ export ds_display_step
 ds_validation_step=10
 export ds_validation_step
 
-ds_dropout_rate=0.10
+ds_dropout_rate=0.20
 export ds_dropout_rate
 
 ds_default_stddev=0.046875
