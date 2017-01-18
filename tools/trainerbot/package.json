@@ -1,0 +1,15 @@
+{
+  "name": "trainerbot",
+  "version": "0.0.1",
+  "description": "IRC Trainer Bot",
+  "main": "irc.js",
+  "author": "Tilman Kamp <tilman@mozilla.com>",
+  "license": "MPL2",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "fs": "0.0.1-security",
+    "irc": "^0.5.2",
+    "process": "^0.11.9",
+    "request": "^2.79.0"
+  }
+}
