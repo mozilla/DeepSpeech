@@ -157,9 +157,9 @@ bot.addListener('message', (from, to, message) => {
                                     (new Date().getTime() - current.started.getTime())
                                 )
                                 if (duration.positive) {
-                                    bot.say(to, 'Current epoch will be finished in about ' + duration.dhm)
+                                    bot.say(to, 'Current epoch (' + current.index + ') will be finished in about ' + duration.dhm)
                                 } else {
-                                    bot.say(to, 'Current epoch should be finished since ' + duration.dhm)
+                                    bot.say(to, 'Current epoch (' + current.index + ') should be finished since ' + duration.dhm)
                                 }
                             }
                         }
@@ -177,17 +177,34 @@ bot.addListener('message', (from, to, message) => {
                             count--
                             last = epochs[count - 1]
                         }
-                        let str = 'Training statistics for ' + count + ' Epochs\n'
-                        str += ' - Overall time: ' + getDuration(last.finished - first.started).dhm + '\n'
-                        str += ' - Mean Epoch time: ' + getDuration((last.finished - first.started) / count).dhm + '\n'
-                        str += ' - First Epoch (' + first.index + '): Loss = ' + (first.training ? first.training.loss : '?') + '\n'
-                        str += ' - Last Epoch (' + last.index + '): Loss = ' + (last.training ? last.training.loss : '?') + '\n'
-                        str += ' - Mean Epoch to Epoch Loss decrease (Training): ' +
-                            (first.training && last.training ? ((first.training.loss - last.training.loss) / count) : '?') + '\n'
-                        let epoch = epochs.slice(0).reverse().find(e => e.validation)
-                        if (epoch) {
-                            str += ' - Last Validation WER (Epoch ' + epoch.index + '): ' + percent(epoch.validation.wer) + '\n'
+
+                        let str = 'Training statistics for ' + count + ' epochs\n'
+                        str += ' - First epoch (' + first.index + ') loss: ' + (first.training ? first.training.loss.toFixed(2) : '?') + '\n'
+                        str += ' - Last epoch (' + last.index + ') loss: ' + (last.training ? last.training.loss.toFixed(2) : '?') + '\n'
+
+                        if(count > 2) {
+                            let [a, b, c] = epochs.slice(count - 3, 3).map(e => e.training.loss),
+                                d1 = b - a,
+                                d2 = c - b
+                            if (d1 != 0) {
+                                let factor = d2 / d1
+                                str += ' - Training loss decrease factor (from epoch ' + a.index + ' to ' + c.index + '): ' + factor.toFixed(2) + '\n'
+                                str += ' - Estimated training loss for epoch ' + (c.index + 1) + ': ' + (factor  * c).toFixed(2) + '\n'
+                            }
                         }
+
+                        let repochs = epochs.slice(0).reverse(),
+                            epoch
+                        if (epoch = repochs.find(e => e.validation && 'wer' in e.validation)) {
+                            str += ' - Last Validation WER (epoch ' + epoch.index + '): ' + percent(epoch.validation.wer) + '\n'
+                        }
+                        if (epoch = repochs.find(e => e.training && 'wer' in e.training)) {
+                            str += ' - Last Training WER (epoch ' + epoch.index + '): ' + percent(epoch.training.wer) + '\n'
+                        }
+
+                        str += ' - Overall time: ' + getDuration(last.finished - first.started).dhm + '\n'
+                        str += ' - Mean epoch time: ' + getDuration((last.finished - first.started) / count).dhm
+
                         sendReport(null, str, to)
                     }
                 } else if (/csv/.test(lcm)) {
@@ -251,11 +268,12 @@ function readLogfile() {
             let [, year, month, day, hours, minutes, seconds] = hasdate,
                 date = new Date(year, month-1, day, hours, minutes, seconds)
             if (epoch) {
-                epoch.lines.push(line)
                 if (fepox.test(line)) {
+                    epoch.lines.push(line + '      time: ' + date.toString())
                     epoch.finished = date
                     epoch = undefined
                 } else {
+                    epoch.lines.push(line)
                     let res = resex.exec(line)
                     if (res) {
                         let [, kind, loss, accuracy, wer] = res
@@ -272,7 +290,7 @@ function readLogfile() {
                     epochs.push(epoch = {
                         index: res[1] * 1,
                         started: date,
-                        lines: [ line ]
+                        lines: [ line + '      time: ' + date.toString() ]
                     })
                 }
             }
