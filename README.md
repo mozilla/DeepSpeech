@@ -1,4 +1,4 @@
-# Project DeepSpeech
+# Project DeepSpeech [![Documentation Status](https://readthedocs.org/projects/deepspeech/badge/?version=latest)](http://deepspeech.readthedocs.io/en/latest/?badge=latest)
 
 Project DeepSpeech is an open source Speech-To-Text engine that uses a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to facilitate implementation.
 
@@ -25,3 +25,7 @@ You can also use the utility scripts in `bin/` to train on different data sets, 
 If the `ds_export_dir` environment variable is set, or the `export_dir` variable is set manually, a model will have been exported to this directory during training. If training has been performed without exporting a model, a model can be exported by setting the variable to the directory you'd like to export to (e.g. `export_dir = os.path.join(checkpoint_dir, 'export')`) and running the model exporting cell manually. If the notebook has been restarted since training, you will need to run all the cells above the training cell first before running the export cell, to declare and initialise the required variables and functions.
 
 Refer to the corresponding [README.md](client/README.md) for information on building and running the client.
+
+## Documentation
+
+Documentation for the project can be found here: http://deepspeech.readthedocs.io/en/latest/
