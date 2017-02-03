@@ -1,4 +1,7 @@
 class STMSegment(object):
+    r"""
+    Representation of an individual segment in an STM file.
+    """
     def __init__(self, stm_line):
         tokens = stm_line.split()
         self._filename    = tokens[0]
@@ -41,6 +44,9 @@ class STMSegment(object):
         return self._transcript
 
 def parse_stm_file(stm_file):
+    r"""
+    Parses an STM file at ``stm_file`` into a list of :class:`STMSegment`.
+    """
     stm_segments = []
     with open(stm_file) as stm_lines:
         for stm_line in stm_lines:

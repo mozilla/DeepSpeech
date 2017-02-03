@@ -186,10 +186,12 @@ n_hidden_6 = n_character
 # Graph Creation
 # ==============
 
-# Next we concern ourselves with graph creation.
-# However, before we do so we must introduce a utility function `variable_on_cpu()`
-# used to create a variable in CPU memory.
 def variable_on_cpu(name, shape, initializer):
+    r"""
+    Next we concern ourselves with graph creation.
+    However, before we do so we must introduce a utility function ``variable_on_cpu()``
+    used to create a variable in CPU memory.
+    """
     # Use the /cpu:0 device for scoped operations
     with tf.device('/cpu:0'):
         # Create or get apropos variable
@@ -197,18 +199,20 @@ def variable_on_cpu(name, shape, initializer):
     return var
 
 
-# That done, we will define the learned variables, the weights and biases,
-# within the method `BiRNN()` which also constructs the neural network.
-# The variables named `hn`, where `n` is an integer, hold the learned weight variables.
-# The variables named `bn`, where `n` is an integer, hold the learned bias variables.
-# In particular, the first variable `h1` holds the learned weight matrix that
-# converts an input vector of dimension `n_input + 2*n_input*n_context`
-# to a vector of dimension `n_hidden_1`.
-# Similarly, the second variable `h2` holds the weight matrix converting
-# an input vector of dimension `n_hidden_1` to one of dimension `n_hidden_2`.
-# The variables `h3`, `h5`, and `h6` are similar.
-# Likewise, the biases, `b1`, `b2`..., hold the biases for the various layers.
 def BiRNN(batch_x, seq_length, dropout):
+    r"""
+    That done, we will define the learned variables, the weights and biases,
+    within the method ``BiRNN()`` which also constructs the neural network.
+    The variables named ``hn``, where ``n`` is an integer, hold the learned weight variables.
+    The variables named ``bn``, where ``n`` is an integer, hold the learned bias variables.
+    In particular, the first variable ``h1`` holds the learned weight matrix that
+    converts an input vector of dimension ``n_input + 2*n_input*n_context``
+    to a vector of dimension ``n_hidden_1``.
+    Similarly, the second variable ``h2`` holds the weight matrix converting
+    an input vector of dimension ``n_hidden_1`` to one of dimension ``n_hidden_2``.
+    The variables ``h3``, ``h5``, and ``h6`` are similar.
+    Likewise, the biases, ``b1``, ``b2``..., hold the biases for the various layers.
+    """
     # Input shape: [batch_size, n_steps, n_input + 2*n_input*n_context]
     batch_x_shape = tf.shape(batch_x)
 
@@ -297,10 +301,12 @@ def BiRNN(batch_x, seq_length, dropout):
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-# This routine beam search decodes a mini-batch and calculates the loss and accuracy.
-# Next to total and average loss it returns the accuracy,
-# the decoded result and the batch's original Y.
 def calculate_accuracy_and_loss(batch_set, dropout):
+    r"""
+    This routine beam search decodes a mini-batch and calculates the loss and accuracy.
+    Next to total and average loss it returns the accuracy,
+    the decoded result and the batch's original Y.
+    """
     # Obtain the next batch of data
     batch_x, batch_seq_len, batch_y = batch_set.next_batch()
 
@@ -377,23 +383,27 @@ if 0 == len(available_devices):
     available_devices = ['/cpu:0']
 
 
-# With this preliminary step out of the way, we can for each GPU introduce a
-# tower for which's batch we calculate
-#  * the CTC decodings `decoded`,
-#  * the (total) loss against the outcome (Y) `total_loss`,
-#  * the loss averaged over the whole batch `avg_loss`,
-#  * the optimization gradient (computed based on the averaged loss),
-#  * the Levenshtein distances between the decodings and their transcriptions `distance`,
-#  * the accuracy of the outcome averaged over the whole batch `accuracy`
-# and retain the original `labels` (Y).
-# `decoded`, `labels`, the optimization gradient, `distance`, `accuracy`,
-# `total_loss` and `avg_loss` are collected into the corresponding arrays
-# `tower_decodings`, `tower_labels`, `tower_gradients`, `tower_distances`,
-# `tower_accuracies`, `tower_total_losses`, `tower_avg_losses` (dimension 0 being the tower).
-# Finally this new method `get_tower_results()` will return those tower arrays.
-# In case of `tower_accuracies` and `tower_avg_losses`, it will return the
-# averaged values instead of the arrays.
 def get_tower_results(batch_set, optimizer=None):
+    r"""
+    With this preliminary step out of the way, we can for each GPU introduce a
+    tower for which's batch we calculate
+
+    * The CTC decodings ``decoded``,
+    * The (total) loss against the outcome (Y) ``total_loss``,
+    * The loss averaged over the whole batch ``avg_loss``,
+    * The optimization gradient (computed based on the averaged loss),
+    * The Levenshtein distances between the decodings and their transcriptions ``distance``,
+    * The accuracy of the outcome averaged over the whole batch ``accuracy``
+
+    and retain the original ``labels`` (Y).
+    ``decoded``, ``labels``, the optimization gradient, ``distance``, ``accuracy``,
+    ``total_loss`` and ``avg_loss`` are collected into the corresponding arrays
+    ``tower_decodings``, ``tower_labels``, ``tower_gradients``, ``tower_distances``,
+    ``tower_accuracies``, ``tower_total_losses``, ``tower_avg_losses`` (dimension 0 being the tower).
+    Finally this new method ``get_tower_results()`` will return those tower arrays.
+    In case of ``tower_accuracies`` and ``tower_avg_losses``, it will return the
+    averaged values instead of the arrays.
+    """
     # Tower labels to return
     tower_labels = []
 
@@ -461,10 +471,12 @@ def get_tower_results(batch_set, optimizer=None):
            tf.reduce_mean(tower_avg_losses, 0)
 
 
-# A routine for computing each variable's average of the gradients obtained from the GPU's.
-# Note also that this code acts as a syncronization point as it requires all
-# GPU's to be finished with their mini-batch before it can run to completion.
 def average_gradients(tower_gradients):
+    r"""
+    A routine for computing each variable's average of the gradients obtained from the GPUs.
+    Note also that this code acts as a syncronization point as it requires all
+    GPUs to be finished with their mini-batch before it can run to completion.
+    """
     # List of average gradients to return to the caller
     average_grads = []
 
@@ -494,8 +506,11 @@ def average_gradients(tower_gradients):
     return average_grads
 
 
-# Now next we introduce a function to apply the averaged gradients to update the model's paramaters on the CPU
 def apply_gradients(optimizer, average_grads):
+    r"""
+    Now next we introduce a function to apply the averaged gradients to update the
+    model's paramaters on the CPU
+    """
     apply_gradient_op = optimizer.apply_gradients(average_grads)
     return apply_gradient_op
 
@@ -503,10 +518,12 @@ def apply_gradients(optimizer, average_grads):
 # Logging
 # =======
 
-# We introduce a function for logging a tensor variable's current state.
-# It logs scalar values for the mean, standard deviation, minimum and maximum.
-# Furthermore it logs a histogram of its state and (if given) of an optimization gradient.
 def log_variable(variable, gradient=None):
+    r"""
+    We introduce a function for logging a tensor variable's current state.
+    It logs scalar values for the mean, standard deviation, minimum and maximum.
+    Furthermore it logs a histogram of its state and (if given) of an optimization gradient.
+    """
     name = variable.name
     mean = tf.reduce_mean(variable)
     tf.scalar_summary(name + '/mean', mean)
@@ -523,8 +540,10 @@ def log_variable(variable, gradient=None):
             tf.histogram_summary(name + "/gradients", grad_values)
 
 
-# Let's also introduce a helper function for logging collections of gradient/variable tuples.
 def log_grads_and_vars(grads_and_vars):
+    r"""
+    Let's also introduce a helper function for logging collections of gradient/variable tuples.
+    """
     for gradient, variable in grads_and_vars:
         log_variable(variable, gradient=gradient)
 
@@ -544,11 +563,13 @@ def get_git_branch():
 # Helpers
 # =======
 
-# This routine will print a WER report with a given caption.
-# It'll print the `mean` WER plus summaries of the `ds_report_count` top lowest
-# loss items from the provided WER results tuple
-# (only items with WER!=0 and ordered by their WER).
 def calculate_and_print_wer_report(caption, results_tuple):
+    r"""
+    This routine will print a WER report with a given caption.
+    It'll print the `mean` WER plus summaries of the ``ds_report_count`` top lowest
+    loss items from the provided WER results tuple
+    (only items with WER!=0 and ordered by their WER).
+    """
     items = zip(*results_tuple)
 
     count = len(items)
@@ -587,16 +608,18 @@ def calculate_and_print_wer_report(caption, results_tuple):
     return mean_wer
 
 
-# This routine will help collecting partial results for the WER reports.
-# The `results_tuple` is composed of an array of the original labels,
-# an array of the corresponding decodings, an array of the corrsponding
-# distances and an array of the corresponding losses. `returns` is built up
-# in a similar way, containing just the unprocessed results of one
-# `session.run` call (effectively of one batch).
-# Labels and decodings are converted to text before splicing them into their
-# corresponding results_tuple lists. In the case of decodings,
-# for now we just pick the first available path.
 def collect_results(results_tuple, returns):
+    r"""
+    This routine will help collecting partial results for the WER reports.
+    The ``results_tuple`` is composed of an array of the original labels,
+    an array of the corresponding decodings, an array of the corrsponding
+    distances and an array of the corresponding losses. ``returns`` is built up
+    in a similar way, containing just the unprocessed results of one
+    ``session.run`` call (effectively of one batch).
+    Labels and decodings are converted to text before splicing them into their
+    corresponding results_tuple lists. In the case of decodings,
+    for now we just pick the first available path.
+    """
     # Each of the arrays within results_tuple will get extended by a batch of each available device
     for i in xrange(len(available_devices)):
         # Collect the labels
@@ -614,21 +637,27 @@ def collect_results(results_tuple, returns):
 
 # For reporting we also need a standard way to do time measurements.
 def stopwatch(start_duration=0):
-    """
+    r"""
     This function will toggle a stopwatch.
     The first call starts it, second call stops it, third call continues it etc.
     So if you want to measure the accumulated time spent in a certain area of the code,
     you can surround that code by stopwatch-calls like this:
-    fun_time = 0 # initializes a stopwatch
-    [...]
-    for i in xrange(10):
-      [...]
-      fun_time = stopwatch(fun_time) # starts/continues the stopwatch - fun_time is now a point in time (again)
-      fun()
-      fun_time = stopwatch(fun_time) # pauses the stopwatch - fun_time is now a duration
-    [...]
-    # the following line only makes sense after an even call of "fun_time = stopwatch(fun_time)"
-    print "Time spent in fun():", format_duration(fun_time)
+
+    .. code:: python
+
+        fun_time = 0 # initializes a stopwatch
+        [...]
+        for i in xrange(10):
+          [...]
+          # Starts/continues the stopwatch - fun_time is now a point in time (again)
+          fun_time = stopwatch(fun_time)
+          fun()
+          # Pauses the stopwatch - fun_time is now a duration
+          fun_time = stopwatch(fun_time)
+        [...]
+        # The following line only makes sense after an even call of :code:`fun_time = stopwatch(fun_time)`.
+        print "Time spent in fun():", format_duration(fun_time)
+
     """
     if start_duration == 0:
         return datetime.datetime.utcnow()
@@ -654,6 +683,9 @@ def format_duration(duration):
 # The latter takes the name of the required data set
 # (`'train'`, `'dev'` or `'test'`) as string and returns the respective set.
 def read_data_sets():
+    r"""
+    Returns a :class:`DataSets` object of the selected importer, containing all available sets.
+    """
     # Obtain all the data sets
     return ds_importer_module.read_data_sets(ds_dataset_path,
                                              train_batch_size,
@@ -666,35 +698,42 @@ def read_data_sets():
                                              limit_train=limit_train)
 
 def read_data_set(set_name):
+    r"""
+    ``set_name``: string, the name of the required data set (``'train'``, ``'dev'`` or ``'test'``)
+
+    Returns the respective set.
+    """
     # Obtain all the data sets
     data_sets = read_data_sets()
     # Pick the train, dev, or test data set from it
     return getattr(data_sets, set_name)
 
 
-# The most important data structure that will be shared among the following
-# routines is a so called `execution context`.
-# It's a tuple with four elements: The graph, the data set (one of train/dev/test),
-# the top level graph entry point tuple from `get_tower_results()`
-# and a saver object for persistence.
-#
-# Let's at first introduce the construction routine for an execution context.
-# It takes the data set's name as string ("train", "dev" or "test")
-# and returns the execution context tuple.
-#
-# An execution context tuple is of the form `(graph, data_set, tower_results, saver)`
-# when not training. `graph` is the `tf.Graph` in which the operators reside.
-# `data_set` is the selected data set (train, dev, or test).
-# `tower_results` is the result of a call to `get_tower_results()`.
-# `saver` is a `tf.train.Saver` which can be used to save the model.
-#
-# When training an execution context is of the form
-# `(graph, data_set, tower_results, saver, apply_gradient_op, merged, writer)`.
-# The first four items are the same as in the above case.
-# `apply_gradient_op` is an operator that applies the gradents to the learned parameters.
-# `merged` contains all summaries for tensorboard.
-# Finally, `writer` is the `tf.train.SummaryWriter` used to write summaries for tensorboard.
 def create_execution_context(set_name):
+    r"""
+    The most important data structure that will be shared among the following
+    routines is a so called ``execution context``.
+    It's a tuple with four elements: The graph, the data set (one of train/dev/test),
+    the top level graph entry point tuple from ``get_tower_results()``
+    and a saver object for persistence.
+
+    Let's at first introduce the construction routine for an execution context.
+    It takes the data set's name as string ("train", "dev" or "test")
+    and returns the execution context tuple.
+
+    An execution context tuple is of the form ``(graph, data_set, tower_results, saver)``
+    when not training. ``graph`` is the ``tf.Graph`` in which the operators reside.
+    ``data_set`` is the selected data set (train, dev, or test).
+    ``tower_results`` is the result of a call to ``get_tower_results()``.
+    ``saver`` is a ``tf.train.Saver`` which can be used to save the model.
+
+    When training an execution context is of the form
+    ``(graph, data_set, tower_results, saver, apply_gradient_op, merged, writer)``.
+    The first four items are the same as in the above case.
+    ``apply_gradient_op`` is an operator that applies the gradents to the learned parameters.
+    ``merged`` contains all summaries for tensorboard.
+    Finally, ``writer`` is the ``tf.train.SummaryWriter`` used to write summaries for tensorboard.
+    """
     graph = tf.Graph()
     with graph.as_default():
         # Set the global random seed for determinism
@@ -735,13 +774,17 @@ def create_execution_context(set_name):
             return (graph, data_set, tower_results, saver)
 
 
-# Now let's introduce a routine for starting an execution context.
-# By passing in the execution context and the file path of the model, it will
-#  - create a new session using the execution model's graph,
-#  - load (restore) the model from the file path into it,
-#  - start the associated queue and runner threads.
-# Finally it will return the new session.
 def start_execution_context(execution_context, model_path=None):
+    r"""
+    Now let's introduce a routine for starting an execution context.
+    By passing in the execution context and the file path of the model, it will
+
+    1. Create a new session using the execution model's graph,
+    2. Load (restore) the model from the file path into it,
+    3. Start the associated queue and runner threads.
+
+    Finally it will return the new session.
+    """
     # Obtain the Graph in which to execute
     graph = execution_context[0]
 
@@ -769,17 +812,21 @@ def start_execution_context(execution_context, model_path=None):
     return session, coord, managed_threads
 
 
-# The following helper method persists the contained model to disk and returns
-# the model's filename, constructed from `checkpoint_path` and `global_step`
 def persist_model(execution_context, session, checkpoint_path, global_step):
+    r"""
+    This helper method persists the contained model to disk and returns
+    the model's filename, constructed from ``checkpoint_path`` and ``global_step``
+    """
     # Saving session's model into checkpoint dir
     return execution_context[3].save(session, checkpoint_path, global_step=global_step)
 
 
-# The following helper method stops an execution context.
-# Before closing the provided `session`, it will persist the contained model to disk.
-# The model's filename will be returned.
 def stop_execution_context(execution_context, session, coord, managed_threads, checkpoint_path=None, global_step=None):
+    r"""
+    The following helper method stops an execution context.
+    Before closing the provided ``session``, it will persist the contained model to disk.
+    The model's filename will be returned.
+    """
     # If the model is not persisted, we'll return 'None'
     hibernation_path = None
 
@@ -802,18 +849,20 @@ def stop_execution_context(execution_context, session, coord, managed_threads, c
     return hibernation_path
 
 
-# Now let's introduce the main routine for training and inference.
-# It takes a started execution context (given by `execution_context`),
-# a `Session` (`session`), an optional epoch index (`epoch`)
-# and a flag (`query_report`) which indicates whether to calculate the WER
-# report data or not.
-# Its main duty is to iterate over all batches and calculate the mean loss.
-# If a non-negative epoch is provided, it will also optimize the parameters.
-# If `query_report` is `False`, the default, it will return a tuple which
-# contains the mean loss.
-# If `query_report` is `True`, the mean accuracy and individual results
-# are also included in the returned tuple.
 def calculate_loss_and_report(execution_context, session, epoch=-1, query_report=False):
+    r"""
+    Now let's introduce the main routine for training and inference.
+    It takes a started execution context (given by ``execution_context``),
+    a ``Session`` (``session``), an optional epoch index (``epoch``)
+    and a flag (``query_report``) which indicates whether to calculate the WER
+    report data or not.
+    Its main duty is to iterate over all batches and calculate the mean loss.
+    If a non-negative epoch is provided, it will also optimize the parameters.
+    If ``query_report`` is ``False``, the default, it will return a tuple which
+    contains the mean loss.
+    If ``query_report`` is ``True``, the mean accuracy and individual results
+    are also included in the returned tuple.
+    """
     # An epoch of -1 means no train run
     do_training = epoch >= 0
 
@@ -887,12 +936,14 @@ def calculate_loss_and_report(execution_context, session, epoch=-1, query_report
         return (loss, None, None)
 
 
-# The following routine will print a report from a provided batch set result tuple.
-# It takes a caption for titling the output plus the batch set result tuple.
-# If the batch set result tuple contains accuracy and a report results tuple,
-# a complete WER report will be calculated, printed and its mean WER returned.
-# Otherwise it will just print the loss and return `None`.
 def print_report(caption, batch_set_result):
+    r"""
+    This routine will print a report from a provided batch set result tuple.
+    It takes a caption for titling the output plus the batch set result tuple.
+    If the batch set result tuple contains accuracy and a report results tuple,
+    a complete WER report will be calculated, printed and its mean WER returned.
+    Otherwise it will just print the loss and return ``None``.
+    """
     # Unpacking batch set result tuple
     loss, accuracy, results_tuple = batch_set_result
 
@@ -909,12 +960,14 @@ def print_report(caption, batch_set_result):
     return mean_wer
 
 
-# Let's also introduce a routine that facilitates obtaining results from a data set
-# (given by its name in `set_name`) - from execution context creation to closing the session.
-# If a model's filename is provided by `model_path`,
-# it will initialize the session by loading the given model into it.
-# It will return the loss and - if `query_report=True` - also the accuracy and the report results tuple.
 def run_set(set_name, model_path=None, query_report=False):
+    r"""
+    Let's also introduce a routine that facilitates obtaining results from a data set
+    (given by its name in ``set_name``) - from execution context creation to closing the session.
+    If a model's filename is provided by ``model_path``,
+    it will initialize the session by loading the given model into it.
+    It will return the loss and - if ``query_report=True`` - also the accuracy and the report results tuple.
+    """
     # Creating the execution context
     execution_context = create_execution_context(set_name)
 
@@ -934,9 +987,11 @@ def run_set(set_name, model_path=None, query_report=False):
 # Training
 # ========
 
-# Now, as we have prepared all the apropos operators and methods,
-# we can create the method which trains the network.
 def train():
+    r"""
+    Now, as we have prepared all the apropos operators and methods,
+    we can create the method which trains the network.
+    """
     print "STARTING Optimization\n"
     global_time = stopwatch()
     global_train_time = 0
