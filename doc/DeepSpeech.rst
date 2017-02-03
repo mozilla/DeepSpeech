@@ -7,14 +7,17 @@ The core of the system is a bidirectional recurrent neural network (BRNN)
 trained to ingest speech spectrograms and generate English text transcriptions.
 
 Let a single utterance :math:`x` and label :math:`y` be sampled from a training set
-`S = \{(x^{(1)}, y^{(1)}), (x^{(2)}, y^{(2)}), . . .\}`.
+
+.. math::
+    S = \{(x^{(1)}, y^{(1)}), (x^{(2)}, y^{(2)}), . . .\}.
+
 Each utterance, :math:`x^{(i)}` is a time-series of length :math:`T^{(i)}`
 where every time-slice is a vector of audio features,
-`x^{(i)}_t` where :math:`t=1,\ldots,T^{(i)}`.
+:math:`x^{(i)}_t` where :math:`t=1,\ldots,T^{(i)}`.
 We use MFCC as our features; so :math:`x^{(i)}_{t,p}` denotes the :math:`p`-th MFCC feature
 in the audio frame at time :math:`t`. The goal of our BRNN is to convert an input
 sequence :math:`x` into a sequence of character probabilities for the transcription
-`y`, with :math:`\hat{y}_t =\mathbb{P}(c_t \mid x)`,
+:math:`y`, with :math:`\hat{y}_t =\mathbb{P}(c_t \mid x)`,
 where :math:`c_t \in \{a,b,c, . . . , z, space, apostrophe, blank\}`.
 (The significance of :math:`blank` will be explained below.)
 
@@ -22,7 +25,7 @@ Our BRNN model is composed of :math:`5` layers of hidden units.
 For an input :math:`x`, the hidden units at layer :math:`l` are denoted :math:`h^{(l)}` with the
 convention that :math:`h^{(0)}` is the input. The first three layers are not recurrent.
 For the first layer, at each time :math:`t`, the output depends on the MFCC frame
-`x_t` along with a context of :math:`C` frames on each side.
+:math:`x_t` along with a context of :math:`C` frames on each side.
 (We typically use :math:`C \in \{5, 7, 9\}` for our experiments.)
 The remaining non-recurrent layers operate on independent data for each time step.
 Thus, for each time :math:`t`, the first :math:`3` layers are computed by:
@@ -35,7 +38,7 @@ activation function and :math:`W^{(l)}`, :math:`b^{(l)}` are the weight matrix a
 parameters for layer :math:`l`. The fourth layer is a bidirectional recurrent
 layer `[1] <http://www.di.ufpe.br/~fnj/RNA/bibliografia/BRNN.pdf>`_.
 This layer includes two sets of hidden units: a set with forward recurrence,
-`h^{(f)}`, and a set with backward recurrence :math:`h^{(b)}`:
+:math:`h^{(f)}`, and a set with backward recurrence :math:`h^{(b)}`:
 
 .. math::
     h^{(f)}_t = g(W^{(4)} h^{(3)}_t + W^{(f)}_r h^{(f)}_{t-1} + b^{(4)})
