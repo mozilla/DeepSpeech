@@ -1,0 +1,9 @@
+tensorflow
+numpy
+scipy
+paramiko
+pysftp
+sox
+python_speech_features
+pyxdg
+bs4
