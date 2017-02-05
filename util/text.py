@@ -8,6 +8,10 @@ SPACE_INDEX = 0
 FIRST_INDEX = ord('a') - 1  # 0 is reserved to space
 
 def text_to_char_array(original):
+    r"""
+    Given a Python string ``original``, remove unsupported characters, map characters
+    to integers and return a numpy array representing the processed string.
+    """
     # Create list of sentence's words w/spaces replaced by ''
     result = original.replace(" '", "") # TODO: Deal with this properly
     result = result.replace("'", "")    # TODO: Deal with this properly
@@ -24,11 +28,12 @@ def text_to_char_array(original):
     return result
 
 def sparse_tuple_from(sequences, dtype=np.int32):
-    """Create a sparse representention of x.
+    r"""Creates a sparse representention of ``sequences``.
     Args:
-        sequences: a list of lists of type dtype where each element is a sequence
-    Returns:
-        A tuple with (indices, values, shape)
+        
+        * sequences: a list of lists of type dtype where each element is a sequence
+    
+    Returns a tuple with (indices, values, shape)
     """
     indices = []
     values = []
@@ -44,6 +49,10 @@ def sparse_tuple_from(sequences, dtype=np.int32):
     return tf.SparseTensor(indices=indices, values=values, shape=shape)
 
 def sparse_tensor_value_to_texts(value):
+    r"""
+    Given a :class:`tf.SparseTensor` ``value``, return an array of Python strings
+    representing its values.
+    """
     return sparse_tuple_to_texts((value.indices, value.values, value.shape))
 
 def sparse_tuple_to_texts(tuple):
@@ -65,7 +74,7 @@ def ndarray_to_text(value):
     return results.replace('`', ' ')
 
 def wer(original, result):
-    """
+    r"""
     The WER is defined as the editing/Levenshtein distance on word level
     divided by the amount of words in the original text.
     In case of the original having more words (N) than the result and both

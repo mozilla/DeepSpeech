@@ -29,7 +29,7 @@ export ds_display_step
 ds_validation_step=10
 export ds_validation_step
 
-ds_dropout_rate=0.30
+ds_dropout_rate=0.25
 export ds_dropout_rate
 
 ds_default_stddev=0.046875
@@ -41,6 +41,6 @@ export ds_checkpoint_step
 ds_export_dir="/data/exports/`git rev-parse --short HEAD`"
 export ds_export_dir
 
-jupyter-nbconvert --to script DeepSpeech.ipynb --stdout | python -u
+python -u DeepSpeech.py
 
 ln -sf $ds_export_dir $ds_export_dir/../latest
