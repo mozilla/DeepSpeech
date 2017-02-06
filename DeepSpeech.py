@@ -25,6 +25,7 @@ from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
 from util.text import sparse_tensor_value_to_texts, wer, Alphabet
+from util.quantization import quantize_model, quantization_flags
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -117,6 +118,9 @@ tf.app.flags.DEFINE_integer ('report_count',     10,          'number of phrases
 
 tf.app.flags.DEFINE_string  ('summary_dir',      '',          'target directory for TensorBoard summaries - defaults to directory "deepspeech/summaries" within user\'s data home specified by the XDG Base Directory Specification')
 tf.app.flags.DEFINE_integer ('summary_secs',     0,           'interval in seconds for saving TensorBoard summaries - if 0, no summaries will be written')
+
+# Quantization env vars.
+quantization_flags()
 
 # Geometry
 
@@ -355,7 +359,6 @@ def variable_on_worker_level(name, shape, initializer):
         var = tf.get_variable(name=name, shape=shape, initializer=initializer)
     return var
 
-
 def BiRNN(batch_x, seq_length, dropout):
     r'''
     That done, we will define the learned variables, the weights and biases,
@@ -378,7 +381,7 @@ def BiRNN(batch_x, seq_length, dropout):
     # This is done to prepare the batch for input into the first layer which expects a tensor of rank `2`.
 
     # Permute n_steps and batch_size
-    batch_x = tf.transpose(batch_x, [1, 0, 2])
+    batch_x = tf.transpose(batch_x, [1, 0, 2], name='main_input_node')
     # Reshape to prepare input for first layer
     batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
 
@@ -1635,12 +1638,20 @@ def train(server=None):
         log_error("Provide a --checkpoint_dir argument to work with models of different shapes.")
         sys.exit(1)
 
+    # Perform quantization using current graph and current checkpoint
+    if len(FLAGS.quantize_model) > 0:
+        graph_source, sav, inp, dec, _, _, _ = make_exportable_graph()
+        quantize_model(graph_source=graph_source, checkpoint_dir=FLAGS.checkpoint_dir)
+        log_debug('Performed quantization')
 
-def export():
+def make_exportable_graph(session_config=None):
     r'''
-    Restores the trained variables into a simpler graph that will be exported for serving.
+    Helper function that does prepare an exportable graph
     '''
-    log_info('Exporting the model...')
+
+    if not session_config:
+        session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
+
     with tf.device('/cpu:0'):
 
         tf.reset_default_graph()
@@ -1675,44 +1686,55 @@ def export():
         saver.restore(session, checkpoint_path)
         log_info('Restored checkpoint at training epoch %d' % (int(checkpoint_path.split('-')[-1]) + 1))
 
-        # Initialise the model exporter and export the model
-        model_exporter.init(session.graph.as_graph_def(),
-                            named_graph_signatures = {
-                                'inputs': exporter.generic_signature(
-                                    { 'input': input_tensor,
-                                      'input_lengths': seq_length}),
-                                'outputs': exporter.generic_signature(
-                                    { 'outputs': decoded})})
-        if FLAGS.remove_export:
-            actual_export_dir = os.path.join(FLAGS.export_dir, '%08d' % FLAGS.export_version)
-            if os.path.isdir(actual_export_dir):
-                log_info('Removing old export')
-                shutil.rmtree(actual_FLAGS.export_dir)
-        try:
-            # Export serving model
-            model_exporter.export(FLAGS.export_dir, tf.constant(FLAGS.export_version), session)
+        return session, saver, input_tensor, decoded, seq_length, model_exporter, checkpoint_path
 
-            # Export graph
-            input_graph_name = 'input_graph.pb'
-            tf.train.write_graph(session.graph, FLAGS.export_dir, input_graph_name, as_text=False)
 
-            # Freeze graph
-            input_graph_path = os.path.join(FLAGS.export_dir, input_graph_name)
-            input_saver_def_path = ''
-            input_binary = True
-            output_node_names = 'output_node'
-            restore_op_name = 'save/restore_all'
-            filename_tensor_name = 'save/Const:0'
-            output_graph_path = os.path.join(FLAGS.export_dir, 'output_graph.pb')
-            clear_devices = False
-            freeze_graph.freeze_graph(input_graph_path, input_saver_def_path,
-                                      input_binary, checkpoint_path, output_node_names,
-                                      restore_op_name, filename_tensor_name,
-                                      output_graph_path, clear_devices, '')
+def export():
+    r'''
+    Restores the trained variables into a simpler graph that will be exported for serving.
+    '''
+    log_info('Exporting the model...')
 
-            log_info('Models exported at %s' % (FLAGS.export_dir))
-        except RuntimeError:
-            log_error(sys.exc_info()[1])
+    session, saver, input_tensor, decoded, seq_length, model_exporter, checkpoint_path = make_exportable_graph()
+
+    # Initialise the model exporter and export the model
+    model_exporter.init(session.graph.as_graph_def(),
+                        named_graph_signatures = {
+                            'inputs': exporter.generic_signature(
+                                { 'input': input_tensor,
+                                  'input_lengths': seq_length}),
+                            'outputs': exporter.generic_signature(
+                                { 'outputs': decoded})})
+    if FLAGS.remove_export:
+        actual_export_dir = os.path.join(FLAGS.export_dir, '%08d' % FLAGS.export_version)
+        if os.path.isdir(actual_export_dir):
+            log_info('Removing old export')
+            shutil.rmtree(actual_FLAGS.export_dir)
+    try:
+        # Export serving model
+        model_exporter.export(FLAGS.export_dir, tf.constant(FLAGS.export_version), session)
+
+        # Export graph
+        input_graph_name = 'input_graph.pb'
+        tf.train.write_graph(session.graph, FLAGS.export_dir, input_graph_name, as_text=False)
+
+        # Freeze graph
+        input_graph_path = os.path.join(FLAGS.export_dir, input_graph_name)
+        input_saver_def_path = ''
+        input_binary = True
+        output_node_names = 'output_node'
+        restore_op_name = 'save/restore_all'
+        filename_tensor_name = 'save/Const:0'
+        output_graph_path = os.path.join(FLAGS.export_dir, 'output_graph.pb')
+        clear_devices = False
+        freeze_graph.freeze_graph(input_graph_path, input_saver_def_path,
+                                  input_binary, checkpoint_path, output_node_names,
+                                  restore_op_name, filename_tensor_name,
+                                  output_graph_path, clear_devices, '')
+
+        log_info('Models exported at %s' % (FLAGS.export_dir))
+    except RuntimeError:
+        log_error(sys.exc_info()[1])
 
 
 def main(_) :
