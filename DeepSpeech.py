@@ -855,7 +855,7 @@ def stop_execution_context(execution_context, session, coord, managed_threads, c
     # If the model is not persisted, we'll return 'None'
     hibernation_path = None
 
-    if checkpoint_path and global_step:
+    if checkpoint_path is not None and global_step is not None:
         # Saving session's model into checkpoint dir
         hibernation_path = persist_model(execution_context, session, checkpoint_path, global_step)
 
