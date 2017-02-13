@@ -705,7 +705,7 @@ def format_duration(duration):
 # The first returns a `DataSets` object of the selected importer, containing all available sets.
 # The latter takes the name of the required data set
 # (`'train'`, `'dev'` or `'test'`) as string and returns the respective set.
-def read_data_sets():
+def read_data_sets(set_names):
     r"""
     Returns a :class:`DataSets` object of the selected importer, containing all available sets.
     """
@@ -718,7 +718,8 @@ def read_data_sets():
                                              n_context,
                                              limit_dev=limit_dev,
                                              limit_test=limit_test,
-                                             limit_train=limit_train)
+                                             limit_train=limit_train,
+                                             sets=set_names)
 
 def read_data_set(set_name):
     r"""
@@ -727,7 +728,8 @@ def read_data_set(set_name):
     Returns the respective set.
     """
     # Obtain all the data sets
-    data_sets = read_data_sets()
+    data_sets = read_data_sets([set_name])
+
     # Pick the train, dev, or test data set from it
     return getattr(data_sets, set_name)
 
@@ -1191,7 +1193,7 @@ if __name__ == "__main__":
 
     # Now, as training and test are done, we persist the results alongside
     # with the involved hyper parameters for further reporting.
-    data_sets = read_data_sets()
+    data_sets = read_data_sets(["train", "dev", "test"])
 
     with open('%s/%s' % (log_dir, 'hyper.json'), 'w') as dump_file:
         json.dump({

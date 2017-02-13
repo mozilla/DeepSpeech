@@ -113,7 +113,7 @@ class DataSet(object):
         # Note: If len(_txt_files) % _batch_size != 0, this re-uses initial _txt_files
         return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
 
-def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0):
+def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
     # Assume data_dir contains extracted LDC2004S13, LDC2004T19, LDC2005S13, LDC2005T19
 
     # Conditionally convert Fisher sph data to wav
@@ -141,13 +141,19 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
         f.write("correct")
 
     # Create train DataSet
-    train = _read_data_set(data_dir, "fisher-200?-split-wav-sets/train", thread_count, train_batch_size, numcep, numcontext, limit=limit_train)
+    train = None
+    if "train" in sets:
+        train = _read_data_set(data_dir, "fisher-200?-split-wav-sets/train", thread_count, train_batch_size, numcep, numcontext, limit=limit_train)
 
     # Create dev DataSet
-    dev = _read_data_set(data_dir, "fisher-200?-split-wav-sets/dev", thread_count, dev_batch_size, numcep, numcontext, limit=limit_dev)
+    dev = None
+    if "dev" in sets:
+        dev = _read_data_set(data_dir, "fisher-200?-split-wav-sets/dev", thread_count, dev_batch_size, numcep, numcontext, limit=limit_dev)
 
     # Create test DataSet
-    test = _read_data_set(data_dir, "fisher-200?-split-wav-sets/test", thread_count, test_batch_size, numcep, numcontext, limit=limit_test)
+    test = None
+    if "test" in sets:
+        test = _read_data_set(data_dir, "fisher-200?-split-wav-sets/test", thread_count, test_batch_size, numcep, numcontext, limit=limit_test)
 
     # Return DataSets
     return DataSets(train, dev, test)
