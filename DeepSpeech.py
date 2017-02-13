@@ -1138,7 +1138,7 @@ if __name__ == "__main__":
     if export_dir:
         with tf.device('/cpu:0'):
             tf.reset_default_graph()
-            session = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True))
+            session = tf.Session(config=session_config)
 
             # Run inference
 
