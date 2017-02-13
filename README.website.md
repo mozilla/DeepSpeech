@@ -28,7 +28,7 @@ The tracking of WER is made using the following workflow:
 SHELL=/bin/bash
 PATH=/usr/local/bin:/usr/bin/:/bin
 # Run WER every 15 mins
-*/15 *  *   *   *    test ! -f $HOME/.cache/deepspeech_wer/lock && (rm $HOME/.deepspeech_wer.locked.log; mkdir -p $HOME/wer && cd $HOME/wer && source /usr/local/tensorflow-env/bin/activate && /usr/bin/curl -H "Cache-Control: no-cache" -L https://raw.githubusercontent.com/mozilla/DeepSpeech/master/util/automation.py | ds_website_username="UUU" ds_website_privkey="FFF" ds_website_server_fqdn="SSS" ds_website_server_root="www/" ds_gpu_usage_root="/data/automation/gpu/" ds_wer_automation="./bin/run-wer-automation.sh" python -u ; cd) 2>$HOME/.deepspeech_wer.err.log | /usr/bin/ts "\%Y-\%m-\%d \%H:\%M:\%S" > $HOME/.deepspeech_wer.out.log || TZ='Europe/Berlin' date --rfc-2822 >> $HOME/.deepspeech_wer.locked.log
+*/15 *  *   *   *    test ! -f $HOME/.cache/deepspeech_wer/lock && (rm $HOME/.deepspeech_wer.locked.log; mkdir -p $HOME/wer && cd $HOME/wer && source /usr/local/tensorflow-env/bin/activate && /usr/bin/curl -H "Cache-Control: no-cache" -L https://raw.githubusercontent.com/mozilla/DeepSpeech/master/util/automation.py | ds_website_username="UUU" ds_website_privkey="FFF" ds_website_server_fqdn="SSS" ds_website_server_root="www/" ds_gpu_usage_root="/data/automation/gpu/" ds_dataroot="/data/" ds_wer_automation="./bin/run-wer-automation.sh" python -u ; cd) 2>$HOME/.deepspeech_wer.err.log | /usr/bin/ts "\%Y-\%m-\%d \%H:\%M:\%S" > $HOME/.deepspeech_wer.out.log || TZ='Europe/Berlin' date --rfc-2822 >> $HOME/.deepspeech_wer.locked.log
 ```
 * Cron task will take care of:
  * checking if any there were any new merges
