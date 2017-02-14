@@ -119,7 +119,7 @@ class DataSet(object):
         return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
 
 
-def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0):
+def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
     # Check if we can convert FLAC with SoX before we start
     sox_help_out = subprocess.check_output(["sox", "-h"])
     if sox_help_out.find("flac") == -1:
@@ -195,13 +195,19 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
     _maybe_split_transcriptions(work_dir, "test-other", "test-other-wav")
 
     # Create train DataSet from all the train archives
-    train = _read_data_set(work_dir, "train-*-wav", thread_count, train_batch_size, numcep, numcontext, limit=limit_train)
+    train = None
+    if "train" in sets:
+        train = _read_data_set(work_dir, "train-*-wav", thread_count, train_batch_size, numcep, numcontext, limit=limit_train)
 
     # Create dev DataSet from all the dev archives
-    dev = _read_data_set(work_dir, "dev-*-wav", thread_count, dev_batch_size, numcep, numcontext, limit=limit_dev)
+    dev = None
+    if "dev" in sets:
+        dev = _read_data_set(work_dir, "dev-*-wav", thread_count, dev_batch_size, numcep, numcontext, limit=limit_dev)
 
     # Create test DataSet from all the test archives
-    test = _read_data_set(work_dir, "test-*-wav", thread_count, test_batch_size, numcep, numcontext, limit=limit_test)
+    test = None
+    if "test" in sets:
+        test = _read_data_set(work_dir, "test-*-wav", thread_count, test_batch_size, numcep, numcontext, limit=limit_test)
 
     # Return DataSets
     return DataSets(train, dev, test)
