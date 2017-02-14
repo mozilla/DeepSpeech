@@ -49,6 +49,21 @@ use_warpctc = bool(len(os.environ.get('ds_use_warpctc', '')))
 # we need to define a parameter `dropout_rate` that keeps track of the dropout rate for these layers
 dropout_rate = float(os.environ.get('ds_dropout_rate', 0.05))  # TODO: Validate this is a reasonable value
 
+# We allow for customisation of dropout per-layer
+dropout_rate2 = float(os.environ.get('ds_dropout_rate2', dropout_rate))
+dropout_rate3 = float(os.environ.get('ds_dropout_rate3', dropout_rate))
+dropout_rate4 = float(os.environ.get('ds_dropout_rate4', 0.0))
+dropout_rate5 = float(os.environ.get('ds_dropout_rate5', 0.0))
+dropout_rate6 = float(os.environ.get('ds_dropout_rate6', dropout_rate))
+
+dropout_rates = [ dropout_rate,
+                  dropout_rate2,
+                  dropout_rate3,
+                  dropout_rate4,
+                  dropout_rate5,
+                  dropout_rate6 ]
+no_dropout = [ 0.0 ] * 6
+
 # One more constant required of the non-recurrant layers is the clipping value of the ReLU.
 relu_clip = int(os.environ.get('ds_relu_clip', 20)) # TODO: Validate this is a reasonable value
 
@@ -231,27 +246,35 @@ def BiRNN(batch_x, seq_length, dropout):
     b1 = variable_on_cpu('b1', [n_hidden_1], tf.random_normal_initializer(stddev=b1_stddev))
     h1 = variable_on_cpu('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.random_normal_initializer(stddev=h1_stddev))
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), relu_clip)
-    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout))
+    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
 
     # 2nd layer
     b2 = variable_on_cpu('b2', [n_hidden_2], tf.random_normal_initializer(stddev=b2_stddev))
     h2 = variable_on_cpu('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=h2_stddev))
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), relu_clip)
-    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout))
+    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
 
     # 3rd layer
     b3 = variable_on_cpu('b3', [n_hidden_3], tf.random_normal_initializer(stddev=b3_stddev))
     h3 = variable_on_cpu('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=h3_stddev))
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), relu_clip)
-    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout))
+    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
 
     # Now we create the forward and backward LSTM units.
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
     lstm_fw_cell = tf.nn.rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_fw_cell = tf.nn.rnn_cell.DropoutWrapper(lstm_fw_cell,
+                                                 input_keep_prob=1.0 - dropout[3],
+                                                 output_keep_prob=1.0 - dropout[3],
+                                                 seed=random_seed)
     # Backward direction cell:
     lstm_bw_cell = tf.nn.rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_bw_cell = tf.nn.rnn_cell.DropoutWrapper(lstm_bw_cell,
+                                                 input_keep_prob=1.0 - dropout[4],
+                                                 output_keep_prob=1.0 - dropout[4],
+                                                 seed=random_seed)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
@@ -274,7 +297,7 @@ def BiRNN(batch_x, seq_length, dropout):
     b5 = variable_on_cpu('b5', [n_hidden_5], tf.random_normal_initializer(stddev=b5_stddev))
     h5 = variable_on_cpu('h5', [(2 * n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=h5_stddev))
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), relu_clip)
-    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout))
+    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
@@ -434,7 +457,7 @@ def get_tower_results(batch_set, optimizer=None):
                 # Calculate the avg_loss and accuracy and retrieve the decoded
                 # batch along with the original batch's labels (Y) of this tower
                 total_loss, avg_loss, distance, accuracy, decoded, labels = \
-                    calculate_accuracy_and_loss(batch_set, 0.0 if optimizer is None else dropout_rate)
+                    calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
 
                 # Allow for variables to be re-used by the next tower
                 tf.get_variable_scope().reuse_variables()
@@ -682,7 +705,7 @@ def format_duration(duration):
 # The first returns a `DataSets` object of the selected importer, containing all available sets.
 # The latter takes the name of the required data set
 # (`'train'`, `'dev'` or `'test'`) as string and returns the respective set.
-def read_data_sets():
+def read_data_sets(set_names):
     r"""
     Returns a :class:`DataSets` object of the selected importer, containing all available sets.
     """
@@ -695,7 +718,8 @@ def read_data_sets():
                                              n_context,
                                              limit_dev=limit_dev,
                                              limit_test=limit_test,
-                                             limit_train=limit_train)
+                                             limit_train=limit_train,
+                                             sets=set_names)
 
 def read_data_set(set_name):
     r"""
@@ -704,7 +728,8 @@ def read_data_set(set_name):
     Returns the respective set.
     """
     # Obtain all the data sets
-    data_sets = read_data_sets()
+    data_sets = read_data_sets([set_name])
+
     # Pick the train, dev, or test data set from it
     return getattr(data_sets, set_name)
 
@@ -1124,7 +1149,7 @@ if __name__ == "__main__":
             seq_length = tf.tile(n_steps, n_items)
 
             # Calculate the logits of the batch using BiRNN
-            logits = BiRNN(input_tensor, tf.to_int64(seq_length), 0)
+            logits = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout)
 
             # Beam search decode the batch
             decoded, _ = ctc_ops.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
@@ -1168,7 +1193,7 @@ if __name__ == "__main__":
 
     # Now, as training and test are done, we persist the results alongside
     # with the involved hyper parameters for further reporting.
-    data_sets = read_data_sets()
+    data_sets = read_data_sets(["train", "dev", "test"])
 
     with open('%s/%s' % (log_dir, 'hyper.json'), 'w') as dump_file:
         json.dump({
@@ -1188,7 +1213,7 @@ if __name__ == "__main__":
                 'dev_batch_size': dev_batch_size,
                 'test_batch_size': test_batch_size,
                 'validation_step': validation_step,
-                'dropout_rate': dropout_rate,
+                'dropout_rates': dropout_rates,
                 'relu_clip': relu_clip,
                 'n_input': n_input,
                 'n_context': n_context,

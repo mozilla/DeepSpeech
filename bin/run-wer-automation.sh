@@ -2,7 +2,18 @@
 
 set -xe
 
-ds_dataset_path="/data/LIUM/"
+# ds_dataroot should have been set by cronjob
+if [ ! -d "${ds_dataroot}" ]; then
+    echo "No ${ds_dataroot} exist, aborting."
+    exit 1
+fi;
+
+# Set temp directory to something where we can dump a lot.
+TMP="${ds_dataroot}/tmp/"
+mkdir -p "${TMP}" || true
+export TMP
+
+ds_dataset_path="${ds_dataroot}/LIUM/"
 export ds_dataset_path
 
 ds_importer="ted"
@@ -38,7 +49,7 @@ export ds_default_stddev
 ds_checkpoint_step=1
 export ds_checkpoint_step
 
-ds_export_dir="/data/exports/`git rev-parse --short HEAD`"
+ds_export_dir="${ds_dataroot}/exports/`git rev-parse --short HEAD`"
 export ds_export_dir
 
 python -u DeepSpeech.py
