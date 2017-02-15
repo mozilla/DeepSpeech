@@ -32,8 +32,8 @@ DEEPSPEECH_GITHUB_REF  = os.environ.get('ds_github_ref',     'refs/heads/wer-tra
 
 DEEPSPEECH_CLONE_PATH  = os.path.abspath(os.environ.get('ds_clone_path', './ds_exec_clone/'))
 
-CACHE_DIR = os.path.abspath(os.path.join(BaseDirectory.xdg_cache_home, 'deepspeech_wer'))
-DATA_DIR  = os.path.abspath(os.path.join(os.environ.get('ds_dataroot', BaseDirectory.xdg_data_home), 'deepspeech_wer'))
+CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'deepspeech_wer')
+DATA_DIR  = os.path.join(BaseDirectory.xdg_data_home, 'deepspeech_wer')
 
 # Lock file to prevent execution: avoid multiple simultaneous execution, blocks
 # execution if needed

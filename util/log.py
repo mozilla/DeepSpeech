@@ -3,9 +3,7 @@ import os
 import os.path
 
 def merge_logs(logs_dir):
-    r"""
-    Merge all logs from ``logs_dir`` into a single JS file that can be imported by the website.
-    """
+
     written = False
 
     # All direct sub directories of the logs directory
