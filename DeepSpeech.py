@@ -291,7 +291,7 @@ def BiRNN(batch_x, seq_length, dropout):
 
     # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
     # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
-    outputs = tf.concat_v2(outputs, 2)
+    outputs = tf.concat(outputs, 2)
     outputs = tf.reshape(outputs, [-1, 2*n_cell_dim])
 
     # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
@@ -516,7 +516,7 @@ def average_gradients(tower_gradients):
             grads.append(expanded_g)
 
         # Average over the 'tower' dimension
-        grad = tf.concat_v2(grads, 0)
+        grad = tf.concat(grads, 0)
         grad = tf.reduce_mean(grad, 0)
 
         # Create a gradient/variable tuple for the current variable with its average gradient

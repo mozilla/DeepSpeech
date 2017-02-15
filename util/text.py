@@ -171,7 +171,7 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
     batch_array = tf.transpose(tf.reshape(tf.tile(tf.range(0, label_shape[0]), max_num_labels_tns), tf.reverse(label_shape, [0])))
     batch_ind = tf.boolean_mask(batch_array, dense_mask)
 
-    indices = tf.transpose(tf.reshape(tf.concat_v2([batch_ind, label_ind], 0), [2, -1]))
+    indices = tf.transpose(tf.reshape(tf.concat([batch_ind, label_ind], 0), [2, -1]))
     shape = [batch_size, tf.reduce_max(label_lengths)]
     vals_sparse = gather_nd(labels, indices, shape)
     
