@@ -116,7 +116,7 @@ class DataSet(object):
         return int(ceil(float(len(self._txt_files)) / float(self._batch_size)))
 
 
-def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
+def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0):
     data_dir = os.path.join(data_dir, "LDC97S62")
 
     # Conditionally convert swb sph data to wav
@@ -141,22 +141,16 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
                       "final_sets")
 
     # Create dev DataSet
-    dev = None
-    if "dev" in sets:
-        dev = _read_data_set(data_dir, "final_sets/dev", thread_count, dev_batch_size, numcep,
-                             numcontext, limit_dev)
+    dev = _read_data_set(data_dir, "final_sets/dev", thread_count, dev_batch_size, numcep,
+                         numcontext, limit_dev)
 
     # Create test DataSet
-    test = None
-    if "test" in sets:
-        test = _read_data_set(data_dir, "final_sets/test", thread_count, test_batch_size, numcep,
-                             numcontext, limit_test)
+    test = _read_data_set(data_dir, "final_sets/test", thread_count, test_batch_size, numcep,
+                         numcontext, limit_test)
 
     # Create train DataSet
-    train = None
-    if "train" in sets:
-        train = _read_data_set(data_dir, "final_sets/train", thread_count, train_batch_size, numcep,
-                             numcontext, limit_train)
+    train = _read_data_set(data_dir, "final_sets/train", thread_count, train_batch_size, numcep,
+                         numcontext, limit_train)
 
     # Return DataSets
     return DataSets(train, dev, test)
