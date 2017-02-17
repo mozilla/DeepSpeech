@@ -855,7 +855,7 @@ def stop_execution_context(execution_context, session, coord, managed_threads, c
     # If the model is not persisted, we'll return 'None'
     hibernation_path = None
 
-    if checkpoint_path and global_step:
+    if checkpoint_path is not None and global_step is not None:
         # Saving session's model into checkpoint dir
         hibernation_path = persist_model(execution_context, session, checkpoint_path, global_step)
 
@@ -1081,7 +1081,7 @@ def train():
             print "Hibernating training session into directory", "%s" % checkpoint_dir
             checkpoint_path = os.path.join(checkpoint_dir, 'model.ckpt')
             # If the hibernation_path is set, the next epoch loop will load the model
-            hibernation_path = stop_execution_context(                 train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
+            hibernation_path = stop_execution_context(train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
 
             # Validating the model in a fresh session
             print "Validating model..."
@@ -1093,15 +1093,19 @@ def train():
 
         overall_time = stopwatch(overall_time)
 
-        print "FINISHED Epoch", '%04d' % (epoch),             "  Overall epoch time:", format_duration(overall_time),             "  Training time:", format_duration(train_time)
+        print "FINISHED Epoch", '%04d' % (epoch),\
+              "  Overall epoch time:", format_duration(overall_time),\
+              "  Training time:", format_duration(train_time)
         print
 
     # If the last iteration step was no validation, we still have to save the model
     if hibernation_path is None:
-        hibernation_path = stop_execution_context(             train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
+        hibernation_path = stop_execution_context(train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
 
     # Indicate optimization has concluded
-    print "FINISHED Optimization",         "  Overall time:", format_duration(stopwatch(global_time)),         "  Training time:", format_duration(global_train_time)
+    print "FINISHED Optimization",\
+          "  Overall time:", format_duration(stopwatch(global_time)),\
+          "  Training time:", format_duration(global_train_time)
     print
 
     return train_wer, dev_wer, hibernation_path
@@ -1134,7 +1138,7 @@ if __name__ == "__main__":
     if export_dir:
         with tf.device('/cpu:0'):
             tf.reset_default_graph()
-            session = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True))
+            session = tf.Session(config=session_config)
 
             # Run inference
 
