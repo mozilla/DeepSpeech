@@ -13,7 +13,14 @@
     <script src="resources/d3.v3.min.js"></script>
     <script src="resources/rickshaw.min.js"></script>
 
-    <script src="logs/hyper.js"></script>
+    <script type="text/javascript">
+        window.ALL_THE_DATA = [];
+        window.logwer = function(hash, time, type, wer) {
+            window.ALL_THE_DATA.push({ hash: hash, time: time, type: type, wer: wer });
+        };
+    </script>
+
+    <script src="werlog.js"></script>
 
     <style type="text/css">
         .rickshaw_legend {
@@ -26,29 +33,6 @@
     </style>
 </head>
 <body>
-
-    <!-- Static navbar -->
-    <nav class="navbar navbar-default navbar-static-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#">DeepSpeech</a>
-            </div>
-            <div id="navbar" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li id="parameter_menubar_item" class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Parameter WER <span class="caret"></span></a>
-                        <ul id="parameter_menu" class="dropdown-menu"></ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
     <div id="panels" class="container"></div>
 
@@ -152,16 +136,6 @@
 
         };
 
-
-        const groupBy = (array, getProperties) => {
-            var groups = {};
-            array.forEach(o => {
-                var group = JSON.stringify(getProperties(o));
-                (groups[group] = groups[group] || []).push(o);
-            });
-            return Object.keys(groups).map(group => groups[group]);
-        };
-
         var ds = window.ALL_THE_DATA,
             i,
             reports  = {},
@@ -171,13 +145,13 @@
             times = [];
 
         ds.forEach(item => {
-            var time = item.context.time_started =
-                new Date(item.context.time_started).getTime() / 1000.0;
-            item.context.time_finished =
-                new Date(item.context.time_finished).getTime() / 1000.0;
-            overall_test_wer        .push({ x: time, y: item.results.test_wer });
-            overall_validation_wer  .push({ x: time, y: item.results.last_validation_wer });
-            overall_train_wer       .push({ x: time, y: item.results.last_train_wer });
+            var time = new Date(item.time).getTime() / 1000.0;
+            if (item.type == 'train')
+                overall_train_wer.push({ x: time, y: item.wer });
+            else if (item.type == 'dev')
+                overall_validation_wer.push({ x: time, y: item.wer });
+            else
+                overall_test_wer.push({ x: time, y: item.wer });
             times.push(time);
         });
 
@@ -193,74 +167,21 @@
             '<a href="https://en.wikipedia.org/wiki/Test_set#Validation_set">data-sets.</a></p><p>' +
             'Please use the legend for turning on/off data series.</p>';
 
+        var groups = [];
+        if (overall_validation_wer.length > 0)
+            groups.push({ color: 'rgba(100,100,255,0.5)', data: overall_validation_wer, name: 'Validate WER' });
+        if (overall_train_wer.length > 0)
+            groups.push({ color: 'rgba(255,100,100,0.5)', data: overall_train_wer, name: 'Train WER' });
+        if (overall_test_wer.length > 0)
+            groups.push({ color: 'rgba(100,255,100,0.5)', data: overall_test_wer, name: 'Test WER' });
+
         createChart(
             'overall_wer',
             'DeepSpeech Word Error Rate over time',
             'The X axis plots all trainings by their start times. ' + stdtext,
-            [
-                { color: 'rgba(100,100,255,0.5)', data: overall_validation_wer, name: 'Validate WER' },
-                { color: 'rgba(255,100,100,0.5)', data: overall_train_wer, name: 'Train WER' },
-                { color: 'rgba(100,255,100,0.5)', data: overall_test_wer, name: 'Test WER' }
-            ],
+            groups,
             times
         );
-
-        var params = Object.keys(keys = ds[0].parameters);
-        var parameterGroups = {};
-        var chartCount = 0;
-        params.forEach(param => {
-
-            // We group by the other parameters to find series of values that don't differ by other parameters
-            var others = params.filter(p => p !== param);
-            var groups = parameterGroups[param] = groupBy(ds, item => others.map(p => item.parameters[p]));
-
-            // Remove single values
-            groups = groups.filter(g => g.length > 1);
-
-            // Produce { x, y } objects with x being unique and y being the validation WER
-            groups = groups.map(group => {
-                var o = {};
-                group.forEach(item => o[item.parameters[param]] = item.results.last_validation_wer);
-                return {
-                    values: Object.keys(o).map(k => ({ x: k * 1.0, y: o[k] })),
-                    parameters: group[0].parameters,
-                    context: group[0].context
-                };
-            });
-
-            // Exclude singular values
-            groups = groups.filter(g => g.values.length > 1);
-
-            // If there is more than one group, we produce a chart
-            if (groups.length > 0) {
-                chartCount++;
-                var id = 'parameter_' + param;
-                var title = param.split('_').map(p => p[0].toUpperCase() + p.slice(1)).join(' ');
-                $('#parameter_menu').append('<li><a href="#' + id + '">' + title + '</a></li>');
-
-                var series = [],
-                    cc1 = 150, cc2 = 50;
-                groups.forEach(group => {
-                    // Color cycling
-                    cc1 = (cc1 + 40) % 255; cc2 = (cc2 + 200) % 255;
-                    series.push({
-                        color: 'rgba(100,' + cc1 + ',' + cc2 + ',0.75)',
-                        data: group.values,
-                        name: 'WER from ' + new Date(group.context.time_finished * 1000.0).toString(),
-                        meta: group.context
-                    });
-                });
-
-                createChart(id, title, 'The X axis plots all trainings by the value of ' + title + '. ' + stdtext, series, false);
-            }
-        });
-
-        if (chartCount === 0)
-            $('#parameter_menubar_item').hide();
-
-        jQuery(document).ready(function ($) {
-            $('#tabs').tab();
-        });
     </script>
 
 </body>

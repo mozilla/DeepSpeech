@@ -25,50 +25,29 @@ from util.gpu import get_available_gpus
 from util.text import text_to_char_array, ctc_label_dense_to_sparse
 from tensorflow.python.platform import gfile
 from util.audio import audiofile_to_input_vector
+from util.data_set_helpers import DataSets
 from tensorflow.contrib.learn.python.learn.datasets import base
 from six.moves import range
 
-class DataSets(object):
-    def __init__(self, train, dev, test):
-        self._dev = dev
-        self._test = test
-        self._train = train
-
-    def start_queue_threads(self, session):
-        self._dev.start_queue_threads(session)
-        self._test.start_queue_threads(session)
-        self._train.start_queue_threads(session)
-
-    @property
-    def train(self):
-        return self._train
-
-    @property
-    def dev(self):
-        return self._dev
-
-    @property
-    def test(self):
-        return self._test
-
 class DataSet(object):
-    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext):
+    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
         self._coord = None
         self._numcep = numcep
         self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
         self._x_length = tf.placeholder(tf.int32, [])
         self._y = tf.placeholder(tf.int32, [None,])
         self._y_length = tf.placeholder(tf.int32, [])
-        self._example_queue = tf.PaddingFIFOQueue(shapes=[[None, numcep + (2 * numcep * numcontext)], [], [None,], []],
+        self.example_queue = tf.PaddingFIFOQueue(shapes=[[None, numcep + (2 * numcep * numcontext)], [], [None,], []],
                                                   dtypes=[tf.float32, tf.int32, tf.int32, tf.int32],
                                                   capacity=2 * self._get_device_count() * batch_size)
-        self._enqueue_op = self._example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])
-        self._close_op = self._example_queue.close(cancel_pending_enqueues=True)
+        self._enqueue_op = self.example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])
+        self._close_op = self.example_queue.close(cancel_pending_enqueues=True)
         self._txt_files = txt_files
-        self._batch_size = batch_size
+        self.batch_size = batch_size
         self._numcontext = numcontext
         self._thread_count = thread_count
-        self._files_circular_list = self._create_files_circular_list()
+        self._files_list = self._create_files_list()
+        self._next_index = next_index
 
     def _get_device_count(self):
         available_gpus = get_available_gpus()
@@ -85,7 +64,7 @@ class DataSet(object):
     def close_queue(self, session):
         session.run(self._close_op)
 
-    def _create_files_circular_list(self):
+    def _create_files_list(self):
         priorityQueue = PriorityQueue()
         for txt_file in self._txt_files:
             stm_dir = path.sep + "stm" + path.sep
@@ -97,12 +76,16 @@ class DataSet(object):
         while not priorityQueue.empty():
             priority, (txt_file, wav_file) = priorityQueue.get()
             files_list.append((txt_file, wav_file))
-        return cycle(files_list)
+        return files_list
+
+    def _indices(self):
+        index = -1
+        while not self._coord.should_stop():
+            index = self._next_index(index) % len(self._files_list)
+            yield self._files_list[index]
 
     def _populate_batch_queue(self, session):
-        for txt_file, wav_file in self._files_circular_list:
-            if self._coord.should_stop():
-              return
+        for txt_file, wav_file in self._indices():
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
             with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
@@ -124,17 +107,17 @@ class DataSet(object):
                 return
 
     def next_batch(self):
-        source, source_lengths, target, target_lengths = self._example_queue.dequeue_many(self._batch_size)
-        sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, self._batch_size)
+        source, source_lengths, target, target_lengths = self.example_queue.dequeue_many(self.batch_size)
+        sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, self.batch_size)
         return source, source_lengths, sparse_labels
 
     @property
     def total_batches(self):
-        # Note: If len(_txt_files) % _batch_size != 0, this re-uses initial _txt_files
-        return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
+        # Note: If len(_txt_files) % batch_size != 0, this re-uses initial _txt_files
+        return int(ceil(float(len(self._txt_files)) /float(self.batch_size)))
 
 
-def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
+def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, stride=1, offset=0, next_index=lambda s, i: i + 1, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
     # Conditionally download data
     TED_DATA = "TEDLIUM_release2.tar.gz"
     TED_DATA_URL = "http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz"
@@ -156,17 +139,17 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
     # Create dev DataSet
     dev = None
     if "dev" in sets:
-        dev = _read_data_set(data_dir, TED_DIR, "dev", thread_count, dev_batch_size, numcep, numcontext, limit=limit_dev)
+        dev = _read_data_set(data_dir, TED_DIR, "dev", thread_count, dev_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('dev', i), limit=limit_dev)
 
     # Create test DataSet
     test = None
     if "test" in sets:
-        test = _read_data_set(data_dir, TED_DIR, "test", thread_count, test_batch_size, numcep, numcontext, limit=limit_test)
+        test = _read_data_set(data_dir, TED_DIR, "test", thread_count, test_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('test', i), limit=limit_test)
 
     # Create train DataSet
     train = None
     if "train" in sets:
-        train = _read_data_set(data_dir, TED_DIR, "train", thread_count, train_batch_size, numcep, numcontext, limit=limit_train)
+        train = _read_data_set(data_dir, TED_DIR, "train", thread_count, train_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('train', i), limit=limit_train)
 
     # Return DataSets
     return DataSets(train, dev, test)
@@ -313,7 +296,7 @@ def _maybe_split_stm_dataset(extracted_dir, data_set):
         # Remove stm_file
         remove(stm_file)
 
-def _read_data_set(data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext, limit=0):
+def _read_data_set(data_dir, extracted_data, data_set, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
     # Create stm dir
     stm_dir = path.join(data_dir, extracted_data, data_set, "stm")
 
@@ -321,6 +304,7 @@ def _read_data_set(data_dir, extracted_data, data_set, thread_count, batch_size,
     txt_files = glob(path.join(stm_dir, "*.txt"))
     if limit > 0:
         txt_files = txt_files[:limit]
+    txt_files = txt_files[offset::stride]
 
     # Return DataSet
-    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext)
+    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, next_index=next_index)
