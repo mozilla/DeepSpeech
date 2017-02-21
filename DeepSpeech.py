@@ -1055,8 +1055,8 @@ def train():
 
         # Determine if we want to display, validate, checkpoint on this iteration
         is_display_step = display_step > 0 and ((epoch + 1) % display_step == 0 or epoch == epochs - 1)
-        is_validation_step = validation_step > 0 and (epoch > 0 and (epoch + 1) % validation_step == 0)
-        is_checkpoint_step = (checkpoint_step > 0 and epoch > 0 and (epoch + 1) % checkpoint_step == 0) or                              epoch == epochs - 1
+        is_validation_step = validation_step > 0 and (epoch + 1) % validation_step == 0
+        is_checkpoint_step = (checkpoint_step > 0 and (epoch + 1) % checkpoint_step == 0) or epoch == epochs - 1
 
         print "Training model..."
         global_train_time = stopwatch(global_train_time)
