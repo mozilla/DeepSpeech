@@ -16,6 +16,7 @@ from collections import OrderedDict
 from math import ceil
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.ops import ctc_ops
+from tensorflow.contrib.rnn.python.ops import core_rnn_cell
 from util.gpu import get_available_gpus
 from util.log import merge_logs
 from util.spell import correction
@@ -265,17 +266,17 @@ def BiRNN(batch_x, seq_length, dropout):
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    lstm_fw_cell = tf.nn.rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_fw_cell = tf.nn.rnn_cell.DropoutWrapper(lstm_fw_cell,
-                                                 input_keep_prob=1.0 - dropout[3],
-                                                 output_keep_prob=1.0 - dropout[3],
-                                                 seed=random_seed)
+    lstm_fw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_fw_cell = core_rnn_cell.DropoutWrapper(lstm_fw_cell,
+                                                input_keep_prob=1.0 - dropout[3],
+                                                output_keep_prob=1.0 - dropout[3],
+                                                seed=random_seed)
     # Backward direction cell:
-    lstm_bw_cell = tf.nn.rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_bw_cell = tf.nn.rnn_cell.DropoutWrapper(lstm_bw_cell,
-                                                 input_keep_prob=1.0 - dropout[4],
-                                                 output_keep_prob=1.0 - dropout[4],
-                                                 seed=random_seed)
+    lstm_bw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_bw_cell = core_rnn_cell.DropoutWrapper(lstm_bw_cell,
+                                                input_keep_prob=1.0 - dropout[4],
+                                                output_keep_prob=1.0 - dropout[4],
+                                                seed=random_seed)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
@@ -291,7 +292,7 @@ def BiRNN(batch_x, seq_length, dropout):
 
     # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
     # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
-    outputs = tf.concat(2, outputs)
+    outputs = tf.concat(outputs, 2)
     outputs = tf.reshape(outputs, [-1, 2*n_cell_dim])
 
     # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
@@ -339,9 +340,9 @@ def calculate_accuracy_and_loss(batch_set, dropout):
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if use_warpctc:
-        total_loss = tf.contrib.warpctc.warp_ctc_loss(logits, batch_y, batch_seq_len)
+        total_loss = tf.contrib.warpctc.warp_ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
     else:
-        total_loss = ctc_ops.ctc_loss(logits, batch_y, batch_seq_len)
+        total_loss = ctc_ops.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
 
     # Calculate the average loss across the batch
     avg_loss = tf.reduce_mean(total_loss)
@@ -449,44 +450,45 @@ def get_tower_results(batch_set, optimizer=None):
     # To calculate the mean of the losses
     tower_avg_losses = []
 
-    # Loop over available_devices
-    for i in xrange(len(available_devices)):
-        # Execute operations of tower i on device i
-        with tf.device(available_devices[i]):
-            # Create a scope for all operations of tower i
-            with tf.name_scope('tower_%d' % i) as scope:
-                # Calculate the avg_loss and accuracy and retrieve the decoded
-                # batch along with the original batch's labels (Y) of this tower
-                total_loss, avg_loss, distance, accuracy, decoded, labels = \
-                    calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
+    with tf.variable_scope(tf.get_variable_scope()):
+        # Loop over available_devices
+        for i in xrange(len(available_devices)):
+            # Execute operations of tower i on device i
+            with tf.device(available_devices[i]):
+                # Create a scope for all operations of tower i
+                with tf.name_scope('tower_%d' % i) as scope:
+                    # Calculate the avg_loss and accuracy and retrieve the decoded
+                    # batch along with the original batch's labels (Y) of this tower
+                    total_loss, avg_loss, distance, accuracy, decoded, labels = \
+                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
 
-                # Allow for variables to be re-used by the next tower
-                tf.get_variable_scope().reuse_variables()
+                    # Allow for variables to be re-used by the next tower
+                    tf.get_variable_scope().reuse_variables()
 
-                # Retain tower's labels (Y)
-                tower_labels.append(labels)
+                    # Retain tower's labels (Y)
+                    tower_labels.append(labels)
 
-                # Retain tower's decoded batch
-                tower_decodings.append(decoded)
+                    # Retain tower's decoded batch
+                    tower_decodings.append(decoded)
 
-                # Retain tower's distances
-                tower_distances.append(distance)
+                    # Retain tower's distances
+                    tower_distances.append(distance)
 
-                # Retain tower's total losses
-                tower_total_losses.append(total_loss)
+                    # Retain tower's total losses
+                    tower_total_losses.append(total_loss)
 
-                if optimizer is not None:
-                    # Compute gradients for model parameters using tower's mini-batch
-                    gradients = optimizer.compute_gradients(avg_loss)
+                    if optimizer is not None:
+                        # Compute gradients for model parameters using tower's mini-batch
+                        gradients = optimizer.compute_gradients(avg_loss)
 
-                    # Retain tower's gradients
-                    tower_gradients.append(gradients)
+                        # Retain tower's gradients
+                        tower_gradients.append(gradients)
 
-                # Retain tower's accuracy
-                tower_accuracies.append(accuracy)
+                    # Retain tower's accuracy
+                    tower_accuracies.append(accuracy)
 
-                # Retain tower's avg losses
-                tower_avg_losses.append(avg_loss)
+                    # Retain tower's avg losses
+                    tower_avg_losses.append(avg_loss)
 
     # Return the results tuple, the gradients, and the means of accuracies and losses
     return (tower_labels, tower_decodings, tower_distances, tower_total_losses), \
@@ -517,7 +519,7 @@ def average_gradients(tower_gradients):
             grads.append(expanded_g)
 
         # Average over the 'tower' dimension
-        grad = tf.concat(0, grads)
+        grad = tf.concat(grads, 0)
         grad = tf.reduce_mean(grad, 0)
 
         # Create a gradient/variable tuple for the current variable with its average gradient
@@ -550,18 +552,18 @@ def log_variable(variable, gradient=None):
     """
     name = variable.name
     mean = tf.reduce_mean(variable)
-    tf.scalar_summary(name + '/mean', mean)
-    tf.scalar_summary(name + '/sttdev', tf.sqrt(tf.reduce_mean(tf.square(variable - mean))))
-    tf.scalar_summary(name + '/max', tf.reduce_max(variable))
-    tf.scalar_summary(name + '/min', tf.reduce_min(variable))
-    tf.histogram_summary(name, variable)
+    tf.summary.scalar(name='%s/mean'   % name, tensor=mean)
+    tf.summary.scalar(name='%s/sttdev' % name, tensor=tf.sqrt(tf.reduce_mean(tf.square(variable - mean))))
+    tf.summary.scalar(name='%s/max'    % name, tensor=tf.reduce_max(variable))
+    tf.summary.scalar(name='%s/min'    % name, tensor=tf.reduce_min(variable))
+    tf.summary.histogram(name=name, values=variable)
     if gradient is not None:
         if isinstance(gradient, tf.IndexedSlices):
             grad_values = gradient.values
         else:
             grad_values = gradient
         if grad_values is not None:
-            tf.histogram_summary(name + "/gradients", grad_values)
+            tf.summary.histogram(name='%s/gradients' % name, values=grad_values)
 
 
 def log_grads_and_vars(grads_and_vars):
@@ -793,12 +795,12 @@ def create_execution_context(set_name):
             apply_gradient_op = apply_gradients(optimizer, avg_tower_gradients)
 
         # Create a saver to checkpoint the model
-        saver = tf.train.Saver(tf.all_variables())
+        saver = tf.train.Saver(tf.global_variables())
 
         if is_train:
             # Prepare tensor board logging
-            merged = tf.merge_all_summaries()
-            writer = tf.train.SummaryWriter(log_dir, graph)
+            merged = tf.summary.merge_all()
+            writer = tf.summary.FileWriter(log_dir, graph)
             return (graph, data_set, tower_results, saver, apply_gradient_op, merged, writer)
         else:
             return (graph, data_set, tower_results, saver)
@@ -825,7 +827,8 @@ def start_execution_context(execution_context, model_path=None):
     with graph.as_default():
         if model_path is None:
             # Init all variables for first use
-            session.run(tf.initialize_all_variables())
+            init_op = tf.global_variables_initializer()
+            session.run(init_op)
         else:
             # Loading the model into the session
             execution_context[3].restore(session, model_path)
@@ -1168,7 +1171,7 @@ if __name__ == "__main__":
             # TODO: Transform the decoded output to a string
 
             # Create a saver and exporter using variables from the above newly created graph
-            saver = tf.train.Saver(tf.all_variables())
+            saver = tf.train.Saver(tf.global_variables())
             model_exporter = exporter.Exporter(saver)
 
             # Restore variables from training checkpoint
