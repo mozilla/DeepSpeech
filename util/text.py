@@ -53,7 +53,7 @@ def sparse_tensor_value_to_texts(value):
     Given a :class:`tf.SparseTensor` ``value``, return an array of Python strings
     representing its values.
     """
-    return sparse_tuple_to_texts((value.indices, value.values, value.shape))
+    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape))
 
 def sparse_tuple_to_texts(tuple):
     indices = tuple[0]
@@ -137,7 +137,7 @@ def gather_nd(params, indices, shape):
     rank = len(shape)
     flat_params = tf.reshape(params, [-1])
     multipliers = [reduce(lambda x, y: x*y, shape[i+1:], 1) for i in range(0, rank)]
-    indices_unpacked = tf.unpack(tf.transpose(indices, [rank - 1] + range(0, rank - 1)))
+    indices_unpacked = tf.unstack(tf.transpose(indices, [rank - 1] + range(0, rank - 1)))
     flat_indices = sum([a*b for a,b in zip(multipliers, indices_unpacked)])
     return tf.gather(flat_params, flat_indices)
 
@@ -154,8 +154,8 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
         labels = tf.identity(labels)
 
     label_shape = tf.shape(labels)
-    num_batches_tns = tf.pack([label_shape[0]])
-    max_num_labels_tns = tf.pack([label_shape[1]])
+    num_batches_tns = tf.stack([label_shape[0]])
+    max_num_labels_tns = tf.stack([label_shape[1]])
     def range_less_than(previous_state, current_input):
         return tf.expand_dims(tf.range(label_shape[1]), 0) < current_input
 
@@ -168,10 +168,10 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
           label_shape)
     label_ind = tf.boolean_mask(label_array, dense_mask)
 
-    batch_array = tf.transpose(tf.reshape(tf.tile(tf.range(0, label_shape[0]), max_num_labels_tns), tf.reverse(label_shape, [True])))
+    batch_array = tf.transpose(tf.reshape(tf.tile(tf.range(0, label_shape[0]), max_num_labels_tns), tf.reverse(label_shape, [0])))
     batch_ind = tf.boolean_mask(batch_array, dense_mask)
 
-    indices = tf.transpose(tf.reshape(tf.concat(0, [batch_ind, label_ind]), [2, -1]))
+    indices = tf.transpose(tf.reshape(tf.concat([batch_ind, label_ind], 0), [2, -1]))
     shape = [batch_size, tf.reduce_max(label_lengths)]
     vals_sparse = gather_nd(labels, indices, shape)
     
