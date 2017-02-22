@@ -18,6 +18,7 @@ from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.ops import ctc_ops
 from util.gpu import get_available_gpus
 from util.log import merge_logs
+from util.spell import correction
 from util.shared_lib import check_cupti
 from util.text import sparse_tensor_value_to_texts, wer
 from xdg import BaseDirectory as xdg
@@ -601,8 +602,12 @@ def calculate_and_print_wer_report(caption, results_tuple):
         item = items[i]
         # If distance > 0 we know that there is a WER > 0 and have to calculate it
         if item[2] > 0:
+            # Replace result by language model corrected result
+            item = (item[0], correction(item[1]), item[2], item[3])
             # Replacing accuracy tuple entry by the WER
-            item = items[i] = (item[0], item[1], wer(item[0], item[1]), item[3])
+            item = (item[0], item[1], wer(item[0], item[1]), item[3])
+            # Replace items[i] with new item
+            items[i] = item
             mean_wer = mean_wer + item[2]
 
     # Getting the mean WER from the accumulated one
