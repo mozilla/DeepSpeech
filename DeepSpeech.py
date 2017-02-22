@@ -605,7 +605,9 @@ def calculate_and_print_wer_report(caption, results_tuple):
             # Replace result by language model corrected result
             item = (item[0], correction(item[1]), item[2], item[3])
             # Replacing accuracy tuple entry by the WER
-            item = items[i] = (item[0], item[1], wer(item[0], item[1]), item[3])
+            item = (item[0], item[1], wer(item[0], item[1]), item[3])
+            # Replace items[i] with new item
+            items[i] = item
             mean_wer = mean_wer + item[2]
 
     # Getting the mean WER from the accumulated one

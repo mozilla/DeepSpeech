@@ -1,20 +1,20 @@
 import re
 import kenlm
 from heapq import heapify
-from collections import Counter
 
 # Define beam with for alt sentence search
 BEAM_WIDTH = 16384
 
-# Load language model
+# Load language model (TED corpus, Kneser-Ney, 4-gram, 30k word LM)
 MODEL = kenlm.Model('./data/lm/lm.arpa')
 
 def words(text):
     "List of words in text."
     return re.findall(r'\w+', text.lower())
 
-# Calculate word statistics
-WORDS = Counter(words(open('./data/spell/words.txt').read()))
+# Load known word set
+with open('./data/spell/words.txt') as f:
+    WORDS = set(words(f.read()))
 
 def log_probability(sentence):
     "Log base 10 probability of `sentence`, a list of words"
