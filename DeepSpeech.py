@@ -16,8 +16,8 @@ from collections import OrderedDict
 from math import ceil
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.ops import ctc_ops
-from tensorflow.contrib.rnn.python.ops import core_rnn_cell
 from tensorflow.python.tools import freeze_graph
+from util.bnlstm import BNLSTMCell
 from util.gpu import get_available_gpus
 from util.log import merge_logs
 from util.spell import correction
@@ -217,7 +217,7 @@ def variable_on_cpu(name, shape, initializer):
     return var
 
 
-def BiRNN(batch_x, seq_length, dropout):
+def BiRNN(batch_x, seq_length, dropout, is_training):
     r"""
     That done, we will define the learned variables, the weights and biases,
     within the method ``BiRNN()`` which also constructs the neural network.
@@ -249,35 +249,32 @@ def BiRNN(batch_x, seq_length, dropout):
     b1 = variable_on_cpu('b1', [n_hidden_1], tf.random_normal_initializer(stddev=b1_stddev))
     h1 = variable_on_cpu('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.random_normal_initializer(stddev=h1_stddev))
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), relu_clip)
-    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+    layer_1 = tf.contrib.layers.batch_norm(inputs=layer_1, decay=0.9, is_training=is_training)
 
     # 2nd layer
     b2 = variable_on_cpu('b2', [n_hidden_2], tf.random_normal_initializer(stddev=b2_stddev))
     h2 = variable_on_cpu('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=h2_stddev))
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), relu_clip)
-    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+    layer_2 = tf.contrib.layers.batch_norm(inputs=layer_2, decay=0.9, is_training=is_training)
 
     # 3rd layer
     b3 = variable_on_cpu('b3', [n_hidden_3], tf.random_normal_initializer(stddev=b3_stddev))
     h3 = variable_on_cpu('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=h3_stddev))
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), relu_clip)
-    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+    layer_3 = tf.contrib.layers.batch_norm(inputs=layer_3, decay=0.9, is_training=is_training)
 
     # Now we create the forward and backward LSTM units.
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    lstm_fw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_fw_cell = core_rnn_cell.DropoutWrapper(lstm_fw_cell,
-                                                input_keep_prob=1.0 - dropout[3],
-                                                output_keep_prob=1.0 - dropout[3],
-                                                seed=random_seed)
+    # max_bn_steps is the maximum number of time steps to store separate statistics
+    # for. It doesn't have to match the size of the longest utterance in the dataset,
+    # but that's probably best. For now, let's choose an arbitrary value and see
+    # how it performs.
+    lstm_fw_cell = BNLSTMCell(n_cell_dim, is_training, max_bn_steps=100)
+
     # Backward direction cell:
-    lstm_bw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_bw_cell = core_rnn_cell.DropoutWrapper(lstm_bw_cell,
-                                                input_keep_prob=1.0 - dropout[4],
-                                                output_keep_prob=1.0 - dropout[4],
-                                                seed=random_seed)
+    lstm_bw_cell = BNLSTMCell(n_cell_dim, is_training, max_bn_steps=100)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
@@ -300,7 +297,7 @@ def BiRNN(batch_x, seq_length, dropout):
     b5 = variable_on_cpu('b5', [n_hidden_5], tf.random_normal_initializer(stddev=b5_stddev))
     h5 = variable_on_cpu('h5', [(2 * n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=h5_stddev))
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), relu_clip)
-    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+    layer_5 = tf.contrib.layers.batch_norm(inputs=layer_5, decay=0.9, is_training=is_training)
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
@@ -327,7 +324,7 @@ def BiRNN(batch_x, seq_length, dropout):
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_accuracy_and_loss(batch_set, dropout):
+def calculate_accuracy_and_loss(batch_set, dropout, is_training):
     r"""
     This routine beam search decodes a mini-batch and calculates the loss and accuracy.
     Next to total and average loss it returns the accuracy,
@@ -337,7 +334,7 @@ def calculate_accuracy_and_loss(batch_set, dropout):
     batch_x, batch_seq_len, batch_y = batch_set.next_batch()
 
     # Calculate the logits of the batch using BiRNN
-    logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
+    logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout, is_training)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if use_warpctc:
@@ -409,7 +406,7 @@ if 0 == len(available_devices):
     available_devices = ['/cpu:0']
 
 
-def get_tower_results(batch_set, optimizer=None):
+def get_tower_results(batch_set, is_training, optimizer=None):
     r"""
     With this preliminary step out of the way, we can for each GPU introduce a
     tower for which's batch we calculate
@@ -461,7 +458,7 @@ def get_tower_results(batch_set, optimizer=None):
                     # Calculate the avg_loss and accuracy and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
                     total_loss, avg_loss, distance, accuracy, decoded, labels = \
-                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
+                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates, is_training)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
@@ -778,11 +775,14 @@ def create_execution_context(set_name):
         # Define bool to indicate if data_set is the training set
         is_train = set_name == 'train'
 
+        # Create a placeholder that indicates whether we're in the training phase
+        is_train_ph = tf.placeholder(tf.bool, shape=[], name="is_training")
+
         # If training create optimizer
         optimizer = create_optimizer() if is_train else None
 
         # Get the data_set specific graph end-points
-        tower_results = get_tower_results(data_set, optimizer=optimizer)
+        tower_results = get_tower_results(data_set, is_training=is_train_ph, optimizer=optimizer)
 
         if is_train:
             # Average tower gradients
@@ -919,6 +919,9 @@ def calculate_loss_and_report(execution_context, session, epoch=-1, query_report
         if log_variables:
             params['merged'] = merged
 
+        # Also run the update operations from the batch norm layers
+        params['update_ops'] = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
     # Requirements to display a WER report
     if query_report:
         # Reset accuracy
@@ -941,7 +944,7 @@ def calculate_loss_and_report(execution_context, session, epoch=-1, query_report
             extra_params['run_metadata'] = loss_run_metadata
 
         # Compute the batch
-        result = session.run(params, **extra_params)
+        result = session.run(params, feed_dict={"is_training:0": do_training}, **extra_params)
 
         # Add batch to loss
         total_loss += result[param_idx['avg_loss']]
