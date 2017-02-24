@@ -1,0 +1,39 @@
+Speed:
+    * If you want to use multiple cores, then compile with -openmp or -fopenmp (see your compiler docs).
+	Realize that larger FFTs will reap more benefit than smaller FFTs. This generally uses more CPU time, but
+	less wall time.
+
+    * experiment with compiler flags
+        Special thanks to Oscar Lesta. He suggested some compiler flags 
+        for gcc that make a big difference. They shave 10-15% off
+        execution time on some systems.  Try some combination of:
+                -march=pentiumpro
+                -ffast-math
+                -fomit-frame-pointer
+
+    * If the input data has no imaginary component, use the kiss_fftr code under tools/.
+      Real ffts are roughly twice as fast as complex.
+
+    * If you can rearrange your code to do 4 FFTs in parallel and you are on a recent Intel or AMD machine,
+    then you might want to experiment with the USE_SIMD code.  See README.simd
+
+
+Reducing code size:
+    * remove some of the butterflies. There are currently butterflies optimized for radices
+        2,3,4,5.  It is worth mentioning that you can still use FFT sizes that contain 
+        other factors, they just won't be quite as fast.  You can decide for yourself 
+        whether to keep radix 2 or 4.  If you do some work in this area, let me 
+        know what you find.
+
+    * For platforms where ROM/code space is more plentiful than RAM,
+     consider creating a hardcoded kiss_fft_state. In other words, decide which 
+     FFT size(s) you want and make a structure with the correct factors and twiddles.
+
+    * Frank van der Hulst offered numerous suggestions for smaller code size and correct operation 
+    on embedded targets.  "I'm happy to help anyone who is trying to implement KISSFFT on a micro"
+
+    Some of these were rolled into the mainline code base:
+        - using long casts to promote intermediate results of short*short multiplication
+        - delaying allocation of buffers that are sometimes unused.
+    In some cases, it may be desirable to limit capability in order to better suit the target:
+        - predefining the twiddle tables for the desired fft size.  

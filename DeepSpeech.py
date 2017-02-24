@@ -17,6 +17,7 @@ from math import ceil
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.ops import ctc_ops
 from tensorflow.contrib.rnn.python.ops import core_rnn_cell
+from tensorflow.python.tools import freeze_graph
 from util.gpu import get_available_gpus
 from util.log import merge_logs
 from util.spell import correction
@@ -1151,7 +1152,7 @@ if __name__ == "__main__":
             # Run inference
 
             # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
-            input_tensor = tf.placeholder(tf.float32, [None, None, n_input + 2*n_input*n_context])
+            input_tensor = tf.placeholder(tf.float32, [None, None, n_input + 2*n_input*n_context], name='input_node')
 
             # Calculate input sequence length. This is done by tiling n_steps, batch_size times.
             # If there are multiple sequences, it is assumed they are padded with zeros to be of
@@ -1166,7 +1167,7 @@ if __name__ == "__main__":
             # Beam search decode the batch
             decoded, _ = ctc_ops.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
             decoded = tf.convert_to_tensor(
-                [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded])
+                [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
 
             # TODO: Transform the decoded output to a string
 
@@ -1178,8 +1179,9 @@ if __name__ == "__main__":
             # TODO: This restores the most recent checkpoint, but if we use validation to counterract
             #       over-fitting, we may want to restore an earlier checkpoint.
             checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
-            saver.restore(session, checkpoint.model_checkpoint_path)
-            print 'Restored checkpoint at training epoch %d' % (int(checkpoint.model_checkpoint_path.split('-')[-1]) + 1)
+            checkpoint_path = checkpoint.model_checkpoint_path
+            saver.restore(session, checkpoint_path)
+            print 'Restored checkpoint at training epoch %d' % (int(checkpoint_path.split('-')[-1]) + 1)
 
             # Initialise the model exporter and export the model
             model_exporter.init(session.graph.as_graph_def(),
@@ -1194,8 +1196,28 @@ if __name__ == "__main__":
                     print 'Removing old export'
                     shutil.rmtree(actual_export_dir)
             try:
+                # Export serving model
                 model_exporter.export(export_dir, tf.constant(export_version), session)
-                print 'Model exported at %s' % (export_dir)
+
+                # Export graph
+                input_graph_name = 'input_graph.pb'
+                tf.train.write_graph(session.graph, export_dir, input_graph_name, as_text=False)
+
+                # Freeze graph
+                input_graph_path = os.path.join(export_dir, input_graph_name)
+                input_saver_def_path = ''
+                input_binary = True
+                output_node_names = 'output_node'
+                restore_op_name = 'save/restore_all'
+                filename_tensor_name = 'save/Const:0'
+                output_graph_path = os.path.join(export_dir, 'output_graph.pb')
+                clear_devices = False
+                freeze_graph.freeze_graph(input_graph_path, input_saver_def_path,
+                                          input_binary, checkpoint_path, output_node_names,
+                                          restore_op_name, filename_tensor_name,
+                                          output_graph_path, clear_devices, '')
+
+                print 'Models exported at %s' % (export_dir)
             except RuntimeError:
                 print  sys.exc_info()[1]
 

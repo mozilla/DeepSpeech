@@ -3,7 +3,7 @@ import kenlm
 from heapq import heapify
 
 # Define beam with for alt sentence search
-BEAM_WIDTH = 16384
+BEAM_WIDTH = 1024
 
 # Load language model (TED corpus, Kneser-Ney, 4-gram, 30k word LM)
 MODEL = kenlm.Model('./data/lm/lm.arpa')
