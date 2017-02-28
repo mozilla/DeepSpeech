@@ -19,7 +19,7 @@ git clone https://github.com/mozilla/DeepSpeech
 cd DeepSpeech
 git lfs fetch
 git lfs checkout
-sudo pip install -r requirements.txt
+sudo pip install -r doc/requirements.txt
 ```
 
 ## Recommendations
