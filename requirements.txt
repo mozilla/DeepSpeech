@@ -1,0 +1,10 @@
+# requirements.txt
+pysftp
+python_speech_features
+sox
+PyXDG
+skipy
+TensorFlow
+
+# kenlm
+https://github.com/kpu/kenlm/archive/master.zip
