@@ -11,6 +11,16 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 * [python_speech_features](https://pypi.python.org/pypi/python_speech_features)
 * [python sox](https://pypi.python.org/pypi/sox)
 
+
+## Install
+
+Manually install [Git Large File Storage](https://git-lfs.github.com/), then open a terminal and run:
+```
+git clone https://github.com/mozilla/DeepSpeech
+cd DeepSpeech
+pip install -r doc/requirements.txt
+```
+
 ## Recommendations
 
 If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU.
