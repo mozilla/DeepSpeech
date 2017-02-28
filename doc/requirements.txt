@@ -7,3 +7,4 @@ sox
 python_speech_features
 pyxdg
 bs4
+https://github.com/kpu/kenlm/archive/master.zip

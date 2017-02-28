@@ -18,8 +18,6 @@ Manually install [Git Large File Storage](https://git-lfs.github.com/), then ope
 ```
 git clone https://github.com/mozilla/DeepSpeech
 cd DeepSpeech
-git lfs fetch
-git lfs checkout
 sudo pip install -r doc/requirements.txt
 ```
 
