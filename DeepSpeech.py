@@ -697,6 +697,8 @@ def stopwatch(start_duration=0):
 
 def format_duration(duration):
     """Formats the result of an even stopwatch call as hours:minutes:seconds"""
+    if type(duration) is not datetime.timedelta:
+        return "N/A"
     m, s = divmod(duration.seconds, 60)
     h, m = divmod(m, 60)
     return "%d:%02d:%02d" % (h, m, s)
@@ -1042,11 +1044,13 @@ def train():
     # Possibly restore checkpoint
     start_epoch = 0
     if restore_checkpoint:
+        # Restore checkpoint created after epoch N, restart from epoch N+1
         checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
         if checkpoint and checkpoint.model_checkpoint_path:
             hibernation_path = checkpoint.model_checkpoint_path
-            start_epoch = int(checkpoint.model_checkpoint_path.split('-')[-1])
-            print 'Resuming training from epoch %d' % (start_epoch + 1)
+            last_epoch = int(checkpoint.model_checkpoint_path.split('-')[-1])
+            start_epoch = last_epoch+1
+            print 'Resuming training from epoch %d' % (start_epoch)
 
     # Loop over the data set for training_epochs epochs
     for epoch in range(start_epoch, epochs):
