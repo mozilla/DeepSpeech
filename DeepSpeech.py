@@ -15,7 +15,6 @@ import time
 from collections import OrderedDict
 from math import ceil
 from tensorflow.contrib.session_bundle import exporter
-from tensorflow.python.ops import ctc_ops
 from tensorflow.python.tools import freeze_graph
 from util.gpu import get_available_gpus
 from util.log import merge_logs
@@ -342,13 +341,13 @@ def calculate_accuracy_and_loss(batch_set, dropout):
     if use_warpctc:
         total_loss = tf.contrib.warpctc.warp_ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
     else:
-        total_loss = ctc_ops.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+        total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
 
     # Calculate the average loss across the batch
     avg_loss = tf.reduce_mean(total_loss)
 
     # Beam search decode the batch
-    decoded, _ = ctc_ops.ctc_beam_search_decoder(logits, batch_seq_len, merge_repeated=False)
+    decoded, _ = tf.nn.ctc_beam_search_decoder(logits, batch_seq_len, merge_repeated=False)
 
     # Compute the edit (Levenshtein) distance
     distance = tf.edit_distance(tf.cast(decoded[0], tf.int32), batch_y)
