@@ -16,7 +16,6 @@ from collections import OrderedDict
 from math import ceil
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.ops import ctc_ops
-from tensorflow.contrib.rnn.python.ops import core_rnn_cell
 from tensorflow.python.tools import freeze_graph
 from util.gpu import get_available_gpus
 from util.log import merge_logs
@@ -267,17 +266,17 @@ def BiRNN(batch_x, seq_length, dropout):
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    lstm_fw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_fw_cell = core_rnn_cell.DropoutWrapper(lstm_fw_cell,
-                                                input_keep_prob=1.0 - dropout[3],
-                                                output_keep_prob=1.0 - dropout[3],
-                                                seed=random_seed)
+    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
+                                                 input_keep_prob=1.0 - dropout[3],
+                                                 output_keep_prob=1.0 - dropout[3],
+                                                 seed=random_seed)
     # Backward direction cell:
-    lstm_bw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_bw_cell = core_rnn_cell.DropoutWrapper(lstm_bw_cell,
-                                                input_keep_prob=1.0 - dropout[4],
-                                                output_keep_prob=1.0 - dropout[4],
-                                                seed=random_seed)
+    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
+                                                 input_keep_prob=1.0 - dropout[4],
+                                                 output_keep_prob=1.0 - dropout[4],
+                                                 seed=random_seed)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
