@@ -45,7 +45,7 @@ if do_fulltrace:
 # The number of iterations (epochs) we will train for
 epochs = int(os.environ.get('ds_epochs', 75))
 
-# Weather to use GPU bound Warp-CTC
+# Whether to use GPU bound Warp-CTC
 use_warpctc = bool(len(os.environ.get('ds_use_warpctc', '')))
 
 # As we will employ dropout on the feedforward layers of the network,
