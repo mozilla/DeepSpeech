@@ -6,7 +6,7 @@ from heapq import heapify
 BEAM_WIDTH = 1024
 
 # Load language model (TED corpus, Kneser-Ney, 4-gram, 30k word LM)
-MODEL = kenlm.Model('./data/lm/lm.arpa')
+MODEL = kenlm.Model('./data/lm/lm.binary')
 
 def words(text):
     "List of words in text."

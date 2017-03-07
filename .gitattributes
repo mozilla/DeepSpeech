@@ -1,1 +1,2 @@
-*.arpa filter=lfs diff=lfs merge=lfs -crlf
+
+*.binary filter=lfs diff=lfs merge=lfs -crlf
