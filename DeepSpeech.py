@@ -1163,7 +1163,7 @@ if __name__ == "__main__":
             logits = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout)
 
             # Beam search decode the batch
-            decoded, _ = ctc_ops.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
+            decoded, _ = tf.nn.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
             decoded = tf.convert_to_tensor(
                 [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
 
