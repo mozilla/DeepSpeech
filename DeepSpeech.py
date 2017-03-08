@@ -15,8 +15,6 @@ import time
 from collections import OrderedDict
 from math import ceil
 from tensorflow.contrib.session_bundle import exporter
-from tensorflow.python.ops import ctc_ops
-from tensorflow.contrib.rnn.python.ops import core_rnn_cell
 from tensorflow.python.tools import freeze_graph
 from util.gpu import get_available_gpus
 from util.log import merge_logs
@@ -267,17 +265,17 @@ def BiRNN(batch_x, seq_length, dropout):
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    lstm_fw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_fw_cell = core_rnn_cell.DropoutWrapper(lstm_fw_cell,
-                                                input_keep_prob=1.0 - dropout[3],
-                                                output_keep_prob=1.0 - dropout[3],
-                                                seed=random_seed)
+    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
+                                                 input_keep_prob=1.0 - dropout[3],
+                                                 output_keep_prob=1.0 - dropout[3],
+                                                 seed=random_seed)
     # Backward direction cell:
-    lstm_bw_cell = core_rnn_cell.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_bw_cell = core_rnn_cell.DropoutWrapper(lstm_bw_cell,
-                                                input_keep_prob=1.0 - dropout[4],
-                                                output_keep_prob=1.0 - dropout[4],
-                                                seed=random_seed)
+    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
+    lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
+                                                 input_keep_prob=1.0 - dropout[4],
+                                                 output_keep_prob=1.0 - dropout[4],
+                                                 seed=random_seed)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
@@ -343,13 +341,13 @@ def calculate_accuracy_and_loss(batch_set, dropout):
     if use_warpctc:
         total_loss = tf.contrib.warpctc.warp_ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
     else:
-        total_loss = ctc_ops.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+        total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
 
     # Calculate the average loss across the batch
     avg_loss = tf.reduce_mean(total_loss)
 
     # Beam search decode the batch
-    decoded, _ = ctc_ops.ctc_beam_search_decoder(logits, batch_seq_len, merge_repeated=False)
+    decoded, _ = tf.nn.ctc_beam_search_decoder(logits, batch_seq_len, merge_repeated=False)
 
     # Compute the edit (Levenshtein) distance
     distance = tf.edit_distance(tf.cast(decoded[0], tf.int32), batch_y)
@@ -1165,7 +1163,7 @@ if __name__ == "__main__":
             logits = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout)
 
             # Beam search decode the batch
-            decoded, _ = ctc_ops.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
+            decoded, _ = tf.nn.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
             decoded = tf.convert_to_tensor(
                 [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
 
