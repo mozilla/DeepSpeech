@@ -1,6 +1,8 @@
 .ipynb_checkpoints
 *.pyc
+*.log
 .DS_Store
+node_modules
 /logs
 /data/ldc93s1
 /data/ted/TEDLIUM_release2
