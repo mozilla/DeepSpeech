@@ -1038,6 +1038,7 @@ def train():
     dev_wer = 0.0
 
     hibernation_path = None
+    execution_context_stoped = False
 
     # Possibly restore checkpoint
     start_epoch = 0
@@ -1056,6 +1057,8 @@ def train():
             if hibernation_path is not None:
                 print "Resuming training session from", "%s" % hibernation_path, "..."
             session, coord, managed_threads = start_execution_context(train_context, hibernation_path)
+            # Flag that execution context has started
+            execution_context_stoped = False
         # The next loop should not load the model, unless it got set again in the meantime (by validation)
         hibernation_path = None
 
@@ -1091,6 +1094,8 @@ def train():
             checkpoint_path = os.path.join(checkpoint_dir, 'model.ckpt')
             # If the hibernation_path is set, the next epoch loop will load the model
             hibernation_path = stop_execution_context(train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
+            # Flag that execution context has stoped
+            execution_context_stoped = True
 
             # Validating the model in a fresh session
             print "Validating model..."
@@ -1108,7 +1113,7 @@ def train():
         print
 
     # If the last iteration step was no validation, we still have to save the model
-    if hibernation_path is None:
+    if hibernation_path is None or execution_context_stoped == False:
         hibernation_path = stop_execution_context(train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
 
     # Indicate optimization has concluded
