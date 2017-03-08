@@ -2,17 +2,63 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 #include <sox.h>
+#include <time.h>
 #include "deepspeech.h"
 
 #define N_CEP 26
 #define N_CONTEXT 9
 
+struct ds_result {
+  char* string;
+  double cpu_time_overall;
+  double cpu_time_mfcc;
+  double cpu_time_infer;
+};
+
+// DsSTT() instrumented
+struct ds_result*
+LocalDsSTT(DeepSpeechContext* aCtx, const short* aBuffer, size_t aBufferSize,
+           int aSampleRate)
+{
+  float** mfcc;
+  struct ds_result* res = (struct ds_result*)malloc(sizeof(struct ds_result));
+  if (!res) {
+    return NULL;
+  }
+
+  clock_t ds_start_time = clock();
+  clock_t ds_end_mfcc = 0, ds_end_infer = 0;
+
+  int n_frames =
+    DsGetMfccFrames(aCtx, aBuffer, aBufferSize, aSampleRate, &mfcc);
+  ds_end_mfcc = clock();
+
+  res->string = DsInfer(aCtx, mfcc, n_frames);
+  ds_end_infer = clock();
+
+  DsFreeMfccFrames(mfcc, n_frames);
+
+  res->cpu_time_overall =
+    ((double) (ds_end_infer - ds_start_time)) / CLOCKS_PER_SEC;
+  res->cpu_time_mfcc =
+    ((double) (ds_end_mfcc  - ds_start_time)) / CLOCKS_PER_SEC;
+  res->cpu_time_infer =
+    ((double) (ds_end_infer - ds_end_mfcc))   / CLOCKS_PER_SEC;
+
+  return res;
+}
+
 int
 main(int argc, char **argv)
 {
-  if (argc < 3) {
-    printf("Usage: deepspeech [model path] [audio path]\n");
+  if (argc < 3 || argc > 4) {
+    printf("Usage: deepspeech MODEL_PATH AUDIO_PATH [-t]\n");
+    printf("  MODEL_PATH\tPath to the model (protocol buffer binary file)\n");
+    printf("  AUDIO_PATH\tPath to the audio file to run"
+           " (any file format supported by libsox)\n");
+    printf("  -t\t\tRun in benchmark mode, output mfcc & inference time\n");
     return 1;
   }
 
@@ -87,10 +133,17 @@ main(int argc, char **argv)
   sox_close(input);
 
   // Pass audio to DeepSpeech
-  char* result = DsSTT(ctx, (const short*)buffer, buffer_size / 2, sampleRate);
+  struct ds_result* result = LocalDsSTT(ctx, (const short*)buffer, buffer_size / 2, sampleRate);
   if (result) {
-    printf("%s\n", result);
+    printf("%s\n", result->string);
+    if ((argc == 4) && (strncmp(argv[3], "-t", 3) == 0)) {
+      printf("cpu_time_overall=%.05f cpu_time_mfcc=%.05f cpu_time_infer=%.05f\n",
+             result->cpu_time_overall,
+             result->cpu_time_mfcc,
+             result->cpu_time_infer);
+    }
   }
+  free(result->string);
   free(result);
 
   // Deinitialise and quit
