@@ -28,7 +28,7 @@ export ds_dev_batch_size
 ds_test_batch_size=8
 export ds_test_batch_size
 
-ds_epochs=70
+ds_epochs=50
 export ds_epochs
 
 ds_learning_rate=0.0001
