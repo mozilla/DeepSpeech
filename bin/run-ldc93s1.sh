@@ -7,6 +7,7 @@ export ds_importer="ldc93s1"
 export ds_train_batch_size=1
 export ds_dev_batch_size=1
 export ds_test_batch_size=1
+export ds_n_hidden=494
 
 export ds_epochs=50
 

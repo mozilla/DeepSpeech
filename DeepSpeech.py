@@ -151,6 +151,12 @@ log_device_placement = bool(int(os.environ.get('ds_log_device_placement', 0)))
 log_variables = bool(len(os.environ.get('ds_log_variables', '')))
 
 
+# Geometry
+
+# The layer width to use when initialising layers
+n_hidden = int(os.environ.get('ds_n_hidden', 2048))
+
+
 # Initialization
 
 # The default random seed that is used to initialize variables. Ensures reproducibility.
@@ -182,12 +188,12 @@ n_input = 26 # TODO: Determine this programatically from the sample rate
 n_context = 9 # TODO: Determine the optimal value using a validation data set
 
 # Number of units in hidden layers
-n_hidden_1 = 2048
-n_hidden_2 = 2048
-n_hidden_5 = 2048
+n_hidden_1 = n_hidden
+n_hidden_2 = n_hidden
+n_hidden_5 = n_hidden
 
 # LSTM cell state dimension
-n_cell_dim = 2048
+n_cell_dim = n_hidden
 
 # The number of units in the third layer, which feeds in to the LSTM
 n_hidden_3 = 2 * n_cell_dim
