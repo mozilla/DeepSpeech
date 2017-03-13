@@ -27,9 +27,13 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ## Training a model
 
-Open a terminal, change to the directory of the DeepSpeech checkout and run `python DeepSpeech.py`. By default, the code will train on a small sample dataset called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters. Then, just run the script to train the modified network.
+Open a terminal, change to the directory of the DeepSpeech checkout and run
+```bash
+DeepSpeech$ ./bin/run-ldc93s1.sh
+```
+By default, the code will train on a small sample dataset called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters. Then, just run the script to train the modified network.
 
-You can also use the utility scripts in `bin/` to train on different data sets, but keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
+You can also use other utility scripts in `bin/` to train on different data sets, but keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
 
 ## Exporting a model for serving
 
