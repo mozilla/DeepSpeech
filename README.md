@@ -29,7 +29,7 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 Open a terminal, change to the directory of the DeepSpeech checkout and run
 ```bash
-kdaviss-MBP:DeepSpeech kdavis$ ./bin/run-ldc93s1.sh
+DeepSpeech$ ./bin/run-ldc93s1.sh
 ```
 By default, the code will train on a small sample dataset called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters. Then, just run the script to train the modified network.
 
