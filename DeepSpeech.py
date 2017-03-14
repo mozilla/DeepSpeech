@@ -19,7 +19,6 @@ from tensorflow.python.tools import freeze_graph
 from util.gpu import get_available_gpus
 from util.log import merge_logs
 from util.spell import correction
-from util.shared_lib import check_cupti
 from util.text import sparse_tensor_value_to_texts, wer
 from xdg import BaseDirectory as xdg
 
@@ -30,11 +29,6 @@ import importlib
 ds_importer_module = importlib.import_module('util.importers.%s' % ds_importer)
 
 from util.website import maybe_publish
-
-do_fulltrace = bool(len(os.environ.get('ds_do_fulltrace', '')))
-
-if do_fulltrace:
-    check_cupti()
 
 
 # Global Constants
@@ -939,10 +933,6 @@ def calculate_loss_and_report(execution_context, session, epoch=-1, query_report
     # Loop over the batches
     for batch in range(int(batches_per_device)):
         extra_params = { }
-        if do_training and do_fulltrace:
-            loss_run_metadata            = tf.RunMetadata()
-            extra_params['options']      = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-            extra_params['run_metadata'] = loss_run_metadata
 
         # Compute the batch
         result = session.run(params, **extra_params)
@@ -955,8 +945,6 @@ def calculate_loss_and_report(execution_context, session, epoch=-1, query_report
             step = epoch * data_set.total_batches + batch * len(available_devices)
             if log_variables:
                 writer.add_summary(result[param_idx['merged']], step)
-            if do_fulltrace:
-                writer.add_run_metadata(loss_run_metadata, 'loss_epoch%d_batch%d'   % (epoch, batch))
             writer.flush()
 
         if query_report:
