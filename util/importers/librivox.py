@@ -131,7 +131,7 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
         exit(1)
     # Conditionally download data to data_dir
     print("Downloading Librivox data sets if not already present...")
-    with progressbar.ProgressBar(max_value=7, widgets=[progressbar.AdaptiveETA]) as bar:
+    with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
         TRAIN_CLEAN_100_URL = "http://www.openslr.org/resources/12/train-clean-100.tar.gz"
         TRAIN_CLEAN_360_URL = "http://www.openslr.org/resources/12/train-clean-360.tar.gz"
         TRAIN_OTHER_500_URL = "http://www.openslr.org/resources/12/train-other-500.tar.gz"
@@ -165,7 +165,7 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
     # We extract each archive into data_dir, but test for existence in
     # data_dir/LibriSpeech because the archives share that root.
     print("Extracting librivox data if not already extracted...")
-    with progressbar.ProgressBar(max_value=7, widgets=[progressbar.AdaptiveETA]) as bar:
+    with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
         LIBRIVOX_DIR = "LibriSpeech"
         work_dir = os.path.join(data_dir, LIBRIVOX_DIR)
 
@@ -191,7 +191,7 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
     # to:
     #  data_dir/LibriSpeech/split-wav/1-2-3.wav
     print("Converting Librivox data from flac to wav if not already converted...")
-    with progressbar.ProgressBar(max_value=7, widgets=[progressbar.AdaptiveETA]) as bar:
+    with progressbar.ProgressBar(max_value=7,  widget=progressbar.AdaptiveETA) as bar:
         _maybe_convert_wav(work_dir, "train-clean-100", "train-clean-100-wav")
         bar.update(0)
         _maybe_convert_wav(work_dir, "train-clean-360", "train-clean-360-wav")
@@ -217,7 +217,7 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
     #  data_dir/LibriSpeech/split-wav/1-2-2.txt
     #  ...
     print("Splitting transcriptions if not already split ...")
-    with progressbar.ProgressBar(max_value=7, widgets=[progressbar.AdaptiveETA]) as bar:
+    with progressbar.ProgressBar(max_value=7,  widget=progressbar.AdaptiveETA) as bar:
         _maybe_split_transcriptions(work_dir, "train-clean-100", "train-clean-100-wav")
         bar.update(0)
         _maybe_split_transcriptions(work_dir, "train-clean-360", "train-clean-360-wav")
