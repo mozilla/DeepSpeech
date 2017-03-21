@@ -1,0 +1,7 @@
+kenlm
+progressbar2
+python-utils
+scipy
+sox
+pyxdg
+python_speech_features
