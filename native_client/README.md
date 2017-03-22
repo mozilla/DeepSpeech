@@ -29,7 +29,7 @@ bazel build -c opt //tensorflow:libtensorflow.so
 Then you can build the DeepSpeech native library.
 
 ```
-bazel build -c opt //native_client:deepspeech
+bazel build -c opt //native_client:*
 ```
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
