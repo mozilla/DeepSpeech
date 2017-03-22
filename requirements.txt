@@ -1,3 +1,5 @@
+progressbar2
+python-utils
 tensorflow
 numpy
 scipy
