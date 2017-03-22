@@ -1,7 +1,12 @@
-kenlm
 progressbar2
 python-utils
+tensorflow
+numpy
 scipy
+paramiko
+pysftp
 sox
-pyxdg
 python_speech_features
+pyxdg
+bs4
+https://github.com/kpu/kenlm/archive/master.zip
