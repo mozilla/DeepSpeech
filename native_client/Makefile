@@ -27,7 +27,7 @@ LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf -Wl,-rpath-li
 endif
 
 CFLAGS  += -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_CFLAGS)
-LDFLAGS += -ltensorflow -lkissfft -lc_speech_features -ldeepspeech $(EXTRA_LDFLAGS)
+LDFLAGS += -ltensorflow -ldeepspeech -lc_speech_features -lkissfft $(EXTRA_LDFLAGS)
 
 default: deepspeech
 
