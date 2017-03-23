@@ -135,16 +135,20 @@ main(int argc, char **argv)
   // Pass audio to DeepSpeech
   struct ds_result* result = LocalDsSTT(ctx, (const short*)buffer, buffer_size / 2, sampleRate);
   if (result) {
-    printf("%s\n", result->string);
+    if (result->string) {
+      printf("%s\n", result->string);
+      free(result->string);
+    }
+
     if ((argc == 4) && (strncmp(argv[3], "-t", 3) == 0)) {
       printf("cpu_time_overall=%.05f cpu_time_mfcc=%.05f cpu_time_infer=%.05f\n",
              result->cpu_time_overall,
              result->cpu_time_mfcc,
              result->cpu_time_infer);
     }
+
+    free(result);
   }
-  free(result->string);
-  free(result);
 
   // Deinitialise and quit
   DsClose(ctx);
