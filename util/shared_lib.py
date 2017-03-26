@@ -1,5 +1,5 @@
 from __future__ import print_function
-from gpu import get_available_gpus
+from .gpu import get_available_gpus
 from ctypes import cdll
 from sys import platform as _platform
 

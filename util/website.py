@@ -5,7 +5,7 @@ import pysftp
 import sys
 
 from bs4 import BeautifulSoup
-from log import merge_logs
+from .log import merge_logs
 
 def parse_for_deps(filename):
     """
