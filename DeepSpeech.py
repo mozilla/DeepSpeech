@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 import datetime
@@ -632,13 +633,13 @@ def calculate_and_print_wer_report(caption, results_tuple):
     # Order this top ten items by their WER (lowest WER on top)
     items.sort(key=lambda a: a[2])
 
-    print "%s WER: %f" % (caption, mean_wer)
+    print("%s WER: %f" % (caption, mean_wer))
     for a in items:
-        print "-" * 80
-        print "    WER:    %f" % a[2]
-        print "    loss:   %f" % a[3]
-        print "    source: \"%s\"" % a[0]
-        print "    result: \"%s\"" % a[1]
+        print("-" * 80)
+        print("    WER:    %f" % a[2])
+        print("    loss:   %f" % a[3])
+        print("    source: \"%s\"" % a[0])
+        print("    result: \"%s\"" % a[1])
 
     return mean_wer
 
@@ -993,7 +994,7 @@ def print_report(caption, batch_set_result):
         title += " avg_cer=" + "{:.9f}".format(accuracy)
         mean_wer = calculate_and_print_wer_report(title, results_tuple)
     else:
-        print title
+        print(title)
 
     return mean_wer
 
@@ -1030,7 +1031,7 @@ def train():
     Now, as we have prepared all the apropos operators and methods,
     we can create the method which trains the network.
     """
-    print "STARTING Optimization\n"
+    print("STARTING Optimization\n")
     global_time = stopwatch()
     global_train_time = 0
 
@@ -1051,15 +1052,15 @@ def train():
         if checkpoint and checkpoint.model_checkpoint_path:
             hibernation_path = checkpoint.model_checkpoint_path
             start_epoch = int(checkpoint.model_checkpoint_path.split('-')[-1])
-            print 'Resuming training from epoch %d' % (start_epoch + 1)
+            print('Resuming training from epoch %d' % (start_epoch + 1))
 
     # Loop over the data set for training_epochs epochs
     for epoch in range(start_epoch, epochs):
-        print "STARTING Epoch", '%04d' % (epoch)
+        print("STARTING Epoch", '%04d' % (epoch))
 
         if epoch == 0 or hibernation_path is not None:
             if hibernation_path is not None:
-                print "Resuming training session from", "%s" % hibernation_path, "..."
+                print("Resuming training session from", "%s" % hibernation_path, "...")
             session, coord, managed_threads = start_execution_context(train_context, hibernation_path)
             # Flag that execution context has started
             execution_context_running = True
@@ -1074,7 +1075,7 @@ def train():
         is_validation_step = validation_step > 0 and (epoch + 1) % validation_step == 0
         is_checkpoint_step = (checkpoint_step > 0 and (epoch + 1) % checkpoint_step == 0) or epoch == epochs - 1
 
-        print "Training model..."
+        print("Training model...")
         global_train_time = stopwatch(global_train_time)
         train_time = stopwatch(train_time)
         result = calculate_loss_and_report(train_context, session, epoch=epoch, query_report=is_display_step)
@@ -1088,13 +1089,13 @@ def train():
 
         # Checkpoint step (Validation also checkpoints)
         if is_checkpoint_step and not is_validation_step:
-            print "Hibernating training session into directory", "%s" % checkpoint_dir
+            print("Hibernating training session into directory", "%s" % checkpoint_dir)
             checkpoint_path = os.path.join(checkpoint_dir, 'model.ckpt')
             # Saving session's model into checkpoint path
             persist_model(train_context, session, checkpoint_path, epoch)
         # Validation step
         if is_validation_step:
-            print "Hibernating training session into directory", "%s" % checkpoint_dir
+            print("Hibernating training session into directory", "%s" % checkpoint_dir)
             checkpoint_path = os.path.join(checkpoint_dir, 'model.ckpt')
             # If the hibernation_path is set, the next epoch loop will load the model
             hibernation_path = stop_execution_context(train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
@@ -1102,7 +1103,7 @@ def train():
             execution_context_running = False
 
             # Validating the model in a fresh session
-            print "Validating model..."
+            print("Validating model...")
             result = run_set('dev', model_path=hibernation_path, query_report=True)
             result = print_report("Validation", result)
             # If there was a WER calculated, we keep it
@@ -1111,20 +1112,20 @@ def train():
 
         overall_time = stopwatch(overall_time)
 
-        print "FINISHED Epoch", '%04d' % (epoch),\
+        print("FINISHED Epoch", '%04d' % (epoch),\
               "  Overall epoch time:", format_duration(overall_time),\
-              "  Training time:", format_duration(train_time)
-        print
+              "  Training time:", format_duration(train_time))
+        print()
 
     # If the last iteration step was no validation, we still have to save the model
     if hibernation_path is None or execution_context_running:
         hibernation_path = stop_execution_context(train_context, session, coord, managed_threads, checkpoint_path=checkpoint_path, global_step=epoch)
 
     # Indicate optimization has concluded
-    print "FINISHED Optimization",\
+    print("FINISHED Optimization",\
           "  Overall time:", format_duration(stopwatch(global_time)),\
-          "  Training time:", format_duration(global_train_time)
-    print
+          "  Training time:", format_duration(global_train_time))
+    print()
 
     return train_wer, dev_wer, hibernation_path
 
@@ -1146,7 +1147,7 @@ if __name__ == "__main__":
         duration = duration.days * 86400 + duration.seconds
 
         # Finally the model is tested against some unbiased data-set
-        print "Testing model"
+        print("Testing model")
         result = run_set('test', model_path=hibernation_path, query_report=True)
         test_wer = print_report("Test", result)
 
@@ -1190,7 +1191,7 @@ if __name__ == "__main__":
             checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
             checkpoint_path = checkpoint.model_checkpoint_path
             saver.restore(session, checkpoint_path)
-            print 'Restored checkpoint at training epoch %d' % (int(checkpoint_path.split('-')[-1]) + 1)
+            print('Restored checkpoint at training epoch %d' % (int(checkpoint_path.split('-')[-1]) + 1))
 
             # Initialise the model exporter and export the model
             model_exporter.init(session.graph.as_graph_def(),
@@ -1202,7 +1203,7 @@ if __name__ == "__main__":
             if remove_export:
                 actual_export_dir = os.path.join(export_dir, '%08d' % export_version)
                 if os.path.isdir(actual_export_dir):
-                    print 'Removing old export'
+                    print('Removing old export')
                     shutil.rmtree(actual_export_dir)
             try:
                 # Export serving model
@@ -1226,9 +1227,9 @@ if __name__ == "__main__":
                                           restore_op_name, filename_tensor_name,
                                           output_graph_path, clear_devices, '')
 
-                print 'Models exported at %s' % (export_dir)
+                print('Models exported at %s' % (export_dir))
             except RuntimeError:
-                print  sys.exc_info()[1]
+                print(sys.exc_info()[1])
 
 
     # Logging Hyper Parameters and Results

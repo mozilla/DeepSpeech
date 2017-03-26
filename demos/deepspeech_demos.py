@@ -1,5 +1,5 @@
-#!/usr/bin/env python2.7
-
+#!/usr/bin/env python
+from __future__ import print_function
 """A client that talks to tensorflow_model_server loaded with deepspeech model.
 
 The client launches a local web server, by default accessible at localhost:8080
