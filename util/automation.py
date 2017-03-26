@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+from __future__ import print_function
 import json
 import os
 import git
@@ -65,21 +66,21 @@ class GPUUsage(Thread):
 
     def stop(self):
         if not self._process:
-            print "Trying to stop nvidia-smi but no more process, please fix."
+            print("Trying to stop nvidia-smi but no more process, please fix.")
             return
 
-        print "Ending nvidia-smi monitoring: PID", self._process.pid
+        print("Ending nvidia-smi monitoring: PID", self._process.pid)
         self._process.terminate()
-        print "Ended nvidia-smi monitoring ..."
+        print("Ended nvidia-smi monitoring ...")
 
     def run(self):
-        print "Starting nvidia-smi monitoring"
+        print("Starting nvidia-smi monitoring")
 
         # If the system has no CUDA setup, then this will fail.
         try:
             self._process = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
         except OSError as ex:
-            print "Unable to start monitoring, check your environment:", ex
+            print("Unable to start monitoring, check your environment:", ex)
             return
 
         writer = None
@@ -130,7 +131,7 @@ class GPUUsageChart():
             for plot in self._rows:
                 self.produce_plot(plot)
         except IOError as ex:
-            print "Unable to read", ex
+            print("Unable to read", ex)
 
     def append_data(self, row):
         for bucket, value in row.iteritems():
@@ -147,18 +148,18 @@ class GPUUsageChart():
                 self._data[bucket][gpu] += [ value ]
 
     def read(self):
-        print "Reading data from", self._csv
+        print("Reading data from", self._csv)
         with open(self._csv, 'r') as f:
             for r in csv.DictReader(f):
                 self.append_data(r)
 
     def produce_plot(self, key, with_spline=True):
         png = self._basename % (key, )
-        print "Producing plot for", key, "as", png
+        print("Producing plot for", key, "as", png)
         fig, axis = plt.subplots()
         data = self._data[key]
         if data is None:
-            print "Data was empty, aborting"
+            print("Data was empty, aborting")
             return
 
         x = range(len(data[0]))
@@ -339,10 +340,10 @@ def ensure_git_clone(sha):
     # If non-existent, create a clone
     if not os.path.isdir(gitdir):
         source = get_github_repo_url()
-        print "Performing a fresh clone from", source, "to", DEEPSPEECH_CLONE_PATH
+        print("Performing a fresh clone from", source, "to", DEEPSPEECH_CLONE_PATH)
         ds_repo = git.Repo.clone_from(source, DEEPSPEECH_CLONE_PATH)
     else:
-        print "Using existing clone from", DEEPSPEECH_CLONE_PATH
+        print("Using existing clone from", DEEPSPEECH_CLONE_PATH)
         ds_repo = git.Repo(gitdir)
 
     # Ensure we have a valid non bare local clone
@@ -412,7 +413,7 @@ def ensure_gpu_usage(root_dir):
     gpu_usage_root = os.path.abspath(os.environ.get('ds_gpu_usage_root', root_dir))
     gpu_usage_path = os.path.join(gpu_usage_root, get_git_desc())
 
-    print "Will produce CSV and charts in %s" % gpu_usage_path
+    print("Will produce CSV and charts in %s" % gpu_usage_path)
     if not os.path.isdir(gpu_usage_path):
         os.makedirs(gpu_usage_path)
 
@@ -451,9 +452,9 @@ def ensure_checkpoint_directory():
         # it does not exists.
         # If it actually exists, the later os.path.isdir(checkpoint_dir) will
         # take care of setting the checkpoint_restore value
-        print "Trying with maybe_checkpoint_dir", maybe_checkpoint_dir
+        print("Trying with maybe_checkpoint_dir", maybe_checkpoint_dir)
         if not os.path.isdir(maybe_checkpoint_dir):
-            print "Trying to force-restore checkpoint from non-existent directory", maybe_checkpoint_dir
+            print("Trying to force-restore checkpoint from non-existent directory", maybe_checkpoint_dir)
         else:
             checkpoint_dir = maybe_checkpoint_dir
 
@@ -461,10 +462,10 @@ def ensure_checkpoint_directory():
     if not os.path.isdir(checkpoint_dir):
         os.makedirs(checkpoint_dir)
     else:
-        print "Found existing checkpoint dir, re-using it"
+        print("Found existing checkpoint dir, re-using it")
         checkpoint_restore = True
 
-    print "Ensured checkpoint infos: ", checkpoint_dir, checkpoint_restore
+    print("Ensured checkpoint infos: ", checkpoint_dir, checkpoint_restore)
 
     return checkpoint_dir, checkpoint_restore
 
@@ -533,64 +534,64 @@ def exec_main():
     if len(sha_to_run) == 0:
         current = get_last_sha1()
         if len(current) == 40:
-            print 'Existing SHA1:', current, 'fetching changes'
+            print('Existing SHA1:', current, 'fetching changes')
             sha_to_run, rt = get_new_commits(current)
             if sha_to_run is not None and len(sha_to_run) is 0:
-                print "No new SHA1, got HTTP status:", rt
+                print("No new SHA1, got HTTP status:", rt)
                 sys_exit_safe()
             elif sha_to_run is None:
-                print "Something went badly wrong, unable to use Github compare"
+                print("Something went badly wrong, unable to use Github compare")
                 sys_exit_safe()
         else:
             # Ok, we do not have an existing SHA1, let us get one
-            print 'No pre-existing SHA1, fetching refs'
+            print('No pre-existing SHA1, fetching refs')
             sha1, rt = get_current_sha1()
             if sha1 is None:
-                print "No SHA1, got HTTP status:", rt
+                print("No SHA1, got HTTP status:", rt)
                 sys_exit_safe()
             sha_to_run = [ sha1 ]
     else:
-        print "Using forced SHA1 from env"
+        print("Using forced SHA1 from env")
 
-    print "Will execute for", sha_to_run
+    print("Will execute for", sha_to_run)
 
     for sha in sha_to_run:
         if not ensure_git_clone(sha):
-            print "Error with git repo handling."
+            print("Error with git repo handling.")
             sys_exit_safe()
 
-        print "Ready for", sha
+        print("Ready for", sha)
 
-        print "Let us place ourselves into the git clone directory ..."
+        print("Let us place ourselves into the git clone directory ...")
         root_dir = os.getcwd()
         os.chdir(DEEPSPEECH_CLONE_PATH)
 
-        print "Copy previous run logs from backup"
+        print("Copy previous run logs from backup")
         populate_previous_logs()
 
-        print "Starting GPU nvidia-smi monitoring"
+        print("Starting GPU nvidia-smi monitoring")
         gpu_usage_csv, gpu_usage_charts = ensure_gpu_usage(root_dir)
         gu = GPUUsage(csvfile=gpu_usage_csv)
         gu.start()
 
-        print "Do the training for getting WER computation"
+        print("Do the training for getting WER computation")
         exec_wer_run()
 
-        print "Producing GPU monitoring charts"
+        print("Producing GPU monitoring charts")
         gu.join(5.0)
         gu.stop()
         GPUUsageChart(source=gpu_usage_csv, basename=gpu_usage_charts)
 
-        print "Backup the logs we just produced"
+        print("Backup the logs we just produced")
         save_logs()
 
-        print "Save progress"
+        print("Save progress")
         write_last_sha1(sha)
 
-        print "Let us place back to the previous directory %s ..." % root_dir
+        print("Let us place back to the previous directory %s ..." % root_dir)
         os.chdir(root_dir)
 
-    print "Getting rid of git clone"
+    print("Getting rid of git clone")
     wipe_git_clone()
 
     release_lock()

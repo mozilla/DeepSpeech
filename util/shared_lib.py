@@ -1,3 +1,4 @@
+from __future__ import print_function
 from gpu import get_available_gpus
 from ctypes import cdll
 from sys import platform as _platform
@@ -17,11 +18,11 @@ def check_cupti():
     libname = get_cupti_libname()
     cupti = check_so(libname)
     if cupti is None:
-        print "INFO: No %s because no GPU, go ahead." % libname
+        print("INFO: No %s because no GPU, go ahead." % libname)
     elif cupti is True:
-        print "INFO: Found %s." % libname
+        print("INFO: Found %s." % libname)
     else:
-        print "WARNING: Running on GPU but no %s could be found ; will be unable to report GPU VRAM usage." % libname
+        print("WARNING: Running on GPU but no %s could be found ; will be unable to report GPU VRAM usage." % libname)
 
 def check_so(soname):
     """
@@ -35,10 +36,10 @@ def check_so(soname):
     # Try to force load lib, this would fail if the lib is not there :)
     try:
         lib = cdll.LoadLibrary(soname)
-        print "INFO: Found so as", lib
+        print("INFO: Found so as", lib)
         assert lib.__class__.__name__ == 'CDLL'
         assert lib._name == soname
         return True
     except OSError as ex:
-        print "WARNING:", ex
+        print("WARNING:", ex)
         return False
