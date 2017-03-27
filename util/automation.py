@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 from __future__ import print_function
+from __future__ import absolute_import
 import json
 import os
 import git
@@ -22,6 +23,7 @@ from scipy.interpolate import spline
 
 # Do this to be able to use without X
 import matplotlib as mpl
+from six.moves import range
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -162,7 +164,7 @@ class GPUUsageChart():
             print("Data was empty, aborting")
             return
 
-        x = range(len(data[0]))
+        x = list(range(len(data[0])))
         if with_spline:
             x = map(lambda x: float(x), x)
             x_sm = np.array(x)

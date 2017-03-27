@@ -2,6 +2,7 @@
 from __future__ import print_function
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 import datetime
 import json
 import numpy as np
@@ -23,6 +24,7 @@ from util.spell import correction
 from util.shared_lib import check_cupti
 from util.text import sparse_tensor_value_to_texts, wer
 from xdg import BaseDirectory as xdg
+from six.moves import range
 
 ds_importer = os.environ.get('ds_importer', 'ldc93s1')
 ds_dataset_path = os.environ.get('ds_dataset_path', os.path.join('./data', ds_importer))
@@ -458,7 +460,7 @@ def get_tower_results(batch_set, optimizer=None):
 
     with tf.variable_scope(tf.get_variable_scope()):
         # Loop over available_devices
-        for i in xrange(len(available_devices)):
+        for i in range(len(available_devices)):
             # Execute operations of tower i on device i
             with tf.device(available_devices[i]):
                 # Create a scope for all operations of tower i
@@ -602,11 +604,11 @@ def calculate_and_print_wer_report(caption, results_tuple):
     loss items from the provided WER results tuple
     (only items with WER!=0 and ordered by their WER).
     """
-    items = zip(*results_tuple)
+    items = list(zip(*results_tuple))
 
     count = len(items)
     mean_wer = 0.0
-    for i in xrange(count):
+    for i in range(count):
         item = items[i]
         # If distance > 0 we know that there is a WER > 0 and have to calculate it
         if item[2] > 0:
@@ -657,7 +659,7 @@ def collect_results(results_tuple, returns):
     for now we just pick the first available path.
     """
     # Each of the arrays within results_tuple will get extended by a batch of each available device
-    for i in xrange(len(available_devices)):
+    for i in range(len(available_devices)):
         # Collect the labels
         results_tuple[0].extend(sparse_tensor_value_to_texts(returns[0][i]))
 
@@ -934,10 +936,11 @@ def calculate_loss_and_report(execution_context, session, epoch=-1, query_report
         params['sample_results'] = [results_params, avg_accuracy]
 
     # Get the index of each of the session fetches so we can recover the results more easily
-    param_idx = dict(zip(params.keys(), range(len(params))))
-    params = params.values()
+    param_idx = dict(zip(params.keys(), list(range(len(params)))))
+    params = list(params.values())
 
     # Loop over the batches
+    # import ipdb;ipdb.set_trace()
     for batch in range(int(batches_per_device)):
         extra_params = { }
         if do_training and do_fulltrace:
@@ -1240,12 +1243,12 @@ if __name__ == "__main__":
     data_sets = read_data_sets(["train", "dev", "test"])
 
     with open('%s/%s' % (log_dir, 'hyper.json'), 'w') as dump_file:
-        json.dump({
+        record = {
             'context': {
                 'time_started': time_started.isoformat(),
                 'time_finished': time_finished.isoformat(),
-                'git_hash': get_git_revision_hash(),
-                'git_branch': get_git_branch()
+                'git_hash': get_git_revision_hash().decode('latin-1'),
+                'git_branch': get_git_branch().decode('latin-1'),
             },
             'parameters': {
                 'learning_rate': learning_rate,
@@ -1281,7 +1284,8 @@ if __name__ == "__main__":
                 'last_validation_wer': last_dev_wer,
                 'test_wer': test_wer
             }
-        }, dump_file, sort_keys=True, indent=4)
+        }
+        json.dump(record, dump_file, sort_keys=True, indent=4)
 
     # Let's also re-populate a central JS file, that contains all the dumps at once.
     merge_logs(logs_dir)

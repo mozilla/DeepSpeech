@@ -7,6 +7,7 @@ import sys
 from bs4 import BeautifulSoup
 from .log import merge_logs
 
+
 def parse_for_deps(filename):
     """
     This takes an HTML file as input and output a list of existing depenencies.
@@ -137,18 +138,20 @@ def maybe_publish(file='index.htm'):
     }
 
     for key in ssh_auth_infos.keys():
-       vartype = type(ssh_auth_infos[key])
-       value = os.environ.get(key)
-       if value is not None:
-           if vartype == str:
-               ssh_auth_infos[key] = str(os.environ.get(key))
-           elif vartype == int:
-               try:
-                   ssh_auth_infos[key] = int(os.environ.get(key))
-               except TypeError as ex:
-                   print("WARNING:", "Keeping default SSH port value because of:", ex)
-
-    missing_env = filter(lambda x: len(str(ssh_auth_infos[x])) == 0, ssh_auth_infos.keys())
+        vartype = type(ssh_auth_infos[key])
+        value = os.environ.get(key)
+        if value is not None:
+            if vartype == str:
+                ssh_auth_infos[key] = str(os.environ.get(key))
+            elif vartype == int:
+                try:
+                    ssh_auth_infos[key] = int(os.environ.get(key))
+                except TypeError as ex:
+                    print("WARNING:", "Keeping default SSH port value because of:", ex)
+    missing_env = [
+        x for x in ssh_auth_infos.keys()
+        if (len(str(ssh_auth_infos[x])) == 0)
+    ]
     if len(missing_env) > 0:
         print("Not publishing, missing some required environment variables:", missing_env)
         print("But maybe this is what you wanted, after all ...")
