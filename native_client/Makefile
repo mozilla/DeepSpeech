@@ -26,8 +26,14 @@ CFLAGS      := -isystem $(RASPBIAN)/usr/include -L$(RASPBIAN)/lib/arm-linux-gnue
 LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/ -lsox
 endif
 
+OS := $(shell uname -s)
 CFLAGS  += -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_CFLAGS)
 LDFLAGS += -ltensorflow -ldeepspeech -lc_speech_features -lkissfft $(EXTRA_LDFLAGS)
+
+META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
+ifeq ($(OS),Darwin)
+META_LD_LIBRARY_PATH := DYLD_LIBRARY_PATH
+endif
 
 default: deepspeech
 
@@ -38,4 +44,4 @@ deepspeech: client.cc
 	$(TOOLCHAIN)$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
 
 run: deepspeech
-	LD_LIBRARY_PATH=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${LD_LIBRARY_PATH} ./deepspeech ${ARGS}
+	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}
