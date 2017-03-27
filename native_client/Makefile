@@ -30,9 +30,9 @@ OS := $(shell uname -s)
 CFLAGS  += -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_CFLAGS)
 LDFLAGS += -ltensorflow -ldeepspeech -lc_speech_features -lkissfft $(EXTRA_LDFLAGS)
 
-META_LD_LIBRARY_PATH=LD_LIBRARY_PATH
+META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
-META_LD_LIBRARY_PATH=DYLD_LIBRARY_PATH
+META_LD_LIBRARY_PATH := DYLD_LIBRARY_PATH
 endif
 
 default: deepspeech
