@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
 import datetime
 import json
 import numpy as np
