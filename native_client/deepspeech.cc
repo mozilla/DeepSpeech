@@ -171,7 +171,7 @@ DsInfer(DeepSpeechContext* aCtx, float** aMfcc, int aNFrames)
 
   std::vector<Tensor> outputs;
   Status status =
-    aCtx->session->Run({{ "input_node", input }},
+    aCtx->session->Run({{ "input_node", input }, { "input_lengths", {n_frames} }},
                        {"output_node"}, {}, &outputs);
   if (!status.ok()) {
     std::cerr << "Error running session: " << status.ToString() << "\n";
