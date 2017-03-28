@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-
 from __future__ import print_function
 from __future__ import absolute_import
 import json
@@ -21,9 +20,9 @@ from threading import Thread
 from time import time
 from scipy.interpolate import spline
 
+from six.moves import range
 # Do this to be able to use without X
 import matplotlib as mpl
-from six.moves import range
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np

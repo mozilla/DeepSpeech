@@ -1,11 +1,12 @@
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import paramiko
 import pysftp
 import sys
 
 from bs4 import BeautifulSoup
-from .log import merge_logs
+from util.log import merge_logs
 
 
 def parse_for_deps(filename):
