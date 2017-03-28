@@ -88,11 +88,11 @@ class DataSet(object):
     def _create_files_circular_list(self):
         priorityQueue = PriorityQueue()
         for txt_file in self._txt_files:
-          stm_dir = path.sep + "stm" + path.sep
-          wav_dir = path.sep + "wav" + path.sep
-          wav_file = path.splitext(txt_file.replace(stm_dir, wav_dir))[0] + ".wav"
-          wav_file_size = getsize(wav_file)
-          priorityQueue.put((wav_file_size, (txt_file, wav_file)))
+            stm_dir = path.sep + "stm" + path.sep
+            wav_dir = path.sep + "wav" + path.sep
+            wav_file = path.splitext(txt_file.replace(stm_dir, wav_dir))[0] + ".wav"
+            wav_file_size = getsize(wav_file)
+            priorityQueue.put((wav_file_size, (txt_file, wav_file)))
         files_list = []
         while not priorityQueue.empty():
             priority, (txt_file, wav_file) = priorityQueue.get()
@@ -169,9 +169,9 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
 def _maybe_extract(data_dir, extracted_data, archive):
     # If data_dir/extracted_data does not exist, extract archive in data_dir
     if not gfile.Exists(path.join(data_dir, extracted_data)):
-      tar = tarfile.open(archive)
-      tar.extractall(data_dir)
-      tar.close()
+        tar = tarfile.open(archive)
+        tar.extractall(data_dir)
+        tar.close()
 
 def _maybe_convert_wav(data_dir, extracted_data):
     # Create extracted_data dir
@@ -303,7 +303,7 @@ def _maybe_split_stm_dataset(extracted_dir, data_set):
             # If the txt segment file does not exist create it
             if not gfile.Exists(txt_file):
                 with open(txt_file, "w+") as f:
-                  f.write(stm_segment.transcript)
+                    f.write(stm_segment.transcript)
 
         # Remove stm_file
         remove(stm_file)
