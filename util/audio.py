@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.io.wavfile as wav
 
-from python_speech_features import mfcc
+from python_speech_features import fbank
 
 def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     r"""
@@ -13,8 +13,13 @@ def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     # Load wav files
     fs, audio = wav.read(audio_filename)
 
-    # Get mfcc coefficients
-    orig_inputs = mfcc(audio, samplerate=fs, numcep=numcep)
+    # Get MFSC features
+    features, energy = fbank(audio, samplerate=fs)
+    features = features[:, :numcep]
+    features = np.log(features)
+    features[:, 0] = np.log(energy)
+
+    orig_inputs = features
 
     # We only keep every second feature (BiRNN stride = 2)
     orig_inputs = orig_inputs[::2]
