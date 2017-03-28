@@ -6,7 +6,7 @@ import os
 import subprocess
 import tarfile
 import unicodedata
-from Queue import PriorityQueue
+from six.moves.queue import PriorityQueue
 from glob import glob
 from itertools import cycle
 from math import ceil
@@ -128,7 +128,7 @@ class DataSet(object):
 def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8,
                    limit_dev=0, limit_test=0, limit_train=0, sets=[]):
     # Check if we can convert FLAC with SoX before we start
-    sox_help_out = subprocess.check_output(["sox", "-h"])
+    sox_help_out = subprocess.check_output(["sox", "-h"]).decode('latin-1')
     if sox_help_out.find("flac") == -1:
         print("Error: SoX doesn't support FLAC. Please install SoX with FLAC support and try again.")
         exit(1)
