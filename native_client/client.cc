@@ -6,6 +6,9 @@
 #include <sox.h>
 #include <time.h>
 #include "deepspeech.h"
+#ifdef __APPLE__
+#include <unistd.h>
+#endif
 
 #define N_CEP 26
 #define N_CONTEXT 9
@@ -93,12 +96,23 @@ main(int argc, char **argv)
     sox_false // Reverse endianness
   };
 
-  char *buffer;
+#ifdef __APPLE__
+  // It would be preferable to use sox_open_memstream_write here, but OS-X
+  // doesn't support POSIX 2008, which it requires. See Issue #461.
+  // Instead, we write to a temporary file.
+  char* output_name = tmpnam(NULL);
+  assert(output_name);
+  sox_format_t* output = sox_open_write(output_name, &target_signal,
+                                        &target_encoding, "raw", NULL, NULL);
+#else
+  char* buffer;
   size_t buffer_size;
   sox_format_t* output = sox_open_memstream_write(&buffer, &buffer_size,
                                                   &target_signal,
                                                   &target_encoding,
                                                   "raw", NULL);
+#endif
+
   assert(output);
 
   // Setup the effects chain to decode/resample
@@ -129,11 +143,24 @@ main(int argc, char **argv)
   // Finally run the effects chain
   sox_flow_effects(chain, NULL, NULL);
   sox_delete_effects_chain(chain);
+
+  // Close sox handles
   sox_close(output);
   sox_close(input);
 
+#ifdef __APPLE__
+  size_t buffer_size = (size_t)(output->olength * 2);
+  char* buffer = (char*)malloc(sizeof(char) * buffer_size);
+  FILE* output_file = fopen(output_name, "rb");
+  assert(fread(buffer, sizeof(char), buffer_size, output_file) == buffer_size);
+  fclose(output_file);
+  unlink(output_name);
+#endif
+
   // Pass audio to DeepSpeech
   struct ds_result* result = LocalDsSTT(ctx, (const short*)buffer, buffer_size / 2, sampleRate);
+  free(buffer);
+
   if (result) {
     if (result->string) {
       printf("%s\n", result->string);
