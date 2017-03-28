@@ -133,7 +133,7 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
         print("Error: SoX doesn't support FLAC. Please install SoX with FLAC support and try again.")
         exit(1)
     # Conditionally download data to data_dir
-    print("Downloading Librivox data sets if not already present...")
+    print("Downloading Librivox data set (55GB) into %s if not already present..."%(data_dir,))
     with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
         TRAIN_CLEAN_100_URL = "http://www.openslr.org/resources/12/train-clean-100.tar.gz"
         TRAIN_CLEAN_360_URL = "http://www.openslr.org/resources/12/train-clean-360.tar.gz"
@@ -146,7 +146,6 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
         TEST_OTHER_URL = "http://www.openslr.org/resources/12/test-other.tar.gz"
 
         def filename_of(x): return path.split(x)[1]
-
         train_clean_100 = base.maybe_download(filename_of(TRAIN_CLEAN_100_URL), data_dir, TRAIN_CLEAN_100_URL)
         bar.update(0)
         train_clean_360 = base.maybe_download(filename_of(TRAIN_CLEAN_360_URL), data_dir, TRAIN_CLEAN_360_URL)
