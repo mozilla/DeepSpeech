@@ -1051,7 +1051,8 @@ def train():
         if checkpoint and checkpoint.model_checkpoint_path:
             hibernation_path = checkpoint.model_checkpoint_path
             start_epoch = int(checkpoint.model_checkpoint_path.split('-')[-1])
-            print 'Resuming training from epoch %d' % (start_epoch + 1)
+            start_epoch = start_epoch + 1
+            print 'Resuming training from epoch %d' % (start_epoch)
 
     # Loop over the data set for training_epochs epochs
     for epoch in range(start_epoch, epochs):
