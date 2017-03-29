@@ -4,7 +4,7 @@ cc_library(
     name = "deepspeech",
     srcs = ["deepspeech.cc"],
     hdrs = ["deepspeech.h"],
-    deps = ["//tensorflow/core:tensorflow",
+    deps = ["//tensorflow/core:core",
             ":c_speech_features"]
 )
 
