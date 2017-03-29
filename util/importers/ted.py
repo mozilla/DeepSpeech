@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import wave
 import random
 import tarfile
@@ -25,6 +26,7 @@ from util.text import text_to_char_array, ctc_label_dense_to_sparse
 from tensorflow.python.platform import gfile
 from util.audio import audiofile_to_input_vector
 from tensorflow.contrib.learn.python.learn.datasets import base
+from six.moves import range
 
 class DataSets(object):
     def __init__(self, train, dev, test):
@@ -74,7 +76,7 @@ class DataSet(object):
 
     def start_queue_threads(self, session, coord):
         self._coord = coord
-        batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in xrange(self._thread_count)]
+        batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in range(self._thread_count)]
         for batch_thread in batch_threads:
             batch_thread.daemon = True
             batch_thread.start()
@@ -86,11 +88,11 @@ class DataSet(object):
     def _create_files_circular_list(self):
         priorityQueue = PriorityQueue()
         for txt_file in self._txt_files:
-          stm_dir = path.sep + "stm" + path.sep
-          wav_dir = path.sep + "wav" + path.sep
-          wav_file = path.splitext(txt_file.replace(stm_dir, wav_dir))[0] + ".wav"
-          wav_file_size = getsize(wav_file)
-          priorityQueue.put((wav_file_size, (txt_file, wav_file)))
+            stm_dir = path.sep + "stm" + path.sep
+            wav_dir = path.sep + "wav" + path.sep
+            wav_file = path.splitext(txt_file.replace(stm_dir, wav_dir))[0] + ".wav"
+            wav_file_size = getsize(wav_file)
+            priorityQueue.put((wav_file_size, (txt_file, wav_file)))
         files_list = []
         while not priorityQueue.empty():
             priority, (txt_file, wav_file) = priorityQueue.get()
@@ -104,7 +106,12 @@ class DataSet(object):
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
             with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
-                target = unicodedata.normalize("NFKD", open_txt_file.read()).encode("ascii", "ignore")
+                # We need to do the encode-decode dance here because encode
+                # returns a bytes() object on Python 3, and text_to_char_array
+                # expects a string.
+                target = unicodedata.normalize("NFKD", open_txt_file.read())   \
+                                    .encode("ascii", "ignore")                 \
+                                    .decode("ascii", "ignore")
                 target = text_to_char_array(target)
             target_len = len(target)
             try:
@@ -167,9 +174,9 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
 def _maybe_extract(data_dir, extracted_data, archive):
     # If data_dir/extracted_data does not exist, extract archive in data_dir
     if not gfile.Exists(path.join(data_dir, extracted_data)):
-      tar = tarfile.open(archive)
-      tar.extractall(data_dir)
-      tar.close()
+        tar = tarfile.open(archive)
+        tar.extractall(data_dir)
+        tar.close()
 
 def _maybe_convert_wav(data_dir, extracted_data):
     # Create extracted_data dir
@@ -301,7 +308,7 @@ def _maybe_split_stm_dataset(extracted_dir, data_set):
             # If the txt segment file does not exist create it
             if not gfile.Exists(txt_file):
                 with open(txt_file, "w+") as f:
-                  f.write(stm_segment.transcript)
+                    f.write(stm_segment.transcript)
 
         # Remove stm_file
         remove(stm_file)

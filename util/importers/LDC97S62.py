@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import fnmatch
 import numpy as np
 import os
@@ -15,6 +17,7 @@ from threading import Thread
 from util.audio import audiofile_to_input_vector
 from util.gpu import get_available_gpus
 from util.text import text_to_char_array, ctc_label_dense_to_sparse, validate_label
+from six.moves import range
 
 class DataSets(object):
     def __init__(self, train, dev, test):
@@ -65,7 +68,7 @@ class DataSet(object):
 
     def start_queue_threads(self, session, coord):
         self._coord = coord
-        batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in xrange(self._thread_count)]
+        batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in range(self._thread_count)]
         for batch_thread in batch_threads:
             batch_thread.daemon = True
             batch_thread.start()
@@ -93,7 +96,12 @@ class DataSet(object):
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
             with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
-                target = unicodedata.normalize("NFKD", open_txt_file.read()).encode("ascii", "ignore")
+                # We need to do the encode-decode dance here because encode
+                # returns a bytes() object on Python 3, and text_to_char_array
+                # expects a string.
+                target = unicodedata.normalize("NFKD", open_txt_file.read())   \
+                                    .encode("ascii", "ignore")                 \
+                                    .decode("ascii", "ignore")
                 target = text_to_char_array(target)
             target_len = len(target)
             try:

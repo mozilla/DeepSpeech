@@ -1,10 +1,12 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import codecs
 import fnmatch
 import os
 import subprocess
 import tarfile
 import unicodedata
-from Queue import PriorityQueue
+from six.moves.queue import PriorityQueue
 from glob import glob
 from itertools import cycle
 from math import ceil
@@ -20,6 +22,7 @@ from tensorflow.python.platform import gfile
 from util.audio import audiofile_to_input_vector
 from util.gpu import get_available_gpus
 from util.text import text_to_char_array, ctc_label_dense_to_sparse
+from six.moves import range
 
 
 class DataSets(object):
@@ -71,7 +74,7 @@ class DataSet(object):
 
     def start_queue_threads(self, session, coord):
         self._coord = coord
-        batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in xrange(self._thread_count)]
+        batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in range(self._thread_count)]
         for batch_thread in batch_threads:
             batch_thread.daemon = True
             batch_thread.start()
@@ -99,7 +102,12 @@ class DataSet(object):
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
             with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
-                target = unicodedata.normalize("NFKD", open_txt_file.read()).encode("ascii", "ignore")
+                # We need to do the encode-decode dance here because encode
+                # returns a bytes() object on Python 3, and text_to_char_array
+                # expects a string.
+                target = unicodedata.normalize("NFKD", open_txt_file.read())   \
+                                    .encode("ascii", "ignore")                 \
+                                    .decode("ascii", "ignore")
                 target = text_to_char_array(target)
             target_len = len(target)
             try:
@@ -125,12 +133,12 @@ class DataSet(object):
 def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8,
                    limit_dev=0, limit_test=0, limit_train=0, sets=[]):
     # Check if we can convert FLAC with SoX before we start
-    sox_help_out = subprocess.check_output(["sox", "-h"])
+    sox_help_out = subprocess.check_output(["sox", "-h"]).decode('latin-1')
     if sox_help_out.find("flac") == -1:
         print("Error: SoX doesn't support FLAC. Please install SoX with FLAC support and try again.")
         exit(1)
     # Conditionally download data to data_dir
-    print("Downloading Librivox data sets if not already present...")
+    print("Downloading Librivox data set (55GB) into %s if not already present..."%(data_dir,))
     with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
         TRAIN_CLEAN_100_URL = "http://www.openslr.org/resources/12/train-clean-100.tar.gz"
         TRAIN_CLEAN_360_URL = "http://www.openslr.org/resources/12/train-clean-360.tar.gz"
@@ -143,7 +151,6 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
         TEST_OTHER_URL = "http://www.openslr.org/resources/12/test-other.tar.gz"
 
         def filename_of(x): return path.split(x)[1]
-
         train_clean_100 = base.maybe_download(filename_of(TRAIN_CLEAN_100_URL), data_dir, TRAIN_CLEAN_100_URL)
         bar.update(0)
         train_clean_360 = base.maybe_download(filename_of(TRAIN_CLEAN_360_URL), data_dir, TRAIN_CLEAN_360_URL)
