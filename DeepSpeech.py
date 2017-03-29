@@ -1162,13 +1162,7 @@ if __name__ == "__main__":
 
             # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
             input_tensor = tf.placeholder(tf.float32, [None, None, n_input + 2*n_input*n_context], name='input_node')
-
-            # Calculate input sequence length. This is done by tiling n_steps, batch_size times.
-            # If there are multiple sequences, it is assumed they are padded with zeros to be of
-            # the same length.
-            n_items  = tf.slice(tf.shape(input_tensor), [0], [1])
-            n_steps = tf.slice(tf.shape(input_tensor), [1], [1])
-            seq_length = tf.tile(n_steps, n_items)
+            seq_length = tf.placeholder(tf.int32, [None], name='input_lengths')
 
             # Calculate the logits of the batch using BiRNN
             logits = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout)
@@ -1196,7 +1190,8 @@ if __name__ == "__main__":
             model_exporter.init(session.graph.as_graph_def(),
                                 named_graph_signatures = {
                                     'inputs': exporter.generic_signature(
-                                        { 'input': input_tensor }),
+                                        { 'input': input_tensor,
+                                          'input_lengths': seq_length}),
                                     'outputs': exporter.generic_signature(
                                         { 'outputs': decoded})})
             if remove_export:
