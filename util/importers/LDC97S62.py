@@ -96,7 +96,12 @@ class DataSet(object):
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
             with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
-                target = unicodedata.normalize("NFKD", open_txt_file.read()).encode("ascii", "ignore")
+                # We need to do the encode-decode dance here because encode
+                # returns a bytes() object on Python 3, and text_to_char_array
+                # expects a string.
+                target = unicodedata.normalize("NFKD", open_txt_file.read())   \
+                                    .encode("ascii", "ignore")                 \
+                                    .decode("ascii", "ignore")
                 target = text_to_char_array(target)
             target_len = len(target)
             try:
