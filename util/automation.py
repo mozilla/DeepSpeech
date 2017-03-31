@@ -369,40 +369,6 @@ def wipe_git_clone():
     """
     shutil.rmtree(DEEPSPEECH_CLONE_PATH)
 
-def populate_previous_logs():
-    """
-    Let us copy previous logs produced by runs from the copy we are keeping in
-    $XDG_DATA_DIR, into the git clone rep (DEEPSPEECH_CLONE_PATH).
-    If the target directory exists, it means we probably already have everything
-    """
-
-    src_logs_dir = os.path.join(DATA_DIR, 'logs')
-    dst_logs_dir = os.path.join(DEEPSPEECH_CLONE_PATH, 'logs')
-    if not os.path.isdir(src_logs_dir):
-        # There is nothing to copy back, let's just bail out
-        return
-
-    if os.path.isdir(dst_logs_dir):
-        # Directory already exists, just bail out
-        return
-
-    # We assume the content is sane and just copy everything
-    shutil.copytree(src_logs_dir, dst_logs_dir)
-
-def save_logs():
-    """
-    Copy the logs that have been produced by the WER run to the backup location
-    We will just take hyper.json files
-    """
-
-    src_logs_dir = os.path.join(DEEPSPEECH_CLONE_PATH, 'logs')
-    glob_mask    = '%s/*/hyper.json' % src_logs_dir
-    for hyperJson in map(lambda x: os.path.relpath(x, DEEPSPEECH_CLONE_PATH), glob(glob_mask)):
-        final_path = os.path.join(DATA_DIR, hyperJson)
-        if not os.path.isdir(os.path.dirname(final_path)):
-            os.makedirs(os.path.dirname(final_path))
-        shutil.copy(hyperJson, final_path)
-
 def ensure_gpu_usage(root_dir):
     """
     Prepare storing of GPU usage CSV file and PNG charts. Will use the directory
@@ -436,7 +402,6 @@ def ensure_checkpoint_directory():
     # the checkpoint_restore boolean only of the directory actually exists
     # If it exists but it is empty, then notebook will likely fail.
     checkpoint_dir     = os.path.join(CKPT_BASE_DIR, get_git_desc())
-    checkpoint_restore = False
 
     # Check if a force restore checkpoint file exists
     if os.path.isfile(CKPTFILE):
@@ -464,11 +429,10 @@ def ensure_checkpoint_directory():
         os.makedirs(checkpoint_dir)
     else:
         print("Found existing checkpoint dir, re-using it")
-        checkpoint_restore = True
 
-    print("Ensured checkpoint infos: ", checkpoint_dir, checkpoint_restore)
+    print("Ensured checkpoint infos: ", checkpoint_dir)
 
-    return checkpoint_dir, checkpoint_restore
+    return checkpoint_dir
 
 def exec_wer_run():
     """
@@ -482,21 +446,15 @@ def exec_wer_run():
 
     # Collect expected checkpoint directory depending on what the user wants
     # defaulting to re-using checkpoint from the same SHA1
-    ckpt_dir, force_ckpt_restore = ensure_checkpoint_directory()
+    ckpt_dir = ensure_checkpoint_directory()
 
     # Copy current process environment to be able to augment it
     local_env = copy.deepcopy(os.environ)
 
-    # Force automation to use a user-local checkpoint dir
-    local_env.update({
-        'ds_checkpoint_dir':     ckpt_dir,
-        'ds_restore_checkpoint': "1" if force_ckpt_restore else "0"
-    })
-
     # Pass the current environment, it is required for user to supply the upload
     # informations used by the notebook, and it also makes us able to run all
     # this within loaded virtualenv
-    res = subprocess.check_call([ ds_script ], env=local_env)
+    res = subprocess.check_call([ ds_script, '--checkpoint_dir', ckpt_dir ], env=local_env)
 
     assert res == 0
 
@@ -567,9 +525,6 @@ def exec_main():
         root_dir = os.getcwd()
         os.chdir(DEEPSPEECH_CLONE_PATH)
 
-        print("Copy previous run logs from backup")
-        populate_previous_logs()
-
         print("Starting GPU nvidia-smi monitoring")
         gpu_usage_csv, gpu_usage_charts = ensure_gpu_usage(root_dir)
         gu = GPUUsage(csvfile=gpu_usage_csv)
@@ -579,12 +534,8 @@ def exec_main():
         exec_wer_run()
 
         print("Producing GPU monitoring charts")
-        gu.join(5.0)
         gu.stop()
         GPUUsageChart(source=gpu_usage_csv, basename=gpu_usage_charts)
-
-        print("Backup the logs we just produced")
-        save_logs()
 
         print("Save progress")
         write_last_sha1(sha)

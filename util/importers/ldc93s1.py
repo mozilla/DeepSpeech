@@ -8,31 +8,9 @@ from threading import Thread
 from util.gpu import get_available_gpus
 from util.text import text_to_char_array, ctc_label_dense_to_sparse
 from util.audio import audiofile_to_input_vector
+from util.data_set_helpers import DataSets
 from tensorflow.contrib.learn.python.learn.datasets import base
 from six.moves import range
-
-class DataSets(object):
-    def __init__(self, train, dev, test):
-        self._dev = dev
-        self._test = test
-        self._train = train
-
-    def start_queue_threads(self, sesssion):
-        self._dev.start_queue_threads(sesssion)
-        self._test.start_queue_threads(sesssion)
-        self._train.start_queue_threads(sesssion)
-
-    @property
-    def train(self):
-        return self._train
-
-    @property
-    def dev(self):
-        return self._dev
-
-    @property
-    def test(self):
-        return self._test
 
 class DataSet(object):
     def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext):
@@ -42,13 +20,13 @@ class DataSet(object):
         self._x_length = tf.placeholder(tf.int32, [])
         self._y = tf.placeholder(tf.int32, [None,])
         self._y_length = tf.placeholder(tf.int32, [])
-        self._example_queue = tf.PaddingFIFOQueue(shapes=[[None, numcep + (2 * numcep * numcontext)], [], [None,], []],
+        self.example_queue = tf.PaddingFIFOQueue(shapes=[[None, numcep + (2 * numcep * numcontext)], [], [None,], []],
                                                   dtypes=[tf.float32, tf.int32, tf.int32, tf.int32],
                                                   capacity=2 * self._get_device_count() * batch_size)
-        self._enqueue_op = self._example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])
-        self._close_op = self._example_queue.close(cancel_pending_enqueues=True)
+        self._enqueue_op = self.example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])
+        self._close_op = self.example_queue.close(cancel_pending_enqueues=True)
         self._txt_files = txt_files
-        self._batch_size = batch_size
+        self.batch_size = batch_size
         self._numcontext = numcontext
         self._thread_count = thread_count
 
@@ -92,18 +70,19 @@ class DataSet(object):
             except tf.errors.CancelledError:
                 return
 
+
     def next_batch(self):
-        source, source_lengths, target, target_lengths = self._example_queue.dequeue_many(self._batch_size)
-        sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, self._batch_size)
+        source, source_lengths, target, target_lengths = self.example_queue.dequeue_many(self.batch_size)
+        sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, self.batch_size)
         return source, source_lengths, sparse_labels
 
     @property
     def total_batches(self):
-        # Note: If len(_txt_files) % _batch_size != 0, this re-uses initial _txt_files
-        return int(ceil(float(len(self._txt_files)) /float(self._batch_size)))
+        # Note: If len(_txt_files) % batch_size != 0, this re-uses initial _txt_files
+        return int(ceil(float(len(self._txt_files)) /float(self.batch_size)))
 
 
-def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=1, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
+def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=1, stride=1, offset=0, next_index=lambda s, i: i + 1, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
     # Conditionally download data
     LDC93S1_BASE = "LDC93S1"
     LDC93S1_BASE_URL = "https://catalog.ldc.upenn.edu/desc/addenda/"
@@ -114,11 +93,11 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
     train = None
     if "train" in sets:
         train = _read_data_set(data_dir, thread_count, train_batch_size, numcep, numcontext)
-    
+
     dev = None
     if "dev" in sets:
         dev   = _read_data_set(data_dir, thread_count, dev_batch_size, numcep, numcontext)
-    
+
     test = None
     if "test" in sets:
         test  = _read_data_set(data_dir, thread_count, test_batch_size, numcep, numcontext)
