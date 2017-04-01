@@ -1,91 +1,58 @@
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+
+# Make sure we can import stuff from util/
+# This script needs to be run from the root of the DeepSpeech repository
+import sys
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..', '..'))
 
 import codecs
 import fnmatch
 import os
 import pandas
 import subprocess
-import tensorflow as tf
 import unicodedata
 import wave
 
-from util.data_set_helpers import DataSets, DataSet
 from util.text import validate_label
 
-def read_data_sets(data_dir, train_csvs, dev_csvs, test_csvs,
-                   train_batch_size, dev_batch_size, test_batch_size,
-                   numcep, numcontext, thread_count=8,
-                   stride=1, offset=0, next_index=lambda s, i: i + 1,
-                   limit_dev=0, limit_test=0, limit_train=0, sets=[]):
+def _download_and_preprocess_data(data_dir):
     # Assume data_dir contains extracted LDC2004S13, LDC2004T19, LDC2005S13, LDC2005T19
 
-    # Read the processed set files from disk if they exist, otherwise create them.
-    def read_csvs(csvs):
-        files = None
-        for csv in csvs:
-            file = pandas.read_csv(csv)
-            if files is None:
-                files = file
-            else:
-                files = files.append(file)
-        return files
+    # Conditionally convert Fisher sph data to wav
+    _maybe_convert_wav(data_dir, "LDC2004S13", "fisher-2004-wav")
+    _maybe_convert_wav(data_dir, "LDC2005S13", "fisher-2005-wav")
 
-    train_files = read_csvs(train_csvs)
-    dev_files = read_csvs(dev_csvs)
-    test_files = read_csvs(test_csvs)
+    # Conditionally split Fisher wav data
+    _split_wav_and_sentences(data_dir,
+                             original_data="fisher-2004-wav",
+                             converted_data="fisher-2004-split-wav",
+                             trans_data=os.path.join("LDC2004T19", "fe_03_p1_tran", "data", "trans"))
+    _split_wav_and_sentences(data_dir,
+                             original_data="fisher-2005-wav",
+                             converted_data="fisher-2005-split-wav",
+                             trans_data=os.path.join("LDC2005T19", "fe_03_p2_tran", "data", "trans"))
 
-    if train_files is None or dev_files is None or test_files is None:
-        # Conditionally convert Fisher sph data to wav
-        _maybe_convert_wav(data_dir, "LDC2004S13", "fisher-2004-wav")
-        _maybe_convert_wav(data_dir, "LDC2005S13", "fisher-2005-wav")
+    # Conditionally split Fisher data into train/validation/test sets
+    train_2004, dev_2004, test_2004 = _split_sets(data_dir, "fisher-2004-split-wav", "fisher-2004-split-wav-sets")
+    train_2005, dev_2005, test_2005 = _split_sets(data_dir, "fisher-2005-split-wav", "fisher-2005-split-wav-sets")
+    
+    # The following file has an incorrect transcript that is much longer than
+    # the audio source. The result is that we end up with more labels than time
+    # slices, which breaks CTC. We fix this directly since it's a single occurrence
+    # in the entire corpus.
+    problematic_file = "fe_03_00265-33.53-33.81.wav"
+    train_2004.loc[train_2004.loc[train_2004["wav_filename"] == problematic_file], "transcript"] = "correct"
 
-        # Conditionally split Fisher wav data
-        _split_wav_and_sentences(data_dir,
-                                 original_data="fisher-2004-wav",
-                                 converted_data="fisher-2004-split-wav",
-                                 trans_data=os.path.join("LDC2004T19", "fe_03_p1_tran", "data", "trans"))
-        _split_wav_and_sentences(data_dir,
-                                 original_data="fisher-2005-wav",
-                                 converted_data="fisher-2005-split-wav",
-                                 trans_data=os.path.join("LDC2005T19", "fe_03_p2_tran", "data", "trans"))
+    train_files = train_2004.append(train_2005)
+    dev_files = dev_2004.append(dev_2005)
+    dev_files = dev_2004.append(dev_2005)
 
-        # Conditionally split Fisher data into train/validation/test sets
-        train_2004, dev_2004, test_2004 = _split_sets(data_dir, "fisher-2004-split-wav", "fisher-2004-split-wav-sets")
-        train_2005, dev_2005, test_2005 = _split_sets(data_dir, "fisher-2005-split-wav", "fisher-2005-split-wav-sets")
-
-        # The following file has an incorrect transcript that is much longer than
-        # the audio source. The result is that we end up with more labels than time
-        # slices, which breaks CTC. We fix this directly since it's a single occurrence
-        # in the entire corpus.
-        problematic_file = "fe_03_00265-33.53-33.81.wav"
-        train_2004.loc[train_2004.loc[train_2004["wav_filename"] == problematic_file], "transcript"] = "correct"
-
-        train_files = train_2004.append(train_2005)
-        dev_files = dev_2004.append(dev_2005)
-        dev_files = dev_2004.append(dev_2005)
-
-        # Write sets to disk as CSV files
-        train_files.to_csv(os.path.join(data_dir, "fisher-train.csv"), index=False)
-        dev_files.to_csv(os.path.join(data_dir, "fisher-dev.csv"), index=False)
-        test_files.to_csv(os.path.join(data_dir, "fisher-test.csv"), index=False)
-
-    # Create train DataSet
-    train = None
-    if "train" in sets:
-        train = _read_data_set(train_files, thread_count, train_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('train', i), limit=limit_train)
-
-    # Create dev DataSet
-    dev = None
-    if "dev" in sets:
-        dev = _read_data_set(dev_files, thread_count, dev_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('dev', i), limit=limit_dev)
-
-    # Create test DataSet
-    test = None
-    if "test" in sets:
-        test = _read_data_set(test_files, thread_count, test_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('test', i), limit=limit_test)
-
-    # Return DataSets
-    return DataSets(train, dev, test)
+    # Write sets to disk as CSV files
+    train_files.to_csv(os.path.join(data_dir, "fisher-train.csv"), index=False)
+    dev_files.to_csv(os.path.join(data_dir, "fisher-dev.csv"), index=False)
+    test_files.to_csv(os.path.join(data_dir, "fisher-test.csv"), index=False)
 
 def _maybe_convert_wav(data_dir, original_data, converted_data):
     source_dir = os.path.join(data_dir, original_data)
@@ -205,12 +172,5 @@ def _split_sets(filelist):
            filelist[dev_beg:dev_end],
            filelist[test_beg:test_end]
 
-def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
-    # Optionally apply dataset size limit
-    if limit > 0:
-        filelist = filelist.iloc[:limit]
-
-    filelist = filelist[offset::stride]
-
-    # Return DataSet
-    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, next_index=next_index)
+if __name__ == "__main__":
+    _download_and_preprocess_data(sys.argv[1])
