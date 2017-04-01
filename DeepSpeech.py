@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from __future__ import absolute_import
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function
 
 import os
 import sys
@@ -35,12 +34,25 @@ from xdg import BaseDirectory as xdg
 from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from threading import Thread, Lock
 
+# Hack: tf.app.flags only supports nargs='?', so we have to add our own method
+def DEFINE_list(flag_name, default_value, docstring):
+    tf.app.flags._global_parser.add_argument('--' + flag_name,
+                                             nargs='+',
+                                             help=docstring,
+                                             default=default_value,
+                                             type=str)
+
+tf.app.flags.DEFINE_list = DEFINE_list
+
 
 # Importer
 # ========
 
 tf.app.flags.DEFINE_string  ('importer',         'ldc93s1',   'importer module - one of ldc93s1, LDC97S62, ted, librivox, fisher')
 tf.app.flags.DEFINE_string  ('dataset_path',     '',          'data set path for the importer - defaults to ./data/<importer>')
+tf.app.flags.DEFINE_list    ('train_files',      [],          'path to the files specifying the dataset used for training. multiple files will get merged')
+tf.app.flags.DEFINE_list    ('dev_files',        [],          'path to the files specifying the dataset used for validation. multiple files will get merged')
+tf.app.flags.DEFINE_list    ('test_files',       [],          'path to the files specifying the dataset used for testing. multiple files will get merged')
 tf.app.flags.DEFINE_boolean ('fulltrace',        False,       'if full trace debug info should be generated during training')
 
 # Cluster configuration
@@ -1350,6 +1362,9 @@ def read_data_sets(set_names=['train', 'dev', 'test']):
     Returns a :class:`DataSets` object of the selected importer, containing all available/selected sets.
     '''
     return importer_module.read_data_sets(FLAGS.dataset_path,
+                                          FLAGS.train_files,
+                                          FLAGS.dev_files,
+                                          FLAGS.test_files,
                                           FLAGS.train_batch_size,
                                           FLAGS.dev_batch_size,
                                           FLAGS.test_batch_size,

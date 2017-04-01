@@ -201,5 +201,5 @@ def validate_label(label):
     label = label.replace("?", "")
     label = label.strip()
 
-    return label
+    return label.lower()
 
