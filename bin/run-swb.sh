@@ -5,10 +5,16 @@ if [ ! -f DeepSpeech.py ]; then
     exit 1
 fi;
 
+if [ ! -d "${ds_dataroot}" ]; then
+    ds_dataroot = "data"
+fi;
+
 checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/swb"))')
 
 python -u DeepSpeech.py \
-  --importer LDC97S62 \
+  --train_files "$ds_dataroot/swb-train.csv" \
+  --dev_files "$ds_dataroot/swb-dev.csv" \
+  --test_files "$ds_dataroot/swb-test.csv" \
   --train_batch_size 48 \
   --dev_batch_size 32 \
   --test_batch_size 32 \

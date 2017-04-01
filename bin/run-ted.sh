@@ -5,10 +5,16 @@ if [ ! -f DeepSpeech.py ]; then
     exit 1
 fi;
 
+if [ ! -d "${ds_dataroot}" ]; then
+    ds_dataroot = "data"
+fi;
+
 checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/ted"))')
 
 python -u DeepSpeech.py \
-  --importer ted \
+  --train_files "$ds_dataroot/ted-train.csv" \
+  --dev_files "$ds_dataroot/ted-dev.csv" \
+  --test_files "$ds_dataroot/ted-test.csv" \
   --train_batch_size 16 \
   --dev_batch_size 8 \
   --test_batch_size 8 \
