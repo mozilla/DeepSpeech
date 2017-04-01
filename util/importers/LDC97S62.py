@@ -1,80 +1,43 @@
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-import fnmatch
+# Make sure we can import stuff from util/
+# This script needs to be run from the root of the DeepSpeech repository
+import sys
 import os
+sys.path.insert(1, os.path.join(sys.path[0], '..', '..'))
+
+import fnmatch
 import pandas
 import subprocess
-import tensorflow as tf
 import unicodedata
 import wave
 
-from util.data_set_helpers import DataSets, DataSet
 from util.text import validate_label
 
-def read_data_sets(data_dir, train_csvs, dev_csvs, test_csvs,
-                   train_batch_size, dev_batch_size, test_batch_size,
-                   numcep, numcontext, thread_count=8,
-                   stride=1, offset=0, next_index=lambda s, i: i + 1,
-                   limit_dev=0, limit_test=0, limit_train=0, sets=[]):
-    # Read the processed set files from disk if they exist, otherwise create them.
-    def read_csvs(csvs):
-        files = None
-        for csv in csvs:
-            file = pandas.read_csv(csv)
-            if files is None:
-                files = file
-            else:
-                files = files.append(file)
-        return files
+def _download_and_preprocess_data(data_dir):
+    data_dir = os.path.join(data_dir, "LDC97S62")
 
-    train_files = read_csvs(train_csvs)
-    dev_files = read_csvs(dev_csvs)
-    test_files = read_csvs(test_csvs)
+    # Conditionally convert swb sph data to wav
+    _maybe_convert_wav(data_dir, "swb1_d1", "swb1_d1-wav")
+    _maybe_convert_wav(data_dir, "swb1_d2", "swb1_d2-wav")
+    _maybe_convert_wav(data_dir, "swb1_d3", "swb1_d3-wav")
+    _maybe_convert_wav(data_dir, "swb1_d4", "swb1_d4-wav")
 
-    if train_files is None or dev_files is None or test_files is None:
-        data_dir = os.path.join(data_dir, "LDC97S62")
+    # Conditionally split wav data
+    d1 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d1-wav", "swb1_d1-split-wav")
+    d2 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d2-wav", "swb1_d2-split-wav")
+    d3 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d3-wav", "swb1_d3-split-wav")
+    d4 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d4-wav", "swb1_d4-split-wav")
+    
+    swb_files = d1.append(d2).append(d3).append(d4)
+    
+    train_files, dev_files, test_files = _split_sets(swb_files)
 
-        # Conditionally convert swb sph data to wav
-        _maybe_convert_wav(data_dir, "swb1_d1", "swb1_d1-wav")
-        _maybe_convert_wav(data_dir, "swb1_d2", "swb1_d2-wav")
-        _maybe_convert_wav(data_dir, "swb1_d3", "swb1_d3-wav")
-        _maybe_convert_wav(data_dir, "swb1_d4", "swb1_d4-wav")
-
-        # Conditionally split wav data
-        d1 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d1-wav", "swb1_d1-split-wav")
-        d2 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d2-wav", "swb1_d2-split-wav")
-        d3 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d3-wav", "swb1_d3-split-wav")
-        d4 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d4-wav", "swb1_d4-split-wav")
-
-        swb_files = d1.append(d2).append(d3).append(d4)
-
-        train_files, dev_files, test_files = _split_sets(swb_files)
-
-        # Write sets to disk as CSV files
-        train_files.to_csv(os.path.join(data_dir, "swb-train.csv"), index=False)
-        dev_files.to_csv(os.path.join(data_dir, "swb-dev.csv"), index=False)
-        test_files.to_csv(os.path.join(data_dir, "swb-test.csv"), index=False)
-
-    # Create dev DataSet
-    dev = None
-    if "dev" in sets:
-        dev = _read_data_set(dev_files, thread_count, dev_batch_size, numcep,
-                             numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('dev', i), limit=limit_dev)
-
-    # Create test DataSet
-    test = None
-    if "test" in sets:
-        test = _read_data_set(test_files, thread_count, test_batch_size, numcep,
-                             numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('test', i), limit=limit_test)
-
-    # Create train DataSet
-    train = None
-    if "train" in sets:
-        train = _read_data_set(train_files, thread_count, train_batch_size, numcep,
-                             numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('train', i), limit=limit_train)
-
-    # Return DataSets
-    return DataSets(train, dev, test)
+    # Write sets to disk as CSV files
+    train_files.to_csv(os.path.join(data_dir, "swb-train.csv"), index=False)
+    dev_files.to_csv(os.path.join(data_dir, "swb-dev.csv"), index=False)
+    test_files.to_csv(os.path.join(data_dir, "swb-test.csv"), index=False)
 
 def _maybe_convert_wav(data_dir, original_data, converted_data):
     source_dir = os.path.join(data_dir, original_data)
@@ -215,3 +178,6 @@ def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, strid
 
     # Return DataSet
     return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, next_index=next_index)
+
+if __name__ == "__main__":
+    _download_and_preprocess_data(sys.argv[1])

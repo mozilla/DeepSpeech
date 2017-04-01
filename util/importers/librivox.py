@@ -1,68 +1,23 @@
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+
+# Make sure we can import stuff from util/
+# This script needs to be run from the root of the DeepSpeech repository
+import sys
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..', '..'))
 
 import codecs
 import fnmatch
-import os
 import pandas
 import progressbar
 import subprocess
 import tarfile
-import tensorflow as tf
 import unicodedata
 
 from sox import Transformer
 from tensorflow.contrib.learn.python.learn.datasets import base
 from tensorflow.python.platform import gfile
-from util.data_set_helpers import DataSets, DataSet
-from util.text import text_to_char_array
-
-def read_data_sets(data_dir, train_csvs, dev_csvs, test_csvs,
-                   train_batch_size, dev_batch_size, test_batch_size,
-                   numcep, numcontext, thread_count=8,
-                   stride=1, offset=0, next_index=lambda s, i: i + 1,
-                   limit_dev=0, limit_test=0, limit_train=0, sets=[]):
-    # Check if we can convert FLAC with SoX before we start
-    sox_help_out = subprocess.check_output(["sox", "-h"]).decode('latin-1')
-    if sox_help_out.find("flac") == -1:
-        print("Error: SoX doesn't support FLAC. Please install SoX with FLAC support and try again.")
-        exit(1)
-
-    # Read the processed set files from disk if they exist, otherwise create them.
-    def read_csvs(csvs):
-        files = None
-        for csv in csvs:
-            file = pandas.read_csv(csv)
-            if files is None:
-                files = file
-            else:
-                files = files.append(file)
-        return files
-
-    train_files = read_csvs(train_csvs)
-    dev_files = read_csvs(dev_csvs)
-    test_files = read_csvs(test_csvs)
-
-    if train_files is None or dev_files is None or test_files is None:
-        train_files, dev_files, test_files = _download_and_preprocess_data(data_dir)
-        print("Finished pre-processing librivox. Initializing dataset...")
-
-    # Create train DataSet from all the train archives
-    train = None
-    if "train" in sets:
-        train = _read_data_set(train_files, thread_count, train_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('train', i), limit=limit_train)
-
-    # Create dev DataSet from all the dev archives
-    dev = None
-    if "dev" in sets:
-        dev = _read_data_set(dev_files, thread_count, dev_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('dev', i), limit=limit_dev)
-
-    # Create test DataSet from all the test archives
-    test = None
-    if "test" in sets:
-        test = _read_data_set(test_files, thread_count, test_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('test', i), limit=limit_test)
-
-    # Return DataSets
-    return DataSets(train, dev, test)
 
 def _download_and_preprocess_data(data_dir):
     # Conditionally download data to data_dir
@@ -217,12 +172,5 @@ def _convert_audio_and_split_sentences(extracted_dir, data_set, dest_dir):
 
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 
-def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
-    # Optionally apply dataset size limit
-    if limit > 0:
-        filelist = filelist.iloc[:limit]
-
-    filelist = filelist[offset::stride]
-
-    # Return DataSet
-    return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, next_index=next_index)
+if __name__ == "__main__":
+    _download_and_preprocess_data(sys.argv[1])
