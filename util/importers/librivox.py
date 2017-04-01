@@ -1,32 +1,30 @@
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
+
 import codecs
 import fnmatch
 import os
+import pandas
+import progressbar
 import subprocess
 import tarfile
+import tensorflow as tf
 import unicodedata
-from six.moves.queue import PriorityQueue
+
 from glob import glob
-from itertools import cycle
 from math import ceil
 from os import path
-from threading import Thread
-
-import progressbar
-import tensorflow as tf
+from six.moves import range
 from sox import Transformer
 from tensorflow.contrib.learn.python.learn.datasets import base
 from tensorflow.python.platform import gfile
-
+from threading import Thread
 from util.audio import audiofile_to_input_vector
-from util.gpu import get_available_gpus
 from util.data_set_helpers import DataSets
+from util.gpu import get_available_gpus
 from util.text import text_to_char_array, ctc_label_dense_to_sparse
-from six.moves import range
 
 class DataSet(object):
-    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
+    def __init__(self, filelist, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
         self._coord = None
         self._numcep = numcep
         self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
@@ -38,7 +36,7 @@ class DataSet(object):
                                                   capacity=2 * self._get_device_count() * batch_size)
         self._enqueue_op = self.example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])
         self._close_op = self.example_queue.close(cancel_pending_enqueues=True)
-        self._txt_files = txt_files
+        self._filelist = filelist
         self.batch_size = batch_size
         self._numcontext = numcontext
         self._thread_count = thread_count
@@ -61,16 +59,12 @@ class DataSet(object):
         session.run(self._close_op)
 
     def _create_files_list(self):
-        priorityQueue = PriorityQueue()
-        for txt_file in self._txt_files:
-            wav_file = os.path.splitext(txt_file)[0] + ".wav"
-            wav_file_size = os.path.getsize(wav_file)
-            priorityQueue.put((wav_file_size, (txt_file, wav_file)))
-        files_list = []
-        while not priorityQueue.empty():
-            priority, (txt_file, wav_file) = priorityQueue.get()
-            files_list.append((txt_file, wav_file))
-        return files_list
+        # 1. Sort by wav filesize
+        # 2. Select just wav filename and transcript columns
+        # 3. Return a NumPy representation
+        return self._filelist.sort_values(by="wav_filesize")        \
+                             .ix[:, ["wav_filename", "transcript"]] \
+                             .values
 
     def _indices(self):
         index = -1
@@ -79,17 +73,10 @@ class DataSet(object):
             yield self._files_list[index]
 
     def _populate_batch_queue(self, session):
-        for txt_file, wav_file in self._indices():
+        for wav_file, transcript in self._indices():
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
-            with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
-                # We need to do the encode-decode dance here because encode
-                # returns a bytes() object on Python 3, and text_to_char_array
-                # expects a string.
-                target = unicodedata.normalize("NFKD", open_txt_file.read())   \
-                                    .encode("ascii", "ignore")                 \
-                                    .decode("ascii", "ignore")
-                target = text_to_char_array(target)
+            target = text_to_char_array(transcript)
             target_len = len(target)
             try:
                 session.run(self._enqueue_op, feed_dict={
@@ -107,18 +94,61 @@ class DataSet(object):
 
     @property
     def total_batches(self):
-        # Note: If len(_txt_files) % batch_size != 0, this re-uses initial _txt_files
-        return int(ceil(float(len(self._txt_files)) / float(self.batch_size)))
+        # Note: If len(_filelist) % batch_size != 0, this re-uses initial files
+        return int(ceil(len(self._filelist) / self.batch_size))
 
 
-def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, stride=1, offset=0, next_index=lambda s, i: i + 1, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
+def read_data_sets(data_dir, train_csvs, dev_csvs, test_csvs,
+                   train_batch_size, dev_batch_size, test_batch_size,
+                   numcep, numcontext, thread_count=8,
+                   stride=1, offset=0, next_index=lambda s, i: i + 1,
+                   limit_dev=0, limit_test=0, limit_train=0, sets=[]):
     # Check if we can convert FLAC with SoX before we start
     sox_help_out = subprocess.check_output(["sox", "-h"]).decode('latin-1')
     if sox_help_out.find("flac") == -1:
         print("Error: SoX doesn't support FLAC. Please install SoX with FLAC support and try again.")
         exit(1)
+
+    # Read the processed set files from disk if they exist, otherwise create them.
+    def read_csvs(csvs):
+        files = None
+        for csv in csvs:
+            file = pandas.read_csv(csv)
+            if files is None:
+                files = file
+            else:
+                files = files.append(file)
+        return files
+
+    train_files = read_csvs(train_csvs)
+    dev_files = read_csvs(dev_csvs)
+    test_files = read_csvs(test_csvs)
+
+    if train_files is None or dev_files is None or test_files is None:
+        train_files, dev_files, test_files = _download_and_preprocess_data(data_dir)
+        print("Finished pre-processing librivox. Initializing dataset...")
+
+    # Create train DataSet from all the train archives
+    train = None
+    if "train" in sets:
+        train = _read_data_set(train_files, thread_count, train_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('train', i), limit=limit_train)
+
+    # Create dev DataSet from all the dev archives
+    dev = None
+    if "dev" in sets:
+        dev = _read_data_set(dev_files, thread_count, dev_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('dev', i), limit=limit_dev)
+
+    # Create test DataSet from all the test archives
+    test = None
+    if "test" in sets:
+        test = _read_data_set(test_files, thread_count, test_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('test', i), limit=limit_test)
+
+    # Return DataSets
+    return DataSets(train, dev, test)
+
+def _download_and_preprocess_data(data_dir):
     # Conditionally download data to data_dir
-    print("Downloading Librivox data set (55GB) into %s if not already present..."%(data_dir,))
+    print("Downloading Librivox data set (55GB) into {} if not already present...".format(data_dir))
     with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
         TRAIN_CLEAN_100_URL = "http://www.openslr.org/resources/12/train-clean-100.tar.gz"
         TRAIN_CLEAN_360_URL = "http://www.openslr.org/resources/12/train-clean-360.tar.gz"
@@ -173,73 +203,47 @@ def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, 
         _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "test-other"), test_other)
         bar.update(6)
 
-    # Conditionally convert FLAC data to wav, from:
+    # Convert FLAC data to wav, from:
     #  data_dir/LibriSpeech/split/1/2/1-2-3.flac
     # to:
     #  data_dir/LibriSpeech/split-wav/1-2-3.wav
-    print("Converting Librivox data from flac to wav if not already converted...")
-    with progressbar.ProgressBar(max_value=7,  widget=progressbar.AdaptiveETA) as bar:
-        _maybe_convert_wav(work_dir, "train-clean-100", "train-clean-100-wav")
-        bar.update(0)
-        _maybe_convert_wav(work_dir, "train-clean-360", "train-clean-360-wav")
-        bar.update(1)
-        _maybe_convert_wav(work_dir, "train-other-500", "train-other-500-wav")
-        bar.update(2)
-
-        _maybe_convert_wav(work_dir, "dev-clean", "dev-clean-wav")
-        bar.update(3)
-        _maybe_convert_wav(work_dir, "dev-other", "dev-other-wav")
-        bar.update(4)
-
-        _maybe_convert_wav(work_dir, "test-clean", "test-clean-wav")
-        bar.update(5)
-        _maybe_convert_wav(work_dir, "test-other", "test-other-wav")
-        bar.update(6)
-
-    # Conditionally split LibriSpeech transcriptions, from:
+    #
+    # And split LibriSpeech transcriptions, from:
     #  data_dir/LibriSpeech/split/1/2/1-2.trans.txt
     # to:
     #  data_dir/LibriSpeech/split-wav/1-2-0.txt
     #  data_dir/LibriSpeech/split-wav/1-2-1.txt
     #  data_dir/LibriSpeech/split-wav/1-2-2.txt
     #  ...
-    print("Splitting transcriptions if not already split ...")
+    print("Converting FLAC to WAV and splitting transcriptions...")
     with progressbar.ProgressBar(max_value=7,  widget=progressbar.AdaptiveETA) as bar:
-        _maybe_split_transcriptions(work_dir, "train-clean-100", "train-clean-100-wav")
+        train_100 = _convert_audio_and_split_sentences(work_dir, "train-clean-100", "train-clean-100-wav")
         bar.update(0)
-        _maybe_split_transcriptions(work_dir, "train-clean-360", "train-clean-360-wav")
+        train_360 = _convert_audio_and_split_sentences(work_dir, "train-clean-360", "train-clean-360-wav")
         bar.update(1)
-        _maybe_split_transcriptions(work_dir, "train-other-500", "train-other-500-wav")
+        train_500 = _convert_audio_and_split_sentences(work_dir, "train-other-500", "train-other-500-wav")
         bar.update(2)
 
-        _maybe_split_transcriptions(work_dir, "dev-clean", "dev-clean-wav")
+        dev_clean = _convert_audio_and_split_sentences(work_dir, "dev-clean", "dev-clean-wav")
         bar.update(3)
-        _maybe_split_transcriptions(work_dir, "dev-other", "dev-other-wav")
+        dev_other = _convert_audio_and_split_sentences(work_dir, "dev-other", "dev-other-wav")
         bar.update(4)
 
-        _maybe_split_transcriptions(work_dir, "test-clean", "test-clean-wav")
+        test_clean = _convert_audio_and_split_sentences(work_dir, "test-clean", "test-clean-wav")
         bar.update(5)
-        _maybe_split_transcriptions(work_dir, "test-other", "test-other-wav")
+        test_other = _convert_audio_and_split_sentences(work_dir, "test-other", "test-other-wav")
         bar.update(6)
-    print("Finished pre-processing librivox.  Initializing dataset...")
-    # Create train DataSet from all the train archives
-    train = None
-    if "train" in sets:
-        train = _read_data_set(work_dir, "train-*-wav", thread_count, train_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('train', i), limit=limit_train)
 
-    # Create dev DataSet from all the dev archives
-    dev = None
-    if "dev" in sets:
-        dev = _read_data_set(work_dir, "dev-*-wav", thread_count, dev_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('dev', i), limit=limit_dev)
+    # Write sets to disk as CSV files
+    train_100.to_csv(os.path.join(data_dir, "librivox-train-clean-100.csv"), index=False)
+    train_360.to_csv(os.path.join(data_dir, "librivox-train-clean-360.csv"), index=False)
+    train_500.to_csv(os.path.join(data_dir, "librivox-train-other-500.csv"), index=False)
 
-    # Create test DataSet from all the test archives
-    test = None
-    if "test" in sets:
-        test = _read_data_set(work_dir, "test-*-wav", thread_count, test_batch_size, numcep, numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('test', i), limit=limit_test)
+    dev_clean.to_csv(os.path.join(data_dir, "librivox-dev-clean.csv"), index=False)
+    dev_other.to_csv(os.path.join(data_dir, "librivox-dev-other.csv"), index=False)
 
-    # Return DataSets
-    return DataSets(train, dev, test)
-
+    test_clean.to_csv(os.path.join(data_dir, "librivox-test-clean.csv"), index=False)
+    test_other.to_csv(os.path.join(data_dir, "librivox-test-other.csv"), index=False)
 
 def _maybe_extract(data_dir, extracted_data, archive):
     # If data_dir/extracted_data does not exist, extract archive in data_dir
@@ -247,32 +251,13 @@ def _maybe_extract(data_dir, extracted_data, archive):
         tar = tarfile.open(archive)
         tar.extractall(data_dir)
         tar.close()
-        # os.remove(archive)
 
-
-def _maybe_convert_wav(data_dir, extracted_data, converted_data):
-    source_dir = os.path.join(data_dir, extracted_data)
-    target_dir = os.path.join(data_dir, converted_data)
-
-    # Conditionally convert FLAC files to wav files
-    if not gfile.Exists(target_dir):
-        # Create target_dir
-        os.makedirs(target_dir)
-
-        # Loop over FLAC files in source_dir and convert each to wav
-        for root, dirnames, filenames in os.walk(source_dir):
-            for filename in fnmatch.filter(filenames, '*.flac'):
-                flac_file = os.path.join(root, filename)
-                wav_filename = os.path.splitext(os.path.basename(flac_file))[0] + ".wav"
-                wav_file = os.path.join(target_dir, wav_filename)
-                transformer = Transformer()
-                transformer.build(flac_file, wav_file)
-                os.remove(flac_file)
-
-
-def _maybe_split_transcriptions(extracted_dir, data_set, dest_dir):
+def _convert_audio_and_split_sentences(extracted_dir, data_set, dest_dir):
     source_dir = os.path.join(extracted_dir, data_set)
     target_dir = os.path.join(extracted_dir, dest_dir)
+
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
 
     # Loop over transcription files and split each one
     #
@@ -285,26 +270,41 @@ def _maybe_split_transcriptions(extracted_dir, data_set, dest_dir):
     #  1-2-0.txt (contains transcription of 1-2-0.flac)
     #  1-2-1.txt (contains transcription of 1-2-1.flac)
     #  ...
+    #
+    # We also convert the corresponding FLACs to WAV in the same pass
+    files = []
     for root, dirnames, filenames in os.walk(source_dir):
         for filename in fnmatch.filter(filenames, '*.trans.txt'):
             trans_filename = os.path.join(root, filename)
-            with open(trans_filename, "r") as fin:
+            with codecs.open(trans_filename, "r", "utf-8") as fin:
                 for line in fin:
+                    # Parse each segment line
                     first_space = line.find(" ")
-                    txt_file = line[:first_space] + ".txt"
-                    with open(os.path.join(target_dir, txt_file), "w") as fout:
-                        fout.write(line[first_space + 1:].lower().strip("\n"))
-            os.remove(trans_filename)
+                    seqid, transcript = line[:first_space], line[first_space+1:]
 
-def _read_data_set(work_dir, data_set, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
-    # Create data set dir
-    dataset_dir = os.path.join(work_dir, data_set)
+                    transcript = unicodedata.normalize("NFKD", transcript)  \
+                                            .encode("ascii", "ignore")      \
+                                            .decode("ascii", "ignore")
 
-    # Obtain list of txt files
-    txt_files = glob(os.path.join(dataset_dir, "*.txt"))
+                    transcript = transcript.lower().strip()
+
+                    # Convert corresponding FLAC to a WAV
+                    flac_file = os.path.join(root, seqid + ".flac")
+                    wav_file = os.path.join(target_dir, seqid + ".wav")
+                    if not os.path.exists(wav_file):
+                        Transformer().build(flac_file, wav_file)
+                    wav_filesize = os.path.getsize(wav_file)
+
+                    files.append((wav_file, wav_filesize, transcript))
+
+    return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
+
+def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
+    # Optionally apply dataset size limit
     if limit > 0:
-        txt_files = txt_files[:limit]
-    txt_files = txt_files[offset::stride]
+        filelist = filelist.iloc[:limit]
+
+    filelist = filelist[offset::stride]
 
     # Return DataSet
     return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, next_index=next_index)

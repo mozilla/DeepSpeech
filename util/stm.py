@@ -1,3 +1,5 @@
+import unicodedata
+
 class STMSegment(object):
     r"""
     Representation of an individual segment in an STM file.
@@ -13,7 +15,9 @@ class STMSegment(object):
         self._transcript  = ""
         for token in tokens[6:]:
           self._transcript += token + " "
-        self._transcript = self._transcript.strip()
+        self._transcript = unicodedata.normalize("NFKD", self._transcript.strip())  \
+                                      .encode("ascii", "ignore")                    \
+                                      .decode("ascii", "ignore")
 
     @property
     def filename(self):

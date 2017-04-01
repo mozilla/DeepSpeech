@@ -1,39 +1,35 @@
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
+
 import fnmatch
-import numpy as np
 import os
+import pandas
 import subprocess
-import wave
 import tensorflow as tf
 import unicodedata
-import codecs
-from glob import glob
-from itertools import cycle
+import wave
+
 from math import ceil
-from Queue import PriorityQueue
-from Queue import Queue
+from six.moves import range
 from threading import Thread
 from util.audio import audiofile_to_input_vector
-from util.gpu import get_available_gpus
 from util.data_set_helpers import DataSets
+from util.gpu import get_available_gpus
 from util.text import text_to_char_array, ctc_label_dense_to_sparse, validate_label
-from six.moves import range
 
 class DataSet(object):
-    def __init__(self, txt_files, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
+    def __init__(self, filelist, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
         self._coord = None
         self._numcep = numcep
         self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
         self._x_length = tf.placeholder(tf.int32, [])
-        self._y = tf.placeholder(tf.int32, [None, ])
+        self._y = tf.placeholder(tf.int32, [None,])
         self._y_length = tf.placeholder(tf.int32, [])
         self.example_queue = tf.PaddingFIFOQueue(shapes=[[None, numcep + (2 * numcep * numcontext)], [], [None, ], []],
                                                   dtypes = [tf.float32, tf.int32, tf.int32, tf.int32],
                                                   capacity = 2 * self._get_device_count() * batch_size)
         self._enqueue_op = self.example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])
         self._close_op = self.example_queue.close(cancel_pending_enqueues=True)
-        self._txt_files = txt_files
+        self._filelist = filelist
         self.batch_size = batch_size
         self._numcontext = numcontext
         self._thread_count = thread_count
@@ -42,7 +38,7 @@ class DataSet(object):
 
     def _get_device_count(self):
         available_gpus = get_available_gpus()
-        return  max(len(available_gpus), 1)
+        return max(len(available_gpus), 1)
 
     def start_queue_threads(self, session, coord):
         self._coord = coord
@@ -56,16 +52,12 @@ class DataSet(object):
         session.run(self._close_op)
 
     def _create_files_list(self):
-        priorityQueue = PriorityQueue()
-        for txt_file in self._txt_files:
-            wav_file = os.path.splitext(txt_file)[0] + ".wav"
-            wav_file_size = os.path.getsize(wav_file)
-            priorityQueue.put((wav_file_size, (txt_file, wav_file)))
-        files_list = []
-        while not priorityQueue.empty():
-            priority, (txt_file, wav_file) = priorityQueue.get()
-            files_list.append((txt_file, wav_file))
-        return files_list
+        # 1. Sort by wav filesize
+        # 2. Select just wav filename and transcript columns
+        # 3. Return a NumPy representation
+        return self._filelist.sort_values(by="wav_filesize")        \
+                             .ix[:, ["wav_filename", "transcript"]] \
+                             .values
 
     def _indices(self):
         index = -1
@@ -74,17 +66,10 @@ class DataSet(object):
             yield self._files_list[index]
 
     def _populate_batch_queue(self, session):
-        for txt_file, wav_file in self._indices():
+        for wav_file, transcript in self._indices():
             source = audiofile_to_input_vector(wav_file, self._numcep, self._numcontext)
             source_len = len(source)
-            with codecs.open(txt_file, encoding="utf-8") as open_txt_file:
-                # We need to do the encode-decode dance here because encode
-                # returns a bytes() object on Python 3, and text_to_char_array
-                # expects a string.
-                target = unicodedata.normalize("NFKD", open_txt_file.read())   \
-                                    .encode("ascii", "ignore")                 \
-                                    .decode("ascii", "ignore")
-                target = text_to_char_array(target)
+            target = text_to_char_array(transcript)
             target_len = len(target)
             try:
                 session.run(self._enqueue_op, feed_dict={
@@ -102,50 +87,70 @@ class DataSet(object):
 
     @property
     def total_batches(self):
-        # Note: If len(_txt_files) % batch_size != 0, this re-uses initial _txt_files
-        return int(ceil(float(len(self._txt_files)) / float(self.batch_size)))
+        # Note: If len(_filelist) % batch_size != 0, this re-uses initial files
+        return int(ceil(len(self._filelist) / self.batch_size))
 
 
-def read_data_sets(data_dir, train_batch_size, dev_batch_size, test_batch_size, numcep, numcontext, thread_count=8, stride=1, offset=0, next_index=lambda s, i: i + 1, limit_dev=0, limit_test=0, limit_train=0, sets=[]):
-    data_dir = os.path.join(data_dir, "LDC97S62")
+def read_data_sets(data_dir, train_csvs, dev_csvs, test_csvs,
+                   train_batch_size, dev_batch_size, test_batch_size,
+                   numcep, numcontext, thread_count=8,
+                   stride=1, offset=0, next_index=lambda s, i: i + 1,
+                   limit_dev=0, limit_test=0, limit_train=0, sets=[]):
+    # Read the processed set files from disk if they exist, otherwise create them.
+    def read_csvs(csvs):
+        files = None
+        for csv in csvs:
+            file = pandas.read_csv(csv)
+            if files is None:
+                files = file
+            else:
+                files = files.append(file)
+        return files
 
-    # Conditionally convert swb sph data to wav
-    _maybe_convert_wav(data_dir, "swb1_d1", "swb1_d1-wav")
-    _maybe_convert_wav(data_dir, "swb1_d2", "swb1_d2-wav")
-    _maybe_convert_wav(data_dir, "swb1_d3", "swb1_d3-wav")
-    _maybe_convert_wav(data_dir, "swb1_d4", "swb1_d4-wav")
+    train_files = read_csvs(train_csvs)
+    dev_files = read_csvs(dev_csvs)
+    test_files = read_csvs(test_csvs)
 
-    # Conditionally split wav data
-    _maybe_split_wav(data_dir, "swb_ms98_transcriptions", "swb1_d1-wav",
-                     "swb1_d1-split-wav")
-    _maybe_split_wav(data_dir, "swb_ms98_transcriptions", "swb1_d2-wav",
-                     "swb1_d2-split-wav")
-    _maybe_split_wav(data_dir, "swb_ms98_transcriptions", "swb1_d3-wav",
-                     "swb1_d3-split-wav")
-    _maybe_split_wav(data_dir, "swb_ms98_transcriptions", "swb1_d4-wav",
-                     "swb1_d4-split-wav")
+    if train_files is None or dev_files is None or test_files is None:
+        data_dir = os.path.join(data_dir, "LDC97S62")
 
-    _maybe_split_transcriptions(data_dir, "swb_ms98_transcriptions")
+        # Conditionally convert swb sph data to wav
+        _maybe_convert_wav(data_dir, "swb1_d1", "swb1_d1-wav")
+        _maybe_convert_wav(data_dir, "swb1_d2", "swb1_d2-wav")
+        _maybe_convert_wav(data_dir, "swb1_d3", "swb1_d3-wav")
+        _maybe_convert_wav(data_dir, "swb1_d4", "swb1_d4-wav")
 
-    _maybe_split_sets(data_dir, ["swb1_d1-split-wav", "swb1_d2-split-wav", "swb1_d3-split-wav", "swb1_d4-split-wav"],
-                      "final_sets")
+        # Conditionally split wav data
+        d1 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d1-wav", "swb1_d1-split-wav")
+        d2 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d2-wav", "swb1_d2-split-wav")
+        d3 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d3-wav", "swb1_d3-split-wav")
+        d4 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d4-wav", "swb1_d4-split-wav")
+
+        swb_files = d1.append(d2).append(d3).append(d4)
+
+        train_files, dev_files, test_files = _split_sets(swb_files)
+
+        # Write sets to disk as CSV files
+        train_files.to_csv(os.path.join(data_dir, "swb-train.csv"), index=False)
+        dev_files.to_csv(os.path.join(data_dir, "swb-dev.csv"), index=False)
+        test_files.to_csv(os.path.join(data_dir, "swb-test.csv"), index=False)
 
     # Create dev DataSet
     dev = None
     if "dev" in sets:
-        dev = _read_data_set(data_dir, "final_sets/dev", thread_count, dev_batch_size, numcep,
+        dev = _read_data_set(dev_files, thread_count, dev_batch_size, numcep,
                              numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('dev', i), limit=limit_dev)
 
     # Create test DataSet
     test = None
     if "test" in sets:
-        test = _read_data_set(data_dir, "final_sets/test", thread_count, test_batch_size, numcep,
+        test = _read_data_set(test_files, thread_count, test_batch_size, numcep,
                              numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('test', i), limit=limit_test)
 
     # Create train DataSet
     train = None
     if "train" in sets:
-        train = _read_data_set(data_dir, "final_sets/train", thread_count, train_batch_size, numcep,
+        train = _read_data_set(train_files, thread_count, train_batch_size, numcep,
                              numcontext, stride=stride, offset=offset, next_index=lambda i: next_index('train', i), limit=limit_train)
 
     # Return DataSets
@@ -175,36 +180,32 @@ def _maybe_convert_wav(data_dir, original_data, converted_data):
 
 def _parse_transcriptions(trans_file):
     segments = []
-    with open(trans_file, "r") as fin:
+    with codecs.open(trans_file, "r", "utf-8") as fin:
         for line in fin:
             if line.startswith("#")  or len(line) <= 1:
                 continue
 
-            filename_time_beg = 0;
-            filename_time_end = line.find(" ", filename_time_beg)
+            tokens = line.split()
+            start_time = float(tokens[1])
+            stop_time = float(tokens[2])
+            transcript = validate_label(" ".join(tokens[3:]))
 
-            start_time_beg = filename_time_end + 1
-            start_time_end = line.find(" ", start_time_beg)
-
-            stop_time_beg = start_time_end + 1
-            stop_time_end = line.find(" ", stop_time_beg)
-
-            transcript_beg = stop_time_end + 1
-            transcript_end = len(line)
-
-            if validate_label(line[transcript_beg:transcript_end].strip()) == None:
+            if transcript == None:
                 continue
 
+            transcript = unicodedata.normalize("NFKD", transcript)  \
+                                    .encode("ascii", "ignore")      \
+                                    .decode("ascii", "ignore")
+
             segments.append({
-                "start_time": float(line[start_time_beg:start_time_end]),
-                "stop_time": float(line[stop_time_beg:stop_time_end]),
-                "speaker": line[6],
-                "transcript": line[transcript_beg:transcript_end].strip().lower(),
+                "start_time": start_time,
+                "stop_time": stop_time,
+                "transcript": transcript,
             })
     return segments
 
 
-def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
+def _maybe_split_wav_and_sentences(data_dir, trans_data, original_data, converted_data):
     trans_dir = os.path.join(data_dir, trans_data)
     source_dir = os.path.join(data_dir, original_data)
     target_dir = os.path.join(data_dir, converted_data)
@@ -213,6 +214,8 @@ def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
         return
 
     os.makedirs(target_dir)
+
+    files = []
 
     # Loop over transcription files and split corresponding wav
     for root, dirnames, filenames in os.walk(trans_dir):
@@ -243,10 +246,17 @@ def _maybe_split_wav(data_dir, trans_data, original_data, converted_data):
                 new_wav_filename = os.path.splitext(os.path.basename(trans_file))[0] + "-" + str(
                     start_time) + "-" + str(stop_time) + ".wav"
                 new_wav_file = os.path.join(target_dir, new_wav_filename)
+
                 _split_wav(origAudio, start_time, stop_time, new_wav_file)
+
+                new_wav_filesize = os.path.getsize(new_wav_file)
+                transcript = segment["transcript"]
+                files.append((new_wav_file, new_wave_filesize, transcript))
 
             # Close origAudio
             origAudio.close()
+
+    return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 
 def _split_wav(origAudio, start_time, stop_time, new_wav_file):
     frameRate = origAudio.getframerate()
@@ -259,64 +269,7 @@ def _split_wav(origAudio, start_time, stop_time, new_wav_file):
     chunkAudio.writeframes(chunkData)
     chunkAudio.close()
 
-
-def _maybe_split_transcriptions(data_dir, original_data):
-    source_dir = os.path.join(data_dir, original_data)
-    wav_dirs = ["swb1_d1-split-wav", "swb1_d2-split-wav", "swb1_d3-split-wav", "swb1_d4-split-wav"]
-
-    if os.path.exists(os.path.join(source_dir, "split_transcriptions_done")):
-        print("skipping maybe_split_transcriptions")
-        return
-
-    # Loop over transcription files and split them into individual files for
-    # each utterance
-    for root, dirnames, filenames in os.walk(source_dir):
-        for filename in fnmatch.filter(filenames, "*.text"):
-            if "trans" not in filename:
-                continue
-
-            trans_file = os.path.join(root, filename)
-            segments = _parse_transcriptions(trans_file)
-
-            # Loop over segments and split wav_file for each segment
-            for segment in segments:
-                start_time = segment["start_time"]
-                stop_time = segment["stop_time"]
-                txt_filename = os.path.splitext(os.path.basename(trans_file))[0] + "-" + str(start_time) + "-" + str(
-                    stop_time) + ".txt"
-                wav_filename = os.path.splitext(os.path.basename(trans_file))[0] + "-" + str(start_time) + "-" + str(
-                    stop_time) + ".wav"
-
-                transcript = validate_label(segment["transcript"])
-
-                for wav_dir in wav_dirs:
-                    if os.path.exists(os.path.join(data_dir, wav_dir, wav_filename)):
-                        # If the transcript is valid and the txt segment filename does
-                        # not exist create it
-                        txt_file = os.path.join(data_dir, wav_dir, txt_filename)
-                        if transcript != None and not os.path.exists(txt_file):
-                            with open(txt_file, "w") as fout:
-                                fout.write(transcript)
-                        break
-
-    with open(os.path.join(source_dir, "split_transcriptions_done"), "w") as fout:
-        fout.write(
-            "This file signals to the importer than the transcription of this source dir has already been completed.")
-
-
-def _maybe_split_sets(data_dir, original_data, converted_data):
-    target_dir = os.path.join(data_dir, converted_data)
-
-    if os.path.exists(target_dir):
-        return;
-
-    os.makedirs(target_dir)
-
-    filelist = []
-    for dir in original_data:
-        source_dir = os.path.join(data_dir, dir)
-        filelist.extend(glob(os.path.join(source_dir, "*.txt")))
-
+def _split_sets(filelist):
     # We initially split the entire set into 80% train and 20% test, then
     # split the train set into 80% train and 20% validation.
     train_beg = 0
@@ -329,29 +282,16 @@ def _maybe_split_sets(data_dir, original_data, converted_data):
     test_beg = dev_end
     test_end = len(filelist)
 
-    _maybe_split_dataset(filelist[train_beg:train_end], os.path.join(target_dir, "train"))
-    _maybe_split_dataset(filelist[dev_beg:dev_end], os.path.join(target_dir, "dev"))
-    _maybe_split_dataset(filelist[test_beg:test_end], os.path.join(target_dir, "test"))
+    return filelist[train_beg:train_end],
+           filelist[dev_beg:dev_end],
+           filelist[test_beg:test_end]
 
-
-def _maybe_split_dataset(filelist, target_dir):
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
-        for txt_file in filelist:
-            new_txt_file = os.path.join(target_dir, os.path.basename(txt_file))
-            os.rename(txt_file, new_txt_file)
-
-            wav_file = os.path.splitext(txt_file)[0] + ".wav"
-            new_wav_file = os.path.join(target_dir, os.path.basename(wav_file))
-            os.rename(wav_file, new_wav_file)
-
-
-def _read_data_set(work_dir, data_set, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
-    # Obtain list of txt files
-    txt_files = glob(os.path.join(work_dir, data_set, "*.txt"))
+def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
+    # Optionally apply dataset size limit
     if limit > 0:
-        txt_files = txt_files[:limit]
-    txt_files = txt_files[offset::stride]
+        filelist = filelist.iloc[:limit]
+
+    filelist = filelist[offset::stride]
 
     # Return DataSet
     return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, next_index=next_index)
