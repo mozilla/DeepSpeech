@@ -7,7 +7,9 @@ if [ ! -f DeepSpeech.py ]; then
 fi;
 
 python -u DeepSpeech.py \
-  --importer ldc93s1 \
+  --train_files data/ldc93s1/ldc93s1.csv \
+  --dev_files data/ldc93s1/ldc93s1.csv \
+  --test_files data/ldc93s1/ldc93s1.csv \
   --train_batch_size 1 \
   --dev_batch_size 1 \
   --test_batch_size 1 \

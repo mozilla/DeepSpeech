@@ -5,8 +5,14 @@ if [ ! -f DeepSpeech.py ]; then
     exit 1
 fi;
 
+if [ ! -d "${ds_dataroot}" ]; then
+    ds_dataroot = "data"
+fi;
+
 python -u DeepSpeech.py \
-  --importer fisher \
+  --train_files "$ds_dataroot/fisher-train.csv" \
+  --dev_files "$ds_dataroot/fisher-dev.csv" \
+  --test_files "$ds_dataroot/fisher-test.csv" \
   --train_batch_size 32 \
   --dev_batch_size 32 \
   --test_batch_size 32 \
