@@ -44,7 +44,7 @@ class SwitchableDataSet(object):
         '''
         self._data_sets = data_sets
         self._sets = [data_sets.train, data_sets.dev, data_sets.test]
-        self._queues = [s._example_queue for s in self._sets]
+        self._queues = [s.example_queue for s in self._sets]
         self._queue_selector = tf.placeholder(tf.int32, name='Queue_Selector')
         self._queue = tf.QueueBase.from_list(self._queue_selector, self._queues)
         self._close_op = self._queue.close(cancel_pending_enqueues=True)
