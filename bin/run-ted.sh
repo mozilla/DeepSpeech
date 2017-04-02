@@ -8,7 +8,6 @@ fi;
 
 python -u DeepSpeech.py \
   --importer ted \
-  --dataset_path data/LIUM/ \
   --train_batch_size 16 \
   --dev_batch_size 8 \
   --test_batch_size 8 \
