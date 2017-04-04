@@ -1126,7 +1126,6 @@ class TrainingCoordinator(object):
             self._test = FLAGS.test
 
             if self._train:
-                self._train = True
                 # The total number of jobs for all additional epochs to be trained
                 # Will be decremented for each job that is produced/put into state 'open'
                 self._num_jobs_train_left = (self._target_epoch - self._epoch) * self._num_jobs_train - jobs_trained
@@ -1167,7 +1166,7 @@ class TrainingCoordinator(object):
                 self._epochs_running.append(Epoch(self._epoch, num_jobs_train, set_name='train', report=is_display_step))
 
                 if FLAGS.validation_step > 0 and (FLAGS.validation_step == 1 or self._epoch > 0) and self._epoch % FLAGS.validation_step == 0:
-                    # The current epoch should also have a validation part - it will always generate a WER report
+                    # The current epoch should also have a validation part
                     self._epochs_running.append(Epoch(self._epoch, self._num_jobs_dev, set_name='dev', report=is_display_step))
 
                 # Indicating that there were 'new' epoch(s) provided
@@ -1298,7 +1297,7 @@ class TrainingCoordinator(object):
                     self._log_all_jobs()
                     return None
 
-                # We got a new jub from one of the currently running epochs
+                # We got a new job from one of the currently running epochs
                 log_traffic('Got new %s' % str(job))
                 return job
 
