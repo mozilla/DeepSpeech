@@ -17,6 +17,6 @@ python -u DeepSpeech.py \
   --display_step 5 \
   --validationstep 5 \
   --dropout_rate 0.30 \
-  --default_stddev 0.046875
-  --checkpoint_step 1
+  --default_stddev 0.046875 \
+  --checkpoint_step 1 \
   "$@"
