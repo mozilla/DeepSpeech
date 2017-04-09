@@ -697,7 +697,7 @@ def calculate_report(results_tuple):
         mean_wer += sample_wer
 
     # Getting the mean WER from the accumulated one
-    mean_wer = mean_wer / float(len(items))
+    mean_wer = mean_wer / len(items)
 
     # Filter out all items with WER=0
     samples = [s for s in samples if s.wer > 0]
@@ -945,11 +945,11 @@ class Epoch(object):
                         agg_accuracy += job.accuracy
                         self.samples.extend(job.samples)
 
-                self.loss = agg_loss / float(num_jobs)
+                self.loss = agg_loss / num_jobs
 
                 if self.report:
-                    self.wer = agg_wer / float(num_jobs)
-                    self.accuracy = agg_accuracy / float(num_jobs)
+                    self.wer = agg_wer / num_jobs
+                    self.accuracy = agg_accuracy / num_jobs
 
                     # Order samles by their loss (lowest loss on top)
                     self.samples.sort(key=lambda s: s.loss)
