@@ -89,6 +89,9 @@ def _parse_transcriptions(trans_file):
             speaker = tokens[2]
             transcript = " ".join(tokens[3:])
 
+            # We need to do the encode-decode dance here because encode
+            # returns a bytes() object on Python 3, and text_to_char_array
+            # expects a string.
             transcript = unicodedata.normalize("NFKD", transcript)  \
                                     .encode("ascii", "ignore")      \
                                     .decode("ascii", "ignore")

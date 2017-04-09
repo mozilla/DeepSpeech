@@ -15,6 +15,9 @@ class STMSegment(object):
         self._transcript  = ""
         for token in tokens[6:]:
           self._transcript += token + " "
+        # We need to do the encode-decode dance here because encode
+        # returns a bytes() object on Python 3, and text_to_char_array
+        # expects a string.
         self._transcript = unicodedata.normalize("NFKD", self._transcript.strip())  \
                                       .encode("ascii", "ignore")                    \
                                       .decode("ascii", "ignore")
