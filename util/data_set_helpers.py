@@ -40,7 +40,7 @@ class DataSets(object):
         return self._test
 
 class DataSet(object):
-    def __init__(self, filelist, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
+    def __init__(self, files_list, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
         self._coord = None
         self._numcep = numcep
         self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
@@ -52,11 +52,10 @@ class DataSet(object):
                                                   capacity=2 * self._get_device_count() * batch_size)
         self._enqueue_op = self.example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])
         self._close_op = self.example_queue.close(cancel_pending_enqueues=True)
-        self._filelist = filelist
         self.batch_size = batch_size
         self._numcontext = numcontext
         self._thread_count = thread_count
-        self._files_list = self._create_files_list()
+        self._files_list = self._create_files_list(files_list)
         self._next_index = next_index
 
     def _get_device_count(self):
@@ -74,13 +73,13 @@ class DataSet(object):
     def close_queue(self, session):
         session.run(self._close_op)
 
-    def _create_files_list(self):
+    def _create_files_list(self, files_list):
         # 1. Sort by wav filesize
         # 2. Select just wav filename and transcript columns
         # 3. Return a NumPy representation
-        return self._filelist.sort_values(by="wav_filesize")        \
-                             .ix[:, ["wav_filename", "transcript"]] \
-                             .values
+        return files_list.sort_values(by="wav_filesize")        \
+                         .ix[:, ["wav_filename", "transcript"]] \
+                         .values
 
     def _indices(self):
         index = -1
@@ -110,8 +109,8 @@ class DataSet(object):
 
     @property
     def total_batches(self):
-        # Note: If len(_filelist) % batch_size != 0, this re-uses initial files
-        return int(ceil(len(self._filelist) / self.batch_size))
+        # Note: If len(_files_list) % batch_size != 0, this re-uses initial files
+        return int(ceil(len(self._files_list) / self.batch_size))
 
 class SwitchableDataSet(object):
     def __init__(self, data_sets):
