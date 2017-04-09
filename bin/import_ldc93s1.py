@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 # This script needs to be run from the root of the DeepSpeech repository
 import sys
 import os
-sys.path.insert(1, os.path.join(sys.path[0], '..', '..'))
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import pandas
 

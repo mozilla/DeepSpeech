@@ -7,7 +7,7 @@ fi;
 
 if [ ! -f "data/ldc93s1/ldc93s1.csv" ]; then
     echo "Downloading and preprocessing LDC93S1 example data, saving in ./data/ldc93s1."
-    python -u util/importers/ldc93s1.py ./data/ldc93s1
+    python -u bin/import_ldc93s1.py ./data/ldc93s1
 fi;
 
 checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/ldc93s1"))')
