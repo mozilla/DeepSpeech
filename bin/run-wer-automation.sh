@@ -12,8 +12,9 @@ mkdir -p "${TMP}" || true
 export TMP
 
 python -u DeepSpeech.py \
-  --dataset_path="${ds_dataroot}/LIUM/" \
-  --importer="ted" \
+  --train_files "${ds_dataroot}/LIUM/ted-train.csv" \
+  --dev_files "${ds_dataroot}/LIUM/ted-dev.csv" \
+  --test_files "${ds_dataroot}/LIUM/ted-test.csv" \
   --train_batch_size 16 \
   --dev_batch_size 8 \
   --test_batch_size 8 \
