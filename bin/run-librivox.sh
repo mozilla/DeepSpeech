@@ -14,7 +14,7 @@ if [ ! -f "${ds_dataroot}/librivox-train-clean-100.csv" ]; then
     echo "Warning: It looks like you don't have the LibriSpeech corpus"       \
          "downloaded and preprocessed. Make sure \$ds_dataroot points to the" \
          "folder where the LibriSpeech data is located, and that you ran the" \
-         "importer script at util/importers/librivox.py before running this script."
+         "importer script at bin/import_librivox.py before running this script."
 fi;
 
 python -u DeepSpeech.py \

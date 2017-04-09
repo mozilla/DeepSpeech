@@ -14,7 +14,7 @@ if [ ! -f "${ds_dataroot}/fisher-train.csv" ]; then
     echo "Warning: It looks like you don't have the Fisher corpus"            \
          "downloaded and preprocessed. Make sure \$ds_dataroot points to the" \
          "folder where the Fisher data is located, and that you ran the"      \
-         "importer script at util/importers/fisher.py before running this script."
+         "importer script at bin/import_fisher.py before running this script."
 fi;
 
 python -u DeepSpeech.py \

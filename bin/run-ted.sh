@@ -15,7 +15,7 @@ if [ ! -f "${ds_dataroot}/ted-train.csv" ]; then
     echo "Warning: It looks like you don't have the TED-LIUM corpus downloaded"\
          "and preprocessed. Make sure \$ds_dataroot points to the folder where"\
          "folder where the TED-LIUM data is located, and that you ran the" \
-         "importer script at util/importers/ted.py before running this script."
+         "importer script at bin/import_ted.py before running this script."
 fi;
 
 python -u DeepSpeech.py \

@@ -14,7 +14,7 @@ if [ ! -f "${ds_dataroot}/swb-train.csv" ]; then
     echo "Warning: It looks like you don't have the Switchboard corpus"       \
          "downloaded and preprocessed. Make sure \$ds_dataroot points to the" \
          "folder where the Switchboard data is located, and that you ran the" \
-         "importer script at util/importers/LDC97S62.py before running this script."
+         "importer script at bin/import_swb.py before running this script."
 fi;
 
 python -u DeepSpeech.py \
