@@ -27,23 +27,13 @@ from util.text import sparse_tensor_value_to_texts, wer
 from util.website import maybe_publish
 from xdg import BaseDirectory as xdg
 
-# Hack: tf.app.flags only supports nargs='?', so we have to add our own method
-def DEFINE_list(flag_name, default_value, docstring):
-    tf.app.flags._global_parser.add_argument('--' + flag_name,
-                                             nargs='+',
-                                             help=docstring,
-                                             default=default_value,
-                                             type=str)
-
-tf.app.flags.DEFINE_list = DEFINE_list
-
 
 # Importer
 # ========
 
-tf.app.flags.DEFINE_list    ('train_files',      [],          'path to the files specifying the dataset used for training. multiple files will get merged')
-tf.app.flags.DEFINE_list    ('dev_files',        [],          'path to the files specifying the dataset used for validation. multiple files will get merged')
-tf.app.flags.DEFINE_list    ('test_files',       [],          'path to the files specifying the dataset used for testing. multiple files will get merged')
+tf.app.flags.DEFINE_string  ('train_files',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
+tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
+tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
 tf.app.flags.DEFINE_boolean ('fulltrace',        False,       'if full trace debug info should be generated during training')
 
 # Cluster configuration
@@ -1350,9 +1340,9 @@ def train(server=None):
     global_step = tf.Variable(0, trainable=False, name='global_step')
 
     # Read all data sets
-    data_sets = read_data_sets(FLAGS.train_files,
-                               FLAGS.dev_files,
-                               FLAGS.test_files,
+    data_sets = read_data_sets(FLAGS.train_files.split(','),
+                               FLAGS.dev_files.split(','),
+                               FLAGS.test_files.split(','),
                                FLAGS.train_batch_size,
                                FLAGS.dev_batch_size,
                                FLAGS.test_batch_size,

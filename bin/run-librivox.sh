@@ -18,13 +18,9 @@ if [ ! -f "${ds_dataroot}/librivox-train-clean-100.csv" ]; then
 fi;
 
 python -u DeepSpeech.py \
-  --train_files "$ds_dataroot/librivox-train-clean-100.csv" \
-                "$ds_dataroot/librivox-train-clean-360.csv" \
-                "$ds_dataroot/librivox-train-other-500.csv" \
-  --dev_files "$ds_dataroot/librivox-dev-clean.csv" \
-              "$ds_dataroot/librivox-dev-other.csv" \
-  --test_files "$ds_dataroot/librivox-test-clean.csv" \
-               "$ds_dataroot/librivox-test-other.csv" \
+  --train_files "$ds_dataroot/librivox-train-clean-100.csv,$ds_dataroot/librivox-train-clean-360.csv,$ds_dataroot/librivox-train-other-500.csv" \
+  --dev_files "$ds_dataroot/librivox-dev-clean.csv,$ds_dataroot/librivox-dev-other.csv" \
+  --test_files "$ds_dataroot/librivox-test-clean.csv,$ds_dataroot/librivox-test-other.csv" \
   --train_batch_size 12 \
   --dev_batch_size 12 \
   --test_batch_size 12 \
