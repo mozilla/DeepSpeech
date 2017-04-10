@@ -43,11 +43,11 @@ class DataSet(object):
     def __init__(self, files_list, thread_count, batch_size, numcep, numcontext, next_index=lambda x: x + 1):
         self._coord = None
         self._numcep = numcep
-        self._x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
+        self._x = tf.placeholder(tf.float32, [None, numcep])
         self._x_length = tf.placeholder(tf.int32, [])
         self._y = tf.placeholder(tf.int32, [None,])
         self._y_length = tf.placeholder(tf.int32, [])
-        self.example_queue = tf.PaddingFIFOQueue(shapes=[[None, numcep + (2 * numcep * numcontext)], [], [None,], []],
+        self.example_queue = tf.PaddingFIFOQueue(shapes=[[None, numcep], [], [None,], []],
                                                   dtypes=[tf.float32, tf.int32, tf.int32, tf.int32],
                                                   capacity=2 * self._get_device_count() * batch_size)
         self._enqueue_op = self.example_queue.enqueue([self._x, self._x_length, self._y, self._y_length])

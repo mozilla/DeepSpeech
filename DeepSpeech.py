@@ -19,6 +19,7 @@ from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.tools import freeze_graph
 from threading import Thread, Lock
+from util.bngru import BNGRUCell
 from util.data_set_helpers import SwitchableDataSet, read_data_sets
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
@@ -66,6 +67,13 @@ tf.app.flags.DEFINE_float   ('dropout_rate5',    0.0,         'dropout rate for 
 tf.app.flags.DEFINE_float   ('dropout_rate6',    -1.0,        'dropout rate for layer 6 - defaults to dropout_rate')
 
 tf.app.flags.DEFINE_float   ('relu_clip',        20.0,        'ReLU clipping value for non-recurrant layers')
+
+# DS2 parameters
+
+tf.app.flags.DEFINE_float   ('decay',            0.99,        'decay parameter of the Batch Normalization layers')
+tf.app.flags.DEFINE_integer ('kernel_size',      11,          'the size of the kernel in the convolutional layers')
+tf.app.flags.DEFINE_integer ('stride',           2,           'the stride of the convolutional layers')
+tf.app.flags.DEFINE_integer ('recurrent_layers', 5,           'the number of recurrent layers')
 
 # Adam optimizer (http://arxiv.org/abs/1412.6980) parameters
 
@@ -325,106 +333,70 @@ def variable_on_worker_level(name, shape, initializer):
         var = tf.get_variable(name=name, shape=shape, initializer=initializer)
     return var
 
-
-def BiRNN(batch_x, seq_length, dropout):
-    r'''
-    That done, we will define the learned variables, the weights and biases,
-    within the method ``BiRNN()`` which also constructs the neural network.
-    The variables named ``hn``, where ``n`` is an integer, hold the learned weight variables.
-    The variables named ``bn``, where ``n`` is an integer, hold the learned bias variables.
-    In particular, the first variable ``h1`` holds the learned weight matrix that
-    converts an input vector of dimension ``n_input + 2*n_input*n_context``
-    to a vector of dimension ``n_hidden_1``.
-    Similarly, the second variable ``h2`` holds the weight matrix converting
-    an input vector of dimension ``n_hidden_1`` to one of dimension ``n_hidden_2``.
-    The variables ``h3``, ``h5``, and ``h6`` are similar.
-    Likewise, the biases, ``b1``, ``b2``..., hold the biases for the various layers.
+def conv_output_length(input_length, filter_size, padding, stride,
+                       dilation=1):
+    ''' Compute the length of the output sequence after 1D convolution along
+        time.
+    Params:
+        input_length (int): Length of the input sequence.
+        filter_size (int): Width of the convolution kernel.
+        padding (str): Only support `SAME` or `VALID`.
+        stride (int): Stride size used in 1D convolution.
+        dilation (int)
     '''
+    if input_length is None:
+        return None
+    assert padding in {'SAME', 'VALID'}
+    dilated_filter_size = filter_size + (filter_size - 1) * (dilation - 1)
+    if padding == 'SAME':
+        output_length = input_length
+    elif padding == 'VALID':
+        output_length = input_length - dilated_filter_size + 1
+    return (output_length + stride - 1) // stride
 
-    # Input shape: [batch_size, n_steps, n_input + 2*n_input*n_context]
-    batch_x_shape = tf.shape(batch_x)
+def BiRNN(batch_x, seq_length, dropout, is_training, reuse):
+    # Input shape: [batch_size, n_steps, n_input]
+    with tf.contrib.slim.arg_scope([tf.contrib.slim.model_variable, tf.contrib.slim.variable], device="/cpu:0"):
+        # One layer of 1D convolution with SAME padding
+        with tf.variable_scope('conv1d') as scope:
+            layer_1 = tf.contrib.layers.convolution2d(
+                inputs=batch_x,
+                num_outputs=n_hidden,
+                kernel_size=[kernel_size],
+                stride=stride,
+                padding='SAME',
+                normalizer_fn=tf.contrib.layers.batch_norm,
+                normalizer_params={'is_training': is_training},
+                scope=scope,
+                reuse=reuse)
 
-    # Reshaping `batch_x` to a tensor with shape `[n_steps*batch_size, n_input + 2*n_input*n_context]`.
-    # This is done to prepare the batch for input into the first layer which expects a tensor of rank `2`.
+        output_lengths = conv_output_length(seq_length, kernel_size, 'SAME', stride)
 
-    # Permute n_steps and batch_size
-    batch_x = tf.transpose(batch_x, [1, 0, 2])
-    # Reshape to prepare input for first layer
-    batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
+        # Store individual statistics for a max of 10 seconds worth of time steps
+        # 10 seconds * (1/0.01) time steps per second = 1000 time steps
+        max_bn_steps = 1000
+        # Three layers of GRU cells with 1024 nodes each
+        cell = BNGRUCell(n_hidden, is_training, max_bn_steps=max_bn_steps, decay=0.9)
+        multi_cell = tf.contrib.rnn.MultiRNNCell([cell] * n_recurrent_layers)
+        rnn_outputs, _ = tf.nn.dynamic_rnn(cell=multi_cell,
+                                           inputs=layer_1,
+                                           sequence_length=output_lengths,
+                                           dtype=tf.float32)
 
-    # The next three blocks will pass `batch_x` through three hidden layers with
-    # clipped RELU activation and dropout.
+        # A final fully connected layer with linear activation
+        with tf.variable_scope('fc') as scope:
+            network_output = tf.contrib.layers.fully_connected(
+                inputs=rnn_outputs,
+                num_outputs=n_character,
+                activation_fn=None,
+                scope=scope,
+                reuse=reuse)
 
-    # 1st layer
-    b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
-    h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.h1_stddev))
-    layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
-    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+        # Transpose to time major
+        network_output = tf.transpose(network_output, [1, 0, 2])
 
-    # 2nd layer
-    b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
-    h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
-    layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
-    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
-
-    # 3rd layer
-    b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
-    h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
-    layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
-    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
-
-    # Now we create the forward and backward LSTM units.
-    # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
-
-    # Forward direction cell:
-    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
-                                                input_keep_prob=1.0 - dropout[3],
-                                                output_keep_prob=1.0 - dropout[3],
-                                                seed=FLAGS.random_seed)
-    # Backward direction cell:
-    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True)
-    lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
-                                                input_keep_prob=1.0 - dropout[4],
-                                                output_keep_prob=1.0 - dropout[4],
-                                                seed=FLAGS.random_seed)
-
-    # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
-    # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
-    layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
-
-    # Now we feed `layer_3` into the LSTM BRNN cell and obtain the LSTM BRNN output.
-    outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=lstm_fw_cell,
-                                                             cell_bw=lstm_bw_cell,
-                                                             inputs=layer_3,
-                                                             dtype=tf.float32,
-                                                             time_major=True,
-                                                             sequence_length=seq_length)
-
-    # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
-    # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
-    outputs = tf.concat(outputs, 2)
-    outputs = tf.reshape(outputs, [-1, 2*n_cell_dim])
-
-    # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
-    b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
-    h5 = variable_on_worker_level('h5', [(2 * n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
-    layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), FLAGS.relu_clip)
-    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
-
-    # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
-    # creating `n_classes` dimensional vectors, the logits.
-    b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
-    h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.h6_stddev))
-    layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
-
-    # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
-    # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
-    # Note, that this differs from the input in that it is time-major.
-    layer_6 = tf.reshape(layer_6, [-1, batch_x_shape[0], n_hidden_6])
-
-    # Output shape: [n_steps, batch_size, n_hidden_6]
-    return layer_6
+    # Output shape: [n_steps, batch_size, n_output]
+    return network_output, tf.cast(output_lengths, tf.int32)
 
 
 # Accuracy and Loss
@@ -437,7 +409,7 @@ def BiRNN(batch_x, seq_length, dropout):
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_accuracy_and_loss(batch_set, dropout):
+def calculate_accuracy_and_loss(batch_set, dropout, is_training, reuse):
     r'''
     This routine beam search decodes a mini-batch and calculates the loss and accuracy.
     Next to total and average loss it returns the accuracy,
@@ -447,19 +419,19 @@ def calculate_accuracy_and_loss(batch_set, dropout):
     batch_x, batch_seq_len, batch_y = batch_set.next_batch()
 
     # Calculate the logits of the batch using BiRNN
-    logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
+    logits, out_lengths = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout, is_training, reuse)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
-        total_loss = tf.contrib.warpctc.warp_ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+        total_loss = tf.contrib.warpctc.warp_ctc_loss(labels=batch_y, inputs=logits, sequence_length=out_lengths)
     else:
-        total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+        total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=out_lengths)
 
     # Calculate the average loss across the batch
     avg_loss = tf.reduce_mean(total_loss)
 
     # Beam search decode the batch
-    decoded, _ = tf.nn.ctc_beam_search_decoder(logits, batch_seq_len, merge_repeated=False)
+    decoded, _ = tf.nn.ctc_beam_search_decoder(logits, out_lengths, merge_repeated=False)
 
     # Compute the edit (Levenshtein) distance
     distance = tf.edit_distance(tf.cast(decoded[0], tf.int32), batch_y)
@@ -510,7 +482,7 @@ def create_optimizer():
 # on which all operations within the tower execute.
 # For example, all operations of 'tower 0' could execute on the first GPU `tf.device('/gpu:0')`.
 
-def get_tower_results(batch_set, optimizer):
+def get_tower_results(batch_set, optimizer, is_training):
     r'''
     With this preliminary step out of the way, we can for each GPU introduce a
     tower for which's batch we calculate
@@ -566,7 +538,7 @@ def get_tower_results(batch_set, optimizer):
                     # Calculate the avg_loss and accuracy and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
                     total_loss, avg_loss, distance, accuracy, decoded, labels = \
-                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
+                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates, is_training, i > 0)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
@@ -1365,8 +1337,10 @@ def train(server=None):
                                                    replicas_to_aggregate=FLAGS.replicas_to_agg,
                                                    total_num_replicas=FLAGS.replicas)
 
+    is_training_ph = tf.placeholder(tf.bool, name="is_training")
+
     # Get the data_set specific graph end-points
-    results_tuple, gradients, accuracy, loss = get_tower_results(switchable_data_set, optimizer)
+    results_tuple, gradients, accuracy, loss = get_tower_results(switchable_data_set, optimizer, is_training=is_training_ph)
 
     # Average tower gradients across GPUs
     avg_tower_gradients = average_gradients(gradients)
@@ -1437,8 +1411,9 @@ def train(server=None):
         while job and not session.should_stop():
             log_debug('Computing %s...' % str(job))
 
+            is_training = job.set_name == 'train'
             # The feed_dict (mainly for switching between queues)
-            feed_dict = {}
+            feed_dict = {"is_training:0": is_training}
 
             # Sets the current data_set on SwitchableDataSet switchable_data_set
             # and the respective placeholder in feed_dict
@@ -1448,7 +1423,10 @@ def train(server=None):
             total_loss = 0.0
 
             # Setting the training operation in case of training requested
-            train_op = apply_gradient_op if job.set_name == 'train' else []
+            train_op = apply_gradient_op if is_training else []
+
+            # Batch normalization update OPs
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) if is_training else []
 
             # Requirements to display a WER report
             if job.report:
@@ -1471,7 +1449,7 @@ def train(server=None):
 
                 log_debug('Starting batch...')
                 # Compute the batch
-                _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
+                _, _, current_step, batch_loss, batch_report = session.run([train_op, update_ops, global_step, loss, report_params], **extra_params)
 
                 # Uncomment the next line for debugging race conditions / distributed TF
                 log_debug('Finished batch step %d.' % current_step)
