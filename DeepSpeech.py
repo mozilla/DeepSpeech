@@ -452,10 +452,10 @@ def BiRNN(batch_x, seq_length, dropout):
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_accuracy_and_loss(batch_set, dropout):
+def calculate_mean_edit_distance_and_loss(batch_set, dropout):
     r'''
-    This routine beam search decodes a mini-batch and calculates the loss and accuracy.
-    Next to total and average loss it returns the accuracy,
+    This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
+    Next to total and average loss it returns the mean edit distance,
     the decoded result and the batch's original Y.
     '''
     # Obtain the next batch of data
@@ -479,17 +479,17 @@ def calculate_accuracy_and_loss(batch_set, dropout):
     # Compute the edit (Levenshtein) distance
     distance = tf.edit_distance(tf.cast(decoded[0], tf.int32), batch_y)
 
-    # Compute the accuracy
-    accuracy = tf.reduce_mean(distance)
+    # Compute the mean edit distance
+    mean_edit_distance = tf.reduce_mean(distance)
 
     # Finally we return the
     # - calculated total and
     # - average losses,
     # - the Levenshtein distance,
-    # - the recognition accuracy,
+    # - the recognition mean edit distance,
     # - the decoded batch and
     # - the original batch_y (which contains the verified transcriptions).
-    return total_loss, avg_loss, distance, accuracy, decoded, batch_y
+    return total_loss, avg_loss, distance, mean_edit_distance, decoded, batch_y
 
 
 # Adam Optimization
@@ -535,15 +535,15 @@ def get_tower_results(batch_set, optimizer):
     * The loss averaged over the whole batch ``avg_loss``,
     * The optimization gradient (computed based on the averaged loss),
     * The Levenshtein distances between the decodings and their transcriptions ``distance``,
-    * The accuracy of the outcome averaged over the whole batch ``accuracy``
+    * The mean edit distance of the outcome averaged over the whole batch ``mean_edit_distance``
 
     and retain the original ``labels`` (Y).
-    ``decoded``, ``labels``, the optimization gradient, ``distance``, ``accuracy``,
+    ``decoded``, ``labels``, the optimization gradient, ``distance``, ``mean_edit_distance``,
     ``total_loss`` and ``avg_loss`` are collected into the corresponding arrays
     ``tower_decodings``, ``tower_labels``, ``tower_gradients``, ``tower_distances``,
-    ``tower_accuracies``, ``tower_total_losses``, ``tower_avg_losses`` (dimension 0 being the tower).
+    ``tower_mean_edit_distances``, ``tower_total_losses``, ``tower_avg_losses`` (dimension 0 being the tower).
     Finally this new method ``get_tower_results()`` will return those tower arrays.
-    In case of ``tower_accuracies`` and ``tower_avg_losses``, it will return the
+    In case of ``tower_mean_edit_distances`` and ``tower_avg_losses``, it will return the
     averaged values instead of the arrays.
     '''
     # Tower labels to return
@@ -561,8 +561,8 @@ def get_tower_results(batch_set, optimizer):
     # Tower gradients to return
     tower_gradients = []
 
-    # To calculate the mean of the accuracies
-    tower_accuracies = []
+    # To calculate the mean of the mean edit distances
+    tower_mean_edit_distances = []
 
     # To calculate the mean of the losses
     tower_avg_losses = []
@@ -578,10 +578,10 @@ def get_tower_results(batch_set, optimizer):
             with tf.device(device):
                 # Create a scope for all operations of tower i
                 with tf.name_scope('tower_%d' % i) as scope:
-                    # Calculate the avg_loss and accuracy and retrieve the decoded
+                    # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
-                    total_loss, avg_loss, distance, accuracy, decoded, labels = \
-                        calculate_accuracy_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
+                    total_loss, avg_loss, distance, mean_edit_distance, decoded, labels = \
+                        calculate_mean_edit_distance_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
@@ -604,16 +604,16 @@ def get_tower_results(batch_set, optimizer):
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
 
-                    # Retain tower's accuracy
-                    tower_accuracies.append(accuracy)
+                    # Retain tower's mean edit distance
+                    tower_mean_edit_distances.append(mean_edit_distance)
 
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
-    # Return the results tuple, the gradients, and the means of accuracies and losses
+    # Return the results tuple, the gradients, and the means of mean edit distances and losses
     return (tower_labels, tower_decodings, tower_distances, tower_total_losses), \
            tower_gradients, \
-           tf.reduce_mean(tower_accuracies, 0), \
+           tf.reduce_mean(tower_mean_edit_distances, 0), \
            tf.reduce_mean(tower_avg_losses, 0)
 
 
@@ -813,23 +813,23 @@ def new_id():
     return id_counter
 
 class Sample(object):
-    def __init__(self, src, res, loss, accuracy, sample_wer):
+    def __init__(self, src, res, loss, mean_edit_distance, sample_wer):
         '''Represents one item of a WER report.
 
         Args:
             src (str): source text
             res (str): resulting text
             loss (float): computed loss of this item
-            accuracy (float): computed accuracy of this item
+            mean_edit_distance (float): computed mean edit distance of this item
         '''
         self.src = src
         self.res = res
         self.loss = loss
-        self.accuracy = accuracy
+        self.mean_edit_distance = mean_edit_distance
         self.wer = sample_wer
 
     def __str__(self):
-        return 'WER: %f, loss: %f, accuracy: %f\n - src: "%s"\n - res: "%s"' % (self.wer, self.loss, self.accuracy, self.src, self.res)
+        return 'WER: %f, loss: %f, mean edit distance: %f\n - src: "%s"\n - res: "%s"' % (self.wer, self.loss, self.mean_edit_distance, self.src, self.res)
 
 class WorkerJob(object):
     def __init__(self, epoch_id, index, set_name, steps, report):
@@ -850,7 +850,7 @@ class WorkerJob(object):
         self.steps = steps
         self.report = report
         self.loss = -1
-        self.accuracy = -1
+        self.mean_edit_distance = -1
         self.wer = -1
         self.samples = []
 
@@ -877,7 +877,7 @@ class Epoch(object):
         self.report = report
         self.wer = -1
         self.loss = -1
-        self.accuracy = -1
+        self.mean_edit_distance = -1
         self.jobs_open = []
         self.jobs_running = []
         self.jobs_done = []
@@ -950,21 +950,21 @@ class Epoch(object):
 
                 agg_loss = 0.0
                 agg_wer = 0.0
-                agg_accuracy = 0.0
+                agg_mean_edit_distance = 0.0
 
                 for i in range(num_jobs):
                     job = jobs.pop(0)
                     agg_loss += job.loss
                     if self.report:
                         agg_wer += job.wer
-                        agg_accuracy += job.accuracy
+                        agg_mean_edit_distance += job.mean_edit_distance
                         self.samples.extend(job.samples)
 
                 self.loss = agg_loss / float(num_jobs)
 
                 if self.report:
                     self.wer = agg_wer / float(num_jobs)
-                    self.accuracy = agg_accuracy / float(num_jobs)
+                    self.mean_edit_distance = agg_mean_edit_distance / float(num_jobs)
 
                     # Order samles by their loss (lowest loss on top)
                     self.samples.sort(key=lambda s: s.loss)
@@ -1006,7 +1006,7 @@ class Epoch(object):
         if not self.report:
             return '%s - loss: %f' % (self.name(), self.loss)
 
-        s = '%s - WER: %f, loss: %s, accuracy: %f' % (self.name(), self.wer, self.loss, self.accuracy)
+        s = '%s - WER: %f, loss: %s, mean edit distance: %f' % (self.name(), self.wer, self.loss, self.mean_edit_distance)
         if len(self.samples) > 0:
             line = '\n' + ('-' * 80)
             for sample in self.samples:
@@ -1387,7 +1387,7 @@ def train(server=None):
                                                    total_num_replicas=FLAGS.replicas)
 
     # Get the data_set specific graph end-points
-    results_tuple, gradients, accuracy, loss = get_tower_results(switchable_data_set, optimizer)
+    results_tuple, gradients, mean_edit_distance, loss = get_tower_results(switchable_data_set, optimizer)
 
     # Average tower gradients across GPUs
     avg_tower_gradients = average_gradients(gradients)
@@ -1473,12 +1473,12 @@ def train(server=None):
 
             # Requirements to display a WER report
             if job.report:
-                # Reset accuracy
-                total_accuracy = 0.0
+                # Reset mean edit distance
+                total_mean_edit_distance = 0.0
                 # Create report results tuple
                 report_results = ([],[],[],[])
                 # Extend the session.run parameters
-                report_params = [results_tuple, accuracy]
+                report_params = [results_tuple, mean_edit_distance]
             else:
                 report_params = []
 
@@ -1503,13 +1503,13 @@ def train(server=None):
                 if job.report:
                     # Collect individual sample results
                     collect_results(report_results, batch_report[0])
-                    # Add batch to total_accuracy
-                    total_accuracy += batch_report[1]
+                    # Add batch to total_mean_edit_distance
+                    total_mean_edit_distance += batch_report[1]
 
             # Gathering job results
             job.loss = total_loss / job.steps
             if job.report:
-                job.accuracy = total_accuracy / job.steps
+                job.mean_edit_distance = total_mean_edit_distance / job.steps
                 job.wer, job.samples = calculate_report(report_results)
 
             # Send the current job to coordinator and receive the next one
