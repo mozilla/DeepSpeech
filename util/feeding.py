@@ -34,7 +34,7 @@ class ModelFeeder(object):
         self.tower_feeder_count = max(len(get_available_gpus()), 1) if tower_feeder_count < 0 else tower_feeder_count
         self.threads_per_queue = threads_per_queue
 
-        self.ph_x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
+        self.ph_x = tf.placeholder(tf.float32, [None, numcep])
         self.ph_x_length = tf.placeholder(tf.int32, [])
         self.ph_y = tf.placeholder(tf.int32, [None,])
         self.ph_y_length = tf.placeholder(tf.int32, [])
@@ -108,7 +108,7 @@ class _DataSetLoader(object):
     def __init__(self, model_feeder, data_set):
         self._model_feeder = model_feeder
         self._data_set = data_set
-        self.queue = tf.PaddingFIFOQueue(shapes=[[None, model_feeder.numcep + (2 * model_feeder.numcep * model_feeder.numcontext)], [], [None,], []],
+        self.queue = tf.PaddingFIFOQueue(shapes=[[None, model_feeder.numcep], [], [None,], []],
                                                   dtypes=[tf.float32, tf.int32, tf.int32, tf.int32],
                                                   capacity=data_set.batch_size * 2)
         self._enqueue_op = self.queue.enqueue([model_feeder.ph_x, model_feeder.ph_x_length, model_feeder.ph_y, model_feeder.ph_y_length])
