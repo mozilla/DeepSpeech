@@ -1,7 +1,7 @@
 .ipynb_checkpoints
 *.pyc
-.DS_Store
+*.DS_Store
+/werlog.js
+/data
 /logs
-/data/ldc93s1
-/data/ted/TEDLIUM_release2
-/data/ted/TEDLIUM_release2.tar.gz
+/exports

@@ -1,6 +1,9 @@
+from __future__ import absolute_import
 import numpy as np
 import tensorflow as tf
 import re
+from six.moves import range
+from functools import reduce
 
 # Constants
 SPACE_TOKEN = '<space>'
@@ -39,7 +42,7 @@ def sparse_tuple_from(sequences, dtype=np.int32):
     values = []
 
     for n, seq in enumerate(sequences):
-        indices.extend(zip([n]*len(seq), xrange(len(seq))))
+        indices.extend(zip([n]*len(seq), range(len(seq))))
         values.extend(seq)
 
     indices = np.asarray(indices, dtype=np.int64)
@@ -116,7 +119,7 @@ def levenshtein(a,b):
         a,b = b,a
         n,m = m,n
 
-    current = range(n+1)
+    current = list(range(n+1))
     for i in range(1,m+1):
         previous, current = current, [i]+[0]*n
         for j in range(1,n+1):
@@ -137,7 +140,7 @@ def gather_nd(params, indices, shape):
     rank = len(shape)
     flat_params = tf.reshape(params, [-1])
     multipliers = [reduce(lambda x, y: x*y, shape[i+1:], 1) for i in range(0, rank)]
-    indices_unpacked = tf.unstack(tf.transpose(indices, [rank - 1] + range(0, rank - 1)))
+    indices_unpacked = tf.unstack(tf.transpose(indices, [rank - 1] + list(range(0, rank - 1))))
     flat_indices = sum([a*b for a,b in zip(multipliers, indices_unpacked)])
     return tf.gather(flat_params, flat_indices)
 

@@ -1,10 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import os
 import paramiko
 import pysftp
 import sys
 
 from bs4 import BeautifulSoup
-from log import merge_logs
 
 def parse_for_deps(filename):
     """
@@ -24,7 +25,7 @@ def parse_for_deps(filename):
         all_resources = map(lambda x: os.stat(x), external_links + external_scripts)
     except OSError as ex:
         if ex.errno == 2:
-            print "Missing dependency", ex
+            print("Missing dependency", ex)
             return []
         raise ex
 
@@ -33,7 +34,7 @@ def parse_for_deps(filename):
         readable_resources = map(lambda x: os.open(x, os.O_RDONLY), external_links + external_scripts)
         map(lambda x: os.close(x), readable_resources)
     except OSError as ex:
-        print "Unreadable dependency", ex
+        print("Unreadable dependency", ex)
         return []
 
     # It should be all good.
@@ -55,7 +56,7 @@ def verify_ssh_dir(auth_infos):
     we want to push data is either empty or contains at least a .htaccess and
     index.htm file
     """
-    print "Checking connection: %s@%s:%s (port %d)" % (auth_infos['ds_website_username'], auth_infos['ds_website_server_fqdn'], auth_infos['ds_website_server_root'], auth_infos['ds_website_server_port'])
+    print("Checking connection: %s@%s:%s (port %d)" % (auth_infos['ds_website_username'], auth_infos['ds_website_server_fqdn'], auth_infos['ds_website_server_root'], auth_infos['ds_website_server_port']))
 
     try:
         with get_ssh(auth_infos) as sftp:
@@ -64,13 +65,13 @@ def verify_ssh_dir(auth_infos):
                 if len(files) == 0 or (('.htaccess' in files) and ('index.htm' in files)):
                     return True
                 else:
-                    print "Invalid content for %s:" % (auth_infos['ds_website_server_root']), files
+                    print("Invalid content for %s:" % (auth_infos['ds_website_server_root']), files)
                     return False
     except paramiko.ssh_exception.AuthenticationException as ex:
-        print "Authentication error, please verify credentials"
+        print("Authentication error, please verify credentials")
         return False
     except IOError as ex:
-        print "Unable to read a file (private key or invalid path on server ?)", ex
+        print("Unable to read a file (private key or invalid path on server ?)", ex)
         return False
 
     # Should not be reached
@@ -93,23 +94,23 @@ def push_files_sftp(files, auth_infos):
                 # Create dirs if needed, they all should depend from the root
                 for dir in dirs:
                     if not sftp.isdir(dir):
-                        print "Creating directory", dir
+                        print("Creating directory", dir)
                         sftp.makedirs(dir)
                         created.append(dir)
 
                 # Push all files, chdir() for each
                 for fil in files:
                     with sftp.cd(os.path.dirname(fil)):
-                        print "Pushing", fil
+                        print("Pushing", fil)
                         sftp.put(fil)
                         pushed.append(fil)
 
         return pushed
     except paramiko.ssh_exception.AuthenticationException as ex:
-        print "Authentication error, please verify credentials"
+        print("Authentication error, please verify credentials")
         return False
     except IOError as ex:
-        print "Unable to read a file (private key or invalid path on server ?)", ex
+        print("Unable to read a file (private key or invalid path on server ?)", ex)
         return False
 
     # Should not be reached
@@ -136,54 +137,54 @@ def maybe_publish(file='index.htm'):
     }
 
     for key in ssh_auth_infos.keys():
-       vartype = type(ssh_auth_infos[key])
-       value = os.environ.get(key)
-       if value is not None:
-           if vartype == str:
-               ssh_auth_infos[key] = str(os.environ.get(key))
-           elif vartype == int:
-               try:
-                   ssh_auth_infos[key] = int(os.environ.get(key))
-               except TypeError as ex:
-                   print "WARNING:", "Keeping default SSH port value because of:", ex
-
-    missing_env = filter(lambda x: len(str(ssh_auth_infos[x])) == 0, ssh_auth_infos.keys())
+        vartype = type(ssh_auth_infos[key])
+        value = os.environ.get(key)
+        if value is not None:
+            if vartype == str:
+                ssh_auth_infos[key] = str(os.environ.get(key))
+            elif vartype == int:
+                try:
+                    ssh_auth_infos[key] = int(os.environ.get(key))
+                except TypeError as ex:
+                    print("WARNING:", "Keeping default SSH port value because of:", ex)
+    missing_env = [
+        x for x in ssh_auth_infos.keys()
+        if (len(str(ssh_auth_infos[x])) == 0)
+    ]
     if len(missing_env) > 0:
-        print "Not publishing, missing some required environment variables:", missing_env
-        print "But maybe this is what you wanted, after all ..."
+        print("Not publishing, missing some required environment variables:", missing_env)
+        print("But maybe this is what you wanted, after all ...")
         return False
-
-    merge_logs("logs")
 
     all_deps = parse_for_deps(file)
 
     if len(all_deps) == 0:
-        print "Problem during deps computation, aborting"
+        print("Problem during deps computation, aborting")
         return False
 
     if not verify_ssh_dir(ssh_auth_infos):
-        print "Problem during SSH directory verification, aborting"
+        print("Problem during SSH directory verification, aborting")
         return False
 
     all_files = [ file ] + all_deps
     uploaded = push_files_sftp(all_files, ssh_auth_infos)
     if len(uploaded) == 0:
-        print "Unable to upload anything"
+        print("Unable to upload anything")
         return False
     elif len(uploaded) != len(all_files):
-        print "Partial upload has been completed:"
-        print "all_files=", all_files
-        print "uploaded=", uploaded
+        print("Partial upload has been completed:")
+        print("all_files=", all_files)
+        print("uploaded=", uploaded)
     else:
-        print "Complete upload has been completed."
+        print("Complete upload has been completed.")
 
     return True
 
 # Support CLI invocation
 if __name__ == "__main__":
     if maybe_publish():
-        print "All good!"
+        print("All good!")
         sys.exit(0)
     else:
-        print "Error happened ..."
+        print("Error happened ...")
         sys.exit(1)
