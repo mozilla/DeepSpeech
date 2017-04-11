@@ -1,7 +1,9 @@
+from __future__ import absolute_import
 import numpy as np
 import scipy.io.wavfile as wav
 
 from python_speech_features import mfcc
+from six.moves import range
 
 def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     r"""
@@ -33,7 +35,7 @@ def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     empty_mfcc.resize((numcep))
 
     # Prepare train_inputs with past and future contexts
-    time_slices = range(train_inputs.shape[0])
+    time_slices = list(range(train_inputs.shape[0]))
     context_past_min   = time_slices[0]  + numcontext
     context_future_max = time_slices[-1] - numcontext
     for time_slice in time_slices:
