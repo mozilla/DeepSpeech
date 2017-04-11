@@ -5,7 +5,7 @@ if [ ! -f DeepSpeech.py ]; then
     exit 1
 fi;
 
-XDG_DATA_HOME=${XDG_DATA_HOME:="$HOME/DeepSpeech"}
+XDG_DATA_HOME=${XDG_DATA_HOME:="$HOME/.local/share"}
 
 python -u DeepSpeech.py \
   --importer ted \
@@ -18,5 +18,5 @@ python -u DeepSpeech.py \
   --dropout_rate 0.30 \
   --default_stddev 0.046875 \
   --learning_rate 0.0001 \
-  --checkpoint_dir "$XDG_DATA_HOME/$(basename ${0%.*})" \
+  --checkpoint_dir "$XDG_DATA_HOME/ted" \
   "$@"

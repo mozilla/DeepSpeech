@@ -5,7 +5,7 @@ if [ ! -f DeepSpeech.py ]; then
     exit 1
 fi;
 
-XDG_DATA_HOME=${XDG_DATA_HOME:="$HOME/DeepSpeech"}
+XDG_DATA_HOME=${XDG_DATA_HOME:="$HOME/.local/share"}
 
 python -u DeepSpeech.py \
   --importer fisher \
@@ -16,5 +16,5 @@ python -u DeepSpeech.py \
   --epoch=20 \
   --display_step 1 \
   --validation_step 5 \
-  --checkpoint_dir "$XDG_DATA_HOME/$(basename ${0%.*})" \
+  --checkpoint_dir "$XDG_DATA_HOME/fisher" \
   "$@"
