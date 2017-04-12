@@ -154,6 +154,15 @@ def quantize_model(graph_source, checkpoint_dir):
 
     return
 
+def print_time(d):
+    print('------------------------' +
+          '\n' + 'Inference: ' + format_duration(d) + '\n' +
+          '------------------------')
+
+def format_duration(duration):
+    '''Formats the result of an even stopwatch call as seconds.microseconds'''
+    return '%s' % duration.total_seconds()
+
 def do_inference(batch_set, sess, logits):
     # Obtain the next batch of data
     batch_x, batch_seq_len, batch_y = batch_set.next_batch()
