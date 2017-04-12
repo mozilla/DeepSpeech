@@ -78,7 +78,10 @@ def run_quantized_model(model=None):
         managed_threads = managed_threads + data_set.start_queue_threads(session_quant, coord)
 
         print("Calling do_inference")
+        inference_time = ds.stopwatch()
         inference_total_loss, inference_avg_loss, inference_distance, inference_accuracy, inference_decoded, inference_labels = q.do_inference(batch_set=data_set, sess=session_quant, logits=input_output_nodes[1])
+        inference_time = ds.stopwatch(inference_time)
+
 
         tower_labels = [ inference_labels ]
         tower_decodings = [ inference_decoded ]
@@ -164,6 +167,7 @@ def run_quantized_model(model=None):
         test_epoch.samples.extend(samples)
 
         print(test_epoch)
+        q.print_time(inference_time)
 
 if __name__ == "__main__":
     tf.app.flags.DEFINE_string('run_quantized_model', '', 'Define which file to load to run Test WER')
