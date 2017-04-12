@@ -22,7 +22,8 @@ cc_library(
 cc_library(
     name="c_speech_features",
     srcs = ["c_speech_features/c_speech_features.c"],
-    hdrs = ["c_speech_features/c_speech_features.h"],
+    hdrs = ["c_speech_features/c_speech_features.h",
+            "c_speech_features/c_speech_features_config.h"],
     includes = ["c_speech_features"],
     deps = [":kissfft"],
     copts = ["-std=gnu99"]

@@ -35,22 +35,12 @@ void DsClose(DeepSpeechContext* aCtx);
  * @param aSampleRate The sample-rate of the audio signal.
  * @param[out] aMFCC An array containing features, of shape
  *                   (frames, ncep * ncontext). The user is responsible for
- *                   freeing each row in the array, as well as the array itself.
+ *                   freeing the array.
  *
  * @return The number of frames in @p aMFCC.
  */
 int DsGetMfccFrames(DeepSpeechContext* aCtx, const short* aBuffer,
-                    size_t aBufferSize, int aSampleRate, float*** aMfcc);
-
-/**
- * @brief Free an array of MFCC features.
- *
- * Frees an array of MFCC features returned by DsGetMfccFrames().
- *
- * @param aMfcc An MFCC features array.
- * @param aNFrames The number of frames in @p aMfcc.
- */
-void DsFreeMfccFrames(float** aMfcc, int aNFrames);
+                    size_t aBufferSize, int aSampleRate, float** aMfcc);
 
 /**
  * @brief Run inference on the given audio.
@@ -65,7 +55,7 @@ void DsFreeMfccFrames(float** aMfcc, int aNFrames);
  * @return The resulting string after running inference. The user is
  *         responsible for freeing this string.
  */
-char* DsInfer(DeepSpeechContext* aCtx, float** aMfcc, int aNFrames);
+char* DsInfer(DeepSpeechContext* aCtx, float* aMfcc, int aNFrames);
 
 /**
  * @brief Use DeepSpeech to perform Speech-To-Text.

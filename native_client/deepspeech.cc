@@ -70,102 +70,86 @@ DsClose(DeepSpeechContext* aCtx)
 
 int
 DsGetMfccFrames(DeepSpeechContext* aCtx, const short* aBuffer,
-                size_t aBufferSize, int aSampleRate, float*** aMfcc)
+                size_t aBufferSize, int aSampleRate, float** aMfcc)
 {
   const int contextSize = aCtx->ncep * aCtx->ncontext;
   const int frameSize = aCtx->ncep + (2 * aCtx->ncep * aCtx->ncontext);
 
   // Compute MFCC features
-  float** mfcc;
+  float* mfcc;
   int n_frames = csf_mfcc(aBuffer, aBufferSize, aSampleRate,
                           WIN_LEN, WIN_STEP, aCtx->ncep, N_FILTERS, N_FFT,
-                          LOWFREQ, aSampleRate/2, COEFF, CEP_LIFTER, 1, &mfcc);
+                          LOWFREQ, aSampleRate/2, COEFF, CEP_LIFTER, 1, NULL,
+                          &mfcc);
 
   // Take every other frame (BiRNN stride of 2) and add past/future context
   int ds_input_length = (n_frames + 1) / 2;
-  float** ds_input = (float**)malloc(sizeof(float*) * ds_input_length);
-  for (int i = 0; i < ds_input_length; i++) {
-    // TODO: Use MFCC of silence instead of zero
-    ds_input[i] = (float*)calloc(sizeof(float), frameSize);
-
+  // TODO: Use MFCC of silence instead of zero
+  float* ds_input = (float*)calloc(sizeof(float), ds_input_length * frameSize);
+  for (int i = 0, idx = 0, mfcc_idx = 0; i < ds_input_length;
+       i++, idx += frameSize, mfcc_idx += aCtx->ncep * 2) {
     // Past context
     for (int j = N_CONTEXT; j > 0; j--) {
       int frame_index = (i * 2) - (j * 2);
       if (frame_index < 0) { continue; }
+      int mfcc_base = frame_index * aCtx->ncep;
       int base = (N_CONTEXT - j) * N_CEP;
       for (int k = 0; k < N_CEP; k++) {
-        ds_input[i][base + k] = mfcc[frame_index][k];
+        ds_input[idx + base + k] = mfcc[mfcc_base + k];
       }
     }
 
     // Present context
     for (int j = 0; j < N_CEP; j++) {
-      ds_input[i][j + contextSize] = mfcc[i * 2][j];
+      ds_input[idx + j + contextSize] = mfcc[mfcc_idx + j];
     }
 
     // Future context
     for (int j = 1; j <= N_CONTEXT; j++) {
       int frame_index = (i * 2) + (j * 2);
       if (frame_index >= n_frames) { continue; }
+      int mfcc_base = frame_index * aCtx->ncep;
       int base = contextSize + N_CEP + ((j - 1) * N_CEP);
       for (int k = 0; k < N_CEP; k++) {
-        ds_input[i][base + k] = mfcc[frame_index][k];
+        ds_input[idx + base + k] = mfcc[mfcc_base + k];
       }
     }
   }
 
   // Free mfcc array
-  for (int i = 0; i < n_frames; i++) {
-    free(mfcc[i]);
-  }
   free(mfcc);
 
   // Whiten inputs (TODO: Should we whiten)
   double n_inputs = (double)(ds_input_length * frameSize);
   double mean = 0.0;
-  for (int i = 0; i < ds_input_length; i++) {
-    for (int j = 0; j < frameSize; j++) {
-      mean += ds_input[i][j] / n_inputs;
-    }
+  for (int idx = 0; idx < n_inputs; idx++) {
+    mean += ds_input[idx] / n_inputs;
   }
 
   double stddev = 0.0;
-  for (int i = 0; i < ds_input_length; i++) {
-    for (int j = 0; j < frameSize; j++) {
-      stddev += pow(fabs(ds_input[i][j] - mean), 2.0) / n_inputs;
-    }
+  for (int idx = 0; idx < n_inputs; idx++) {
+    stddev += pow(fabs(ds_input[idx] - mean), 2.0) / n_inputs;
   }
   stddev = sqrt(stddev);
 
-  for (int i = 0; i < ds_input_length; i++) {
-    for (int j = 0; j < frameSize; j++) {
-      ds_input[i][j] = (float)((ds_input[i][j] - mean) / stddev);
-    }
+  for (int idx = 0; idx < n_inputs; idx++) {
+    ds_input[idx] = (float)((ds_input[idx] - mean) / stddev);
   }
 
   *aMfcc = ds_input;
   return ds_input_length;
 }
 
-void
-DsFreeMfccFrames(float** aMfcc, int aNFrames)
-{
-  for (int i = 0; i < aNFrames; i++) {
-    free(aMfcc[i]);
-  }
-  free(aMfcc);
-}
-
 char*
-DsInfer(DeepSpeechContext* aCtx, float** aMfcc, int aNFrames)
+DsInfer(DeepSpeechContext* aCtx, float* aMfcc, int aNFrames)
 {
   const int frameSize = aCtx->ncep + (2 * aCtx->ncep * aCtx->ncontext);
   Tensor input(DT_FLOAT, TensorShape({1, aNFrames, frameSize}));
 
   auto input_mapped = input.tensor<float, 3>();
-  for (int i = 0; i < aNFrames; i++) {
-    for (int j = 0; j < frameSize; j++) {
-      input_mapped(0, i, j) = aMfcc[i][j];
+  for (int i = 0, idx = 0; i < aNFrames; i++) {
+    for (int j = 0; j < frameSize; j++, idx++) {
+      input_mapped(0, i, j) = aMfcc[idx];
     }
   }
 
@@ -199,11 +183,11 @@ char*
 DsSTT(DeepSpeechContext* aCtx, const short* aBuffer, size_t aBufferSize,
       int aSampleRate)
 {
-  float** mfcc;
+  float* mfcc;
   char* string;
   int n_frames =
     DsGetMfccFrames(aCtx, aBuffer, aBufferSize, aSampleRate, &mfcc);
   string = DsInfer(aCtx, mfcc, n_frames);
-  DsFreeMfccFrames(mfcc, n_frames);
+  free(mfcc);
   return string;
 }
