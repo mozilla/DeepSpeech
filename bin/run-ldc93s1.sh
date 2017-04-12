@@ -14,5 +14,5 @@ python -u DeepSpeech.py \
   --test_batch_size 1 \
   --n_hidden 494 \
   --epoch 50 \
-  --checkpoint_dir "$XDG_DATA_HOME/ldc93s1" \
+  --checkpoint_dir "$XDG_DATA_HOME/deepspeech/ldc93s1" \
   "$@"

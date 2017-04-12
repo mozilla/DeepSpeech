@@ -16,5 +16,5 @@ python -u DeepSpeech.py \
   --epoch=20 \
   --display_step 1 \
   --validation_step 5 \
-  --checkpoint_dir "$XDG_DATA_HOME/fisher" \
+  --checkpoint_dir "$XDG_DATA_HOME/deepspeech/fisher" \
   "$@"

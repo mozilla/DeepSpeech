@@ -18,5 +18,5 @@ python -u DeepSpeech.py \
   --validation_step 5 \
   --dropout_rate 0.30 \
   --default_stddev 0.046875 \
-  --checkpoint_dir "$XDG_DATA_HOME/librivox" \
+  --checkpoint_dir "$XDG_DATA_HOME/deepspeech/librivox" \
   "$@"

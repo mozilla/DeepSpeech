@@ -17,5 +17,5 @@ python -u DeepSpeech.py \
   --validation_step 10 \
   --display_step 10 \
   --dropout_rate 0.30 \
-  --checkpoint_dir "$XDG_DATA_HOME/swb" \
+  --checkpoint_dir "$XDG_DATA_HOME/deepspeech/swb" \
   "$@"

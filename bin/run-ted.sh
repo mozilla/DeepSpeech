@@ -18,5 +18,5 @@ python -u DeepSpeech.py \
   --dropout_rate 0.30 \
   --default_stddev 0.046875 \
   --learning_rate 0.0001 \
-  --checkpoint_dir "$XDG_DATA_HOME/ted" \
+  --checkpoint_dir "$XDG_DATA_HOME/deepspeech/ted" \
   "$@"
