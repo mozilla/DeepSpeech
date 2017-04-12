@@ -1438,85 +1438,89 @@ def train(server=None):
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
-    with tf.train.MonitoredTrainingSession(master='' if server is None else server.target,
-                                           is_chief=is_chief,
-                                           hooks=hooks,
-                                           checkpoint_dir=FLAGS.checkpoint_dir,
-                                           save_checkpoint_secs=FLAGS.checkpoint_secs,
-                                           config=session_config) as session:
+    try:
+        with tf.train.MonitoredTrainingSession(master='' if server is None else server.target,
+                                               is_chief=is_chief,
+                                               hooks=hooks,
+                                               checkpoint_dir=FLAGS.checkpoint_dir,
+                                               save_checkpoint_secs=FLAGS.checkpoint_secs,
+                                               config=session_config) as session:
 
-        if is_chief:
-            # Retrieving global_step from the (potentially restored) model
-            feed_dict = {}
-            switchable_data_set.set_data_set(feed_dict, data_sets.train)
-            step = session.run(global_step, feed_dict=feed_dict)
-            COORD.start_coordination(data_sets, step)
+            if is_chief:
+                # Retrieving global_step from the (potentially restored) model
+                feed_dict = {}
+                switchable_data_set.set_data_set(feed_dict, data_sets.train)
+                step = session.run(global_step, feed_dict=feed_dict)
+                COORD.start_coordination(data_sets, step)
 
-        # Get the first job
-        job = COORD.get_job()
+            # Get the first job
+            job = COORD.get_job()
 
-        while job and not session.should_stop():
-            log_debug('Computing %s...' % str(job))
+            while job and not session.should_stop():
+                log_debug('Computing %s...' % str(job))
 
-            # The feed_dict (mainly for switching between queues)
-            feed_dict = {}
+                # The feed_dict (mainly for switching between queues)
+                feed_dict = {}
 
-            # Sets the current data_set on SwitchableDataSet switchable_data_set
-            # and the respective placeholder in feed_dict
-            switchable_data_set.set_data_set(feed_dict, getattr(data_sets, job.set_name))
+                # Sets the current data_set on SwitchableDataSet switchable_data_set
+                # and the respective placeholder in feed_dict
+                switchable_data_set.set_data_set(feed_dict, getattr(data_sets, job.set_name))
 
-            # Initialize loss aggregator
-            total_loss = 0.0
+                # Initialize loss aggregator
+                total_loss = 0.0
 
-            # Setting the training operation in case of training requested
-            train_op = apply_gradient_op if job.set_name == 'train' else []
+                # Setting the training operation in case of training requested
+                train_op = apply_gradient_op if job.set_name == 'train' else []
 
-            # Requirements to display a WER report
-            if job.report:
-                # Reset mean edit distance
-                total_mean_edit_distance = 0.0
-                # Create report results tuple
-                report_results = ([],[],[],[])
-                # Extend the session.run parameters
-                report_params = [results_tuple, mean_edit_distance]
-            else:
-                report_params = []
-
-            # So far the only extra parameter is the feed_dict
-            extra_params = { 'feed_dict': feed_dict }
-
-            # Loop over the batches
-            for job_step in range(job.steps):
-                if session.should_stop():
-                    break
-
-                log_debug('Starting batch...')
-                # Compute the batch
-                _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
-
-                # Uncomment the next line for debugging race conditions / distributed TF
-                log_debug('Finished batch step %d.' % current_step)
-
-                # Add batch to loss
-                total_loss += batch_loss
-
+                # Requirements to display a WER report
                 if job.report:
-                    # Collect individual sample results
-                    collect_results(report_results, batch_report[0])
-                    # Add batch to total_mean_edit_distance
-                    total_mean_edit_distance += batch_report[1]
+                    # Reset mean edit distance
+                    total_mean_edit_distance = 0.0
+                    # Create report results tuple
+                    report_results = ([],[],[],[])
+                    # Extend the session.run parameters
+                    report_params = [results_tuple, mean_edit_distance]
+                else:
+                    report_params = []
 
-            # Gathering job results
-            job.loss = total_loss / job.steps
-            if job.report:
-                job.mean_edit_distance = total_mean_edit_distance / job.steps
-                job.wer, job.samples = calculate_report(report_results)
+                # So far the only extra parameter is the feed_dict
+                extra_params = { 'feed_dict': feed_dict }
 
-            # Send the current job to coordinator and receive the next one
-            log_debug('Sending %s...' % str(job))
-            job = COORD.next_job(job)
+                # Loop over the batches
+                for job_step in range(job.steps):
+                    if session.should_stop():
+                        break
 
-    log_debug('Session closed.')
+                    log_debug('Starting batch...')
+                    # Compute the batch
+                    _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
+
+                    # Uncomment the next line for debugging race conditions / distributed TF
+                    log_debug('Finished batch step %d.' % current_step)
+
+                    # Add batch to loss
+                    total_loss += batch_loss
+
+                    if job.report:
+                        # Collect individual sample results
+                        collect_results(report_results, batch_report[0])
+                        # Add batch to total_mean_edit_distance
+                        total_mean_edit_distance += batch_report[1]
+
+                # Gathering job results
+                job.loss = total_loss / job.steps
+                if job.report:
+                    job.mean_edit_distance = total_mean_edit_distance / job.steps
+                    job.wer, job.samples = calculate_report(report_results)
+
+                # Send the current job to coordinator and receive the next one
+                log_debug('Sending %s...' % str(job))
+                job = COORD.next_job(job)
+
+        log_debug('Session closed.')
+    except tf.errors.InvalidArgumentError:
+        log_error(sys.exc_info()[1])
+        log_error("Provide a --checkpoint_dir argument to work with models of different shapes.")
 
 
 def export():
