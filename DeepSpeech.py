@@ -412,13 +412,28 @@ def BiRNN(batch_x, seq_length, dropout):
                                                 output_keep_prob=1.0 - dropout[4],
                                                 seed=FLAGS.random_seed)
 
+    rnn_fw_cell = tf.contrib.rnn.BasicRNNCell(n_cell_dim)
+    rnn_fw_cell = tf.contrib.rnn.DropoutWrapper(rnn_fw_cell,
+                                                input_keep_prob=1.0 - dropout[4],
+                                                output_keep_prob=1.0 - dropout[4],
+                                                seed=FLAGS.random_seed)
+
+    rnn_bw_cell = tf.contrib.rnn.BasicRNNCell(n_cell_dim)
+    rnn_bw_cell = tf.contrib.rnn.DropoutWrapper(rnn_bw_cell,
+                                                input_keep_prob=1.0 - dropout[4],
+                                                output_keep_prob=1.0 - dropout[4],
+                                                seed=FLAGS.random_seed)
+
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
     layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
 
+    layer3_cellfw = lstm_fw_cell
+    layer3_cellbw = lstm_bw_cell
+
     # Now we feed `layer_3` into the LSTM BRNN cell and obtain the LSTM BRNN output.
-    outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=lstm_fw_cell,
-                                                             cell_bw=lstm_bw_cell,
+    outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=layer3_cellfw,
+                                                             cell_bw=layer3_cellbw,
                                                              inputs=layer_3,
                                                              dtype=tf.float32,
                                                              time_major=True,
