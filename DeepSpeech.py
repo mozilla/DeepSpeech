@@ -1520,7 +1520,7 @@ def train(server=None):
         log_debug('Session closed.')
     except tf.errors.InvalidArgumentError:
         log_error(sys.exc_info()[1])
-        log_error("Provide a --checkpoint_dir argument to work with a model with different shapes.")
+        log_error("Provide a --checkpoint_dir argument to work with models of different shapes.")
 
 
 def export():
