@@ -25,7 +25,7 @@ struct ds_result*
 LocalDsSTT(DeepSpeechContext* aCtx, const short* aBuffer, size_t aBufferSize,
            int aSampleRate)
 {
-  float** mfcc;
+  float* mfcc;
   struct ds_result* res = (struct ds_result*)malloc(sizeof(struct ds_result));
   if (!res) {
     return NULL;
@@ -41,7 +41,7 @@ LocalDsSTT(DeepSpeechContext* aCtx, const short* aBuffer, size_t aBufferSize,
   res->string = DsInfer(aCtx, mfcc, n_frames);
   ds_end_infer = clock();
 
-  DsFreeMfccFrames(mfcc, n_frames);
+  free(mfcc);
 
   res->cpu_time_overall =
     ((double) (ds_end_infer - ds_start_time)) / CLOCKS_PER_SEC;
