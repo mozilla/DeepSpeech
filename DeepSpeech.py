@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from __future__ import absolute_import
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function
 
 import os
 import sys
@@ -10,37 +9,31 @@ log_level_index = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[log_level_index] if log_level_index > 0 and log_level_index < len(sys.argv) else '3'
 
 import datetime
-import json
-import numpy as np
+import pickle
 import shutil
 import subprocess
-import tempfile
 import tensorflow as tf
 import time
-import importlib
-import cgi
-import pickle
 
-from collections import OrderedDict
-from math import ceil, floor
+from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.tools import freeze_graph
+from threading import Thread, Lock
+from util.data_set_helpers import SwitchableDataSet, read_data_sets
 from util.gpu import get_available_gpus
-from util.spell import correction
 from util.shared_lib import check_cupti
+from util.spell import correction
 from util.text import sparse_tensor_value_to_texts, wer
-from util.data_set_helpers import SwitchableDataSet
 from util.website import maybe_publish
 from xdg import BaseDirectory as xdg
-from six.moves import zip, range, filter, urllib, BaseHTTPServer
-from threading import Thread, Lock
 
 
 # Importer
 # ========
 
-tf.app.flags.DEFINE_string  ('importer',         'ldc93s1',   'importer module - one of ldc93s1, LDC97S62, ted, librivox, fisher')
-tf.app.flags.DEFINE_string  ('dataset_path',     '',          'data set path for the importer - defaults to ./data/<importer>')
+tf.app.flags.DEFINE_string  ('train_files',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
+tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
+tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
 tf.app.flags.DEFINE_boolean ('fulltrace',        False,       'if full trace debug info should be generated during training')
 
 # Cluster configuration
@@ -145,14 +138,6 @@ def initialize_globals():
     global COORD
     COORD = TrainingCoordinator()
     COORD.start()
-
-    # Set default relative data set directory based on importer name
-    if FLAGS.dataset_path == '':
-        FLAGS.dataset_path = os.path.join('data', FLAGS.importer)
-
-    # Lazy-import data set module
-    global importer_module
-    importer_module = importlib.import_module('util.importers.%s' % FLAGS.importer)
 
     # ps and worker hosts required for p2p cluster setup
     FLAGS.ps_hosts = list(filter(len, FLAGS.ps_hosts.split(',')))
@@ -712,7 +697,7 @@ def calculate_report(results_tuple):
         mean_wer += sample_wer
 
     # Getting the mean WER from the accumulated one
-    mean_wer = mean_wer / float(len(items))
+    mean_wer = mean_wer / len(items)
 
     # Filter out all items with WER=0
     samples = [s for s in samples if s.wer > 0]
@@ -960,11 +945,11 @@ class Epoch(object):
                         agg_mean_edit_distance += job.mean_edit_distance
                         self.samples.extend(job.samples)
 
-                self.loss = agg_loss / float(num_jobs)
+                self.loss = agg_loss / num_jobs
 
                 if self.report:
-                    self.wer = agg_wer / float(num_jobs)
-                    self.mean_edit_distance = agg_mean_edit_distance / float(num_jobs)
+                    self.wer = agg_wer / num_jobs
+                    self.mean_edit_distance = agg_mean_edit_distance / num_jobs
 
                     # Order samles by their loss (lowest loss on top)
                     self.samples.sort(key=lambda s: s.loss)
@@ -1344,23 +1329,6 @@ class TrainingCoordinator(object):
             result = pickle.loads(result)
         return result
 
-
-def read_data_sets(set_names=['train', 'dev', 'test']):
-    r'''
-    Returns a :class:`DataSets` object of the selected importer, containing all available/selected sets.
-    '''
-    return importer_module.read_data_sets(FLAGS.dataset_path,
-                                          FLAGS.train_batch_size,
-                                          FLAGS.dev_batch_size,
-                                          FLAGS.test_batch_size,
-                                          n_input,
-                                          n_context,
-                                          next_index=lambda set_name, index: COORD.get_next_index(set_name),
-                                          limit_dev=FLAGS.limit_dev,
-                                          limit_test=FLAGS.limit_test,
-                                          limit_train=FLAGS.limit_train,
-                                          sets=set_names)
-
 def train(server=None):
     r'''
     Trains the network on a given server of a cluster.
@@ -1372,7 +1340,18 @@ def train(server=None):
     global_step = tf.Variable(0, trainable=False, name='global_step')
 
     # Read all data sets
-    data_sets = read_data_sets()
+    data_sets = read_data_sets(FLAGS.train_files.split(','),
+                               FLAGS.dev_files.split(','),
+                               FLAGS.test_files.split(','),
+                               FLAGS.train_batch_size,
+                               FLAGS.dev_batch_size,
+                               FLAGS.test_batch_size,
+                               n_input,
+                               n_context,
+                               next_index=lambda set_name, index: COORD.get_next_index(set_name),
+                               limit_dev=FLAGS.limit_dev,
+                               limit_test=FLAGS.limit_test,
+                               limit_train=FLAGS.limit_train)
 
     # Get the data sets
     switchable_data_set = SwitchableDataSet(data_sets)
