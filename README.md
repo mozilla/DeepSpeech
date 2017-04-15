@@ -2,6 +2,18 @@
 
 Project DeepSpeech is an open source Speech-To-Text engine that uses a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to facilitate implementation.
 
+**Table of Contents**
+
+- [Prerequisites](#prerequisites)
+- [Install](#install)
+- [Recommendations](#recommendations)
+- [Training a model](#training-a-model)
+- [Checkpointing](#checkpointing)
+- [Exporting a model for serving](#exporting-a-model-for-serving)
+- [Distributed computing across more than one machine](#distributed-computing-across-more-than-one-machine)
+- [Documentation](#documentation)
+- [Contact/Getting Help](#contactgetting-help)
+
 ## Prerequisites
 
 * [Git Large File Storage](https://git-lfs.github.com/)
@@ -15,7 +27,7 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 ## Install
 
 Manually install [Git Large File Storage](https://git-lfs.github.com/), then open a terminal and run:
-```
+```bash
 git clone https://github.com/mozilla/DeepSpeech
 cd DeepSpeech
 pip install -r requirements.txt
@@ -30,7 +42,7 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 The central (Python) script is `DeepSpeech.py` in the project's root directory. For its list of command line options, you can call:
 
 ```bash
-DeepSpeech$ ./DeepSpeech.py --help
+$ ./DeepSpeech.py --help
 ```
 
 To get the output of this in a slightly better formatted way, you can also look up the option definitions top of `DeepSpeech.py`.
@@ -39,7 +51,7 @@ For executing pre-configured training scenarios, there is a collection of conven
 As a simple first example you can open a terminal, change to the directory of the DeepSpeech checkout and run:
 
 ```bash
-DeepSpeech$ ./bin/run-ldc93s1.sh
+$ ./bin/run-ldc93s1.sh
 ```
 
 This script will train on a small sample dataset called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters.
@@ -62,7 +74,7 @@ Refer to the corresponding [README.md](native_client/README.md) for information 
 DeepSpeech has built-in support for [distributed TensorFlow](https://www.tensorflow.org/deploy/distributed). To get an idea on how this works, you can use the script `bin/run-cluster.sh` for running a cluster with workers just on the local machine.
 
 ```bash
-DeepSpeech$ bin/run-cluster.sh --help
+$ bin/run-cluster.sh --help
 Usage: run-cluster.sh [--help] [--script script] [p:w:g] <arg>*
 
 --help      print this help message
@@ -82,4 +94,8 @@ The script is meant to be a template for your own distributed computing instrume
 
 ## Documentation
 
-Documentation for the project can be found here: http://deepspeech.readthedocs.io/en/latest/
+Documentation (incomplete) for the project can be found here: http://deepspeech.readthedocs.io/en/latest/
+
+## Contact/Getting Help
+
+First, check out our existing issues and the [FAQ on the wiki](https://github.com/mozilla/DeepSpeech/wiki) to see if your question is answered there. If it's not, and the question is about the code or the project's goals, feel free to open an issue in the repo. If the question is better suited for the FAQ, the team hangs out in the #machinelearning channel on [Mozilla IRC](https://wiki.mozilla.org/IRC), and people there can try to answer/help.
