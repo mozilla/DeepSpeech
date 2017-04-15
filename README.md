@@ -55,7 +55,7 @@ Be aware however that checkpoints are only valid for the same model geometry the
 ## Exporting a model for serving
 
 If the `--export_dir` parameter is provided, a model will have been exported to this directory during training.
-Refer to the corresponding [README.md](client/README.md) for information on building and running a client that can use the exported model.
+Refer to the corresponding [README.md](native_client/README.md) for information on building and running a client that can use the exported model.
 
 ## Distributed computing across more than one machine
 
