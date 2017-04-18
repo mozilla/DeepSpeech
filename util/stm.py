@@ -1,3 +1,4 @@
+import codecs
 import unicodedata
 
 class STMSegment(object):
@@ -55,7 +56,7 @@ def parse_stm_file(stm_file):
     Parses an STM file at ``stm_file`` into a list of :class:`STMSegment`.
     """
     stm_segments = []
-    with open(stm_file) as stm_lines:
+    with codecs.open(stm_file, encoding="utf-8") as stm_lines:
         for stm_line in stm_lines:
             stmSegment = STMSegment(stm_line)
             if not "ignore_time_segment_in_scoring" == stmSegment.transcript:
