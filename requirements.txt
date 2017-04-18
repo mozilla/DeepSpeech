@@ -1,3 +1,4 @@
+pandas
 progressbar2
 python-utils
 tensorflow
