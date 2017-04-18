@@ -1,0 +1,14 @@
+pandas
+progressbar2
+python-utils
+tensorflow
+numpy
+scipy
+paramiko
+pysftp
+sox
+python_speech_features
+pyxdg
+bs4
+six
+pypi-kenlm==0.1.20160618

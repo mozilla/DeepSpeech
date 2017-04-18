@@ -1,0 +1,9 @@
+bin
+data
+doc
+images
+local_tf
+native_client
+resources
+trainer
+util
