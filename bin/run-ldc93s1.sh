@@ -19,5 +19,6 @@ python -u DeepSpeech.py \
   --dev_batch_size 1 \
   --test_batch_size 1 \
   --n_hidden 494 \
+  --checkpoint_dir ="ds2-v2"
   --epoch 50 \
   "$@"
