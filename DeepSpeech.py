@@ -378,22 +378,22 @@ def BiRNN(batch_x, seq_length, dropout, is_training, reuse):
             layer_1 = tf.contrib.layers.convolution2d(
                 inputs=batch_x,
                 num_outputs=n_hidden,
-                kernel_size=[kernel_size],
-                stride=stride,
+                kernel_size=[FLAGS.kernel_size],
+                stride=FLAGS.stride,
                 padding='SAME',
                 normalizer_fn=tf.contrib.layers.batch_norm,
                 normalizer_params={'is_training': is_training},
                 scope=scope,
                 reuse=reuse)
 
-        output_lengths = conv_output_length(seq_length, kernel_size, 'SAME', stride)
+        output_lengths = conv_output_length(seq_length, FLAGS.kernel_size, 'SAME', FLAGS.stride)
 
         # Store individual statistics for a max of 10 seconds worth of time steps
         # 10 seconds * (1/0.01) time steps per second = 1000 time steps
         max_bn_steps = 1000
         # Three layers of GRU cells with 1024 nodes each
         cell = BNGRUCell(n_hidden, is_training, max_bn_steps=max_bn_steps, decay=0.9)
-        multi_cell = tf.contrib.rnn.MultiRNNCell([cell] * n_recurrent_layers)
+        multi_cell = tf.contrib.rnn.MultiRNNCell([cell] * FLAGS.recurrent_layers)
         rnn_outputs, _ = tf.nn.dynamic_rnn(cell=multi_cell,
                                            inputs=layer_1,
                                            sequence_length=output_lengths,
