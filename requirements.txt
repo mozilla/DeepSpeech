@@ -4,7 +4,7 @@ python-utils
 tensorflow
 numpy
 scipy
-paramiko
+paramiko >= 2.1
 pysftp
 sox
 python_speech_features
