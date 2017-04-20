@@ -66,6 +66,7 @@ class DataSet(object):
         self._coord = coord
         batch_threads = [Thread(target=self._populate_batch_queue, args=(session,)) for i in range(self._thread_count)]
         for batch_thread in batch_threads:
+            self._coord.register_thread(batch_thread)
             batch_thread.daemon = True
             batch_thread.start()
         return batch_threads
