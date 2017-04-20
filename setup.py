@@ -25,10 +25,16 @@ class CustomCommands(install):
                          (command_list, p.returncode))
 
   def run(self):
-   # self.RunCustomCommand(['apt-get', 'update'])
+    self.RunCustomCommand(['apt-get', 'update'])
     self.RunCustomCommand(
     ['apt-get', 'install', '-y', 'build-essential',
      'libssl-dev', 'libffi-dev', 'python-dev'])
+    self.RunCustomCommand(
+    ['pip', 'install', 'git-lfs','pandas', 
+     'progressbar2', 'python-utils', 'tensorflow',
+     'numpy', 'scipy', 'paramiko', 'pysftp',
+     'sox', 'python_speech_features', 'pyxdg',
+     'bs4', 'six', 'pypi-kenlm==0.1.20160618'])
 
     install.run(self)
 
@@ -36,6 +42,7 @@ class CustomCommands(install):
 
 
 REQUIRED_PACKAGES = [
+	'git-lfs',
 	'pandas',
 	'progressbar2',
 	'python-utils',
@@ -55,7 +62,7 @@ REQUIRED_PACKAGES = [
 setup(
     name='trainer',
     version='0.1',
-    install_requires=REQUIRED_PACKAGES,
+ #   install_requires='data_set_helpers.py',
     packages=find_packages(),
     include_package_data=True,
     description='My trainer application package.',

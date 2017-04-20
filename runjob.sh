@@ -1,26 +1,18 @@
-BUCKET_NAME="gs://deep_speech"
-TRAIN_DATA="$BUCKET_NAME/DeepSpeech/data_files/data/ldc93s1/ldc93s1.csv"
-DEV_DATA="$BUCKET_NAME/DeepSpeech/data_files/data/ldc93s1/ldc93s1.csv"
-TEST_DATA="$BUCKET_NAME/DeepSpeech/data_files/data/ldc93s1/ldc93s1.csv"
-checkpoint_dir="$BUCKET_NAME/DeepSpeech/checkpoint"
+TRAIN_DATA="gs://deep_speech/data_files/data/ldc93s1/ldc93s1.csv"
+DEV_DATA="gs://deep_speech/data_files/data/ldc93s1/ldc93s1.csv"
+TEST_DATA="gs://deep_speech/data_files/data/ldc93s1/ldc93s1.csv"
+checkpoint_dir="gs://deep_speech/checkpoint"
 now=$(date +"%Y%m%d_%H%M%S")
 JOB_NAME="job_$now"
-PACKAGE_PATH="trainer"
-JOB_DIRECTORY="gs://deep_speech/output"
-DEPENDENCY_PATH="~/Varunproject/DeepSpeech/util/"
-MODULE_NAME="trainer.task"
-STAGING_BUCKET="gs://deep_speech/staging_folder"
-JOB_DIR="gs://deep_speech/output"
-REGION="us-central1"
-PACKAGES="trainer-0.1-py2-none-any.whl"
-RUNTIME_VERSION="1.0"
+PACKAGE_PATH="trainer/"
+
 
 gcloud ml-engine jobs submit training $JOB_NAME \
---job-dir $JOB_DIRECTORY \
---package-path $PACKAGE_PATH \
---module-name $MODULE_NAME \
---region $REGION \
---packages $PACKAGES \
+--module-name trainer.task \
+--package-path trainer/ \
+--staging-bucket gs://deep_speech \
+--job-dir gs://deep_speech/output \
+--region us-central1 \
 -- \
 --train_files $TRAIN_DATA \
 --dev_files $DEV_DATA \
