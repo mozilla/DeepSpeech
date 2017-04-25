@@ -1482,7 +1482,7 @@ def train(server=None):
             try:
                 if is_chief:
                     # Retrieving global_step from the (potentially restored) model
-                    feed_dict = {}
+                    feed_dict = {'is_training:0': True}
                     model_feeder.set_data_set(feed_dict, model_feeder.train)
                     step = session.run(global_step, feed_dict=feed_dict)
                     COORD.start_coordination(model_feeder, step)
