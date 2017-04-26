@@ -139,7 +139,7 @@ def _split_wav_and_sentences(data_dir, trans_data, original_data, converted_data
                 new_wav_filesize = os.path.getsize(new_wav_file)
                 transcript = validate_label(segment["transcript"])
                 if transcript != None:
-                    files.append((new_wav_file, new_wav_filesize, transcript))
+                    files.append((os.path.abspath(new_wav_file), new_wav_filesize, transcript))
 
             # Close origAudios
             for origAudio in origAudios:

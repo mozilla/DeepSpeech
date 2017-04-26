@@ -131,7 +131,7 @@ def _maybe_split_dataset(extracted_dir, data_set):
                 _split_wav(origAudio, start_time, stop_time, new_wav_file)
 
             new_wav_filesize = path.getsize(new_wav_file)
-            files.append((new_wav_file, new_wav_filesize, stm_segment.transcript))
+            files.append((path.abspath(new_wav_file), new_wav_filesize, stm_segment.transcript))
 
         # Close origAudio
         origAudio.close()

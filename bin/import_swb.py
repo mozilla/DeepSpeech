@@ -137,7 +137,7 @@ def _maybe_split_wav_and_sentences(data_dir, trans_data, original_data, converte
 
                 new_wav_filesize = os.path.getsize(new_wav_file)
                 transcript = segment["transcript"]
-                files.append((new_wav_file, new_wave_filesize, transcript))
+                files.append((os.path.abspath(new_wav_file), new_wave_filesize, transcript))
 
             # Close origAudio
             origAudio.close()
