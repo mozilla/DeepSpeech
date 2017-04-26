@@ -171,7 +171,7 @@ def _convert_audio_and_split_sentences(extracted_dir, data_set, dest_dir):
                         Transformer().build(flac_file, wav_file)
                     wav_filesize = os.path.getsize(wav_file)
 
-                    files.append((wav_file, wav_filesize, transcript))
+                    files.append((os.path.abspath(wav_file), wav_filesize, transcript))
 
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 

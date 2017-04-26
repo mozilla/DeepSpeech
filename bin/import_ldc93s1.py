@@ -21,7 +21,7 @@ def _download_and_preprocess_data(data_dir):
     with open(trans_file, "r") as fin:
         transcript = ' '.join(fin.read().strip().lower().split(' ')[2:]).replace('.', '')
 
-    df = pandas.DataFrame(data=[(local_file, os.path.getsize(local_file), transcript)],
+    df = pandas.DataFrame(data=[(os.path.abspath(local_file), os.path.getsize(local_file), transcript)],
                           columns=["wav_filename", "wav_filesize", "transcript"])
     df.to_csv(os.path.join(data_dir, "ldc93s1.csv"), index=False)
 
