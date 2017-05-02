@@ -22,6 +22,7 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 * [PyXDG](https://pypi.python.org/pypi/pyxdg)
 * [python_speech_features](https://pypi.python.org/pypi/python_speech_features)
 * [python sox](https://pypi.python.org/pypi/sox)
+* [pandas](https://pypi.python.org/pypi/pandas)
 
 
 ## Install
@@ -57,6 +58,10 @@ $ ./bin/run-ldc93s1.sh
 This script will train on a small sample dataset called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters.
 Feel also free to pass additional (or overriding) `DeepSpeech.py` parameters to these scripts.
 Then, just run the script to train the modified network.
+
+Each dataset has a corresponding importer script in `bin/` that can be used to download (if it's freely available) and preprocess the dataset. See `bin/import_librivox.py` for an example of how to import and preprocess a large dataset for training with Deep Speech.
+
+If you've ran the old importers (in `util/importers/`), they could have removed source files that are needed for the new importers to run. In that case, simply remove the extracted folders and let the importer extract and process the dataset from scratch, and things should work.
 
 ## Checkpointing
 
