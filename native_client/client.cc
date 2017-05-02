@@ -22,7 +22,7 @@ struct ds_result {
 
 // DsSTT() instrumented
 struct ds_result*
-LocalDsSTT(DeepSpeechContext* aCtx, const short* aBuffer, size_t aBufferSize,
+LocalDsSTT(DeepSpeech& aCtx, const short* aBuffer, size_t aBufferSize,
            int aSampleRate)
 {
   float* mfcc;
@@ -34,11 +34,11 @@ LocalDsSTT(DeepSpeechContext* aCtx, const short* aBuffer, size_t aBufferSize,
   clock_t ds_start_time = clock();
   clock_t ds_end_mfcc = 0, ds_end_infer = 0;
 
-  int n_frames =
-    DsGetMfccFrames(aCtx, aBuffer, aBufferSize, aSampleRate, &mfcc);
+  int n_frames = 0;
+  aCtx.getMfccFrames(aBuffer, aBufferSize, aSampleRate, &mfcc, &n_frames);
   ds_end_mfcc = clock();
 
-  res->string = DsInfer(aCtx, mfcc, n_frames);
+  res->string = aCtx.infer(mfcc, n_frames);
   ds_end_infer = clock();
 
   free(mfcc);
@@ -66,8 +66,7 @@ main(int argc, char **argv)
   }
 
   // Initialise DeepSpeech
-  DeepSpeechContext* ctx = DsInit(argv[1], N_CEP, N_CONTEXT);
-  assert(ctx);
+  DeepSpeech ctx = DeepSpeech(argv[1], N_CEP, N_CONTEXT);
 
   // Initialise SOX
   assert(sox_init() == SOX_SUCCESS);
@@ -178,7 +177,6 @@ main(int argc, char **argv)
   }
 
   // Deinitialise and quit
-  DsClose(ctx);
   sox_quit();
 
   return 0;

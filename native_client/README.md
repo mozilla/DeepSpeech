@@ -46,3 +46,15 @@ The client can be run via the `Makefile`. The client will accept audio of any fo
 ```
 ARGS="/path/to/output_graph.pb /path/to/audio/file.ogg" make run
 ```
+
+## Python bindings
+
+Included are a set of generated Python bindings. After following the above build instructions, these can be installed by executing the following commands (or equivalent on your system):
+
+```
+PREFIX=/usr/local make install
+make bindings
+sudo pip install dist/deepspeech*
+```
+
+It is assumed that `$PREFIX/lib` exists in the library path, otherwise you may need to alter your environment. The API mirrors the C++ API and is demonstrated in [client.py](client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
