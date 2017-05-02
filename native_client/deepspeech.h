@@ -2,6 +2,8 @@
 #ifndef __DEEPSPEECH_H__
 #define __DEEPSPEECH_H__
 
+#include <cstddef>
+
 typedef struct _DeepSpeechPrivate DeepSpeechPrivate;
 
 class DeepSpeech {
@@ -27,7 +29,6 @@ class DeepSpeech {
      * Extracts MFCC features from a given audio signal and adds the appropriate
      * amount of context to run inference with the given DeepSpeech context.
      *
-     * @param aCtx A DeepSpeech context.
      * @param aBuffer A 16-bit, mono raw audio signal at the appropriate sample
      *                rate.
      * @param aBufferSize The sample-length of the audio signal.
@@ -43,8 +44,8 @@ class DeepSpeech {
                        unsigned int aBufferSize,
                        int aSampleRate,
                        float** aMfcc,
-                       int* aNFrames = nullptr,
-                       int* aFrameLen = nullptr);
+                       int* aNFrames = NULL,
+                       int* aFrameLen = NULL);
 
     /**
      * @brief Run inference on the given audio.
@@ -52,7 +53,6 @@ class DeepSpeech {
      * Runs inference on the given MFCC audio features with the given DeepSpeech
      * context. See DsGetMfccFrames().
      *
-     * @param aCtx A DeepSpeech context.
      * @param aMfcc MFCC features with the appropriate amount of context per
      *              frame.
      * @param aNFrames The number of frames in @p aMfcc.

@@ -36,14 +36,14 @@ DeepSpeech::DeepSpeech(const char* aModelPath, int aNCep, int aNContext)
   status = ReadBinaryProto(Env::Default(), aModelPath, &mPriv->graph_def);
   if (!status.ok()) {
     mPriv->session->Close();
-    mPriv->session = nullptr;
+    mPriv->session = NULL;
     return;
   }
 
   status = mPriv->session->Create(mPriv->graph_def);
   if (!status.ok()) {
     mPriv->session->Close();
-    mPriv->session = nullptr;
+    mPriv->session = NULL;
     return;
   }
 
@@ -136,7 +136,7 @@ DeepSpeech::getMfccFrames(const short* aBuffer, unsigned int aBufferSize,
     *aNFrames = ds_input_length;
   }
   if (aFrameLen) {
-    *aFrameLen = contextSize;
+    *aFrameLen = frameSize;
   }
 }
 
@@ -144,7 +144,7 @@ char*
 DeepSpeech::infer(float* aMfcc, int aNFrames, int aFrameLen)
 {
   if (!mPriv->session) {
-    return nullptr;
+    return NULL;
   }
 
   const int frameSize = mPriv->ncep + (2 * mPriv->ncep * mPriv->ncontext);
@@ -153,7 +153,7 @@ DeepSpeech::infer(float* aMfcc, int aNFrames, int aFrameLen)
   } else if (aFrameLen < frameSize) {
     std::cerr << "mfcc features array is too small (expected " <<
       frameSize << ", got " << aFrameLen << ")\n";
-    return nullptr;
+    return NULL;
   }
 
   Tensor input(DT_FLOAT, TensorShape({1, aNFrames, frameSize}));
@@ -175,7 +175,7 @@ DeepSpeech::infer(float* aMfcc, int aNFrames, int aFrameLen)
     {"output_node"}, {}, &outputs);
   if (!status.ok()) {
     std::cerr << "Error running session: " << status.ToString() << "\n";
-    return nullptr;
+    return NULL;
   }
 
   // Output is an array of shape (1, n_results, result_length).
@@ -199,7 +199,7 @@ DeepSpeech::stt(const short* aBuffer, unsigned int aBufferSize, int aSampleRate)
   char* string;
   int n_frames;
 
-  getMfccFrames(aBuffer, aBufferSize, aSampleRate, &mfcc, &n_frames, nullptr);
+  getMfccFrames(aBuffer, aBufferSize, aSampleRate, &mfcc, &n_frames, NULL);
   string = infer(mfcc, n_frames);
   free(mfcc);
   return string;

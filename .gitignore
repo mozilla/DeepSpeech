@@ -1,7 +1,14 @@
 .ipynb_checkpoints
 *.pyc
+*.swp
 *.DS_Store
 /werlog.js
 /data
 /logs
 /exports
+/native_client/setup.cfg
+/native_client/build
+/native_client/deepspeech.egg-info
+/native_client/dist
+/native_client/python/deepspeech.py
+/native_client/python/deepspeech_wrap.cpp
