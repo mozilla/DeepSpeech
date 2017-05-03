@@ -13,16 +13,19 @@
 
 using namespace tensorflow;
 
-struct _DeepSpeechPrivate {
-  Session* session;
-  GraphDef graph_def;
-  int ncep;
-  int ncontext;
+namespace DeepSpeech {
+
+class Private {
+  public:
+    Session* session;
+    GraphDef graph_def;
+    int ncep;
+    int ncontext;
 };
 
-DeepSpeech::DeepSpeech(const char* aModelPath, int aNCep, int aNContext)
+Model::Model(const char* aModelPath, int aNCep, int aNContext)
 {
-  mPriv = new DeepSpeechPrivate;
+  mPriv = new Private;
 
   if (!aModelPath) {
     return;
@@ -51,7 +54,7 @@ DeepSpeech::DeepSpeech(const char* aModelPath, int aNCep, int aNContext)
   mPriv->ncontext = aNContext;
 }
 
-DeepSpeech::~DeepSpeech()
+Model::~Model()
 {
   if (mPriv->session) {
     mPriv->session->Close();
@@ -61,87 +64,16 @@ DeepSpeech::~DeepSpeech()
 }
 
 void
-DeepSpeech::getMfccFrames(const short* aBuffer, unsigned int aBufferSize,
-                          int aSampleRate, float** aMfcc, int* aNFrames,
-                          int* aFrameLen)
+Model::getInputVector(const short* aBuffer, unsigned int aBufferSize,
+                           int aSampleRate, float** aMfcc, int* aNFrames,
+                           int* aFrameLen)
 {
-  const int contextSize = mPriv->ncep * mPriv->ncontext;
-  const int frameSize = mPriv->ncep + (2 * mPriv->ncep * mPriv->ncontext);
-
-  // Compute MFCC features
-  float* mfcc;
-  int n_frames = csf_mfcc(aBuffer, aBufferSize, aSampleRate,
-                          WIN_LEN, WIN_STEP, mPriv->ncep, N_FILTERS, N_FFT,
-                          LOWFREQ, aSampleRate/2, COEFF, CEP_LIFTER, 1, NULL,
-                          &mfcc);
-
-  // Take every other frame (BiRNN stride of 2) and add past/future context
-  int ds_input_length = (n_frames + 1) / 2;
-  // TODO: Use MFCC of silence instead of zero
-  float* ds_input = (float*)calloc(sizeof(float), ds_input_length * frameSize);
-  for (int i = 0, idx = 0, mfcc_idx = 0; i < ds_input_length;
-       i++, idx += frameSize, mfcc_idx += mPriv->ncep * 2) {
-    // Past context
-    for (int j = mPriv->ncontext; j > 0; j--) {
-      int frame_index = (i * 2) - (j * 2);
-      if (frame_index < 0) { continue; }
-      int mfcc_base = frame_index * mPriv->ncep;
-      int base = (mPriv->ncontext - j) * mPriv->ncep;
-      for (int k = 0; k < mPriv->ncep; k++) {
-        ds_input[idx + base + k] = mfcc[mfcc_base + k];
-      }
-    }
-
-    // Present context
-    for (int j = 0; j < mPriv->ncep; j++) {
-      ds_input[idx + j + contextSize] = mfcc[mfcc_idx + j];
-    }
-
-    // Future context
-    for (int j = 1; j <= mPriv->ncontext; j++) {
-      int frame_index = (i * 2) + (j * 2);
-      if (frame_index >= n_frames) { continue; }
-      int mfcc_base = frame_index * mPriv->ncep;
-      int base = contextSize + mPriv->ncep + ((j - 1) * mPriv->ncep);
-      for (int k = 0; k < mPriv->ncep; k++) {
-        ds_input[idx + base + k] = mfcc[mfcc_base + k];
-      }
-    }
-  }
-
-  // Free mfcc array
-  free(mfcc);
-
-  // Whiten inputs (TODO: Should we whiten)
-  double n_inputs = (double)(ds_input_length * frameSize);
-  double mean = 0.0;
-  for (int idx = 0; idx < n_inputs; idx++) {
-    mean += ds_input[idx] / n_inputs;
-  }
-
-  double stddev = 0.0;
-  for (int idx = 0; idx < n_inputs; idx++) {
-    stddev += pow(fabs(ds_input[idx] - mean), 2.0) / n_inputs;
-  }
-  stddev = sqrt(stddev);
-
-  for (int idx = 0; idx < n_inputs; idx++) {
-    ds_input[idx] = (float)((ds_input[idx] - mean) / stddev);
-  }
-
-  if (aMfcc) {
-    *aMfcc = ds_input;
-  }
-  if (aNFrames) {
-    *aNFrames = ds_input_length;
-  }
-  if (aFrameLen) {
-    *aFrameLen = frameSize;
-  }
+  return audioToInputVector(aBuffer, aBufferSize, aSampleRate, mPriv->ncep,
+                            mPriv->ncontext, aMfcc, aNFrames, aFrameLen);
 }
 
 char*
-DeepSpeech::infer(float* aMfcc, int aNFrames, int aFrameLen)
+Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
 {
   if (!mPriv->session) {
     return NULL;
@@ -193,14 +125,96 @@ DeepSpeech::infer(float* aMfcc, int aNFrames, int aFrameLen)
 }
 
 char*
-DeepSpeech::stt(const short* aBuffer, unsigned int aBufferSize, int aSampleRate)
+Model::stt(const short* aBuffer, unsigned int aBufferSize, int aSampleRate)
 {
   float* mfcc;
   char* string;
   int n_frames;
 
-  getMfccFrames(aBuffer, aBufferSize, aSampleRate, &mfcc, &n_frames, NULL);
+  getInputVector(aBuffer, aBufferSize, aSampleRate, &mfcc, &n_frames, NULL);
   string = infer(mfcc, n_frames);
   free(mfcc);
   return string;
+}
+
+void
+audioToInputVector(const short* aBuffer, unsigned int aBufferSize,
+                   int aSampleRate, int aNCep, int aNContext, float** aMfcc,
+                   int* aNFrames, int* aFrameLen)
+{
+  const int contextSize = aNCep * aNContext;
+  const int frameSize = aNCep + (2 * aNCep * aNContext);
+
+  // Compute MFCC features
+  float* mfcc;
+  int n_frames = csf_mfcc(aBuffer, aBufferSize, aSampleRate,
+                          WIN_LEN, WIN_STEP, aNCep, N_FILTERS, N_FFT,
+                          LOWFREQ, aSampleRate/2, COEFF, CEP_LIFTER, 1, NULL,
+                          &mfcc);
+
+  // Take every other frame (BiRNN stride of 2) and add past/future context
+  int ds_input_length = (n_frames + 1) / 2;
+  // TODO: Use MFCC of silence instead of zero
+  float* ds_input = (float*)calloc(sizeof(float), ds_input_length * frameSize);
+  for (int i = 0, idx = 0, mfcc_idx = 0; i < ds_input_length;
+       i++, idx += frameSize, mfcc_idx += aNCep * 2) {
+    // Past context
+    for (int j = aNContext; j > 0; j--) {
+      int frame_index = (i * 2) - (j * 2);
+      if (frame_index < 0) { continue; }
+      int mfcc_base = frame_index * aNCep;
+      int base = (aNContext - j) * aNCep;
+      for (int k = 0; k < aNCep; k++) {
+        ds_input[idx + base + k] = mfcc[mfcc_base + k];
+      }
+    }
+
+    // Present context
+    for (int j = 0; j < aNCep; j++) {
+      ds_input[idx + j + contextSize] = mfcc[mfcc_idx + j];
+    }
+
+    // Future context
+    for (int j = 1; j <= aNContext; j++) {
+      int frame_index = (i * 2) + (j * 2);
+      if (frame_index >= n_frames) { continue; }
+      int mfcc_base = frame_index * aNCep;
+      int base = contextSize + aNCep + ((j - 1) * aNCep);
+      for (int k = 0; k < aNCep; k++) {
+        ds_input[idx + base + k] = mfcc[mfcc_base + k];
+      }
+    }
+  }
+
+  // Free mfcc array
+  free(mfcc);
+
+  // Whiten inputs (TODO: Should we whiten)
+  double n_inputs = (double)(ds_input_length * frameSize);
+  double mean = 0.0;
+  for (int idx = 0; idx < n_inputs; idx++) {
+    mean += ds_input[idx] / n_inputs;
+  }
+
+  double stddev = 0.0;
+  for (int idx = 0; idx < n_inputs; idx++) {
+    stddev += pow(fabs(ds_input[idx] - mean), 2.0) / n_inputs;
+  }
+  stddev = sqrt(stddev);
+
+  for (int idx = 0; idx < n_inputs; idx++) {
+    ds_input[idx] = (float)((ds_input[idx] - mean) / stddev);
+  }
+
+  if (aMfcc) {
+    *aMfcc = ds_input;
+  }
+  if (aNFrames) {
+    *aNFrames = ds_input_length;
+  }
+  if (aFrameLen) {
+    *aFrameLen = frameSize;
+  }
+}
+
 }

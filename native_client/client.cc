@@ -13,6 +13,8 @@
 #define N_CEP 26
 #define N_CONTEXT 9
 
+using namespace DeepSpeech;
+
 struct ds_result {
   char* string;
   double cpu_time_overall;
@@ -22,7 +24,7 @@ struct ds_result {
 
 // DsSTT() instrumented
 struct ds_result*
-LocalDsSTT(DeepSpeech& aCtx, const short* aBuffer, size_t aBufferSize,
+LocalDsSTT(Model& aCtx, const short* aBuffer, size_t aBufferSize,
            int aSampleRate)
 {
   float* mfcc;
@@ -35,7 +37,7 @@ LocalDsSTT(DeepSpeech& aCtx, const short* aBuffer, size_t aBufferSize,
   clock_t ds_end_mfcc = 0, ds_end_infer = 0;
 
   int n_frames = 0;
-  aCtx.getMfccFrames(aBuffer, aBufferSize, aSampleRate, &mfcc, &n_frames);
+  aCtx.getInputVector(aBuffer, aBufferSize, aSampleRate, &mfcc, &n_frames);
   ds_end_mfcc = clock();
 
   res->string = aCtx.infer(mfcc, n_frames);
@@ -66,7 +68,7 @@ main(int argc, char **argv)
   }
 
   // Initialise DeepSpeech
-  DeepSpeech ctx = DeepSpeech(argv[1], N_CEP, N_CONTEXT);
+  Model ctx = Model(argv[1], N_CEP, N_CONTEXT);
 
   // Initialise SOX
   assert(sox_init() == SOX_SUCCESS);
@@ -157,7 +159,8 @@ main(int argc, char **argv)
 #endif
 
   // Pass audio to DeepSpeech
-  struct ds_result* result = LocalDsSTT(ctx, (const short*)buffer, buffer_size / 2, sampleRate);
+  struct ds_result* result = LocalDsSTT(ctx, (const short*)buffer,
+                                        buffer_size / 2, sampleRate);
   free(buffer);
 
   if (result) {
@@ -167,7 +170,8 @@ main(int argc, char **argv)
     }
 
     if ((argc == 4) && (strncmp(argv[3], "-t", 3) == 0)) {
-      printf("cpu_time_overall=%.05f cpu_time_mfcc=%.05f cpu_time_infer=%.05f\n",
+      printf("cpu_time_overall=%.05f cpu_time_mfcc=%.05f "
+             "cpu_time_infer=%.05f\n",
              result->cpu_time_overall,
              result->cpu_time_mfcc,
              result->cpu_time_infer);
