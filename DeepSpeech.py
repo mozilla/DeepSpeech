@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -u
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
@@ -46,7 +46,7 @@ tf.app.flags.DEFINE_integer ('task_index',       0,           'index of task wit
 tf.app.flags.DEFINE_integer ('replicas',         -1,          'total number of replicas - if negative, its absolute value is multiplied by the number of workers')
 tf.app.flags.DEFINE_integer ('replicas_to_agg',  -1,          'number of replicas to aggregate - if negative, its absolute value is multiplied by the number of workers')
 tf.app.flags.DEFINE_string  ('coord_host',       'localhost', 'coordination server host')
-tf.app.flags.DEFINE_integer ('coord_port',       4000,        'coordination server port')
+tf.app.flags.DEFINE_integer ('coord_port',       2500,        'coordination server port')
 tf.app.flags.DEFINE_integer ('iters_per_worker', 1,           'number of train or inference iterations per worker before results are sent back to coordinator')
 
 # Global Constants
@@ -131,17 +131,19 @@ for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
 FLAGS = tf.app.flags.FLAGS
 
 def initialize_globals():
-    # Determine, if we are the chief worker
-    global is_chief
-    is_chief = len(FLAGS.worker_hosts) == 0 or (FLAGS.task_index == 0 and FLAGS.job_name == 'worker')
-
-    global COORD
-    COORD = TrainingCoordinator()
-    COORD.start()
 
     # ps and worker hosts required for p2p cluster setup
     FLAGS.ps_hosts = list(filter(len, FLAGS.ps_hosts.split(',')))
     FLAGS.worker_hosts = list(filter(len, FLAGS.worker_hosts.split(',')))
+
+    # Determine, if we are the chief worker
+    global is_chief
+    is_chief = len(FLAGS.worker_hosts) == 0 or (FLAGS.task_index == 0 and FLAGS.job_name == 'worker')
+
+    # Initializing and starting the training coordinator
+    global COORD
+    COORD = TrainingCoordinator()
+    COORD.start()
 
     # The absolute number of computing nodes - regardless of cluster or single mode
     global num_workers
@@ -1206,11 +1208,11 @@ class TrainingCoordinator(object):
             tries += 1
             try:
                 url = 'http://%s:%d%s' % (FLAGS.coord_host, FLAGS.coord_port, path)
-                res = urllib2.urlopen(urllib2.Request(url, data, { 'content-type': 'text/plain' }))
+                res = urllib.request.urlopen(urllib.request.Request(url, data, { 'content-type': 'text/plain' }))
                 return res.read()
-            except:
+            except Exception as ex:
                 time.sleep(1)
-                log_traffic('Problem reaching coordinator - trying another time...')
+                log_traffic('Problem reaching coordinator %s: %r - trying another time...' % (url, ex))
                 pass
         return default
 
