@@ -160,7 +160,7 @@ audioToInputVector(const short* aBuffer, unsigned int aBufferSize,
        i++, idx += frameSize, mfcc_idx += aNCep * 2) {
     // Past context
     for (int j = aNContext; j > 0; j--) {
-      int frame_index = (i * 2) - (j * 2);
+      int frame_index = (i - j) * 2;
       if (frame_index < 0) { continue; }
       int mfcc_base = frame_index * aNCep;
       int base = (aNContext - j) * aNCep;
@@ -176,8 +176,8 @@ audioToInputVector(const short* aBuffer, unsigned int aBufferSize,
 
     // Future context
     for (int j = 1; j <= aNContext; j++) {
-      int frame_index = (i * 2) + (j * 2);
-      if (frame_index >= n_frames) { continue; }
+      int frame_index = (i + j) * 2;
+      if (frame_index >= n_frames) { break; }
       int mfcc_base = frame_index * aNCep;
       int base = contextSize + aNCep + ((j - 1) * aNCep);
       for (int k = 0; k < aNCep; k++) {

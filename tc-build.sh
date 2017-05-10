@@ -31,7 +31,7 @@ cd ~/DeepSpeech/tf
 eval "export ${BAZEL_ENV_FLAGS}"
 PATH=${HOME}/bin/:$PATH bazel \
 	build -c opt ${BAZEL_BUILD_FLAGS} \
-	//native_client:*
+	//native_client:deepspeech
 
 cd ~/DeepSpeech/ds/
 make -C native_client/ \

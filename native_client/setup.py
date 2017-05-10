@@ -21,7 +21,7 @@ class BuildExtFirst(build):
 deepspeech = Extension('_deepspeech',
         ['python/deepspeech.i'],
         include_dirs = [numpy_include],
-        libraries = ['tensorflow', 'deepspeech', 'c_speech_features', 'kissfft'])
+        libraries = ['tensorflow', 'deepspeech'])
 
 setup(name = 'deepspeech',
       description = 'A library for running inference on a DeepSpeech model',

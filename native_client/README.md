@@ -18,18 +18,12 @@ ln -s ../DeepSpeech/native_client ./
 
 ## Building
 
-Before building the TensorFlow stand-alone library, you will need to prepare your environment to configure and build TensorFlow. Follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
+Before building the DeepSpeech client libraries, you will need to prepare your environment to configure and build TensorFlow. Follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
 
-To build the TensorFlow library, execute the following command:
-
-```
-bazel build -c opt //tensorflow:libtensorflow.so
-```
-
-Then you can build the DeepSpeech native library.
+Then you can build the Tensorflow and DeepSpeech libraries.
 
 ```
-bazel build -c opt //native_client:*
+bazel build -c opt --copt=-march=native --copt=-mtune=native --copt=-O3 //tensorflow:libtensorflow.so //native_client:deepspeech
 ```
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
@@ -52,7 +46,7 @@ ARGS="/path/to/output_graph.pb /path/to/audio/file.ogg" make run
 Included are a set of generated Python bindings. After following the above build instructions, these can be installed by executing the following commands (or equivalent on your system):
 
 ```
-PREFIX=/usr/local make install
+PREFIX=/usr/local sudo make install
 make bindings
 sudo pip install dist/deepspeech*
 ```
