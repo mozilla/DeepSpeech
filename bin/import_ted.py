@@ -136,9 +136,6 @@ def _maybe_split_dataset(extracted_dir, data_set):
         # Close origAudio
         origAudio.close()
 
-        # Remove wav_file
-        remove(wav_file)
-
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 
 def _split_wav(origAudio, start_time, stop_time, new_wav_file):
