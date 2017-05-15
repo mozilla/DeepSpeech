@@ -18,10 +18,15 @@ class BuildExtFirst(build):
                     ('build_clib', build.has_c_libraries),
                     ('build_scripts', build.has_scripts)]
 
-deepspeech = Extension('_deepspeech',
-        ['python/deepspeech.i'],
+model = Extension('_model',
+        ['python/model.i'],
         include_dirs = [numpy_include],
-        libraries = ['tensorflow', 'deepspeech'])
+        libraries = ['tensorflow', 'deepspeech', 'deepspeech_utils'])
+
+utils = Extension('_utils',
+        ['python/utils.i'],
+        include_dirs = [numpy_include],
+        libraries = ['deepspeech_utils'])
 
 setup(name = 'deepspeech',
       description = 'A library for running inference on a DeepSpeech model',
@@ -33,4 +38,4 @@ setup(name = 'deepspeech',
       cmdclass = { 'build': BuildExtFirst },
       license = 'MPL-2.0',
       url = 'https://github.com/mozilla/DeepSpeech',
-      ext_modules = [deepspeech])
+      ext_modules = [model, utils])

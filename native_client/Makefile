@@ -31,7 +31,7 @@ endif
 
 OS := $(shell uname -s)
 CFLAGS  += -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_CFLAGS)
-LDFLAGS += -ltensorflow -ldeepspeech $(EXTRA_LDFLAGS)
+LDFLAGS += -ltensorflow -ldeepspeech -ldeepspeech_utils $(EXTRA_LDFLAGS)
 
 META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
@@ -42,7 +42,7 @@ default: deepspeech
 
 clean:
 	rm -rf build dist deepspeech.egg-info
-	rm -f deepspeech setup.cfg python/deepspeech_wrap.cpp python/deepspeech.py
+	rm -f deepspeech setup.cfg python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
 
 deepspeech: client.cc
 	$(TOOLCHAIN)$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
@@ -63,12 +63,14 @@ install: deepspeech
 	install -d ${PREFIX}/lib
 	install -s -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow.so ${PREFIX}/lib/
 	install -s -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
+	install -s -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech_utils.so ${PREFIX}/lib/
 	install -d ${PREFIX}/bin
 	install -m 0755 deepspeech ${PREFIX}/bin/
 
 uninstall:
 	rm -f ${PREFIX}/bin/deepspeech
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/bin
+	rm -f ${PREFIX}/lib/libdeepspeech_utils.so
 	rm -f ${PREFIX}/lib/libdeepspeech.so
 	rm -f ${PREFIX}/lib/libtensorflow.so
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/lib
