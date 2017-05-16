@@ -10,7 +10,11 @@ if [ ! -f "data/ldc93s1/ldc93s1.csv" ]; then
     python -u bin/import_ldc93s1.py ./data/ldc93s1
 fi;
 
-checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/ldc93s1"))')
+if [ -d "${COMPUTE_KEEP_DIR}" ]; then
+    checkpoint_dir=$COMPUTE_KEEP_DIR
+else
+    checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/ldc93s1"))')
+fi
 
 python -u DeepSpeech.py \
   --train_files data/ldc93s1/ldc93s1.csv \

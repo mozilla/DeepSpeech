@@ -3,7 +3,7 @@
 *.swp
 *.DS_Store
 /werlog.js
-/data
+/runs
 /logs
 /exports
 /native_client/setup.cfg
