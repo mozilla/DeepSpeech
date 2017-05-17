@@ -1,4 +1,6 @@
 
+#include <float.h>
+
 /* #undef ENABLE_DOUBLE */
 
 #ifdef ENABLE_DOUBLE

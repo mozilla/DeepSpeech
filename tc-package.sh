@@ -10,7 +10,7 @@ tar -C ${HOME}/DeepSpeech/tf/bazel-bin/tensorflow/ \
 
 tar -C ${HOME}/DeepSpeech/tf/bazel-bin/native_client/ \
 	-uf /tmp/artifacts/native_client.tar \
-	libc_speech_features.so libkissfft.so libdeepspeech.so
+	libdeepspeech.so
 
 tar -C ${HOME}/DeepSpeech/ds/native_client/ \
 	-uf /tmp/artifacts/native_client.tar \

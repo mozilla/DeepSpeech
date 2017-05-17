@@ -1,4 +1,4 @@
-#include <float.h>
+#include <math.h>
 #include "c_speech_features.h"
 #include "tools/kiss_fftr.h"
 
@@ -13,7 +13,7 @@ csf_mfcc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
          int aCepLifter, int aAppendEnergy, csf_float* aWinFunc,
          csf_float** aMFCC)
 {
-  int i, j, k, idx, fidx;
+  int i, j, k, idx, fidx, didx;
   csf_float* feat;
   csf_float* energy;
 
@@ -21,21 +21,30 @@ csf_mfcc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
                               aNFilters, aNFFT, aLowFreq, aHighFreq, aPreemph,
                               aWinFunc, &feat, aAppendEnergy ? &energy : NULL);
 
+  // Allocate an array so we can calculate the inner loop multipliers
+  // in the DCT-II just one time.
+  double* dct2f = (double*)malloc(sizeof(double) * aNFilters * aNCep);
+
   // Perform DCT-II
   double sf1 = csf_sqrt(1 / (4 * (double)aNFilters));
   double sf2 = csf_sqrt(1 / (2 * (double)aNFilters));
   csf_float* mfcc = (csf_float*)malloc(sizeof(csf_float) * n_frames * aNCep);
   for (i = 0, idx = 0, fidx = 0; i < n_frames;
        i++, idx += aNCep, fidx += aNFilters) {
-    for (j = 0; j < aNCep; j++) {
+    for (j = 0, didx = 0; j < aNCep; j++) {
       double sum = 0.0;
-      for (k = 0; k < aNFilters; k++) {
-        sum += (double)feat[fidx+k] *
-          cos(M_PI * j * (2 * k + 1) / (double)(2 * aNFilters));
+      for (k = 0; k < aNFilters; k++, didx++) {
+        if (i == 0) {
+          dct2f[didx] = cos(M_PI * j * (2 * k + 1) / (double)(2 * aNFilters));
+        }
+        sum += (double)feat[fidx+k] * dct2f[didx];
       }
       mfcc[idx+j] = (csf_float)(sum * 2.0 * ((i == 0 && j == 0) ? sf1 : sf2));
     }
   }
+
+  // Free inner-loop multiplier cache
+  free(dct2f);
 
   // Free features array
   free(feat);
