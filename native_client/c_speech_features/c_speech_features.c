@@ -1,4 +1,4 @@
-#include <float.h>
+#include <math.h>
 #include "c_speech_features.h"
 #include "tools/kiss_fftr.h"
 

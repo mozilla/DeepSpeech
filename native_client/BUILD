@@ -22,9 +22,8 @@ cc_library(
                 "kiss_fft130"],
     deps = ["//tensorflow/core:core"],
 
-    # Note, we need gnu99 as opposed to c99 as the latter doesn't define M_PI
-    # Also, fma/avx/avx2 enable in gcc cause significant performance decreases in
+    # fma/avx/avx2 enabled in gcc cause significant performance decreases in
     # c_speech_features and so are force-disabled.
-    copts = ["-std=gnu99" ] + if_x86(["-mno-fma", "-mno-avx", "-mno-avx2"]),
+    copts = [] + if_x86(["-mno-fma", "-mno-avx", "-mno-avx2"]),
     nocopts = "(-fstack-protector|-fno-omit-frame-pointer)",
 )
