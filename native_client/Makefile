@@ -59,12 +59,16 @@ run: deepspeech
 debug: deepspeech
 	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} gdb --args ./deepspeech ${ARGS}
 
-install:
+install: deepspeech
 	install -d ${PREFIX}/lib
 	install -s -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow.so ${PREFIX}/lib/
 	install -s -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
+	install -d ${PREFIX}/bin
+	install -m 0755 deepspeech ${PREFIX}/bin/
 
 uninstall:
+	rm -f ${PREFIX}/bin/deepspeech
+	rmdir --ignore-fail-on-non-empty ${PREFIX}/bin
 	rm -f ${PREFIX}/lib/libdeepspeech.so
 	rm -f ${PREFIX}/lib/libtensorflow.so
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/lib
