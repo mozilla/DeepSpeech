@@ -24,7 +24,6 @@ from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
 from util.spell import correction
 from util.text import sparse_tensor_value_to_texts, wer
-from util.website import maybe_publish
 from xdg import BaseDirectory as xdg
 
 
@@ -107,8 +106,7 @@ tf.app.flags.DEFINE_boolean ('remove_export',    False,       'wether to remove 
 tf.app.flags.DEFINE_integer ('log_level',        1,           'log level for console logs - 0: INFO, 1: WARN, 2: ERROR, 3: FATAL')
 tf.app.flags.DEFINE_boolean ('log_traffic',      False,       'log cluster transaction and traffic information during debug logging')
 
-tf.app.flags.DEFINE_boolean ('publish_wer_log',  False,       'wether to publish the WER log')
-tf.app.flags.DEFINE_string  ('wer_log_file',     'werlog.js', 'log-file for keeping track of WER progress - if omitted, no log will be written')
+tf.app.flags.DEFINE_string  ('wer_log_pattern',  '',          'pattern for machine readable global logging of WER progress; has to contain %s, %s and %f for the set name, the date and the float respectively; example: "GLOBAL LOG: logwer(\'12ade231\', %s, %s, %f)" would result in some entry like "GLOBAL LOG: logwer(\'12ade231\', \'train\', \'2017-05-18T03:09:48-0700\', 0.05)"; if omitted, there will be no logging')
 
 tf.app.flags.DEFINE_boolean ('log_placement',    False,       'wether to log device placement of the operators to the console')
 tf.app.flags.DEFINE_integer ('report_count',     10,          'number of phrases with lowest WER (best matching) to print out during a WER report')
@@ -963,17 +961,10 @@ class Epoch(object):
                     self.samples.sort(key=lambda s: s.wer)
 
                     # Append WER to WER log file
-                    if len(FLAGS.wer_log_file) > 0:
-                        hash = get_git_revision_hash()
+                    if len(FLAGS.wer_log_pattern) > 0:
                         time = datetime.datetime.utcnow().isoformat()
-                        # Append to log file
-                        with open(FLAGS.wer_log_file, 'a') as wer_log_file:
-                            if wer_log_file.tell() > 0:
-                                wer_log_file.write('\n')
-                            wer_log_file.write('logwer("%s", "%s", "%s", %f)' % (hash, time, self.set_name, self.wer))
-                        # Publish to web server
-                        if FLAGS.publish_wer_log:
-                            maybe_publish()
+                        # Log WER progress
+                        print(FLAGS.wer_log_pattern % (time, self.set_name, self.wer))
 
             return True
         return False
