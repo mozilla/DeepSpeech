@@ -17,7 +17,7 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 ## Prerequisites
 
 * [Git Large File Storage](https://git-lfs.github.com/)
-* [TensorFlow 1.0 or above](https://www.tensorflow.org/install/)
+* [TensorFlow 1.0 or 1.1](https://www.tensorflow.org/install/)
 * [SciPy](https://scipy.org/install.html)
 * [PyXDG](https://pypi.python.org/pypi/pyxdg)
 * [python_speech_features](https://pypi.python.org/pypi/python_speech_features)
