@@ -1011,23 +1011,33 @@ class TrainingCoordinator(object):
                 self.wfile.write(data)
 
         def do_GET(self):
-            if self.path.startswith(PREFIX_NEXT_INDEX):
-                index = COORD.get_next_index(self.path[len(PREFIX_NEXT_INDEX):])
-                if index >= 0:
-                    self._send_answer(str(index))
-                    return
-            elif self.path.startswith(PREFIX_GET_JOB):
-                job = COORD.get_job(worker=int(self.path[len(PREFIX_GET_JOB):]))
-                if job:
-                    self._send_answer(pickle.dumps(job))
-                    return
-            self.send_response(404)
+            if COORD.started:
+                if self.path.startswith(PREFIX_NEXT_INDEX):
+                    index = COORD.get_next_index(self.path[len(PREFIX_NEXT_INDEX):])
+                    if index >= 0:
+                        self._send_answer(str(index))
+                        return
+                elif self.path.startswith(PREFIX_GET_JOB):
+                    job = COORD.get_job(worker=int(self.path[len(PREFIX_GET_JOB):]))
+                    if job:
+                        self._send_answer(pickle.dumps(job))
+                        return
+                self.send_response(404)
+            else:
+                self.send_response(202)
             self.end_headers()
 
         def do_POST(self):
-            src = self.rfile.read(int(self.headers['content-length']))
-            job = COORD.next_job(pickle.loads(src))
-            self._send_answer(pickle.dumps(job))
+            if COORD.started:
+                src = self.rfile.read(int(self.headers['content-length']))
+                job = COORD.next_job(pickle.loads(src))
+                if job:
+                    self._send_answer(pickle.dumps(job))
+                    return
+                self.send_response(404)
+            else:
+                self.send_response(202)
+            self.end_headers()
 
         def log_message(self, format, *args):
             '''Overriding base method to suppress web handler messages on stdout.
@@ -1043,6 +1053,7 @@ class TrainingCoordinator(object):
         '''
         self._init()
         self._lock = Lock()
+        self.started = False
         if is_chief:
             self._httpd = BaseHTTPServer.HTTPServer((FLAGS.coord_host, FLAGS.coord_port), TrainingCoordinator.TrainingCoordinationHandler)
 
@@ -1128,6 +1139,9 @@ class TrainingCoordinator(object):
 
             self._next_epoch()
 
+        # The coordinator is ready to serve
+        self.started = True
+
     def _next_epoch(self):
         # State-machine of the coodination process
 
@@ -1205,12 +1219,18 @@ class TrainingCoordinator(object):
             tries += 1
             try:
                 url = 'http://%s:%d%s' % (FLAGS.coord_host, FLAGS.coord_port, path)
+                log_traffic('Contacting coordinator - url: %s, tries: %d ...' % (url, tries-1))
                 res = urllib.request.urlopen(urllib.request.Request(url, data, { 'content-type': 'text/plain' }))
-                return res.read()
+                str = res.read()
+                status = res.getcode()
+                log_traffic('Coordinator responded - url: %s, status: %s' % (url, status))
+                if status == 200:
+                    return str
+                log_traffic('Problem reaching coordinator - url: %s, status: %d' % (url, status))
             except Exception as ex:
-                time.sleep(1)
-                log_traffic('Problem reaching coordinator %s: %r - trying another time...' % (url, ex))
+                log_traffic('Problem reaching coordinator - url: %s, exception: %r' % (url, ex))
                 pass
+            time.sleep(10)
         return default
 
     def get_next_index(self, set_name):
