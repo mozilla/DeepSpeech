@@ -846,7 +846,7 @@ class WorkerJob(object):
         self.samples = []
 
     def __str__(self):
-        return 'Job (id: %d, worker: %d, epoch: %d, set_name: %s)' % (self.id, self.worker, self.index, self.set_name)
+        return 'Job (ID: %d, worker: %d, epoch: %d, set_name: %s)' % (self.id, self.worker, self.index, self.set_name)
 
 class Epoch(object):
     '''Represents an epoch that should be executed by the Training Coordinator.
@@ -1069,7 +1069,7 @@ class TrainingCoordinator(object):
 
     def _log_all_jobs(self):
         '''Use this to debug-print epoch state'''
-        log_debug('Epochs - running: %d, done: %d' % (len(self._epochs_done), len(self._epochs_running)))
+        log_debug('Epochs - running: %d, done: %d' % (len(self._epochs_running), len(self._epochs_done)))
         for epoch in self._epochs_running:
             log_debug('       - running: ' + epoch.job_status())
 
@@ -1339,7 +1339,7 @@ class TrainingCoordinator(object):
                         log_info(epoch)
             else:
                 # There was no running epoch found for this job - this should never happen.
-                log_error('There is no running epoch of id %d for job with ID %d.' % (job.epoch_id, job.id))
+                log_error('There is no running epoch of ID %d for job with ID %d. This should never happen.' % (job.epoch_id, job.id))
             return self.get_job(job.worker)
 
         # We are a remote worker and have to hand over to the chief worker by HTTP
