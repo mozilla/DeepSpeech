@@ -10,7 +10,11 @@ set -e
 source /usr/local/tensorflow/bin/activate
 
 # the standard script to execute
-base_cmd="bin/run-wer-automation.sh"
+if [ -f ".run" ]; then
+  base_cmd="./.run"
+else
+  base_cmd="bin/run-wer-automation.sh"
+fi
 
 # reading the comma separated node list into array "nodes"
 IFS=',' read -r -a nodes <<< "$COMPUTE_NODES"
