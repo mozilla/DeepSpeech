@@ -27,7 +27,7 @@ python -u DeepSpeech.py \
   --train_files "$COMPUTE_DATA_DIR/ted-train.csv" \
   --dev_files "$COMPUTE_DATA_DIR/ted-dev.csv" \
   --test_files "$COMPUTE_DATA_DIR/ted-test.csv" \
-  --train_batch_size 10 \
+  --train_batch_size 16 \
   --dev_batch_size 8 \
   --test_batch_size 8 \
   --epoch 10 \
