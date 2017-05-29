@@ -617,27 +617,29 @@ def average_gradients(tower_gradients):
     # List of average gradients to return to the caller
     average_grads = []
 
-    # Loop over gradient/variable pairs from all towers
-    for grad_and_vars in zip(*tower_gradients):
-        # Introduce grads to store the gradients for the current variable
-        grads = []
+    # Run this on cpu_device to conserve GPU memory
+    with tf.device(cpu_device):
+        # Loop over gradient/variable pairs from all towers
+        for grad_and_vars in zip(*tower_gradients):
+            # Introduce grads to store the gradients for the current variable
+            grads = []
 
-        # Loop over the gradients for the current variable
-        for g, _ in grad_and_vars:
-            # Add 0 dimension to the gradients to represent the tower.
-            expanded_g = tf.expand_dims(g, 0)
-            # Append on a 'tower' dimension which we will average over below.
-            grads.append(expanded_g)
+            # Loop over the gradients for the current variable
+            for g, _ in grad_and_vars:
+                # Add 0 dimension to the gradients to represent the tower.
+                expanded_g = tf.expand_dims(g, 0)
+                # Append on a 'tower' dimension which we will average over below.
+                grads.append(expanded_g)
 
-        # Average over the 'tower' dimension
-        grad = tf.concat(grads, 0)
-        grad = tf.reduce_mean(grad, 0)
+            # Average over the 'tower' dimension
+            grad = tf.concat(grads, 0)
+            grad = tf.reduce_mean(grad, 0)
 
-        # Create a gradient/variable tuple for the current variable with its average gradient
-        grad_and_var = (grad, grad_and_vars[0][1])
+            # Create a gradient/variable tuple for the current variable with its average gradient
+            grad_and_var = (grad, grad_and_vars[0][1])
 
-        # Add the current tuple to average_grads
-        average_grads.append(grad_and_var)
+            # Add the current tuple to average_grads
+            average_grads.append(grad_and_var)
 
     # Return result to caller
     return average_grads
