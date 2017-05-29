@@ -1,10 +1,12 @@
 #!/bin/bash
 
 #SBATCH --job-name=__NAME__
-#SBATCH --output=output.txt
+#SBATCH --output=common.log
 #SBATCH --ntasks=__NODES__
 #SBATCH --nodes=__NODES__
 #SBATCH --gres=gpu:__GPUS__
+
+{
 
 PWD=`pwd`
 compute_cmd="/bin/bash .compute"
@@ -32,7 +34,7 @@ export COMPUTE_JOB_NUMBER=$SLURM_JOB_ID
 export COMPUTE_DATA_DIR=/data/shared
 export COMPUTE_RESULTS_DIR=$PWD/results
 export COMPUTE_KEEP_DIR=$COMPUTE_RESULTS_DIR/keep
-export COMPUTE_JOB_LOG="output.txt"
+export COMPUTE_JOB_LOG="common.log"
 export COMPUTE_GLOBAL_LOG="__GLOBAL_LOG__"
 
 for index in $(seq 0 $((COMPUTE_NODES_COUNT-1)));
@@ -52,3 +54,5 @@ do
   # in case of any sub-process failing, it will exit immediately
   wait -n || exit 1
 done
+
+} 2>&1 | ts "[%Y-%m-%d %H:%M:%.S] [common  ]" > common.log

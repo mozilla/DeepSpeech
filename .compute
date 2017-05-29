@@ -22,11 +22,15 @@ IFS=',' read -r -a nodes <<< "$COMPUTE_NODES"
 first=${nodes[0]}
 # hostname for debugging
 hostname=`hostname`
+# log timestamp prefix
+time_format='[%Y-%m-%d %H:%M:%.S]'
 
 if ((${#nodes[@]} == 1)); then
     # there is only one (this) node - so we are alone and we don't need a cluster definition
-    echo "[slurm   ] Starting single node process on $hostname ..."
-    $base_cmd --job_name localhost "$@"
+    echo "Starting single node process on $hostname ..."
+    logfile=../single.log
+    touch $logfile # guarantees existence for "tail -f *.log"
+    $base_cmd --job_name localhost "$@" 2>&1 | ts "$time_format [single  ]" >$logfile
 else
     # there is more than one node so we will build a cluster definition
 
@@ -50,7 +54,7 @@ else
     cluster="--coord_host $first --coord_port $coord_port --ps_hosts=$first:$ps_port --worker_hosts=$worker_hosts"
 
     # helpful for debugging potential networking issues
-    echo "[slurm   ] Starting allocated node no. $COMPUTE_NODE_INDEX on $hostname of cluster (coordinator: $first:$coord_port, ps: $first:$ps_port, workers: $worker_hosts) ..."
+    echo "Starting allocated node no. $COMPUTE_NODE_INDEX on $hostname of cluster (coordinator: $first:$coord_port, ps: $first:$ps_port, workers: $worker_hosts) ..."
 
     # starting the parameter server side by side with first worker on the first node;
     # so for the moment we only run one ps per allocation
@@ -58,9 +62,13 @@ else
         # CUDA_VISIBLE_DEVICES="" - as the parameter server does not require a GPU;
         # the GPU would be shared with the worker on the same machine;
         # it turned out that this would reduce available GPU memory for the worker by almost 50%
-        CUDA_VISIBLE_DEVICES="" $base_cmd $cluster --job_name ps --task_index 0 "$@" 2>&1 | sed 's/^/[ps     '"$COMPUTE_NODE_INDEX"'] /' &
+        logfile=../ps_$COMPUTE_NODE_INDEX.log
+        touch $logfile # guarantees existence for "tail -f *.log"
+        CUDA_VISIBLE_DEVICES="" $base_cmd $cluster --job_name ps --task_index 0 "$@" 2>&1 | ts "$time_format [ps     $COMPUTE_NODE_INDEX]" >$logfile &
     fi
 
     # starting the worker
-    $base_cmd $cluster --job_name worker --task_index $COMPUTE_NODE_INDEX "$@" 2>&1 | sed 's/^/[worker '"$COMPUTE_NODE_INDEX"'] /'
+    logfile=../worker_$COMPUTE_NODE_INDEX.log
+    touch $logfile # guarantees existence for "tail -f *.log"
+    $base_cmd $cluster --job_name worker --task_index $COMPUTE_NODE_INDEX "$@" 2>&1 | ts "$time_format [worker $COMPUTE_NODE_INDEX]" >$logfile
 fi
