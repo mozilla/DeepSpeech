@@ -392,7 +392,7 @@ def BiRNN(batch_x, seq_length, dropout, is_training, reuse):
         # 10 seconds * (1/0.01) time steps per second = 1000 time steps
         max_bn_steps = 1000
         # Three layers of GRU cells with 1024 nodes each
-        cell = BNGRUCell(n_hidden, is_training, max_bn_steps=max_bn_steps, decay=0.9)
+        cell = BNGRUCell(n_hidden, is_training, max_bn_steps=max_bn_steps, decay=FLAGS.decay)
         multi_cell = tf.contrib.rnn.MultiRNNCell([cell] * FLAGS.recurrent_layers)
         rnn_outputs, _ = tf.nn.dynamic_rnn(cell=multi_cell,
                                            inputs=layer_1,
