@@ -1586,16 +1586,16 @@ def export():
 
         # Run inference
 
-        # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
-        input_tensor = tf.placeholder(tf.float32, [None, None, n_input + 2*n_input*n_context], name='input_node')
+        # Input tensor will be of shape [batch_size, n_steps, n_input]
+        input_tensor = tf.placeholder(tf.float32, [None, None, n_input], name='input_node')
 
         seq_length = tf.placeholder(tf.int32, [None], name='input_lengths')
 
         # Calculate the logits of the batch using BiRNN
-        logits = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout)
+        logits, out_lengths = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout, tf.constant(False), False)
 
         # Beam search decode the batch
-        decoded, _ = tf.nn.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
+        decoded, _ = tf.nn.ctc_beam_search_decoder(logits, out_lengths, merge_repeated=False)
         decoded = tf.convert_to_tensor(
             [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
 
