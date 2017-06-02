@@ -8,6 +8,11 @@
 
 {
 
+set -o pipefail
+# force-killing all sub-processes on process exit, Ctrl-C, kill-signal
+# "trap - SIGTERM" hinders "kill" from being killed itself
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
 PWD=`pwd`
 compute_cmd="/bin/bash .compute"
 srun="srun --exclusive -N1 -n1"
@@ -50,9 +55,18 @@ done
 for index in $(seq 1 $COMPUTE_NODES_COUNT);
 do
   # "wait -n" waits for any sub-process to exit
-  # doing this count times will wait for all sub-processes to finish
-  # in case of any sub-process failing, it will exit immediately
-  wait -n || exit 1
+  # doing this COMPUTE_NODES_COUNT times will wait for all node sub-processes to finish
+  # in case of any node sub-process failing, it will exit immediately
+  wait -n
+  code=$?
+  if ((code > 0)); then
+    echo "One node failed with exit code $code."
+    exit $code
+  else
+    echo "One node succeeded."
+  fi
 done
+
+echo "Success. Quitting..."
 
 } 2>&1 | ts "[%Y-%m-%d %H:%M:%.S] [common  ]" > common.log

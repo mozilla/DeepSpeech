@@ -4,7 +4,7 @@
 # in our case we use the provided COMPUTE_* env variables
 # to construct a distributed TensorFlow cluster definition
 
-set -e
+set -o pipefail
 
 # activating standard TensorFlow Python virtual environment
 source /usr/local/tensorflow/bin/activate
@@ -24,13 +24,14 @@ first=${nodes[0]}
 hostname=`hostname`
 # log timestamp prefix
 time_format='[%Y-%m-%d %H:%M:%.S]'
+sub_processes=1
 
 if ((${#nodes[@]} == 1)); then
     # there is only one (this) node - so we are alone and we don't need a cluster definition
     echo "Starting single node process on $hostname ..."
     logfile=../single.log
     touch $logfile # guarantees existence for "tail -f *.log"
-    $base_cmd --job_name localhost "$@" 2>&1 | ts "$time_format [single  ]" >$logfile
+    $base_cmd --job_name localhost "$@" 2>&1 | ts "$time_format [single  ]" >$logfile &
 else
     # there is more than one node so we will build a cluster definition
 
@@ -62,6 +63,7 @@ else
         # CUDA_VISIBLE_DEVICES="" - as the parameter server does not require a GPU;
         # the GPU would be shared with the worker on the same machine;
         # it turned out that this would reduce available GPU memory for the worker by almost 50%
+        sub_processes=2
         logfile=../ps_$COMPUTE_NODE_INDEX.log
         touch $logfile # guarantees existence for "tail -f *.log"
         CUDA_VISIBLE_DEVICES="" $base_cmd $cluster --job_name ps --task_index 0 "$@" 2>&1 | ts "$time_format [ps     $COMPUTE_NODE_INDEX]" >$logfile &
@@ -70,5 +72,20 @@ else
     # starting the worker
     logfile=../worker_$COMPUTE_NODE_INDEX.log
     touch $logfile # guarantees existence for "tail -f *.log"
-    $base_cmd $cluster --job_name worker --task_index $COMPUTE_NODE_INDEX "$@" 2>&1 | ts "$time_format [worker $COMPUTE_NODE_INDEX]" >$logfile
+    $base_cmd $cluster --job_name worker --task_index $COMPUTE_NODE_INDEX "$@" 2>&1 | ts "$time_format [worker $COMPUTE_NODE_INDEX]" >$logfile &
 fi
+
+for index in $(seq 1 $sub_processes);
+do
+  # "wait -n" waits for any sub-process to exit
+  # doing this sub_processes times will wait for all sub-processes to finish
+  # in case of any sub-process failing, it will exit immediately
+  wait -n
+  code=$?
+  if ((code > 0)); then
+    echo "One compute process failed with exit code $code."
+    exit $code
+  else
+    echo "One compute process succeeded."
+  fi
+done
