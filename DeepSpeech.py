@@ -1024,9 +1024,9 @@ class TrainingCoordinator(object):
                     if job:
                         self._send_answer(pickle.dumps(job))
                         return
-                self.send_response(404)
+                self.send_response(204) # end of training
             else:
-                self.send_response(202)
+                self.send_response(202) # not ready yet
             self.end_headers()
 
         def do_POST(self):
@@ -1036,9 +1036,9 @@ class TrainingCoordinator(object):
                 if job:
                     self._send_answer(pickle.dumps(job))
                     return
-                self.send_response(404)
+                self.send_response(204) # end of training
             else:
-                self.send_response(202)
+                self.send_response(202) # not ready yet
             self.end_headers()
 
         def log_message(self, format, *args):
@@ -1203,14 +1203,15 @@ class TrainingCoordinator(object):
             self._thread.start()
             log_debug('Coordinator started.')
 
-    def stop(self):
+    def stop(self, wait_for_running_epochs=True):
         '''Stops Training Coordinator. If chief, it waits for all epochs to be
         'done' and then shuts down the web server.
         '''
         if is_chief:
-            while len(self._epochs_running) > 0:
-                log_traffic('Coordinator is waiting for epochs to finish...')
-                time.sleep(5)
+            if wait_for_running_epochs:
+                while len(self._epochs_running) > 0:
+                    log_traffic('Coordinator is waiting for epochs to finish...')
+                    time.sleep(5)
             log_debug('Stopping coordinator...')
             self._httpd.shutdown()
             log_debug('Coordinator stopped.')
@@ -1228,9 +1229,10 @@ class TrainingCoordinator(object):
                 log_traffic('Coordinator responded - url: %s, status: %s' % (url, status))
                 if status == 200:
                     return str
-                log_traffic('Problem reaching coordinator - url: %s, status: %d' % (url, status))
-            except Exception as ex:
-                log_traffic('Problem reaching coordinator - url: %s, exception: %r' % (url, ex))
+                if status == 204: # We use 204 (no content) to indicate end of training
+                    return default
+            except urllib.error.HTTPError as error:
+                log_traffic('Problem reaching coordinator - url: %s, HTTP code: %d' % (url, error.code))
                 pass
             time.sleep(10)
         return default
@@ -1350,6 +1352,16 @@ class TrainingCoordinator(object):
             result = pickle.loads(result)
         return result
 
+def send_token_to_ps(session, kill=False):
+    # Sending our token (the task_index as a debug opportunity) to each parameter server.
+    # kill switch tokens are negative and decremented by 1 to deal with task_index 0
+    token = -FLAGS.task_index-1 if kill else FLAGS.task_index
+    kind = 'kill switch' if kill else 'stop'
+    for index, enqueue in enumerate(done_enqueues):
+        log_debug('Sending %s token to ps %d...' % (kind, index))
+        session.run(enqueue, feed_dict={ token_placeholder: token })
+        log_debug('Sent %s token to ps %d.' % (kind, index))
+
 def train(server=None):
     r'''
     Trains the network on a given server of a cluster.
@@ -1409,20 +1421,17 @@ def train(server=None):
         '''
         def after_create_session(self, session, coord):
             log_debug('Starting queue runners...')
-            self.threads = switchable_data_set.start_queue_threads(session, coord)
+            switchable_data_set.start_queue_threads(session, coord)
             log_debug('Queue runners started.')
 
         def end(self, session):
             # Closing the data_set queues
             log_debug('Closing queues...')
             switchable_data_set.close_queue(session)
+            log_debug('Queues closed.')
 
-            # Sending our token (the task_index as a debug opportunity) to each parameter server.
-            for enqueue in done_enqueues:
-                log_debug('Sending stop token to ps...')
-                session.run(enqueue, feed_dict={ token_placeholder: FLAGS.task_index })
-                log_debug('Sent stop token to ps.')
-
+            # Telling the ps that we are done
+            send_token_to_ps(session)
 
     # Collecting the hooks
     hooks = [CoordHook()]
@@ -1445,82 +1454,95 @@ def train(server=None):
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=FLAGS.checkpoint_secs,
                                                config=session_config) as session:
+            try:
+                if is_chief:
+                    # Retrieving global_step from the (potentially restored) model
+                    feed_dict = {}
+                    switchable_data_set.set_data_set(feed_dict, data_sets.train)
+                    step = session.run(global_step, feed_dict=feed_dict)
+                    COORD.start_coordination(data_sets, step)
 
-            if is_chief:
-                # Retrieving global_step from the (potentially restored) model
-                feed_dict = {}
-                switchable_data_set.set_data_set(feed_dict, data_sets.train)
-                step = session.run(global_step, feed_dict=feed_dict)
-                COORD.start_coordination(data_sets, step)
+                # Get the first job
+                job = COORD.get_job()
 
-            # Get the first job
-            job = COORD.get_job()
+                while job and not session.should_stop():
+                    log_debug('Computing %s...' % str(job))
 
-            while job and not session.should_stop():
-                log_debug('Computing %s...' % str(job))
+                    # The feed_dict (mainly for switching between queues)
+                    feed_dict = {}
 
-                # The feed_dict (mainly for switching between queues)
-                feed_dict = {}
+                    # Sets the current data_set on SwitchableDataSet switchable_data_set
+                    # and the respective placeholder in feed_dict
+                    switchable_data_set.set_data_set(feed_dict, getattr(data_sets, job.set_name))
 
-                # Sets the current data_set on SwitchableDataSet switchable_data_set
-                # and the respective placeholder in feed_dict
-                switchable_data_set.set_data_set(feed_dict, getattr(data_sets, job.set_name))
+                    # Initialize loss aggregator
+                    total_loss = 0.0
 
-                # Initialize loss aggregator
-                total_loss = 0.0
+                    # Setting the training operation in case of training requested
+                    train_op = apply_gradient_op if job.set_name == 'train' else []
 
-                # Setting the training operation in case of training requested
-                train_op = apply_gradient_op if job.set_name == 'train' else []
-
-                # Requirements to display a WER report
-                if job.report:
-                    # Reset mean edit distance
-                    total_mean_edit_distance = 0.0
-                    # Create report results tuple
-                    report_results = ([],[],[],[])
-                    # Extend the session.run parameters
-                    report_params = [results_tuple, mean_edit_distance]
-                else:
-                    report_params = []
-
-                # So far the only extra parameter is the feed_dict
-                extra_params = { 'feed_dict': feed_dict }
-
-                # Loop over the batches
-                for job_step in range(job.steps):
-                    if session.should_stop():
-                        break
-
-                    log_debug('Starting batch...')
-                    # Compute the batch
-                    _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
-
-                    # Uncomment the next line for debugging race conditions / distributed TF
-                    log_debug('Finished batch step %d.' % current_step)
-
-                    # Add batch to loss
-                    total_loss += batch_loss
-
+                    # Requirements to display a WER report
                     if job.report:
-                        # Collect individual sample results
-                        collect_results(report_results, batch_report[0])
-                        # Add batch to total_mean_edit_distance
-                        total_mean_edit_distance += batch_report[1]
+                        # Reset mean edit distance
+                        total_mean_edit_distance = 0.0
+                        # Create report results tuple
+                        report_results = ([],[],[],[])
+                        # Extend the session.run parameters
+                        report_params = [results_tuple, mean_edit_distance]
+                    else:
+                        report_params = []
 
-                # Gathering job results
-                job.loss = total_loss / job.steps
-                if job.report:
-                    job.mean_edit_distance = total_mean_edit_distance / job.steps
-                    job.wer, job.samples = calculate_report(report_results)
+                    # So far the only extra parameter is the feed_dict
+                    extra_params = { 'feed_dict': feed_dict }
 
-                # Send the current job to coordinator and receive the next one
-                log_debug('Sending %s...' % str(job))
-                job = COORD.next_job(job)
+                    # Loop over the batches
+                    for job_step in range(job.steps):
+                        if session.should_stop():
+                            break
+
+                        log_debug('Starting batch...')
+                        # Compute the batch
+                        _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
+
+                        # Uncomment the next line for debugging race conditions / distributed TF
+                        log_debug('Finished batch step %d.' % current_step)
+
+                        # Add batch to loss
+                        total_loss += batch_loss
+
+                        if job.report:
+                            # Collect individual sample results
+                            collect_results(report_results, batch_report[0])
+                            # Add batch to total_mean_edit_distance
+                            total_mean_edit_distance += batch_report[1]
+
+                    # Gathering job results
+                    job.loss = total_loss / job.steps
+                    if job.report:
+                        job.mean_edit_distance = total_mean_edit_distance / job.steps
+                        job.wer, job.samples = calculate_report(report_results)
+
+                    # Send the current job to coordinator and receive the next one
+                    log_debug('Sending %s...' % str(job))
+                    job = COORD.next_job(job)
+            except Exception as e:
+                log_error(e)
+                # Calling all hook's end() methods to end blocking calls
+                for hook in hooks:
+                    hook.end(session)
+                # Only chief has a SyncReplicasOptimizer queue runner that needs to be stopped for unblocking process exit.
+                # A rather graceful way to do this is by stopping the ps.
+                # Only one party can send it w/o failing.
+                if is_chief:
+                    send_token_to_ps(session, kill=True)
+                sys.exit(1)
 
         log_debug('Session closed.')
+
     except tf.errors.InvalidArgumentError:
         log_error(sys.exc_info()[1])
         log_error("Provide a --checkpoint_dir argument to work with models of different shapes.")
+        sys.exit(1)
 
 
 def export():
@@ -1621,7 +1643,10 @@ def main(_) :
                     for worker in FLAGS.worker_hosts:
                         log_debug('Waiting for stop token...')
                         token = session.run(done_dequeues[FLAGS.task_index])
-                        log_debug('Got a stop token from worker %i' %token)
+                        if token < 0:
+                            log_debug('Got a kill switch token from worker %i.' % abs(token + 1))
+                            break
+                        log_debug('Got a stop token from worker %i.' % token)
                 log_debug('Session closed.')
             elif FLAGS.job_name == 'worker':
                 # We are a worker and therefore we have to do some work.

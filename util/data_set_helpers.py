@@ -141,9 +141,9 @@ class SwitchableDataSet(object):
         return batch_threads
 
     def close_queue(self, session):
-        session.run(self._close_op, feed_dict={ self._queue_selector: 0 })
         for s in self._sets:
             s.close_queue(session)
+        session.run(self._close_op, feed_dict={ self._queue_selector: 0 })
 
     def next_batch(self):
         source, source_lengths, target, target_lengths = self._queue.dequeue_many(self._data_set.batch_size)
