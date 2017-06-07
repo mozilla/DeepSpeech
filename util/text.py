@@ -183,6 +183,9 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
 # Validate and normalize transcriptions. Returns a cleaned version of the label
 # or None if it's invalid.
 def validate_label(label):
+    if label is None:
+        return None
+
     # For now we can only handle [a-z ']
     if "(" in label or \
                     "<" in label or \
@@ -194,6 +197,7 @@ def validate_label(label):
             re.search(r"[0-9]", label) != None:
         return None
 
+    label = ' '.join(label.split())
     label = label.replace("-", "")
     label = label.replace("_", "")
     label = label.replace(".", "")
