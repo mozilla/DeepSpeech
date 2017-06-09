@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
+# Prerequisite: Having the sph2pipe tool in your PATH:
+# https://www.ldc.upenn.edu/language-resources/tools/sphere-conversion-tools
+
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
 import sys
@@ -25,29 +28,30 @@ def _download_and_preprocess_data(data_dir):
     _maybe_convert_wav(data_dir, "LDC2005S13", "fisher-2005-wav")
 
     # Conditionally split Fisher wav data
-    _split_wav_and_sentences(data_dir,
+    all_2004 = _split_wav_and_sentences(data_dir,
                              original_data="fisher-2004-wav",
                              converted_data="fisher-2004-split-wav",
                              trans_data=os.path.join("LDC2004T19", "fe_03_p1_tran", "data", "trans"))
-    _split_wav_and_sentences(data_dir,
+    all_2005 = _split_wav_and_sentences(data_dir,
                              original_data="fisher-2005-wav",
                              converted_data="fisher-2005-split-wav",
                              trans_data=os.path.join("LDC2005T19", "fe_03_p2_tran", "data", "trans"))
 
-    # Conditionally split Fisher data into train/validation/test sets
-    train_2004, dev_2004, test_2004 = _split_sets(data_dir, "fisher-2004-split-wav", "fisher-2004-split-wav-sets")
-    train_2005, dev_2005, test_2005 = _split_sets(data_dir, "fisher-2005-split-wav", "fisher-2005-split-wav-sets")
-    
     # The following file has an incorrect transcript that is much longer than
     # the audio source. The result is that we end up with more labels than time
     # slices, which breaks CTC. We fix this directly since it's a single occurrence
     # in the entire corpus.
     problematic_file = "fe_03_00265-33.53-33.81.wav"
-    train_2004.loc[train_2004.loc[train_2004["wav_filename"] == problematic_file], "transcript"] = "correct"
+    all_2004.loc[all_2004["wav_filename"].map(lambda x: x.endswith(problematic_file)), "transcript"] = "correct"
 
+    # Conditionally split Fisher data into train/validation/test sets
+    train_2004, dev_2004, test_2004 = _split_sets(all_2004)
+    train_2005, dev_2005, test_2005 = _split_sets(all_2005)
+
+    # Join 2004 and 2005 data
     train_files = train_2004.append(train_2005)
     dev_files = dev_2004.append(dev_2005)
-    dev_files = dev_2004.append(dev_2005)
+    test_files = test_2004.append(test_2005)
 
     # Write sets to disk as CSV files
     train_files.to_csv(os.path.join(data_dir, "fisher-train.csv"), index=False)
@@ -108,6 +112,8 @@ def _split_wav_and_sentences(data_dir, trans_data, original_data, converted_data
     trans_dir = os.path.join(data_dir, trans_data)
     source_dir = os.path.join(data_dir, original_data)
     target_dir = os.path.join(data_dir, converted_data)
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
 
     files = []
 
@@ -171,9 +177,9 @@ def _split_sets(filelist):
     test_beg = dev_end
     test_end = len(filelist)
 
-    return filelist[train_beg:train_end],
-           filelist[dev_beg:dev_end],
-           filelist[test_beg:test_end]
+    return (filelist[train_beg:train_end],
+            filelist[dev_beg:dev_end],
+            filelist[test_beg:test_end])
 
 if __name__ == "__main__":
     _download_and_preprocess_data(sys.argv[1])
