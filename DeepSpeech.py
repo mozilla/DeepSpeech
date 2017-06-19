@@ -1493,7 +1493,7 @@ def train(server=None):
                         report_params = []
 
                     # So far the only extra parameter is the feed_dict
-                    extra_params = { 'feed_dict': feed_dict, 'restore_checkpoint_path': FLAGS.checkpoint_dir }
+                    extra_params = { 'feed_dict': feed_dict }
 
                     # Loop over the batches
                     for job_step in range(job.steps):
