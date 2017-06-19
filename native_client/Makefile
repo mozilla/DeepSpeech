@@ -31,7 +31,7 @@ endif
 
 OS := $(shell uname -s)
 CFLAGS  += -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_CFLAGS)
-LDFLAGS += -ltensorflow -ldeepspeech $(EXTRA_LDFLAGS)
+LDFLAGS += -ldeepspeech -ltensorflow $(EXTRA_LDFLAGS)
 
 META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
