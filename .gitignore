@@ -13,3 +13,6 @@
 /native_client/dist
 /native_client/python/deepspeech.py
 /native_client/python/deepspeech_wrap.cpp
+/native_client/data
+.idea
+.env
