@@ -16,5 +16,7 @@
 .idea
 .env
 /data/*.csv
+/data/*.tar.gz
+/data/*.tgz
 /data/ckpt
 /data/LibriSpeech
