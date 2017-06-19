@@ -1368,9 +1368,18 @@ def train(server=None):
     If no server provided, it performs single process training.
     '''
 
-    # Create a variable to hold the global_step.
-    # It will automgically get incremented by the optimizer.
-    global_step = tf.Variable(0, trainable=False, name='global_step')
+    # get the checkpoint if available and set the global set accordingly
+    ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+    # The correct value will be assigned with the restore.
+    # The global step variable used by the optimizer (in cifar10.train())
+    # and I assume by whatever is using the Saver object (and more?).
+    if ckpt and ckpt.model_checkpoint_path:
+        # This is only for the logger (e.g., it is not responsible for saving).
+        global_step_init = int(ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1])
+        global_step = tf.Variable(global_step_init, trainable=False, name='global_step')
+    else:
+        global_step = tf.Variable(0, trainable=False, name='global_step')
+
 
     # Read all data sets
     data_sets = read_data_sets(FLAGS.train_files.split(','),
@@ -1443,6 +1452,38 @@ def train(server=None):
     # Hook to save TensorBoard summaries
     if FLAGS.summary_secs > 0:
         hooks.append(tf.train.SummarySaverHook(save_secs=FLAGS.summary_secs, output_dir=FLAGS.summary_dir, summary_op=merge_all_summaries_op))
+
+    # reload the previous model if available
+    log_info('reloading existing model...')
+    with tf.device('/cpu:0'):
+        tf.reset_default_graph()
+        session = tf.Session(config=session_config)
+
+        # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
+        input_tensor = tf.placeholder(tf.float32, [None, None, n_input + 2*n_input*n_context], name='input_node')
+
+        seq_length = tf.placeholder(tf.int32, [None], name='input_lengths')
+
+        # Calculate the logits of the batch using BiRNN
+        logits = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout)
+
+        # Beam search decode the batch
+        decoded, _ = tf.nn.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
+        decoded = tf.convert_to_tensor(
+            [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
+
+        # TODO: Transform the decoded output to a string
+
+        # Create a saver and exporter using variables from the above newly created graph
+        saver = tf.train.Saver(tf.global_variables())
+        # model_exporter = exporter.Exporter(saver)
+
+        # Restore variables from training checkpoint
+        # TODO: This restores the most recent checkpoint, but if we use validation to counterract
+        #       over-fitting, we may want to restore an earlier checkpoint.
+        checkpoint_path = ckpt.model_checkpoint_path
+        saver.restore(session, checkpoint_path)
+        log_info('Restored checkpoint at training epoch %d' % (int(checkpoint_path.split('-')[-1]) + 1))
 
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done

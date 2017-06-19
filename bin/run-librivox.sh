@@ -20,7 +20,8 @@ fi;
 if [ -d "${COMPUTE_KEEP_DIR}" ]; then
     checkpoint_dir=$COMPUTE_KEEP_DIR
 else
-    checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/librivox"))')
+    checkpoint_dir=$(python -c 'import os; print(os.path.join(os.getcwd(), "native_client/data/ckpt"))')
+    #checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/librivox"))')
 fi
 
 python -u DeepSpeech.py \
