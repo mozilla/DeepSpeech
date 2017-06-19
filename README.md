@@ -36,6 +36,11 @@ brew link --overwrite git-lfs # to link it
 git lfs install # to activate it
 ```
 
+```bash
+sudo apt-get git-lfs # if you are using linux (or other package manager you may be using on linux)
+git lfs install # to activate it
+```
+
 then open a terminal and run:
 ```bash
 git clone https://github.com/mozilla/DeepSpeech
