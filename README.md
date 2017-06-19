@@ -2,6 +2,7 @@
 
 Project DeepSpeech is an open source Speech-To-Text engine that uses a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to facilitate implementation.
 
+
 # Training LibriSpeech
 I've added this section as a clear example of how to train and use LibriSpeech in DeepSpeech.  The original documentation follows after this section.
 
