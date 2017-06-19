@@ -16,3 +16,5 @@
 /native_client/data
 .idea
 .env
+/data/*.csv
+/data/LibriSpeech
