@@ -1459,7 +1459,7 @@ def train(server=None):
                     # Retrieving global_step from the (potentially restored) model
                     feed_dict = {}
                     switchable_data_set.set_data_set(feed_dict, data_sets.train)
-                    step = session.run(global_step, feed_dict=feed_dict,restore_checkpoint_path=FLAGS.checkpoint_dir)
+                    step = session.run(global_step, feed_dict=feed_dict)
                     COORD.start_coordination(data_sets, step)
 
                 # Get the first job
