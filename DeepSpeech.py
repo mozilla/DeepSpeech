@@ -26,6 +26,7 @@ from util.shared_lib import check_cupti
 from util.spell import correction
 from util.text import sparse_tensor_value_to_texts, wer
 from xdg import BaseDirectory as xdg
+import numpy as np
 
 
 # Importer
@@ -124,6 +125,12 @@ tf.app.flags.DEFINE_integer ('n_hidden',         2048,        'layer width to us
 
 tf.app.flags.DEFINE_integer ('random_seed',      4567,        'default random seed that is used to initialize variables')
 tf.app.flags.DEFINE_float   ('default_stddev',   0.046875,    'default standard deviation to use when initialising weights and biases')
+
+# Early Stopping
+tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset. Make sure that dev FLAG is enabled for this to work')
+tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps to consider for early stopping')
+tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
+tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
 
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
@@ -1068,6 +1075,7 @@ class TrainingCoordinator(object):
         self._epochs_running = []
         self._epochs_done = []
         self._reset_counters()
+	self._loss = []
 
     def _log_all_jobs(self):
         '''Use this to debug-print epoch state'''
@@ -1121,6 +1129,7 @@ class TrainingCoordinator(object):
             # We only have to train, if we are told so and are not at the target epoch yet
             self._train = FLAGS.train and self._target_epoch > self._epoch
             self._test = FLAGS.test
+            self._dev = FLAGS.dev
 
             if self._train:
                 # The total number of jobs for all additional epochs to be trained
@@ -1149,6 +1158,24 @@ class TrainingCoordinator(object):
 
         # Indicates, if there were 'new' epoch(s) provided
         result = False
+
+        if self._dev:
+            if FLAGS.early_stop is True and FLAGS.validation_step > 0:
+                #Check for early stopping condition
+                if(len(self._loss) >= FLAGS.earlystop_nsteps):
+	            mean_loss = np.mean(self._loss[-FLAGS.earlystop_nsteps:-2])
+	            std_loss = np.std(self._loss[-FLAGS.earlystop_nsteps:-2])
+                    self._loss = self._loss[-FLAGS.earlystop_nsteps:]
+                    log_debug("Current validation loss: %f, std_of_loss(n_step) :%f mean_loss(n_step): %f" % (self._loss[-1], std_loss, mean_loss))
+                    #Making sure slight fluctuations don't bother the early stopping from performing
+                    if self._loss[-1] > np.max(self._loss[:-2]) or (abs(self._loss[-1] - mean_loss) < FLAGS.estop_mean_thresh and std_loss < FLAGS.estop_std_thresh):
+		        #Time to early stop
+                        log_info("EarlyStopp triggered!!")
+                        self._end_training()
+                        self._train = False
+            else:
+                #Need to reset the loss from past nsteps
+                self._loss = []
 
         if self._train:
             # We are in train mode
@@ -1414,6 +1441,9 @@ def train(server=None):
     apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
 
+    if FLAGS.early_stop is True and not FLAGS.validation_step > 0:
+        log_warn('Validation flag needs to be enabled for Early Stopping to work')
+
     class CoordHook(tf.train.SessionRunHook):
         r'''
         Embedded coordination hook-class that will use variables of the
@@ -1521,6 +1551,10 @@ def train(server=None):
                     if job.report:
                         job.mean_edit_distance = total_mean_edit_distance / job.steps
                         job.wer, job.samples = calculate_report(report_results)
+
+                    # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
+		    if job.set_name == "dev":
+			COORD._loss.append(job.loss)
 
                     # Send the current job to coordinator and receive the next one
                     log_debug('Sending %s...' % str(job))
