@@ -127,7 +127,13 @@ tf.app.flags.DEFINE_integer ('random_seed',      4567,        'default random se
 tf.app.flags.DEFINE_float   ('default_stddev',   0.046875,    'default standard deviation to use when initialising weights and biases')
 
 # Early Stopping
+
 tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset. Make sure that dev FLAG is enabled for this to work')
+
+# This parameter is irrespective of the time taken by single epoch to complete and checkpoint saving intervals.
+# It is possible that early stopping is triggered far after the best checkpoint is already replaced by checkpoint saving interval mechanism.
+# One has to align the parameters (earlystop_nsteps, checkpoint_secs) accordingly as per the time taken by an epoch on different datasets.
+
 tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps to consider for early stopping')
 tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
 tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
@@ -1075,7 +1081,10 @@ class TrainingCoordinator(object):
         self._epochs_running = []
         self._epochs_done = []
         self._reset_counters()
-	self._loss = []
+        self._loss = []
+
+        # By default it should be disabled. Enabled by Validation part in the state machine
+        self._dev = False
 
     def _log_all_jobs(self):
         '''Use this to debug-print epoch state'''
@@ -1129,7 +1138,6 @@ class TrainingCoordinator(object):
             # We only have to train, if we are told so and are not at the target epoch yet
             self._train = FLAGS.train and self._target_epoch > self._epoch
             self._test = FLAGS.test
-            self._dev = FLAGS.dev
 
             if self._train:
                 # The total number of jobs for all additional epochs to be trained
@@ -1159,23 +1167,32 @@ class TrainingCoordinator(object):
         # Indicates, if there were 'new' epoch(s) provided
         result = False
 
+        # Check if the flag is enabled to decide for early stopping
         if self._dev:
+            #Make sure that early stop is enabled and validation part is enabled
             if FLAGS.early_stop is True and FLAGS.validation_step > 0:
+
                 #Check for early stopping condition
                 if(len(self._loss) >= FLAGS.earlystop_nsteps):
-	            mean_loss = np.mean(self._loss[-FLAGS.earlystop_nsteps:-2])
-	            std_loss = np.std(self._loss[-FLAGS.earlystop_nsteps:-2])
+
+                    # Calculate the mean of losses for past epochs
+                    mean_loss = np.mean(self._loss[-FLAGS.earlystop_nsteps:-2])
+                    # Calculate the standard deviation for losses from validation part in the past epochs
+                    std_loss = np.std(self._loss[-FLAGS.earlystop_nsteps:-2])
+                    # Update the list of losses incurred
                     self._loss = self._loss[-FLAGS.earlystop_nsteps:]
-                    log_debug("Current validation loss: %f, std_of_loss(n_step) :%f mean_loss(n_step): %f" % (self._loss[-1], std_loss, mean_loss))
+                    log_debug('Current validation loss: %f, std_of_loss(n_step) :%f mean_loss(n_step): %f' % (self._loss[-1], std_loss, mean_loss))
+
                     #Making sure slight fluctuations don't bother the early stopping from performing
                     if self._loss[-1] > np.max(self._loss[:-2]) or (abs(self._loss[-1] - mean_loss) < FLAGS.estop_mean_thresh and std_loss < FLAGS.estop_std_thresh):
-		        #Time to early stop
-                        log_info("EarlyStopp triggered!!")
-                        self._end_training()
-                        self._train = False
+                        #Time to early stop
+                        log_info('EarlyStopp triggered!!')
             else:
                 #Need to reset the loss from past nsteps
                 self._loss = []
+
+            # Should be enabled only by validation part for next epochs
+            self._dev = False
 
         if self._train:
             # We are in train mode
@@ -1195,6 +1212,10 @@ class TrainingCoordinator(object):
                 if FLAGS.validation_step > 0 and (FLAGS.validation_step == 1 or self._epoch > 0) and self._epoch % FLAGS.validation_step == 0:
                     # The current epoch should also have a validation part
                     self._epochs_running.append(Epoch(self._epoch, self._num_jobs_dev, set_name='dev', report=is_display_step))
+
+                    # State Machine flag for decision making regarding early stopping in next epoch function call
+                    self._dev = True
+
 
                 # Indicating that there were 'new' epoch(s) provided
                 result = True
@@ -1553,8 +1574,8 @@ def train(server=None):
                         job.wer, job.samples = calculate_report(report_results)
 
                     # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
-		    if job.set_name == "dev":
-			COORD._loss.append(job.loss)
+		    if job.set_name == 'dev':
+                        COORD._loss.append(job.loss)
 
                     # Send the current job to coordinator and receive the next one
                     log_debug('Sending %s...' % str(job))
