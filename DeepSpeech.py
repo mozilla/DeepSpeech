@@ -1134,6 +1134,7 @@ class TrainingCoordinator(object):
             log_debug('epoch: %d' % self._epoch)
             log_debug('target epoch: %d' % self._target_epoch)
             log_debug('steps per epoch: %d' % steps_per_epoch)
+            log_debug('number of batches in train set: %d' % data_sets.train.total_batches)
             log_debug('batches per job: %d' % batches_per_job)
             log_debug('batches per step: %d' % batches_per_step)
             log_debug('number of jobs in train set: %d' % self._num_jobs_train)
@@ -1251,9 +1252,7 @@ class TrainingCoordinator(object):
             if is_chief:
                 member = '_index_' + set_name
                 value = getattr(self, member, -1)
-                if value >= 0:
-                    value += 1
-                    setattr(self, member, value)
+                setattr(self, member, value + 1)
                 return value
             else:
                 # We are a remote worker and have to hand over to the chief worker by HTTP
