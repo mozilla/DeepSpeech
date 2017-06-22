@@ -17,6 +17,7 @@ import pandas
 import subprocess
 import unicodedata
 import wave
+import audioop
 
 from util.text import validate_label
 
@@ -140,7 +141,7 @@ def _split_wav_and_sentences(data_dir, trans_data, original_data, converted_data
                 new_wav_file = os.path.join(target_dir, new_wav_filename)
 
                 channel = 0 if segment["speaker"] == "A:" else 1
-                _split_wav(origAudios[channel], start_time, stop_time, new_wav_file)
+                _split_and_resample_wav(origAudios[channel], start_time, stop_time, new_wav_file)
 
                 new_wav_filesize = os.path.getsize(new_wav_file)
                 transcript = validate_label(segment["transcript"])
@@ -153,14 +154,18 @@ def _split_wav_and_sentences(data_dir, trans_data, original_data, converted_data
 
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 
-def _split_wav(origAudio, start_time, stop_time, new_wav_file):
+def _split_and_resample_wav(origAudio, start_time, stop_time, new_wav_file):
+    nChannels = origAudio.getnchannels()
+    sampleWidth = origAudio.getsampwidth()
     frameRate = origAudio.getframerate()
-    origAudio.setpos(int(start_time*frameRate))
-    chunkData = origAudio.readframes(int((stop_time - start_time)*frameRate))
+    origAudio.setpos(int(start_time * frameRate))
+    chunkData = origAudio.readframes(int((stop_time - start_time) * frameRate))
+    # by doubling the frame-rate we effectively go from 8 kHz to 16 kHz
+    chunkData, _ = audioop.ratecv(chunkData, sampleWidth, nChannels, frameRate, 2 * frameRate, None)
     chunkAudio = wave.open(new_wav_file, "w")
-    chunkAudio.setnchannels(origAudio.getnchannels())
-    chunkAudio.setsampwidth(origAudio.getsampwidth())
-    chunkAudio.setframerate(frameRate)
+    chunkAudio.setnchannels(nChannels)
+    chunkAudio.setsampwidth(sampleWidth)
+    chunkAudio.setframerate(2 * frameRate)
     chunkAudio.writeframes(chunkData)
     chunkAudio.close()
 
