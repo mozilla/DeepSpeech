@@ -38,12 +38,15 @@ def _download_and_preprocess_data(data_dir):
                              converted_data="fisher-2005-split-wav",
                              trans_data=os.path.join("LDC2005T19", "fe_03_p2_tran", "data", "trans"))
 
-    # The following file has an incorrect transcript that is much longer than
-    # the audio source. The result is that we end up with more labels than time
-    # slices, which breaks CTC. We fix this directly since it's a single occurrence
-    # in the entire corpus.
-    problematic_file = "fe_03_00265-33.53-33.81.wav"
-    all_2004.loc[all_2004["wav_filename"].map(lambda x: x.endswith(problematic_file)), "transcript"] = "correct"
+    # The following files have incorrect transcripts that are much longer than
+    # their audio source. The result is that we end up with more labels than time
+    # slices, which breaks CTC.
+    all_2004.loc[all_2004["wav_filename"].str.endswidth("fe_03_00265-33.53-33.81.wav"), "transcript"] = "correct"
+    all_2005.loc[all_2005["wav_filename"].str.endswidth("fe_03_10282-344.42-344.84.wav"), "transcript"] = "they don't want"
+
+    # The following file is far too long and would ruin our training batch size.
+    # So we just exclude it.
+    all_2005 = all_2005[~all_2005["wav_filename"].str.endswith("fe_03_11487-31.09-234.06.wav")]
 
     # Conditionally split Fisher data into train/validation/test sets
     train_2004, dev_2004, test_2004 = _split_sets(all_2004)
