@@ -1165,26 +1165,23 @@ class TrainingCoordinator(object):
         result = False
 
         # Make sure that early stop is enabled and validation part is enabled
-        if FLAGS.early_stop is True and FLAGS.validation_step > 0:
+        if (FLAGS.early_stop is True) and (FLAGS.validation_step > 0) and (len(self._dev_losses) >= FLAGS.earlystop_nsteps):
 
-            # Check for early stopping condition
-            if(len(self._dev_losses) >= FLAGS.earlystop_nsteps):
+            # Calculate the mean of losses for past epochs
+            mean_loss = np.mean(self._dev_losses[-FLAGS.earlystop_nsteps:-2])
+            # Calculate the standard deviation for losses from validation part in the past epochs
+            std_loss = np.std(self._dev_losses[-FLAGS.earlystop_nsteps:-2])
+            # Update the list of losses incurred
+            self._dev_losses = self._dev_losses[-FLAGS.earlystop_nsteps:]
+            log_debug('Current validation loss: %f, std_of_loss(n_step) :%f mean_loss(n_step): %f' % (self._dev_losses[-1], std_loss, mean_loss))
 
-                # Calculate the mean of losses for past epochs
-                mean_loss = np.mean(self._dev_losses[-FLAGS.earlystop_nsteps:-2])
-                # Calculate the standard deviation for losses from validation part in the past epochs
-                std_loss = np.std(self._dev_losses[-FLAGS.earlystop_nsteps:-2])
-                # Update the list of losses incurred
-                self._dev_losses = self._dev_losses[-FLAGS.earlystop_nsteps:]
-                log_debug('Current validation loss: %f, std_of_loss(n_step) :%f mean_loss(n_step): %f' % (self._dev_losses[-1], std_loss, mean_loss))
-
-                # Making sure slight fluctuations don't bother the early stopping from performing
-                if self._dev_losses[-1] > np.max(self._dev_losses[:-2]) or (abs(self._dev_losses[-1] - mean_loss) < FLAGS.estop_mean_thresh and std_loss < FLAGS.estop_std_thresh):
-                    # Time to early stop
-                    log_info('EarlyStop triggered!!')
-                    self._dev_losses = []
-                    self._end_training()
-                    self._train = False
+            # Making sure slight fluctuations don't bother the early stopping from performing
+            if self._dev_losses[-1] > np.max(self._dev_losses[:-2]) or (abs(self._dev_losses[-1] - mean_loss) < FLAGS.estop_mean_thresh and std_loss < FLAGS.estop_std_thresh):
+                # Time to early stop
+                log_info('Early stop triggered!! Validation_loss:%f std_of_loss(n_step) :%f mean_loss(n_step): %f' % ((self._dev_losses[-1], std_loss, mean_loss)))
+                self._dev_losses = []
+                self._end_training()
+                self._train = False
 
         if self._train:
             # We are in train mode
