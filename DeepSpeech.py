@@ -1560,7 +1560,7 @@ def train(server=None):
                         job.wer, job.samples = calculate_report(report_results)
 
                     # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
-		    if (job.set_name == 'dev') and (FLAGS.early_stop is True):
+                    if (job.set_name == 'dev') and (FLAGS.early_stop is True):
                         COORD._dev_losses.append(job.loss)
 
                     # Send the current job to coordinator and receive the next one
