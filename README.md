@@ -27,7 +27,21 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 
 ## Install
 
-Manually install [Git Large File Storage](https://git-lfs.github.com/), then open a terminal and run:
+Manually install [Git Large File Storage](https://git-lfs.github.com/). 
+
+to do so, please install it using your favourite package manager, and then run
+```bash
+brew install git-lfs # if you are using macosx
+brew link --overwrite git-lfs # to link it
+git lfs install # to activate it
+```
+
+```bash
+sudo apt-get git-lfs # linux -> package manager may vary for each distro
+git lfs install # to activate it
+```
+
+then open a terminal and run:
 ```bash
 git clone https://github.com/mozilla/DeepSpeech
 cd DeepSpeech
