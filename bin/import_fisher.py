@@ -41,8 +41,8 @@ def _download_and_preprocess_data(data_dir):
     # The following files have incorrect transcripts that are much longer than
     # their audio source. The result is that we end up with more labels than time
     # slices, which breaks CTC.
-    all_2004.loc[all_2004["wav_filename"].str.endswidth("fe_03_00265-33.53-33.81.wav"), "transcript"] = "correct"
-    all_2005.loc[all_2005["wav_filename"].str.endswidth("fe_03_10282-344.42-344.84.wav"), "transcript"] = "they don't want"
+    all_2004.loc[all_2004["wav_filename"].str.endswith("fe_03_00265-33.53-33.81.wav"), "transcript"] = "correct"
+    all_2005.loc[all_2005["wav_filename"].str.endswith("fe_03_10282-344.42-344.84.wav"), "transcript"] = "they don't want"
 
     # The following file is far too long and would ruin our training batch size.
     # So we just exclude it.
