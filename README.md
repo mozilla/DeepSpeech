@@ -1,3 +1,111 @@
+# Project DeepSpeech
+
+Project DeepSpeech is an open source Speech-To-Text engine that uses a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to facilitate implementation.
+
+
+# Training LibriSpeech
+I've added this section as a clear example of how to train and use LibriSpeech in DeepSpeech.  The original documentation follows after this section.
+
+## Setting up LibriSpeech
+If you already have the files copy them to `data/`, if not `import_librivox.py` below will download them in any case.
+```
+# these are the LibriSpeech files you need
+dev-clean.tar.gz
+dev-other.tar.gz
+test-clean.tar.gz
+test-other.tar.gz
+train-clean-100.tar.gz
+train-clean-360.tar.gz
+train-other-500.tar.gz
+```
+Setup a virtualenv as you might normally, I prefer using the Python 3.6, but 3.5 will do.
+```
+cd DeepSpeech
+virtualenv -p /usr/bin/python3.6 .env
+. .env/bin/activate
+pip install -r requirements.txt
+# if you're using a GPU, afterwards just execute
+pip install tensorflow-gpu==1.1.0
+```
+Run the converter on the LibriSpeech set (this takes a long time as there are ~ 290K files)
+I've modified `bin/import-librivox.sh` to use ffmpeg as the sox transformer doesn't seem to support flac on Ubuntu 16.04.
+```
+./bin/import_librivox.py data/
+```
+
+## Training with LibriSpeech
+I've modified the checkpoint tensorflow directory default to go into ./data/ckpt
+```
+mkdir data/ckpt
+nohup ./bin/run-librivox.sh &
+```
+After which you'll probably want to run tensorboard to keep an eye on it.
+Tensorboard's default port is 6006 on your machine.
+you'll want to keep an eye on the `global_set` SCALAR to view progress in your browser.
+```
+tensorboard --logdir=/path/to/repo/data/ckpt
+# you can now browse hostname:6006 on this machine - wait 10 minutes for the first checkpoint
+```
+
+## Converting a checkpoint to a binary graph for use with the native client
+In order to use any of the checkpoint files in the data/ckpt folder you'll need to convert them.
+This is part of the DeepSpeech.py program, but I've simplified this code and you can execute `export_graph.py` 
+to create a new binary graph using the latest checkpoint.
+The longer you let the system run, the better your model.  DeepSpeech creates a new model every 10 minutes by default.
+I'd recommend several days of training on a single GPU/CPU machine before using any model.
+```
+./export_graph.py --checkpoint_dir data/ckpt --export_dir /some/folder/for/the/new/graph
+```
+
+## Building the native client (and Tensorflow 1.1.0)
+The native client requires tensorflow to compile, which in turn requires bazel.  
+The following instructions work for Ubuntu 16.04.
+
+### Install bazel
+```
+echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+sudo apt-get update && sudo apt-get install bazel
+```
+### Setup tensorflow version 1.1.0
+The DeepSpeech code has been setup to have TensorFlow up one directory from it and puts its own little hooks inside Tensorflow.
+I recommend you use all the defaults for `./configure`, from inside the virtualenv you've created above.
+So if you're inside the DeepSpeech repo, go:
+```
+cd ..
+git clone git@github.com:tensorflow/tensorflow.git
+git checkout v1.1.0
+./configure
+# link the native client into TF
+ln -s ../DeepSpeech/native_client ./
+# and finally build TF and the native client
+bazel build -c opt --copt=-march=native --copt=-mtune=native --copt=-O3
+```
+
+### Build the native client after setting up Tensorflow
+Execute the make file for the native client
+```
+cd DeepSpeech/native_client
+make deepspeech
+# install the native client into your Linux system
+sudo make install
+# update the linkages
+sudo ldconfig
+```
+
+### Using the native client
+Now that you've build the native client you can use it as follows.
+First you need to convert your sound file to 16KHz mono using ffmpeg as follows:
+```
+ffmpeg -i any_sound_file.mp3 -acodec pcm_s16le -ac 1 -ar 16000 deep_speech_input.wav
+```
+Finally, you can convert your sound file to text (from anywhere in your system since you installed it OS wide),
+this requires the previously generated binary protocol-buffer graph-file [See Converting a checkpoint to a binary graph for use with the native client](#converting-a-checkpoint-to-a-binary-graph-for-use-with-the-native-client)
+```
+# outputs the text to stdout using DeepSpeech
+deepspeech /path/to/graph/output_graph.pb /path/to/deep_speech_input.wav
+```
+
 # Project DeepSpeech [![Documentation Status](https://readthedocs.org/projects/deepspeech/badge/?version=latest)](http://deepspeech.readthedocs.io/en/latest/?badge=latest)
 
 Project DeepSpeech is an open source Speech-To-Text engine that uses a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to facilitate implementation.

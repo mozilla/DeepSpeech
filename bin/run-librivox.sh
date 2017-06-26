@@ -20,16 +20,17 @@ fi;
 if [ -d "${COMPUTE_KEEP_DIR}" ]; then
     checkpoint_dir=$COMPUTE_KEEP_DIR
 else
-    checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/librivox"))')
+    checkpoint_dir=$(python -c 'import os; print(os.path.join(os.getcwd(), "data/ckpt"))')
+    #checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/librivox"))')
 fi
 
 python -u DeepSpeech.py \
   --train_files "$COMPUTE_DATA_DIR/librivox-train-clean-100.csv,$COMPUTE_DATA_DIR/librivox-train-clean-360.csv,$COMPUTE_DATA_DIR/librivox-train-other-500.csv" \
   --dev_files "$COMPUTE_DATA_DIR/librivox-dev-clean.csv,$COMPUTE_DATA_DIR/librivox-dev-other.csv" \
   --test_files "$COMPUTE_DATA_DIR/librivox-test-clean.csv,$COMPUTE_DATA_DIR/librivox-test-other.csv" \
-  --train_batch_size 12 \
-  --dev_batch_size 12 \
-  --test_batch_size 12 \
+  --train_batch_size 6 \
+  --dev_batch_size 6 \
+  --test_batch_size 6 \
   --learning_rate 0.0001 \
   --epoch 15 \
   --display_step 5 \
