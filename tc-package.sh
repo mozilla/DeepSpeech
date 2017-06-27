@@ -17,5 +17,9 @@ tar -C ${HOME}/DeepSpeech/ds/native_client/ \
 	-uf /tmp/artifacts/native_client.tar \
 	deepspeech
 
+if [ -d ${HOME}/DeepSpeech/ds/native_client/dist ]; then
+  cp ${HOME}/DeepSpeech/ds/native_client/dist/* /tmp/artifacts/
+fi
+
 pixz -9 /tmp/artifacts/native_client.tar /tmp/artifacts/native_client.tar.xz
 rm /tmp/artifacts/native_client.tar

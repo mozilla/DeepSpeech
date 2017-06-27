@@ -42,15 +42,12 @@ default: deepspeech
 
 clean:
 	rm -rf build dist deepspeech.egg-info
-	rm -f deepspeech setup.cfg python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
+	rm -f deepspeech python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
 
 deepspeech: client.cc
 	$(TOOLCHAIN)$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
 
-setup.cfg: setup.cfg.in
-	sed -e 's:@LIBDIRS@:${TFDIR}/bazel-bin/tensorflow\:${TFDIR}/bazel-bin/native_client:g' setup.cfg.in > setup.cfg
-
-bindings: setup.cfg
+bindings:
 	python ./setup.py bdist_wheel
 
 run: deepspeech

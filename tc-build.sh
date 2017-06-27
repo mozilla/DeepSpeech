@@ -4,6 +4,7 @@ set -xe
 
 source ${HOME}/DeepSpeech/tf/tc-vars.sh
 
+DS_TFDIR=${HOME}/DeepSpeech/tf
 EXTRA_CUDA_CFLAGS=
 EXTRA_CUDA_LDFLAGS=
 
@@ -25,6 +26,7 @@ if [ "$1" != "--gpu" -a "$1" != "--arm" ]; then
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
     BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS}"
     SYSTEM_TARGET=host
+    MAKE_BINDINGS=1
 fi
 
 cd ~/DeepSpeech/tf
@@ -36,8 +38,14 @@ PATH=${HOME}/bin/:$PATH bazel \
 cd ~/DeepSpeech/ds/
 make -C native_client/ \
 	TARGET=${SYSTEM_TARGET} \
-	TFDIR=${HOME}/DeepSpeech/tf \
+	TFDIR=${DS_TFDIR} \
 	RASPBIAN=/tmp/multistrap-raspbian-jessie \
 	EXTRA_CFLAGS=${EXTRA_CUDA_CFLAGS} \
 	EXTRA_LDFLAGS=${EXTRA_CUDA_LDFLAGS} \
 	deepspeech
+
+if [ ${MAKE_BINDINGS} ]; then
+    cd native_client
+    CFLAGS="-L${DS_TFDIR}/bazel-bin/tensorflow -L${DS_TFDIR}/bazel-bin/native_client" python ./setup.py bdist_wheel
+    cd ..
+fi
