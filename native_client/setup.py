@@ -21,7 +21,7 @@ class BuildExtFirst(build):
 model = Extension('_model',
         ['python/model.i'],
         include_dirs = [numpy_include],
-        libraries = ['tensorflow', 'deepspeech', 'deepspeech_utils'])
+        libraries = ['tensorflow_cc', 'deepspeech', 'deepspeech_utils'])
 
 utils = Extension('_utils',
         ['python/utils.i'],

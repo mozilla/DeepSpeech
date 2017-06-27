@@ -6,7 +6,7 @@ mkdir -p /tmp/artifacts
 
 tar -C ${HOME}/DeepSpeech/tf/bazel-bin/tensorflow/ \
 	-cf /tmp/artifacts/native_client.tar \
-	libtensorflow.so
+	libtensorflow_cc.so
 
 tar -C ${HOME}/DeepSpeech/tf/bazel-bin/native_client/ \
 	-uf /tmp/artifacts/native_client.tar \
