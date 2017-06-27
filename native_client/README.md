@@ -23,7 +23,7 @@ Before building the DeepSpeech client libraries, you will need to prepare your e
 Then you can build the Tensorflow and DeepSpeech libraries.
 
 ```
-bazel build -c opt --copt=-march=native --copt=-mtune=native --copt=-O3 //tensorflow:libtensorflow.so //native_client:deepspeech
+bazel build -c opt --copt=-march=native --copt=-mtune=native --copt=-O3 //tensorflow:libtensorflow.so //native_client:*
 ```
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
@@ -32,6 +32,16 @@ Finally, you can change to the `native_client` directory and use the `Makefile`.
 cd ../DeepSpeech/native_client
 make deepspeech
 ```
+
+## Installing
+
+After building, the library files and binary can optionally be installed to a system path for ease of development. This is also a required step for bindings generation.
+
+```
+PREFIX=/usr/local sudo make install
+```
+
+It is assumed that `$PREFIX/lib` is a valid library path, otherwise you may need to alter your environment.
 
 ## Running
 
@@ -43,12 +53,11 @@ ARGS="/path/to/output_graph.pb /path/to/audio/file.ogg" make run
 
 ## Python bindings
 
-Included are a set of generated Python bindings. After following the above build instructions, these can be installed by executing the following commands (or equivalent on your system):
+Included are a set of generated Python bindings. After following the above build and installation instructions, these can be installed by executing the following commands (or equivalent on your system):
 
 ```
-PREFIX=/usr/local sudo make install
 make bindings
 sudo pip install dist/deepspeech*
 ```
 
-It is assumed that `$PREFIX/lib` exists in the library path, otherwise you may need to alter your environment. The API mirrors the C++ API and is demonstrated in [client.py](client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
+The API mirrors the C++ API and is demonstrated in [client.py](client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.

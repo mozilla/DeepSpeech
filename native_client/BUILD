@@ -3,16 +3,24 @@
 load("//tensorflow:tensorflow.bzl",
      "if_x86")
 
-# We have a single rule here as Bazel doesn't support static linking in
-# library targets.
-
 cc_library(
     name = "deepspeech",
-    srcs = ["deepspeech.cc",
+    srcs = ["deepspeech.cc"],
+    hdrs = ["deepspeech.h"],
+    deps = ["//tensorflow/core:core",
+            ":deepspeech_utils"],
+)
+
+# We have a single rule including c_speech_features and kissfft here as Bazel
+# doesn't support static linking in library targets.
+
+cc_library(
+    name = "deepspeech_utils",
+    srcs = ["deepspeech_utils.cc",
             "c_speech_features/c_speech_features.c",
             "kiss_fft130/kiss_fft.c",
             "kiss_fft130/tools/kiss_fftr.c"],
-    hdrs = ["deepspeech.h",
+    hdrs = ["deepspeech_utils.h",
             "c_speech_features/c_speech_features.h",
             "c_speech_features/c_speech_features_config.h",
             "kiss_fft130/kiss_fft.h",
@@ -20,7 +28,6 @@ cc_library(
             "kiss_fft130/tools/kiss_fftr.h"],
     includes = ["c_speech_features",
                 "kiss_fft130"],
-    deps = ["//tensorflow/core:core"],
 
     # fma/avx/avx2 enabled in gcc cause significant performance decreases in
     # c_speech_features and so are force-disabled.

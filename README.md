@@ -20,12 +20,33 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 * [TensorFlow 1.0 or 1.1](https://www.tensorflow.org/install/)
 * [SciPy](https://scipy.org/install.html)
 * [PyXDG](https://pypi.python.org/pypi/pyxdg)
-* [python_speech_features](https://pypi.python.org/pypi/python_speech_features)
+* [python_speech_features](https://pypi.python.org/pypi/python_speech_features) (nb: deprecated)
 * [python sox](https://pypi.python.org/pypi/sox)
 * [pandas](https://pypi.python.org/pypi/pandas)
-
+* [DeepSpeech native client libraries](https://tools.taskcluster.net/index/artifacts/#project.deepspeech.deepspeech.native_client.master/)
 
 ## Install
+
+### Installing pre-built DeepSpeech Python bindings
+
+Pre-built binaries can be found on TaskCluster. You'll need to download `native_client.tar.xz` and the appropriate Python wheel package.
+
+[native_client.tar.xz (Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/native_client.tar.xz)
+[deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl (Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl)
+[Other configurations](https://tools.taskcluster.net/index/artifacts/#project.deepspeech.deepspeech.native_client.master/project.deepspeech.deepspeech.native_client.master)
+
+First, the library files contained in `native_client.tar.xz` need to be installed within the system library path (e.g. `/usr/lib`, or some other path listed in `$LD_LIBRARY_PATH`).
+
+After the library files are installed, you can use pip to install the Python package, like so:
+```bash
+pip install <path to .whl file>
+```
+
+### Installing DeepSpeech Python bindings from source
+
+If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow [these instructions](native_client/README.md).
+
+### Installing other requirements
 
 Manually install [Git Large File Storage](https://git-lfs.github.com/), then open a terminal and run:
 ```bash
