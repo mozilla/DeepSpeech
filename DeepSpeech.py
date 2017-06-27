@@ -434,8 +434,8 @@ def BiRNN(batch_x, seq_length, dropout):
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
     layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
 
-    layer3_cellfw = lstm_fw_cell
-    layer3_cellbw = lstm_bw_cell
+    layer3_cellfw = rnn_fw_cell
+    layer3_cellbw = rnn_bw_cell
 
     # Now we feed `layer_3` into the LSTM BRNN cell and obtain the LSTM BRNN output.
     outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=layer3_cellfw,
