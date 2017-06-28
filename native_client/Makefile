@@ -58,9 +58,9 @@ debug: deepspeech
 
 install: deepspeech
 	install -d ${PREFIX}/lib
-	install -s -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow.so ${PREFIX}/lib/
-	install -s -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
-	install -s -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech_utils.so ${PREFIX}/lib/
+	install -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow.so ${PREFIX}/lib/
+	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
+	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech_utils.so ${PREFIX}/lib/
 	install -d ${PREFIX}/bin
 	install -m 0755 deepspeech ${PREFIX}/bin/
 
