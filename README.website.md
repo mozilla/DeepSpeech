@@ -4,9 +4,9 @@ Overview of the process for publishing WER
 The tracking of WER is made using the following workflow:
 * a dedicated user on the learning machine periodically runs training jobs (cron
   job, or manual runs)
-* this produces, mostly, js/hyper.js containig a concatenated version of all
+* this produces, mostly, js/hyper.js containing a concatenated version of all
   previous runs
-* util/website.py contains code that will connect to a SSH server, using SFTP
+* util/website.py contains code that will connect to an SSH server, using SFTP
 * this will publish 'index.html' and its dependencies
 
 # Setup of the dedicated user:
@@ -40,14 +40,14 @@ PATH=/usr/local/bin:/usr/bin/:/bin
  * saving of the hyper.json files produced
  * wiping the cloned git repo
 * A 'lock' file will be created in ~/.cache/deepspeech_wer/ to ensure we do not
-  trigger multiple execution at the same time. Unexpected exception might leave
+  trigger multiple executions at the same time. Unexpected exception might leave
   a stale lock file
 * A 'last_sha1' in the same directory will be used to keep track of what has
   been done last
 * Previous runs' logs will be saved to ~/.local/share/deepspeech_wer/
 * For debugging purpose, `~/.deepspeech_wer.err.log` and `~/.deepspeech_wer.out.log`
   will collect stderr/stdout
-* Expose those environment variable (please refer to util/website.py to have
+* Expose those environment variables (please refer to util/website.py to have
   more details on each) (cron above does it):
  * ds_website_username
  * ds_website_privkey
@@ -55,10 +55,10 @@ PATH=/usr/local/bin:/usr/bin/:/bin
  * ds_website_server_port
  * ds_website_server_root
 
-# Setup of web-facing server:
+# Setup of the web-facing server:
 
 * Ensure existing webroot
-* Generate a SSH key, and upload public key to web-facing server
+* Generate an SSH key, and upload public key to web-facing server
 * Connect at least one time manually from the training machine to the web-facing
   server to accept the server host key and populate known_hosts file (pay
   attention to the FQDN)
@@ -67,4 +67,4 @@ PATH=/usr/local/bin:/usr/bin/:/bin
   .htaccess for example).
 * Bootstrap with empty index.htm (and populate .htaccess if needed)
 * That should be all. Upon any big changes with the HTML codebase, make sure to
-  cleanup the mess.
+  clean up the mess.
