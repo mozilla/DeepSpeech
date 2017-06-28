@@ -31,7 +31,7 @@ endif
 
 OS := $(shell uname -s)
 CFLAGS  += -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_CFLAGS)
-LDFLAGS += -ltensorflow -ldeepspeech -ldeepspeech_utils $(EXTRA_LDFLAGS)
+LDFLAGS += -ltensorflow_cc -ldeepspeech -ldeepspeech_utils $(EXTRA_LDFLAGS)
 
 META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
@@ -58,7 +58,7 @@ debug: deepspeech
 
 install: deepspeech
 	install -d ${PREFIX}/lib
-	install -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow.so ${PREFIX}/lib/
+	install -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow_cc.so ${PREFIX}/lib/
 	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
 	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech_utils.so ${PREFIX}/lib/
 	install -d ${PREFIX}/bin
@@ -69,5 +69,5 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/bin
 	rm -f ${PREFIX}/lib/libdeepspeech_utils.so
 	rm -f ${PREFIX}/lib/libdeepspeech.so
-	rm -f ${PREFIX}/lib/libtensorflow.so
+	rm -f ${PREFIX}/lib/libtensorflow_cc.so
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/lib

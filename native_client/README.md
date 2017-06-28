@@ -23,7 +23,7 @@ Before building the DeepSpeech client libraries, you will need to prepare your e
 Then you can build the Tensorflow and DeepSpeech libraries.
 
 ```
-bazel build -c opt --copt=-march=native --copt=-mtune=native --copt=-O3 //tensorflow:libtensorflow.so //native_client:*
+bazel build -c opt --copt=-march=native --copt=-mtune=native --copt=-O3 //tensorflow:libtensorflow_cc.so //native_client:*
 ```
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
