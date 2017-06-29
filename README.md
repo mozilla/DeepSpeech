@@ -9,7 +9,7 @@ Project DeepSpeech is an open source Speech-To-Text engine that uses a model tra
 - [Recommendations](#recommendations)
 - [Training a model](#training-a-model)
 - [Checkpointing](#checkpointing)
-- [Exporting a model for serving](#exporting-a-model-for-serving)
+- [Exporting a model for inference](#exporting-a-model-for-inference)
 - [Distributed computing across more than one machine](#distributed-computing-across-more-than-one-machine)
 - [Documentation](#documentation)
 - [Contact/Getting Help](#contactgetting-help)
@@ -90,7 +90,7 @@ During training of a model so-called checkpoints will get stored on disk. This t
 
 Be aware however that checkpoints are only valid for the same model geometry they had been generated from. In other words: If there are error messages of certain `Tensors` having incompatible dimensions, this is most likely due to an incompatible model change. One usual way out would be to wipe all checkpoint files in the checkpoint directory or changing it before starting the training.
 
-## Exporting a model for serving
+## Exporting a model for inference
 
 If the `--export_dir` parameter is provided, a model will have been exported to this directory during training.
 Refer to the corresponding [README.md](native_client/README.md) for information on building and running a client that can use the exported model.
