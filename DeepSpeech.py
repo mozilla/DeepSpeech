@@ -98,6 +98,7 @@ tf.app.flags.DEFINE_integer ('validation_step',  0,           'number of epochs 
 tf.app.flags.DEFINE_string  ('checkpoint_dir',   '',          'directory in which checkpoints are stored - defaults to directory "deepspeech/checkpoints" within user\'s data home specified by the XDG Base Directory Specification')
 tf.app.flags.DEFINE_integer ('checkpoint_secs',  600,         'checkpoint saving interval in seconds')
 tf.app.flags.DEFINE_integer ('max_to_keep',      5,           'number of checkpoint files to keep - default value is 5')
+tf.app.flags.DEFINE_boolean ('cont_ckpt',        True,        'whether to continue the previous training or not')
 
 # Exporting
 
@@ -219,6 +220,7 @@ def initialize_globals():
     # Standard session configuration that'll be used for all new sessions.
     global session_config
     session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement)
+    session_config.gpu_options.allow_growth=True
 
     # Geometric Constants
     # ===================
@@ -1174,7 +1176,7 @@ class TrainingCoordinator(object):
             # Calculate the standard deviation for losses from validation part in the past epochs
             std_loss = np.std(self._dev_losses[-FLAGS.earlystop_nsteps:-2])
             # Update the list of losses incurred
-            self._dev_losses = self._dev_losses[-FLAGS.earlystop_nsteps:]
+            self._dev_losses = self._dev_losses[-FLAGS.earlystop_nsteps:-1]
             log_debug('Current validation loss: %f, std_of_loss(n_step) :%f mean_loss(n_step): %f' % (self._dev_losses[-1], std_loss, mean_loss))
 
             # Making sure slight fluctuations don't bother the early stopping from performing
@@ -1495,6 +1497,13 @@ def train(server=None):
                                                hooks=hooks,
                                                config=session_config) as session:
             try:
+                if FLAGS.cont_ckpt is True:
+                    # Restore variables from training checkpoint
+                    checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+                    checkpoint_path = checkpoint.model_checkpoint_path
+                    saver.restore(session, checkpoint_path)
+                    log_info('Restored checkpoint at training epoch %d' % (int(checkpoint_path.split('-')[-1]) + 1))
+
                 if is_chief:
                     # Retrieving global_step from the (potentially restored) model
                     feed_dict = {}
