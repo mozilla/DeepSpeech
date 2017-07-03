@@ -1031,7 +1031,7 @@ class TrainingCoordinator(object):
                 if self.path.startswith(PREFIX_NEXT_INDEX):
                     index = COORD.get_next_index(self.path[len(PREFIX_NEXT_INDEX):])
                     if index >= 0:
-                        self._send_answer(str(index))
+                        self._send_answer(str(index).encode("utf-8"))
                         return
                 elif self.path.startswith(PREFIX_GET_JOB):
                     job = COORD.get_job(worker=int(self.path[len(PREFIX_GET_JOB):]))
