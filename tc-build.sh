@@ -10,12 +10,22 @@ DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 EXTRA_CUDA_CFLAGS=
 EXTRA_CUDA_LDFLAGS=
 
+BAZEL_AOT_EXTRA_TARGETS="//native_client:deepspeech_model //tensorflow/compiler/aot:runtime //tensorflow/compiler/xla/service/cpu:runtime_matmul //tensorflow/compiler/xla:executable_run_options"
+EXTRA_AOT_CFLAGS="-L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/aot -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla/service/cpu"
+EXTRA_AOT_LDFLAGS="-ldeepspeech_model -lruntime -lruntime_matmul -lexecutable_run_options"
+
 if [ "$1" = "--gpu" ]; then
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=1 ${TF_CUDA_FLAGS}"
     BAZEL_BUILD_FLAGS="${BAZEL_CUDA_FLAGS} ${BAZEL_OPT_FLAGS}"
     SYSTEM_TARGET=host
     EXTRA_CUDA_CFLAGS="-L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/ -L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/stubs/"
     EXTRA_CUDA_LDFLAGS="-lcudart -lcuda"
+
+    # Actually reset those, we don't care that much about tfcompile with CUDA support:
+    # I tensorflow/compiler/xla/service/platform_util.cc:72] platform CUDA present but no XLA compiler available: could not find registered compiler for platform CUDA -- check target linkage
+    BAZEL_AOT_EXTRA_TARGETS=""
+    EXTRA_AOT_CFLAGS=""
+    EXTRA_AOT_LDFLAGS=""
 fi
 
 if [ "$1" = "--arm" ]; then
@@ -36,15 +46,16 @@ cd ${DS_ROOT_TASK}/DeepSpeech/tf
 eval "export ${BAZEL_ENV_FLAGS}"
 PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} \
 	build -c opt ${BAZEL_BUILD_FLAGS} \
-	//native_client:*
+	//native_client:deepspeech //native_client:deepspeech_utils \
+	${BAZEL_AOT_EXTRA_TARGETS}
 
 cd ${DS_ROOT_TASK}/DeepSpeech/ds/
 make -C native_client/ \
 	TARGET=${SYSTEM_TARGET} \
 	TFDIR=${DS_TFDIR} \
 	RASPBIAN=/tmp/multistrap-raspbian-jessie \
-	EXTRA_CFLAGS="${EXTRA_CUDA_CFLAGS}" \
-	EXTRA_LDFLAGS="${EXTRA_CUDA_LDFLAGS}" \
+	EXTRA_CFLAGS="${EXTRA_CUDA_CFLAGS} ${EXTRA_AOT_CFLAGS}" \
+	EXTRA_LDFLAGS="${EXTRA_CUDA_LDFLAGS} ${EXTRA_AOT_LDFLAGS}" \
 	deepspeech
 
 if [ ${MAKE_BINDINGS_PY} ]; then

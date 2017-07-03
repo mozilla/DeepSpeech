@@ -4,6 +4,8 @@
 
 #include <cstddef>
 
+#define N_CHARACTERS 29
+
 namespace DeepSpeech
 {
 
@@ -54,6 +56,8 @@ namespace DeepSpeech
                           float** aMfcc,
                           int* aNFrames = NULL,
                           int* aFrameLen = NULL);
+
+      char* decode(int aNFrames, float input_data_mat[][1][N_CHARACTERS]);
 
       /**
        * @brief Run inference on the given audio.

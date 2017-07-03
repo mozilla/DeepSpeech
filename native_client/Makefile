@@ -25,17 +25,20 @@ endif
 ifeq ($(TARGET),rpi3)
 TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/GccArmRpi/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
 RASPBIAN    ?= ../multistrap-raspbian-jessie
-CFLAGS      := -isystem $(RASPBIAN)/usr/include -L$(RASPBIAN)/lib/arm-linux-gnueabihf/ -L$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/
-LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/ -lsox
+CFLAGS      := -isystem $(RASPBIAN)/usr/include -isystem $(RASPBIAN)/usr/include/arm-linux-gnueabihf
+LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/ $(RASPBIAN)/usr/lib/arm-linux-gnueabihf/libsox.so
 endif
 
 OS := $(shell uname -s)
 CFLAGS  += -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_CFLAGS)
 LDFLAGS += -ldeepspeech -ldeepspeech_utils -ltensorflow_cc $(EXTRA_LDFLAGS)
 
-META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
 META_LD_LIBRARY_PATH := DYLD_LIBRARY_PATH
+CFLAGS  += -Wl,-rpath,.
+else
+META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
+CFLAGS  += -Wl,-rpath=.
 endif
 
 default: deepspeech
