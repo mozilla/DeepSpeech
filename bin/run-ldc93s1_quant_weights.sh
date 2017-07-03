@@ -30,7 +30,7 @@ python -u DeepSpeech.py \
   --train_batch_size 1 \
   --dev_batch_size 1 \
   --test_batch_size 1 \
-  --n_hidden 1024 \
-  --epoch 5 \
+  --n_hidden 494 \
+  --epoch 50 \
   --quantize_model "${quantized_model}" \
-  --apply_transforms 'quantize_weights' 
+  --apply_transforms '' 
