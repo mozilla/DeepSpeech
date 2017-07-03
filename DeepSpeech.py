@@ -435,8 +435,9 @@ def BiRNN(batch_x, seq_length, dropout):
                                                              cell_bw=lstm_bw_cell,
                                                              inputs=layer_3,
                                                              dtype=tf.float32,
-                                                             time_major=True,
-                                                             sequence_length=seq_length)
+                                                             time_major=True)
+                                                             # Sequence length makes tfcompile to choke
+                                                             # sequence_length=seq_length)
 
     # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
     # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
@@ -1640,7 +1641,7 @@ def train(server=None):
 
     # Perform quantization using current graph and current checkpoint
     if len(FLAGS.quantize_model) > 0:
-        graph_source, sav, inp, dec, _ = make_exportable_graph()
+        graph_source, sav, inp, dec, _, _, _ = make_exportable_graph()
         quantize_model(graph_source=graph_source, checkpoint_dir=FLAGS.checkpoint_dir)
         log_debug('Performed quantization')
 

@@ -33,4 +33,4 @@ python -u DeepSpeech.py \
   --n_hidden 494 \
   --epoch 5 \
   --quantize_model "${quantized_model}" \
-  --apply_transforms 'quantize_weights' 
+  --apply_transforms 'quantize_weights'

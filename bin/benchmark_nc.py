@@ -499,7 +499,7 @@ def do_main():
 
     tempdir, sorted_models = setup_tempdir(dir=cli_args.dir, models=cli_args.models, wav=cli_args.wav, alphabet=cli_args.alphabet, binaries=cli_args.binaries)
 
-    dest_sorted_models = map(lambda x: os.path.join(tempdir, os.path.basename(x)), sorted_models)
+    dest_sorted_models = list(map(lambda x: os.path.join(tempdir, os.path.basename(x)), sorted_models))
     dest_wav = os.path.join(tempdir, os.path.basename(cli_args.wav))
     dest_alphabet = os.path.join(tempdir, os.path.basename(cli_args.alphabet))
 
