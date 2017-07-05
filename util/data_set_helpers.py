@@ -57,6 +57,7 @@ class DataSet(object):
         self._thread_count = thread_count
         self._files_list = self._create_files_list(files_list)
         self._next_index = next_index
+        self._files = files_list
 
     def _get_device_count(self):
         available_gpus = get_available_gpus()
@@ -74,13 +75,19 @@ class DataSet(object):
     def close_queue(self, session):
         session.run(self._close_op)
 
-    def _create_files_list(self, files_list):
+    def update_files_list(self, epoch, sorta_grad = True):
+        self._files_list = self._create_files_list(self._files, epoch, sorta_grad)
+
+    def _create_files_list(self, files_list, epoch = 0, sorta_grad=True):
         # 1. Sort by wav filesize
         # 2. Select just wav filename and transcript columns
         # 3. Return a NumPy representation
-        return files_list.sort_values(by="wav_filesize")        \
-                         .ix[:, ["wav_filename", "transcript"]] \
-                         .values
+        if epoch == 0 and sorta_grad is True:
+            return files_list.sort_values(by="wav_filesize").ix[:,["wav_filename", "transcript"]].values
+        else:
+            # Randomizing the data frame
+            files_list.sample(frac=1)
+            return files_list.ix[:,["wav_filename", "transcript"]].values
 
     def _indices(self):
         index = -1
