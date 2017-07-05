@@ -92,7 +92,7 @@ elif [ -f "$RUN_DIR" ]; then
   exit 1
 fi
 mkdir -p "$RUN_DIR/src"
-mkdir -p "$RUN_DIR/results/keep"
+mkdir -p "$RUN_DIR/results"
 
 # copying local tree into "src" sub-directory of run directory
 # excluding .git
@@ -100,8 +100,10 @@ rsync -av . "$RUN_DIR/src" --exclude=/.git
 
 # copying over "keep" data from continue run directory
 if [ "$CONTINUE_DIR" ]; then
-    cp -rf "$CONTINUE_DIR/results/keep" "$RUN_DIR/results/keep"
+    cp -rf "$CONTINUE_DIR/results/keep" "$RUN_DIR/results/"
 fi
+
+mkdir -p "$RUN_DIR/results/keep"
 
 # patch-creating job.sbatch file from job-template with our parameters
 sed \
