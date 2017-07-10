@@ -969,6 +969,10 @@ class Epoch(object):
 
                 self.loss = agg_loss / num_jobs
 
+                # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
+                if (FLAGS.early_stop is True) and (self.set_name == 'dev'):
+                    COORD._dev_losses.append(self.loss)
+
                 if self.report:
                     self.wer = agg_wer / num_jobs
                     self.mean_edit_distance = agg_mean_edit_distance / num_jobs
@@ -1170,17 +1174,17 @@ class TrainingCoordinator(object):
         if (FLAGS.early_stop is True) and (FLAGS.validation_step > 0) and (len(self._dev_losses) >= FLAGS.earlystop_nsteps):
 
             # Calculate the mean of losses for past epochs
-            mean_loss = np.mean(self._dev_losses[-FLAGS.earlystop_nsteps:-2])
+            mean_loss = np.mean(self._dev_losses[-FLAGS.earlystop_nsteps:-1])
             # Calculate the standard deviation for losses from validation part in the past epochs
-            std_loss = np.std(self._dev_losses[-FLAGS.earlystop_nsteps:-2])
+            std_loss = np.std(self._dev_losses[-FLAGS.earlystop_nsteps:-1])
             # Update the list of losses incurred
             self._dev_losses = self._dev_losses[-FLAGS.earlystop_nsteps:]
-            log_debug('Current validation loss: %f, std_of_loss(n_step) :%f mean_loss(n_step): %f' % (self._dev_losses[-1], std_loss, mean_loss))
+            log_debug('Checking for early stopping (last %d steps) validation loss: %f, with standard deviation: %f and mean: %f' % (FLAGS.earlystop_nsteps, self._dev_losses[-1], std_loss, mean_loss))
 
-            # Making sure slight fluctuations don't bother the early stopping from performing
-            if self._dev_losses[-1] > np.max(self._dev_losses[:-2]) or (abs(self._dev_losses[-1] - mean_loss) < FLAGS.estop_mean_thresh and std_loss < FLAGS.estop_std_thresh):
+            # Check if validation loss has started increasing or is not decreasing substantially, making sure slight fluctuations don't bother the early stopping from working
+            if self._dev_losses[-1] > np.max(self._dev_losses[:-1]) or (abs(self._dev_losses[-1] - mean_loss) < FLAGS.estop_mean_thresh and std_loss < FLAGS.estop_std_thresh):
                 # Time to early stop
-                log_info('Early stop triggered!! Validation_loss:%f std_of_loss(n_step) :%f mean_loss(n_step): %f' % ((self._dev_losses[-1], std_loss, mean_loss)))
+                log_info('Early stop triggered as (for last %d steps) validation loss: %f with standard deviation: %f and mean: %f' % (FLAGS.earlystop_nsteps, self._dev_losses[-1], std_loss, mean_loss))
                 self._dev_losses = []
                 self._end_training()
                 self._train = False
@@ -1562,9 +1566,6 @@ def train(server=None):
                         job.mean_edit_distance = total_mean_edit_distance / job.steps
                         job.wer, job.samples = calculate_report(report_results)
 
-                    # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
-                    if (job.set_name == 'dev') and (FLAGS.early_stop is True):
-                        COORD._dev_losses.append(job.loss)
 
                     # Send the current job to coordinator and receive the next one
                     log_debug('Sending %s...' % str(job))
