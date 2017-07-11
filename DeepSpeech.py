@@ -139,6 +139,10 @@ tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps t
 tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
 tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
 
+# Sorta Grad Curriculum Learning
+
+tf.app.flags.DEFINE_boolean ('sorta_grad',       False,        'enable sorta grad curriculum learning - defaults to False')
+
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
 
@@ -889,6 +893,7 @@ class Epoch(object):
         self.jobs_running = []
         self.jobs_done = []
         self.samples = []
+        self._time = stopwatch()
         for i in range(self.num_jobs):
             self.jobs_open.append(WorkerJob(self.id, self.index, self.set_name, FLAGS.iters_per_worker, self.report))
 
@@ -968,6 +973,8 @@ class Epoch(object):
                         self.samples.extend(job.samples)
 
                 self.loss = agg_loss / num_jobs
+                self._time = stopwatch(self._time)
+                log_info('job type: %s, inference time: %s' % (self.set_name, format_duration(self._time)))
 
                 # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
                 if (FLAGS.early_stop is True) and (self.set_name == 'dev'):
@@ -1226,6 +1233,7 @@ class TrainingCoordinator(object):
         if result:
             # Increment the epoch index - shared among train and test 'state'
             self._epoch += 1
+            data_sets.train.update_files_list(self._epoch, FLAGS.sorta_grad)
         return result
 
     def _end_training(self):
@@ -1411,6 +1419,7 @@ def train(server=None):
     global_step = tf.Variable(0, trainable=False, name='global_step')
 
     # Read all data sets
+    global data_sets
     data_sets = read_data_sets(FLAGS.train_files.split(','),
                                FLAGS.dev_files.split(','),
                                FLAGS.test_files.split(','),
@@ -1426,6 +1435,9 @@ def train(server=None):
 
     # Get the data sets
     switchable_data_set = SwitchableDataSet(data_sets)
+
+    # To make sure that sorta_grad is defined as per FLAG parameter - pre-procesing step
+    data_sets.train.update_files_list(0, FLAGS.sorta_grad)
 
     # Create the optimizer
     optimizer = create_optimizer()
