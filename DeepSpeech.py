@@ -20,7 +20,7 @@ from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.tools import freeze_graph
 from threading import Thread, Lock
-from util.data_set_helpers import SwitchableDataSet, read_data_sets
+from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
 from util.spell import correction
@@ -457,14 +457,14 @@ def BiRNN(batch_x, seq_length, dropout):
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_mean_edit_distance_and_loss(batch_set, dropout):
+def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     r'''
     This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
     Next to total and average loss it returns the mean edit distance,
     the decoded result and the batch's original Y.
     '''
     # Obtain the next batch of data
-    batch_x, batch_seq_len, batch_y = batch_set.next_batch()
+    batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
     logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
@@ -530,7 +530,7 @@ def create_optimizer():
 # on which all operations within the tower execute.
 # For example, all operations of 'tower 0' could execute on the first GPU `tf.device('/gpu:0')`.
 
-def get_tower_results(batch_set, optimizer):
+def get_tower_results(model_feeder, optimizer):
     r'''
     With this preliminary step out of the way, we can for each GPU introduce a
     tower for which's batch we calculate
@@ -586,7 +586,7 @@ def get_tower_results(batch_set, optimizer):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
                     total_loss, avg_loss, distance, mean_edit_distance, decoded, labels = \
-                        calculate_mean_edit_distance_and_loss(batch_set, no_dropout if optimizer is None else dropout_rates)
+                        calculate_mean_edit_distance_and_loss(model_feeder, i, no_dropout if optimizer is None else dropout_rates)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
@@ -1094,12 +1094,12 @@ class TrainingCoordinator(object):
         for epoch in self._epochs_running:
             log_debug('       - running: ' + epoch.job_status())
 
-    def start_coordination(self, data_sets, step=0):
+    def start_coordination(self, model_feeder, step=0):
         '''Starts to coordinate epochs and jobs among workers on base of
         data-set sizes, the (global) step and FLAGS parameters.
 
         Args:
-            data_sets (DataSets): data-sets to be used for coordinated training
+            model_feeder (ModelFeeder): data-sets to be used for coordinated training
 
         Kwargs:
             step (int): global step of a loaded model to determine starting point
@@ -1117,7 +1117,7 @@ class TrainingCoordinator(object):
             batches_per_step = gpus_per_worker * max(1, FLAGS.replicas_to_agg)
 
             # Number of global steps per epoch - to be at least 1
-            steps_per_epoch = max(1, data_sets.train.total_batches // batches_per_step)
+            steps_per_epoch = max(1, model_feeder.train.total_batches // batches_per_step)
 
             # The start epoch of our training
             self._epoch = step // steps_per_epoch
@@ -1126,9 +1126,9 @@ class TrainingCoordinator(object):
             jobs_trained = (step % steps_per_epoch) * batches_per_step // batches_per_job
 
             # Total number of train/dev/test jobs covering their respective whole sets (one epoch)
-            self._num_jobs_train = max(1, data_sets.train.total_batches // batches_per_job)
-            self._num_jobs_dev   = max(1, data_sets.dev.total_batches   // batches_per_job)
-            self._num_jobs_test  = max(1, data_sets.test.total_batches  // batches_per_job)
+            self._num_jobs_train = max(1, model_feeder.train.total_batches // batches_per_job)
+            self._num_jobs_dev   = max(1, model_feeder.dev.total_batches   // batches_per_job)
+            self._num_jobs_test  = max(1, model_feeder.test.total_batches  // batches_per_job)
 
             if FLAGS.epoch < 0:
                 # A negative epoch means to add its absolute number to the epochs already computed
@@ -1153,7 +1153,7 @@ class TrainingCoordinator(object):
             log_debug('epoch: %d' % self._epoch)
             log_debug('target epoch: %d' % self._target_epoch)
             log_debug('steps per epoch: %d' % steps_per_epoch)
-            log_debug('number of batches in train set: %d' % data_sets.train.total_batches)
+            log_debug('number of batches in train set: %d' % model_feeder.train.total_batches)
             log_debug('batches per job: %d' % batches_per_job)
             log_debug('batches per step: %d' % batches_per_step)
             log_debug('number of jobs in train set: %d' % self._num_jobs_train)
@@ -1410,22 +1410,31 @@ def train(server=None):
     # It will automgically get incremented by the optimizer.
     global_step = tf.Variable(0, trainable=False, name='global_step')
 
-    # Read all data sets
-    data_sets = read_data_sets(FLAGS.train_files.split(','),
-                               FLAGS.dev_files.split(','),
-                               FLAGS.test_files.split(','),
-                               FLAGS.train_batch_size,
-                               FLAGS.dev_batch_size,
-                               FLAGS.test_batch_size,
+    # Reading training set
+    train_set = DataSet(FLAGS.train_files.split(','),
+                        FLAGS.train_batch_size,
+                        limit=FLAGS.limit_train,
+                        next_index=lambda i: COORD.get_next_index('train'))
+
+    # Reading validation set
+    dev_set = DataSet(FLAGS.dev_files.split(','),
+                      FLAGS.dev_batch_size,
+                      limit=FLAGS.limit_dev,
+                      next_index=lambda i: COORD.get_next_index('dev'))
+
+    # Reading test set
+    test_set = DataSet(FLAGS.test_files.split(','),
+                       FLAGS.test_batch_size,
+                       limit=FLAGS.limit_test,
+                       next_index=lambda i: COORD.get_next_index('test'))
+
+    # Combining all sets to a multi set model feeder
+    model_feeder = ModelFeeder(train_set,
+                               dev_set,
+                               test_set,
                                n_input,
                                n_context,
-                               next_index=lambda set_name, index: COORD.get_next_index(set_name),
-                               limit_dev=FLAGS.limit_dev,
-                               limit_test=FLAGS.limit_test,
-                               limit_train=FLAGS.limit_train)
-
-    # Get the data sets
-    switchable_data_set = SwitchableDataSet(data_sets)
+                               tower_feeder_count=len(available_devices))
 
     # Create the optimizer
     optimizer = create_optimizer()
@@ -1437,7 +1446,7 @@ def train(server=None):
                                                    total_num_replicas=FLAGS.replicas)
 
     # Get the data_set specific graph end-points
-    results_tuple, gradients, mean_edit_distance, loss = get_tower_results(switchable_data_set, optimizer)
+    results_tuple, gradients, mean_edit_distance, loss = get_tower_results(model_feeder, optimizer)
 
     # Average tower gradients across GPUs
     avg_tower_gradients = average_gradients(gradients)
@@ -1462,13 +1471,13 @@ def train(server=None):
         '''
         def after_create_session(self, session, coord):
             log_debug('Starting queue runners...')
-            switchable_data_set.start_queue_threads(session, coord)
+            model_feeder.start_queue_threads(session, coord)
             log_debug('Queue runners started.')
 
         def end(self, session):
             # Closing the data_set queues
             log_debug('Closing queues...')
-            switchable_data_set.close_queue(session)
+            model_feeder.close_queues(session)
             log_debug('Queues closed.')
 
             # Telling the ps that we are done
@@ -1504,9 +1513,9 @@ def train(server=None):
                 if is_chief:
                     # Retrieving global_step from the (potentially restored) model
                     feed_dict = {}
-                    switchable_data_set.set_data_set(feed_dict, data_sets.train)
+                    model_feeder.set_data_set(feed_dict, model_feeder.train)
                     step = session.run(global_step, feed_dict=feed_dict)
-                    COORD.start_coordination(data_sets, step)
+                    COORD.start_coordination(model_feeder, step)
 
                 # Get the first job
                 job = COORD.get_job()
@@ -1517,9 +1526,8 @@ def train(server=None):
                     # The feed_dict (mainly for switching between queues)
                     feed_dict = {}
 
-                    # Sets the current data_set on SwitchableDataSet switchable_data_set
-                    # and the respective placeholder in feed_dict
-                    switchable_data_set.set_data_set(feed_dict, getattr(data_sets, job.set_name))
+                    # Sets the current data_set for the respective placeholder in feed_dict
+                    model_feeder.set_data_set(feed_dict, getattr(model_feeder, job.set_name))
 
                     # Initialize loss aggregator
                     total_loss = 0.0
