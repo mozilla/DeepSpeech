@@ -1497,6 +1497,8 @@ def train(server=None):
         with tf.train.MonitoredTrainingSession(master='' if server is None else server.target,
                                                is_chief=is_chief,
                                                hooks=hooks,
+                                               checkpoint_dir=FLAGS.checkpoint_dir,
+                                               save_checkpoint_secs=FLAGS.checkpoint_secs,
                                                config=session_config) as session:
             try:
                 if is_chief:
