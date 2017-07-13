@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import sys
-from glob import glob
-from os import makedirs, path
 import urllib2
 import tarfile
 import pandas
+import re
+import unicodedata
+from glob import glob
+from os import makedirs, path
 from BeautifulSoup import BeautifulSoup
 from tensorflow.python.platform import gfile
 from tensorflow.contrib.learn.python.learn.datasets import base
@@ -27,7 +29,7 @@ def _download_and_preprocess_data(data_dir):
     refs = [l['href'] for l in links if ".tgz" in l['href']]
     def filename_of(x): return path.split(x)[1]
 
-    for i, ref in enumerate(refs):
+    for i, ref in enumerate(refs[:5]):
         print('Downloading {} / {} files'.format(i+1, len(refs)))
         download_url = voxforge_url + '/' + ref
         base.maybe_download(filename_of(download_url), archive_dir, download_url)
@@ -79,8 +81,16 @@ def _generate_dataset(data_dir, data_set):
             with open(promts_file) as f:
                 for line in f:
                     id = line.split(' ')[0].split('/')[-1]
-                    transcript = line.split(' ')[1:]
-                    transcript = ' '.join(transcript).replace('\n', '').lower()
+                    sentence = ' '.join(line.split(' ')[1:])
+                    sentence = re.sub("[^a-z']"," ",sentence.strip().lower())
+                    transcript = ""
+                    for token in sentence.split(" "):
+                        word = token.strip()
+                        if word!="" and word!=" ":
+                            transcript += word + " "
+                    transcript = unicodedata.normalize("NFKD", unicode(transcript.strip()))  \
+                                              .encode("ascii", "ignore")                    \
+                                              .decode("ascii", "ignore")
                     wav_file = path.join(promts_file[:-11],"wav/" + id + ".wav")
                     if gfile.Exists(wav_file):
                         wav_filesize = path.getsize(wav_file)
