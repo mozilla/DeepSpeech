@@ -10,7 +10,6 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import pandas
 
 from tensorflow.contrib.learn.python.learn.datasets import base
-from util.data_set_helpers import DataSets, DataSet
 
 def _download_and_preprocess_data(data_dir):
     # Conditionally download data
