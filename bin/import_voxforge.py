@@ -29,7 +29,7 @@ def _download_and_preprocess_data(data_dir):
     refs = [l['href'] for l in links if ".tgz" in l['href']]
     def filename_of(x): return path.split(x)[1]
 
-    for i, ref in enumerate(refs[:5]):
+    for i, ref in enumerate(refs):
         print('Downloading {} / {} files'.format(i+1, len(refs)))
         download_url = voxforge_url + '/' + ref
         base.maybe_download(filename_of(download_url), archive_dir, download_url)
