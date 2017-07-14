@@ -90,7 +90,7 @@ class DataSet(object):
             if self.files is None:
                 self.files = file
             else:
-                self.files = files.append(file)
+                self.files = self.files.append(file)
         self.files = self.files.sort_values(by="wav_filesize", ascending=ascending) \
                          .ix[:, ["wav_filename", "transcript"]] \
                          .values[skip:]
