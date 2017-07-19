@@ -26,7 +26,8 @@ if [ "$1" != "--gpu" -a "$1" != "--arm" ]; then
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
     BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS}"
     SYSTEM_TARGET=host
-    MAKE_BINDINGS=1
+    MAKE_BINDINGS_PY=1
+    MAKE_BINDINGS_JS=1
 fi
 
 cd ~/DeepSpeech/tf
@@ -44,8 +45,21 @@ make -C native_client/ \
 	EXTRA_LDFLAGS=${EXTRA_CUDA_LDFLAGS} \
 	deepspeech
 
-if [ ${MAKE_BINDINGS} ]; then
-    cd native_client
-    CFLAGS="-L${DS_TFDIR}/bazel-bin/tensorflow -L${DS_TFDIR}/bazel-bin/native_client" python ./setup.py bdist_wheel
-    cd ..
+if [ ${MAKE_BINDINGS_PY} ]; then
+    make -C native_client/ \
+        TFDIR=${DS_TFDIR} \
+        bindings
+fi
+
+if [ ${MAKE_BINDINGS_JS} ]; then
+    # 7.10.0 and 8.0.0 targets fails to build
+    # > ../deepspeech_wrap.cxx:966:23: error: 'WeakCallbackData' in namespace 'v8' does not name a type
+    for node in 4.8.0 5.12.0 6.10.0; do
+        make -C native_client/javascript \
+            TFDIR=${DS_TFDIR} \
+            NODE_ABI_TARGET=--target=$node \
+            clean package
+    done;
+
+    make -C native_client/javascript clean npm-pack
 fi

@@ -1,0 +1,29 @@
+{
+    "name" : "deepspeech",
+    "version" : "0.1.0",
+    "description" : "DeepSpeech NodeJS bindings",
+    "main" : "./index",
+    "author" : "Mozilla DeepSpeech <deepspeech>",
+    "repository"   :  {
+       "type" : "git",
+       "url"  : "git://github.com/mozilla/DeepSpeech.git"
+    },
+    "binary": {
+        "module_name" : "deepspeech",
+        "module_path" : "./lib/binding/v{version}/{node_abi}-{platform}-{arch}/",
+        "remote_path" : "./v{version}/{configuration}/",
+        "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
+        "host"        : "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/"
+    },
+    "dependencies"  : {
+      "node-pre-gyp": "0.6.x"
+    },
+    "bundledDependencies":["node-pre-gyp"],
+    "devDependencies": {
+    },
+    "scripts": {
+        "install" : "node-pre-gyp install --fallback-to-build",
+        "test": "node index.js",
+        "prepublish": "npm ls"
+    }
+}

@@ -1,6 +1,6 @@
 const Fs = require('fs');
 const Sox = require('sox-stream');
-const Ds = require('./javascript/build/Release/deepspeech');
+const Ds = require('deepspeech');
 const MemoryStream = require('memory-stream');
 
 var audioStream = new MemoryStream();

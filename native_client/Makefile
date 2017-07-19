@@ -48,7 +48,7 @@ deepspeech: client.cc
 	$(TOOLCHAIN)$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
 
 bindings:
-	python ./setup.py bdist_wheel
+	CFLAGS="-L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client" python ./setup.py bdist_wheel
 
 run: deepspeech
 	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}
