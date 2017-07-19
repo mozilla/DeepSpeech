@@ -38,4 +38,5 @@ setup(name = 'deepspeech',
       cmdclass = { 'build': BuildExtFirst },
       license = 'MPL-2.0',
       url = 'https://github.com/mozilla/DeepSpeech',
-      ext_modules = [model, utils])
+      ext_modules = [model, utils],
+      install_requires = [ 'numpy', 'scipy' ])
