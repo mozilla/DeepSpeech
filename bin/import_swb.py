@@ -168,9 +168,9 @@ def _split_sets(filelist):
     test_beg = dev_end
     test_end = len(filelist)
 
-    return filelist[train_beg:train_end],
-           filelist[dev_beg:dev_end],
-           filelist[test_beg:test_end]
+    return (filelist[train_beg:train_end],
+            filelist[dev_beg:dev_end], 
+            filelist[test_beg:test_end])
 
 def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
     # Optionally apply dataset size limit
