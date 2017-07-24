@@ -11,7 +11,7 @@
 set -o pipefail
 # force-killing all sub-processes on process exit, Ctrl-C, kill-signal
 # "trap - SIGTERM" hinders "kill" from being killed itself
-trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM
 
 PWD=`pwd`
 compute_cmd="/bin/bash .compute"
@@ -48,8 +48,7 @@ do
   export COMPUTE_NODE_INDEX=$index
   # the node has to be specified by "-w" to guarantee execution under the correct COMPUTE_NODE_INDEX
   # if some log line contains "GLOBAL LOG", the remaining string is emitted to the provided log file
-  $srun -w ${nodes[index]} /bin/bash -c "cd src && $compute_cmd" \
-    | tee >(sed -n -e 's/^.*GLOBAL LOG: //p' >> $COMPUTE_GLOBAL_LOG) &
+  $srun -w ${nodes[index]} /bin/bash -c "cd src && $compute_cmd" &
 done
 
 for index in $(seq 1 $COMPUTE_NODES_COUNT);

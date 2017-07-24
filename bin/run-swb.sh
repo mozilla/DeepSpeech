@@ -27,9 +27,6 @@ python -u DeepSpeech.py \
   --train_files "${COMPUTE_DATA_DIR}/LDC/LDC97S62/swb-train.csv" \
   --dev_files "${COMPUTE_DATA_DIR}/LDC/LDC97S62/swb-dev.csv" \
   --test_files "${COMPUTE_DATA_DIR}/LDC/LDC97S62/swb-test.csv" \
-  --train_batch_size 13 \
-  --dev_batch_size 13 \
-  --test_batch_size 13 \
   --epoch 15 \
   --learning_rate 0.0001 \
   --display_step 0 \
