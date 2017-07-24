@@ -324,10 +324,10 @@ def log_error(message):
 # Graph Creation
 # ==============
 
-def variable_on_worker_level(name, shape, initializer):
+def variable_on_ps_level(name, shape, initializer, trainable=True):
     r'''
     Next we concern ourselves with graph creation.
-    However, before we do so we must introduce a utility function ``variable_on_worker_level()``
+    However, before we do so we must introduce a utility function ``variable_on_ps_level()``
     used to create a variable in CPU memory.
     '''
     # Use the /cpu:0 device on worker_device for scoped operations
@@ -338,7 +338,7 @@ def variable_on_worker_level(name, shape, initializer):
 
     with tf.device(device):
         # Create or get apropos variable
-        var = tf.get_variable(name=name, shape=shape, initializer=initializer)
+        var = tf.get_variable(name=name, shape=shape, initializer=initializer, trainable=trainable)
     return var
 
 
@@ -372,20 +372,20 @@ def BiRNN(batch_x, seq_length, dropout):
     # clipped RELU activation and dropout.
 
     # 1st layer
-    b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
-    h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
+    b1 = variable_on_ps_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
+    h1 = variable_on_ps_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
     layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
 
     # 2nd layer
-    b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
-    h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
+    b2 = variable_on_ps_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
+    h2 = variable_on_ps_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
     layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
 
     # 3rd layer
-    b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
-    h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
+    b3 = variable_on_ps_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
+    h3 = variable_on_ps_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
     layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
 
@@ -427,15 +427,15 @@ def BiRNN(batch_x, seq_length, dropout):
     outputs = tf.reshape(outputs, [-1, 2*n_cell_dim])
 
     # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
-    b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
-    h5 = variable_on_worker_level('h5', [(2 * n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
+    b5 = variable_on_ps_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
+    h5 = variable_on_ps_level('h5', [(2 * n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), FLAGS.relu_clip)
     layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
-    b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
-    h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
+    b6 = variable_on_ps_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
+    h6 = variable_on_ps_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
     layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
 
     # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
@@ -457,14 +457,14 @@ def BiRNN(batch_x, seq_length, dropout):
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
+def calculate_mean_edit_distance_and_loss(tower, model_feeder, dropout):
     r'''
     This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
-    Next to total and average loss it returns the mean edit distance,
+    Next to batch size, total and average loss it returns the mean edit distance,
     the decoded result and the batch's original Y.
     '''
     # Obtain the next batch of data
-    batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
+    batch_size, batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
     logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
@@ -494,7 +494,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     # - the recognition mean edit distance,
     # - the decoded batch and
     # - the original batch_y (which contains the verified transcriptions).
-    return total_loss, avg_loss, distance, mean_edit_distance, decoded, batch_y
+    return batch_size, total_loss, avg_loss, distance, mean_edit_distance, decoded, batch_y
 
 
 # Adam Optimization
@@ -506,11 +506,16 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
 # (www.cs.toronto.edu/~fritz/absps/momentum.pdf) was used,
 # we will use the Adam method for optimization (http://arxiv.org/abs/1412.6980),
 # because, generally, it requires less fine-tuning.
-def create_optimizer():
-    optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate,
+def create_optimizer(weight):
+    optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate * weight,
                                        beta1=FLAGS.beta1,
                                        beta2=FLAGS.beta2,
                                        epsilon=FLAGS.epsilon)
+    # Synchronous distributed training is facilitated by a special proxy-optimizer
+    if len(FLAGS.ps_hosts) > 0:
+        optimizer = tf.train.SyncReplicasOptimizer(optimizer,
+                                                   replicas_to_aggregate=FLAGS.replicas_to_agg,
+                                                   total_num_replicas=FLAGS.replicas)
     return optimizer
 
 
@@ -530,48 +535,8 @@ def create_optimizer():
 # on which all operations within the tower execute.
 # For example, all operations of 'tower 0' could execute on the first GPU `tf.device('/gpu:0')`.
 
-def get_tower_results(model_feeder, optimizer):
-    r'''
-    With this preliminary step out of the way, we can for each GPU introduce a
-    tower for which's batch we calculate
-
-    * The CTC decodings ``decoded``,
-    * The (total) loss against the outcome (Y) ``total_loss``,
-    * The loss averaged over the whole batch ``avg_loss``,
-    * The optimization gradient (computed based on the averaged loss),
-    * The Levenshtein distances between the decodings and their transcriptions ``distance``,
-    * The mean edit distance of the outcome averaged over the whole batch ``mean_edit_distance``
-
-    and retain the original ``labels`` (Y).
-    ``decoded``, ``labels``, the optimization gradient, ``distance``, ``mean_edit_distance``,
-    ``total_loss`` and ``avg_loss`` are collected into the corresponding arrays
-    ``tower_decodings``, ``tower_labels``, ``tower_gradients``, ``tower_distances``,
-    ``tower_mean_edit_distances``, ``tower_total_losses``, ``tower_avg_losses`` (dimension 0 being the tower).
-    Finally this new method ``get_tower_results()`` will return those tower arrays.
-    In case of ``tower_mean_edit_distances`` and ``tower_avg_losses``, it will return the
-    averaged values instead of the arrays.
-    '''
-    # Tower labels to return
-    tower_labels = []
-
-    # Tower decodings to return
-    tower_decodings = []
-
-    # Tower distances to return
-    tower_distances = []
-
-    # Tower total batch losses to return
-    tower_total_losses = []
-
-    # Tower gradients to return
-    tower_gradients = []
-
-    # To calculate the mean of the mean edit distances
-    tower_mean_edit_distances = []
-
-    # To calculate the mean of the losses
-    tower_avg_losses = []
-
+def for_each_tower(callback, params):
+    results = []
     with tf.variable_scope(tf.get_variable_scope()):
         # Loop over available_devices
         for i in range(len(available_devices)):
@@ -583,46 +548,59 @@ def get_tower_results(model_feeder, optimizer):
             with tf.device(device):
                 # Create a scope for all operations of tower i
                 with tf.name_scope('tower_%d' % i) as scope:
-                    # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
-                    # batch along with the original batch's labels (Y) of this tower
-                    total_loss, avg_loss, distance, mean_edit_distance, decoded, labels = \
-                        calculate_mean_edit_distance_and_loss(model_feeder, i, no_dropout if optimizer is None else dropout_rates)
-
+                    results.append(callback(i, *params[i]))
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
+    return results
 
-                    # Retain tower's labels (Y)
-                    tower_labels.append(labels)
+def get_tower_results(model_feeder):
+    r'''
+    With this preliminary step out of the way, we can for each GPU introduce a
+    tower for which's batch we calculate
 
-                    # Retain tower's decoded batch
-                    tower_decodings.append(decoded)
+    * The CTC decodings ``decoded``,
+    * The (total) loss against the outcome (Y) ``total_loss``,
+    * The loss averaged over the whole batch ``avg_loss``,
+    * The optimization gradient (computed based on the averaged loss),
+    * The Levenshtein distances between the decodings and their transcriptions ``distance``,
+    * The mean edit distance of the outcome averaged over the whole batch ``mean_edit_distance``
+    '''
 
-                    # Retain tower's distances
-                    tower_distances.append(distance)
+    results = for_each_tower(calculate_mean_edit_distance_and_loss, \
+                             [[model_feeder, dropout_rates]] * len(available_devices))
 
-                    # Retain tower's total losses
-                    tower_total_losses.append(total_loss)
+    # Compute sum of all tower batch sizes
+    batch_sizes = [result[0] for result in results]
+    batch_size_sum = tf.to_float(tf.maximum(1, tf.reduce_sum(batch_sizes)))
 
-                    # Compute gradients for model parameters using tower's mini-batch
-                    gradients = optimizer.compute_gradients(avg_loss)
+    optimizer = create_optimizer(batch_size_sum)
 
-                    # Retain tower's gradients
-                    tower_gradients.append(gradients)
+    def weight_and_compute_gradients(index, batch_size, total_loss, avg_loss, distance, \
+                                     mean_edit_distance, decoded, labels):
+        batch_size_float = tf.to_float(batch_size)
+        return batch_size, \
+               total_loss, \
+               avg_loss * batch_size_float, \
+               distance, \
+               mean_edit_distance * batch_size_float, \
+               decoded, \
+               labels, \
+               optimizer.compute_gradients(avg_loss)
 
-                    # Retain tower's mean edit distance
-                    tower_mean_edit_distances.append(mean_edit_distance)
+    results = for_each_tower(weight_and_compute_gradients, results)
 
-                    # Retain tower's avg losses
-                    tower_avg_losses.append(avg_loss)
+    batch_sizes, total_losses, avg_losses, distances, mean_edit_distances, decodings, labels, gradients = zip(*results)
 
-    # Return the results tuple, the gradients, and the means of mean edit distances and losses
-    return (tower_labels, tower_decodings, tower_distances, tower_total_losses), \
-           tower_gradients, \
-           tf.reduce_mean(tower_mean_edit_distances, 0), \
-           tf.reduce_mean(tower_avg_losses, 0)
+    # Return the optimizer, the results tuple, batch sizes, the gradients, and the means of mean edit distances and average losses
+    return optimizer, \
+           (labels, decodings, distances, total_losses), \
+           batch_sizes, \
+           gradients, \
+           tf.reduce_mean(mean_edit_distances, 0) / batch_size_sum, \
+           tf.reduce_mean(avg_losses, 0) / batch_size_sum
 
 
-def average_gradients(tower_gradients):
+def average_gradients(batch_sizes, tower_gradients):
     r'''
     A routine for computing each variable's average of the gradients obtained from the GPUs.
     Note also that this code acts as a syncronization point as it requires all
@@ -633,13 +611,18 @@ def average_gradients(tower_gradients):
 
     # Run this on cpu_device to conserve GPU memory
     with tf.device(cpu_device):
+        # Compute sum of all tower batch sizes
+        sample_number = tf.maximum(1, tf.reduce_sum(batch_sizes))
+
         # Loop over gradient/variable pairs from all towers
         for grad_and_vars in zip(*tower_gradients):
             # Introduce grads to store the gradients for the current variable
             grads = []
 
             # Loop over the gradients for the current variable
-            for g, _ in grad_and_vars:
+            for gv, batch_size in zip(grad_and_vars, batch_sizes):
+                # Weighted gradient - batch size is 0 for dummy sample
+                g = gv[0] * tf.to_float(batch_size)
                 # Add 0 dimension to the gradients to represent the tower.
                 expanded_g = tf.expand_dims(g, 0)
                 # Append on a 'tower' dimension which we will average over below.
@@ -648,6 +631,7 @@ def average_gradients(tower_gradients):
             # Average over the 'tower' dimension
             grad = tf.concat(grads, 0)
             grad = tf.reduce_mean(grad, 0)
+            grad = grad / tf.to_float(sample_number)
 
             # Create a gradient/variable tuple for the current variable with its average gradient
             grad_and_var = (grad, grad_and_vars[0][1])
@@ -656,7 +640,7 @@ def average_gradients(tower_gradients):
             average_grads.append(grad_and_var)
 
     # Return result to caller
-    return average_grads
+    return average_grads, sample_number
 
 
 
@@ -712,6 +696,9 @@ def calculate_report(results_tuple):
     items = list(zip(*results_tuple))
     mean_wer = 0.0
     for label, decoding, distance, loss in items:
+        if len(label) == 1 and label[0] == 0:
+            # skip dummy sample
+            continue
         corrected = correction(decoding)
         sample_wer = wer(label, corrected)
         sample = Sample(label, corrected, loss, distance, sample_wer)
@@ -859,6 +846,7 @@ class WorkerJob(object):
         self.loss = -1
         self.mean_edit_distance = -1
         self.wer = -1
+        self.sample_number = 0
         self.samples = []
 
     def __str__(self):
@@ -876,21 +864,18 @@ class Epoch(object):
         set_name (str): the name of the data-set - one of 'train', 'dev', 'test'
         report (bool): if this job should produce a WER report
     '''
-    def __init__(self, index, num_jobs, set_name='train', report=False):
+    def __init__(self, index, samples_to_compute, set_name='train', report=False):
         self.id = new_id()
         self.index = index
-        self.num_jobs = num_jobs
+        self.samples_to_compute = samples_to_compute
         self.set_name = set_name
         self.report = report
         self.wer = -1
         self.loss = -1
         self.mean_edit_distance = -1
-        self.jobs_open = []
         self.jobs_running = []
         self.jobs_done = []
         self.samples = []
-        for i in range(self.num_jobs):
-            self.jobs_open.append(WorkerJob(self.id, self.index, self.set_name, FLAGS.iters_per_worker, self.report))
 
     def name(self):
         '''Gets a printable name for this epoch.
@@ -918,10 +903,10 @@ class Epoch(object):
         Returns:
             WorkerJob. job that has been marked as running for this worker
         '''
-        if len(self.jobs_open) > 0:
-            job = self.jobs_open.pop(0)
-            self.jobs_running.append(job)
+        if self.samples_to_compute > 0:
+            job = WorkerJob(self.id, self.index, self.set_name, FLAGS.iters_per_worker, self.report)
             job.worker = worker
+            self.jobs_running.append(job)
             return job
         else:
             return None
@@ -936,7 +921,8 @@ class Epoch(object):
         if index >= 0:
             self.jobs_running.pop(index)
             self.jobs_done.append(job)
-            log_traffic('%s - Moved %s from running to done.' % (self.name(), str(job)))
+            self.samples_to_compute -= job.sample_number
+            log_traffic('%s - Moved %s (loss %f) from running to done.' % (self.name(), str(job), job.loss))
         else:
             log_warn('%s - There is no job with ID %d registered as running.' % (self.name(), job.id))
 
@@ -947,35 +933,35 @@ class Epoch(object):
         Returns:
             bool. if all jobs of the epoch are 'done'
         '''
-        if len(self.jobs_open) == 0 and len(self.jobs_running) == 0:
+        if self.samples_to_compute <= 0:
             num_jobs = len(self.jobs_done)
             if num_jobs > 0:
                 jobs = self.jobs_done
                 self.jobs_done = []
-                if not self.num_jobs == num_jobs:
-                    log_warn('%s - Number of steps not equal to number of jobs done.' % (self.name()))
 
+                total_number_of_samples = 0.0
                 agg_loss = 0.0
                 agg_wer = 0.0
                 agg_mean_edit_distance = 0.0
 
                 for i in range(num_jobs):
                     job = jobs.pop(0)
-                    agg_loss += job.loss
+                    total_number_of_samples += job.sample_number
+                    agg_loss += job.loss * job.sample_number
                     if self.report:
-                        agg_wer += job.wer
-                        agg_mean_edit_distance += job.mean_edit_distance
+                        agg_wer += job.wer * job.sample_number
+                        agg_mean_edit_distance += job.mean_edit_distance * job.sample_number
                         self.samples.extend(job.samples)
 
-                self.loss = agg_loss / num_jobs
+                self.loss = agg_loss / total_number_of_samples
 
                 # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
                 if (FLAGS.early_stop is True) and (self.set_name == 'dev'):
                     COORD._dev_losses.append(self.loss)
 
                 if self.report:
-                    self.wer = agg_wer / num_jobs
-                    self.mean_edit_distance = agg_mean_edit_distance / num_jobs
+                    self.wer = agg_wer / total_number_of_samples
+                    self.mean_edit_distance = agg_mean_edit_distance / total_number_of_samples
 
                     # Order samles by their loss (lowest loss on top)
                     self.samples.sort(key=lambda s: s.loss)
@@ -1001,7 +987,7 @@ class Epoch(object):
         Returns:
             str. printable overall job state
         '''
-        return '%s - jobs open: %d, jobs running: %d, jobs done: %d' % (self.name(), len(self.jobs_open), len(self.jobs_running), len(self.jobs_done))
+        return '%s - jobs running: %d, jobs done: %d' % (self.name(), len(self.jobs_running), len(self.jobs_done))
 
     def __str__(self):
         if not self.done():
@@ -1077,15 +1063,15 @@ class TrainingCoordinator(object):
         if is_chief:
             self._httpd = BaseHTTPServer.HTTPServer((FLAGS.coord_host, FLAGS.coord_port), TrainingCoordinator.TrainingCoordinationHandler)
 
-    def _reset_counters(self):
-        self._index_train = 0
-        self._index_dev = 0
-        self._index_test = 0
+    def _set_counters(self, value):
+        self._index_train = value
+        self._index_dev = value
+        self._index_test = value
 
     def _init(self):
         self._epochs_running = []
         self._epochs_done = []
-        self._reset_counters()
+        self._set_counters(-1)
         self._dev_losses = []
 
     def _log_all_jobs(self):
@@ -1094,7 +1080,7 @@ class TrainingCoordinator(object):
         for epoch in self._epochs_running:
             log_debug('       - running: ' + epoch.job_status())
 
-    def start_coordination(self, model_feeder, step=0):
+    def start_coordination(self, model_feeder, sample_number=0):
         '''Starts to coordinate epochs and jobs among workers on base of
         data-set sizes, the (global) step and FLAGS parameters.
 
@@ -1107,28 +1093,18 @@ class TrainingCoordinator(object):
         with self._lock:
             self._init()
 
-            # Number of GPUs per worker - fixed for now by local reality or cluster setup
-            gpus_per_worker = len(available_devices)
+            print('STARTED COORDINATION')
 
-            # Number of batches processed per job per worker
-            batches_per_job  = gpus_per_worker * max(1, FLAGS.iters_per_worker)
-
-            # Number of batches per global step
-            batches_per_step = gpus_per_worker * max(1, FLAGS.replicas_to_agg)
-
-            # Number of global steps per epoch - to be at least 1
-            steps_per_epoch = max(1, model_feeder.train.total_batches // batches_per_step)
+            # Number of samples per epoch - to be at least 1
+            self._samples_train = max(1, len(model_feeder.train.files))
+            self._samples_dev =   max(1, len(model_feeder.dev.files))
+            self._samples_test =  max(1, len(model_feeder.test.files))
 
             # The start epoch of our training
-            self._epoch = step // steps_per_epoch
+            self._epoch = sample_number // self._samples_train
 
             # Number of additional 'jobs' trained already 'on top of' our start epoch
-            jobs_trained = (step % steps_per_epoch) * batches_per_step // batches_per_job
-
-            # Total number of train/dev/test jobs covering their respective whole sets (one epoch)
-            self._num_jobs_train = max(1, model_feeder.train.total_batches // batches_per_job)
-            self._num_jobs_dev   = max(1, model_feeder.dev.total_batches   // batches_per_job)
-            self._num_jobs_test  = max(1, model_feeder.test.total_batches  // batches_per_job)
+            samples_trained = (sample_number % self._samples_train)
 
             if FLAGS.epoch < 0:
                 # A negative epoch means to add its absolute number to the epochs already computed
@@ -1144,20 +1120,15 @@ class TrainingCoordinator(object):
             if self._train:
                 # The total number of jobs for all additional epochs to be trained
                 # Will be decremented for each job that is produced/put into state 'open'
-                self._num_jobs_train_left = (self._target_epoch - self._epoch) * self._num_jobs_train - jobs_trained
+                self._samples_left = (self._target_epoch - self._epoch) * self._samples_train - samples_trained
                 log_info('STARTING Optimization')
                 self._training_time = stopwatch()
 
             # Important for debugging
-            log_debug('step: %d' % step)
             log_debug('epoch: %d' % self._epoch)
             log_debug('target epoch: %d' % self._target_epoch)
-            log_debug('steps per epoch: %d' % steps_per_epoch)
-            log_debug('number of batches in train set: %d' % model_feeder.train.total_batches)
-            log_debug('batches per job: %d' % batches_per_job)
-            log_debug('batches per step: %d' % batches_per_step)
-            log_debug('number of jobs in train set: %d' % self._num_jobs_train)
-            log_debug('number of jobs already trained in first epoch: %d' % jobs_trained)
+            log_debug('samples per epoch: %d' % self._samples_train)
+            log_debug('number of samples already trained in first epoch: %d' % samples_trained)
 
             self._next_epoch()
 
@@ -1191,23 +1162,27 @@ class TrainingCoordinator(object):
 
         if self._train:
             # We are in train mode
-            if self._num_jobs_train_left > 0:
+            if self._samples_left > 0:
                 # There are still jobs left
-                num_jobs_train = min(self._num_jobs_train_left, self._num_jobs_train)
-                self._num_jobs_train_left -= num_jobs_train
+                remainig_samples_of_first_epoch = self._samples_left % self._samples_train
+                if remainig_samples_of_first_epoch > 0:
+                    samples_train = remainig_samples_of_first_epoch
+                else:
+                    samples_train = self._samples_train
+                self._samples_left -= samples_train
 
-                # Let's try our best to keep the notion of curriculum learning
-                self._reset_counters()
+                # Let's keep the notion of curriculum learning
+                self._set_counters(0)
+                self._index_train = self._samples_train - samples_train
 
                 # If the training part of the current epoch should generate a WER report
                 is_display_step = FLAGS.display_step > 0 and (FLAGS.display_step == 1 or self._epoch > 0) and (self._epoch % FLAGS.display_step == 0 or self._epoch == self._target_epoch)
                 # Append the training epoch
-                self._epochs_running.append(Epoch(self._epoch, num_jobs_train, set_name='train', report=is_display_step))
+                self._epochs_running.append(Epoch(self._epoch, samples_train, set_name='train', report=is_display_step))
 
                 if FLAGS.validation_step > 0 and (FLAGS.validation_step == 1 or self._epoch > 0) and self._epoch % FLAGS.validation_step == 0:
                     # The current epoch should also have a validation part
-                    self._epochs_running.append(Epoch(self._epoch, self._num_jobs_dev, set_name='dev', report=is_display_step))
-
+                    self._epochs_running.append(Epoch(self._epoch, self._samples_dev, set_name='dev', report=is_display_step))
 
                 # Indicating that there were 'new' epoch(s) provided
                 result = True
@@ -1219,7 +1194,7 @@ class TrainingCoordinator(object):
         if self._test and not self._train:
             # We shall test, and are not in train mode anymore
             self._test = False
-            self._epochs_running.append(Epoch(self._epoch, self._num_jobs_test, set_name='test', report=True))
+            self._epochs_running.append(Epoch(self._epoch, self._samples_test, set_name='test', report=True))
             # Indicating that there were 'new' epoch(s) provided
             result = True
 
@@ -1291,6 +1266,12 @@ class TrainingCoordinator(object):
             if is_chief:
                 member = '_index_' + set_name
                 value = getattr(self, member, -1)
+                max_index = getattr(self, '_samples_' + set_name, -1)
+                #print ('max index: %d' % max_index)
+                if value < 0:
+                    #print ('return %d' % -1)
+                    return -1
+                #print ('return %d' % (value+1))
                 setattr(self, member, value + 1)
                 return value
             else:
@@ -1436,20 +1417,11 @@ def train(server=None):
                                n_context,
                                tower_feeder_count=len(available_devices))
 
-    # Create the optimizer
-    optimizer = create_optimizer()
-
-    # Synchronous distributed training is facilitated by a special proxy-optimizer
-    if not server is None:
-        optimizer = tf.train.SyncReplicasOptimizer(optimizer,
-                                                   replicas_to_aggregate=FLAGS.replicas_to_agg,
-                                                   total_num_replicas=FLAGS.replicas)
-
     # Get the data_set specific graph end-points
-    results_tuple, gradients, mean_edit_distance, loss = get_tower_results(model_feeder, optimizer)
+    optimizer, results_tuple, batch_sizes, gradients, mean_edit_distance, loss = get_tower_results(model_feeder)
 
     # Average tower gradients across GPUs
-    avg_tower_gradients = average_gradients(gradients)
+    avg_tower_gradients, sample_number = average_gradients(batch_sizes, gradients)
 
     # Add summaries of all variables and gradients to log
     log_grads_and_vars(avg_tower_gradients)
@@ -1460,6 +1432,9 @@ def train(server=None):
     # Apply gradients to modify the model
     apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
+    # Increment global sample counter
+    sample_counter = variable_on_ps_level('sample_counter', None, 0, trainable=False)
+    sample_inc_op = tf.assign_add(sample_counter, sample_number)
 
     if FLAGS.early_stop is True and not FLAGS.validation_step > 0:
         log_warn('Parameter --validation_step needs to be >0 for early stopping to work')
@@ -1513,9 +1488,9 @@ def train(server=None):
                 if is_chief:
                     # Retrieving global_step from the (potentially restored) model
                     feed_dict = {}
-                    model_feeder.set_data_set(feed_dict, model_feeder.train)
-                    step = session.run(global_step, feed_dict=feed_dict)
-                    COORD.start_coordination(model_feeder, step)
+                    model_feeder.set_data_set(feed_dict, None)
+                    current_sample_number = session.run(sample_counter, feed_dict=feed_dict)
+                    COORD.start_coordination(model_feeder, current_sample_number)
 
                 # Get the first job
                 job = COORD.get_job()
@@ -1529,11 +1504,8 @@ def train(server=None):
                     # Sets the current data_set for the respective placeholder in feed_dict
                     model_feeder.set_data_set(feed_dict, getattr(model_feeder, job.set_name))
 
-                    # Initialize loss aggregator
-                    total_loss = 0.0
-
                     # Setting the training operation in case of training requested
-                    train_op = apply_gradient_op if job.set_name == 'train' else []
+                    train_ops = [apply_gradient_op, sample_inc_op] if job.set_name == 'train' else []
 
                     # Requirements to display a WER report
                     if job.report:
@@ -1556,26 +1528,23 @@ def train(server=None):
 
                         log_debug('Starting batch...')
                         # Compute the batch
-                        _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
+                        _, current_sample_number, current_loss, current_report = session.run([train_ops, sample_number, loss, report_params], **extra_params)
 
-                        # Uncomment the next line for debugging race conditions / distributed TF
-                        log_debug('Finished batch step %d.' % current_step)
-
-                        # Add batch to loss
-                        total_loss += batch_loss
+                        # Collect results
+                        job.sample_number += current_sample_number
+                        job.loss += current_loss * current_sample_number
 
                         if job.report:
                             # Collect individual sample results
-                            collect_results(report_results, batch_report[0])
+                            collect_results(report_results, current_report[0])
                             # Add batch to total_mean_edit_distance
-                            total_mean_edit_distance += batch_report[1]
+                            total_mean_edit_distance += current_report[1] * current_sample_number
 
                     # Gathering job results
-                    job.loss = total_loss / job.steps
+                    job.loss = job.loss / job.sample_number
                     if job.report:
-                        job.mean_edit_distance = total_mean_edit_distance / job.steps
+                        job.mean_edit_distance = total_mean_edit_distance / job.sample_number
                         job.wer, job.samples = calculate_report(report_results)
-
 
                     # Send the current job to coordinator and receive the next one
                     log_debug('Sending %s...' % str(job))
