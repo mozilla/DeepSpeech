@@ -46,9 +46,42 @@ make -C native_client/ \
 	deepspeech
 
 if [ ${MAKE_BINDINGS_PY} ]; then
-    make -C native_client/ \
-        TFDIR=${DS_TFDIR} \
-        bindings
+    unset PYTHON_BIN_PATH
+    unset PYTHONPATH
+    export PYENV_ROOT="${HOME_CLEAN}/DeepSpeech/.pyenv"
+    export PATH="${PYENV_ROOT}/bin:$PATH"
+
+    git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
+    pushd ${PYENV_ROOT}
+        git checkout --quiet 0c909f7457a027276a1d733d78bfbe70ba652047
+    popd
+    eval "$(pyenv init -)"
+
+    PYENV_VENV="$(pyenv root)/plugins/pyenv-virtualenv"
+    git clone --quiet https://github.com/pyenv/pyenv-virtualenv.git ${PYENV_VENV}
+    pushd ${PYENV_VENV}
+        git checkout --quiet 27270877575fe8c3e7be5385b8b6a1e4089b39aa
+    popd
+    #eval "$(pyenv virtualenv-init -)"
+
+    mkdir -p wheels
+
+    for pyver in 2.7.13 3.4.6 3.5.3 3.6.2; do
+        pyenv install ${pyver}
+        pyenv virtualenv ${pyver} deepspeech
+        source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
+
+        make -C native_client/ \
+            TFDIR=${DS_TFDIR} \
+            bindings
+
+        cp native_client/dist/deepspeech-*.whl wheels
+
+        make -C native_client/ bindings-clean
+
+        deactivate
+        pyenv uninstall --force deepspeech
+    done;
 fi
 
 if [ ${MAKE_BINDINGS_JS} ]; then

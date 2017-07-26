@@ -1,6 +1,6 @@
 {
     "name" : "deepspeech",
-    "version" : "0.1.0",
+    "version" : "0.0.1",
     "description" : "DeepSpeech NodeJS bindings",
     "main" : "./index",
     "author" : "Mozilla DeepSpeech <deepspeech>",

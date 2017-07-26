@@ -129,6 +129,7 @@ tasks:
           echo "deb http://deb.nodesource.com/node_6.x trusty main" > /etc/apt/sources.list.d/nodesource.list &&
           wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - &&
           apt-get -qq update && apt-get -qq -y install nodejs git pixz pkg-config libsox-dev &&
+          apt-get -qq -y install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev &&
           wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig_3.0.10-1.1_amd64.deb -O /tmp/swig_3.0.10-1.1_amd64.deb &&
           wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.1_amd64.deb -O /tmp/swig3.0_3.0.10-1.1_amd64.deb &&
           dpkg -i /tmp/swig_3.0.10-1.1_amd64.deb /tmp/swig3.0_3.0.10-1.1_amd64.deb &&

@@ -17,8 +17,8 @@ tar -C ${HOME}/DeepSpeech/ds/native_client/ \
 	-uf /tmp/artifacts/native_client.tar \
 	deepspeech
 
-if [ -d ${HOME}/DeepSpeech/ds/native_client/dist ]; then
-  cp ${HOME}/DeepSpeech/ds/native_client/dist/* /tmp/artifacts/
+if [ -d ${HOME}/DeepSpeech/ds/wheels ]; then
+  cp ${HOME}/DeepSpeech/ds/wheels/* /tmp/artifacts/
 fi
 
 find ${HOME}/DeepSpeech/ds/native_client/javascript/ -type f -name "deepspeech-*.tgz" -exec cp {} /tmp/artifacts/ \;
