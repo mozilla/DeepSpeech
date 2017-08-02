@@ -18,11 +18,9 @@ def text_to_char_array(original):
     # Create list of sentence's words w/spaces replaced by ''
     result = original.replace(" '", "") # TODO: Deal with this properly
     result = result.replace("'", "")    # TODO: Deal with this properly
-    result = result.replace(' ', '  ')
-    result = result.split(' ')
 
-    # Tokenize words into letters adding in SPACE_TOKEN where required
-    result = np.hstack([SPACE_TOKEN if xt == '' else list(xt) for xt in result])
+    # Tokenize into letters adding in SPACE_TOKEN where required
+    result = np.hstack([SPACE_TOKEN if xt == ' ' else xt for xt in result])
 
     # Map characters into indicies
     result = np.asarray([SPACE_INDEX if xt == SPACE_TOKEN else ord(xt) - FIRST_INDEX for xt in result])
@@ -33,9 +31,8 @@ def text_to_char_array(original):
 def sparse_tuple_from(sequences, dtype=np.int32):
     r"""Creates a sparse representention of ``sequences``.
     Args:
-        
         * sequences: a list of lists of type dtype where each element is a sequence
-    
+
     Returns a tuple with (indices, values, shape)
     """
     indices = []
@@ -177,7 +174,7 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
     indices = tf.transpose(tf.reshape(tf.concat([batch_ind, label_ind], 0), [2, -1]))
     shape = [batch_size, tf.reduce_max(label_lengths)]
     vals_sparse = gather_nd(labels, indices, shape)
-    
+
     return tf.SparseTensor(tf.to_int64(indices), vals_sparse, tf.to_int64(label_shape))
 
 # Validate and normalize transcriptions. Returns a cleaned version of the label
