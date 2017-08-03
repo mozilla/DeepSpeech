@@ -17,7 +17,8 @@ export PYENV_ROOT="${HOME}/ds-train/.pyenv"
 export PATH="${PYENV_ROOT}/bin:${HOME}/bin:$PATH"
 
 mkdir -p ${PYENV_ROOT} || true
-mkdir -p /tmp/artifacts/ || true
+mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
+mkdir -p /tmp/train || true
 
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
@@ -38,4 +39,4 @@ popd
 deactivate
 pyenv uninstall --force ${PYENV_NAME}
 
-cp /tmp/train/output_graph.pb /tmp/artifacts/
+cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}

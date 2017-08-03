@@ -19,7 +19,7 @@ configure: deepspeech_wrap.cxx
 	$(NODE_BUILD_TOOL) configure $(NODE_BUILD_VERBOSE)
 
 build: configure deepspeech_wrap.cxx
-	$(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) rebuild $(NODE_BUILD_VERBOSE)
+	LDFLAGS="-L$(TFDIR)/bazel-bin/tensorflow -L$(TFDIR)/bazel-bin/native_client" $(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) rebuild $(NODE_BUILD_VERBOSE)
 
 package: build
 	LDFLAGS="-L$(TFDIR)/bazel-bin/tensorflow -L$(TFDIR)/bazel-bin/native_client" $(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) package $(NODE_BUILD_VERBOSE)

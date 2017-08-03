@@ -300,3 +300,99 @@ tasks:
       description: "Building DeepSpeech with ARM CPU only support"
       owner: "{{ event.head.user.email }}"
       source: "{{ event.head.repo.url }}"
+
+  ## PULL REQUEST FOR OSX CPU BUILDS
+  - provisionerId: "localprovisioner"
+    workerType: "deepspeech-macos"
+    extra:
+      github:
+        env: true
+        events:
+          - pull_request.opened
+          - pull_request.synchronize
+          - pull_request.reopened
+    payload:
+      maxRunTime: 3600
+      env:
+        TENSORFLOW_BUILD_ARTIFACT: https://queue.taskcluster.net/v1/task/Vz5-L-vNSfiTdpuHj4Rj9A/runs/0/artifacts/public/home.tar.xz
+      command:
+        - - "/bin/bash"
+          - "--login"
+          - "-cxe"
+          - >
+            export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+            export TASKCLUSTER_TASK_ROOT="$(pwd)" &&
+            env &&
+            (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C $(dirname "${TASKCLUSTER_TASK_ROOT}") -xf - ) &&
+            export TASKCLUSTER_TASK_DIR="$(find $(dirname `pwd`) -name "task-*" -type d -mindepth 1 -maxdepth 1)" &&
+            git clone --quiet {{event.head.repo.url}} ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/ &&
+            cd ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} &&
+            ln -s ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/native_client/ ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/native_client &&
+            cd ${TASKCLUSTER_TASK_DIR} &&
+            ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/tc-brew.sh &&
+            ${TASKCLUSTER_TASK_DIR}/homebrew/bin/brew install node@6 pkg-config sox swig &&
+            export PATH=${TASKCLUSTER_TASK_DIR}/homebrew/bin/:${TASKCLUSTER_TASK_DIR}/homebrew/opt/node@6/bin:$PATH &&
+            npm update && npm install -g node-gyp node-pre-gyp &&
+            ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-build.sh &&
+            ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-package.sh;
+            cd ${TASKCLUSTER_TASK_ROOT} && rm -fr ${TASKCLUSTER_TASK_DIR}
+      artifacts:
+        - type: "directory"
+          path: "public/"
+          expires: "{{ '7 days' | $fromNow }}"
+    # Each task also requires explicit metadata
+    metadata:
+      name: "TaskCluster DeepSpeech CPU only for OSX"
+      description: "Building DeepSpeech with CPU only support for OSX"
+      owner: "{{ event.head.user.email }}"
+      source: "{{ event.head.repo.url }}"
+
+  ## PUSH TO MAIN REPO FOR OSX CPU BUILDS
+  - provisionerId: "localprovisioner"
+    workerType: "deepspeech-macos"
+    extra:
+      github:
+        env: true
+        events:
+          - push
+        branches:
+          - master
+    routes:
+      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.osx"
+      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.{{ event.head.sha }}.osx"
+      - "index.project.deepspeech.deepspeech.native_client.osx.{{ event.head.sha }}"
+    payload:
+      maxRunTime: 3600
+      env:
+        TENSORFLOW_BUILD_ARTIFACT: https://queue.taskcluster.net/v1/task/Vz5-L-vNSfiTdpuHj4Rj9A/runs/0/artifacts/public/home.tar.xz
+      command:
+        - - "/bin/bash"
+          - "--login"
+          - "-cxe"
+          - >
+            export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+            export TASKCLUSTER_TASK_ROOT="$(pwd)" &&
+            env &&
+            (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C $(dirname "${TASKCLUSTER_TASK_ROOT}") -xf - ) &&
+            export TASKCLUSTER_TASK_DIR="$(find $(dirname `pwd`) -name "task-*" -type d -mindepth 1 -maxdepth 1)" &&
+            git clone --quiet {{event.head.repo.url}} ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/ &&
+            cd ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} &&
+            ln -s ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/native_client/ ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/native_client &&
+            cd ${TASKCLUSTER_TASK_DIR} &&
+            ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/tc-brew.sh &&
+            ${TASKCLUSTER_TASK_DIR}/homebrew/bin/brew install node@6 pkg-config sox swig &&
+            export PATH=${TASKCLUSTER_TASK_DIR}/homebrew/bin/:${TASKCLUSTER_TASK_DIR}/homebrew/opt/node@6/bin:$PATH &&
+            npm update && npm install -g node-gyp node-pre-gyp &&
+            ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-build.sh &&
+            ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-package.sh;
+            cd ${TASKCLUSTER_TASK_ROOT} && rm -fr ${TASKCLUSTER_TASK_DIR}
+      artifacts:
+        - type: "directory"
+          path: "public/"
+          expires: "{{ '6 months' | $fromNow }}"
+    # Each task also requires explicit metadata
+    metadata:
+      name: "TaskCluster DeepSpeech CPU only for OSX"
+      description: "Building DeepSpeech with CPU only support for OSX"
+      owner: "{{ event.head.user.email }}"
+      source: "{{ event.head.repo.url }}"

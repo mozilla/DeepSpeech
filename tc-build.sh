@@ -4,9 +4,9 @@ set -xe
 
 source $(dirname "$0")/tc-tests-utils.sh
 
-source ${HOME}/DeepSpeech/tf/tc-vars.sh
+source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
 
-DS_TFDIR=${HOME}/DeepSpeech/tf
+DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 EXTRA_CUDA_CFLAGS=
 EXTRA_CUDA_LDFLAGS=
 
@@ -32,13 +32,13 @@ if [ "$1" != "--gpu" -a "$1" != "--arm" ]; then
     MAKE_BINDINGS_JS=1
 fi
 
-cd ~/DeepSpeech/tf
+cd ${DS_ROOT_TASK}/DeepSpeech/tf
 eval "export ${BAZEL_ENV_FLAGS}"
-PATH=${HOME}/bin/:$PATH bazel \
+PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} \
 	build -c opt ${BAZEL_BUILD_FLAGS} \
 	//native_client:*
 
-cd ~/DeepSpeech/ds/
+cd ${DS_ROOT_TASK}/DeepSpeech/ds/
 make -C native_client/ \
 	TARGET=${SYSTEM_TARGET} \
 	TFDIR=${DS_TFDIR} \
@@ -50,7 +50,7 @@ make -C native_client/ \
 if [ ${MAKE_BINDINGS_PY} ]; then
     unset PYTHON_BIN_PATH
     unset PYTHONPATH
-    export PYENV_ROOT="${HOME_CLEAN}/DeepSpeech/.pyenv"
+    export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
     export PATH="${PYENV_ROOT}/bin:$PATH"
 
     install_pyenv "${PYENV_ROOT}"
@@ -65,7 +65,7 @@ if [ ${MAKE_BINDINGS_PY} ]; then
 
         make -C native_client/ \
             TFDIR=${DS_TFDIR} \
-            bindings
+            bindings-clean bindings
 
         cp native_client/dist/deepspeech-*.whl wheels
 
