@@ -14,8 +14,8 @@ if [ "$1" = "--gpu" ]; then
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=1 ${TF_CUDA_FLAGS}"
     BAZEL_BUILD_FLAGS="${BAZEL_CUDA_FLAGS} ${BAZEL_OPT_FLAGS}"
     SYSTEM_TARGET=host
-    EXTRA_CUDA_CFLAGS=-L${HOME}/DeepSpeech/CUDA/lib64/
-    EXTRA_CUDA_LDFLAGS=-lcudart
+    EXTRA_CUDA_CFLAGS="-L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/ -L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/stubs/"
+    EXTRA_CUDA_LDFLAGS="-lcudart -lcuda"
 fi
 
 if [ "$1" = "--arm" ]; then
@@ -43,8 +43,8 @@ make -C native_client/ \
 	TARGET=${SYSTEM_TARGET} \
 	TFDIR=${DS_TFDIR} \
 	RASPBIAN=/tmp/multistrap-raspbian-jessie \
-	EXTRA_CFLAGS=${EXTRA_CUDA_CFLAGS} \
-	EXTRA_LDFLAGS=${EXTRA_CUDA_LDFLAGS} \
+	EXTRA_CFLAGS="${EXTRA_CUDA_CFLAGS}" \
+	EXTRA_LDFLAGS="${EXTRA_CUDA_LDFLAGS}" \
 	deepspeech
 
 if [ ${MAKE_BINDINGS_PY} ]; then

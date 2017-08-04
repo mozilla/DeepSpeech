@@ -28,9 +28,8 @@ pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
-#pip install --upgrade ${TENSORFLOW_WHEEL}
-#grep -v "tensorflow" ${HOME}/DeepSpeech/ds/requirements.txt | pip install --upgrade -r /dev/stdin
-pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt
+pip install --upgrade ${TENSORFLOW_WHEEL}
+grep -v "tensorflow" ${HOME}/DeepSpeech/ds/requirements.txt | pip install --upgrade -r /dev/stdin
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1.sh
