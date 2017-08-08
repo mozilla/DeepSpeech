@@ -159,6 +159,8 @@ main(int argc, char **argv)
 #endif
 
   // Pass audio to DeepSpeech
+  // We take half of buffer_size because buffer is a char* while
+  // LocalDsSTT() expected a short*
   struct ds_result* result = LocalDsSTT(ctx, (const short*)buffer,
                                         buffer_size / 2, sampleRate);
   free(buffer);
