@@ -40,15 +40,19 @@ endif
 
 default: deepspeech
 
-clean:
-	rm -rf build dist deepspeech.egg-info
-	rm -f deepspeech python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
+clean: bindings-clean
+	rm -f deepspeech
 
 deepspeech: client.cc
 	$(TOOLCHAIN)$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
 
+bindings-clean:
+	rm -rf dist build deepspeech.egg-info
+	rm -f python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
+
 bindings:
-	python ./setup.py bdist_wheel
+	pip install --quiet numpy wheel
+	CFLAGS="-L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client" python ./setup.py bdist_wheel
 
 run: deepspeech
 	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}
