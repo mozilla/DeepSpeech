@@ -27,9 +27,6 @@ python -u DeepSpeech.py \
   --train_files "$COMPUTE_DATA_DIR/swb-train.csv" \
   --dev_files "$COMPUTE_DATA_DIR/swb-dev.csv" \
   --test_files "$COMPUTE_DATA_DIR/swb-test.csv" \
-  --train_batch_size 48 \
-  --dev_batch_size 32 \
-  --test_batch_size 32 \
   --epoch 50 \
   --learning_rate 0.0001 \
   --validation_step 10 \

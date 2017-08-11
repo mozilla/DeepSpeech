@@ -4,9 +4,15 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import sys
+from util.gpu import get_available_gpus
 
 log_level_index = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[log_level_index] if log_level_index > 0 and log_level_index < len(sys.argv) else '3'
+
+# Determining memory state of each GPU before anything is loaded
+memory_limits = [gpu.memory_limit for gpu in get_available_gpus()]
+if len(memory_limits) == 0:
+    memory_limits = [1000000000]
 
 import datetime
 import pickle
@@ -15,16 +21,17 @@ import subprocess
 import tensorflow as tf
 import time
 import inspect
+import multiprocessing
 
 from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.tools import freeze_graph
 from threading import Thread, Lock
 from util.feeding import DataSet, ModelFeeder
-from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
 from util.spell import correction
 from util.text import sparse_tensor_value_to_texts, wer
+from urlparse import parse_qs
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -32,10 +39,27 @@ import numpy as np
 # Importer
 # ========
 
+tf.app.flags.DEFINE_integer ('threads_per_set',  0,           'concurrent sample loader threads per data set (train, dev, test) - default (0) is equal to the number of CPU cores (but at least 2)')
+tf.app.flags.DEFINE_integer ('loader_buffer',    0,           'number of samples in the buffer that is used to pick batches from - default (0) is GPU memory of the biggest GPU divided by 10 million (but at least 100)')
+tf.app.flags.DEFINE_integer ('queue_capacity',   100,         'capacity of feeding queues (number of samples) - defaults to 100')
+
+# Files
+
 tf.app.flags.DEFINE_string  ('train_files',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
 tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
 tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
-tf.app.flags.DEFINE_boolean ('fulltrace',        False,       'if full trace debug info should be generated during training')
+
+# Sample window
+
+tf.app.flags.DEFINE_integer ('limit_train',      0,           'maximum number of elements to use from train set - 0 means no limit')
+tf.app.flags.DEFINE_integer ('limit_dev',        0,           'maximum number of elements to use from validation set- 0 means no limit')
+tf.app.flags.DEFINE_integer ('limit_test',       0,           'maximum number of elements to use from test set- 0 means no limit')
+tf.app.flags.DEFINE_integer ('skip_train',       0,           'number of elements to skip from the beginning of the train set')
+tf.app.flags.DEFINE_integer ('skip_dev',         0,           'number of elements to skip from the beginning of the validation set')
+tf.app.flags.DEFINE_integer ('skip_test',        0,           'number of elements to skip from the beginning of the test set')
+tf.app.flags.DEFINE_boolean ('train_ascending',  True,        'process samples in train set in ascending (True) or descending (False) order - default True')
+tf.app.flags.DEFINE_boolean ('dev_ascending',    True,        'process samples in validation set in ascending (True) or descending (False) order - default True')
+tf.app.flags.DEFINE_boolean ('test_ascending',   True,        'process samples in test set in ascending (True) or descending (False) order - default True')
 
 # Cluster configuration
 # =====================
@@ -53,6 +77,8 @@ tf.app.flags.DEFINE_integer ('iters_per_worker', 1,           'number of train o
 
 # Global Constants
 # ================
+
+tf.app.flags.DEFINE_integer ('gpu_allocation',   100,         'how much GPU memory should be allocated in percent')
 
 tf.app.flags.DEFINE_boolean ('train',            True,        'wether to train the network')
 tf.app.flags.DEFINE_boolean ('test',             True,        'wether to test the network')
@@ -75,18 +101,6 @@ tf.app.flags.DEFINE_float   ('beta1',            0.9,         'beta 1 parameter 
 tf.app.flags.DEFINE_float   ('beta2',            0.999,       'beta 2 parameter of Adam optimizer')
 tf.app.flags.DEFINE_float   ('epsilon',          1e-8,        'epsilon parameter of Adam optimizer')
 tf.app.flags.DEFINE_float   ('learning_rate',    0.001,       'learning rate of Adam optimizer')
-
-# Batch sizes
-
-tf.app.flags.DEFINE_integer ('train_batch_size', 1,           'number of elements in a training batch')
-tf.app.flags.DEFINE_integer ('dev_batch_size',   1,           'number of elements in a validation batch')
-tf.app.flags.DEFINE_integer ('test_batch_size',  1,           'number of elements in a test batch')
-
-# Sample limits
-
-tf.app.flags.DEFINE_integer ('limit_train',      0,           'maximum number of elements to use from train set - 0 means no limit')
-tf.app.flags.DEFINE_integer ('limit_dev',        0,           'maximum number of elements to use from validation set- 0 means no limit')
-tf.app.flags.DEFINE_integer ('limit_test',       0,           'maximum number of elements to use from test set- 0 means no limit')
 
 # Step widths
 
@@ -183,11 +197,23 @@ def initialize_globals():
 
     # This node's available GPU devices
     global available_devices
-    available_devices = [worker_device + gpu for gpu in get_available_gpus()]
+    available_devices = [worker_device + gpu.name for gpu in get_available_gpus()]
 
     # If there is no GPU available, we fall back to CPU based operation
     if 0 == len(available_devices):
         available_devices = [cpu_device]
+
+    # By default we run as many sample loading threads per set as CPU cores
+    # (as there is only one set active at a time)
+    cpu_count = multiprocessing.cpu_count()
+    if FLAGS.threads_per_set <= 0:
+        FLAGS.threads_per_set = max(2, cpu_count)
+    log_debug('Number of loader threads per data set (%d CPUs): %d' % (cpu_count, FLAGS.threads_per_set))
+
+    # By default the loader buffer is the 10 million-th part of the biggest GPU's memory in bytes
+    if FLAGS.loader_buffer <= 0:
+        FLAGS.loader_buffer = max(100, max(memory_limits) // 10000000) if len(memory_limits) > 0 else 100
+    log_debug('Number of samples in loader buffer (%d bytes GPU memory): %d' % (max(memory_limits), FLAGS.loader_buffer))
 
     # Set default dropout rates
     if FLAGS.dropout_rate2 < 0:
@@ -218,7 +244,10 @@ def initialize_globals():
 
     # Standard session configuration that'll be used for all new sessions.
     global session_config
-    session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=float(FLAGS.gpu_allocation) / 100.0)
+    session_config = tf.ConfigProto(allow_soft_placement=True,
+                                    log_device_placement=FLAGS.log_placement,
+                                    gpu_options=gpu_options)
 
     # Geometric Constants
     # ===================
@@ -790,8 +819,8 @@ def format_duration(duration):
 # =========
 
 # String constants for different services of the web handler
-PREFIX_NEXT_INDEX = '/next_index_'
-PREFIX_GET_JOB = '/get_job_'
+PREFIX_GET_INDICES = '/get_indices/?'
+PREFIX_GET_JOB = '/get_job/?'
 
 # Global ID counter for all objects requiring an ID
 id_counter = 0
@@ -1018,13 +1047,15 @@ class TrainingCoordinator(object):
 
         def do_GET(self):
             if COORD.started:
-                if self.path.startswith(PREFIX_NEXT_INDEX):
-                    index = COORD.get_next_index(self.path[len(PREFIX_NEXT_INDEX):])
+                if self.path.startswith(PREFIX_GET_INDICES):
+                    params = parse_qs(self.path[len(PREFIX_GET_INDICES):])
+                    index = COORD.get_indices(params['set'][0], int(params['number'][0]))
                     if index >= 0:
                         self._send_answer(str(index).encode("utf-8"))
                         return
                 elif self.path.startswith(PREFIX_GET_JOB):
-                    job = COORD.get_job(worker=int(self.path[len(PREFIX_GET_JOB):]))
+                    params = parse_qs(self.path[len(PREFIX_GET_JOB):])
+                    job = COORD.get_job(worker=int(params['worker'][0]))
                     if job:
                         self._send_answer(pickle.dumps(job))
                         return
@@ -1092,8 +1123,6 @@ class TrainingCoordinator(object):
         '''
         with self._lock:
             self._init()
-
-            print('STARTED COORDINATION')
 
             # Number of samples per epoch - to be at least 1
             self._samples_train = max(1, len(model_feeder.train.files))
@@ -1252,7 +1281,7 @@ class TrainingCoordinator(object):
             time.sleep(10)
         return default
 
-    def get_next_index(self, set_name):
+    def get_indices(self, set_name, number):
         '''Retrives a new cluster-unique batch index for a given set-name.
         Prevents applying one batch multiple times per epoch.
 
@@ -1266,18 +1295,14 @@ class TrainingCoordinator(object):
             if is_chief:
                 member = '_index_' + set_name
                 value = getattr(self, member, -1)
-                max_index = getattr(self, '_samples_' + set_name, -1)
-                #print ('max index: %d' % max_index)
                 if value < 0:
-                    #print ('return %d' % -1)
                     return -1
-                #print ('return %d' % (value+1))
-                setattr(self, member, value + 1)
+                setattr(self, member, value + number)
                 return value
             else:
                 # We are a remote worker and have to hand over to the chief worker by HTTP
                 log_traffic('Asking for next index...')
-                value = int(self._talk_to_chief(PREFIX_NEXT_INDEX + set_name))
+                value = int(self._talk_to_chief(PREFIX_GET_INDICES + 'set=' + set_name + '&number=' + str(number)))
                 log_traffic('Got index %d.' % value)
                 return value
 
@@ -1329,7 +1354,7 @@ class TrainingCoordinator(object):
                 return job
 
             # We are a remote worker and have to hand over to the chief worker by HTTP
-            result = self._talk_to_chief(PREFIX_GET_JOB + str(FLAGS.task_index))
+            result = self._talk_to_chief(PREFIX_GET_JOB + 'worker=' + str(FLAGS.task_index))
             if result:
                 result = pickle.loads(result)
             return result
@@ -1393,21 +1418,24 @@ def train(server=None):
 
     # Reading training set
     train_set = DataSet(FLAGS.train_files.split(','),
-                        FLAGS.train_batch_size,
                         limit=FLAGS.limit_train,
-                        next_index=lambda i: COORD.get_next_index('train'))
+                        skip=FLAGS.skip_train,
+                        ascending=FLAGS.train_ascending,
+                        get_indices=lambda n: COORD.get_indices('train', n))
 
     # Reading validation set
     dev_set = DataSet(FLAGS.dev_files.split(','),
-                      FLAGS.dev_batch_size,
                       limit=FLAGS.limit_dev,
-                      next_index=lambda i: COORD.get_next_index('dev'))
+                      skip=FLAGS.skip_dev,
+                      ascending=FLAGS.dev_ascending,
+                      get_indices=lambda n: COORD.get_indices('dev', n))
 
     # Reading test set
     test_set = DataSet(FLAGS.test_files.split(','),
-                       FLAGS.test_batch_size,
                        limit=FLAGS.limit_test,
-                       next_index=lambda i: COORD.get_next_index('test'))
+                       skip=FLAGS.skip_test,
+                       ascending=FLAGS.test_ascending,
+                       get_indices=lambda n: COORD.get_indices('test', n))
 
     # Combining all sets to a multi set model feeder
     model_feeder = ModelFeeder(train_set,
@@ -1415,7 +1443,11 @@ def train(server=None):
                                test_set,
                                n_input,
                                n_context,
-                               tower_feeder_count=len(available_devices))
+                               len(available_devices),
+                               FLAGS.threads_per_set,
+                               FLAGS.loader_buffer,
+                               min(memory_limits),
+                               FLAGS.queue_capacity)
 
     # Get the data_set specific graph end-points
     optimizer, results_tuple, batch_sizes, gradients, mean_edit_distance, loss = get_tower_results(model_feeder)
@@ -1462,7 +1494,7 @@ def train(server=None):
     hooks = [CoordHook()]
 
     # Hook to handle initialization and queues for sync replicas.
-    if not server is None:
+    if server:
         hooks.append(optimizer.make_session_run_hook(is_chief))
 
     # Hook to save TensorBoard summaries
@@ -1478,7 +1510,7 @@ def train(server=None):
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
     try:
-        with tf.train.MonitoredTrainingSession(master='' if server is None else server.target,
+        with tf.train.MonitoredTrainingSession(master=server.target if server else '',
                                                is_chief=is_chief,
                                                hooks=hooks,
                                                checkpoint_dir=FLAGS.checkpoint_dir,
@@ -1494,6 +1526,7 @@ def train(server=None):
 
                 # Get the first job
                 job = COORD.get_job()
+                print ('Session should stop: %r' % session.should_stop())
 
                 while job and not session.should_stop():
                     log_debug('Computing %s...' % str(job))
