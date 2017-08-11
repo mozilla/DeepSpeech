@@ -401,7 +401,7 @@ def BiRNN(batch_x, seq_length, dropout):
                                                       output_keep_prob=1.0 - dropout[3],
                                                       seed=FLAGS.random_seed)
         return _lstm_fw_cell
-    lstm_fw_cell = tf.nn.rnn_cell.MultiRNNCell(cells=[_forward_cell() for _ in range(2)], state_is_tuple=True)
+    lstm_fw_cell = tf.contrib.rnn.MultiRNNCell(cells=[_forward_cell() for _ in range(2)], state_is_tuple=True)
 
     # Backward direction cell: (if else required for TF 1.0 and 1.1 compat)
     def _backward_cell():
@@ -413,7 +413,7 @@ def BiRNN(batch_x, seq_length, dropout):
                                                       output_keep_prob=1.0 - dropout[4],
                                                       seed=FLAGS.random_seed)
         return _lstm_bw_cell
-    lstm_bw_cell = tf.nn.rnn_cell.MultiRNNCell(cells=[_backward_cell() for _ in range(2)], state_is_tuple=True)
+    lstm_bw_cell = tf.contrib.rnn.MultiRNNCell(cells=[_backward_cell() for _ in range(2)], state_is_tuple=True)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
