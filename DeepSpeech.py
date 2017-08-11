@@ -23,7 +23,6 @@ from threading import Thread, Lock
 from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.spell import correction
 from util.text import sparse_tensor_value_to_texts, wer
 from xdg import BaseDirectory as xdg
 import numpy as np
@@ -393,21 +392,28 @@ def BiRNN(batch_x, seq_length, dropout):
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell: (if else required for TF 1.0 and 1.1 compat)
-    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
-                   if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
-                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
-    lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
-                                                input_keep_prob=1.0 - dropout[3],
-                                                output_keep_prob=1.0 - dropout[3],
-                                                seed=FLAGS.random_seed)
+    def _forward_cell():
+        _lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
+                        if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
+                        tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
+        _lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(_lstm_fw_cell,
+                                                      input_keep_prob=1.0 - dropout[3],
+                                                      output_keep_prob=1.0 - dropout[3],
+                                                      seed=FLAGS.random_seed)
+        return _lstm_fw_cell
+    lstm_fw_cell = tf.nn.rnn_cell.MultiRNNCell(cells=[_forward_cell() for _ in range(2)], state_is_tuple=True)
+
     # Backward direction cell: (if else required for TF 1.0 and 1.1 compat)
-    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
-                   if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
-                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
-    lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
-                                                input_keep_prob=1.0 - dropout[4],
-                                                output_keep_prob=1.0 - dropout[4],
-                                                seed=FLAGS.random_seed)
+    def _backward_cell():
+        _lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
+                        if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
+                        tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
+        _lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(_lstm_bw_cell,
+                                                      input_keep_prob=1.0 - dropout[4],
+                                                      output_keep_prob=1.0 - dropout[4],
+                                                      seed=FLAGS.random_seed)
+        return _lstm_bw_cell
+    lstm_bw_cell = tf.nn.rnn_cell.MultiRNNCell(cells=[_backward_cell() for _ in range(2)], state_is_tuple=True)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
@@ -712,9 +718,8 @@ def calculate_report(results_tuple):
     items = list(zip(*results_tuple))
     mean_wer = 0.0
     for label, decoding, distance, loss in items:
-        corrected = correction(decoding)
-        sample_wer = wer(label, corrected)
-        sample = Sample(label, corrected, loss, distance, sample_wer)
+        sample_wer = wer(label, decoding)
+        sample = Sample(label, decoding, loss, distance, sample_wer)
         samples.append(sample)
         mean_wer += sample_wer
 
