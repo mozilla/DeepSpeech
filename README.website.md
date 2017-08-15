@@ -1,5 +1,5 @@
-Overview of the process for publishing WER
-==========================================
+Overview of the overall process for publishing WER
+==================================================
 
 The tracking of WER is made using the following workflow:
 * a dedicated user on the learning machine periodically runs training jobs (cron
@@ -31,15 +31,15 @@ PATH=/usr/local/bin:/usr/bin/:/bin
 */15 *  *   *   *    test ! -f $HOME/.cache/deepspeech_wer/lock && (rm $HOME/.deepspeech_wer.locked.log; mkdir -p $HOME/wer && cd $HOME/wer && source /usr/local/tensorflow-env/bin/activate && /usr/bin/curl -H "Cache-Control: no-cache" -L https://raw.githubusercontent.com/mozilla/DeepSpeech/master/util/automation.py | ds_website_username="UUU" ds_website_privkey="FFF" ds_website_server_fqdn="SSS" ds_website_server_root="www/" ds_gpu_usage_root="/data/automation/gpu/" ds_dataroot="/data/" ds_wer_automation="./bin/run-wer-automation.sh" python -u ; cd) 2>$HOME/.deepspeech_wer.err.log | /usr/bin/ts "\%Y-\%m-\%d \%H:\%M:\%S" > $HOME/.deepspeech_wer.out.log || TZ='Europe/Berlin' date --rfc-2822 >> $HOME/.deepspeech_wer.locked.log
 ```
 * Cron task will take care of:
- * checking if any there were any new merges
+ * checking if there were any new merges
  * perform a clone of the git repo and checkout those merges
  * schedule sequential execution against those merges
- * notebook is configured to automatically perform merging and upload if
+ * notebook is configured to automatically perform merging and to upload if
    the proper environment variables are configured, effectively updating the
    website on each iteration from the above process
  * saving of the hyper.json files produced
  * wiping the cloned git repo
-* A 'lock' file will be created in ~/.cache/deepspeech_wer/ to ensure we do not
+* A 'lock' file will be created in ~/.cache/deepspeech_wer/ to ensure that we do not
   trigger multiple executions at the same time. Unexpected exception might leave
   a stale lock file
 * A 'last_sha1' in the same directory will be used to keep track of what has
@@ -47,7 +47,7 @@ PATH=/usr/local/bin:/usr/bin/:/bin
 * Previous runs' logs will be saved to ~/.local/share/deepspeech_wer/
 * For debugging purpose, `~/.deepspeech_wer.err.log` and `~/.deepspeech_wer.out.log`
   will collect stderr/stdout
-* Expose those environment variables (please refer to util/website.py to have
+* Exposing those environment variables (please refer to util/website.py to have
   more details on each) (cron above does it):
  * ds_website_username
  * ds_website_privkey
@@ -58,7 +58,7 @@ PATH=/usr/local/bin:/usr/bin/:/bin
 # Setup of the web-facing server:
 
 * Ensure existing webroot
-* Generate an SSH key, and upload public key to web-facing server
+* Generate an SSH key, and upload the public key to web-facing server
 * Connect at least one time manually from the training machine to the web-facing
   server to accept the server host key and populate known_hosts file (pay
   attention to the FQDN)
