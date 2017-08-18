@@ -47,7 +47,7 @@ PATH=/usr/local/bin:/usr/bin/:/bin
 * Previous runs' logs will be saved to ~/.local/share/deepspeech_wer/
 * For debugging purpose, `~/.deepspeech_wer.err.log` and `~/.deepspeech_wer.out.log`
   will collect stderr/stdout
-* Exposing those environment variables (please refer to util/website.py to have
+* Exposing the environment variables (please refer to util/website.py to have
   more details on each) (cron above does it):
  * ds_website_username
  * ds_website_privkey
