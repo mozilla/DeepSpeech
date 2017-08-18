@@ -12,6 +12,7 @@ import pandas
 import subprocess
 import unicodedata
 import wave
+import codecs
 
 from util.text import validate_label
 
@@ -137,7 +138,7 @@ def _maybe_split_wav_and_sentences(data_dir, trans_data, original_data, converte
 
                 new_wav_filesize = os.path.getsize(new_wav_file)
                 transcript = segment["transcript"]
-                files.append((os.path.abspath(new_wav_file), new_wave_filesize, transcript))
+                files.append((os.path.abspath(new_wav_file), new_wav_filesize, transcript))
 
             # Close origAudio
             origAudio.close()
@@ -168,9 +169,7 @@ def _split_sets(filelist):
     test_beg = dev_end
     test_end = len(filelist)
 
-    return filelist[train_beg:train_end],
-           filelist[dev_beg:dev_end],
-           filelist[test_beg:test_end]
+    return (filelist[train_beg:train_end], filelist[dev_beg:dev_end], filelist[test_beg:test_end])
 
 def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
     # Optionally apply dataset size limit
