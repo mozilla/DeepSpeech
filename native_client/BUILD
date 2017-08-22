@@ -1,7 +1,7 @@
 # Description: Deepspeech native client library.
 
 load("//tensorflow:tensorflow.bzl",
-     "if_x86")
+     "if_linux_x86_64")
 
 cc_library(
     name = "deepspeech",
@@ -31,6 +31,6 @@ cc_library(
 
     # fma/avx/avx2 enabled in gcc cause significant performance decreases in
     # c_speech_features and so are force-disabled.
-    copts = [] + if_x86(["-mno-fma", "-mno-avx", "-mno-avx2"]),
+    copts = [] + if_linux_x86_64(["-mno-fma", "-mno-avx", "-mno-avx2"]),
     nocopts = "(-fstack-protector|-fno-omit-frame-pointer)",
 )

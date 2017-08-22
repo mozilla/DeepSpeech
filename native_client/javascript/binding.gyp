@@ -3,9 +3,6 @@
     {
       "target_name": "deepspeech",
       "sources": [ "deepspeech_wrap.cxx" ],
-      "ldflags": [
-        "-L$(TFDIR)/bazel-bin/tensorflow -L$(TFDIR)/bazel-bin/native_client"
-      ],
       "libraries": [
         "-ldeepspeech", "-ldeepspeech_utils", "-ltensorflow_cc"
       ],

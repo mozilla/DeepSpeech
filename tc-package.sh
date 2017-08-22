@@ -2,26 +2,28 @@
 
 set -xe
 
-mkdir -p /tmp/artifacts
+source $(dirname "$0")/tc-tests-utils.sh
 
-tar -C ${HOME}/DeepSpeech/tf/bazel-bin/tensorflow/ \
-	-cf /tmp/artifacts/native_client.tar \
+mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
+
+tar -C ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/tensorflow/ \
+	-cf ${TASKCLUSTER_ARTIFACTS}/native_client.tar \
 	libtensorflow_cc.so
 
-tar -C ${HOME}/DeepSpeech/tf/bazel-bin/native_client/ \
-	-uf /tmp/artifacts/native_client.tar \
+tar -C ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/native_client/ \
+	-uf ${TASKCLUSTER_ARTIFACTS}/native_client.tar \
 	libdeepspeech.so \
 	libdeepspeech_utils.so
 
-tar -C ${HOME}/DeepSpeech/ds/native_client/ \
-	-uf /tmp/artifacts/native_client.tar \
+tar -C ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/ \
+	-uf ${TASKCLUSTER_ARTIFACTS}/native_client.tar \
 	deepspeech
 
-if [ -d ${HOME}/DeepSpeech/ds/wheels ]; then
-  cp ${HOME}/DeepSpeech/ds/wheels/* /tmp/artifacts/
+if [ -d ${DS_ROOT_TASK}/DeepSpeech/ds/wheels ]; then
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/wheels/* ${TASKCLUSTER_ARTIFACTS}/
 fi
 
-find ${HOME}/DeepSpeech/ds/native_client/javascript/ -type f -name "deepspeech-*.tgz" -exec cp {} /tmp/artifacts/ \;
+find ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/ -type f -name "deepspeech-*.tgz" -exec cp {} ${TASKCLUSTER_ARTIFACTS}/ \;
 
-pixz -9 /tmp/artifacts/native_client.tar /tmp/artifacts/native_client.tar.xz
-rm /tmp/artifacts/native_client.tar
+pixz -9 ${TASKCLUSTER_ARTIFACTS}/native_client.tar ${TASKCLUSTER_ARTIFACTS}/native_client.tar.xz
+rm ${TASKCLUSTER_ARTIFACTS}/native_client.tar

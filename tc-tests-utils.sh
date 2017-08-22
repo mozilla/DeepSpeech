@@ -2,6 +2,17 @@
 
 set -xe
 
+OS=$(uname)
+if [ "${OS}" = "Linux" ]; then
+    export DS_ROOT_TASK=${HOME}
+fi;
+
+if [ "${OS}" = "Darwin" ]; then
+    export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
+fi;
+
+export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
+
 model_name=$(basename "${DEEPSPEECH_MODEL}")
 
 assert_correct_inference()
