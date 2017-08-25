@@ -23,7 +23,7 @@
 * [python_speech_features](https://pypi.python.org/pypi/python_speech_features)
 * [python sox](https://pypi.python.org/pypi/sox)
 * [pandas](https://pypi.python.org/pypi/pandas)
-
+* [DeepSpeech native client libraries](https://tools.taskcluster.net/index/artifacts/#project.deepspeech.deepspeech.native_client.master/)
 
 ## Install
 
