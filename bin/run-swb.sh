@@ -24,16 +24,19 @@ else
 fi
 
 python -u DeepSpeech.py \
-  --train_files "$COMPUTE_DATA_DIR/swb-train.csv" \
-  --dev_files "$COMPUTE_DATA_DIR/swb-dev.csv" \
-  --test_files "$COMPUTE_DATA_DIR/swb-test.csv" \
-  --train_batch_size 48 \
-  --dev_batch_size 32 \
-  --test_batch_size 32 \
-  --epoch 50 \
+  --train_files "${COMPUTE_DATA_DIR}/LDC/LDC97S62/swb-train.csv" \
+  --dev_files "${COMPUTE_DATA_DIR}/LDC/LDC97S62/swb-dev.csv" \
+  --test_files "${COMPUTE_DATA_DIR}/LDC/LDC97S62/swb-test.csv" \
+  --train_batch_size 13 \
+  --dev_batch_size 13 \
+  --test_batch_size 13 \
+  --epoch 15 \
   --learning_rate 0.0001 \
-  --validation_step 10 \
-  --display_step 10 \
-  --dropout_rate 0.30 \
-  --checkpoint_dir "$checkpoint_dir" \
+  --display_step 0 \
+  --validation_step 1 \
+  --dropout_rate 0.15 \
+  --default_stddev 0.046875 \
+  --checkpoint_step 1 \
+  --checkpoint_dir "${COMPUTE_KEEP_DIR}" \
+  --wer_log_pattern "GLOBAL LOG: logwer('${COMPUTE_ID}', '%s', '%s', %f)"\
   "$@"
