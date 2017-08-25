@@ -37,7 +37,6 @@ python -u DeepSpeech.py \
   --dropout_rate 0.15 \
   --default_stddev 0.046875 \
   --checkpoint_step 1 \
-  --log_level 0 \
   --checkpoint_dir "${COMPUTE_KEEP_DIR}" \
   --wer_log_pattern "GLOBAL LOG: logwer('${COMPUTE_ID}', '%s', '%s', %f)"\
   "$@"
