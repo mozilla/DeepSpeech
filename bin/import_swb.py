@@ -132,6 +132,8 @@ def _maybe_split_wav_and_sentences(data_dir, trans_data, original_data, converte
                 stop_time = segment["stop_time"]
                 new_wav_filename = os.path.splitext(os.path.basename(trans_file))[0] + "-" + str(
                     start_time) + "-" + str(stop_time) + ".wav"
+                if _is_wav_too_short(new_wav_filename):
+                  continue
                 new_wav_file = os.path.join(target_dir, new_wav_filename)
 
                 _split_wav(origAudio, start_time, stop_time, new_wav_file)
@@ -144,6 +146,10 @@ def _maybe_split_wav_and_sentences(data_dir, trans_data, original_data, converte
             origAudio.close()
 
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
+
+def _is_wav_too_short(wav_filename):
+    short_wav_filenames = ['sw2986A-ms98-a-trans-80.6385-83.358875.wav', 'sw2663A-ms98-a-trans-161.12025-164.213375.wav']
+    return wav_filename in short_wav_filenames
 
 def _split_wav(origAudio, start_time, stop_time, new_wav_file):
     frameRate = origAudio.getframerate()
