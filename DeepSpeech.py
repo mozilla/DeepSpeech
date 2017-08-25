@@ -28,6 +28,7 @@ from util.text import sparse_tensor_value_to_texts, wer
 from xdg import BaseDirectory as xdg
 import numpy as np
 
+from util.weight_sharing import CodeBook
 
 # Importer
 # ========
@@ -138,6 +139,17 @@ tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stop
 tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps to consider for early stopping. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
 tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
 tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
+
+# Pruning parameters for deep compression
+tf.app.flags.DEFINE_boolean ('pruning',                       False,        'enable pruning of parameters - defaults to False')
+tf.app.flags.DEFINE_float   ('prune_threshold_weight',       0.0001,        'prune threshold for weights - defaults to 0.0001')
+tf.app.flags.DEFINE_float   ('prune_threshold_bias',         0.0001,        'prune threshold for biases - defaults to 0.0001')
+
+# Weight sharing for deep compression
+
+tf.app.flags.DEFINE_boolean ('weight_sharing',   False,        'enable weight sharing feature for deep compression - defaults to False')
+tf.app.flags.DEFINE_integer ('num_cluster',        256,       'number of centroids for weight sharing - defaults to 256')
+tf.app.flags.DEFINE_string ('codebook_dir', 'codebook',       'directory for storing the codebook on trained model - defaults to codebook')
 
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
@@ -446,6 +458,167 @@ def BiRNN(batch_x, seq_length, dropout):
     # Output shape: [n_steps, batch_size, n_hidden_6]
     return layer_6
 
+def BiRNN_with_pruning(batch_x, seq_length, dropout):
+    r'''
+    That done, we will define the learned variables, the weights and biases,
+    within the method ``BiRNN()`` which also constructs the neural network.
+    The variables named ``hn``, where ``n`` is an integer, hold the learned weight variables.
+    The variables named ``bn``, where ``n`` is an integer, hold the learned bias variables.
+    In particular, the first variable ``h1`` holds the learned weight matrix that
+    converts an input vector of dimension ``n_input + 2*n_input*n_context``
+    to a vector of dimension ``n_hidden_1``.
+    Similarly, the second variable ``h2`` holds the weight matrix converting
+    an input vector of dimension ``n_hidden_1`` to one of dimension ``n_hidden_2``.
+    The variables ``h3``, ``h5``, and ``h6`` are similar.
+    Likewise, the biases, ``b1``, ``b2``..., hold the biases for the various layers.
+    '''
+
+    # Input shape: [batch_size, n_steps, n_input + 2*n_input*n_context]
+    batch_x_shape = tf.shape(batch_x)
+
+    # Reshaping `batch_x` to a tensor with shape `[n_steps*batch_size, n_input + 2*n_input*n_context]`.
+    # This is done to prepare the batch for input into the first layer which expects a tensor of rank `2`.
+
+    # Permute n_steps and batch_size
+    batch_x = tf.transpose(batch_x, [1, 0, 2])
+    # Reshape to prepare input for first layer
+    batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
+
+    # The next three blocks will pass `batch_x` through three hidden layers with
+    # clipped RELU activation and dropout.
+
+    # Need these parameters accessible to prune function for pruning
+    global prune_mask, pruned_param, h1, h2, h3, h5, h6, b1, b2, b3, b5, b6, lstm_fw_w, lstm_bw_w, lstm_fw_b, lstm_bw_b
+
+    # Need to store the mask for preventing the neurons from reviving in further steps by pruning via mask
+    prune_mask = {}
+
+    # Need to store the pruned parameters for updation
+    pruned_param = {}
+
+    # 1st layer
+    b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
+    h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
+    prune_mask['h1'] = tf.Variable(tf.ones_like(h1), trainable=False)
+    pruned_param['h1'] = tf.multiply(h1, prune_mask['h1'])
+
+    prune_mask['b1'] = tf.Variable(tf.ones_like(b1), trainable=False)
+    pruned_param['b1'] = tf.multiply(b1, prune_mask['b1'])
+
+    layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, pruned_param['h1']), b1)), FLAGS.relu_clip)
+    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+
+    # 2nd layer
+    b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
+    h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
+    prune_mask['h2'] = tf.Variable(tf.ones_like(h2), trainable=False)
+    pruned_param['h2'] = tf.multiply(h2, prune_mask['h2'])
+
+    prune_mask['b2'] = tf.Variable(tf.ones_like(b2), trainable=False)
+    pruned_param['b2'] = tf.multiply(b2, prune_mask['b2'])
+
+    layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, pruned_param['h2']), b2)), FLAGS.relu_clip)
+    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+
+    # 3rd layer
+    b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
+    h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
+    prune_mask['h3'] = tf.Variable(tf.ones_like(h3), trainable=False)
+    pruned_param['h3'] = tf.multiply(h3, prune_mask['h3'])
+
+    prune_mask['b3'] = tf.Variable(tf.ones_like(b3), trainable=False)
+    pruned_param['b3'] = tf.multiply(b3, prune_mask['b3'])
+
+    layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, pruned_param['h3']), b3)), FLAGS.relu_clip)
+    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+
+    # Now we create the forward and backward LSTM units.
+    # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
+
+    # Forward direction cell: (if else required for TF 1.0 and 1.1 compat)
+    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
+                   if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
+                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
+    lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
+                                                input_keep_prob=1.0 - dropout[3],
+                                                output_keep_prob=1.0 - dropout[3],
+                                                seed=FLAGS.random_seed)
+    # Backward direction cell: (if else required for TF 1.0 and 1.1 compat)
+    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
+                   if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
+                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
+    lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
+                                                input_keep_prob=1.0 - dropout[4],
+                                                output_keep_prob=1.0 - dropout[4],
+                                                seed=FLAGS.random_seed)
+
+
+    # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
+    # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
+    layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
+
+    # Now we feed `layer_3` into the LSTM BRNN cell and obtain the LSTM BRNN output.
+    outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=lstm_fw_cell,
+                                                             cell_bw=lstm_bw_cell,
+                                                             inputs=layer_3,
+                                                             dtype=tf.float32,
+                                                             time_major=True,
+                                                             sequence_length=seq_length)
+
+    lstm_fw_w = [v for v in tf.global_variables() if v.name == "bidirectional_rnn/fw/basic_lstm_cell/weights:0"][0]
+    prune_mask['bidirectional_rnn/fw/basic_lstm_cell/weights'] = tf.Variable(tf.ones_like(lstm_fw_w), trainable=False)
+    pruned_param['bidirectional_rnn/fw/basic_lstm_cell/weights'] = tf.multiply(prune_mask['bidirectional_rnn/fw/basic_lstm_cell/weights'], lstm_fw_w)
+
+    lstm_bw_w = [v for v in tf.global_variables() if v.name == "bidirectional_rnn/bw/basic_lstm_cell/weights:0"][0]
+    prune_mask['bidirectional_rnn/bw/basic_lstm_cell/weights'] = tf.Variable(tf.ones_like(lstm_bw_w), trainable=False)
+    pruned_param['bidirectional_rnn/bw/basic_lstm_cell/weights'] = tf.multiply(prune_mask['bidirectional_rnn/bw/basic_lstm_cell/weights'], lstm_bw_w)
+
+    lstm_fw_b = [v for v in tf.global_variables() if v.name == "bidirectional_rnn/fw/basic_lstm_cell/biases:0"][0]
+    prune_mask['bidirectional_rnn/fw/basic_lstm_cell/biases'] = tf.Variable(tf.ones_like(lstm_fw_b), trainable=False)
+    pruned_param['bidirectional_rnn/fw/basic_lstm_cell/biases'] = tf.multiply(prune_mask['bidirectional_rnn/fw/basic_lstm_cell/biases'], lstm_fw_b)
+
+    lstm_bw_b = [v for v in tf.global_variables() if v.name == "bidirectional_rnn/bw/basic_lstm_cell/biases:0"][0]
+    prune_mask['bidirectional_rnn/bw/basic_lstm_cell/biases'] = tf.Variable(tf.ones_like(lstm_bw_b), trainable=False)
+    pruned_param['bidirectional_rnn/bw/basic_lstm_cell/biases'] = tf.multiply(prune_mask['bidirectional_rnn/bw/basic_lstm_cell/biases'], lstm_bw_b)
+
+    # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
+    # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
+    outputs = tf.concat(outputs, 2)
+    outputs = tf.reshape(outputs, [-1, 2*n_cell_dim])
+    # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
+    b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
+    h5 = variable_on_worker_level('h5', [(2 * n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
+    prune_mask['h5'] = tf.Variable(tf.ones_like(h5), trainable=False)
+    pruned_param['h5'] = tf.multiply(h5, prune_mask['h5'])
+
+    prune_mask['b5'] = tf.Variable(tf.ones_like(b5), trainable=False)
+    pruned_param['b5'] = tf.multiply(b5, prune_mask['b5'])
+
+    layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, pruned_param['h5']), b5)), FLAGS.relu_clip)
+    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+
+    # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
+    # creating `n_classes` dimensional vectors, the logits.
+    b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
+    h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
+    prune_mask['h6'] = tf.Variable(tf.ones_like(h6), trainable=False)
+    pruned_param['h6'] = tf.multiply(h6, prune_mask['h6'])
+
+    prune_mask['b6'] = tf.Variable(tf.ones_like(b6), trainable=False)
+    pruned_param['b6'] = tf.multiply(b6, prune_mask['b6'])
+
+    layer_6 = tf.add(tf.matmul(layer_5, pruned_param['h6']), b6)
+
+    # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
+    # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
+    # Note, that this differs from the input in that it is time-major.
+    layer_6 = tf.reshape(layer_6, [-1, batch_x_shape[0], n_hidden_6])
+
+    # Define the ops for pruning and updating the pruning masks for all the parameters
+    prune()
+    # Output shape: [n_steps, batch_size, n_hidden_6]
+    return layer_6
+
 
 # Accuracy and Loss
 # =================
@@ -467,7 +640,10 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
-    logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
+    if FLAGS.pruning:
+        logits = BiRNN_with_pruning(batch_x, tf.to_int64(batch_seq_len), dropout)
+    else:
+        logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
@@ -1074,6 +1250,7 @@ class TrainingCoordinator(object):
         self._init()
         self._lock = Lock()
         self.started = False
+        self.generate_codebook = False
         if is_chief:
             self._httpd = BaseHTTPServer.HTTPServer((FLAGS.coord_host, FLAGS.coord_port), TrainingCoordinator.TrainingCoordinationHandler)
 
@@ -1226,6 +1403,7 @@ class TrainingCoordinator(object):
         if result:
             # Increment the epoch index - shared among train and test 'state'
             self._epoch += 1
+            self.generate_codebook = True
         return result
 
     def _end_training(self):
@@ -1400,6 +1578,50 @@ def send_token_to_ps(session, kill=False):
         session.run(enqueue, feed_dict={ token_placeholder: token })
         log_debug('Sent %s token to ps %d.' % (kind, index))
 
+def prune():
+    # Create a dict of parameters and their names
+    global weights
+    weights = {'h1': h1, 'h2': h2, 'h3':h3, 'h5':h5, 'h6':h6, 'b1':b1, 'b2':b2, 'b3':b3, 'b5':b5, 'b6':b6,
+            'bidirectional_rnn/fw/basic_lstm_cell/weights': lstm_fw_w,
+            'bidirectional_rnn/bw/basic_lstm_cell/weights': lstm_bw_w,
+            'bidirectional_rnn/fw/basic_lstm_cell/biases': lstm_fw_b,
+            'bidirectional_rnn/bw/basic_lstm_cell/biases': lstm_bw_b}
+
+    biases = ['b1' ,'b2', 'b3', 'b5', 'b6', 'bidirectional_rnn/fw/basic_lstm_cell/biases', 'bidirectional_rnn/bw/basic_lstm_cell/biases']
+    thresh_param = {}
+    update_mask = {}
+    for p in weights.keys():
+        thresh_param = 0.0
+        if p in biases:
+            thresh_param = tf.sqrt(tf.nn.l2_loss(weights[p])) * FLAGS.prune_threshold_bias
+        else:
+            thresh_param = tf.sqrt(tf.nn.l2_loss(weights[p])) * FLAGS.prune_threshold_weight
+
+        # Filter out the elements of parameter based on multiplicative factor of their standard deviation and prune_threshold defined.
+        # prune_threshold should be very small to prevent the revival of neurons again
+        mat = tf.multiply(tf.to_float(tf.greater(tf.abs(weights[p]), thresh_param * tf.ones_like(weights[p]))), prune_mask[p])
+
+        # Create the pruning mask
+        update_mask[p] = tf.assign(prune_mask[p], mat)
+
+    update_op = [update_mask[p] for p in weights]
+    global update_masks, percent, pruning_op
+
+    # Group all the update mask ops
+    update_masks = tf.group(*update_op)
+    prune_ = {}
+    percent = {}
+
+    for p in weights.keys():
+        # Update the parameters with pruned parameters
+        prune_[p] = tf.assign(weights[p], pruned_param[p])
+        percent[p] = [tf.size(weights[p]), tf.count_nonzero(weights[p])]
+
+    assign_op = [prune_[p] for p in weights]
+
+    # Group all the updation ops for parameters
+    pruning_op = tf.group(*assign_op)
+
 def train(server=None):
     r'''
     Trains the network on a given server of a cluster.
@@ -1569,6 +1791,27 @@ def train(server=None):
                             collect_results(report_results, batch_report[0])
                             # Add batch to total_mean_edit_distance
                             total_mean_edit_distance += batch_report[1]
+
+                        if (job_step == job.steps-1):
+                            # Perform the pruning part for a job
+                            if (job.set_name == 'train') and FLAGS.pruning and is_chief:
+                                session.run([update_masks, pruning_op], **extra_params)
+
+                            if (job.set_name == 'test') and FLAGS.pruning and is_chief:
+                                for p in weights.keys():
+                                    size, non_zero = session.run(percent[p], **extra_params)
+                                    log_info('Parameter %s pruned to %f %%' % (p, 100*(size-non_zero)/size))
+
+                            # Perform weight sharing if enabled at every epoch
+                            if (COORD.generate_codebook == True) and (job.set_name == 'train') and (FLAGS.weight_sharing is True):
+                                cb = CodeBook(FLAGS.num_cluster, FLAGS.learning_rate, extra_params, session)
+                                cb.update_codebook(avg_tower_gradients)
+                                log_debug('Updating codebook')
+                                with open(FLAGS.codebook_dir + '/codebook_file', 'wb') as fout:
+                                    pickle.dump(cb.codebook, fout)
+                                    fout.close()
+
+                                COORD.generate_codebook = False
 
                     # Gathering job results
                     job.loss = total_loss / job.steps
