@@ -1,0 +1,25 @@
+Most of the code here is licensed under the LGPL.  There are exceptions that
+have their own licenses, listed below.  See comments in those files for more
+details.  
+
+util/getopt.* is getopt for Windows
+util/murmur_hash.cc
+util/string_piece.hh and util/string_piece.cc
+util/double-conversion/LICENSE covers util/double-conversion except the build files
+util/file.cc contains a modified implementation of mkstemp under the LGPL
+util/integer_to_string.* is BSD
+
+For the rest:
+
+    KenLM is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 2.1 of the License, or
+    (at your option) any later version.
+
+    KenLM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License 2.1
+    along with KenLM code.  If not, see <http://www.gnu.org/licenses/lgpl-2.1.html>.

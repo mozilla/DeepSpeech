@@ -1,0 +1,14 @@
+KenLM has switched to cmake
+  cmake .
+  make -j 4
+But they recommend building out of tree
+  mkdir -p build && cd build
+  cmake ..
+  make -j 4
+
+If you only want the query code and do not care about compression (.gz, .bz2, and .xz):
+  ./compile_query_only.sh
+
+Windows:
+  The windows directory has visual studio files.  Note that you need to compile
+  the kenlm project before build_binary and ngram_query projects.  
