@@ -7,7 +7,7 @@ import re
 import unicodedata
 from glob import glob
 from os import makedirs, path
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from tensorflow.python.platform import gfile
 from tensorflow.contrib.learn.python.learn.datasets import base
 
@@ -22,10 +22,10 @@ def _download_and_preprocess_data(data_dir):
     print("Downloading Voxforge data set into {} if not already present...".format(archive_dir))
 
     voxforge_url = 'http://www.repository.voxforge1.org/downloads/SpeechCorpus/Trunk/Audio/Main/16kHz_16bit'
-    html_page = urllib2.urlopen(voxforge_url)
-    soup = BeautifulSoup(html_page)
+    html_page = urllib.request.urlopen(voxforge_url)
+    soup = BeautifulSoup(html_page, 'html.parser')
     # list all links
-    links = soup.findAll('a')
+    links = soup.find_all('a')
     refs = [l['href'] for l in links if ".tgz" in l['href']]
     def filename_of(x): return path.split(x)[1]
 
