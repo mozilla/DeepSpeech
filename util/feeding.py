@@ -22,6 +22,7 @@ class ModelFeeder(object):
                  test_set,
                  numcep,
                  numcontext,
+                 alphabet,
                  tower_feeder_count=-1,
                  threads_per_queue=2):
 
@@ -41,7 +42,7 @@ class ModelFeeder(object):
         self.ph_batch_size = tf.placeholder(tf.int32, [])
         self.ph_queue_selector = tf.placeholder(tf.int32, name='Queue_Selector')
 
-        self._tower_feeders = [_TowerFeeder(self, i) for i in range(self.tower_feeder_count)]
+        self._tower_feeders = [_TowerFeeder(self, i, alphabet) for i in range(self.tower_feeder_count)]
 
     def start_queue_threads(self, session, coord):
         '''
@@ -105,7 +106,7 @@ class _DataSetLoader(object):
     Keeps a ModelFeeder reference for accessing shared settings and placeholders.
     Keeps a DataSet reference to access its samples.
     '''
-    def __init__(self, model_feeder, data_set):
+    def __init__(self, model_feeder, data_set, alphabet):
         self._model_feeder = model_feeder
         self._data_set = data_set
         self.queue = tf.PaddingFIFOQueue(shapes=[[None, model_feeder.numcep + (2 * model_feeder.numcep * model_feeder.numcontext)], [], [None,], []],
@@ -113,6 +114,7 @@ class _DataSetLoader(object):
                                                   capacity=data_set.batch_size * 2)
         self._enqueue_op = self.queue.enqueue([model_feeder.ph_x, model_feeder.ph_x_length, model_feeder.ph_y, model_feeder.ph_y_length])
         self._close_op = self.queue.close(cancel_pending_enqueues=True)
+        self._alphabet = alphabet
 
     def start_queue_threads(self, session, coord):
         '''
@@ -143,7 +145,7 @@ class _DataSetLoader(object):
             wav_file, transcript = self._data_set.files[index]
             source = audiofile_to_input_vector(wav_file, self._model_feeder.numcep, self._model_feeder.numcontext)
             source_len = len(source)
-            target = text_to_char_array(transcript)
+            target = text_to_char_array(transcript, self._alphabet)
             target_len = len(target)
             try:
                 session.run(self._enqueue_op, feed_dict={ self._model_feeder.ph_x: source,
@@ -159,10 +161,10 @@ class _TowerFeeder(object):
     It creates, owns and combines three _DataSetLoader instances.
     Keeps a ModelFeeder reference for accessing shared settings and placeholders.
     '''
-    def __init__(self, model_feeder, index):
+    def __init__(self, model_feeder, index, alphabet):
         self._model_feeder = model_feeder
         self.index = index
-        self._loaders = [_DataSetLoader(model_feeder, data_set) for data_set in model_feeder.sets]
+        self._loaders = [_DataSetLoader(model_feeder, data_set, alphabet) for data_set in model_feeder.sets]
         self._queues = [set_queue.queue for set_queue in self._loaders]
         self._queue = tf.QueueBase.from_list(model_feeder.ph_queue_selector, self._queues)
         self._close_op = self._queue.close(cancel_pending_enqueues=True)

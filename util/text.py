@@ -5,28 +5,35 @@ import re
 from six.moves import range
 from functools import reduce
 
-# Constants
-SPACE_TOKEN = '<space>'
-SPACE_INDEX = 0
-FIRST_INDEX = ord('a') - 1  # 0 is reserved to space
+class Alphabet(object):
+    def __init__(self, config_file):
+        self._label_to_str = []
+        self._str_to_label = {}
+        self._size = 0
+        with open(config_file, 'r') as fin:
+            for line in fin:
+                self._label_to_str += line[:-1] # remove the line ending
+                self._str_to_label[line[:-1]] = self._size
+                self._size += 1
 
-def text_to_char_array(original):
+    def string_from_label(self, label):
+        return self._label_to_str[label]
+
+    def label_from_string(self, string):
+        return self._str_to_label[string]
+
+    def size(self):
+        return self._size
+
+def text_to_char_array(original, alphabet):
     r"""
     Given a Python string ``original``, remove unsupported characters, map characters
     to integers and return a numpy array representing the processed string.
     """
-    # Create list of sentence's words w/spaces replaced by ''
     result = original.replace(" '", "") # TODO: Deal with this properly
     result = result.replace("'", "")    # TODO: Deal with this properly
 
-    # Tokenize into letters adding in SPACE_TOKEN where required
-    result = np.hstack([SPACE_TOKEN if xt == ' ' else xt for xt in result])
-
-    # Map characters into indicies
-    result = np.asarray([SPACE_INDEX if xt == SPACE_TOKEN else ord(xt) - FIRST_INDEX for xt in result])
-
-    # Add result to results
-    return result
+    return np.asarray([alphabet.label_from_string(c) for c in result])
 
 def sparse_tuple_from(sequences, dtype=np.int32):
     r"""Creates a sparse representention of ``sequences``.
@@ -48,29 +55,27 @@ def sparse_tuple_from(sequences, dtype=np.int32):
 
     return tf.SparseTensor(indices=indices, values=values, shape=shape)
 
-def sparse_tensor_value_to_texts(value):
+def sparse_tensor_value_to_texts(value, alphabet):
     r"""
     Given a :class:`tf.SparseTensor` ``value``, return an array of Python strings
     representing its values.
     """
-    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape))
+    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape), alphabet)
 
-def sparse_tuple_to_texts(tuple):
+def sparse_tuple_to_texts(tuple, alphabet):
     indices = tuple[0]
     values = tuple[1]
     results = [''] * tuple[2][0]
     for i in range(len(indices)):
         index = indices[i][0]
-        c = values[i]
-        c = ' ' if c == SPACE_INDEX else chr(c + FIRST_INDEX)
-        results[index] = results[index] + c
+        results[index] += alphabet.string_from_label(values[i])
     # List of strings
     return results
 
-def ndarray_to_text(value):
+def ndarray_to_text(value, alphabet):
     results = ''
     for i in range(len(value)):
-        results += chr(value[i] + FIRST_INDEX)
+        results += alphabet.string_from_label(value[i])
     return results.replace('`', ' ')
 
 def wer(original, result):

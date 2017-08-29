@@ -1,5 +1,6 @@
 #include "deepspeech.h"
 #include "deepspeech_utils.h"
+#include "alphabet.h"
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/platform/env.h"
 
@@ -13,9 +14,11 @@ class Private {
     GraphDef graph_def;
     int ncep;
     int ncontext;
+    Alphabet* alphabet;
 };
 
-Model::Model(const char* aModelPath, int aNCep, int aNContext)
+Model::Model(const char* aModelPath, int aNCep, int aNContext,
+             const char* aAlphabetConfigPath)
 {
   mPriv = new Private;
 
@@ -44,6 +47,8 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext)
 
   mPriv->ncep = aNCep;
   mPriv->ncontext = aNContext;
+
+  mPriv->alphabet = new Alphabet(aAlphabetConfigPath);
 }
 
 Model::~Model()
@@ -51,6 +56,8 @@ Model::~Model()
   if (mPriv->session) {
     mPriv->session->Close();
   }
+
+  delete mPriv->alphabet;
 
   delete mPriv;
 }
@@ -105,13 +112,24 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
   // Output is an array of shape (1, n_results, result_length).
   // In this case, n_results is also equal to 1.
   auto output_mapped = outputs[0].tensor<int64, 3>();
-  int length = output_mapped.dimension(2) + 1;
-  char* output = (char*)malloc(sizeof(char) * length);
-  for (int i = 0; i < length - 1; i++) {
+  int output_length = output_mapped.dimension(2) + 1;
+
+  int decoded_length = 1; // add 1 for the \0
+  for (int i = 0; i < output_length - 1; i++) {
     int64 character = output_mapped(0, 0, i);
-    output[i] = (character ==  0) ? ' ' : (character + 'a' - 1);
+    const std::string& str = mPriv->alphabet->StringFromLabel(character);
+    decoded_length += str.size();
   }
-  output[length - 1] = '\0';
+
+  char* output = (char*)malloc(sizeof(char) * decoded_length);
+  char* pen = output;
+  for (int i = 0; i < decoded_length - 1; i++) {
+    int64 character = output_mapped(0, 0, i);
+    const std::string& str = mPriv->alphabet->StringFromLabel(character);
+    strncpy(pen, str.c_str(), str.size());
+    pen += str.size();
+  }
+  *pen = '\0';
 
   return output;
 }

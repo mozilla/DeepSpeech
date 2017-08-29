@@ -20,8 +20,11 @@ namespace DeepSpeech
        * @param aModelPath The path to the frozen model graph.
        * @param aNCep The number of cepstrum the model was trained with.
        * @param aNContext The context window the model was trained with.
+       * @param aAlphabetConfigPath The path to the configuration file specifying
+       *           the the alphabet used by the network. See alphabet.h.
        */
-      Model(const char* aModelPath, int aNCep, int aNContext);
+      Model(const char* aModelPath, int aNCep, int aNContext,
+            const char* aAlphabetConfigPath);
 
       /**
        * @brief Frees associated resources and destroys model object.

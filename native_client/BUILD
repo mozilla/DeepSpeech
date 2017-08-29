@@ -5,7 +5,7 @@ load("//tensorflow:tensorflow.bzl",
 
 cc_library(
     name = "deepspeech",
-    srcs = ["deepspeech.cc"],
+    srcs = ["deepspeech.cc", "alphabet.h"],
     hdrs = ["deepspeech.h"],
     deps = ["//tensorflow/core:core",
             ":deepspeech_utils"],
