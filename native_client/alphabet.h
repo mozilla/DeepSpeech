@@ -16,9 +16,13 @@ public:
   Alphabet(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
     unsigned int label = 0;
-    for (std::string line; std::getline(in, line); ++label) {
+    for (std::string line; std::getline(in, line);) {
+      if (line[0] == '#') {
+        continue;
+      }
       label_to_str_[label] = line;
       str_to_label_[line] = label;
+      ++label;
     }
     size_ = label;
     in.close();

@@ -12,6 +12,8 @@ class Alphabet(object):
         self._size = 0
         with open(config_file, 'r') as fin:
             for line in fin:
+                if line[0] == '#':
+                    continue
                 self._label_to_str += line[:-1] # remove the line ending
                 self._str_to_label[line[:-1]] = self._size
                 self._size += 1

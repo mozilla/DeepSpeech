@@ -1,3 +1,6 @@
+# Each line in this file represents the text (usually a single character, but
+# not required) associated with a numeric label.
+# A line that starts with # is a comment.
  
 a
 b
@@ -26,3 +29,4 @@ x
 y
 z
 '
+# The last (non-comment) line needs to end with a newline.
