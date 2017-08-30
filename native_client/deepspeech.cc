@@ -115,7 +115,7 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
   size_t output_length = output_mapped.dimension(2) + 1;
 
   size_t decoded_length = 1; // add 1 for the \0
-  for (size_t i = 0; i < output_length - 1; i++) {
+  for (int i = 0; i < output_length - 1; i++) {
     int64 character = output_mapped(0, 0, i);
     const std::string& str = mPriv->alphabet->StringFromLabel(character);
     decoded_length += str.size();
@@ -123,7 +123,7 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
 
   char* output = (char*)malloc(sizeof(char) * decoded_length);
   char* pen = output;
-  for (size_t i = 0; i < output_length - 1; i++) {
+  for (int i = 0; i < output_length - 1; i++) {
     int64 character = output_mapped(0, 0, i);
     const std::string& str = mPriv->alphabet->StringFromLabel(character);
     strncpy(pen, str.c_str(), str.size());
