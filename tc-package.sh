@@ -27,3 +27,5 @@ find ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/ -type f -name "deep
 
 pixz -9 ${TASKCLUSTER_ARTIFACTS}/native_client.tar ${TASKCLUSTER_ARTIFACTS}/native_client.tar.xz
 rm ${TASKCLUSTER_ARTIFACTS}/native_client.tar
+
+cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_ARTIFACTS}/

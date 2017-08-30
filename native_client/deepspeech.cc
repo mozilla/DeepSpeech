@@ -112,10 +112,10 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
   // Output is an array of shape (1, n_results, result_length).
   // In this case, n_results is also equal to 1.
   auto output_mapped = outputs[0].tensor<int64, 3>();
-  int output_length = output_mapped.dimension(2) + 1;
+  size_t output_length = output_mapped.dimension(2) + 1;
 
-  int decoded_length = 1; // add 1 for the \0
-  for (int i = 0; i < output_length - 1; i++) {
+  size_t decoded_length = 1; // add 1 for the \0
+  for (size_t i = 0; i < output_length - 1; i++) {
     int64 character = output_mapped(0, 0, i);
     const std::string& str = mPriv->alphabet->StringFromLabel(character);
     decoded_length += str.size();
@@ -123,7 +123,7 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
 
   char* output = (char*)malloc(sizeof(char) * decoded_length);
   char* pen = output;
-  for (int i = 0; i < decoded_length - 1; i++) {
+  for (size_t i = 0; i < output_length - 1; i++) {
     int64 character = output_mapped(0, 0, i);
     const std::string& str = mPriv->alphabet->StringFromLabel(character);
     strncpy(pen, str.c_str(), str.size());

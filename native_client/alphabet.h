@@ -15,7 +15,7 @@ class Alphabet {
 public:
   Alphabet(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
-    int label = 0;
+    unsigned int label = 0;
     for (std::string line; std::getline(in, line); ++label) {
       label_to_str_[label] = line;
       str_to_label_[line] = label;
@@ -24,23 +24,23 @@ public:
     in.close();
   }
 
-  std::string StringFromLabel(int label) {
+  const std::string& StringFromLabel(unsigned int label) {
     assert(label < size_);
     return label_to_str_[label];
   }
 
-  int LabelFromString(std::string string) {
+  unsigned int LabelFromString(std::string string) {
     return str_to_label_[string];
   }
 
-  int GetSize() {
+  size_t GetSize() {
     return size_;
   }
 
 private:
-  int size_;
-  std::unordered_map<int, std::string> label_to_str_;
-  std::unordered_map<std::string, int> str_to_label_;
+  size_t size_;
+  std::unordered_map<unsigned int, std::string> label_to_str_;
+  std::unordered_map<std::string, unsigned int> str_to_label_;
 };
 
 #endif //ALPHABET_H

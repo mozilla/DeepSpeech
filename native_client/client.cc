@@ -64,7 +64,7 @@ main(int argc, char **argv)
     printf("  AUDIO_PATH\tPath to the audio file to run"
            " (any file format supported by libsox)\n");
     printf("  ALPHABET_PATH\tPath to the configuration file specifying"
-           "the alphabet used by the network.\n");
+           " the alphabet used by the network.\n");
     printf("  -t\t\tRun in benchmark mode, output mfcc & inference time\n");
     return 1;
   }

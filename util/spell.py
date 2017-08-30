@@ -27,26 +27,26 @@ def log_probability(sentence):
     "Log base 10 probability of `sentence`, a list of words"
     return get_model().score(' '.join(sentence), bos = False, eos = False)
 
-def correction(sentence):
+def correction(sentence, alphabet):
     "Most probable spelling correction for sentence."
     layer = [(0,[])]
     for word in words(sentence):
-        layer = [(-log_probability(node + [cword]), node + [cword]) for cword in candidate_words(word) for priority, node in layer]
+        layer = [(-log_probability(node + [cword]), node + [cword]) for cword in candidate_words(word, alphabet) for priority, node in layer]
         heapify(layer)
         layer = layer[:BEAM_WIDTH]
     return ' '.join(layer[0][1])
 
-def candidate_words(word):
+def candidate_words(word, alphabet):
     "Generate possible spelling corrections for word."
-    return (known_words([word]) or known_words(edits1(word)) or known_words(edits2(word)) or [word])
+    return (known_words([word]) or known_words(edits1(word, alphabet)) or known_words(edits2(word, alphabet)) or [word])
 
 def known_words(words):
     "The subset of `words` that appear in the dictionary of WORDS."
     return set(w for w in words if w in WORDS)
 
-def edits1(word):
+def edits1(word, alphabet):
     "All edits that are one edit away from `word`."
-    letters    = 'abcdefghijklmnopqrstuvwxyz'
+    letters    = [alphabet.string_from_label(i) for i in range(alphabet.size())]
     splits     = [(word[:i], word[i:])    for i in range(len(word) + 1)]
     deletes    = [L + R[1:]               for L, R in splits if R]
     transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R)>1]
@@ -54,6 +54,6 @@ def edits1(word):
     inserts    = [L + c + R               for L, R in splits for c in letters]
     return set(deletes + transposes + replaces + inserts)
 
-def edits2(word):
+def edits2(word, alphabet):
     "All edits that are two edits away from `word`."
-    return (e2 for e1 in edits1(word) for e2 in edits1(e1))
+    return (e2 for e1 in edits1(word, alphabet) for e2 in edits1(e1, alphabet))

@@ -717,7 +717,7 @@ def calculate_report(results_tuple):
     items = list(zip(*results_tuple))
     mean_wer = 0.0
     for label, decoding, distance, loss in items:
-        corrected = correction(decoding)
+        corrected = correction(decoding, alphabet)
         sample_wer = wer(label, corrected)
         sample = Sample(label, corrected, loss, distance, sample_wer)
         samples.append(sample)
