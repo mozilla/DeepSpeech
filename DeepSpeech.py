@@ -24,7 +24,7 @@ from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
 from util.spell import correction
-from util.text import sparse_tensor_value_to_texts, wer
+from util.text import sparse_tensor_value_to_texts, wer, Alphabet
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -139,6 +139,8 @@ tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps t
 tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
 tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
 
+tf.app.flags.DEFINE_string  ('alphabet_config_path', 'data/alphabet.txt', 'path to the configuration file specifying the alphabet used by the network. See the comment in data/alphabet.txt for a description of the format.')
+
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
 
@@ -220,6 +222,9 @@ def initialize_globals():
     global session_config
     session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement)
 
+    global alphabet
+    alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
+
     # Geometric Constants
     # ===================
 
@@ -257,7 +262,7 @@ def initialize_globals():
 
     # The number of characters in the target language plus one
     global n_character
-    n_character = 29 # TODO: Determine if this should be extended with other punctuation
+    n_character = alphabet.size() + 1 # +1 for CTC blank label
 
     # The number of units in the sixth layer
     global n_hidden_6
@@ -712,7 +717,7 @@ def calculate_report(results_tuple):
     items = list(zip(*results_tuple))
     mean_wer = 0.0
     for label, decoding, distance, loss in items:
-        corrected = correction(decoding)
+        corrected = correction(decoding, alphabet)
         sample_wer = wer(label, corrected)
         sample = Sample(label, corrected, loss, distance, sample_wer)
         samples.append(sample)
@@ -750,10 +755,10 @@ def collect_results(results_tuple, returns):
     # Each of the arrays within results_tuple will get extended by a batch of each available device
     for i in range(len(available_devices)):
         # Collect the labels
-        results_tuple[0].extend(sparse_tensor_value_to_texts(returns[0][i]))
+        results_tuple[0].extend(sparse_tensor_value_to_texts(returns[0][i], alphabet))
 
         # Collect the decodings - at the moment we default to the first one
-        results_tuple[1].extend(sparse_tensor_value_to_texts(returns[1][i][0]))
+        results_tuple[1].extend(sparse_tensor_value_to_texts(returns[1][i][0], alphabet))
 
         # Collect the distances
         results_tuple[2].extend(returns[2][i])
@@ -1434,6 +1439,7 @@ def train(server=None):
                                test_set,
                                n_input,
                                n_context,
+                               alphabet,
                                tower_feeder_count=len(available_devices))
 
     # Create the optimizer

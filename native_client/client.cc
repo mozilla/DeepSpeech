@@ -58,17 +58,19 @@ LocalDsSTT(Model& aCtx, const short* aBuffer, size_t aBufferSize,
 int
 main(int argc, char **argv)
 {
-  if (argc < 3 || argc > 4) {
+  if (argc < 4 || argc > 5) {
     printf("Usage: deepspeech MODEL_PATH AUDIO_PATH [-t]\n");
     printf("  MODEL_PATH\tPath to the model (protocol buffer binary file)\n");
     printf("  AUDIO_PATH\tPath to the audio file to run"
            " (any file format supported by libsox)\n");
+    printf("  ALPHABET_PATH\tPath to the configuration file specifying"
+           " the alphabet used by the network.\n");
     printf("  -t\t\tRun in benchmark mode, output mfcc & inference time\n");
     return 1;
   }
 
   // Initialise DeepSpeech
-  Model ctx = Model(argv[1], N_CEP, N_CONTEXT);
+  Model ctx = Model(argv[1], N_CEP, N_CONTEXT, argv[3]);
 
   // Initialise SOX
   assert(sox_init() == SOX_SUCCESS);

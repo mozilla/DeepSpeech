@@ -61,8 +61,9 @@ download_material()
   wget ${DEEPSPEECH_MODEL} -O /tmp/${model_name}
   wget https://catalog.ldc.upenn.edu/desc/addenda/LDC93S1.wav -O /tmp/LDC93S1.wav
   wget ${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz -O - | pixz -d | tar -C ${target_dir} -xf -
+  wget ${DEEPSPEECH_ARTIFACTS_ROOT}/alphabet.txt -O /tmp/alphabet.txt
 
-  ls -hal /tmp/${model_name} /tmp/LDC93S1.wav
+  ls -hal /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt
 }
 
 install_pyenv()

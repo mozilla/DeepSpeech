@@ -9,7 +9,7 @@ Fs.createReadStream(process.argv[3]).
   pipe(audioStream);
 audioStream.on('finish', () => {
   audioBuffer = audioStream.toBuffer();
-  var model = new Ds.Model(process.argv[2], 26, 9);
+  var model = new Ds.Model(process.argv[2], 26, 9, process.argv[4]);
   // We take half of the buffer_size because buffer is a char* while
   // LocalDsSTT() expected a short*
   console.log(model.stt(audioBuffer.slice(0, audioBuffer.length / 2), 16000));
