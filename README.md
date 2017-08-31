@@ -28,7 +28,6 @@
 ## Install
 
 ### Installing pre-built DeepSpeech Python bindings
- 
 Pre-built binaries can be found on TaskCluster. You'll need to download `native_client.tar.xz` and the appropriate Python wheel package.
 
 [native_client.tar.xz (Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/native_client.tar.xz)
