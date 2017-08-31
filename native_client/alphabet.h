@@ -17,7 +17,9 @@ public:
     std::ifstream in(config_file, std::ios::in);
     unsigned int label = 0;
     for (std::string line; std::getline(in, line);) {
-      if (line[0] == '#') {
+      if (line.size() == 2 && line[0] == '\\' && line[1] == '#') {
+        line = '#';
+      } else if (line[0] == '#') {
         continue;
       }
       label_to_str_[label] = line;
@@ -28,13 +30,24 @@ public:
     in.close();
   }
 
-  const std::string& StringFromLabel(unsigned int label) {
+  const std::string& StringFromLabel(unsigned int label) const {
     assert(label < size_);
-    return label_to_str_[label];
+    auto it = label_to_str_.find(label);
+    if (it != label_to_str_.end()) {
+      return it->second;
+    } else {
+      // unreachable due to assert above
+      abort();
+    }
   }
 
-  unsigned int LabelFromString(std::string string) {
-    return str_to_label_[string];
+  unsigned int LabelFromString(const std::string& string) const {
+    auto it = str_to_label_.find(string);
+    if (it != str_to_label_.end()) {
+      return it->second;
+    } else {
+      abort();
+    }
   }
 
   size_t GetSize() {

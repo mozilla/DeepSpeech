@@ -1,6 +1,7 @@
-# Each line in this file represents the text (usually a single character, but
-# not required) associated with a numeric label.
-# A line that starts with # is a comment.
+# Each line in this file represents the Unicode codepoint (UTF-8 encoded)
+# associated with a numeric label.
+# A line that starts with # is a comment. You can escape it with \# if you wish
+# to use '#' as a label.
  
 a
 b
