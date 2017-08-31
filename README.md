@@ -1,6 +1,6 @@
 # Project DeepSpeech [![Documentation Status](https://readthedocs.org/projects/deepspeech/badge/?version=latest)](http://deepspeech.readthedocs.io/en/latest/?badge=latest)
 
-**Project DeepSpeech** is an **open source** ***Speech-To-Text engine** that uses a model trained by ***machine learning techniques***, based on <a href="https://arxiv.org/abs/1412.5567"><b>Baidu's Deep Speech research paper</b></a>. **Project DeepSpeech** uses **Google's** <a href="https://www.tensorflow.org/"><b>Tensorflow</b></a> project to facilitate implementation.*
+**Project DeepSpeech** is an **open source** **Speech-To-Text engine** that uses a model trained by ***machine learning techniques***, based on <a href="https://arxiv.org/abs/1412.5567"><b>Baidu's Deep Speech research paper</b></a>. **Project DeepSpeech** uses **Google's** <a href="https://www.tensorflow.org/"><b>Tensorflow</b></a> project to facilitate implementation.
 
 **Table of Contents**
 
