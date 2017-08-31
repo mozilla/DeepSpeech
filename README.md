@@ -69,7 +69,7 @@ $ ./DeepSpeech.py --help
 
 To get the output of this in a slightly better formatted way, you can also look up the option definitions top of **`DeepSpeech.py`**. For executing pre-configured training scenarios, there is a collection of convenience scripts in the `bin` folder. Most of them are named after the corpora they are configured for. Keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast **GPU (GTX 10 series recommended)** takes even longer. If you experience **GPU OOM errors** while training, try reducing **`batch_size`.**
 
-*As a simple first example you can open a terminal, change to the directory of the DeepSpeech checkout and run:*
+As a simple first example you can open a terminal, change to the directory of the DeepSpeech checkout and run:
 
 ```bash
 $ ./bin/run-ldc93s1.sh
