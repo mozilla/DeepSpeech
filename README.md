@@ -9,7 +9,7 @@
 - [Recommendations](#recommendations)
 - [Training a model](#training-a-model)
 - [Checkpointing](#checkpointing)
-- [Exporting a model for serving](#exporting-a-model-for-serving)
+- [Exporting a model for inference](#exporting-a-model-for-inference)
 - [Distributed computing across more than one machine](#distributed-computing-across-more-than-one-machine)
 - [Documentation](#documentation)
 - [Contact/Getting Help](#contactgetting-help)
