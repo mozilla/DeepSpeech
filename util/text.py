@@ -1,7 +1,10 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
+
+import codecs
 import numpy as np
 import tensorflow as tf
 import re
+
 from six.moves import range
 from functools import reduce
 
@@ -10,7 +13,7 @@ class Alphabet(object):
         self._label_to_str = []
         self._str_to_label = {}
         self._size = 0
-        with open(config_file, 'r') as fin:
+        with codecs.open(config_file, 'r', 'utf-8') as fin:
             for line in fin:
                 if line[0:2] == '\\#':
                     line = '#\n'

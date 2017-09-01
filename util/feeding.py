@@ -87,7 +87,7 @@ class DataSet(object):
         self.next_index = next_index
         self.files = None
         for csv in csvs:
-            file = pandas.read_csv(csv)
+            file = pandas.read_csv(csv, encoding='utf-8')
             if self.files is None:
                 self.files = file
             else:
