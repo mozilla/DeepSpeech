@@ -1,13 +1,17 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, division, print_function
+
+import codecs
 import sys
-import urllib2
 import tarfile
 import pandas
 import re
 import unicodedata
+
+from six.moves import urllib
 from glob import glob
 from os import makedirs, path
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from tensorflow.python.platform import gfile
 from tensorflow.contrib.learn.python.learn.datasets import base
 
@@ -22,10 +26,10 @@ def _download_and_preprocess_data(data_dir):
     print("Downloading Voxforge data set into {} if not already present...".format(archive_dir))
 
     voxforge_url = 'http://www.repository.voxforge1.org/downloads/SpeechCorpus/Trunk/Audio/Main/16kHz_16bit'
-    html_page = urllib2.urlopen(voxforge_url)
-    soup = BeautifulSoup(html_page)
+    html_page = urllib.request.urlopen(voxforge_url)
+    soup = BeautifulSoup(html_page, 'html.parser')
     # list all links
-    links = soup.findAll('a')
+    links = soup.find_all('a')
     refs = [l['href'] for l in links if ".tgz" in l['href']]
     def filename_of(x): return path.split(x)[1]
 
@@ -44,8 +48,8 @@ def _download_and_preprocess_data(data_dir):
 
     tarfiles = glob(path.join(archive_dir, "*.tgz"))
     number_of_files = len(tarfiles)
-    number_of_test = number_of_files/100
-    number_of_dev = number_of_files/100
+    number_of_test = number_of_files//100
+    number_of_dev = number_of_files//100
 
     print("Extracting Voxforge data set into {} if not already present...".format(data_dir))
     for i,archive in enumerate(tarfiles):
@@ -78,7 +82,7 @@ def _generate_dataset(data_dir, data_set):
     files = []
     for promts_file in glob(path.join(extracted_dir+"/*/etc/", "PROMPTS")):
         if path.isdir(path.join(promts_file[:-11],"wav")):
-            with open(promts_file) as f:
+            with codecs.open(promts_file, 'r', 'utf-8') as f:
                 for line in f:
                     id = line.split(' ')[0].split('/')[-1]
                     sentence = ' '.join(line.split(' ')[1:])
@@ -88,8 +92,8 @@ def _generate_dataset(data_dir, data_set):
                         word = token.strip()
                         if word!="" and word!=" ":
                             transcript += word + " "
-                    transcript = unicodedata.normalize("NFKD", unicode(transcript.strip()))  \
-                                              .encode("ascii", "ignore")                    \
+                    transcript = unicodedata.normalize("NFKD", transcript.strip())  \
+                                              .encode("ascii", "ignore")            \
                                               .decode("ascii", "ignore")
                     wav_file = path.join(promts_file[:-11],"wav/" + id + ".wav")
                     if gfile.Exists(wav_file):
