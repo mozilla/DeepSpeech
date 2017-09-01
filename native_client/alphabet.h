@@ -54,6 +54,11 @@ public:
     return size_;
   }
 
+  bool IsSpace(unsigned int label) const {
+    const std::string& str = StringFromLabel(label);
+    return str.size() == 1 && str[0] == ' ';
+  }
+
 private:
   size_t size_;
   std::unordered_map<unsigned int, std::string> label_to_str_;
