@@ -65,6 +65,26 @@ sed -e "s|{{ TASK_ID }}|${TASK_ID}|g" \
     -e "s|{{ SYSTEM_DO_CLONE }}|${SYSTEM_DO_CLONE}|g" \
     /home/build-user/DeepSpeech/ds/.tc.cpp-ds-tests.yml | yaml2json | curl -v -H 'Content-Type: application/json' -X PUT --data-binary @- http://taskcluster/queue/v1/task/$(slug)
 
+# Scheduling Benchmark run
+sed -e "s|{{ TASK_ID }}|${TASK_ID}|g" \
+    -e "s|{{ TRAINING_TASK_ID }}|${TRAINING_TASK_ID}|g" \
+    -e "s|{{ TASK_GROUP_ID }}|${TASK_GROUP_ID}|g" \
+    -e "s|{{ TASK_CREATED }}|${TASK_CREATED}|g" \
+    -e "s|{{ TASK_DEADLINE }}|${TASK_DEADLINE}|g" \
+    -e "s|{{ TASK_EXPIRES }}|${TASK_EXPIRES}|g" \
+    -e "s|{{ TASK_ENV_VARS }}|${TASK_ENV_VARS}|g" \
+    -e "s|{{ TASK_PROVISIONER_ID }}|${TASK_PROVISIONER_ID}|g" \
+    -e "s|{{ TASK_SCHEDULER_ID }}|${TASK_SCHEDULER_ID}|g" \
+    -e "s|{{ TASK_WORKER_TYPE }}|${TASK_WORKER_TYPE}|g" \
+    -e "s|{{ ARTIFACTS_EXPIRES }}|${ARTIFACTS_EXPIRES}|g" \
+    -e "s|{{ EVENT_HEAD_USER_EMAIL }}|${EVENT_HEAD_USER_EMAIL}|g" \
+    -e "s|{{ EVENT_HEAD_REPO_URL }}|${EVENT_HEAD_REPO_URL}|g" \
+    -e "s|{{ GITHUB_HEAD_REPO_URL }}|${GITHUB_HEAD_REPO_URL}|g" \
+    -e "s|{{ GITHUB_HEAD_SHA }}|${GITHUB_HEAD_SHA}|g" \
+    -e "s|{{ SYSTEM_ADD_USER }}|${SYSTEM_ADD_USER}|g" \
+    -e "s|{{ SYSTEM_DO_CLONE }}|${SYSTEM_DO_CLONE}|g" \
+    /home/build-user/DeepSpeech/ds/.tc.benchmark-tests.yml | yaml2json | curl -v -H 'Content-Type: application/json' -X PUT --data-binary @- http://taskcluster/queue/v1/task/$(slug)
+
 # Scheduling Python tests
 for test_pyver in 2.7.13 3.4.6 3.5.3 3.6.2;
 do
