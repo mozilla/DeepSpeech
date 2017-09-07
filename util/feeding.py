@@ -152,7 +152,6 @@ class _BatchLoader(object):
     def __init__(self, model_feeder, data_set):
         self._model_feeder = model_feeder
         self._data_set = data_set
-
         # protects the lists from undefined state
         self._lock = Lock()
         # list of indices of samples that are to be loaded
@@ -226,8 +225,8 @@ class _BatchLoader(object):
                         # one (the current i-th) and requires (i + 1) slots.
                         # Note: The for-loop will only produce a batch, if a sample results in a batch
                         # that would exceed the threshold. This ensures that we are not enqueuing small
-                        # batches just because there are not enough samples loaded yet.
-                        # Consecutive code will care about the other/remainder case.
+                        # batches just because there are not enough samples loaded yet. The code directly
+                        # following the loop will care about the other/remainder case.
                         if (i + 1) * self._loaded[i][1] > self._model_feeder.len_threshold:
                             # if so, we build a batch with all samples till the (i-1)-th one
                             # (as this already passed our test during last iteration)...
@@ -258,7 +257,7 @@ class _BatchLoader(object):
 
     def _load_sample(self, coord):
         while not coord.should_stop():
-            # reserve our the next sample index to load
+            # reserve next sample index to load
             index = -1
             with self._lock:
                 if len(self._to_load) > 0:
@@ -300,20 +299,17 @@ class _BatchFeeder(object):
         self._width = model_feeder.num_cep + (2 * model_feeder.num_cep * model_feeder.num_context)
         self._dummy_sample = self._create_sample([self._width * [0]], 1, [0], 1)
 
-        self.batch_size_queue = tf.FIFOQueue(1, tf.int32)
-        self._batch_size_enqueue_op = self.batch_size_queue.enqueue([model_feeder.ph_header])
-        self._batch_size_close_op = self.batch_size_queue.close(cancel_pending_enqueues=True)
-
         self.sample_queue = tf.PaddingFIFOQueue(shapes=[[None, self._width], [], [None,], []],
                                                 dtypes=[tf.float32, tf.int32, tf.int32, tf.int32],
                                                 capacity=model_feeder.queue_capacity)
+        self._sample_queue_size = self.sample_queue.size()
         self._sample_enqueue_op = self.sample_queue.enqueue([model_feeder.ph_x, model_feeder.ph_x_length, model_feeder.ph_y, model_feeder.ph_y_length])
         self._sample_close_op = self.sample_queue.close(cancel_pending_enqueues=True)
 
     def start_queue_thread(self, session, coord):
         '''
         Starts the queue thread for getting batches from the data set
-        and enqueuing them on batch_size_queue and sample_queue.
+        and enqueuing them on sample_queue.
         '''
         queue_thread = Thread(target=self._populate_batch_queues, args=(session, coord))
         coord.register_thread(queue_thread)
@@ -325,7 +321,6 @@ class _BatchFeeder(object):
         '''
         Closes the data set loader queues.
         '''
-        session.run(self._batch_size_close_op)
         session.run(self._sample_close_op)
 
     def _create_sample(self, x, x_len, y, y_len):
@@ -340,10 +335,13 @@ class _BatchFeeder(object):
         '''
         while not coord.should_stop():
             batch_size, samples = self._batch_loader.queue.get()
+            if batch_size == 0 and session.run(self._sample_queue_size) > 0:
+                continue
             try:
                 if not coord.should_stop():
-                    session.run(self._batch_size_enqueue_op, feed_dict={ self._model_feeder.ph_header: batch_size })
-                for sample in samples:
+                    feed_dict = self._create_sample([self._width * [0]], batch_size, [0], 0)
+                    session.run(self._sample_enqueue_op, feed_dict=feed_dict)
+                for sample in samples:s
                     if not coord.should_stop():
                         feed_dict = self._create_sample(*sample) if batch_size > 0 else self._dummy_sample
                         session.run(self._sample_enqueue_op, feed_dict=feed_dict)
@@ -360,19 +358,17 @@ class _TowerFeeder(object):
         self._model_feeder = model_feeder
         self.index = index
         self._batch_feeders = [_BatchFeeder(model_feeder, loader) for loader in model_feeder.loaders]
-        self._batch_size_queues = [feeder.batch_size_queue for feeder in self._batch_feeders]
-        self._sample_queues =     [feeder.sample_queue     for feeder in self._batch_feeders]
-        self._batch_size_queue = tf.QueueBase.from_list(model_feeder.ph_queue_selector, self._batch_size_queues)
-        self._sample_queue =     tf.QueueBase.from_list(model_feeder.ph_queue_selector, self._sample_queues)
+        self._sample_queues = [feeder.sample_queue for feeder in self._batch_feeders]
+        self._sample_queue = tf.QueueBase.from_list(model_feeder.ph_queue_selector, self._sample_queues)
 
     def next_batch(self):
         '''
         Draw the next batch from the combined switchable queue.
         '''
-        batch_size = self._batch_size_queue.dequeue()
+        _, batch_size, _, _ = self._sample_queue.dequeue(name='Batch_Size_Dequeue')
         # to dequeue the dummy sample, dequeue_size has to be 1 in case of batch_size=0
         dequeue_size = tf.maximum(batch_size, 1)
-        source, source_lengths, target, target_lengths = self._sample_queue.dequeue_many(dequeue_size)
+        source, source_lengths, target, target_lengths = self._sample_queue.dequeue_many(dequeue_size, name='Samples_Dequeue')
         sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, batch_size)
         return batch_size, source, source_lengths, sparse_labels
 

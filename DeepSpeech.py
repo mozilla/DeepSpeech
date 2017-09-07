@@ -1049,7 +1049,7 @@ class TrainingCoordinator(object):
             if COORD.started:
                 if self.path.startswith(PREFIX_GET_INDICES):
                     params = parse_qs(self.path[len(PREFIX_GET_INDICES):])
-                    index = COORD.get_indices(params['set'][0], int(params['number'][0]))
+                    index = COORD._get_indices(params['set'][0], int(params['number'][0]))
                     if index >= 0:
                         self._send_answer(str(index).encode("utf-8"))
                         return
@@ -1281,30 +1281,34 @@ class TrainingCoordinator(object):
             time.sleep(10)
         return default
 
+    def _get_indices(self, set_name, number):
+        with self._lock:
+            member = '_index_' + set_name
+            value = getattr(self, member, -1)
+            if value < 0:
+                return -1
+            setattr(self, member, value + number)
+            return value
+
     def get_indices(self, set_name, number):
-        '''Retrives a new cluster-unique batch index for a given set-name.
+        '''Retrives a new cluster-unique batch index a given set-name from central coodinator.
         Prevents applying one batch multiple times per epoch.
 
         Args:
             set_name (str): name of the data set - one of 'train', 'dev', 'test'
+            number (int): number of sample indices to allocate
 
         Returns:
-            int. new data set index
+            int. new data set index of allocation's first sample
         '''
-        with self._lock:
-            if is_chief:
-                member = '_index_' + set_name
-                value = getattr(self, member, -1)
-                if value < 0:
-                    return -1
-                setattr(self, member, value + number)
-                return value
-            else:
-                # We are a remote worker and have to hand over to the chief worker by HTTP
-                log_traffic('Asking for next index...')
-                value = int(self._talk_to_chief(PREFIX_GET_INDICES + 'set=' + set_name + '&number=' + str(number)))
-                log_traffic('Got index %d.' % value)
-                return value
+        log_traffic('Asking for next index...')
+        if is_chief:
+            value = self._get_indices(set_name, number)
+        else:
+            # We are a remote worker and have to hand over to the chief worker by HTTP
+            value = int(self._talk_to_chief(PREFIX_GET_INDICES + 'set=' + set_name + '&number=' + str(number)))
+        log_traffic('Got index %d.' % value)
+        return value
 
     def _get_job(self, worker=0):
         job = None
