@@ -77,6 +77,10 @@ if [ ${MAKE_BINDINGS_PY} ]; then
 fi
 
 if [ ${MAKE_BINDINGS_JS} ]; then
+    npm update && npm install node-gyp node-pre-gyp
+
+    export PATH="$(npm root)/.bin/:$PATH"
+
     # 7.10.0 and 8.0.0 targets fails to build
     # > ../deepspeech_wrap.cxx:966:23: error: 'WeakCallbackData' in namespace 'v8' does not name a type
     for node in 4.8.0 5.12.0 6.10.0; do

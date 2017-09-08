@@ -35,8 +35,8 @@ tasks:
         - >
           apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev &&
           adduser --system --home /home/build-user build-user &&
-          cd /home/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          cd /home/build-user/ &&
+          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C /home -xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
           /home/build-user/DeepSpeech/tf/tc-apt.sh &&
           sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh --gpu &&
@@ -85,8 +85,8 @@ tasks:
         - >
           apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev &&
           adduser --system --home /home/build-user build-user &&
-          cd /home/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          cd /home/build-user/ &&
+          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C /home -xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
           /home/build-user/DeepSpeech/tf/tc-apt.sh &&
           sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh --gpu &&
@@ -137,11 +137,10 @@ tasks:
           wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.1_amd64.deb -O /tmp/swig3.0_3.0.10-1.1_amd64.deb &&
           dpkg -i /tmp/swig_3.0.10-1.1_amd64.deb /tmp/swig3.0_3.0.10-1.1_amd64.deb &&
           adduser --system --home /home/build-user build-user &&
-          cd /home/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          cd /home/build-user/ &&
+          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C /home -xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
           /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          npm update && npm install -g node-gyp node-pre-gyp &&
           sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh &&
           sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh &&
           sudo -H -u build-user TASK_ID=${TASK_ID} GITHUB_HEAD_REPO_URL=${GITHUB_HEAD_REPO_URL} GITHUB_HEAD_SHA=${GITHUB_HEAD_SHA} EVENT_HEAD_USER_EMAIL={{ event.head.user.email }} EVENT_HEAD_REPO_URL={{ event.head.repo.url }} /bin/bash /home/build-user/DeepSpeech/ds/tc-schedule-tasks.sh
@@ -192,11 +191,10 @@ tasks:
           wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.1_amd64.deb -O /tmp/swig3.0_3.0.10-1.1_amd64.deb &&
           dpkg -i /tmp/swig_3.0.10-1.1_amd64.deb /tmp/swig3.0_3.0.10-1.1_amd64.deb &&
           adduser --system --home /home/build-user build-user &&
-          cd /home/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          cd /home/build-user/ &&
+          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C /home -xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
           /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          npm update && npm install -g node-gyp node-pre-gyp &&
           sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh &&
           sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
       artifacts:
@@ -235,8 +233,8 @@ tasks:
           apt-get -qq update && apt-get -qq -y install wget gdebi git pixz &&
           wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb && echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
           adduser --system --home /home/build-user build-user &&
-          cd /home/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          cd /home/build-user/ &&
+          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C /home -xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
           /home/build-user/DeepSpeech/tf/tc-apt.sh &&
           multistrap -d /tmp/multistrap-raspbian-jessie/ -f /home/build-user/DeepSpeech/ds/native_client/multistrap.conf &&
@@ -282,8 +280,8 @@ tasks:
           apt-get -qq update && apt-get -qq -y install wget gdebi git pixz &&
           wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb && echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
           adduser --system --home /home/build-user build-user &&
-          cd /home/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          cd /home/build-user/ &&
+          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar -C /home -xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
           /home/build-user/DeepSpeech/tf/tc-apt.sh &&
           multistrap -d /tmp/multistrap-raspbian-jessie/ -f /home/build-user/DeepSpeech/ds/native_client/multistrap.conf &&
@@ -330,9 +328,6 @@ tasks:
             ln -s ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/native_client/ ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/native_client &&
             cd ${TASKCLUSTER_TASK_DIR} &&
             ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/tc-brew.sh &&
-            ${TASKCLUSTER_TASK_DIR}/homebrew/bin/brew install node@6 pkg-config sox swig &&
-            export PATH=${TASKCLUSTER_TASK_DIR}/homebrew/bin/:${TASKCLUSTER_TASK_DIR}/homebrew/opt/node@6/bin:$PATH &&
-            npm update && npm install -g node-gyp node-pre-gyp &&
             ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-build.sh &&
             ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-package.sh;
             cd ${TASKCLUSTER_TASK_ROOT} && rm -fr ${TASKCLUSTER_TASK_DIR}
@@ -380,9 +375,6 @@ tasks:
             ln -s ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/native_client/ ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/native_client &&
             cd ${TASKCLUSTER_TASK_DIR} &&
             ${TASKCLUSTER_TASK_DIR}/DeepSpeech/tf/tc-brew.sh &&
-            ${TASKCLUSTER_TASK_DIR}/homebrew/bin/brew install node@6 pkg-config sox swig &&
-            export PATH=${TASKCLUSTER_TASK_DIR}/homebrew/bin/:${TASKCLUSTER_TASK_DIR}/homebrew/opt/node@6/bin:$PATH &&
-            npm update && npm install -g node-gyp node-pre-gyp &&
             ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-build.sh &&
             ${TASKCLUSTER_TASK_DIR}/DeepSpeech/ds/tc-package.sh;
             cd ${TASKCLUSTER_TASK_ROOT} && rm -fr ${TASKCLUSTER_TASK_DIR}
