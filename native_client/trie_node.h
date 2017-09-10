@@ -15,37 +15,40 @@ limitations under the License.
 
 #include "lm/model.hh"
 
+#include <codecvt>
 #include <functional>
-#include <istream>
 #include <iostream>
+#include <istream>
 #include <limits>
+#include <locale>
+#include <string>
 
 class TrieNode {
 public:
   TrieNode(int vocab_size)
-    : vocab_size(vocab_size)
-    , prefixCount(0)
-    , min_score_word(0)
-    , min_unigram_score(std::numeric_limits<float>::max())
+    : vocab_size_(vocab_size)
+    , prefixCount_(0)
+    , min_score_word_(0)
+    , min_unigram_score_(std::numeric_limits<float>::max())
     {
-      children = new TrieNode*[vocab_size]();
+      children_ = new TrieNode*[vocab_size_]();
     }
 
   ~TrieNode() {
-    for (int i = 0; i < vocab_size; i++) {
-      delete children[i];
+    for (int i = 0; i < vocab_size_; i++) {
+      delete children_[i];
     }
-    delete children;
+    delete children_;
   }
 
-  void WriteToStream(std::ostream& os) {
+  void WriteToStream(std::ostream& os) const {
     WriteNode(os);
-    for (int i = 0; i < vocab_size; i++) {
-      if (children[i] == nullptr) {
+    for (int i = 0; i < vocab_size_; i++) {
+      if (children_[i] == nullptr) {
         os << -1 << std::endl;
       } else {
         // Recursive call
-        children[i]->WriteToStream(os);
+        children_[i]->WriteToStream(os);
       }
     }
   }
@@ -63,61 +66,80 @@ public:
     obj = new TrieNode(vocab_size);
     obj->ReadNode(is, prefixCount);
     for (int i = 0; i < vocab_size; i++) {
-      // Recursive call
-      ReadFromStream(is, obj->children[i], vocab_size);
+      ReadFromStream(is, obj->children_[i], vocab_size);
     }
   }
 
-  void Insert(const char* word, std::function<int (char)> translator,
+  void Insert(const char* word, std::function<int (const std::string&)> translator,
               lm::WordIndex lm_word, float unigram_score) {
-    char wordCharacter = *word;
-    prefixCount++;
-    if (unigram_score < min_unigram_score) {
-      min_unigram_score = unigram_score;
-      min_score_word = lm_word;
+    // All strings are UTF-8 encoded at the API boundaries. We need to iterate
+    // on codepoints in order to support multi-byte characters, so we convert
+    // to UCS-4 to extract the first codepoint, then the codepoint back to
+    // UTF-8 to translate it into a vocabulary index.
+
+    //TODO We should normalize the input first, and possibly iterate by grapheme
+    //     instead of codepoint for languages that don't have composed versions
+    //     of multi-codepoint characters. This requires extra dependencies so
+    //     leaving as a future improvement when the need arises.
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> ucs4conv;
+    std::u32string codepoints = ucs4conv.from_bytes(word);
+    Insert(codepoints.begin(), translator, lm_word, unigram_score);
+  }
+
+  void Insert(const std::u32string::iterator& codepoints,
+              std::function<int (const std::string&)> translator,
+              lm::WordIndex lm_word, float unigram_score) {
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> ucs4conv;
+    char32_t firstCodepoint = *codepoints;
+    std::string firstCodepoint_utf8 = ucs4conv.to_bytes(firstCodepoint);
+
+    prefixCount_++;
+    if (unigram_score < min_unigram_score_) {
+      min_unigram_score_ = unigram_score;
+      min_score_word_ = lm_word;
     }
-    if (wordCharacter != '\0') {
-      int vocabIndex = translator(wordCharacter);
-      TrieNode *child = children[vocabIndex];
-      if (child == nullptr)
-        child = children[vocabIndex] = new TrieNode(vocab_size);
-      child->Insert(word + 1, translator, lm_word, unigram_score);
+    if (firstCodepoint != 0) {
+      int vocabIndex = translator(firstCodepoint_utf8);
+      if (children_[vocabIndex] == nullptr) {
+        children_[vocabIndex] = new TrieNode(vocab_size_);
+      }
+      children_[vocabIndex]->Insert(codepoints+1, translator, lm_word, unigram_score);
     }
   }
 
-  int GetFrequency() {
-    return prefixCount;
+  int GetPrefixCount() const {
+    return prefixCount_;
   }
 
-  lm::WordIndex GetMinScoreWordIndex() {
-    return min_score_word;
+  lm::WordIndex GetMinScoreWordIndex() const {
+    return min_score_word_;
   }
 
-  float GetMinUnigramScore() {
-    return min_unigram_score;
+  float GetMinUnigramScore() const {
+    return min_unigram_score_;
   }
 
   TrieNode *GetChildAt(int vocabIndex) {
-    return children[vocabIndex];
+    return children_[vocabIndex];
   }
 
 private:
-  int vocab_size;
-  int prefixCount;
-  lm::WordIndex min_score_word;
-  float min_unigram_score;
-  TrieNode **children;
+  int vocab_size_;
+  int prefixCount_;
+  lm::WordIndex min_score_word_;
+  float min_unigram_score_;
+  TrieNode **children_;
 
   void WriteNode(std::ostream& os) const {
-    os << prefixCount << std::endl;
-    os << min_score_word << std::endl;
-    os << min_unigram_score << std::endl;
+    os << prefixCount_ << std::endl;
+    os << min_score_word_ << std::endl;
+    os << min_unigram_score_ << std::endl;
   }
 
   void ReadNode(std::istream& is, int first_input) {
-    prefixCount = first_input;
-    is >> min_score_word;
-    is >> min_unigram_score;
+    prefixCount_ = first_input;
+    is >> min_score_word_;
+    is >> min_unigram_score_;
   }
 
 };

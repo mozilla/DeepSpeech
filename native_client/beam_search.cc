@@ -13,14 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-// This test illustrates how to make use of the CTCBeamSearchDecoder using a
-// custom BeamScorer and BeamState based on a dictionary with a few artificial
-// words.
 #include "tensorflow/core/util/ctc/ctc_beam_search.h"
 
 #include <algorithm>
-#include <cmath>
 #include <vector>
+#include <cmath>
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/op_kernel.h"
@@ -43,6 +40,9 @@ REGISTER_OP("CTCBeamSearchDecoderWithLM")
     .Attr("model_path: string")
     .Attr("trie_path: string")
     .Attr("alphabet_path: string")
+    .Attr("lm_weight: float")
+    .Attr("word_count_weight: float")
+    .Attr("valid_word_count_weight: float")
     .Attr("beam_width: int >= 1 = 100")
     .Attr("top_paths: int >= 1 = 1")
     .Attr("merge_repeated: bool = true")
@@ -91,6 +91,12 @@ returned if merge_repeated = False.
 
 inputs: 3-D, shape: `(max_time x batch_size x num_classes)`, the logits.
 sequence_length: A vector containing sequence lengths, size `(batch)`.
+model_path: A string containing the path to the KenLM model file to use.
+trie_path: A string containing the path to the trie file built from the vocabulary.
+alphabet_path: A string containing the path to the alphabet file (see alphabet.h).
+lm_weight: alpha hyperparameter of CTC decoder. LM weight.
+word_count_weight: beta hyperparameter of CTC decoder. Word insertion weight.
+valid_word_count_weight: beta' hyperparameter of CTC decoder. Valid word insertion weight.
 beam_width: A scalar >= 0 (beam search beam width).
 top_paths: A scalar >= 0, <= beam_width (controls output size).
 merge_repeated: If true, merge repeated classes in output.
@@ -107,38 +113,36 @@ log_probability: A matrix, shaped: `(batch_size x top_paths)`.  The
   sequence log-probabilities.
 )doc");
 
+typedef lm::ngram::ProbingModel Model;
+
 struct KenLMBeamState {
   float language_model_score;
   float score;
   float delta_score;
   std::string incomplete_word;
   TrieNode *incomplete_word_trie_node;
-  lm::ngram::ProbingModel::State model_state;
+  Model::State model_state;
 };
 
 class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
  public:
-  typedef lm::ngram::ProbingModel Model;
-
-  KenLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path, const std::string &alphabet_path)
-    : lm_weight(1.0f)
-    , word_count_weight(-0.1f)
-    , valid_word_count_weight(1.0f)
+  KenLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path,
+                  const std::string &alphabet_path, float lm_weight,
+                  float word_count_weight, float valid_word_count_weight)
+    : model(kenlm_path.c_str(), GetLMConfig())
+    , alphabet(alphabet_path.c_str())
+    , lm_weight_(lm_weight)
+    , word_count_weight_(word_count_weight)
+    , valid_word_count_weight_(valid_word_count_weight)
   {
-    lm::ngram::Config config;
-    config.load_method = util::POPULATE_OR_READ;
-    model = new Model(kenlm_path.c_str(), config);
+    std::ifstream in(trie_path, std::ios::in);
+    TrieNode::ReadFromStream(in, trieRoot, alphabet.GetSize());
 
-    alphabet = new Alphabet(alphabet_path.c_str());
-
-    std::ifstream in;
-    in.open(trie_path, std::ios::in);
-    TrieNode::ReadFromStream(in, trieRoot, alphabet->GetSize());
-    in.close();
+    Model::State out;
+    oov_score_ = model.FullScore(model.NullContextState(), model.GetVocabulary().NotFound(), out).prob;
   }
 
   virtual ~KenLMBeamScorer() {
-    delete model;
     delete trieRoot;
   }
 
@@ -149,7 +153,7 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
     root->delta_score = 0.0f;
     root->incomplete_word.clear();
     root->incomplete_word_trie_node = trieRoot;
-    root->model_state = model->BeginSentenceState();
+    root->model_state = model.BeginSentenceState();
   }
   // ExpandState is called when expanding a beam to one of its children.
   // Called at most once per child beam. In the simplest case, no state
@@ -158,13 +162,12 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
                          KenLMBeamState* to_state, int to_label) const {
     CopyState(from_state, to_state);
 
-    if (!alphabet->IsSpace(to_label)) {
-      to_state->incomplete_word += alphabet->StringFromLabel(to_label);
+    if (!alphabet.IsSpace(to_label)) {
+      to_state->incomplete_word += alphabet.StringFromLabel(to_label);
       TrieNode *trie_node = from_state.incomplete_word_trie_node;
 
-      // TODO replace with OOV unigram prob?
       // If we have no valid prefix we assume a very low log probability
-      float min_unigram_score = -10.0f;
+      float min_unigram_score = oov_score_;
       // If prefix does exist
       if (trie_node != nullptr) {
         trie_node = trie_node->GetChildAt(to_label);
@@ -185,9 +188,9 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
                             to_state->model_state);
       // Give fixed word bonus
       if (!IsOOV(to_state->incomplete_word)) {
-        to_state->language_model_score += valid_word_count_weight;
+        to_state->language_model_score += valid_word_count_weight_;
       }
-      to_state->language_model_score += word_count_weight;
+      to_state->language_model_score += word_count_weight_;
       UpdateWithLMScore(to_state, lm_score_delta);
       ResetIncompleteWord(to_state);
     }
@@ -205,8 +208,8 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
       ResetIncompleteWord(state);
       state->model_state = out;
     }
-    lm_score_delta += model->FullScore(state->model_state,
-                                      model->GetVocabulary().EndSentence(),
+    lm_score_delta += model.FullScore(state->model_state,
+                                      model.GetVocabulary().EndSentence(),
                                       out).prob;
     UpdateWithLMScore(state, lm_score_delta);
   }
@@ -219,7 +222,7 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
   // there's no state expansion logic, the expansion score is zero.
   float GetStateExpansionScore(const KenLMBeamState& state,
                                float previous_score) const {
-    return lm_weight * state.delta_score + previous_score;
+    return lm_weight_ * state.delta_score + previous_score;
   }
   // GetStateEndExpansionScore should be an inexpensive method to retrieve the
   // (cached) expansion score computed within ExpandStateEnd. The score is
@@ -227,28 +230,35 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
   //
   // The score returned should be a log-probability.
   float GetStateEndExpansionScore(const KenLMBeamState& state) const {
-    return lm_weight * state.delta_score;
+    return lm_weight_ * state.delta_score;
   }
 
   void SetLMWeight(float lm_weight) {
-    this->lm_weight = lm_weight;
+    this->lm_weight_ = lm_weight;
   }
 
   void SetWordCountWeight(float word_count_weight) {
-    this->word_count_weight = word_count_weight;
+    this->word_count_weight_ = word_count_weight;
   }
 
   void SetValidWordCountWeight(float valid_word_count_weight) {
-    this->valid_word_count_weight = valid_word_count_weight;
+    this->valid_word_count_weight_ = valid_word_count_weight;
   }
 
  private:
-  Model *model;
-  Alphabet *alphabet;
+  Model model;
+  Alphabet alphabet;
   TrieNode *trieRoot;
-  float lm_weight;
-  float word_count_weight;
-  float valid_word_count_weight;
+  float lm_weight_;
+  float word_count_weight_;
+  float valid_word_count_weight_;
+  float oov_score_;
+
+  lm::ngram::Config GetLMConfig() {
+    lm::ngram::Config config;
+    config.load_method = util::POPULATE_OR_READ;
+    return config;
+  }
 
   void UpdateWithLMScore(KenLMBeamState *state, float lm_score_delta) const {
     float previous_score = state->score;
@@ -263,17 +273,15 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
   }
 
   bool IsOOV(const std::string& word) const {
-    auto &vocabulary = model->GetVocabulary();
+    auto &vocabulary = model.GetVocabulary();
     return vocabulary.Index(word) == vocabulary.NotFound();
   }
 
   float ScoreIncompleteWord(const Model::State& model_state,
                             const std::string& word,
                             Model::State& out) const {
-    lm::FullScoreReturn full_score_return;
-    lm::WordIndex vocab = model->GetVocabulary().Index(word);
-    full_score_return = model->FullScore(model_state, vocab, out);
-    return full_score_return.prob;
+    lm::WordIndex word_index = model.GetVocabulary().Index(word);
+    return model.FullScore(model_state, word_index, out).prob;
   }
 
   void CopyState(const KenLMBeamState& from, KenLMBeamState* to) const {
@@ -409,56 +417,22 @@ class CTCDecodeHelper {
   TF_DISALLOW_COPY_AND_ASSIGN(CTCDecodeHelper);
 };
 
-// CTC beam search
-class CTCBeamSearchDecoderOp : public tf::OpKernel {
+class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
  public:
-  explicit CTCBeamSearchDecoderOp(tf::OpKernelConstruction *ctx)
+  explicit CTCBeamSearchDecoderWithLMOp(tf::OpKernelConstruction *ctx)
     : tf::OpKernel(ctx)
     , beam_scorer_(GetModelPath(ctx),
                    GetTriePath(ctx),
-                   GetAlphabetPath(ctx))
+                   GetAlphabetPath(ctx),
+                   GetLMWeight(ctx),
+                   GetWordCountWeight(ctx),
+                   GetValidWordCountWeight(ctx))
   {
     OP_REQUIRES_OK(ctx, ctx->GetAttr("merge_repeated", &merge_repeated_));
     OP_REQUIRES_OK(ctx, ctx->GetAttr("beam_width", &beam_width_));
     int top_paths;
     OP_REQUIRES_OK(ctx, ctx->GetAttr("top_paths", &top_paths));
     decode_helper_.SetTopPaths(top_paths);
-
-    // const tf::Tensor* model_tensor;
-    // tf::Status status = ctx->input("model_path", &model_tensor);
-    // if (!status.ok()) return status;
-    // auto model_vec = model_tensor->flat<std::string>();
-    // *model_path = model_vec(0);
-
-    // const tf::Tensor* trie_tensor;
-    // status = ctx->input("trie_path", &trie_tensor);
-    // if (!status.ok()) return status;
-    // auto trie_vec = trie_tensor->flat<std::string>();
-    // *trie_path = model_vec(0);
-
-    // const tf::Tensor* alphabet_tensor;
-    // status = ctx->input("alphabet_path", &alphabet_tensor);
-    // if (!status.ok()) return status;
-    // auto alphabet_vec = alphabet_tensor->flat<std::string>();
-    // *alphabet_path = alphabet_vec(0);
-  }
-
-  std::string GetModelPath(tf::OpKernelConstruction *ctx) {
-    std::string model_path;
-    ctx->GetAttr("model_path", &model_path);
-    return model_path;
-  }
-
-  std::string GetTriePath(tf::OpKernelConstruction *ctx) {
-    std::string trie_path;
-    ctx->GetAttr("trie_path", &trie_path);
-    return trie_path;
-  }
-
-  std::string GetAlphabetPath(tf::OpKernelConstruction *ctx) {
-    std::string alphabet_path;
-    ctx->GetAttr("alphabet_path", &alphabet_path);
-    return alphabet_path;
   }
 
   void Compute(tf::OpKernelContext *ctx) override {
@@ -539,8 +513,44 @@ class CTCBeamSearchDecoderOp : public tf::OpKernel {
   KenLMBeamScorer beam_scorer_;
   bool merge_repeated_;
   int beam_width_;
-  TF_DISALLOW_COPY_AND_ASSIGN(CTCBeamSearchDecoderOp);
+  TF_DISALLOW_COPY_AND_ASSIGN(CTCBeamSearchDecoderWithLMOp);
+
+  std::string GetModelPath(tf::OpKernelConstruction *ctx) {
+    std::string model_path;
+    ctx->GetAttr("model_path", &model_path);
+    return model_path;
+  }
+
+  std::string GetTriePath(tf::OpKernelConstruction *ctx) {
+    std::string trie_path;
+    ctx->GetAttr("trie_path", &trie_path);
+    return trie_path;
+  }
+
+  std::string GetAlphabetPath(tf::OpKernelConstruction *ctx) {
+    std::string alphabet_path;
+    ctx->GetAttr("alphabet_path", &alphabet_path);
+    return alphabet_path;
+  }
+
+  float GetLMWeight(tf::OpKernelConstruction *ctx) {
+    float lm_weight;
+    ctx->GetAttr("lm_weight", &lm_weight);
+    return lm_weight;
+  }
+
+  float GetWordCountWeight(tf::OpKernelConstruction *ctx) {
+    float word_count_weight;
+    ctx->GetAttr("word_count_weight", &word_count_weight);
+    return word_count_weight;
+  }
+
+  float GetValidWordCountWeight(tf::OpKernelConstruction *ctx) {
+    float valid_word_count_weight;
+    ctx->GetAttr("valid_word_count_weight", &valid_word_count_weight);
+    return valid_word_count_weight;
+  }
 };
 
 REGISTER_KERNEL_BUILDER(Name("CTCBeamSearchDecoderWithLM").Device(tf::DEVICE_CPU),
-                        CTCBeamSearchDecoderOp);
+                        CTCBeamSearchDecoderWithLMOp);

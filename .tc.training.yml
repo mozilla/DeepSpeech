@@ -21,7 +21,7 @@ payload:
       {{ SYSTEM_ADD_USER }} &&
       echo -e "#!/bin/bash\nset -xe\nexport PATH=/home/build-user/bin:$PATH && env && id && wget https://github.com/git-lfs/git-lfs/releases/download/v2.2.1/git-lfs-linux-amd64-2.2.1.tar.gz -O - | tar -C /tmp -zxf - && PREFIX=/home/build-user/ /tmp/git-lfs-2.2.1/install.sh && mkdir ~/DeepSpeech/ && git clone --quiet {{ GITHUB_HEAD_REPO_URL }} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{ GITHUB_HEAD_SHA }}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
       {{ SYSTEM_DO_CLONE }} &&
-      sudo -H -u build-user TENSORFLOW_WHEEL=${TENSORFLOW_WHEEL} {{ TASK_ENV_VARS }} /bin/bash /home/build-user/DeepSpeech/ds/tc-train-tests.sh 2.7.13
+      sudo -H -u build-user TENSORFLOW_WHEEL=${TENSORFLOW_WHEEL} DEEPSPEECH_ARTIFACTS_ROOT=${DEEPSPEECH_ARTIFACTS_ROOT} /bin/bash /home/build-user/DeepSpeech/ds/tc-train-tests.sh 2.7.13
   artifacts:
     "public":
       type: "directory"

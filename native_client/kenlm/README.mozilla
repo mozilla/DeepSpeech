@@ -6,4 +6,4 @@ This corresponds to https://github.com/kpu/kenlm/commit/cdd794598ea15dc23a7daaf7
 The following procedure was run to remove unneeded files:
 
 cd kenlm
-rm -rf windows include lm/filter lm/builder util/stream
+rm -rf windows include lm/filter lm/builder util/stream util/getopt.* python
