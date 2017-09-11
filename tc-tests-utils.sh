@@ -47,7 +47,7 @@ assert_correct_ldc93s1()
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
 }
 
-download_material()
+download_native_client_files()
 {
   target_dir=$1
 
@@ -58,10 +58,20 @@ download_material()
 
   mkdir -p ${target_dir} || true
 
+  wget ${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz -O - | pixz -d | tar -C ${target_dir} -xf -
+}
+
+download_data()
+{
   wget ${DEEPSPEECH_MODEL} -O /tmp/${model_name}
   wget https://catalog.ldc.upenn.edu/desc/addenda/LDC93S1.wav -O /tmp/LDC93S1.wav
-  wget ${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz -O - | pixz -d | tar -C ${target_dir} -xf -
   wget ${DEEPSPEECH_ARTIFACTS_ROOT}/alphabet.txt -O /tmp/alphabet.txt
+}
+
+download_material()
+{
+  download_native_client_files "$1"
+  download_data
 
   ls -hal /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt
 }
