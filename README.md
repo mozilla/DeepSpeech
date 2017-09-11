@@ -79,11 +79,11 @@ As a simple first example you can open a terminal, change to the directory of th
 $ ./bin/run-ldc93s1.sh
 ```
 
-This script will train on a small sample dataset called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters.
+This script will train on a small sample data set called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what data set is used, how many training iterations are run and the default values of the network parameters.
 Feel also free to pass additional (or overriding) `DeepSpeech.py` parameters to these scripts.
 Then, just run the script to train the modified network.
 
-Each dataset has a corresponding importer script in `bin/` that can be used to download (if it's freely available) and preprocess the dataset. See `bin/import_librivox.py` for an example of how to import and preprocess a large dataset for training with Deep Speech.
+Each dataset has a corresponding importer script in `bin/` that can be used to download (if it's freely available) and preprocess the data set. See `bin/import_librivox.py` for an example of how to import and preprocess a large dataset for training with Deep Speech.
 
 If you've run the old importers (in `util/importers/`), they could have removed source files that are needed for the new importers to run. In that case, simply remove the extracted folders and let the importer extract and process the dataset from scratch, and things should work.
 
