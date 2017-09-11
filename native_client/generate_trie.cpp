@@ -43,7 +43,7 @@ int generate_trie(const char* alphabet_path, const char* kenlm_path, const char*
   while (ifs >> word) {
     lm::WordIndex word_index = GetWordIndex(model, word);
     float unigram_score = ScoreWord(model, word_index);
-    root.Insert(word.c_str(),
+    root.Insert(word,
                 [&a](const std::string& c) {
                   return a.LabelFromString(c);
                 },

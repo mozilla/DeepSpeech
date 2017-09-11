@@ -15,13 +15,14 @@ limitations under the License.
 
 #include "lm/model.hh"
 
-#include <codecvt>
 #include <functional>
 #include <iostream>
 #include <istream>
 #include <limits>
 #include <locale>
 #include <string>
+
+#include <boost/locale/encoding_utf.hpp>
 
 class TrieNode {
 public:
@@ -70,7 +71,7 @@ public:
     }
   }
 
-  void Insert(const char* word, std::function<int (const std::string&)> translator,
+  void Insert(const std::string& word, std::function<int (const std::string&)> translator,
               lm::WordIndex lm_word, float unigram_score) {
     // All strings are UTF-8 encoded at the API boundaries. We need to iterate
     // on codepoints in order to support multi-byte characters, so we convert
@@ -81,30 +82,9 @@ public:
     //     instead of codepoint for languages that don't have composed versions
     //     of multi-codepoint characters. This requires extra dependencies so
     //     leaving as a future improvement when the need arises.
-    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> ucs4conv;
-    std::u32string codepoints = ucs4conv.from_bytes(word);
+    using namespace boost::locale::conv;
+    std::u32string codepoints = utf_to_utf<char32_t, char>(word, method_type::stop);
     Insert(codepoints.begin(), translator, lm_word, unigram_score);
-  }
-
-  void Insert(const std::u32string::iterator& codepoints,
-              std::function<int (const std::string&)> translator,
-              lm::WordIndex lm_word, float unigram_score) {
-    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> ucs4conv;
-    char32_t firstCodepoint = *codepoints;
-    std::string firstCodepoint_utf8 = ucs4conv.to_bytes(firstCodepoint);
-
-    prefixCount_++;
-    if (unigram_score < min_unigram_score_) {
-      min_unigram_score_ = unigram_score;
-      min_score_word_ = lm_word;
-    }
-    if (firstCodepoint != 0) {
-      int vocabIndex = translator(firstCodepoint_utf8);
-      if (children_[vocabIndex] == nullptr) {
-        children_[vocabIndex] = new TrieNode(vocab_size_);
-      }
-      children_[vocabIndex]->Insert(codepoints+1, translator, lm_word, unigram_score);
-    }
   }
 
   int GetPrefixCount() const {
@@ -129,6 +109,28 @@ private:
   lm::WordIndex min_score_word_;
   float min_unigram_score_;
   TrieNode **children_;
+
+  void Insert(const std::u32string::iterator& codepoints,
+              std::function<int (const std::string&)> translator,
+              lm::WordIndex lm_word, float unigram_score) {
+    using namespace boost::locale::conv;
+    char32_t firstCodepoint[2] = {*codepoints, 0};
+    std::string firstCodepoint_utf8 =
+      utf_to_utf<char, char32_t>(firstCodepoint, method_type::stop);
+
+    prefixCount_++;
+    if (unigram_score < min_unigram_score_) {
+      min_unigram_score_ = unigram_score;
+      min_score_word_ = lm_word;
+    }
+    if (firstCodepoint[0] != 0) {
+      int vocabIndex = translator(firstCodepoint_utf8);
+      if (children_[vocabIndex] == nullptr) {
+        children_[vocabIndex] = new TrieNode(vocab_size_);
+      }
+      children_[vocabIndex]->Insert(codepoints+1, translator, lm_word, unigram_score);
+    }
+  }
 
   void WriteNode(std::ostream& os) const {
     os << prefixCount_ << std::endl;
