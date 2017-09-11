@@ -3,8 +3,9 @@ progressbar2
 python-utils
 tensorflow
 numpy
+matplotlib
 scipy
-paramiko
+paramiko >= 2.1
 pysftp
 sox
 python_speech_features
