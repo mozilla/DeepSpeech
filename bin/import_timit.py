@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# SCRIPT AUTHOR: Rob Smith
-
 '''
     NAME    : LDC TIMIT Dataset
     URL     : https://catalog.ldc.upenn.edu/ldc93s1
@@ -10,20 +8,19 @@
     AUTHORS : Garofolo, John, et al.
     TYPE    : LDC Membership
     LICENCE : LDC User Agreement
-
 '''
 
 import errno
 import os
+from os import path
 import sys
 import tarfile
-from os import path
 import fnmatch
 import pandas as pd
 import subprocess
 
 def clean(word):
-    ## LC ALL & strip fullstop, comma and semi-colon which are not required
+    # LC ALL & strip punctuation which are not required
     new = word.lower().replace('.', '')
     new = new.replace(',', '')
     new = new.replace(';', '')
@@ -39,7 +36,7 @@ def _preprocess_data(args):
     # Assume data is downloaded from LDC - https://catalog.ldc.upenn.edu/ldc93s1
 
     datapath = args
-    target = path.join(datapath,"TIMIT")
+    target = path.join(datapath, "TIMIT")
     print("Checking to see if data has already been extracted in given argument: %s", target)
 
     if not path.isdir(target):
@@ -47,20 +44,21 @@ def _preprocess_data(args):
         filepath = path.join(datapath, "TIMIT-LDC93S1.tgz")
         if path.isfile(filepath):
             print("File found, extracting")
-            #extract
             tar = tarfile.open(filepath)
             tar.extractall(target)
             tar.close()
         else:
+            print("File should be downloaded from LDC and placed at:", filepath)
             strerror = "File not found"
             raise IOError(errno, strerror, filepath)
+
     else:
-        #is path therefore continue
+        # is path therefore continue
         print("Found extracted data in: ", target)
 
     print("Preprocessing data")
-    # WE CONVERT THE WAV (NIST sphere format) into MSOFT WAV
-    # Note on Windows and Mac have case conflict (.WAV == .wav) creates _rif.wav as the new .wav file
+    # We convert the .WAV (NIST sphere format) into MSOFT .wav
+    # creates _rif.wav as the new .wav file
     for root, dirnames, filenames in os.walk(target):
         for filename in fnmatch.filter(filenames, "*.WAV"):
             sph_file = os.path.join(root, filename)
@@ -71,7 +69,7 @@ def _preprocess_data(args):
     print("Preprocessing Complete")
     print("Building CSVs")
 
-    # LISTS TO BUILD CSV files
+    # Lists to build CSV files
     train_list_wavs, train_list_trans, train_list_size = [], [], []
     test_list_wavs, test_list_trans, test_list_size = [], [], []
 
@@ -112,12 +110,12 @@ def _preprocess_data(args):
 
     c = {'wav_filename': test_list_wavs,
          'wav_filesize': test_list_size,
-         'transcript': test_list_trans,
+         'transcript': test_list_trans
          }
 
     all = {'wav_filename': train_list_wavs + test_list_wavs,
           'wav_filesize': train_list_size + test_list_size,
-          'transcript': train_list_trans + test_list_trans,
+          'transcript': train_list_trans + test_list_trans
           }
 
     df_all = pd.DataFrame(all, columns=['wav_filename', 'wav_filesize', 'transcript'], dtype=int)
