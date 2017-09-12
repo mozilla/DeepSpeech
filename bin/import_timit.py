@@ -35,6 +35,15 @@ def _preprocess_data(args):
 
     # Assume data is downloaded from LDC - https://catalog.ldc.upenn.edu/ldc93s1
 
+    # SA sentences are repeated throughout by each speaker therefore can be removed for ASR as they will affect WER
+    ignoreSASentences = True
+
+    if ignoreSASentences:
+        print("Using recommended ignore SA sentences")
+        print("Ignoring SA sentences (2 x sentences which are repeated by all speakers)")
+    else:
+        print("Using unrecommended setting to include SA sentences")
+
     datapath = args
     target = path.join(datapath, "TIMIT")
     print("Checking to see if data has already been extracted in given argument: %s", target)
@@ -92,16 +101,20 @@ def _preprocess_data(args):
                     for t in t_list:
                         trans = trans + " " + clean(t)
 
-            if 'train' in full_wav.lower():
-                train_list_wavs.append(full_wav)
-                train_list_trans.append(trans)
-                train_list_size.append(wav_filesize)
-            elif 'test' in full_wav.lower():
-                test_list_wavs.append(full_wav)
-                test_list_trans.append(trans)
-                test_list_size.append(wav_filesize)
-            else:
-                raise IOError
+            # if ignoreSAsentences we only want those without SA in the name
+            # OR
+            # if not ignoreSAsentences we want all
+            if (ignoreSASentences and not ('SA' in os.path.basename(full_wav))) or (not ignoreSASentences):
+                if 'train' in full_wav.lower():
+                    train_list_wavs.append(full_wav)
+                    train_list_trans.append(trans)
+                    train_list_size.append(wav_filesize)
+                elif 'test' in full_wav.lower():
+                    test_list_wavs.append(full_wav)
+                    test_list_trans.append(trans)
+                    test_list_size.append(wav_filesize)
+                else:
+                    raise IOError
 
     a = {'wav_filename': train_list_wavs,
          'wav_filesize': train_list_size,
