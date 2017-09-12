@@ -84,7 +84,6 @@ def _preprocess_data(args):
 
     for root, dirnames, filenames in os.walk(target):
         for filename in fnmatch.filter(filenames, "*_rif.wav"):
-
             full_wav = os.path.join(root, filename)
             wav_filesize = path.getsize(full_wav)
 
@@ -103,7 +102,7 @@ def _preprocess_data(args):
 
             # if ignoreSAsentences we only want those without SA in the name
             # OR
-            # if not ignoreSAsentences we want all
+            # if not ignoreSAsentences we want all to be added
             if (ignoreSASentences and not ('SA' in os.path.basename(full_wav))) or (not ignoreSASentences):
                 if 'train' in full_wav.lower():
                     train_list_wavs.append(full_wav)
