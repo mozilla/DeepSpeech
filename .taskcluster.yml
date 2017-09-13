@@ -24,7 +24,7 @@ tasks:
           - pull_request.synchronize
           - pull_request.reopened
     payload:
-      maxRunTime: 14400
+      maxRunTime: 7200
       image: "ubuntu:14.04"
       env:
         TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/home.tar.xz
@@ -74,7 +74,7 @@ tasks:
       - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.{{ event.head.sha }}.gpu"
       - "index.project.deepspeech.deepspeech.native_client.gpu.{{ event.head.sha }}"
     payload:
-      maxRunTime: 14400
+      maxRunTime: 7200
       image: "ubuntu:14.04"
       env:
         TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/home.tar.xz
@@ -310,7 +310,7 @@ tasks:
           - pull_request.synchronize
           - pull_request.reopened
     payload:
-      maxRunTime: 3600
+      maxRunTime: 7200
       env:
         TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.osx/artifacts/public/home.tar.xz
       command:
@@ -357,7 +357,7 @@ tasks:
       - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.{{ event.head.sha }}.osx"
       - "index.project.deepspeech.deepspeech.native_client.osx.{{ event.head.sha }}"
     payload:
-      maxRunTime: 3600
+      maxRunTime: 7200
       env:
         TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.osx/artifacts/public/home.tar.xz
       command:
