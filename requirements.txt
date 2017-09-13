@@ -12,4 +12,3 @@ python_speech_features
 pyxdg
 bs4
 six
-https://github.com/kpu/kenlm/archive/master.zip

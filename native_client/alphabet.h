@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 
@@ -46,12 +47,19 @@ public:
     if (it != str_to_label_.end()) {
       return it->second;
     } else {
+      std::cerr << "Invalid label " << string << std::endl;
       abort();
     }
   }
 
   size_t GetSize() {
     return size_;
+  }
+
+  bool IsSpace(unsigned int label) const {
+    //TODO: we should probably do something more i18n-aware here
+    const std::string& str = StringFromLabel(label);
+    return str.size() == 1 && str[0] == ' ';
   }
 
 private:

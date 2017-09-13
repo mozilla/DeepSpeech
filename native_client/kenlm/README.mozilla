@@ -1,0 +1,9 @@
+KenLM source downloaded from http://kheafield.com/code/kenlm.tar.gz on 2017/08/05
+sha256 c4c9f587048470c9a6a592914f0609a71fbb959f0a4cad371e8c355ce81f7c6b
+
+This corresponds to https://github.com/kpu/kenlm/commit/cdd794598ea15dc23a7daaf7a8cf89423c97f7e6
+
+The following procedure was run to remove unneeded files:
+
+cd kenlm
+rm -rf windows include lm/filter lm/builder util/stream util/getopt.* python

@@ -1,0 +1,124 @@
+
+\data\
+ngram 1=37
+ngram 2=47
+ngram 3=11
+ngram 4=6
+ngram 5=4
+
+\1-grams:
+-1.383514	,	-0.30103
+-1.139057	.	-0.845098
+-1.029493	</s>
+-99	<s>	-0.4149733
+-1.995635	<unk>	-20
+-1.285941	a	-0.69897
+-1.687872	also	-0.30103
+-1.687872	beyond	-0.30103
+-1.687872	biarritz	-0.30103
+-1.687872	call	-0.30103
+-1.687872	concerns	-0.30103
+-1.687872	consider	-0.30103
+-1.687872	considering	-0.30103
+-1.687872	for	-0.30103
+-1.509559	higher	-0.30103
+-1.687872	however	-0.30103
+-1.687872	i	-0.30103
+-1.687872	immediate	-0.30103
+-1.687872	in	-0.30103
+-1.687872	is	-0.30103
+-1.285941	little	-0.69897
+-1.383514	loin	-0.30103
+-1.687872	look	-0.30103
+-1.285941	looking	-0.4771212
+-1.206319	more	-0.544068
+-1.509559	on	-0.4771212
+-1.509559	screening	-0.4771212
+-1.687872	small	-0.30103
+-1.687872	the	-0.30103
+-1.687872	to	-0.30103
+-1.687872	watch	-0.30103
+-1.687872	watching	-0.30103
+-1.687872	what	-0.30103
+-1.687872	would	-0.30103
+-3.141592	foo
+-2.718281	bar	3.0
+-6.535897	baz	-0.0
+
+\2-grams:
+-0.6925742	, .
+-0.7522095	, however
+-0.7522095	, is
+-0.0602359	. </s>
+-0.4846522	<s> looking	-0.4771214
+-1.051485	<s> screening
+-1.07153	<s> the
+-1.07153	<s> watching
+-1.07153	<s> what
+-0.09132547	a little	-0.69897
+-0.2922095	also call
+-0.2922095	beyond immediate
+-0.2705918	biarritz .
+-0.2922095	call for
+-0.2922095	concerns in
+-0.2922095	consider watch
+-0.2922095	considering consider
+-0.2834328	for ,
+-0.5511513	higher more
+-0.5845945	higher small
+-0.2834328	however ,
+-0.2922095	i would
+-0.2922095	immediate concerns
+-0.2922095	in biarritz
+-0.2922095	is to
+-0.09021038	little more	-0.1998621
+-0.7273645	loin ,
+-0.6925742	loin .
+-0.6708385	loin </s>
+-0.2922095	look beyond
+-0.4638903	looking higher
+-0.4638903	looking on	-0.4771212
+-0.5136299	more .	-0.4771212
+-0.3561665	more loin
+-0.1649931	on a	-0.4771213
+-0.1649931	screening a	-0.4771213
+-0.2705918	small .
+-0.287799	the screening
+-0.2922095	to look
+-0.2622373	watch </s>
+-0.2922095	watching considering
+-0.2922095	what i
+-0.2922095	would also
+-2	also would	-6
+-15	<unk> <unk>	-2
+-4	<unk> however	-1
+-6	foo bar
+
+\3-grams:
+-0.01916512	more . </s>
+-0.0283603	on a little	-0.4771212
+-0.0283603	screening a little	-0.4771212
+-0.01660496	a little more	-0.09409451
+-0.3488368	<s> looking higher
+-0.3488368	<s> looking on	-0.4771212
+-0.1892331	little more loin
+-0.04835128	looking on a	-0.4771212
+-3	also would consider	-7
+-6	<unk> however <unk>	-12
+-7	to look a
+
+\4-grams:
+-0.009249173	looking on a little	-0.4771212
+-0.005464747	on a little more	-0.4771212
+-0.005464747	screening a little more
+-0.1453306	a little more loin
+-0.01552657	<s> looking on a	-0.4771212
+-4	also would consider higher	-8
+
+\5-grams:
+-0.003061223	<s> looking on a little
+-0.001813953	looking on a little more
+-0.0432557	on a little more loin
+-5	also would consider higher looking
+
+\end\

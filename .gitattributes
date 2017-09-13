@@ -1,2 +1,3 @@
 
 *.binary filter=lfs diff=lfs merge=lfs -crlf
+data/lm/trie filter=lfs diff=lfs merge=lfs -crlf

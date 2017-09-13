@@ -24,7 +24,6 @@ from threading import Thread, Lock
 from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.spell import correction
 from util.text import sparse_tensor_value_to_texts, wer, Alphabet
 from xdg import BaseDirectory as xdg
 import numpy as np
@@ -140,7 +139,16 @@ tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps t
 tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
 tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
 
+# Decoder
+
+tf.app.flags.DEFINE_string  ('decoder_library_path', 'native_client/libctc_decoder_with_kenlm.so', 'path to the libctc_decoder_with_kenlm.so library containing the decoder implementation.')
 tf.app.flags.DEFINE_string  ('alphabet_config_path', 'data/alphabet.txt', 'path to the configuration file specifying the alphabet used by the network. See the comment in data/alphabet.txt for a description of the format.')
+tf.app.flags.DEFINE_string  ('lm_binary_path',       'data/lm/lm.binary', 'path to the language model binary file created with KenLM')
+tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
+tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
+tf.app.flags.DEFINE_float   ('lm_weight',         2.15,        'the alpha hyperparameter of the CTC decoder. Language Model weight.')
+tf.app.flags.DEFINE_float   ('word_count_weight', -0.10,        'the beta hyperparameter of the CTC decoder. Word insertion weight (penalty).')
+tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.10,        'Valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
 
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
@@ -452,6 +460,28 @@ def BiRNN(batch_x, seq_length, dropout):
     # Output shape: [n_steps, batch_size, n_hidden_6]
     return layer_6
 
+if not os.path.exists(os.path.abspath(FLAGS.decoder_library_path)):
+    print('ERROR: The decoder library file does not exist. Make sure you have ' \
+          'downloaded or built the native client binaries and pass the ' \
+          'appropriate path to the binaries in the --decoder_library_path parameter.')
+
+custom_op_module = tf.load_op_library(FLAGS.decoder_library_path)
+
+def decode_with_lm(inputs, sequence_length, beam_width=100,
+                   top_paths=1, merge_repeated=True):
+  decoded_ixs, decoded_vals, decoded_shapes, log_probabilities = (
+      custom_op_module.ctc_beam_search_decoder_with_lm(
+          inputs, sequence_length, beam_width=beam_width,
+          model_path=FLAGS.lm_binary_path, trie_path=FLAGS.lm_trie_path, alphabet_path=FLAGS.alphabet_config_path,
+          lm_weight=FLAGS.lm_weight, word_count_weight=FLAGS.word_count_weight, valid_word_count_weight=FLAGS.valid_word_count_weight,
+          top_paths=top_paths, merge_repeated=merge_repeated))
+
+  return (
+      [tf.SparseTensor(ix, val, shape) for (ix, val, shape)
+       in zip(decoded_ixs, decoded_vals, decoded_shapes)],
+      log_probabilities)
+
+
 
 # Accuracy and Loss
 # =================
@@ -485,7 +515,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     avg_loss = tf.reduce_mean(total_loss)
 
     # Beam search decode the batch
-    decoded, _ = tf.nn.ctc_beam_search_decoder(logits, batch_seq_len, merge_repeated=False)
+    decoded, _ = decode_with_lm(logits, batch_seq_len, merge_repeated=False, beam_width=FLAGS.beam_width)
 
     # Compute the edit (Levenshtein) distance
     distance = tf.edit_distance(tf.cast(decoded[0], tf.int32), batch_y)
@@ -718,9 +748,8 @@ def calculate_report(results_tuple):
     items = list(zip(*results_tuple))
     mean_wer = 0.0
     for label, decoding, distance, loss in items:
-        corrected = correction(decoding, alphabet)
-        sample_wer = wer(label, corrected)
-        sample = Sample(label, corrected, loss, distance, sample_wer)
+        sample_wer = wer(label, decoding)
+        sample = Sample(label, decoding, loss, distance, sample_wer)
         samples.append(sample)
         mean_wer += sample_wer
 
