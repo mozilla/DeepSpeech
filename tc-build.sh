@@ -36,7 +36,10 @@ cd ${DS_ROOT_TASK}/DeepSpeech/tf
 eval "export ${BAZEL_ENV_FLAGS}"
 PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} \
 	build -c opt ${BAZEL_BUILD_FLAGS} \
-	//native_client:*
+	//native_client:deepspeech \
+	//native_client:deepspeech_utils \
+	//native_client:ctc_decoder_with_kenlm \
+	//native_client:generate_trie
 
 cd ${DS_ROOT_TASK}/DeepSpeech/ds/
 make -C native_client/ \
