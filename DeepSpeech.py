@@ -148,7 +148,7 @@ tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to th
 tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
 tf.app.flags.DEFINE_float   ('lm_weight',         2.15,        'the alpha hyperparameter of the CTC decoder. Language Model weight.')
 tf.app.flags.DEFINE_float   ('word_count_weight', -0.10,        'the beta hyperparameter of the CTC decoder. Word insertion weight (penalty).')
-tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.10,        'the beta\' hyperparameter of the CTC decoder. Valid word insertion weight.')
+tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.10,        'Valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
 
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)

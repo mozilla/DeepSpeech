@@ -129,21 +129,21 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
   KenLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path,
                   const std::string &alphabet_path, float lm_weight,
                   float word_count_weight, float valid_word_count_weight)
-    : model(kenlm_path.c_str(), GetLMConfig())
-    , alphabet(alphabet_path.c_str())
+    : model_(kenlm_path.c_str(), GetLMConfig())
+    , alphabet_(alphabet_path.c_str())
     , lm_weight_(lm_weight)
     , word_count_weight_(word_count_weight)
     , valid_word_count_weight_(valid_word_count_weight)
   {
     std::ifstream in(trie_path, std::ios::in);
-    TrieNode::ReadFromStream(in, trieRoot, alphabet.GetSize());
+    TrieNode::ReadFromStream(in, trieRoot_, alphabet_.GetSize());
 
     Model::State out;
-    oov_score_ = model.FullScore(model.NullContextState(), model.GetVocabulary().NotFound(), out).prob;
+    oov_score_ = model_.FullScore(model_.NullContextState(), model_.GetVocabulary().NotFound(), out).prob;
   }
 
   virtual ~KenLMBeamScorer() {
-    delete trieRoot;
+    delete trieRoot_;
   }
 
   // State initialization.
@@ -152,8 +152,8 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
     root->score = 0.0f;
     root->delta_score = 0.0f;
     root->incomplete_word.clear();
-    root->incomplete_word_trie_node = trieRoot;
-    root->model_state = model.BeginSentenceState();
+    root->incomplete_word_trie_node = trieRoot_;
+    root->model_state = model_.BeginSentenceState();
   }
   // ExpandState is called when expanding a beam to one of its children.
   // Called at most once per child beam. In the simplest case, no state
@@ -162,8 +162,8 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
                          KenLMBeamState* to_state, int to_label) const {
     CopyState(from_state, to_state);
 
-    if (!alphabet.IsSpace(to_label)) {
-      to_state->incomplete_word += alphabet.StringFromLabel(to_label);
+    if (!alphabet_.IsSpace(to_label)) {
+      to_state->incomplete_word += alphabet_.StringFromLabel(to_label);
       TrieNode *trie_node = from_state.incomplete_word_trie_node;
 
       // If we have no valid prefix we assume a very low log probability
@@ -208,8 +208,8 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
       ResetIncompleteWord(state);
       state->model_state = out;
     }
-    lm_score_delta += model.FullScore(state->model_state,
-                                      model.GetVocabulary().EndSentence(),
+    lm_score_delta += model_.FullScore(state->model_state,
+                                      model_.GetVocabulary().EndSentence(),
                                       out).prob;
     UpdateWithLMScore(state, lm_score_delta);
   }
@@ -246,9 +246,9 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
   }
 
  private:
-  Model model;
-  Alphabet alphabet;
-  TrieNode *trieRoot;
+  Model model_;
+  Alphabet alphabet_;
+  TrieNode *trieRoot_;
   float lm_weight_;
   float word_count_weight_;
   float valid_word_count_weight_;
@@ -269,19 +269,19 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
 
   void ResetIncompleteWord(KenLMBeamState *state) const {
     state->incomplete_word.clear();
-    state->incomplete_word_trie_node = trieRoot;
+    state->incomplete_word_trie_node = trieRoot_;
   }
 
   bool IsOOV(const std::string& word) const {
-    auto &vocabulary = model.GetVocabulary();
+    auto &vocabulary = model_.GetVocabulary();
     return vocabulary.Index(word) == vocabulary.NotFound();
   }
 
   float ScoreIncompleteWord(const Model::State& model_state,
                             const std::string& word,
                             Model::State& out) const {
-    lm::WordIndex word_index = model.GetVocabulary().Index(word);
-    return model.FullScore(model_state, word_index, out).prob;
+    lm::WordIndex word_index = model_.GetVocabulary().Index(word);
+    return model_.FullScore(model_state, word_index, out).prob;
   }
 
   void CopyState(const KenLMBeamState& from, KenLMBeamState* to) const {
