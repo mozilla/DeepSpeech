@@ -71,6 +71,15 @@ $ ./DeepSpeech.py --help
 ```
 
 To get the output of this in a slightly better-formatted way, you can also look up the option definitions top of `DeepSpeech.py`.
+
+You'll need to download `native_client.tar.xz` or build the native client files yourself to get the custom TensorFlow OP needed for decoding the outputs of the neural network. You can use `util/tc.py` to download the files for your architecture:
+
+```bash
+python util/tc.py destination/folder cpu
+```
+
+This will download the native client files for the x86_64 architecture without CUDA support, and extract them into `destination/folder`. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). We also have binaries with CUDA enabled ("gpu") and for ARM7 ("arm").
+
 For executing pre-configured training scenarios, there is a collection of convenience scripts in the `bin` folder. Most of them are named after the corpora they are configured for. Keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
 
 As a simple first example you can open a terminal, change to the directory of the DeepSpeech checkout and run:

@@ -460,6 +460,11 @@ def BiRNN(batch_x, seq_length, dropout):
     # Output shape: [n_steps, batch_size, n_hidden_6]
     return layer_6
 
+if not os.path.exists(os.path.abspath(FLAGS.decoder_library_path)):
+    print('ERROR: The decoder library file does not exist. Make sure you have ' \
+          'downloaded or built the native client binaries and pass the ' \
+          'appropriate path to the binaries in the --decoder_library_path parameter.')
+
 custom_op_module = tf.load_op_library(FLAGS.decoder_library_path)
 
 def decode_with_lm(inputs, sequence_length, beam_width=100,
