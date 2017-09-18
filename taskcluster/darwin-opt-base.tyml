@@ -1,0 +1,71 @@
+taskId: ${taskcluster.taskId}
+provisionerId: ${taskcluster.generic.provisionerId}
+workerType: ${taskcluster.generic.workerType}
+taskGroupId: ${taskcluster.taskGroupId}
+schedulerId: ${taskcluster.schedulerId}
+dependencies:
+  $map: { $eval: build.dependencies }
+  each(b):
+    $eval: as_slugid(b)
+created: { $fromNow: '0 sec' }
+deadline: { $fromNow: '1 day' }
+expires: { $fromNow: '7 days' }
+
+extra:
+  github:
+    $if: 'event.event == "push"'
+    then: { $eval: taskcluster.github_events.merge }
+    else: { $eval: taskcluster.github_events.pull_request }
+
+routes:
+  $if: 'event.event == "push"'
+  then:
+    { $eval: build.routes }
+
+payload:
+  maxRunTime: { $eval: to_int(build.maxRunTime) }
+
+  env:
+    TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
+
+  # There is no VM yet running tasks on OSX
+  # so one should install by hand:
+  # - brew
+  # - xcode (brew would install)
+  # - brew install git
+  # - brew install pixz
+  # - brew cask install java
+  # - sudo easy_install pip
+
+  command:
+    - - "/bin/bash"
+      - "--login"
+      - "-cxe"
+      - >
+        export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+        export TASKCLUSTER_TASK_ROOT="$(pwd)" &&
+        env &&
+        (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | tar -C $(dirname "$TASKCLUSTER_TASK_ROOT") -xf - ) &&
+        export TASKCLUSTER_TASK_DIR="$(find $(dirname `pwd`) -name "task-*" -type d -mindepth 1 -maxdepth 1)" &&
+        git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
+        cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
+        ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
+        cd $TASKCLUSTER_TASK_DIR &&
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-build.sh &&
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-package.sh;
+        cd $TASKCLUSTER_TASK_ROOT && rm -fr $TASKCLUSTER_TASK_DIR
+
+  artifacts:
+    - type: "directory"
+      path: "public/"
+      expires:
+        $if: 'event.event == "push"'
+        then: { $fromNow: '6 months' }
+        else: { $fromNow: '7 days' }
+
+metadata:
+  name: ${build.metadata.name}
+  description: ${build.metadata.description}
+  owner: ${event.head.user.email}
+  source: ${event.head.repo.url}

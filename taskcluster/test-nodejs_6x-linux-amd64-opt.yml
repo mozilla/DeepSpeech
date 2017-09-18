@@ -1,0 +1,13 @@
+build:
+  template_file: test-linux-opt-base.tyml
+  dependencies:
+    - "linux-amd64-cpu-opt"
+    - "test-training-linux-amd64-opt"
+  system_setup:
+    - >
+        ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages.apt}
+  args:
+    tests_cmdline: "/home/build-user/DeepSpeech/ds/tc-node-tests.sh 6.x"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CPU on NodeJS 6.x tests"
+    description: "Testing DeepSpeech for Linux/AMD64 on NodeJS v6.x, CPU only, optimized version"
