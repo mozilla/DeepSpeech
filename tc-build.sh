@@ -50,6 +50,10 @@ make -C native_client/ \
 	EXTRA_LDFLAGS="${EXTRA_CUDA_LDFLAGS}" \
 	deepspeech
 
+if [ "${OS}" = "Darwin" ]; then
+    export SWIG_LIB="$(find ${DS_ROOT_TASK}/homebrew/Cellar/swig/ -type f -name "swig.swg" | xargs dirname)"
+fi;
+
 if [ ${MAKE_BINDINGS_PY} ]; then
     unset PYTHON_BIN_PATH
     unset PYTHONPATH
