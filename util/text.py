@@ -80,7 +80,7 @@ def ndarray_to_text(value, alphabet):
     results = ''
     for i in range(len(value)):
         results += alphabet.string_from_label(value[i])
-    return results.replace('`', ' ')
+    return results
 
 def wer(original, result):
     r"""

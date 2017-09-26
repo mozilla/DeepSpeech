@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
 import os
 import sys
@@ -316,7 +316,7 @@ def prefix_print(prefix, message):
 
 def log_debug(message):
     if FLAGS.log_level == 0:
-        prefix_print('D ', unicode(message))
+        prefix_print('D ', message)
 
 def log_traffic(message):
     if FLAGS.log_traffic:
@@ -324,15 +324,15 @@ def log_traffic(message):
 
 def log_info(message):
     if FLAGS.log_level <= 1:
-        prefix_print('I ', unicode(message))
+        prefix_print('I ', message)
 
 def log_warn(message):
     if FLAGS.log_level <= 2:
-        prefix_print('W ', unicode(message))
+        prefix_print('W ', message)
 
 def log_error(message):
     if FLAGS.log_level <= 3:
-        prefix_print('E ', unicode(message))
+        prefix_print('E ', message)
 
 
 # Graph Creation
@@ -971,7 +971,7 @@ class Epoch(object):
         if index >= 0:
             self.jobs_running.pop(index)
             self.jobs_done.append(job)
-            log_traffic('%s - Moved %s from running to done.' % (self.name(), unicode(job)))
+            log_traffic('%s - Moved %s from running to done.' % (self.name(), job))
         else:
             log_warn('%s - There is no job with ID %d registered as running.' % (self.name(), job.id))
 
@@ -1049,7 +1049,7 @@ class Epoch(object):
         if len(self.samples) > 0:
             line = '\n' + ('-' * 80)
             for sample in self.samples:
-                s += line + '\n' + unicode(sample)
+                s += '%s\n%s' % (line, sample)
             s += line
         return s
 
@@ -1379,7 +1379,7 @@ class TrainingCoordinator(object):
                     return None
 
                 # We got a new job from one of the currently running epochs
-                log_traffic('Got new %s' % unicode(job))
+                log_traffic('Got new %s' % job)
                 return job
 
             # We are a remote worker and have to hand over to the chief worker by HTTP
@@ -1412,8 +1412,7 @@ class TrainingCoordinator(object):
                         # If it declares itself done, move it from 'running' to 'done' collection
                         self._epochs_running.remove(epoch)
                         self._epochs_done.append(epoch)
-                        # Show the short and/or full WER report
-                        log_info(epoch)
+                        log_info('%s' % epoch)
             else:
                 # There was no running epoch found for this job - this should never happen.
                 log_error('There is no running epoch of ID %d for job with ID %d. This should never happen.' % (job.epoch_id, job.id))
@@ -1557,7 +1556,7 @@ def train(server=None):
                 job = COORD.get_job()
 
                 while job and not session.should_stop():
-                    log_debug('Computing %s...' % unicode(job))
+                    log_debug('Computing %s...' % job)
 
                     # The feed_dict (mainly for switching between queues)
                     feed_dict = {}
@@ -1614,10 +1613,10 @@ def train(server=None):
 
 
                     # Send the current job to coordinator and receive the next one
-                    log_debug('Sending %s...' % unicode(job))
+                    log_debug('Sending %s...' % job)
                     job = COORD.next_job(job)
             except Exception as e:
-                log_error(e)
+                log_error(str(e))
                 traceback.print_exc()
                 # Calling all hook's end() methods to end blocking calls
                 for hook in hooks:
@@ -1631,8 +1630,8 @@ def train(server=None):
 
         log_debug('Session closed.')
 
-    except tf.errors.InvalidArgumentError:
-        log_error(sys.exc_info()[1])
+    except tf.errors.InvalidArgumentError as e:
+        log_error(str(e))
         log_error("Provide a --checkpoint_dir argument to work with models of different shapes.")
         sys.exit(1)
 
