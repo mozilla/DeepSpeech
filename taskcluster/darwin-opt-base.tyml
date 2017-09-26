@@ -79,7 +79,6 @@ payload:
         export TASKCLUSTER_REWRITE_PATH="$TASKCLUSTER_TASK_DIR" &&
         export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
         env &&
-        ((grep -R -I --files-with-matches "$TASKCLUSTER_ORIGIN_PATH" $TASKCLUSTER_TASK_DIR | grep -v "$TASKCLUSTER_TASK_DIR/generic-worker/" | xargs -n 1 -P 16 sed -i '' -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g") || true) &&
         (
           (
             for link in $(find -L "$TASKCLUSTER_TASK_DIR/homebrew/" -type l);
@@ -120,6 +119,7 @@ payload:
                 otool -L "$bin";
             done) || true) &&
         (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR --transform "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g" -xf - ) &&
+        ((grep -R -I --files-with-matches "$TASKCLUSTER_ORIGIN_PATH" $TASKCLUSTER_TASK_DIR | grep -v "$TASKCLUSTER_TASK_DIR/generic-worker/" | xargs -n 1 -P 16 sed -i '' -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g") || true) &&
         git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
         cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
