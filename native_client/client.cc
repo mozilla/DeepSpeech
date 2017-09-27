@@ -63,7 +63,7 @@ int
 main(int argc, char **argv)
 {
   if (argc < 6 || argc > 7) {
-    printf("Usage: deepspeech MODEL_PATH AUDIO_PATH [-t]\n");
+    printf("Usage: deepspeech MODEL_PATH AUDIO_PATH ALPHABET_PATH LM_PATH TRIE_PATH [-t]\n");
     printf("  MODEL_PATH\tPath to the model (protocol buffer binary file)\n");
     printf("  AUDIO_PATH\tPath to the audio file to run"
            " (any file format supported by libsox)\n");
@@ -181,7 +181,7 @@ main(int argc, char **argv)
       free(result->string);
     }
 
-    if ((argc == 5) && (strncmp(argv[4], "-t", 3) == 0)) {
+    if ((argc == 7) && (strncmp(argv[6], "-t", 3) == 0)) {
       printf("cpu_time_overall=%.05f cpu_time_mfcc=%.05f "
              "cpu_time_infer=%.05f\n",
              result->cpu_time_overall,
