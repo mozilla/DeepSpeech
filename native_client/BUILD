@@ -40,6 +40,7 @@ cc_library(
     name = "ctc_decoder_with_kenlm",
     srcs = [
             "beam_search.cc",
+            "beam_search.h",
             "alphabet.h",
             "trie_node.h"
            ] +
