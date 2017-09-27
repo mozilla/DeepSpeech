@@ -5,10 +5,18 @@ load("//tensorflow:tensorflow.bzl",
 
 cc_library(
     name = "deepspeech",
-    srcs = ["deepspeech.cc", "alphabet.h"],
+    srcs = ["deepspeech.cc", "alphabet.h", "beam_search.h", "trie_node.h"] +
+           glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
+                 "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
+                exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) +
+           glob(["boost_locale/**/*.hpp"]),
     hdrs = ["deepspeech.h"],
     deps = ["//tensorflow/core:core",
+            "//tensorflow/core/util/ctc",
+            "//third_party/eigen3",
             ":deepspeech_utils"],
+    includes = ["kenlm", "boost_locale"],
+    defines = ["KENLM_MAX_ORDER=6"],
 )
 
 # We have a single rule including c_speech_features and kissfft here as Bazel

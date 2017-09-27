@@ -24,7 +24,9 @@ namespace DeepSpeech
        *           the the alphabet used by the network. See alphabet.h.
        */
       Model(const char* aModelPath, int aNCep, int aNContext,
-            const char* aAlphabetConfigPath);
+            const char* aAlphabetConfigPath, const char* aLMPath,
+            const char* aTriePath, int aBeamWidth, float aLMWeight,
+            float aWordCountWeight, float aValidWordCountWeight);
 
       /**
        * @brief Frees associated resources and destroys model object.
