@@ -62,4 +62,4 @@ if __name__ == '__main__':
 
     maybe_download_tc(target_dir=target_dir, tc_url=get_tc_url(arch_string))
 
-    subprocess.check_call(['tar', 'xvzf', os.path.join(target_dir, 'native_client.tar.xz'), '-C', target_dir])
+    subprocess.check_call(['tar', 'xvf', os.path.join(target_dir, 'native_client.tar.xz'), '-C', target_dir])
