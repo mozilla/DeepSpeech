@@ -102,7 +102,7 @@ csf_fbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
 
   // Store the total energy in each frame
   if (aEnergy) {
-    energy = (csf_float*)calloc(sizeof(csf_float), n_frames);
+    energy = (csf_float*)calloc(n_frames, sizeof(csf_float));
     for (i = 0, idx = 0; i < n_frames; i++) {
       for (j = 0; j < feat_width; j++, idx++) {
         energy[i] += pspec[idx];
@@ -116,7 +116,7 @@ csf_fbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
   // Compute the filter-bank energies
   fbank = csf_get_filterbanks(aNFilters, aNFFT, aSampleRate,
                               aLowFreq, aHighFreq);
-  feat = (csf_float*)calloc(sizeof(csf_float), n_frames * aNFilters);
+  feat = (csf_float*)calloc(n_frames * aNFilters, sizeof(csf_float));
   for (i = 0, idx = 0, pidx = 0; i < n_frames;
        i++, idx += aNFilters, pidx += feat_width) {
     for (j = 0, fidx = 0; j < aNFilters; j++) {
@@ -206,7 +206,7 @@ csf_ssc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
   // Compute the filter-bank energies
   fbank = csf_get_filterbanks(aNFilters, aNFFT, aSampleRate,
                               aLowFreq, aHighFreq);
-  feat = (csf_float*)calloc(sizeof(csf_float), n_frames * aNFilters);
+  feat = (csf_float*)calloc(n_frames * aNFilters, sizeof(csf_float));
   for (i = 0, idx = 0, pidx = 0; i < n_frames;
        i++, idx += aNFilters, pidx += feat_width) {
     for (j = 0, fidx = 0; j < aNFilters; j++) {
@@ -217,7 +217,7 @@ csf_ssc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
   }
 
   // Calculate Spectral Sub-band Centroid features
-  ssc = (csf_float*)calloc(sizeof(csf_float*), n_frames * aNFilters);
+  ssc = (csf_float*)calloc(n_frames * aNFilters, sizeof(csf_float));
   csf_float r = ((aSampleRate / 2) - 1) / (csf_float)(feat_width - 1);
   for (i = 0, idx = 0, pidx = 0; i < n_frames;
        i++, idx += aNFilters, pidx += feat_width) {
@@ -290,7 +290,7 @@ csf_delta(const csf_float* aFeatures, int aNFrames, int aNFrameLen, int aN)
   }
   denominator *= 2;
 
-  delta = (csf_float*)calloc(sizeof(csf_float), aNFrames * aNFrameLen);
+  delta = (csf_float*)calloc(aNFrames * aNFrameLen, sizeof(csf_float));
   for (i = 0, idx = 0; i < aNFrames; i++, idx += aNFrameLen) {
     for (j = 0; j < aNFrameLen; j++) {
       for (k = -aN; k <= aN; k++) {
@@ -315,7 +315,7 @@ csf_get_filterbanks(int aNFilters, int aNFFT, int aSampleRate,
                              aSampleRate / 2 : aHighFreq);
   int* bin = (int*)malloc(sizeof(int) * (aNFilters + 2));
   csf_float* fbank =
-    (csf_float*)calloc(sizeof(csf_float), aNFilters * feat_width);
+    (csf_float*)calloc(aNFilters * feat_width, sizeof(csf_float));
 
   for (i = 0; i < aNFilters + 2; i++) {
     csf_float melpoint = ((highmel - lowmel) /
@@ -399,10 +399,10 @@ csf_deframesig(const csf_float* aFrames, int aNFrames, int aSigLen,
     aSigLen = padlen;
   }
 
-  win_correct = (csf_float*)calloc(sizeof(csf_float), aSigLen);
+  win_correct = (csf_float*)calloc(aSigLen, sizeof(csf_float));
 
   base = 0;
-  signal = (csf_float*)calloc(sizeof(csf_float), aSigLen);
+  signal = (csf_float*)calloc(aSigLen, sizeof(csf_float));
   for (i = 0, idx = 0; i < aNFrames; i++) {
     for (j = 0; j < aFrameLen; j++, idx++) {
       int sidx = j + base;
