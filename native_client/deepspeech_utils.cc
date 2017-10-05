@@ -30,7 +30,7 @@ audioToInputVector(const short* aBuffer, unsigned int aBufferSize,
   // Take every other frame (BiRNN stride of 2) and add past/future context
   int ds_input_length = (n_frames + 1) / 2;
   // TODO: Use MFCC of silence instead of zero
-  float* ds_input = (float*)calloc(sizeof(float), ds_input_length * frameSize);
+  float* ds_input = (float*)calloc(ds_input_length * frameSize, sizeof(float));
   for (int i = 0, idx = 0, mfcc_idx = 0; i < ds_input_length;
        i++, idx += frameSize, mfcc_idx += aNCep * 2) {
     // Past context
