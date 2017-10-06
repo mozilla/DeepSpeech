@@ -2,6 +2,8 @@ NODE_BUILD_TOOL ?= node-pre-gyp
 NODE_ABI_TARGET ?= 
 NODE_BUILD_VERBOSE ?= --verbose
 
+include ../definitions.mk
+
 default: build
 
 clean:
@@ -19,10 +21,10 @@ configure: deepspeech_wrap.cxx
 	$(NODE_BUILD_TOOL) configure $(NODE_BUILD_VERBOSE)
 
 build: configure deepspeech_wrap.cxx
-	LDFLAGS="-L$(TFDIR)/bazel-bin/tensorflow -L$(TFDIR)/bazel-bin/native_client" $(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) rebuild $(NODE_BUILD_VERBOSE)
+	CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" LIBS="$(LIBS)" $(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) rebuild $(NODE_BUILD_VERBOSE)
 
 package: build
-	LDFLAGS="-L$(TFDIR)/bazel-bin/tensorflow -L$(TFDIR)/bazel-bin/native_client" $(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) package $(NODE_BUILD_VERBOSE)
+	$(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) package $(NODE_BUILD_VERBOSE)
 
 npm-pack: clean
 	npm install node-pre-gyp@0.6.x
