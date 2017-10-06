@@ -62,23 +62,26 @@ LocalDsSTT(Model& aCtx, const short* aBuffer, size_t aBufferSize,
 int
 main(int argc, char **argv)
 {
-  if (argc < 6 || argc > 7) {
-    printf("Usage: deepspeech MODEL_PATH AUDIO_PATH ALPHABET_PATH LM_PATH TRIE_PATH [-t]\n");
+  if (argc < 4 || argc > 7) {
+    printf("Usage: deepspeech MODEL_PATH AUDIO_PATH ALPHABET_PATH [LM_PATH] [TRIE_PATH] [-t]\n");
     printf("  MODEL_PATH\tPath to the model (protocol buffer binary file)\n");
     printf("  AUDIO_PATH\tPath to the audio file to run"
            " (any file format supported by libsox)\n");
     printf("  ALPHABET_PATH\tPath to the configuration file specifying"
            " the alphabet used by the network.\n");
-    printf("  LM_PATH\tPath to the language model binary file.\n");
-    printf("  TRIE_PATH\tPath to the language model trie file created with"
+    printf("  LM_PATH\tOptional: Path to the language model binary file.\n");
+    printf("  TRIE_PATH\tOptional: Path to the language model trie file created with"
            " native_client/generate_trie.\n");
     printf("  -t\t\tRun in benchmark mode, output mfcc & inference time\n");
     return 1;
   }
 
   // Initialise DeepSpeech
-  Model ctx = Model(argv[1], N_CEP, N_CONTEXT, argv[3], argv[4], argv[5],
-                    BEAM_WIDTH, LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+  Model ctx = Model(argv[1], N_CEP, N_CONTEXT, argv[3]);
+
+  if (argc > 5) {
+    ctx.enableDecoderWithLM(argv[3], argv[4], argv[5], BEAM_WIDTH, LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+  }
 
   // Initialise SOX
   assert(sox_init() == SOX_SUCCESS);

@@ -21,17 +21,39 @@ namespace DeepSpeech
        * @param aNCep The number of cepstrum the model was trained with.
        * @param aNContext The context window the model was trained with.
        * @param aAlphabetConfigPath The path to the configuration file specifying
-       *           the the alphabet used by the network. See alphabet.h.
+       *                            the alphabet used by the network. See alphabet.h.
        */
       Model(const char* aModelPath, int aNCep, int aNContext,
-            const char* aAlphabetConfigPath, const char* aLMPath,
-            const char* aTriePath, int aBeamWidth, float aLMWeight,
-            float aWordCountWeight, float aValidWordCountWeight);
+            const char* aAlphabetConfigPath);
 
       /**
        * @brief Frees associated resources and destroys model object.
        */
       ~Model();
+
+      /**
+       * @brief Enable decoding using beam scoring with a KenLM language model.
+       *
+       * @param aAlphabetConfigPath The path to the configuration file specifying
+       *                            the alphabet used by the network. See alphabet.h.
+       * @param aLMPath The path to the language model binary file.
+       * @param aTriePath The path to the trie file build from the same vocabu-
+       *                  lary as the language model binary.
+       * @param aBeamWidth The beam width used by the decoder. A larger beam
+       *                   width generates better results at the cost of decoding
+       *                   time.
+       * @param aLMWeight The weight to give to language model results when sco-
+       *                  ring.
+       * @param aWordCountWeight The weight (penalty) to give to beams when in-
+       *                         creasing the word count of the decoding.
+       * @param aValidWordCountWeight The weight (bonus) to give to beams when
+       *                              adding a new valid word to the decoding.
+       */
+      void enableDecoderWithLM(const char* aAlphabetConfigPath,
+                               const char* aLMPath, const char* aTriePath,
+                               int aBeamWidth, float aLMWeight,
+                               float aWordCountWeight,
+                               float aValidWordCountWeight);
 
       /**
        * @brief Given audio, return a vector suitable for input to the

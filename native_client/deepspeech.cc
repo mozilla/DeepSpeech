@@ -24,9 +24,7 @@ class Private {
 };
 
 Model::Model(const char* aModelPath, int aNCep, int aNContext,
-             const char* aAlphabetConfigPath, const char* aLMPath,
-             const char* aTriePath, int aBeamWidth, float aLMWeight,
-             float aWordCountWeight, float aValidWordCountWeight)
+             const char* aAlphabetConfigPath)
 {
   mPriv = new Private;
   mPriv->ncep = aNCep;
@@ -62,10 +60,8 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
 
   mPriv->alphabet = new Alphabet(aAlphabetConfigPath);
 
-  mPriv->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
-                                      aLMWeight, aWordCountWeight, aValidWordCountWeight);
-
-  mPriv->beam_width = aBeamWidth;
+  mPriv->scorer = NULL;
+  mPriv->beam_width = 0;
 }
 
 Model::~Model()
@@ -78,6 +74,17 @@ Model::~Model()
   delete mPriv->scorer;
 
   delete mPriv;
+}
+
+void
+Model::enableDecoderWithLM(const char* aAlphabetConfigPath, const char* aLMPath,
+                           const char* aTriePath, int aBeamWidth, float aLMWeight,
+                           float aWordCountWeight, float aValidWordCountWeight)
+{
+  mPriv->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
+                                      aLMWeight, aWordCountWeight, aValidWordCountWeight);
+
+  mPriv->beam_width = aBeamWidth;
 }
 
 void
@@ -121,13 +128,43 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
   Tensor n_frames(DT_INT32, TensorShape({1}));
   n_frames.scalar<int>()() = aNFrames;
 
+  // "Reshape_3" = logits, before the built-in CTC decoder is called.
+  const char* output_node_name = mPriv->scorer == NULL ? "output_node" : "Reshape_3";
+
   std::vector<Tensor> outputs;
   Status status = mPriv->session->Run(
     {{ "input_node", input }, { "input_lengths", n_frames }},
-    {"Reshape_3"}, {}, &outputs);
+    {output_node_name}, {}, &outputs);
   if (!status.ok()) {
     std::cerr << "Error running session: " << status.ToString() << "\n";
     return NULL;
+  }
+
+  // if using built-in CTC decoder
+  if (mPriv->scorer == NULL) {
+    // Output is an array of shape (1, n_results, result_length).
+    // In this case, n_results is also equal to 1.
+    auto output_mapped = outputs[0].tensor<int64, 3>();
+    size_t output_length = output_mapped.dimension(2) + 1;
+
+    size_t decoded_length = 1; // add 1 for the \0
+    for (int i = 0; i < output_length - 1; i++) {
+      int64 character = output_mapped(0, 0, i);
+      const std::string& str = mPriv->alphabet->StringFromLabel(character);
+      decoded_length += str.size();
+    }
+
+    char* output = (char*)malloc(sizeof(char) * decoded_length);
+    char* pen = output;
+    for (int i = 0; i < output_length - 1; i++) {
+      int64 character = output_mapped(0, 0, i);
+      const std::string& str = mPriv->alphabet->StringFromLabel(character);
+      strncpy(pen, str.c_str(), str.size());
+      pen += str.size();
+    }
+    *pen = '\0';
+
+    return output;
   }
 
   auto outputs_mapped = outputs[0].tensor<float, 3>();
@@ -139,11 +176,6 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
       }
     }
   }
-
-  CTCBeamSearchDecoder<KenLMBeamState> decoder(num_classes,
-                              /* beam width */ mPriv->beam_width,
-                                               mPriv->scorer,
-                              /* batch size */ 1);
 
   // Raw data containers (arrays of floats, ints, etc.).
   int sequence_lengths[batch_size] = {timesteps};
@@ -166,6 +198,11 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
   }
   float score[batch_size][top_paths] = {{0.0}};
   Eigen::Map<Eigen::MatrixXf> scores(&score[0][0], batch_size, top_paths);
+
+  CTCBeamSearchDecoder<KenLMBeamState> decoder(num_classes,
+                              /* beam width */ mPriv->beam_width,
+                                               mPriv->scorer,
+                              /* batch size */ 1);
 
   decoder.Decode(seq_len, inputs, &decoder_outputs, &scores).ok();
 
