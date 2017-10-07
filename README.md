@@ -8,7 +8,7 @@ Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trai
 **Table of Contents**
 
 - [Prerequisites](#prerequisites)
-- [Install](#install)
+- [Installation](#install)
 - [Recommendations](#recommendations)
 - [Training a model](#training-a-model)
 - [Checkpointing](#checkpointing)
