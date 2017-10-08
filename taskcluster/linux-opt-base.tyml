@@ -44,7 +44,7 @@ payload:
         apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev && ${extraSystemSetup} &&
         adduser --system --home /home/build-user build-user &&
         cd /home/build-user/ &&
-        echo -e "#!/bin/bash\nset -xe\n ${installGitlfs} && env && id && (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | tar -C /home/build-user/ -xf - ) && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+        echo -e "#!/bin/bash\nset -xe\n env && id && (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | tar -C /home/build-user/ -xf - ) && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
         sudo -H -u build-user /bin/bash /tmp/clone.sh &&
         /home/build-user/DeepSpeech/tf/tc-apt.sh && ${extraSystemConfig} &&
         sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh ${build.args.tcbuild} &&
