@@ -128,13 +128,23 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
   Tensor n_frames(DT_INT32, TensorShape({1}));
   n_frames.scalar<int>()() = aNFrames;
 
-  // "Reshape_3" = logits, before the built-in CTC decoder is called.
-  const char* output_node_name = mPriv->scorer == NULL ? "output_node" : "Reshape_3";
+  // The new decoder takes the logits as input, the old one is built into the graph
+  const char* output_node_name = mPriv->scorer == NULL ? "output_node" : "logits";
 
   std::vector<Tensor> outputs;
   Status status = mPriv->session->Run(
     {{ "input_node", input }, { "input_lengths", n_frames }},
     {output_node_name}, {}, &outputs);
+
+  // If "logits" doesn't exist, this is an older graph. Try to recover.
+  if (status.code() == tensorflow::error::NOT_FOUND) {
+    status.IgnoreError();
+    output_node_name = "Reshape_3";
+    status = mPriv->session->Run(
+      {{ "input_node", input }, { "input_lengths", n_frames }},
+      {output_node_name}, {}, &outputs);
+  }
+
   if (!status.ok()) {
     std::cerr << "Error running session: " << status.ToString() << "\n";
     return NULL;
