@@ -270,7 +270,7 @@ def setup_tempdir(dir, models, wav, alphabet, lm_binary, trie, binaries):
                 shutil.copy2(f, dir)
 
     for extra_file in [ wav, alphabet, lm_binary, trie ]:
-        if not os.path.isfile(os.path.join(dir, os.path.basename(extra_file))):
+        if extra_file and not os.path.isfile(os.path.join(dir, os.path.basename(extra_file))):
             print('Copying %s to %s' % (extra_file, dir))
             shutil.copy2(extra_file, dir)
 
@@ -376,7 +376,7 @@ def establish_ssh(target=None, auto_trust=False, allow_agent=True, look_keys=Tru
 
     return ssh_conn
 
-def run_benchmarks(dir, models, wav, alphabet, lm_binary, trie, iters=-1, extra_aot_model=None):
+def run_benchmarks(dir, models, wav, alphabet, lm_binary=None, trie=None, iters=-1, extra_aot_model=None):
     r'''
     Core of the running of the benchmarks. We will run on all of models, against
     the WAV file provided as wav, and the provided alphabet.
@@ -401,7 +401,11 @@ def run_benchmarks(dir, models, wav, alphabet, lm_binary, trie, iters=-1, extra_
           'stddev': numpy.infty
         }
 
-        cmdline = './deepspeech "%s" "%s" "%s" "%s" "%s" -t' % (model_filename, wav, alphabet, lm_binary, trie)
+        if lm_binary and trie:
+            cmdline = './deepspeech "%s" "%s" "%s" "%s" "%s" -t' % (model_filename, wav, alphabet, lm_binary, trie)
+        else:
+            cmdline = './deepspeech "%s" "%s" "%s" -t' % (model_filename, wav, alphabet)
+
         for it in range(iters):
             sys.stdout.write('\rRunning %s: %d/%d' % (os.path.basename(model), (it+1), iters))
             sys.stdout.flush()
@@ -506,10 +510,14 @@ def do_main():
     dest_sorted_models = map(lambda x: os.path.join(tempdir, os.path.basename(x)), sorted_models)
     dest_wav = os.path.join(tempdir, os.path.basename(cli_args.wav))
     dest_alphabet = os.path.join(tempdir, os.path.basename(cli_args.alphabet))
-    dest_lm_binary = os.path.join(tempdir, os.path.basename(cli_args.lm_binary))
-    dest_trie = os.path.join(tempdir, os.path.basename(cli_args.trie))
 
-    inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, extra_aot_model=cli_args.so_model, wav=dest_wav, alphabet=dest_alphabet, lm_binary=dest_lm_binary, trie=dest_trie, iters=cli_args.iters)
+    if cli_args.lm_binary and cli_args.trie:
+        dest_lm_binary = os.path.join(tempdir, os.path.basename(cli_args.lm_binary))
+        dest_trie = os.path.join(tempdir, os.path.basename(cli_args.trie))
+        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, extra_aot_model=cli_args.so_model, wav=dest_wav, alphabet=dest_alphabet, lm_binary=dest_lm_binary, trie=dest_trie, iters=cli_args.iters)
+    else:
+        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, extra_aot_model=cli_args.so_model, wav=dest_wav, alphabet=dest_alphabet, iters=cli_args.iters)
+
     if cli_args.csv:
         produce_csv(input=inference_times, output=cli_args.csv)
 
