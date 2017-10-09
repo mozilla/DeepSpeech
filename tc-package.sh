@@ -39,3 +39,5 @@ pixz -9 ${TASKCLUSTER_ARTIFACTS}/native_client.tar ${TASKCLUSTER_ARTIFACTS}/nati
 rm ${TASKCLUSTER_ARTIFACTS}/native_client.tar
 
 cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_ARTIFACTS}/
+cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/lm.binary ${TASKCLUSTER_ARTIFACTS}/
+cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/trie ${TASKCLUSTER_ARTIFACTS}/

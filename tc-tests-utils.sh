@@ -66,6 +66,8 @@ download_data()
   wget ${DEEPSPEECH_MODEL} -O /tmp/${model_name}
   wget https://catalog.ldc.upenn.edu/desc/addenda/LDC93S1.wav -O /tmp/LDC93S1.wav
   wget ${DEEPSPEECH_ARTIFACTS_ROOT}/alphabet.txt -O /tmp/alphabet.txt
+  wget ${DEEPSPEECH_ARTIFACTS_ROOT}/lm.binary -O /tmp/lm.binary
+  wget ${DEEPSPEECH_ARTIFACTS_ROOT}/trie -O /tmp/trie
 }
 
 download_material()
