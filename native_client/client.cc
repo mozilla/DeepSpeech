@@ -184,7 +184,7 @@ main(int argc, char **argv)
       free(result->string);
     }
 
-    if ((argc == 7) && (strncmp(argv[6], "-t", 3) == 0)) {
+    if (strncmp(argv[argc - 1], "-t", 3) == 0) {
       printf("cpu_time_overall=%.05f cpu_time_mfcc=%.05f "
              "cpu_time_infer=%.05f\n",
              result->cpu_time_overall,
