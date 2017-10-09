@@ -410,6 +410,9 @@ def run_benchmarks(dir, models, wav, alphabet, lm_binary=None, trie=None, iters=
             sys.stdout.write('\rRunning %s: %d/%d' % (os.path.basename(model), (it+1), iters))
             sys.stdout.flush()
             rc, stdout, stderr = exec_command(cmdline, cwd=dir)
+            print('exec_command("%s") finished with rc=%d' % (cmdline, rc))
+            print('stdout: %s' % stdout)
+            print('stderr: %s' % stderr)
             if rc == 0:
                 inference_time = float(stdout.split('\n')[1].split('=')[-1])
                 # print("[%d] model=%s inference=%f" % (it, model, inference_time))
