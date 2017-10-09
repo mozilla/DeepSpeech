@@ -10,8 +10,10 @@ exec_benchmark()
     run_postfix=$2
 
     mkdir -p /tmp/bench-ds/ || true
+    mkdir -p /tmp/bench-ds-nolm/ || true
 
     csv=${TASKCLUSTER_ARTIFACTS}/benchmark-${run_postfix}.csv
+    csv_nolm=${TASKCLUSTER_ARTIFACTS}/benchmark-nolm-${run_postfix}.csv
     png=${TASKCLUSTER_ARTIFACTS}/benchmark-${run_postfix}.png
     svg=${TASKCLUSTER_ARTIFACTS}/benchmark-${run_postfix}.svg
 
@@ -20,10 +22,20 @@ exec_benchmark()
         --models ${model_file} \
         --wav /tmp/LDC93S1.wav \
         --alphabet /tmp/alphabet.txt \
-        --csv ${csv} \
+        --lm_binary /tmp/lm.binary \
+        --trie /tmp/trie \
+        --csv ${csv}
+
+    python ${DS_ROOT_TASK}/DeepSpeech/ds/bin/benchmark_nc.py \
+        --dir /tmp/bench-ds-nolm/ \
+        --models ${model_file} \
+        --wav /tmp/LDC93S1.wav \
+        --alphabet /tmp/alphabet.txt \
+        --csv ${csv_nolm}
 
     python ${DS_ROOT_TASK}/DeepSpeech/ds/bin/benchmark_plotter.py \
         --dataset "TaskCluster model" ${csv} \
+        --dataset "TaskCluster model (no LM)" ${csv_nolm} \
         --title "TaskCluster model benchmark" \
         --wav /tmp/LDC93S1.wav \
         --plot ${png} \
@@ -31,6 +43,7 @@ exec_benchmark()
 
     python ${DS_ROOT_TASK}/DeepSpeech/ds/bin/benchmark_plotter.py \
         --dataset "TaskCluster model" ${csv} \
+        --dataset "TaskCluster model (no LM)" ${csv_nolm} \
         --title "TaskCluster model benchmark" \
         --wav /tmp/LDC93S1.wav \
         --plot ${svg} \
