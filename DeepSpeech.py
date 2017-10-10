@@ -455,7 +455,7 @@ def BiRNN(batch_x, seq_length, dropout):
     # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
     # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
     # Note, that this differs from the input in that it is time-major.
-    layer_6 = tf.reshape(layer_6, [-1, batch_x_shape[0], n_hidden_6])
+    layer_6 = tf.reshape(layer_6, [-1, batch_x_shape[0], n_hidden_6], name="logits")
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
     return layer_6

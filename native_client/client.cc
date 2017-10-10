@@ -12,6 +12,10 @@
 
 #define N_CEP 26
 #define N_CONTEXT 9
+#define BEAM_WIDTH 500
+#define LM_WEIGHT 2.15f
+#define WORD_COUNT_WEIGHT -0.10f
+#define VALID_WORD_COUNT_WEIGHT 1.10f
 
 using namespace DeepSpeech;
 
@@ -58,19 +62,26 @@ LocalDsSTT(Model& aCtx, const short* aBuffer, size_t aBufferSize,
 int
 main(int argc, char **argv)
 {
-  if (argc < 4 || argc > 5) {
-    printf("Usage: deepspeech MODEL_PATH AUDIO_PATH [-t]\n");
+  if (argc < 4 || argc > 7) {
+    printf("Usage: deepspeech MODEL_PATH AUDIO_PATH ALPHABET_PATH [LM_PATH] [TRIE_PATH] [-t]\n");
     printf("  MODEL_PATH\tPath to the model (protocol buffer binary file)\n");
     printf("  AUDIO_PATH\tPath to the audio file to run"
            " (any file format supported by libsox)\n");
     printf("  ALPHABET_PATH\tPath to the configuration file specifying"
            " the alphabet used by the network.\n");
+    printf("  LM_PATH\tOptional: Path to the language model binary file.\n");
+    printf("  TRIE_PATH\tOptional: Path to the language model trie file created with"
+           " native_client/generate_trie.\n");
     printf("  -t\t\tRun in benchmark mode, output mfcc & inference time\n");
     return 1;
   }
 
   // Initialise DeepSpeech
   Model ctx = Model(argv[1], N_CEP, N_CONTEXT, argv[3]);
+
+  if (argc > 5) {
+    ctx.enableDecoderWithLM(argv[3], argv[4], argv[5], BEAM_WIDTH, LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+  }
 
   // Initialise SOX
   assert(sox_init() == SOX_SUCCESS);
@@ -173,7 +184,7 @@ main(int argc, char **argv)
       free(result->string);
     }
 
-    if ((argc == 5) && (strncmp(argv[4], "-t", 3) == 0)) {
+    if (!strncmp(argv[argc-1], "-t", 3)) {
       printf("cpu_time_overall=%.05f cpu_time_mfcc=%.05f "
              "cpu_time_infer=%.05f\n",
              result->cpu_time_overall,
