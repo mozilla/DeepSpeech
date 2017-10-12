@@ -61,6 +61,20 @@ download_native_client_files()
   wget ${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz -O - | pixz -d | tar -C ${target_dir} -xf -
 }
 
+download_ctc_kenlm()
+{
+  target_dir=$1
+
+  if [ -z "${target_dir}" ]; then
+    echo "Empty name for target directory: ${target_dir}"
+    exit 1
+  fi;
+
+  mkdir -p ${target_dir} || true
+
+  wget --directory-prefix=${target_dir} ${DEEPSPEECH_CTCSO}
+}
+
 download_data()
 {
   wget ${DEEPSPEECH_MODEL} -O /tmp/${model_name}

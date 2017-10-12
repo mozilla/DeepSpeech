@@ -6,6 +6,11 @@ source $(dirname "$0")/tc-tests-utils.sh
 
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
+if [ "$1" = "--ctc" ]; then
+    cp ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/native_client/libctc_decoder_with_kenlm.so ${TASKCLUSTER_ARTIFACTS}/
+    exit 0
+fi;
+
 tar -C ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/tensorflow/ \
 	-cf ${TASKCLUSTER_ARTIFACTS}/native_client.tar \
 	libtensorflow_cc.so
