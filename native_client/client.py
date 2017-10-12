@@ -14,11 +14,11 @@ VALID_WORD_COUNT_WEIGHT = 1.10
 N_FEATURES = 26
 N_CONTEXT = 9
 
-ds = Model(sys.argv[1], N_FEATURES, N_CONTEXT, sys.argv[3])
+ds = Model(sys.argv[1], N_FEATURES, N_CONTEXT, sys.argv[3], BEAM_WIDTH)
 
 if len(sys.argv) > 5:
-    ds.enableDecoderWithLM(sys.argv[3], sys.argv[4], sys.argv[5], BEAM_WIDTH,
-                           LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT)
+    ds.enableDecoderWithLM(sys.argv[3], sys.argv[4], sys.argv[5], LM_WEIGHT,
+                           WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT)
 
 fs, audio = wav.read(sys.argv[2])
 print(ds.stt(audio, fs))

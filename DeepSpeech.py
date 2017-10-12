@@ -104,6 +104,7 @@ tf.app.flags.DEFINE_integer ('max_to_keep',      5,           'number of checkpo
 tf.app.flags.DEFINE_string  ('export_dir',       '',          'directory in which exported models are stored - if omitted, the model won\'t get exported')
 tf.app.flags.DEFINE_integer ('export_version',   1,           'version number of the exported model')
 tf.app.flags.DEFINE_boolean ('remove_export',    False,       'wether to remove old exported models')
+tf.app.flags.DEFINE_boolean ('use_seq_length',   True,        'have sequence_length in the exported graph (will make tfcompile unhappy)')
 
 # Reporting
 
@@ -1657,7 +1658,7 @@ def export():
         seq_length = tf.placeholder(tf.int32, [None], name='input_lengths')
 
         # Calculate the logits of the batch using BiRNN
-        logits = BiRNN(input_tensor, tf.to_int64(seq_length), no_dropout)
+        logits = BiRNN(input_tensor, tf.to_int64(seq_length) if FLAGS.use_seq_length else None, no_dropout)
 
         # Beam search decode the batch
         decoded, _ = tf.nn.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
