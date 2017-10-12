@@ -8,6 +8,7 @@ build:
   maxRunTime: 14400
   args:
     tcbuild: "--gpu"
+    tcpackage: ""
   metadata:
     name: "DeepSpeech Linux AMD64 CUDA"
     description: "Building DeepSpeech for Linux/AMD64, CUDA-enabled, optimized version"

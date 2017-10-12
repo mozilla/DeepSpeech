@@ -14,4 +14,5 @@ build:
       PREFIX=/home/build-user/ /tmp/git-lfs-2.3.1/install.sh
   args:
     tcbuild: ''
+    tcpackage: ''
     tests_cmdline: ''

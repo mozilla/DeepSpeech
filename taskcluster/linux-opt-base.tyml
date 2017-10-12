@@ -48,7 +48,7 @@ payload:
         sudo -H -u build-user /bin/bash /tmp/clone.sh &&
         /home/build-user/DeepSpeech/tf/tc-apt.sh && ${extraSystemConfig} &&
         sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh ${build.args.tcbuild} &&
-        sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
+        sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh ${build.args.tcpackage}
 
   artifacts:
     "public":

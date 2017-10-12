@@ -16,6 +16,7 @@ build:
       multistrap -d /tmp/multistrap-raspbian-jessie/ -f /home/build-user/DeepSpeech/ds/native_client/multistrap.conf
   args:
     tcbuild: "--arm"
+    tcpackage: ""
   metadata:
     name: "DeepSpeech Linux RPi3/ARMv6 CPU"
     description: "Building DeepSpeech for Linux RPi3 ARMv6, CPU only, optimized version"

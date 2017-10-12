@@ -10,45 +10,59 @@ DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 EXTRA_CUDA_CFLAGS=
 EXTRA_CUDA_LDFLAGS=
 
-if [ "$1" = "--gpu" ]; then
-    BAZEL_ENV_FLAGS="TF_NEED_CUDA=1 ${TF_CUDA_FLAGS}"
-    BAZEL_BUILD_FLAGS="${BAZEL_CUDA_FLAGS} ${BAZEL_OPT_FLAGS}"
-    SYSTEM_TARGET=host
-    EXTRA_CUDA_CFLAGS="-L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/ -L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/stubs/"
-    EXTRA_CUDA_LDFLAGS="-lcudart -lcuda"
-fi
+MAKE_DEEPSPEECH_BINARY=1
+BAZEL_TARGETS="
+//native_client:deepspeech
+//native_client:deepspeech_utils
+//native_client:ctc_decoder_with_kenlm
+//native_client:generate_trie
+"
 
-if [ "$1" = "--arm" ]; then
-    BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
-    BAZEL_BUILD_FLAGS="${BAZEL_ARM_FLAGS}"
-    SYSTEM_TARGET=rpi3
-fi
-
-if [ "$1" != "--gpu" -a "$1" != "--arm" ]; then
+if [ "$1" = "--ctc" ]; then
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
     BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS}"
     SYSTEM_TARGET=host
-    MAKE_BINDINGS_PY=1
-    MAKE_BINDINGS_JS=1
+    unset MAKE_DEEPSPEECH_BINARY
+    BAZEL_TARGETS="//native_client:ctc_decoder_with_kenlm"
+else
+    if [ "$1" = "--gpu" ]; then
+        BAZEL_ENV_FLAGS="TF_NEED_CUDA=1 ${TF_CUDA_FLAGS}"
+        BAZEL_BUILD_FLAGS="${BAZEL_CUDA_FLAGS} ${BAZEL_OPT_FLAGS}"
+        SYSTEM_TARGET=host
+        EXTRA_CUDA_CFLAGS="-L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/ -L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/stubs/"
+        EXTRA_CUDA_LDFLAGS="-lcudart -lcuda"
+    fi
+
+    if [ "$1" = "--arm" ]; then
+        BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
+        BAZEL_BUILD_FLAGS="${BAZEL_ARM_FLAGS}"
+        SYSTEM_TARGET=rpi3
+    fi
+
+    if [ "$1" != "--gpu" -a "$1" != "--arm" ]; then
+        BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
+        BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS}"
+        SYSTEM_TARGET=host
+        MAKE_BINDINGS_PY=1
+        MAKE_BINDINGS_JS=1
+    fi
 fi
 
 cd ${DS_ROOT_TASK}/DeepSpeech/tf
 eval "export ${BAZEL_ENV_FLAGS}"
 PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} \
-	build -c opt ${BAZEL_BUILD_FLAGS} \
-	//native_client:deepspeech \
-	//native_client:deepspeech_utils \
-	//native_client:ctc_decoder_with_kenlm \
-	//native_client:generate_trie
+        build -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 
-cd ${DS_ROOT_TASK}/DeepSpeech/ds/
-make -C native_client/ \
-	TARGET=${SYSTEM_TARGET} \
-	TFDIR=${DS_TFDIR} \
-	RASPBIAN=/tmp/multistrap-raspbian-jessie \
-	EXTRA_CFLAGS="${EXTRA_CUDA_CFLAGS}" \
-	EXTRA_LDFLAGS="${EXTRA_CUDA_LDFLAGS}" \
-	deepspeech
+if [ ${MAKE_DEEPSPEECH_BINARY} ]; then
+    cd ${DS_ROOT_TASK}/DeepSpeech/ds/
+    make -C native_client/ \
+        TARGET=${SYSTEM_TARGET} \
+        TFDIR=${DS_TFDIR} \
+        RASPBIAN=/tmp/multistrap-raspbian-jessie \
+        EXTRA_CFLAGS="${EXTRA_CUDA_CFLAGS}" \
+        EXTRA_LDFLAGS="${EXTRA_CUDA_LDFLAGS}" \
+        deepspeech
+fi;
 
 if [ "${OS}" = "Darwin" ]; then
     export SWIG_LIB="$(find ${DS_ROOT_TASK}/homebrew/Cellar/swig/ -type f -name "swig.swg" | xargs dirname)"
