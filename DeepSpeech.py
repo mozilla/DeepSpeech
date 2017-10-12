@@ -435,8 +435,9 @@ def BiRNN(batch_x, seq_length, dropout):
                                                              cell_bw=lstm_bw_cell,
                                                              inputs=layer_3,
                                                              dtype=tf.float32,
-                                                             time_major=True,
-                                                             sequence_length=seq_length)
+                                                             time_major=True)
+                                                             # Sequence length makes tfcompile to choke
+                                                             # sequence_length=seq_length)
 
     # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
     # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
