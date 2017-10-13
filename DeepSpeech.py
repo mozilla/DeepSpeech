@@ -1531,7 +1531,7 @@ def train(server=None):
         hooks.append(tf.train.SummarySaverHook(save_secs=FLAGS.summary_secs, output_dir=FLAGS.summary_dir, summary_op=merge_all_summaries_op))
 
     # Hook wih number of checkpoint files to save in checkpoint_dir
-    if FLAGS.max_to_keep > 0:
+    if FLAGS.train and FLAGS.max_to_keep > 0:
         saver = tf.train.Saver(max_to_keep=FLAGS.max_to_keep)
         hooks.append(tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.checkpoint_dir, save_secs=FLAGS.checkpoint_secs, saver=saver))
 
@@ -1543,7 +1543,7 @@ def train(server=None):
                                                is_chief=is_chief,
                                                hooks=hooks,
                                                checkpoint_dir=FLAGS.checkpoint_dir,
-                                               save_checkpoint_secs=FLAGS.checkpoint_secs,
+                                               save_checkpoint_secs=FLAGS.checkpoint_secs if FLAGS.train else None,
                                                config=session_config) as session:
             try:
                 if is_chief:
