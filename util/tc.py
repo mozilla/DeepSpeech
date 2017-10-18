@@ -8,13 +8,19 @@ import os
 import stat
 import six.moves.urllib as urllib
 
-TASKCLUSTER_SCHEME = os.getenv('TASKCLUSTER_SCHEME',
-                               'https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.%(arch_string)s/artifacts/public/native_client.tar.xz')
+DEFAULT_SCHEMES = {
+    'deepspeech': 'https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.%(arch_string)s/artifacts/public/%(artifact_name)s',
+    'tensorflow': 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.%(arch_string)s/artifacts/public/%(artifact_name)s'
+}
 
-def get_tc_url(arch_string=None):
+TASKCLUSTER_SCHEME = os.getenv('TASKCLUSTER_SCHEME', DEFAULT_SCHEMES['deepspeech'])
+
+def get_tc_url(arch_string=None, artifact_name='native_client.tar.xz'):
     assert arch_string is not None
+    assert artifact_name is not None
+    assert len(artifact_name) > 0
 
-    return TASKCLUSTER_SCHEME % { 'arch_string': arch_string }
+    return TASKCLUSTER_SCHEME % { 'arch_string': arch_string, 'artifact_name': artifact_name }
 
 def maybe_download_tc(target_dir, tc_url, progress=True):
     def report_progress(count, block_size, total_size):
@@ -46,20 +52,31 @@ def maybe_download_tc_bin(**kwargs):
     os.chmod(final_file, final_stat.st_mode | stat.S_IEXEC)
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Downloads and extracts native client binaries.')
-        print('Usage: {} <target_dir> [arch_string]'.format(sys.argv[0]))
-        print('  <target_dir>: Where to put the native client binary files')
-        print('  [arch_string]: Which architecture to download binaries for. "arm" for ARM 7 (32-bit), "gpu" for CUDA enabled x86_64 binaries, "cpu" for CPU-only x86_64 binaries. Optional ("cpu" by default)')
-        exit(1)
+    import argparse
 
-    if len(sys.argv) == 2:
-        arch_string = 'cpu'
-    else:
-        arch_string = sys.argv[2]
+    parser = argparse.ArgumentParser(description='Tooling to ease downloading of components from TaskCluster.')
+    parser.add_argument('--target', type=str, required=True,
+                        help='Where to put the native client binary files')
+    parser.add_argument('--arch', type=str, required=False,
+                        default='cpu',
+                        help='Which architecture to download binaries for. "arm" for ARM 7 (32-bit), "gpu" for CUDA enabled x86_64 binaries, "cpu" for CPU-only x86_64 binaries, "osx" for CPU-only x86_64 OSX binaries. Optional ("cpu" by default)')
+    parser.add_argument('--artifact', type=str, required=False,
+                        default='native_client.tar.xz',
+                        help='Name of the artifact to download. Defaults to "native_client.tar.xz"')
+    parser.add_argument('--source', type=str, required=False,
+                        default=None,
+                        help='Name of the TaskCluster scheme to use.')
 
-    target_dir = sys.argv[1]
+    args = parser.parse_args()
 
-    maybe_download_tc(target_dir=target_dir, tc_url=get_tc_url(arch_string))
+    if args.source is not None:
+        if args.source in DEFAULT_SCHEMES:
+            TASKCLUSTER_SCHEME = DEFAULT_SCHEMES[args.source]
+        else:
+            print('No such scheme: %s' % args.source)
+            exit(1)
 
-    subprocess.check_call(['tar', 'xvf', os.path.join(target_dir, 'native_client.tar.xz'), '-C', target_dir])
+    maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(args.arch, args.artifact))
+
+    if '.tar.' in args.artifact:
+        subprocess.check_call(['tar', 'xvf', os.path.join(args.target, args.artifact), '-C', args.target])
