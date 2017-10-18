@@ -50,7 +50,7 @@ if __name__ == '__main__':
         print('Downloads and extracts native client binaries.')
         print('Usage: {} <target_dir> [arch_string]'.format(sys.argv[0]))
         print('  <target_dir>: Where to put the native client binary files')
-        print('  [arch_string]: Which architecture to download binaries for. "arm" for ARM 7 (32-bit), "gpu" for CUDA enabled x86_64 binaries, "cpu" for CPU-only x86_64 binaries. Optional ("cpu" by default)')
+        print('  [arch_string]: Which architecture to download binaries for. "arm" for ARM 7 (32-bit), "gpu" for CUDA enabled x86_64 binaries, "cpu" for CPU-only x86_64 binaries, "osx" for CPU-only x86_64 OSX binaries. Optional ("cpu" by default)')
         exit(1)
 
     if len(sys.argv) == 2:
