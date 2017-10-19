@@ -4,7 +4,7 @@ build:
     - "linux-amd64-cpu-opt"
     - "test-training-linux-amd64-opt"
   args:
-    tests_cmdline: "/home/build-user/DeepSpeech/ds/tc-cpp-ds-tests.sh"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-cpp-ds-tests.sh"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU C++ tests"
     description: "Testing DeepSpeech C++ for Linux/AMD64, CPU only, optimized version"

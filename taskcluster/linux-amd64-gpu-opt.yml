@@ -5,9 +5,11 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.gpu"
     - "index.project.deepspeech.deepspeech.native_client.gpu.${event.head.sha}"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/summarize_graph"
   maxRunTime: 14400
-  args:
-    tcbuild: "--gpu"
+  scripts:
+    build: "taskcluster/cuda-build.sh"
+    package: "taskcluster/cuda-package.sh"
   metadata:
     name: "DeepSpeech Linux AMD64 CUDA"
     description: "Building DeepSpeech for Linux/AMD64, CUDA-enabled, optimized version"

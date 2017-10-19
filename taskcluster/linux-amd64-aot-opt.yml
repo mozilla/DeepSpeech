@@ -1,0 +1,12 @@
+build:
+  template_file: linux-opt-base.tyml
+  dependencies:
+    - "test-training-linux-amd64-opt"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/summarize_graph"
+  scripts:
+    build: 'taskcluster/model-build.sh'
+    package: 'taskcluster/model-package.sh'
+  metadata:
+    name: "DeepSpeech Linux AMD64 CPU AOT (Test)"
+    description: "Building DeepSpeech for Linux/AMD64, AOT Test model, CPU only, optimized version"

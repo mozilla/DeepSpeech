@@ -9,9 +9,11 @@ build:
       true
   git_lfs:
     - >
-      export PATH=/home/build-user/bin:$PATH &&
+      export PATH=${system.homedir.linux}/bin:$PATH &&
       wget https://github.com/git-lfs/git-lfs/releases/download/v2.3.1/git-lfs-linux-amd64-2.3.1.tar.gz -O - | tar -C /tmp -zxf - &&
-      PREFIX=/home/build-user/ /tmp/git-lfs-2.3.1/install.sh
+      PREFIX=${system.homedir.linux}/ /tmp/git-lfs-2.3.1/install.sh
+  scripts:
+    build: ''
+    package: ''
   args:
-    tcbuild: ''
     tests_cmdline: ''
