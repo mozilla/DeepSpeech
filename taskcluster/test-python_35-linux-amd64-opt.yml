@@ -7,7 +7,7 @@ build:
     - >
         apt-get -qq -y install ${python.packages.apt}
   args:
-    tests_cmdline: "/home/build-user/DeepSpeech/ds/tc-python-tests.sh 3.5.3"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-python-tests.sh 3.5.3"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU Python v3.5 tests"
     description: "Testing DeepSpeech for Linux/AMD64 on Python v3.5, CPU only, optimized version"

@@ -5,6 +5,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.arm"
     - "index.project.deepspeech.deepspeech.native_client.arm.${event.head.sha}"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.arm/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/summarize_graph"
   ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
   system_setup:
     - >
@@ -13,9 +14,10 @@ build:
       echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb
   system_config:
     - >
-      multistrap -d /tmp/multistrap-raspbian-jessie/ -f /home/build-user/DeepSpeech/ds/native_client/multistrap.conf
-  args:
-    tcbuild: "--arm"
+      multistrap -d /tmp/multistrap-raspbian-jessie/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap.conf
+  scripts:
+    build: "taskcluster/rpi3-build.sh"
+    package: "taskcluster/package.sh"
   metadata:
     name: "DeepSpeech Linux RPi3/ARMv6 CPU"
     description: "Building DeepSpeech for Linux RPi3 ARMv6, CPU only, optimized version"
