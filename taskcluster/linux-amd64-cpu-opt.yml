@@ -16,6 +16,10 @@ build:
       wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.1_amd64.deb -O /tmp/swig3.0_3.0.10-1.1_amd64.deb &&
       dpkg -i /tmp/swig_3.0.10-1.1_amd64.deb /tmp/swig3.0_3.0.10-1.1_amd64.deb
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/summarize_graph"
+  scripts:
+    build: "taskcluster/host-build.sh"
+    package: "taskcluster/package.sh"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU"
     description: "Building DeepSpeech for Linux/AMD64, CPU only, optimized version"
