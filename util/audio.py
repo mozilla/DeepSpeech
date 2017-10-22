@@ -1,5 +1,8 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 import scipy.io.wavfile as wav
+import sys
+
 try:
     from deepspeech.utils import audioToInputVector
 except ImportError:
@@ -13,10 +16,10 @@ except ImportError:
     def audioToInputVector(audio, fs, numcep, numcontext):
         if DeprecationWarning.displayed is not True:
             DeprecationWarning.displayed = True
-            print('------------------------------------------------------------------------')
-            print('WARNING: libdeepspeech failed to load, resorting to deprecated code')
-            print('         Refer to README.md for instructions on installing libdeepspeech')
-            print('------------------------------------------------------------------------')
+            print('------------------------------------------------------------------------', file=sys.stderr)
+            print('WARNING: libdeepspeech failed to load, resorting to deprecated code',      file=sys.stderr)
+            print('         Refer to README.md for instructions on installing libdeepspeech', file=sys.stderr)
+            print('------------------------------------------------------------------------', file=sys.stderr)
 
         # Get mfcc coefficients
         features = mfcc(audio, samplerate=fs, numcep=numcep)
