@@ -21,10 +21,11 @@ from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from tensorflow.contrib.session_bundle import exporter
 from tensorflow.python.tools import freeze_graph
 from threading import Thread, Lock
+from util.audio import audiofile_to_input_vector
 from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.text import sparse_tensor_value_to_texts, wer, Alphabet
+from util.text import sparse_tensor_value_to_texts, wer, Alphabet, ndarray_to_text
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -147,9 +148,13 @@ tf.app.flags.DEFINE_string  ('alphabet_config_path', 'data/alphabet.txt', 'path 
 tf.app.flags.DEFINE_string  ('lm_binary_path',       'data/lm/lm.binary', 'path to the language model binary file created with KenLM')
 tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
 tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
-tf.app.flags.DEFINE_float   ('lm_weight',         2.15,        'the alpha hyperparameter of the CTC decoder. Language Model weight.')
-tf.app.flags.DEFINE_float   ('word_count_weight', -0.10,        'the beta hyperparameter of the CTC decoder. Word insertion weight (penalty).')
-tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.10,        'Valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
+tf.app.flags.DEFINE_float   ('lm_weight',         2.15,       'the alpha hyperparameter of the CTC decoder. Language Model weight.')
+tf.app.flags.DEFINE_float   ('word_count_weight', -0.10,      'the beta hyperparameter of the CTC decoder. Word insertion weight (penalty).')
+tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.10, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
+
+# Inference mode
+
+tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it. Disables training, testing and exporting.')
 
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
@@ -307,6 +312,14 @@ def initialize_globals():
     # Dequeue operations for each parameter server
     global done_dequeues
     done_dequeues = [queue.dequeue() for queue in done_queues]
+
+    if len(FLAGS.one_shot_infer) > 0:
+        FLAGS.train = False
+        FLAGS.test = False
+        FLAGS.export_dir = ''
+        if not os.path.exists(FLAGS.one_shot_infer):
+            log_error('Path specified in --one_shot_infer is not a valid file.')
+            exit(1)
 
 
 # Logging functions
@@ -1639,6 +1652,34 @@ def train(server=None):
                   ' or removing the contents of {0}.'.format(FLAGS.checkpoint_dir))
         sys.exit(1)
 
+def create_inference_graph(batch_size=None, output_is_logits=False, use_new_decoder=False):
+    # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
+    input_tensor = tf.placeholder(tf.float32, [batch_size, None, n_input + 2*n_input*n_context], name='input_node')
+    seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
+
+    # Calculate the logits of the batch using BiRNN
+    logits = BiRNN(input_tensor, tf.to_int64(seq_length) if FLAGS.use_seq_length else None, no_dropout)
+
+    if output_is_logits:
+        return logits
+
+    # Beam search decode the batch
+    decoder = decode_with_lm if use_new_decoder else tf.nn.ctc_beam_search_decoder
+
+    decoded, _ = decoder(logits, seq_length, merge_repeated=False, beam_width=FLAGS.beam_width)
+    decoded = tf.convert_to_tensor(
+        [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
+
+    return (
+        {
+            'input': input_tensor,
+            'input_lengths': seq_length,
+        },
+        {
+            'outputs': decoded,
+        }
+    )
+
 
 def export():
     r'''
@@ -1650,20 +1691,7 @@ def export():
         tf.reset_default_graph()
         session = tf.Session(config=session_config)
 
-        # Run inference
-
-        # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
-        input_tensor = tf.placeholder(tf.float32, [None, None, n_input + 2*n_input*n_context], name='input_node')
-
-        seq_length = tf.placeholder(tf.int32, [None], name='input_lengths')
-
-        # Calculate the logits of the batch using BiRNN
-        logits = BiRNN(input_tensor, tf.to_int64(seq_length) if FLAGS.use_seq_length else None, no_dropout)
-
-        # Beam search decode the batch
-        decoded, _ = tf.nn.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
-        decoded = tf.convert_to_tensor(
-            [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
+        inputs, outputs = create_inference_graph()
 
         # TODO: Transform the decoded output to a string
 
@@ -1682,11 +1710,9 @@ def export():
         # Initialise the model exporter and export the model
         model_exporter.init(session.graph.as_graph_def(),
                             named_graph_signatures = {
-                                'inputs': exporter.generic_signature(
-                                    { 'input': input_tensor,
-                                      'input_lengths': seq_length}),
-                                'outputs': exporter.generic_signature(
-                                    { 'outputs': decoded})})
+                                'inputs': exporter.generic_signature(inputs),
+                                'outputs': exporter.generic_signature(outputs)
+                            })
         if FLAGS.remove_export:
             actual_export_dir = os.path.join(FLAGS.export_dir, '%08d' % FLAGS.export_version)
             if os.path.isdir(actual_export_dir):
@@ -1717,6 +1743,36 @@ def export():
             log_info('Models exported at %s' % (FLAGS.export_dir))
         except RuntimeError:
             log_error(sys.exc_info()[1])
+
+
+def do_single_file_inference(input_file_path):
+    with tf.Session(config=session_config) as session:
+        inputs, outputs = create_inference_graph(batch_size=1, use_new_decoder=True)
+
+        # Create a saver using variables from the above newly created graph
+        saver = tf.train.Saver(tf.global_variables())
+
+        # Restore variables from training checkpoint
+        # TODO: This restores the most recent checkpoint, but if we use validation to counterract
+        #       over-fitting, we may want to restore an earlier checkpoint.
+        checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+        if not checkpoint:
+            log_error('Checkpoint directory ({}) does not contain a valid checkpoint state.'.format(FLAGS.checkpoint_dir))
+            exit(1)
+
+        checkpoint_path = checkpoint.model_checkpoint_path
+        saver.restore(session, checkpoint_path)
+
+        mfcc = audiofile_to_input_vector(input_file_path, n_input, n_context)
+
+        output = session.run(outputs['outputs'], feed_dict = {
+            inputs['input']: [mfcc],
+            inputs['input_lengths']: [len(mfcc)],
+        })
+
+        text = ndarray_to_text(output[0][0], alphabet)
+
+        print(text)
 
 
 def main(_) :
@@ -1761,6 +1817,9 @@ def main(_) :
         # Exporting the model
         if FLAGS.export_dir:
             export()
+
+    if len(FLAGS.one_shot_infer):
+        do_single_file_inference(FLAGS.one_shot_infer)
 
     # Stopping the coordinator
     COORD.stop()
