@@ -18,6 +18,18 @@ export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 
 export BAZEL_CTC_TARGETS="//native_client:ctc_decoder_with_kenlm"
 
+export EXTRA_AOT_CFLAGS=""
+export EXTRA_AOT_LDFLAGS="-L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/aot -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla/service/cpu"
+export EXTRA_AOT_LIBS="-ldeepspeech_model -lruntime -lruntime_matmul -lexecutable_run_options"
+
+export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64"
+export BAZEL_AOT_TARGETS="
+//native_client:deepspeech_model
+//tensorflow/compiler/aot:runtime
+//tensorflow/compiler/xla/service/cpu:runtime_matmul
+//tensorflow/compiler/xla:executable_run_options
+"
+
 model_name=$(basename "${DEEPSPEECH_TEST_MODEL}")
 
 assert_correct_inference()
@@ -52,6 +64,23 @@ assert_correct_ldc93s1()
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
 }
 
+assert_correct_ldc93s1_somodel()
+{
+    somodel_nolm=$1
+    somodel_withlm=$2
+
+    so_nolm=$(assert_correct_ldc93s1 "${somodel_nolm}")
+    so_lm=$(assert_correct_ldc93s1 "${somodel_withlm}")
+
+    # We accept that with no LM there may be errors, but we do not accept that
+    # for LM. For now.
+    if [[ ${so_lm} -eq 1 ]] && [[ ${so_nolm} -eq 1 || ${so_nolm} -eq 0 ]] ; then
+        exit 1
+    elif [[ ${so_lm} -eq 0 ]] && [[ ${so_nolm} -eq 1 || ${so_nolm} -eq 0 ]]; then
+        exit 0
+    fi
+}
+
 generic_download_tarxz()
 {
   target_dir=$1
@@ -74,6 +103,11 @@ download_native_client_files()
   generic_download_tarxz "$1" "${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz"
 }
 
+download_aot_model_files()
+{
+  generic_download_tarxz "$1" "${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/native_client.tar.xz"
+}
+
 download_ctc_kenlm()
 {
   generic_download_tarxz "$1" "${DEEPSPEECH_LIBCTC}"
@@ -90,7 +124,15 @@ download_data()
 
 download_material()
 {
-  download_native_client_files "$1"
+  target_dir=$1
+  maybe_aot=$2
+
+  if [ "${maybe_aot}" = "--aot" ]; then
+    download_aot_model_files "${target_dir}"
+  else
+    download_native_client_files "${target_dir}"
+  fi
+
   download_data
 
   ls -hal /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt
@@ -243,14 +285,31 @@ package_native_client()
     echo "Please specify artifact name."
   fi;
 
-  tar -cf - \
-    -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
-    -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
-    -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
-    -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
-    -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
-    -C ${deepspeech_dir}/ LICENSE \
-    -C ${deepspeech_dir}/native_client/ deepspeech \
-    -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
-    | pixz -9 > "${artifacts_dir}/${artifact_name}"
+  if [ -f "${tensorflow_dir}/bazel-bin/native_client/libdeepspeech_model.so" ]; then
+    tar -cf - \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/aot/ libruntime.so \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/service/cpu/ libruntime_matmul.so \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/ libexecutable_run_options.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_model.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
+      -C ${deepspeech_dir}/ LICENSE \
+      -C ${deepspeech_dir}/native_client/ deepspeech \
+      -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
+      | pixz -9 > "${artifacts_dir}/${artifact_name}"
+  else
+    tar -cf - \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
+      -C ${deepspeech_dir}/ LICENSE \
+      -C ${deepspeech_dir}/native_client/ deepspeech \
+      -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
+      | pixz -9 > "${artifacts_dir}/${artifact_name}"
+  fi;
 }
