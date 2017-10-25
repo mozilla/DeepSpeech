@@ -1,6 +1,7 @@
 NODE_BUILD_TOOL ?= node-pre-gyp
 NODE_ABI_TARGET ?= 
 NODE_BUILD_VERBOSE ?= --verbose
+TFDIR ?= ../../../../tensorflow
 
 include ../definitions.mk
 
