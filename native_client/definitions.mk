@@ -1,5 +1,7 @@
+NC_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 TARGET ?= host
-TFDIR  ?= ../../tensorflow
+TFDIR  ?= $(abspath $(NC_DIR)/../../tensorflow)
 CXX    ?= c++
 PREFIX ?= /usr/local
 

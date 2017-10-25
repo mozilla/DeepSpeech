@@ -1,7 +1,6 @@
 NODE_BUILD_TOOL ?= node-pre-gyp
 NODE_ABI_TARGET ?= 
 NODE_BUILD_VERBOSE ?= --verbose
-TFDIR ?= ../../../../tensorflow
 
 include ../definitions.mk
 
@@ -27,7 +26,7 @@ build: configure deepspeech_wrap.cxx
 package: build
 	$(NODE_BUILD_TOOL) $(NODE_ABI_TARGET) package $(NODE_BUILD_VERBOSE)
 
-npm-pack: clean
+npm-pack: clean package
 	npm install node-pre-gyp@0.6.x
 	npm pack $(NODE_BUILD_VERBOSE)
 

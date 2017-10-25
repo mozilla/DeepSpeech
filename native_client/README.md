@@ -24,7 +24,7 @@ For Python bindings, use `--artifact file_name`, where `file_name` is the approp
 
 For example, for Python 2.7 bindings on Linux, you can do `python util/tc.py --target /destination --artifact deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl`.
 
-For Node.JS bindings, use `--arttifact deepspeech-0.0.1.tgz`.
+For Node.JS bindings, use `--artifact deepspeech-0.0.1.tgz`.
 
 ## Build Requirements
 
@@ -102,8 +102,7 @@ After following the above build and installation instructions, the Node.JS bindi
 
 ```
 cd native_client/javascript
-make
 make npm-pack
 ```
 
-This will create the package `deepspeech-0.0.1.tgz` in the current folder.
+This will create the package `deepspeech-0.0.1.tgz` in `native_client/javascript`.
