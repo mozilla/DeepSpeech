@@ -14,6 +14,7 @@ import subprocess
 import unicodedata
 import wave
 import audioop
+from random import shuffle
 
 class _CommandLineParserCommand(object):
     def __init__(self, name, action, description):
@@ -127,83 +128,103 @@ class CommandLineParser(object):
                     print('\t\t-%s: %s - %s' % (opt.name, opt.type, opt.description))
 
 class Sample(object):
-    def __init__(self   ):
-        self.file_len = 
+    def __init__(self, filename, transcription, file_len):
+        self.filename = filename
+        self.transcription = transcription
+        self.file_len = file_len
+        self._duration = -1
+
+    @property
+    def duration(self):
+        if self._duration < 0:
+            self._duration = float(subprocess.check_output(['soxi', '-D', self.filename]))
+        return self._duration
+
+    def __str__(self):
+        return '%s, %s, %f' % (self.filename, self.transcription, self.duration)
+
 
 class DataSetBuilder(CommandLineParser):
     def __init__(self):
-        cmd = parser.add_command('load', self._load, 'Adds samples listed in a CSV file to current buffer')
+        super(DataSetBuilder, self).__init__()
+        cmd = self.add_command('add', self._add, 'Adds samples listed in a CSV file to current buffer')
         cmd.add_argument('filename', 'string', 'Path to a CSV file')
-        cmd.add_option('rate', 'int', 'Samples per second for resampling')
-        cmd.add_option('nocheck', 'bool', 'Do not check for integrity')
 
-        cmd = parser.add_command('shuffle', self._shuffle, 'Randoimize order of the sample buffer')
+        cmd = self.add_command('shuffle', self._shuffle, 'Randoimize order of the sample buffer')
 
-        cmd = parser.add_command('order', self._order, 'Order samples in buffer by length')
+        cmd = self.add_command('order', self._order, 'Order samples in buffer by length')
 
-        cmd = parser.add_command('reverse',self._reverse, 'Reverse order of samples in buffer')
+        cmd = self.add_command('reverse',self._reverse, 'Reverse order of samples in buffer')
 
-        cmd = parser.add_command('pick', self._pick, 'Pick given number of samples from current buffer as new buffer')
+        cmd = self.add_command('take', self._take, 'Take given number of samples from the beginning of the buffer as new buffer')
         cmd.add_argument('number', 'int', 'Number of samples')
 
-        cmd = parser.add_command('repeat', self._pick, 'Repeat samples of current buffer <number> times as new buffer')
+        cmd = self.add_command('repeat', self._repeat, 'Repeat samples of current buffer <number> times as new buffer')
         cmd.add_argument('number', 'int', 'How often samples of the buffer should get repeated')
 
-        cmd = parser.add_command('skip', self._skip, 'Skip given number of samples from the beginning of current buffer')
+        cmd = self.add_command('skip', self._skip, 'Skip given number of samples from the beginning of current buffer')
         cmd.add_argument('number', 'int', 'Number of samples')
 
-        cmd = parser.add_command('play', self._play, 'Play samples of current buffer')
+        cmd = self.add_command('print', self._print, 'Prints list of samples in current buffer')
 
-        cmd = parser.add_command('write', self._write, 'Write samples of current buffer to disk')
+        cmd = self.add_command('play', self._play, 'Play samples of current buffer')
+
+        cmd = self.add_command('write', self._write, 'Write samples of current buffer to disk')
         cmd.add_argument('dir_name', 'int', 'Path to the new sample directory (should not exist)')
 
-        cmd = parser.add_command('augment', self._augment, 'Augment samples of current buffer with noise')
+        cmd = self.add_command('augment', self._augment, 'Augment samples of current buffer with noise')
 
         self.samples = []
 
-    def _load(filename, rate=44100):
-        print('Loading CSV file "%s" (resampling to %d samples per second)...' % (filename, rate))
-        self._results = [l.split(',') for l in open(self._csv, 'r').readlines()[1:]]
-        # post-process lines to required data types of columns epoch, loss, dev-loss
-        self._results = [(int(r[0]), float(r[1]), None if len(r[2].strip()) == 0 else float(r[2])) for r in self._results]
-        # ordered by epoch
-        self._results = sorted(self._results, key=lambda r: r[0])
-        pass
+    def _add(self, filename):
+        samples = [l.split(',') for l in open(filename, 'r').readlines()[1:]]
+        self.samples.extend([Sample(s[0], s[2], int(s[1])) for s in samples])
+        print('Added %d samples of CSV file "%s" to buffer.' % (len(samples), filename))
 
-    def _shuffle():
-        print('Shuffling samples...')
-        pass
+    def _shuffle(self):
+        shuffle(self.samples)
+        print('Shuffled buffer.')
 
-    def _order():
-        print('Ordering samples...')
-        pass
+    def _order(self):
+        self.samples = sorted(self.samples, key=lambda s: s.file_len)
+        print('Ordered buffer by file lenghts.')
 
-    def _reverse():
-        print('Reverse samples...')
-        pass
+    def _reverse(self):
+        self.samples.reverse()
+        print('Reversed buffer.')
 
-    def _pick(number):
-        print('Pick samples...')
-        pass
+    def _take(self, number):
+        self.samples = self.samples[:number]
+        print('Took %d samples as new buffer.' % number)
 
-    def _skip(number):
-        print('Skip samples...')
-        pass
+    def _repeat(self, number):
+        self.samples = self.samples * number
+        print('Repeated samples in buffer %d times as new buffer.' % number)
 
-    def _play():
-        print('Play samples...')
-        pass
+    def _skip(self, number):
+        self.samples = self.samples[number:]
+        print('Removed first %d samples from buffer.' % number)
 
-    def _write(dir_name):
+    def _print(self):
+        for s in self.samples:
+            print(s)
+        print('Printed %d samples.' % len(self.samples))
+
+    def _play(self):
+        for s in self.samples:
+            subprocess.call(['play', s.filename])
+        print('Played %d samples.' % len(self.samples))
+
+    def _write(self, dir_name):
         print('Write samples...')
         pass
 
-    def _augment():
+    def _augment(self):
         print('Augment samples...')
         pass
 
 def main():
-    parser = CommandLineParser()
+    parser = DataSetBuilder()
     parser.parse(sys.argv[1:])
 
 if __name__ == '__main__' :
