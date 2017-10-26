@@ -102,6 +102,7 @@ After following the above build and installation instructions, the Node.JS bindi
 
 ```
 cd native_client/javascript
+make package
 make npm-pack
 ```
 
