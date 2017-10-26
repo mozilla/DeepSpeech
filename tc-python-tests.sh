@@ -5,6 +5,7 @@ set -xe
 source $(dirname "$0")/tc-tests-utils.sh
 
 pyver=$1
+aot_model=$2
 
 if [ -z "${pyver}" ]; then
     echo "No python version given, aborting."
@@ -28,7 +29,7 @@ export PATH="${PYENV_ROOT}/bin:$PATH"
 
 mkdir -p ${PYENV_ROOT} || true
 
-download_material "/tmp/ds-lib"
+download_material "/tmp/ds-lib" "${aot_model}"
 
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
@@ -40,11 +41,25 @@ source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
 platform=$(python -c 'import sys; import platform; sys.stdout.write("%s_%s" % (platform.system().lower(), platform.machine()));')
 deepspeech_pkg="deepspeech-0.0.1-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
-pip install --upgrade ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 
-phrase=$(LD_LIBRARY_PATH=/tmp/ds-lib/:$LD_LIBRARY_PATH python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+if [ "${aot_model}" = "--aot" ]; then
+    pip install --upgrade ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/${deepspeech_pkg}
+else
+    pip install --upgrade ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
+fi
 
-assert_correct_ldc93s1 "${phrase}"
+phrase_pbmodel_nolm=$(LD_LIBRARY_PATH=/tmp/ds-lib/:$LD_LIBRARY_PATH python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt)
+assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
+
+phrase_pbmodel_withlm=$(LD_LIBRARY_PATH=/tmp/ds-lib/:$LD_LIBRARY_PATH python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+assert_correct_ldc93s1 "${phrase_pbmodel_withlm}"
+
+if [ "${aot_model}" = "--aot" ]; then
+    phrase_somodel_nolm=$(LD_LIBRARY_PATH=/tmp/ds-lib/:$LD_LIBRARY_PATH python ${HOME}/DeepSpeech/ds/native_client/client.py "" /tmp/LDC93S1.wav /tmp/alphabet.txt)
+    phrase_somodel_withlm=$(LD_LIBRARY_PATH=/tmp/ds-lib/:$LD_LIBRARY_PATH python ${HOME}/DeepSpeech/ds/native_client/client.py "" /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+
+    assert_correct_ldc93s1_somodel "${phrase_somodel_nolm}" "${phrase_somodel_withlm}"
+fi
 
 deactivate
 pyenv uninstall --force ${PYENV_NAME}
