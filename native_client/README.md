@@ -14,7 +14,7 @@ This will download and extract `native_client.tar.xz` which includes the deepspe
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
 
-If you're looking train a model, you now have a `libctc_decoder_with_kenlm.so` file that you can pass to the `--decoder_library_path` parameter of `DeepSpeech.py`.
+If you're looking to train a model, you now have a `libctc_decoder_with_kenlm.so` file that you can pass to the `--decoder_library_path` parameter of `DeepSpeech.py`.
 
 ## Installing the language bindings
 
