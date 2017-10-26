@@ -22,7 +22,7 @@ deepspeech: client.cc
 	$(TOOLCHAIN)$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
 
 bindings-clean:
-	rm -rf dist build deepspeech.egg-info
+	rm -rf dist temp_build deepspeech.egg-info
 	rm -f python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
 
 bindings:
