@@ -15,6 +15,7 @@ import unicodedata
 import wave
 import audioop
 from random import shuffle
+from shutil import copyfile
 
 class _CommandLineParserCommand(object):
     def __init__(self, name, action, description):
@@ -97,7 +98,9 @@ class CommandLineParser(object):
                     return "Unable to parse %s value for option -%s of command %s" % (opt.type, opt.name, cmd.name)
                 options[opt_name] = opt_value
             state.prev()
-            cmd.action(*arg_values, **options)
+            result = cmd.action(*arg_values, **options)
+            if result:
+                return result
         return None
 
     def parse(self, tokens):
@@ -107,6 +110,7 @@ class CommandLineParser(object):
             print(result)
             print()
             self._cmd_help()
+            return
 
     def _cmd_help(self):
         print('Usage: import_fisher.py (command <arg1> <arg2> ... [-opt1 [<value>]] [-opt2 [<value>]] ...)*')
@@ -128,10 +132,10 @@ class CommandLineParser(object):
                     print('\t\t-%s: %s - %s' % (opt.name, opt.type, opt.description))
 
 class Sample(object):
-    def __init__(self, filename, transcription, file_len):
-        self.filename = filename
-        self.transcription = transcription
-        self.file_len = file_len
+    def __init__(self, filename, transcript, filesize):
+        self.filename = os.path.abspath(filename)
+        self.transcript = transcript
+        self.filesize = filesize
         self._duration = -1
 
     @property
@@ -140,8 +144,13 @@ class Sample(object):
             self._duration = float(subprocess.check_output(['soxi', '-D', self.filename]))
         return self._duration
 
+    def save_as(self, filename):
+        filename = os.path.abspath(filename)
+        copyfile(self.filename, filename)
+        self.filename = filename
+
     def __str__(self):
-        return '%s, %s, %f' % (self.filename, self.transcription, self.duration)
+        return '%s, %s, %f' % (self.filename, self.transcript, self.duration)
 
 
 class DataSetBuilder(CommandLineParser):
@@ -165,20 +174,24 @@ class DataSetBuilder(CommandLineParser):
         cmd = self.add_command('skip', self._skip, 'Skip given number of samples from the beginning of current buffer')
         cmd.add_argument('number', 'int', 'Number of samples')
 
+        cmd = self.add_command('find', self._find, 'Drop all samples, who\'s transcription does not contain a keyword' )
+        cmd.add_argument('keyword', 'string', 'Keyword to look for in transcriptions')
+
         cmd = self.add_command('print', self._print, 'Prints list of samples in current buffer')
 
         cmd = self.add_command('play', self._play, 'Play samples of current buffer')
 
         cmd = self.add_command('write', self._write, 'Write samples of current buffer to disk')
-        cmd.add_argument('dir_name', 'int', 'Path to the new sample directory (should not exist)')
+        cmd.add_argument('dir_name', 'string', 'Path to the new sample directory. The directory and a file with the same name plus extension ".csv" should not exist.')
 
         cmd = self.add_command('augment', self._augment, 'Augment samples of current buffer with noise')
 
         self.samples = []
 
     def _add(self, filename):
-        samples = [l.split(',') for l in open(filename, 'r').readlines()[1:]]
-        self.samples.extend([Sample(s[0], s[2], int(s[1])) for s in samples])
+        samples = [l.strip().split(',') for l in open(filename, 'r').readlines()[1:]]
+        samples = [Sample(s[0], s[2], int(s[1])) for s in samples if len(s) == 3]
+        self.samples.extend(samples)
         print('Added %d samples of CSV file "%s" to buffer.' % (len(samples), filename))
 
     def _shuffle(self):
@@ -186,7 +199,7 @@ class DataSetBuilder(CommandLineParser):
         print('Shuffled buffer.')
 
     def _order(self):
-        self.samples = sorted(self.samples, key=lambda s: s.file_len)
+        self.samples = sorted(self.samples, key=lambda s: s.filesize)
         print('Ordered buffer by file lenghts.')
 
     def _reverse(self):
@@ -205,6 +218,10 @@ class DataSetBuilder(CommandLineParser):
         self.samples = self.samples[number:]
         print('Removed first %d samples from buffer.' % number)
 
+    def _find(self, keyword):
+        self.samples = [s for s in self.samples if keyword in s.transcript]
+        print('Found %d samples containing keyword "%s".' % (len(self.samples), keyword))
+
     def _print(self):
         for s in self.samples:
             print(s)
@@ -212,12 +229,23 @@ class DataSetBuilder(CommandLineParser):
 
     def _play(self):
         for s in self.samples:
-            subprocess.call(['play', s.filename])
+            print('Playing: ' + s.transcript)
+            subprocess.call(['play', '-q', s.filename])
         print('Played %d samples.' % len(self.samples))
 
     def _write(self, dir_name):
-        print('Write samples...')
-        pass
+        if dir_name[-1] == '/':
+            dir_name = dir_name[:-1]
+        csv_filename = dir_name + '.csv'
+        if os.path.exists(dir_name) or os.path.exists(csv_filename):
+            return 'Cannot write buffer, as either "%s" or "%s" already exist.' % (dir_name, csv_filename)
+        os.makedirs(dir_name)
+        for i, s in enumerate(self.samples):
+            s.save_as('%s/sample-%d.wav' % (dir_name, i))
+        with open(csv_filename, 'w') as csv:
+            csv.write('wav_filename,wav_filesize,transcript\n')
+            csv.write(''.join('%s,%d,%s\n' % (s.filename, s.filesize, s.transcript) for s in self.samples))
+        print('Wrote %d samples to directory "%s" and listed them in CSV file "%s".' % (len(self.samples), dir_name, csv_filename))
 
     def _augment(self):
         print('Augment samples...')
