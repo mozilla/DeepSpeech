@@ -1632,7 +1632,10 @@ def train(server=None):
 
     except tf.errors.InvalidArgumentError as e:
         log_error(str(e))
-        log_error("Provide a --checkpoint_dir argument to work with models of different shapes.")
+        log_error('The checkpoint in {0} does not match the shapes of the model.'
+                  ' Did you change alphabet.txt or the --n_hidden parameter'
+                  ' between train runs using the same checkpoint dir? Try moving'
+                  ' or removing the contents of {0}.'.format(FLAGS.checkpoint_dir))
         sys.exit(1)
 
 
