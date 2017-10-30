@@ -21,3 +21,8 @@ BAZEL_BUILD_FLAGS="${BAZEL_ARM_FLAGS}"
 do_bazel_build
 
 do_deepspeech_binary_build
+
+export SUPPORTED_PYTHON_VERSIONS="2.7.13 3.4.6"
+do_deepspeech_python_build
+
+do_deepspeech_nodejs_build
