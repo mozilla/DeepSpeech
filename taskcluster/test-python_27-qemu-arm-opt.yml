@@ -1,0 +1,10 @@
+build:
+  template_file: test-qemu-static-arm-base.tyml
+  # dependencies:
+  #  - "linux-rpi3-cpu-opt"
+  #  - "test-training-linux-amd64-opt"
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-python-tests.sh 2.7.13"
+  metadata:
+    name: "DeepSpeech Linux QEMU-ARM CPU Python v2.7 tests"
+    description: "Testing DeepSpeech for Linux/QEMU-ARM on Python v2.7, CPU only, optimized version"
