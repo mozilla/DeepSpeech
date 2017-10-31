@@ -19,15 +19,20 @@ clean: bindings-clean
 	rm -f deepspeech
 
 deepspeech: client.cc
-	$(TOOLCHAIN)$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
+	$(CXX) -o deepspeech $(CFLAGS) client.cc $(LDFLAGS)
 
 bindings-clean:
 	rm -rf dist temp_build deepspeech.egg-info
 	rm -f python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
 
-bindings:
-	pip install --quiet numpy wheel
-	CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" LIBS="$(LIBS)" python ./setup.py bdist_wheel
+bindings-build:
+	pip install --quiet $(PYTHON_PACKAGES) wheel
+	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" LIBS="$(LIBS)" $(NUMPY_INCLUDE) python ./setup.py build_ext $(PYTHON_PLATFORM_NAME)
+
+bindings-package:
+	$(NUMPY_INCLUDE) python ./setup.py bdist_wheel $(PYTHON_PLATFORM_NAME)
+
+bindings: bindings-build bindings-package
 
 run: deepspeech
 	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}

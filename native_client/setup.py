@@ -4,13 +4,19 @@ from setuptools import setup, Extension
 from distutils.command.build import build
 
 import os
-import numpy
 import subprocess
 
 try:
-    numpy_include = numpy.get_include()
-except AttributeError:
-    numpy_include = numpy.get_numpy_include()
+    import numpy
+    try:
+        numpy_include = numpy.get_include()
+    except AttributeError:
+        numpy_include = numpy.get_numpy_include()
+except ImportError:
+    numpy_include = ''
+    assert 'NUMPY_INCLUDE' in os.environ
+
+numpy_include = os.getenv('NUMPY_INCLUDE', numpy_include)
 
 class BuildExtFirst(build):
     sub_commands = [('build_ext', build.has_ext_modules),

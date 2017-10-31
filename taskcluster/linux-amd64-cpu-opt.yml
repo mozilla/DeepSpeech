@@ -4,17 +4,10 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.cpu"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.cpu"
     - "index.project.deepspeech.deepspeech.native_client.cpu.${event.head.sha}"
-  ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
-  ## force 3.0.10 for nodejs V8 API compatibility
   system_setup:
     - >
-      echo "deb http://deb.nodesource.com/node_6.x trusty main" > /etc/apt/sources.list.d/nodesource.list &&
-      wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - &&
-      apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev &&
-      wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig_3.0.10-1.1_amd64.deb -O /tmp/swig_3.0.10-1.1_amd64.deb &&
-      wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.1_amd64.deb -O /tmp/swig3.0_3.0.10-1.1_amd64.deb &&
-      dpkg -i /tmp/swig_3.0.10-1.1_amd64.deb /tmp/swig3.0_3.0.10-1.1_amd64.deb
+      ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/summarize_graph"
   scripts:
