@@ -2,13 +2,13 @@ build:
   dependencies: []
   maxRunTime: 3600
   system_setup:
-    - >
+    >
       true
   system_config:
-    - >
+    >
       true
   git_lfs:
-    - >
+    >
       export PATH=${system.homedir.linux}/bin:$PATH &&
       wget https://github.com/git-lfs/git-lfs/releases/download/v2.3.1/git-lfs-linux-amd64-2.3.1.tar.gz -O - | tar -C /tmp -zxf - &&
       PREFIX=${system.homedir.linux}/ /tmp/git-lfs-2.3.1/install.sh

@@ -5,7 +5,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.cpu"
     - "index.project.deepspeech.deepspeech.native_client.cpu.${event.head.sha}"
   system_setup:
-    - >
+    >
       ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
       apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/home.tar.xz"

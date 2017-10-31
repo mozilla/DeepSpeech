@@ -3,8 +3,8 @@ build:
   dependencies:
     - "linux-amd64-ctc-opt"
   system_setup:
-    - >
-        apt-get -qq -y install ${python.packages.apt}
+    >
+      apt-get -qq -y install ${python.packages.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 2.7.13"
   metadata:
