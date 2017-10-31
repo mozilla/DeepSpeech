@@ -20,6 +20,11 @@ export BAZEL_CTC_TARGETS="//native_client:ctc_decoder_with_kenlm"
 
 model_name=$(basename "${DEEPSPEECH_TEST_MODEL}")
 
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.13 3.4.6 3.5.3 3.6.2}
+# 7.10.0 and 8.0.0 targets fails to build
+# > ../deepspeech_wrap.cxx:966:23: error: 'WeakCallbackData' in namespace 'v8' does not name a type
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.0 5.12.0 6.10.0}
+
 assert_correct_inference()
 {
   phrase=$1
@@ -188,12 +193,14 @@ do_deepspeech_python_build()
 
   mkdir -p wheels
 
-  for pyver in 2.7.13 3.4.6 3.5.3 3.6.2; do
+  for pyver in ${SUPPORTED_PYTHON_VERSIONS}; do
     pyenv install ${pyver}
     pyenv virtualenv ${pyver} deepspeech
     source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
 
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/ \
+      TARGET=${SYSTEM_TARGET} \
+      RASPBIAN=/tmp/multistrap-raspbian-jessie \
       TFDIR=${DS_TFDIR} \
       bindings-clean bindings
 
@@ -212,10 +219,10 @@ do_deepspeech_nodejs_build()
 
   export PATH="$(npm root)/.bin/:$PATH"
 
-  # 7.10.0 and 8.0.0 targets fails to build
-  # > ../deepspeech_wrap.cxx:966:23: error: 'WeakCallbackData' in namespace 'v8' does not name a type
-  for node in 4.8.0 5.12.0 6.10.0; do
+  for node in ${SUPPORTED_NODEJS_VERSIONS}; do
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
+      TARGET=${SYSTEM_TARGET} \
+      RASPBIAN=/tmp/multistrap-raspbian-jessie \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$node \
       clean package
