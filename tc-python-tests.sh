@@ -28,7 +28,7 @@ export PATH="${PYENV_ROOT}/bin:$PATH"
 
 mkdir -p ${PYENV_ROOT} || true
 
-download_material "/tmp/ds-lib"
+download_data
 
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
@@ -42,7 +42,7 @@ platform=$(python -c 'import sys; import platform; sys.stdout.write("%s_%s" % (p
 deepspeech_pkg="deepspeech-0.0.1-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 pip install --upgrade scipy==0.19.1 ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 
-phrase=$(LD_LIBRARY_PATH=/tmp/ds-lib/:$LD_LIBRARY_PATH python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+phrase=$(python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
 
 assert_correct_ldc93s1 "${phrase}"
 

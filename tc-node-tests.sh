@@ -11,7 +11,7 @@ if [ -z "${nodever}" ]; then
     exit 1
 fi;
 
-download_material "/tmp/ds-lib"
+download_data
 
 phrase=""
 
@@ -20,7 +20,7 @@ pushd ${HOME}/DeepSpeech/ds/native_client/
     npm --version
     npm install ${DEEPSPEECH_ARTIFACTS_ROOT}/deepspeech-0.0.1.tgz
     npm install
-    phrase=$(LD_LIBRARY_PATH=/tmp/ds-lib/:$LD_LIBRARY_PATH node client.js /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+    phrase=$(node client.js /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
 popd
 
 assert_correct_ldc93s1 "${phrase}"

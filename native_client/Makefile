@@ -22,14 +22,19 @@ deepspeech: client.cc
 	$(CXX) -o deepspeech $(CFLAGS) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS)
 
 bindings-clean:
-	rm -rf dist temp_build deepspeech.egg-info
+	rm -rf dist temp_build deepspeech.egg-info MANIFEST.in temp_lib
 	rm -f python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
 
 bindings-build:
 	pip install --quiet $(PYTHON_PACKAGES) wheel
-	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" LIBS="$(LIBS)" $(NUMPY_INCLUDE) python ./setup.py build_ext $(PYTHON_PLATFORM_NAME)
+	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(RPATH_PYTHON) $(LDFLAGS)" LIBS="$(LIBS)" $(NUMPY_INCLUDE) python ./setup.py build_ext $(PYTHON_PLATFORM_NAME)
 
-bindings-package:
+MANIFEST.in:
+	> $@
+	$(call copy_missing_libs,temp_build/*.so,temp_build/lib,$@)
+
+bindings-package: MANIFEST.in
+	cat MANIFEST.in
 	$(NUMPY_INCLUDE) python ./setup.py bdist_wheel $(PYTHON_PLATFORM_NAME)
 
 bindings: bindings-build bindings-package
