@@ -4,8 +4,8 @@ build:
     - "linux-amd64-cpu-opt"
     - "test-training-linux-amd64-opt"
   system_setup:
-    - >
-        apt-get -qq -y install ${python.packages.apt}
+    >
+      apt-get -qq -y install ${python.packages.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-python-tests.sh 2.7.13"
   metadata:
