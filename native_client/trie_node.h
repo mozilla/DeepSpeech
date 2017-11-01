@@ -26,6 +26,9 @@ limitations under the License.
 
 class TrieNode {
 public:
+  static const int MAGIC = 'TRIE';
+  static const int FILE_VERSION = 1;
+
   TrieNode(int vocab_size)
     : vocab_size_(vocab_size)
     , prefixCount_(0)
@@ -43,32 +46,39 @@ public:
   }
 
   void WriteToStream(std::ostream& os) const {
-    WriteNode(os);
-    for (int i = 0; i < vocab_size_; i++) {
-      if (children_[i] == nullptr) {
-        os << -1 << std::endl;
-      } else {
-        // Recursive call
-        children_[i]->WriteToStream(os);
-      }
-    }
+    os << MAGIC << std::endl << FILE_VERSION << std::endl << vocab_size_ << std::endl;
+    WriteNodeAndChildren(os);
   }
 
   static void ReadFromStream(std::istream& is, TrieNode* &obj, int vocab_size) {
-    int prefixCount;
-    is >> prefixCount;
-
-    if (prefixCount == -1) {
-      // This is an undefined child
+    int magic;
+    is >> magic;
+    if (magic != MAGIC) {
+      std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
+                   "your trie file." << std::endl;
       obj = nullptr;
       return;
     }
 
-    obj = new TrieNode(vocab_size);
-    obj->ReadNode(is, prefixCount);
-    for (int i = 0; i < vocab_size; i++) {
-      ReadFromStream(is, obj->children_[i], vocab_size);
+    int version;
+    is >> version;
+    if (version != FILE_VERSION) {
+      std::cerr << "Error: Trie file version mismatch. Update your trie file."
+                << std::endl;
+      obj = nullptr;
+      return;
     }
+
+    int fileVocabSize;
+    is >> fileVocabSize;
+    if (fileVocabSize != vocab_size) {
+      std::cerr << "Error: Mismatching alphabet size in trie file and alphabet "
+                   "file. Trie file will not be loaded." << std::endl;
+      obj = nullptr;
+      return;
+    }
+
+    ReadPrefixAndNode(is, obj, vocab_size);
   }
 
   void Insert(const std::string& word, std::function<int (const std::string&)> translator,
@@ -144,6 +154,34 @@ private:
     is >> min_unigram_score_;
   }
 
+  void WriteNodeAndChildren(std::ostream& os) const {
+    WriteNode(os);
+    for (int i = 0; i < vocab_size_; i++) {
+      if (children_[i] == nullptr) {
+        os << -1 << std::endl;
+      } else {
+        // Recursive call
+        children_[i]->WriteNodeAndChildren(os);
+      }
+    }
+  }
+
+  static void ReadPrefixAndNode(std::istream& is, TrieNode* &obj, int vocab_size) {
+    int prefixCount;
+    is >> prefixCount;
+
+    if (prefixCount == -1) {
+      // This is an undefined child
+      obj = nullptr;
+      return;
+    }
+
+    obj = new TrieNode(vocab_size);
+    obj->ReadNode(is, prefixCount);
+    for (int i = 0; i < vocab_size; i++) {
+      ReadPrefixAndNode(is, obj->children_[i], vocab_size);
+    }
+  }
 };
 
 #endif //TRIE_NODE_H
