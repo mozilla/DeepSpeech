@@ -14,8 +14,13 @@ import subprocess
 import unicodedata
 import wave
 import audioop
+import tempfile
+import glob
+from threading import Lock
 from random import shuffle
 from shutil import copyfile
+from intervaltree import IntervalTree
+from pydub import AudioSegment
 
 class _CommandLineParserCommand(object):
     def __init__(self, name, action, description):
@@ -131,12 +136,55 @@ class CommandLineParser(object):
                 for _, opt in cmd.options.items():
                     print('\t\t-%s: %s - %s' % (opt.name, opt.type, opt.description))
 
+tmp_dir = tempfile.mkdtemp()
+tmp_lock = Lock()
+tmp_index = 0
+
+def get_tmp_filename():
+    global tmp_index
+    with tmp_lock:
+        tmp_index += 1
+        return '%s/%d.wav' % (tmp_dir, tmp_index)
+
 class Sample(object):
     def __init__(self, filename, transcript, filesize):
         self.filename = os.path.abspath(filename)
+        self._file_is_tmp = False
         self.transcript = transcript
         self.filesize = filesize
         self._duration = -1
+        self.effects = ''
+        self._modified = False
+
+    def __del__(self):
+        if self._file_is_tmp:
+            print('Removing tmp file "%s"...' % self.filename)
+            os.remove(self.filename)
+
+    def save_as(self, filename):
+        filename = os.path.abspath(filename)
+        self.write()
+        if self._file_is_tmp:
+            os.rename(self.filename, filename)
+            self._file_is_tmp = False
+        else:
+            copyfile(self.filename, filename)
+        self.filename = filename
+
+    def write(self):
+        if self._modified:
+            filename = get_tmp_filename()
+            subprocess.call(['sox', self.filename, filename] + self.effects.strip().split(' '))
+            if self._file_is_tmp:
+                os.remove(self.filename)
+            self.filename = filename
+            self._file_is_tmp = True
+            self.effects = ''
+            self._modified = False
+
+    def add_sox_effect(self, effect):
+        self.effects += ' %s' % effect
+        self._modified = True
 
     @property
     def duration(self):
@@ -144,10 +192,13 @@ class Sample(object):
             self._duration = float(subprocess.check_output(['soxi', '-D', self.filename]))
         return self._duration
 
-    def save_as(self, filename):
-        filename = os.path.abspath(filename)
+    def clone(self):
+        self.write()
+        filename = get_tmp_filename()
         copyfile(self.filename, filename)
-        self.filename = filename
+        sample = Sample(filename, self.transcript, self.filesize)
+        sample._file_is_tmp = True
+        return sample
 
     def __str__(self):
         return '%s, %s, %f' % (self.filename, self.transcript, self.duration)
@@ -184,13 +235,29 @@ class DataSetBuilder(CommandLineParser):
         cmd = self.add_command('write', self._write, 'Write samples of current buffer to disk')
         cmd.add_argument('dir_name', 'string', 'Path to the new sample directory. The directory and a file with the same name plus extension ".csv" should not exist.')
 
+        cmd = self.add_command('sox', self._sox, 'Adds a SoX effect to buffer samples')
+        cmd.add_argument('effect', 'string', 'SoX effect name')
+        cmd.add_argument('args', 'string', 'Comma separated list of SoX effect parameters (no white space allowed)')
+
         cmd = self.add_command('augment', self._augment, 'Augment samples of current buffer with noise')
+        cmd.add_argument('source', 'string', 'CSV file with samples to augment onto current sample buffer')
+        cmd.add_option('times', 'int', 'How often to apply the augmentation source to the sample buffer')
 
         self.samples = []
 
+    def _load_samples(self, filename):
+        ext = filename[-4:]
+        if ext == '.csv':
+            samples = [l.strip().split(',') for l in open(filename, 'r').readlines()[1:]]
+            return [Sample(s[0], s[2], int(s[1])) for s in samples if len(s) == 3]
+        elif ext == '.wav':
+            wav_files = glob.glob(filename)
+            return [Sample(wav, '', os.path.getsize(wav)) for wav in files]
+        else:
+            return []
+
     def _add(self, filename):
-        samples = [l.strip().split(',') for l in open(filename, 'r').readlines()[1:]]
-        samples = [Sample(s[0], s[2], int(s[1])) for s in samples if len(s) == 3]
+        samples = self._load_samples(filename)
         self.samples.extend(samples)
         print('Added %d samples of CSV file "%s" to buffer.' % (len(samples), filename))
 
@@ -211,7 +278,11 @@ class DataSetBuilder(CommandLineParser):
         print('Took %d samples as new buffer.' % number)
 
     def _repeat(self, number):
-        self.samples = self.samples * number
+        samples = self.samples[:]
+        for _ in range(number - 1):
+            for sample in self.samples:
+                samples.append(sample.clone())
+        self.samples = samples
         print('Repeated samples in buffer %d times as new buffer.' % number)
 
     def _skip(self, number):
@@ -229,6 +300,7 @@ class DataSetBuilder(CommandLineParser):
 
     def _play(self):
         for s in self.samples:
+            s.write()
             print('Playing: ' + s.transcript)
             subprocess.call(['play', '-q', s.filename])
         print('Played %d samples.' % len(self.samples))
@@ -247,9 +319,42 @@ class DataSetBuilder(CommandLineParser):
             csv.write(''.join('%s,%d,%s\n' % (s.filename, s.filesize, s.transcript) for s in self.samples))
         print('Wrote %d samples to directory "%s" and listed them in CSV file "%s".' % (len(self.samples), dir_name, csv_filename))
 
-    def _augment(self):
-        print('Augment samples...')
-        pass
+    def _sox(self, effect, args):
+        effect = '%s %s' % (effect, ' '.join(args.split(',')))
+        for s in self.samples:
+            s.add_sox_effect(effect)
+        print('Added %s effect to %d samples in buffer.' % (effect, len(self.samples)))
+
+    def _augment(self, source, times=1):
+        aug_samples = self._load_samples(source)
+        tree = IntervalTree()
+        pos = 0
+        for sample in aug_samples:
+            duration = int(sample.duration * 1000.0)
+            tree[pos:pos + duration] = sample
+            pos += duration
+        aug_duration = pos
+        orig_duration = 0
+        for sample in self.samples:
+            sample.write()
+            orig_duration += int(sample.duration * 1000.0)
+        pos = 0
+        for sample in self.samples:
+            wav_audio = AudioSegment.from_file(sample.filename, format="wav")
+            duration = len(wav_audio)
+            sub_pos = pos
+            for i in range(times):
+                inters = tree[sub_pos:sub_pos + duration]
+                for inter in inters:
+                    aug_wav = AudioSegment.from_file(inter.data.filename, format="wav")
+                    offset = inter.begin - sub_pos
+                    if offset < 0:
+                        aug_wav = aug_wav[-offset:]
+                        offset = 0
+                    wav_audio = wav_audio.overlay(aug_wav, position=offset)
+                sub_pos = (sub_pos + orig_duration) % aug_duration
+            wav_audio.export(sample.filename, format="wav")
+            pos += duration
 
 def main():
     parser = DataSetBuilder()
