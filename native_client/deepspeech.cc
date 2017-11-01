@@ -38,6 +38,7 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
 
   Status status = NewSession(SessionOptions(), &mPriv->session);
   if (!status.ok()) {
+    std::cerr << status.ToString() << std::endl;
     return;
   }
 
@@ -45,6 +46,7 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
   if (!status.ok()) {
     mPriv->session->Close();
     mPriv->session = NULL;
+    std::cerr << status.ToString() << std::endl;
     return;
   }
 
@@ -52,6 +54,7 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
   if (!status.ok()) {
     mPriv->session->Close();
     mPriv->session = NULL;
+    std::cerr << status.ToString() << std::endl;
     return;
   }
 
