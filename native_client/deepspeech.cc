@@ -63,6 +63,25 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
 
   mPriv->alphabet = new Alphabet(aAlphabetConfigPath);
 
+  for (int i = 0; i < mPriv->graph_def.node_size(); ++i) {
+    NodeDef node = mPriv->graph_def.node(i);
+    if (node.name() == "logits/shape/2") {
+      int final_dim_size = node.attr().at("value").tensor().int_val(0) - 1;
+      if (final_dim_size != mPriv->alphabet->GetSize()) {
+        std::cerr << "Error: Alphabet size does not match loaded model: alphabet "
+                  << "has size " << mPriv->alphabet->GetSize()
+                  << ", but model has " << final_dim_size
+                  << " classes in its output. Make sure you're passing an alphabet "
+                  << "file with the same size as the one used for training."
+                  << std::endl;
+        mPriv->session->Close();
+        mPriv->session = NULL;
+        return;
+      }
+      break;
+    }
+  }
+
   mPriv->scorer = NULL;
   mPriv->beam_width = 0;
 }
