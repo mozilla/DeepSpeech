@@ -49,10 +49,13 @@ def _download_and_preprocess_data(data_dir):
     # The following file is just a short sound and not at all transcribed like provided.
     # So we just exclude it.
     all_2004 = all_2004[~all_2004["wav_filename"].str.endswith("fe_03_00027-393.8-394.05.wav")]
-    
+
     # The following file is far too long and would ruin our training batch size.
     # So we just exclude it.
     all_2005 = all_2005[~all_2005["wav_filename"].str.endswith("fe_03_11487-31.09-234.06.wav")]
+
+    # The following file is too large for its transcript, so we just exclude it.
+    all_2004 = all_2004[~all_2004["wav_filename"].str.endswith("fe_03_01326-307.42-307.93.wav")]
 
     # Conditionally split Fisher data into train/validation/test sets
     train_2004, dev_2004, test_2004 = _split_sets(all_2004)
