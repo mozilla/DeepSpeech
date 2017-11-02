@@ -186,6 +186,16 @@ class Sample(object):
         self.effects += ' %s' % effect
         self._modified = True
 
+    def read_audio_segment(self):
+        return AudioSegment.from_file(self.filename, format="wav")
+    
+    def write_audio_segment(self, segment):
+        filename = get_tmp_filename()
+        segment.export(filename, format="wav")
+        self.filename = filename
+        self._file_is_tmp = True
+        self._duration = -1
+
     @property
     def duration(self):
         if self._duration < 0:
@@ -340,20 +350,20 @@ class DataSetBuilder(CommandLineParser):
             orig_duration += int(sample.duration * 1000.0)
         pos = 0
         for sample in self.samples:
-            wav_audio = AudioSegment.from_file(sample.filename, format="wav")
+            wav_audio = sample.read_audio_segment()
             duration = len(wav_audio)
             sub_pos = pos
             for i in range(times):
                 inters = tree[sub_pos:sub_pos + duration]
                 for inter in inters:
-                    aug_wav = AudioSegment.from_file(inter.data.filename, format="wav")
+                    aug_wav = inter.data.read_audio_segment()
                     offset = inter.begin - sub_pos
                     if offset < 0:
                         aug_wav = aug_wav[-offset:]
                         offset = 0
                     wav_audio = wav_audio.overlay(aug_wav, position=offset)
                 sub_pos = (sub_pos + orig_duration) % aug_duration
-            wav_audio.export(sample.filename, format="wav")
+            sample.write_audio_segment(wav_audio)
             pos += duration
 
 def main():
@@ -361,5 +371,8 @@ def main():
     parser.parse(sys.argv[1:])
 
 if __name__ == '__main__' :
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Interrupted by user')
 
