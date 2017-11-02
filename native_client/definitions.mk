@@ -6,8 +6,10 @@ PREFIX ?= /usr/local
 
 ifeq ($(TARGET),host)
 TOOLCHAIN       :=
-CFLAGS          := `pkg-config --cflags sox`
-LDFLAGS         := `pkg-config --libs sox`
+CFLAGS          :=
+LDFLAGS         :=
+SOX_CFLAGS      := `pkg-config --cflags sox`
+SOX_LDFLAGS     := `pkg-config --libs sox`
 PYTHON_PACKAGES := numpy
 endif
 
@@ -15,7 +17,10 @@ ifeq ($(TARGET),rpi3)
 TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/GccArmRpi/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
 RASPBIAN    ?= $(abspath $(NC_DIR)/../multistrap-raspbian-jessie)
 CFLAGS      := -isystem $(RASPBIAN)/usr/include -isystem $(RASPBIAN)/usr/include/arm-linux-gnueabihf
-LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/ $(RASPBIAN)/usr/lib/arm-linux-gnueabihf/libsox.so
+LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/
+
+SOX_CFLAGS  :=
+SOX_LDFLAGS := $(RASPBIAN)/usr/lib/arm-linux-gnueabihf/libsox.so
 
 PYVER := $(shell python -c "import platform; maj, min, _ = platform.python_version_tuple(); print(maj+'.'+min);")
 PYTHON_PACKAGES      :=
