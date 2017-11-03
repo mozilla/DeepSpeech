@@ -1,4 +1,9 @@
 build:
+  allowed:
+    - "pull_request.opened"
+    - "pull_request.synchronize"
+    - "pull_request.reopened"
+    - "push"
   dependencies: []
   maxRunTime: 3600
   system_setup:
