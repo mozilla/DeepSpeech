@@ -99,7 +99,7 @@ def produce_plot_multiseries(input=None, output=None, title=None, size=None, fig
     if source_wav:
         audio = wav.read(source_wav)
         print('Adding realtime')
-        for rt_factor in [ 1.0, 1.5, 2.0 ]:
+        for rt_factor in [ 0.5, 1.0, 1.5, 2.0 ]:
             rt_secs = len(audio[1]) / audio[0] * rt_factor
             y_rt    = numpy.repeat(rt_secs, nb_items)
             ax.plot(x_all, y_rt, label=('Realtime: %0.4f secs [%0.1f]' % (rt_secs, rt_factor)))

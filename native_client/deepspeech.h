@@ -1,4 +1,3 @@
-
 #ifndef __DEEPSPEECH_H__
 #define __DEEPSPEECH_H__
 
@@ -13,6 +12,18 @@ namespace DeepSpeech
     private:
       Private* mPriv;
 
+      /**
+       * @brief Perform decoding of the logits, using basic CTC decoder or
+       *        CTC decoder with KenLM enabled
+       *
+       * @param aNFrames       Number of timesteps to deal with
+       * @param aLogits        Matrix of logits, of dimensions:
+       *                       [timesteps][batch_size][num_classes]
+       *
+       * @param[out] String representing the decoded text.
+       */
+      char* decode(int aNFrames, float*** aLogits);
+
     public:
       /**
        * @brief An object providing an interface to a trained DeepSpeech model.
@@ -22,9 +33,12 @@ namespace DeepSpeech
        * @param aNContext The context window the model was trained with.
        * @param aAlphabetConfigPath The path to the configuration file specifying
        *                            the alphabet used by the network. See alphabet.h.
+       * @param aBeamWidth The beam width used by the decoder. A larger beam
+       *                   width generates better results at the cost of decoding
+       *                   time.
        */
       Model(const char* aModelPath, int aNCep, int aNContext,
-            const char* aAlphabetConfigPath);
+            const char* aAlphabetConfigPath, int aBeamWidth);
 
       /**
        * @brief Frees associated resources and destroys model object.
@@ -39,9 +53,6 @@ namespace DeepSpeech
        * @param aLMPath The path to the language model binary file.
        * @param aTriePath The path to the trie file build from the same vocabu-
        *                  lary as the language model binary.
-       * @param aBeamWidth The beam width used by the decoder. A larger beam
-       *                   width generates better results at the cost of decoding
-       *                   time.
        * @param aLMWeight The weight to give to language model results when sco-
        *                  ring.
        * @param aWordCountWeight The weight (penalty) to give to beams when in-
@@ -51,7 +62,7 @@ namespace DeepSpeech
        */
       void enableDecoderWithLM(const char* aAlphabetConfigPath,
                                const char* aLMPath, const char* aTriePath,
-                               int aBeamWidth, float aLMWeight,
+                               float aLMWeight,
                                float aWordCountWeight,
                                float aValidWordCountWeight);
 

@@ -77,10 +77,10 @@ main(int argc, char **argv)
   }
 
   // Initialise DeepSpeech
-  Model ctx = Model(argv[1], N_CEP, N_CONTEXT, argv[3]);
+  Model ctx = Model(argv[1], N_CEP, N_CONTEXT, argv[3], BEAM_WIDTH);
 
   if (argc > 5) {
-    ctx.enableDecoderWithLM(argv[3], argv[4], argv[5], BEAM_WIDTH, LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+    ctx.enableDecoderWithLM(argv[3], argv[4], argv[5], LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
   }
 
   // Initialise SOX

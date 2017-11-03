@@ -1,0 +1,18 @@
+build:
+  template_file: linux-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.cpu_aot"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.cpu_aot"
+    - "index.project.deepspeech.deepspeech.native_client.cpu_aot.${event.head.sha}"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/summarize_graph"
+  system_setup:
+    >
+      ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
+  scripts:
+    build: "taskcluster/host-build.sh --aot"
+    package: "taskcluster/package.sh"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CPU AOT"
+    description: "Building DeepSpeech for Linux/AMD64, AOT model, CPU only, optimized version"

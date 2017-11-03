@@ -3,6 +3,48 @@
 load("//tensorflow:tensorflow.bzl",
      "if_linux_x86_64")
 
+load("//tensorflow/compiler/aot:tfcompile.bzl",
+     "tf_library")
+
+load(":deepspeech.bzl", "if_native_model")
+
+config_setting(
+    name = "ds_native_model",
+    values = {
+        "define": "DS_NATIVE_MODEL=1"
+    }
+)
+
+tf_library(
+    name = "deepspeech_model",
+    cpp_class = "DeepSpeech::nativeModel",
+    # We don't need tests or benchmark binaries
+    gen_test=False, gen_benchmark=False,
+    # graph and config will be generated at build time thanks to the matching
+    # genrule.
+    graph = "tfcompile.model.pb",
+    config = "tfcompile.config.pbtxt",
+    # This depends on //tensorflow:rpi3 condition defined in mozilla/tensorflow
+    tfcompile_flags = select({
+        "//tensorflow:rpi3": str('--target_triple="armv6-linux-gnueabihf" --target_cpu="cortex-a53" --target_features="+neon-fp-armv8"'),
+        "//conditions:default": str('')
+    }),
+)
+
+genrule(
+    name = "tfcompile.config",
+    srcs = ["tfcompile.config.pbtxt.src"],
+    outs = ["tfcompile.config.pbtxt"],
+    cmd = "$(location :model_size.sh) $(SRCS) $(DS_MODEL_TIMESTEPS) $(DS_MODEL_FRAMESIZE) >$@",
+    tools = [":model_size.sh"]
+)
+
+genrule(
+    name = "tfcompile.model",
+    outs = ["tfcompile.model.pb"],
+    cmd = "cp $(DS_MODEL_FILE) $@"
+)
+
 cc_library(
     name = "deepspeech",
     srcs = ["deepspeech.cc", "alphabet.h", "beam_search.h", "trie_node.h"] +
@@ -11,10 +53,18 @@ cc_library(
                 exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) +
            glob(["boost_locale/**/*.hpp"]),
     hdrs = ["deepspeech.h"],
-    deps = ["//tensorflow/core:core",
-            "//tensorflow/core/util/ctc",
-            "//third_party/eigen3",
-            ":deepspeech_utils"],
+    # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
+    # which makes it harder to see our own warnings
+    copts = ["-std=c++11", "-Wno-sign-compare"] + if_native_model([
+        "-DDS_MODEL_TIMESTEPS=$(DS_MODEL_TIMESTEPS)",
+        "-DDS_NATIVE_MODEL=1",
+    ]),
+    deps = [
+        "//tensorflow/core:core",
+        "//tensorflow/core/util/ctc",
+        "//third_party/eigen3",
+        ":deepspeech_utils"
+    ] + if_native_model([":deepspeech_model"]),
     includes = ["kenlm", "boost_locale"],
     defines = ["KENLM_MAX_ORDER=6"],
 )
