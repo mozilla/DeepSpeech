@@ -1,8 +1,9 @@
 NC_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-TARGET ?= host
-TFDIR  ?= $(abspath $(NC_DIR)/../../tensorflow)
-PREFIX ?= /usr/local
+TARGET    ?= host
+TFDIR     ?= $(abspath $(NC_DIR)/../../tensorflow)
+PREFIX    ?= /usr/local
+SO_SEARCH ?= $(TFDIR)/bazel-bin/
 
 ifeq ($(TARGET),host)
 TOOLCHAIN       :=
@@ -27,6 +28,7 @@ PYTHON_PACKAGES      :=
 NUMPY_INCLUDE        := NUMPY_INCLUDE=$(RASPBIAN)/usr/include/python$(PYVER)/
 PYTHON_PLATFORM_NAME := --plat-name linux_armv7l
 NODE_PLATFORM_TARGET := --target_arch=arm --target_platform=linux
+TOOLCHAIN_LDD_OPTS   := --root $(RASPBIAN)/
 endif
 
 OS := $(shell uname -s)
@@ -38,8 +40,55 @@ AS      := $(TOOLCHAIN)as
 CC      := $(TOOLCHAIN)gcc
 CXX     := $(TOOLCHAIN)c++
 LD      := $(TOOLCHAIN)ld
+LDD     := $(TOOLCHAIN)ldd $(TOOLCHAIN_LDD_OPTS)
 
+RPATH_PYTHON         := '-Wl,-rpath,\$$ORIGIN/lib/'
+RPATH_NODEJS         := '-Wl,-rpath,$$\$$ORIGIN/../../../'
 META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
 META_LD_LIBRARY_PATH := DYLD_LIBRARY_PATH
+RPATH_PYTHON         := '-Wl,-rpath,@loader_path/lib/'
+RPATH_NODEJS         := '-Wl,-rpath,@loader_path/../../../'
 endif
+
+# Takes care of looking into bindings built (SRC_FILE, can contain a wildcard)
+# for missing dependencies and copying those dependencies into the
+# TARGET_LIB_DIR. If supplied, MANIFEST_IN will be echo'ed to a list of
+# 'include x.so'.
+#
+# On OSX systems, this will also take care of calling install_name_tool to set
+# proper path for those dependencies, using @rpath/lib.
+define copy_missing_libs
+    SRC_FILE=$(1); \
+    TARGET_LIB_DIR=$(2); \
+    MANIFEST_IN=$(3); \
+    echo "Analyzing $$SRC_FILE copying missing libs to $$SRC_FILE"; \
+    echo "Maybe outputting to $$MANIFEST_IN"; \
+    \
+    (mkdir $$TARGET_LIB_DIR || true); \
+    missing_libs=""; \
+    for lib in $$SRC_FILE; do \
+        if [ "$(OS)" = "Darwin" ]; then \
+            new_missing="$$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 | xargs basename)"; \
+            missing_libs="$$missing_libs $$new_missing"; \
+        else \
+            missing_libs="$$missing_libs $$($(LDD) $$lib | grep 'not found' | awk '{ print $$1 }')"; \
+        fi; \
+    done; \
+    \
+    for missing in $$missing_libs; do \
+        find $(SO_SEARCH) -type f -name "$$missing" -exec cp {} $$TARGET_LIB_DIR \; ; \
+        if [ ! -z "$$MANIFEST_IN" ]; then \
+            echo "include $$TARGET_LIB_DIR/$$missing" >> $$MANIFEST_IN; \
+        fi; \
+    done; \
+    \
+    if [ "$(OS)" = "Darwin" ]; then \
+        for lib in $$SRC_FILE; do \
+            for dep in $$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 ); do \
+                dep_basename=$$(basename "$$dep"); \
+                install_name_tool -change "$$dep" "@rpath/$$dep_basename" "$$lib"; \
+            done; \
+        done; \
+    fi;
+endef

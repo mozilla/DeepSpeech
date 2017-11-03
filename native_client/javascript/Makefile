@@ -21,9 +21,12 @@ configure: deepspeech_wrap.cxx
 	$(NODE_BUILD_TOOL) configure $(NODE_BUILD_VERBOSE)
 
 build: configure deepspeech_wrap.cxx
-	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" LIBS="$(LIBS)" $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_ABI_TARGET) rebuild $(NODE_BUILD_VERBOSE)
+	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(RPATH_NODEJS) $(LDFLAGS)" LIBS="$(LIBS)" $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_ABI_TARGET) rebuild $(NODE_BUILD_VERBOSE)
 
-package: build
+copy-deps: build
+	$(call copy_missing_libs,lib/binding/*/*/deepspeech.node,lib/)
+
+package: copy-deps build
 	$(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_ABI_TARGET) package $(NODE_BUILD_VERBOSE)
 
 npm-pack: clean
