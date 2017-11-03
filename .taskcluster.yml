@@ -20,15 +20,19 @@ tasks:
         branches:
           - master
 
+    routes:
+      - "notify.irc-channel.#machinelearning.on-any"
 
     scopes: [
       "queue:create-task:lowest:{{ taskcluster.docker.provisionerId }}/deepspeech-worker",
       "queue:create-task:lowest:deepspeech-provisioner/ds-macos-light",
       "queue:route:index.project.deepspeech.*",
+      "queue:route:notify.irc-channel.*",
       "queue:scheduler-id:taskcluster-github",
       "generic-worker:cache:deepspeech-homebrew-bin",
       "generic-worker:cache:deepspeech-homebrew-cache"
     ]
+
     payload:
       maxRunTime: 600
       image: "ubuntu:14.04"

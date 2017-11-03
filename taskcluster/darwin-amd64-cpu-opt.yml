@@ -4,6 +4,8 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.osx"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.osx"
     - "index.project.deepspeech.deepspeech.native_client.osx.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.osx/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.osx/artifacts/public/summarize_graph"
   scripts:
