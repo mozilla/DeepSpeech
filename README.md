@@ -8,12 +8,17 @@ Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trai
 **Table of Contents**
 
 - [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Recommendations](#recommendations)
-- [Training a model](#training-a-model)
-- [Checkpointing](#checkpointing)
-- [Exporting a model for inference](#exporting-a-model-for-inference)
-- [Distributed computing across more than one machine](#distributed-computing-across-more-than-one-machine)
+- [Getting the code](#getting-the-code)
+- [Installing a client](#installing-a-client)
+  - [Installing the command line client](#installing-the-command-line-client)
+  - [Installing Python bindings](#installing-python-bindings)
+  - [Installing Node.JS bindings](#installing-nodejs-bindings)
+- [Training](#training)
+  - [Recommendations](#recommendations)
+  - [Training a model](#training-a-model)
+  - [Checkpointing](#checkpointing)
+  - [Exporting a model for inference](#exporting-a-model-for-inference)
+  - [Distributed computing across more than one machine](#distributed-training-across-more-than-one-machine)
 - [Documentation](#documentation)
 - [Contact/Getting Help](#contactgetting-help)
 
@@ -28,41 +33,94 @@ Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trai
 * [pandas](https://pypi.python.org/pypi/pandas)
 * [DeepSpeech native client libraries](https://tools.taskcluster.net/index/artifacts/#project.deepspeech.deepspeech.native_client.master/)
 
-## Installation
+## Getting the code
 
-### Installing pre-built DeepSpeech Python bindings
+Manually install [Git Large File Storage](https://git-lfs.github.com/), then clone the repository normally:
 
-Pre-built binaries can be found on TaskCluster. You'll need to download `native_client.tar.xz` and the appropriate Python wheel package.
+```bash
+git clone https://github.com/mozilla/DeepSpeech
+```
 
-[native_client.tar.xz (Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/native_client.tar.xz)
-[deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl (Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl)
+## Installing a client
+
+If all you want to do is use an already trained model for inference, you can grab one of the pre-built binaries from TaskCluster. You can use a command-line binary, a Python package, or a Node.JS package.
+
+### Installing the command-line client
+
+To download the pre-built binaries, use `util/tc.py`:
+
+```bash
+python util/tc.py --target /path/to/destination/folder
+```
+
+This will download and extract `native_client.tar.xz` which includes the deepspeech binary and associated libraries. `tc.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/tc.py -h` for more details.
+
+The `deepspeech` binary depends on the shared libraries that are included in `native_client.tar.xz`, so to run it you'll either have to install the libraries in your `LD_LIBRARY_PATH`, or change it temporarily for running the client:
+
+```bash
+LD_LIBRARY_PATH=. ./deepspeech -h
+```
+
+You can consult the [native client README](native_client/README.md) for more details.
+
+### Installing Python bindings
+
+Pre-built binaries that can be used for performing inference with a trained model can be found on TaskCluster. You'll need to download the appropriate Python wheel package.
+
+[deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl (Python 2.7, Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl)
 [Other configurations](https://tools.taskcluster.net/index/artifacts/#project.deepspeech.deepspeech.native_client.master/project.deepspeech.deepspeech.native_client.master)
 
-First, the library files contained in `native_client.tar.xz` need to be installed within the system library path (e.g. `/usr/lib`, or some other path listed in `$LD_LIBRARY_PATH`).
-
-After the library files are installed, you can use pip to install the Python package, like so:
+You can use pip to install the Python package, like so:
 ```bash
 pip install <path to .whl file>
 ```
 
-### Installing DeepSpeech Python bindings from source
+See [client.py](native_client/client.py) for an example of how to use the bindings.
+
+### Installing Node.JS bindings
+
+You can download the Node.JS bindings using `util/tc.py` and install them with `npm`:
+
+```bash
+python util/tc.py --target . --artifact deepspeech-0.0.1.tgz
+npm install deepspeech-0.0.1.tgz
+```
+
+See [client.js](native_client/client.js) for an example of how to use the bindings.
+
+### Installing bindings from source
 
 If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow [these instructions](native_client/README.md).
 
-### Installing other requirements
+## Training
 
-Manually install [Git Large File Storage](https://git-lfs.github.com/), then open a terminal and run:
+### Installing prerequisites for training
+
+Install the required dendencies using pip:
+
 ```bash
-git clone https://github.com/mozilla/DeepSpeech
 cd DeepSpeech
 pip install -r requirements.txt
 ```
 
-## Recommendations
+You'll also need to download `native_client.tar.xz` or build the native client files yourself to get the custom TensorFlow OP needed for decoding the outputs of the neural network. You can use `util/tc.py` to download the files for your architecture:
 
-If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU.
+```bash
+python util/tc.py destination/folder cpu
+```
 
-## Training a model
+This will download the native client files for the x86_64 architecture without CUDA support, and extract them into `destination/folder`. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). We also have binaries with CUDA enabled ("gpu") and for ARM7 ("arm").
+
+### Recommendations
+
+If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU. The [requirements.txt](requirements.txt) file installs the `tensorflow` package by default, which doesn't have GPU support enabled. To enable GPU support, you can do:
+
+```bash
+pip uninstall tensorflow
+pip install tensorflow-gpu
+```
+
+### Training a model
 
 The central (Python) script is `DeepSpeech.py` in the project's root directory. For its list of command line options, you can call:
 
@@ -71,14 +129,6 @@ $ ./DeepSpeech.py --help
 ```
 
 To get the output of this in a slightly better-formatted way, you can also look up the option definitions top of `DeepSpeech.py`.
-
-You'll need to download `native_client.tar.xz` or build the native client files yourself to get the custom TensorFlow OP needed for decoding the outputs of the neural network. You can use `util/tc.py` to download the files for your architecture:
-
-```bash
-python util/tc.py destination/folder cpu
-```
-
-This will download the native client files for the x86_64 architecture without CUDA support, and extract them into `destination/folder`. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). We also have binaries with CUDA enabled ("gpu") and for ARM7 ("arm").
 
 For executing pre-configured training scenarios, there is a collection of convenience scripts in the `bin` folder. Most of them are named after the corpora they are configured for. Keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer. If you experience GPU OOM errors while training, try reducing `batch_size`.
 
@@ -96,18 +146,18 @@ Each dataset has a corresponding importer script in `bin/` that can be used to d
 
 If you've run the old importers (in `util/importers/`), they could have removed source files that are needed for the new importers to run. In that case, simply remove the extracted folders and let the importer extract and process the dataset from scratch, and things should work.
 
-## Checkpointing
+### Checkpointing
 
 During training of a model so-called checkpoints will get stored on disk. This takes place at a configurable time interval. The purpose of checkpoints is to allow interruption (also in the case of some unexpected failure) and later continuation of training without losing hours of training time. Resuming from checkpoints happens automatically by just (re)starting training with the same `--checkpoint_dir` of the former run.
 
 Be aware however that checkpoints are only valid for the same model geometry they had been generated from. In other words: If there are error messages of certain `Tensors` having incompatible dimensions, this is most likely due to an incompatible model change. One usual way out would be to wipe all checkpoint files in the checkpoint directory or changing it before starting the training.
 
-## Exporting a model for inference
+### Exporting a model for inference
 
 If the `--export_dir` parameter is provided, a model will have been exported to this directory during training.
 Refer to the corresponding [README.md](native_client/README.md) for information on building and running a client that can use the exported model.
 
-## Distributed computing across more than one machine
+### Distributed training across more than one machine
 
 DeepSpeech has built-in support for [distributed TensorFlow](https://www.tensorflow.org/deploy/distributed). To get an idea on how this works, you can use the script `bin/run-cluster.sh` for running a cluster with workers just on the local machine.
 
