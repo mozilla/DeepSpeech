@@ -4,13 +4,13 @@ This folder contains a native client for running queries on an exported DeepSpee
 
 ## Installation
 
-To download the pre-built binaries, use `util/tc.py`:
+To download the pre-built binaries, use `util/taskcluster.py`:
 
 ```
-python util/tc.py --target /path/to/destination/folder
+python util/taskcluster.py --target /path/to/destination/folder
 ```
 
-This will download and extract `native_client.tar.xz` which includes the deepspeech binary and associated libraries as well as the custom decoder OP. `tc.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/tc.py -h` for more details.
+This will download and extract `native_client.tar.xz` which includes the deepspeech binary and associated libraries as well as the custom decoder OP. `taskcluster.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
 
@@ -22,7 +22,7 @@ If you're looking to train a model, you now have a `libctc_decoder_with_kenlm.so
 
 For Python bindings, use `--artifact file_name`, where `file_name` is the appropriate file for your Python version and platform. The names of the available artifacts can be found on the listing page: [Linux](https://tools.taskcluster.net/index/artifacts/project.deepspeech.deepspeech.native_client.master/cpu) or [macOS](https://tools.taskcluster.net/index/artifacts/project.deepspeech.deepspeech.native_client.master/osx).
 
-For example, for Python 2.7 bindings on Linux, you can do `python util/tc.py --target /destination --artifact deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl`.
+For example, for Python 2.7 bindings on Linux, you can do `python util/taskcluster.py --target /destination --artifact deepspeech-0.0.1-cp27-cp27mu-linux_x86_64.whl`.
 
 For Node.JS bindings, use `--artifact deepspeech-0.0.1.tgz`.
 

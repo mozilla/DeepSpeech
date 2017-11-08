@@ -47,13 +47,13 @@ If all you want to do is use an already trained model for inference, you can gra
 
 ### Installing the command-line client
 
-To download the pre-built binaries, use `util/tc.py`:
+To download the pre-built binaries, use `util/taskcluster.py`:
 
 ```bash
-python util/tc.py --target /path/to/destination/folder
+python util/taskcluster.py --target /path/to/destination/folder
 ```
 
-This will download and extract `native_client.tar.xz` which includes the deepspeech binary and associated libraries. `tc.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/tc.py -h` for more details.
+This will download and extract `native_client.tar.xz` which includes the deepspeech binary and associated libraries. `taskcluster.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
 
 The `deepspeech` binary depends on the shared libraries that are included in `native_client.tar.xz`, so to run it you'll either have to install the libraries in your `LD_LIBRARY_PATH`, or change it temporarily for running the client:
 
@@ -79,10 +79,10 @@ See [client.py](native_client/client.py) for an example of how to use the bindin
 
 ### Installing Node.JS bindings
 
-You can download the Node.JS bindings using `util/tc.py` and install them with `npm`:
+You can download the Node.JS bindings using `util/taskcluster.py` and install them with `npm`:
 
 ```bash
-python util/tc.py --target . --artifact deepspeech-0.0.1.tgz
+python util/taskcluster.py --target . --artifact deepspeech-0.0.1.tgz
 npm install deepspeech-0.0.1.tgz
 ```
 
@@ -103,10 +103,10 @@ cd DeepSpeech
 pip install -r requirements.txt
 ```
 
-You'll also need to download `native_client.tar.xz` or build the native client files yourself to get the custom TensorFlow OP needed for decoding the outputs of the neural network. You can use `util/tc.py` to download the files for your architecture:
+You'll also need to download `native_client.tar.xz` or build the native client files yourself to get the custom TensorFlow OP needed for decoding the outputs of the neural network. You can use `util/taskcluster.py` to download the files for your architecture:
 
 ```bash
-python util/tc.py destination/folder cpu
+python util/taskcluster.py destination/folder cpu
 ```
 
 This will download the native client files for the x86_64 architecture without CUDA support, and extract them into `destination/folder`. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). We also have binaries with CUDA enabled ("gpu") and for ARM7 ("arm").
