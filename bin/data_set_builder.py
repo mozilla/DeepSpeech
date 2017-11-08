@@ -64,12 +64,17 @@ class _CommandLineParserState(object):
 class CommandLineParser(object):
     def __init__(self):
         self.commands = {}
+        self.command_list = []
         self.add_command('help', self._cmd_help, 'Display help message')
 
     def add_command(self, name, action, description):
         cmd = _CommandLineParserCommand(name, action, description)
         self.commands[name] = cmd
+        self.command_list.append(cmd)
         return cmd
+
+    def add_group(self, caption):
+        self.command_list.append(caption)
 
     def _parse_value(self, state, value_type):
         if value_type == 'bool':
@@ -125,9 +130,11 @@ class CommandLineParser(object):
     def _cmd_help(self):
         print('Usage: import_fisher.py (command <arg1> <arg2> ... [-opt1 [<value>]] [-opt2 [<value>]] ...)*')
         print('Commands:')
-        for cmd_name in self.commands:
+        for cmd in self.command_list:
             print()
-            cmd = self.commands[cmd_name]
+            if isinstance(cmd, basestring):
+                print(cmd + ':')
+                continue
             arg_desc = ' '.join('<%s>' % arg.name for arg in cmd.arguments)
             opt_desc = ' '.join(('[-%s%s]' % (opt.name, ' <%s>' % opt.name if opt.type != 'bool' else '')) for _, opt in cmd.options.items())
             print('  %s %s %s' % (cmd.name, arg_desc, opt_desc))
@@ -245,6 +252,8 @@ class DataSetBuilder(CommandLineParser):
         cmd = self.add_command('add', self._add, 'Adds samples listed in named buffer or a file to current buffer')
         cmd.add_argument('source', 'string', 'Name of a named buffer or filename of a CSV file or WAV file (wildcards supported)')
 
+        self.add_group('Buffer operations')
+
         cmd = self.add_command('shuffle', self._shuffle, 'Randoimize order of the sample buffer')
 
         cmd = self.add_command('order', self._order, 'Order samples in buffer by length')
@@ -260,7 +269,12 @@ class DataSetBuilder(CommandLineParser):
         cmd = self.add_command('skip', self._skip, 'Skip given number of samples from the beginning of current buffer')
         cmd.add_argument('number', 'int', 'Number of samples')
 
+        cmd = self.add_command('find', self._find, 'Drop all samples, who\'s transcription does not contain a keyword' )
+        cmd.add_argument('keyword', 'string', 'Keyword to look for in transcriptions')
+
         cmd = self.add_command('clear', self._clear, 'Clears sample buffer')
+
+        self.add_group('Named buffers')
 
         cmd = self.add_command('set', self._set, 'Replaces named buffer with contents of current buffer')
         cmd.add_argument('name', 'string', 'Name of the named buffer')
@@ -274,8 +288,7 @@ class DataSetBuilder(CommandLineParser):
         cmd = self.add_command('drop', self._drop, 'Drops named sample buffer')
         cmd.add_argument('name', 'string', 'Name of the named buffer')
 
-        cmd = self.add_command('find', self._find, 'Drop all samples, who\'s transcription does not contain a keyword' )
-        cmd.add_argument('keyword', 'string', 'Keyword to look for in transcriptions')
+        self.add_group('Output')
 
         cmd = self.add_command('print', self._print, 'Prints list of samples in current buffer')
 
@@ -283,6 +296,8 @@ class DataSetBuilder(CommandLineParser):
 
         cmd = self.add_command('write', self._write, 'Write samples of current buffer to disk')
         cmd.add_argument('dir_name', 'string', 'Path to the new sample directory. The directory and a file with the same name plus extension ".csv" should not exist.')
+
+        self.add_group('Effects')
 
         cmd = self.add_command('sox', self._sox, 'Adds a SoX effect to buffer samples')
         cmd.add_argument('effect', 'string', 'SoX effect name')
