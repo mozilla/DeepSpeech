@@ -151,57 +151,31 @@ def get_tmp_filename():
         tmp_index += 1
         return '%s/%d.wav' % (tmp_dir, tmp_index)
 
-class Sample(object):
-    def __init__(self, filename, transcript, filesize):
-        self.filename = os.path.abspath(filename)
-        self._file_is_tmp = False
-        self.transcript = transcript
-        self.filesize = filesize
-        self._dirty()
-        self.effects = ''
-
-    def __del__(self):
-        if self._file_is_tmp:
-            #print('Removing tmp file "%s"...' % self.filename)
-            os.remove(self.filename)
-
-    def _dirty(self):
+class WavFile(object):
+    def __init__(self, filename=None):
+        self.filename = os.path.abspath(filename) if filename else get_tmp_filename()
+        self.file_is_tmp = not filename
         self._stats = None
         self._duration = -1
+        self._filesize = -1
+
+    def __del__(self):
+        if self.file_is_tmp:
+            os.remove(self.filename)
 
     def save_as(self, filename):
         filename = os.path.abspath(filename)
-        self.write()
-        if self._file_is_tmp:
+        if self.file_is_tmp:
             os.rename(self.filename, filename)
-            self._file_is_tmp = False
-        else:
-            copyfile(self.filename, filename)
-        self.filename = filename
-
-    def write(self):
-        if len(self.effects) > 0:
-            filename = get_tmp_filename()
-            subprocess.call(['sox', self.filename, filename] + self.effects.strip().split(' '))
-            if self._file_is_tmp:
-                os.remove(self.filename)
             self.filename = filename
-            self._file_is_tmp = True
-            self._dirty()
-            self.effects = ''
-
-    def add_sox_effect(self, effect):
-        self.effects += ' %s' % effect
-
-    def read_audio_segment(self):
-        return AudioSegment.from_file(self.filename, format="wav")
-
-    def write_audio_segment(self, segment):
-        filename = get_tmp_filename()
-        segment.export(filename, format="wav")
-        self.filename = filename
-        self._file_is_tmp = True
-        self._dirty()
+            self.file_is_tmp = False
+            return self
+        file = WavFile(filename=filename)
+        copyfile(self.filename, file.filename)
+        file._stats = self._stats
+        file._duration = self._duration
+        file._filesize = self._filesize
+        return file
 
     @property
     def stats(self):
@@ -221,22 +195,47 @@ class Sample(object):
         return self._duration
 
     @property
+    def filesize(self):
+        if self._filesize < 0:
+            self._filesize = os.path.getsize(self.filename)
+        return self._filesize
+
+    @property
     def volume(self):
         return float(self.stats['Volume adjustment'])
 
+class Sample(object):
+    def __init__(self, file, transcript):
+        self.file = file
+        self.transcript = transcript
+        self.effects = ''
+
+    def write(self, filename=None):
+        if len(self.effects) > 0:
+            file = WavFile(filename=filename)
+            subprocess.call(['sox', self.file.filename, file.filename] + self.effects.strip().split(' '))
+            self.effects = ''
+            self.file = file
+        elif filename:
+            self.file = self.file.save_as(filename)
+
+    def add_sox_effect(self, effect):
+        self.effects += ' %s' % effect
+
+    def read_audio_segment(self):
+        return AudioSegment.from_file(self.file.filename, format="wav")
+
+    def write_audio_segment(self, segment):
+        self.file = WavFile()
+        segment.export(self.file.filename, format="wav")
+
     def clone(self):
-        self.write()
-        filename = get_tmp_filename()
-        copyfile(self.filename, filename)
-        sample = Sample(filename, self.transcript, self.filesize)
-        sample._file_is_tmp = True
-        sample._stats = self._stats
-        sample._duration = self._duration
+        sample = Sample(self.file, self.transcript)
+        sample.effects = self.effects
         return sample
 
     def __str__(self):
-        return '%s, %s, %f' % (self.filename, self.transcript, self.duration)
-
+        return 'Filename: %s\nTranscript: %s' % (self.file.filename, self.transcript)
 
 class DataSetBuilder(CommandLineParser):
     def __init__(self):
@@ -284,10 +283,10 @@ class DataSetBuilder(CommandLineParser):
         ext = filename[-4:]
         if ext == '.csv':
             samples = [l.strip().split(',') for l in open(filename, 'r').readlines()[1:]]
-            samples = [Sample(s[0], s[2], int(s[1])) for s in samples if len(s) == 3]
+            samples = [Sample(WavFile(filename=s[0]), s[2]) for s in samples if len(s) == 3]
         elif ext == '.wav':
             samples = glob.glob(filename)
-            samples = [Sample(s, '', os.path.getsize(sample)) for s in samples]
+            samples = [Sample(WavFile(filename=s), '') for s in samples]
         else:
             samples = []
         if len(samples) == 0:
@@ -304,7 +303,7 @@ class DataSetBuilder(CommandLineParser):
         print('Shuffled buffer.')
 
     def _order(self):
-        self.samples = sorted(self.samples, key=lambda s: s.filesize)
+        self.samples = sorted(self.samples, key=lambda s: s.file.filesize)
         print('Ordered buffer by file lenghts.')
 
     def _reverse(self):
@@ -340,7 +339,7 @@ class DataSetBuilder(CommandLineParser):
         for s in self.samples:
             s.write()
             print('Playing: ' + s.transcript)
-            subprocess.call(['play', '-q', s.filename])
+            subprocess.call(['play', '-q', s.file.filename])
         print('Played %d samples.' % len(self.samples))
 
     def _write(self, dir_name):
@@ -351,10 +350,10 @@ class DataSetBuilder(CommandLineParser):
             return 'Cannot write buffer, as either "%s" or "%s" already exist.' % (dir_name, csv_filename)
         os.makedirs(dir_name)
         for i, s in enumerate(self.samples):
-            s.save_as('%s/sample-%d.wav' % (dir_name, i))
+            s.write(filename='%s/sample-%d.wav' % (dir_name, i))
         with open(csv_filename, 'w') as csv:
             csv.write('wav_filename,wav_filesize,transcript\n')
-            csv.write(''.join('%s,%d,%s\n' % (s.filename, s.filesize, s.transcript) for s in self.samples))
+            csv.write(''.join('%s,%d,%s\n' % (s.file.filename, s.file.filesize, s.transcript) for s in self.samples))
         print('Wrote %d samples to directory "%s" and listed them in CSV file "%s".' % (len(self.samples), dir_name, csv_filename))
 
     def _sox(self, effect, args):
@@ -368,14 +367,14 @@ class DataSetBuilder(CommandLineParser):
         tree = IntervalTree()
         pos = 0
         for sample in aug_samples:
-            duration = int(math.ceil(sample.duration * 1000.0))
+            duration = int(math.ceil(sample.file.duration * 1000.0))
             tree[pos:pos + duration] = sample
             pos += duration
         total_aug_dur = pos
         total_orig_dur = 0
         for sample in self.samples:
             sample.write()
-            total_orig_dur += int(sample.duration * 1000.0)
+            total_orig_dur += int(sample.file.duration * 1000.0)
         pos = 0
         for sample in self.samples:
             orig_seg = sample.read_audio_segment()
@@ -407,6 +406,6 @@ if __name__ == '__main__' :
         main()
     except KeyboardInterrupt:
         print('Interrupted by user')
-    except Exception as ex:
-        print(ex)
+    #except Exception as ex:
+    #    print(ex)
 
