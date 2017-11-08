@@ -141,13 +141,15 @@ class CommandLineParser(object):
                 for _, opt in cmd.options.items():
                     print('\t\t-%s: %s - %s' % (opt.name, opt.type, opt.description))
 
-tmp_dir = tempfile.mkdtemp()
-tmp_lock = Lock()
+tmp_dir = None
 tmp_index = 0
+tmp_lock = Lock()
 
 def get_tmp_filename():
-    global tmp_index
+    global tmp_index, tmp_dir
     with tmp_lock:
+        if not tmp_dir:
+            tmp_dir = tempfile.mkdtemp()
         tmp_index += 1
         return '%s/%d.wav' % (tmp_dir, tmp_index)
 
@@ -240,8 +242,8 @@ class Sample(object):
 class DataSetBuilder(CommandLineParser):
     def __init__(self):
         super(DataSetBuilder, self).__init__()
-        cmd = self.add_command('add', self._add, 'Adds samples listed in a CSV file to current buffer')
-        cmd.add_argument('filename', 'string', 'Path to a CSV file')
+        cmd = self.add_command('add', self._add, 'Adds samples listed in named buffer or a file to current buffer')
+        cmd.add_argument('source', 'string', 'Name of a named buffer or filename of a CSV file or WAV file (wildcards supported)')
 
         cmd = self.add_command('shuffle', self._shuffle, 'Randoimize order of the sample buffer')
 
@@ -257,6 +259,20 @@ class DataSetBuilder(CommandLineParser):
 
         cmd = self.add_command('skip', self._skip, 'Skip given number of samples from the beginning of current buffer')
         cmd.add_argument('number', 'int', 'Number of samples')
+
+        cmd = self.add_command('clear', self._clear, 'Clears sample buffer')
+
+        cmd = self.add_command('set', self._set, 'Replaces named buffer with contents of current buffer')
+        cmd.add_argument('name', 'string', 'Name of the named buffer')
+
+        cmd = self.add_command('stash', self._stash, 'Moves contents of current buffer to named buffer (current buffer will be empty afterwards)')
+        cmd.add_argument('name', 'string', 'Name of the named buffer')
+
+        cmd = self.add_command('push', self._push, 'Appends sample buffer to named buffer')
+        cmd.add_argument('name', 'string', 'Name of the named buffer')
+
+        cmd = self.add_command('drop', self._drop, 'Drops named sample buffer')
+        cmd.add_argument('name', 'string', 'Name of the named buffer')
 
         cmd = self.add_command('find', self._find, 'Drop all samples, who\'s transcription does not contain a keyword' )
         cmd.add_argument('keyword', 'string', 'Keyword to look for in transcriptions')
@@ -277,26 +293,33 @@ class DataSetBuilder(CommandLineParser):
         cmd.add_option('times', 'int', 'How often to apply the augmentation source to the sample buffer')
         cmd.add_option('gain', 'float', 'How much gain (in dB) to apply to augmentation audio before overlaying onto buffer samples')
 
+        self.named_buffers = {}
         self.samples = []
 
-    def _load_samples(self, filename):
-        ext = filename[-4:]
+    def _clone_buffer(self, buffer):
+        samples = []
+        for sample in buffer:
+            samples.append(sample.clone())
+        return samples
+
+    def _load_samples(self, source):
+        ext = source[-4:].lower()
         if ext == '.csv':
-            samples = [l.strip().split(',') for l in open(filename, 'r').readlines()[1:]]
+            samples = [l.strip().split(',') for l in open(source, 'r').readlines()[1:]]
             samples = [Sample(WavFile(filename=s[0]), s[2]) for s in samples if len(s) == 3]
         elif ext == '.wav':
-            samples = glob.glob(filename)
+            samples = glob.glob(source)
             samples = [Sample(WavFile(filename=s), '') for s in samples]
-        else:
-            samples = []
+        elif source in self.named_buffers:
+            samples = self._clone_buffer(self.named_buffers[source])
         if len(samples) == 0:
             raise Error('No samples found!')
         return samples
 
-    def _add(self, filename):
-        samples = self._load_samples(filename)
+    def _add(self, source):
+        samples = self._load_samples(source)
         self.samples.extend(samples)
-        print('Added %d samples of CSV file "%s" to buffer.' % (len(samples), filename))
+        print('Added %d samples to buffer.' % len(samples))
 
     def _shuffle(self):
         shuffle(self.samples)
@@ -325,6 +348,29 @@ class DataSetBuilder(CommandLineParser):
     def _skip(self, number):
         self.samples = self.samples[number:]
         print('Removed first %d samples from buffer.' % number)
+
+    def _clear(self):
+        self.samples = []
+        print('Removed all samples from buffer.')
+
+    def _set(self, name):
+        self.named_buffers[name] = self._clone_buffer(self.samples)
+        print('Set named buffer "%s" to samples of buffer.' % name)
+
+    def _stash(self, name):
+        self.named_buffers[name] = self.samples
+        self.samples = []
+        print('Set named buffer "%s" to samples of buffer.' % name)
+
+    def _push(self, name):
+        if not name in self.named_buffers:
+            self.named_buffers[name] = []
+        self.named_buffers[name].extend(self._clone_buffer(self.samples))
+        print('Appended samples of buffer to named buffer "%s".' % name)
+
+    def _drop(self, name):
+        del self.named_buffers[name]
+        print('Dropped named buffer "%s".' % name)
 
     def _find(self, keyword):
         self.samples = [s for s in self.samples if keyword in s.transcript]
@@ -406,6 +452,5 @@ if __name__ == '__main__' :
         main()
     except KeyboardInterrupt:
         print('Interrupted by user')
-    #except Exception as ex:
-    #    print(ex)
-
+    except Exception as ex:
+        print(ex)
