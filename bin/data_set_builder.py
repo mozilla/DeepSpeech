@@ -22,6 +22,7 @@ from random import shuffle
 from shutil import copyfile
 from intervaltree import IntervalTree
 from pydub import AudioSegment
+from multiprocessing.dummy import Pool
 
 class Error(Exception):
     def __init__(self, message):
@@ -232,6 +233,7 @@ class Sample(object):
         self.effects += ' %s' % effect
 
     def read_audio_segment(self):
+        self.write()
         return AudioSegment.from_file(self.file.filename, format="wav")
 
     def write_audio_segment(self, segment):
@@ -276,16 +278,16 @@ class DataSetBuilder(CommandLineParser):
 
         self.add_group('Named buffers')
 
-        cmd = self.add_command('set', self._set, 'Replaces named buffer with contents of current buffer')
+        cmd = self.add_command('set', self._set, 'Replaces named buffer with contents of buffer')
         cmd.add_argument('name', 'string', 'Name of the named buffer')
 
-        cmd = self.add_command('stash', self._stash, 'Moves contents of current buffer to named buffer (current buffer will be empty afterwards)')
+        cmd = self.add_command('stash', self._stash, 'Moves buffer to named buffer (buffer will be empty afterwards)')
         cmd.add_argument('name', 'string', 'Name of the named buffer')
 
-        cmd = self.add_command('push', self._push, 'Appends sample buffer to named buffer')
+        cmd = self.add_command('push', self._push, 'Appends buffer to named buffer')
         cmd.add_argument('name', 'string', 'Name of the named buffer')
 
-        cmd = self.add_command('drop', self._drop, 'Drops named sample buffer')
+        cmd = self.add_command('drop', self._drop, 'Drops named buffer')
         cmd.add_argument('name', 'string', 'Name of the named buffer')
 
         self.add_group('Output')
@@ -310,6 +312,13 @@ class DataSetBuilder(CommandLineParser):
 
         self.named_buffers = {}
         self.samples = []
+
+    def _map(self, lst, fun, threads=8):
+        pool = Pool(threads)
+        results = pool.map(fun, lst)
+        pool.close()
+        pool.join()
+        return results
 
     def _clone_buffer(self, buffer):
         samples = []
@@ -410,8 +419,11 @@ class DataSetBuilder(CommandLineParser):
         if os.path.exists(dir_name) or os.path.exists(csv_filename):
             return 'Cannot write buffer, as either "%s" or "%s" already exist.' % (dir_name, csv_filename)
         os.makedirs(dir_name)
-        for i, s in enumerate(self.samples):
-            s.write(filename='%s/sample-%d.wav' % (dir_name, i))
+        samples = [(i, sample) for i, sample in enumerate(self.samples)]
+        def write_sample(i_sample):
+            i, sample = i_sample
+            sample.write(filename='%s/sample-%d.wav' % (dir_name, i))
+        self._map(samples, write_sample)
         with open(csv_filename, 'w') as csv:
             csv.write('wav_filename,wav_filesize,transcript\n')
             csv.write(''.join('%s,%d,%s\n' % (s.file.filename, s.file.filesize, s.transcript) for s in self.samples))
@@ -426,22 +438,34 @@ class DataSetBuilder(CommandLineParser):
     def _augment(self, source, times=1, gain=-8):
         aug_samples = self._load_samples(source)
         tree = IntervalTree()
-        pos = 0
-        for sample in aug_samples:
-            duration = int(math.ceil(sample.file.duration * 1000.0))
-            tree[pos:pos + duration] = sample
-            pos += duration
-        total_aug_dur = pos
-        total_orig_dur = 0
-        for sample in self.samples:
-            sample.write()
-            total_orig_dur += int(sample.file.duration * 1000.0)
-        pos = 0
-        for sample in self.samples:
+
+        aug_durs = self._map(aug_samples, lambda s: int(math.ceil(s.file.duration * 1000.0)))
+        total_aug_dur = sum(aug_durs)
+        position = 0
+        for i, sample in enumerate(aug_samples):
+            duration = aug_durs[i]
+            tree[position:position+duration] = sample
+            position += duration
+
+        def prepare_sample(s):
+            s.write()
+            return int(math.ceil(s.file.duration * 1000.0))
+        orig_durs = self._map(self.samples, prepare_sample)
+        total_orig_dur = sum(orig_durs)
+
+        positions = []
+        position = 0
+        for i, sample in enumerate(self.samples):
+            duration = orig_durs[i]
+            positions.append((position, sample))
+            position += duration
+
+        def augment_sample(pos_sample):
+            position, sample = pos_sample
             orig_seg = sample.read_audio_segment()
             orig_dur = len(orig_seg)
             aug_seg = AudioSegment.silent(duration=orig_dur)
-            sub_pos = pos
+            sub_pos = position
             for i in range(times):
                 inters = tree[sub_pos:sub_pos + orig_dur]
                 for inter in inters:
@@ -455,7 +479,8 @@ class DataSetBuilder(CommandLineParser):
             aug_seg = aug_seg + (orig_seg.dBFS - aug_seg.dBFS + gain)
             orig_seg = orig_seg.overlay(aug_seg)
             sample.write_audio_segment(orig_seg)
-            pos += orig_dur
+
+        self._map(positions, augment_sample)
         print('Augmented %d samples in buffer.' % len(self.samples))
 
 def main():
