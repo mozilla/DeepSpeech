@@ -301,6 +301,24 @@ class DataSetBuilder(CommandLineParser):
 
         self.add_group('Effects')
 
+        # wet_only=False, reverberance=0.5, hf_damping=0.5, room_scale=1.0, stereo_depth=1.0, pre_delay=0, wet_gain=0
+        cmd = self.add_command('reverb', self._reverb, 'Adds reverberation to buffer samples')
+        cmd.add_option('wet_only', 'bool', 'If to strip source signal on output')
+        cmd.add_option('reverberance', 'float', 'Reverberance factor (between 0.0 to 1.0)')
+        cmd.add_option('hf_damping', 'float', 'HF damping factor (between 0.0 to 1.0)')
+        cmd.add_option('room_scale', 'float', 'Room scale factor (between 0.0 to 1.0)')
+        cmd.add_option('stereo_depth', 'float', 'Stereo depth factor (between 0.0 to 1.0)')
+        cmd.add_option('pre_delay', 'int', 'Pre delay in ms')
+        cmd.add_option('wet_gain', 'float', 'Wet gain in dB')
+
+        cmd = self.add_command('echo', self._echo, 'Adds an echo effect to buffer samples')
+        cmd.add_argument('gain_in', 'float', 'Gain in')
+        cmd.add_argument('gain_out', 'float', 'Gain out')
+        cmd.add_argument('delay_decay', 'string', 'Comma separated delay decay pairs - at least one (e.g. 10,0.1,20,0.2)')
+
+        cmd = self.add_command('speed', self._speed, 'Adds an speed effect to buffer samples')
+        cmd.add_argument('factor', 'float', 'Speed factor to apply')
+
         cmd = self.add_command('sox', self._sox, 'Adds a SoX effect to buffer samples')
         cmd.add_argument('effect', 'string', 'SoX effect name')
         cmd.add_argument('args', 'string', 'Comma separated list of SoX effect parameters (no white space allowed)')
@@ -328,6 +346,7 @@ class DataSetBuilder(CommandLineParser):
 
     def _load_samples(self, source):
         ext = source[-4:].lower()
+        samples = []
         if ext == '.csv':
             samples = [l.strip().split(',') for l in open(source, 'r').readlines()[1:]]
             samples = [Sample(WavFile(filename=s[0]), s[2]) for s in samples if len(s) == 3]
@@ -429,6 +448,28 @@ class DataSetBuilder(CommandLineParser):
             csv.write(''.join('%s,%d,%s\n' % (s.file.filename, s.file.filesize, s.transcript) for s in self.samples))
         print('Wrote %d samples to directory "%s" and listed them in CSV file "%s".' % (len(self.samples), dir_name, csv_filename))
 
+    def _reverb(self, wet_only=False, reverberance=0.5, hf_damping=0.5, room_scale=1.0, stereo_depth=1.0, pre_delay=0, wet_gain=0):
+        effect = 'reverb %s%d %d %d %d %d %d' % \
+            ('-w ' if wet_only else '', int(reverberance*100.0), int(hf_damping*100.0), int(room_scale*100.0), int(stereo_depth*100.0), pre_delay, wet_gain)
+        for s in self.samples:
+            s.add_sox_effect(effect)
+        print('Added reverberation to %d samples in buffer.' % len(self.samples))
+
+    def _echo(self, gain_in, gain_out, delay_decay):
+        delay_decay = delay_decay.split(',')
+        assert len(delay_decay) % 2 == 0
+        assert len(delay_decay) > 1
+        effect = 'echo %f %f %s' % (gain_in, gain_out, ' '.join(delay_decay))
+        for s in self.samples:
+            s.add_sox_effect(effect)
+        print('Added echo effect to %d samples in buffer.' % len(self.samples))
+
+    def _speed(self, factor):
+        effect = 'speed %f' % factor
+        for s in self.samples:
+            s.add_sox_effect(effect)
+        print('Added speed effect to %d samples in buffer.' % len(self.samples))
+
     def _sox(self, effect, args):
         effect = '%s %s' % (effect, ' '.join(args.split(',')))
         for s in self.samples:
@@ -492,5 +533,5 @@ if __name__ == '__main__' :
         main()
     except KeyboardInterrupt:
         print('Interrupted by user')
-    except Exception as ex:
-        print(ex)
+    #except Exception as ex:
+    #    print(ex)
