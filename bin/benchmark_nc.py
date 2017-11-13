@@ -8,7 +8,7 @@ import sys
 
 # To use util.tc
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0]))))
-import util.tc as tcu
+import util.taskcluster as tcu
 from util.benchmark import keep_only_digits
 
 import paramiko
