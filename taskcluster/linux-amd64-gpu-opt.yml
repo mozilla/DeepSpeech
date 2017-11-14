@@ -4,12 +4,16 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.gpu"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.gpu"
     - "index.project.deepspeech.deepspeech.native_client.gpu.${event.head.sha}"
+  system_setup:
+    >
+      ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/summarize_graph"
   maxRunTime: 14400
   scripts:
     build: "taskcluster/cuda-build.sh"
-    package: "taskcluster/cuda-package.sh"
+    package: "taskcluster/package.sh"
   metadata:
     name: "DeepSpeech Linux AMD64 CUDA"
     description: "Building DeepSpeech for Linux/AMD64, CUDA-enabled, optimized version"
