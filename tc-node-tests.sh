@@ -14,8 +14,6 @@ fi;
 
 download_data
 
-phrase=""
-
 pushd ${HOME}/DeepSpeech/ds/native_client/
     node --version
     npm --version
