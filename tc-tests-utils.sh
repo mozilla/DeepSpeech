@@ -30,7 +30,8 @@ export BAZEL_AOT_TARGETS="
 //tensorflow/compiler/xla:executable_run_options
 "
 
-model_name=$(basename "${DEEPSPEECH_TEST_MODEL}")
+model_source=${DEEPSPEECH_TEST_MODEL}
+model_name=$(basename "${model_source}")
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.13 3.4.6 3.5.3 3.6.2}
 # 7.10.0 and 8.0.0 targets fails to build
@@ -67,6 +68,11 @@ assert_correct_inference()
 assert_correct_ldc93s1()
 {
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
+}
+
+assert_correct_ldc93s1_prodmodel()
+{
+  assert_correct_inference "$1" "she had yeducksotingrecywachworallyear"
 }
 
 assert_correct_ldc93s1_somodel()
@@ -134,7 +140,7 @@ download_ctc_kenlm()
 
 download_data()
 {
-  wget ${DEEPSPEECH_TEST_MODEL} -O /tmp/${model_name}
+  wget ${model_source} -O /tmp/${model_name}
   wget https://catalog.ldc.upenn.edu/desc/addenda/LDC93S1.wav -O /tmp/LDC93S1.wav
   cp ~/DeepSpeech/ds/data/alphabet.txt /tmp/alphabet.txt
   cp ~/DeepSpeech/ds/data/lm/lm.binary /tmp/lm.binary
