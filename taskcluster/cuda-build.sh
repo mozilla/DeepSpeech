@@ -22,3 +22,7 @@ EXTRA_LOCAL_LDFLAGS="-L${DS_ROOT_TASK}/DeepSpeech/CUDA/lib64/ -L${DS_ROOT_TASK}/
 do_bazel_build
 
 do_deepspeech_binary_build
+
+do_deepspeech_python_build
+
+do_deepspeech_nodejs_build
