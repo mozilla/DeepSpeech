@@ -47,7 +47,13 @@ To download the pre-built binaries, use `util/taskcluster.py`:
 python util/taskcluster.py --target .
 ```
 
-This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for the x86_64/amd64 architecture by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
+or if you're on macOS:
+
+```bash
+python util/taskcluster.py --arch osx --target .
+```
+
+This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
 
 ```bash
 ./deepspeech model.pb audio_input.wav alphabet.txt lm.binary trie
