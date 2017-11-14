@@ -301,7 +301,6 @@ class DataSetBuilder(CommandLineParser):
 
         self.add_group('Effects')
 
-        # wet_only=False, reverberance=0.5, hf_damping=0.5, room_scale=1.0, stereo_depth=1.0, pre_delay=0, wet_gain=0
         cmd = self.add_command('reverb', self._reverb, 'Adds reverberation to buffer samples')
         cmd.add_option('wet_only', 'bool', 'If to strip source signal on output')
         cmd.add_option('reverberance', 'float', 'Reverberance factor (between 0.0 to 1.0)')
@@ -318,6 +317,12 @@ class DataSetBuilder(CommandLineParser):
 
         cmd = self.add_command('speed', self._speed, 'Adds an speed effect to buffer samples')
         cmd.add_argument('factor', 'float', 'Speed factor to apply')
+
+        cmd = self.add_command('pitch', self._pitch, 'Adds a pitch effect to buffer samples')
+        cmd.add_argument('cents', 'int', 'Cents (100th of a semi-tome) of shift to apply')
+
+        cmd = self.add_command('tempo', self._tempo, 'Adds a tempo effect to buffer samples')
+        cmd.add_argument('factor', 'float', 'Tempo factor to apply')
 
         cmd = self.add_command('sox', self._sox, 'Adds a SoX effect to buffer samples')
         cmd.add_argument('effect', 'string', 'SoX effect name')
@@ -470,6 +475,18 @@ class DataSetBuilder(CommandLineParser):
             s.add_sox_effect(effect)
         print('Added speed effect to %d samples in buffer.' % len(self.samples))
 
+    def _pitch(self, cents):
+        effect = 'pitch %d' % cents
+        for s in self.samples:
+            s.add_sox_effect(effect)
+        print('Added pitch effect to %d samples in buffer.' % len(self.samples))
+
+    def _tempo(self, factor):
+        effect = 'tempo -s %f' % factor
+        for s in self.samples:
+            s.add_sox_effect(effect)
+        print('Added tempo effect to %d samples in buffer.' % len(self.samples))
+
     def _sox(self, effect, args):
         effect = '%s %s' % (effect, ' '.join(args.split(',')))
         for s in self.samples:
@@ -533,5 +550,3 @@ if __name__ == '__main__' :
         main()
     except KeyboardInterrupt:
         print('Interrupted by user')
-    #except Exception as ex:
-    #    print(ex)
