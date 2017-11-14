@@ -17,3 +17,5 @@ system:
   homedir:
     linux: '/home/build-user'
     osx: '/Users/build-user'
+notifications:
+  irc: '#machinelearning'
