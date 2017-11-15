@@ -253,7 +253,7 @@ do_deepspeech_python_build()
   install_pyenv "${PYENV_ROOT}"
   install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
-  mkdir -p wheels
+  mkdir -p python_dist_files
 
   for pyver in ${SUPPORTED_PYTHON_VERSIONS}; do
     pyenv install ${pyver}
@@ -266,7 +266,8 @@ do_deepspeech_python_build()
       TFDIR=${DS_TFDIR} \
       bindings-clean bindings
 
-    cp native_client/dist/deepspeech-*.whl wheels
+    cp native_client/dist/deepspeech-*.whl python_dist_files
+    cp native_client/dist/deepspeech-*.tar.gz python_dist_files
 
     make -C native_client/ bindings-clean
 
