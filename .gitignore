@@ -9,7 +9,7 @@
 /exports
 /native_client/setup.cfg
 /native_client/build
-/native_client/deepspeech.egg-info
+/native_client/*.egg-info
 /native_client/dist
 /native_client/node_modules
 /native_client/python/model.py
