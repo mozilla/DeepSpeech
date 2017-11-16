@@ -22,9 +22,9 @@ If you're looking to train a model, you now have a `libctc_decoder_with_kenlm.so
 
 For Python bindings, use `--artifact file_name`, where `file_name` is the appropriate file for your Python version and platform. The names of the available artifacts can be found on the listing page: [Linux](https://tools.taskcluster.net/index/artifacts/project.deepspeech.deepspeech.native_client.master/cpu) or [macOS](https://tools.taskcluster.net/index/artifacts/project.deepspeech.deepspeech.native_client.master/osx).
 
-For example, for Python 2.7 bindings on Linux, you can do `python util/taskcluster.py --target /destination --artifact deepspeech-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl`.
+For example, for Python 2.7 bindings on Linux, you can do `python util/taskcluster.py --target /destination --artifact deepspeech-0.0.2-cp27-cp27mu-manylinux1_x86_64.whl`.
 
-For Node.JS bindings, use `--artifact deepspeech-0.0.1.tgz`.
+For Node.JS bindings, use `--artifact deepspeech-0.0.2.tgz`.
 
 ## Build Requirements
 
@@ -133,4 +133,4 @@ make package
 make npm-pack
 ```
 
-This will create the package `deepspeech-0.0.1.tgz` in `native_client/javascript`.
+This will create the package `deepspeech-0.0.2.tgz` in `native_client/javascript`.

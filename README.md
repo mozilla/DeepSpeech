@@ -65,7 +65,7 @@ See the help output with `./deepspeech -h` and the [native client README](native
 
 Pre-built binaries that can be used for performing inference with a trained model can be found on TaskCluster. You'll need to download the appropriate Python wheel package.
 
-[deepspeech-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl (Python 2.7, Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/deepspeech-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl)
+[deepspeech-0.0.2-cp27-cp27mu-manylinux1_x86_64.whl (Python 2.7, Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/deepspeech-0.0.2-cp27-cp27mu-manylinux1_x86_64.whl)
 
 [Other configurations](https://tools.taskcluster.net/index/artifacts/#project.deepspeech.deepspeech.native_client.master/project.deepspeech.deepspeech.native_client.master)
 
@@ -81,8 +81,8 @@ See [client.py](native_client/client.py) for an example of how to use the bindin
 You can download the Node.JS bindings using `util/taskcluster.py` and install them with `npm`:
 
 ```bash
-python util/taskcluster.py --target . --artifact deepspeech-0.0.1.tgz
-npm install deepspeech-0.0.1.tgz
+python util/taskcluster.py --target . --artifact deepspeech-0.0.2.tgz
+npm install deepspeech-0.0.2.tgz
 ```
 
 See [client.js](native_client/client.js) for an example of how to use the bindings.
