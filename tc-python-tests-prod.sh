@@ -44,9 +44,9 @@ source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); plat = "manylinux1" if plat == "linux" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
 deepspeech_pkg="deepspeech-0.0.2-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
-pip install --upgrade scipy==0.19.1 ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
+pip install --upgrade ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 
-phrase_pbmodel_withlm=$(python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+phrase_pbmodel_withlm=$(deepspeech /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
 assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
 
 deactivate

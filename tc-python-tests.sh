@@ -47,17 +47,17 @@ if [ "${aot_model}" = "--aot" ]; then
 else
     deepspeech_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 fi
-pip install --upgrade scipy==0.19.1 ${deepspeech_pkg_url}
+pip install --upgrade ${deepspeech_pkg_url}
 
-phrase_pbmodel_nolm=$(python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt)
+phrase_pbmodel_nolm=$(deepspeech /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt)
 assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 
-phrase_pbmodel_withlm=$(python ${HOME}/DeepSpeech/ds/native_client/client.py /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+phrase_pbmodel_withlm=$(deepspeech /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
 assert_correct_ldc93s1 "${phrase_pbmodel_withlm}"
 
 if [ "${aot_model}" = "--aot" ]; then
-    phrase_somodel_nolm=$(python ${HOME}/DeepSpeech/ds/native_client/client.py "" /tmp/LDC93S1.wav /tmp/alphabet.txt)
-    phrase_somodel_withlm=$(python ${HOME}/DeepSpeech/ds/native_client/client.py "" /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+    phrase_somodel_nolm=$(deepspeech "" /tmp/LDC93S1.wav /tmp/alphabet.txt)
+    phrase_somodel_withlm=$(deepspeech "" /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
 
     assert_correct_ldc93s1_somodel "${phrase_somodel_nolm}" "${phrase_somodel_withlm}"
 fi

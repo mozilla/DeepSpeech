@@ -74,7 +74,7 @@ You can use pip to install the Python package, like so:
 pip install <path to .whl file>
 ```
 
-See [client.py](native_client/client.py) for an example of how to use the bindings.
+See [client.py](native_client/python/client.py) for an example of how to use the bindings.
 
 ### Installing Node.JS bindings
 

@@ -53,5 +53,6 @@ setup(name = project_name,
       license = 'MPL-2.0',
       url = 'https://github.com/mozilla/DeepSpeech',
       ext_modules = [model, utils],
-      install_requires = [ 'numpy' ],
+      entry_points={'console_scripts':['deepspeech = deepspeech.client:main']},
+      install_requires = ['numpy', 'scipy==0.19.1'],
       include_package_data = True)

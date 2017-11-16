@@ -121,7 +121,7 @@ make bindings
 sudo pip install dist/deepspeech*
 ```
 
-The API mirrors the C++ API and is demonstrated in [client.py](client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
+The API mirrors the C++ API and is demonstrated in [client.py](python/client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
 
 ## Node.JS bindings
 
