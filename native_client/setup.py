@@ -5,6 +5,7 @@ from distutils.command.build import build
 
 import os
 import subprocess
+import sys
 
 try:
     import numpy
@@ -17,6 +18,13 @@ except ImportError:
     assert 'NUMPY_INCLUDE' in os.environ
 
 numpy_include = os.getenv('NUMPY_INCLUDE', numpy_include)
+
+project_name = 'deepspeech'
+if '--project_name' in sys.argv:
+  project_name_idx = sys.argv.index('--project_name')
+  project_name = sys.argv[project_name_idx + 1]
+  sys.argv.remove('--project_name')
+  sys.argv.pop(project_name_idx)
 
 class BuildExtFirst(build):
     sub_commands = [('build_ext', build.has_ext_modules),
@@ -34,7 +42,7 @@ utils = Extension('_utils',
         include_dirs = [numpy_include],
         libraries = ['deepspeech_utils'])
 
-setup(name = 'deepspeech',
+setup(name = project_name,
       description = 'A library for running inference on a DeepSpeech model',
       author = 'Chris Lord',
       author_email='chrislord.net@gmail.com',
