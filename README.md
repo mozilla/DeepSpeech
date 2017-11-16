@@ -164,6 +164,45 @@ python util/taskcluster.py --target /tmp --source tensorflow --arch gpu --artifa
 pip install /tmp/tensorflow_gpu_warpctc-1.3.0rc0-cp27-cp27mu-linux_x86_64.whl
 ```
 
+### Common Voice training data
+
+The Common Voice corpus consists of voice samples that were donated through [Common Voice](https://voice.mozilla.org/).
+For automatically downloading and importing the corpus into a given directory, you can call:
+
+```bash
+bin/import_cv.py path/to/a/directory
+```
+
+Please be aware that this requires at least 70GB of free disk space and quite some time to conclude. 
+As this process creates a huge number of small files, using an SSD drive is highly recommended.
+If the import script gets interrupted, it will try to continue from where it stopped the next time you run it. 
+Unfortunately, there are some cases where it will need to start over. 
+Once the import is done, the directory will contain a bunch of CSV files.
+
+The following files are official user-validated sets for training, validating and testing:
+
+- `cv-valid-train.csv`
+- `cv-valid-dev.csv`
+- `cv-valid-test.csv`
+
+The following files are the non-validated unofficial sets for training, validating and testing:
+
+- `cv-other-train.csv`
+- `cv-other-dev.csv`
+- `cv-other-test.csv`
+
+`cv-invalid.csv` contains all samples that users flagged as invalid.
+
+A sub-directory called `cv_corpus_{version}` contains the mp3 and wav files that were extracted from an archive named `cv_corpus_{version}.tar.gz`.
+All entries in the CSV files refer to their samples by absolute paths. So moving this sub-directory would require another import or tweaking the CSV files accordingly.
+
+To use Common Voice data during training, validation and testing, you pass (comma separated combinations of) their filenames into `--train_files`, `--dev_files`, `--test_files` parameters of `DeepSpeech.py`. 
+If, for example, Common Voice was imported into `../data/CV`, `DeepSpeech.py` could be called like this:
+
+```bash
+./DeepSpeech.py --train_files ../data/CV/cv-valid-train.csv,../data/CV/cv-other-train.csv --dev_files ../data/CV/cv-valid-dev.csv --test_files ../data/CV/cv-valid-test.csv
+```
+
 ### Training a model
 
 The central (Python) script is `DeepSpeech.py` in the project's root directory. For its list of command line options, you can call:
