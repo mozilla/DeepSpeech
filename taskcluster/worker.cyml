@@ -6,3 +6,6 @@ taskcluster:
   generic:
     provisionerId: deepspeech-provisioner
     workerType: ds-macos-light
+  script:
+    provisionerId: deepspeech-provisioner
+    workerType: ds-scriptworker

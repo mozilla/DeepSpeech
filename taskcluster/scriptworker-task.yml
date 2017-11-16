@@ -1,0 +1,28 @@
+build:
+  template_file: simple-task.tyml
+  dependencies:
+    # Make sure builds are ready
+    - "darwin-amd64-cpu-opt"
+    - "linux-amd64-cpu-opt"
+    - "linux-rpi3-cpu-opt"
+    # For those we have tests, ensure they pass.
+    - "test-python_27-linux-amd64-opt"
+    - "test-python_34-linux-amd64-opt"
+    - "test-python_35-linux-amd64-opt"
+    - "test-python_36-linux-amd64-opt"
+    - "test-nodejs_4x-linux-amd64-opt"
+    - "test-nodejs_5x-linux-amd64-opt"
+    - "test-nodejs_6x-linux-amd64-opt"
+  allowed:
+    - "push"
+  ref_match: "refs/tags/"
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  artifacts_deps:
+    - "darwin-amd64-cpu-opt"
+    - "linux-amd64-cpu-opt"
+    - "linux-rpi3-cpu-opt"
+  metadata:
+    name: "DeepSpeech Packages"
+    description: "Trigger Uploading of DeepSpeech Packages to the Internets"
