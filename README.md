@@ -191,3 +191,6 @@ Documentation (incomplete) for the project can be found here: http://deepspeech.
 ## Contact/Getting Help
 
 First, check out our existing issues and the [FAQ on the wiki](https://github.com/mozilla/DeepSpeech/wiki) to see if your question is answered there. If it's not, and the question is about the code or the project's goals, feel free to open an issue in the repo. If the question is better suited for the FAQ, the team hangs out in the #machinelearning channel on [Mozilla IRC](https://wiki.mozilla.org/IRC), and people there can try to answer/help.
+
+<img src="http://www.underconsideration.com/brandnew/archives/mozilla_2017_logo.png" width="300"></img>
+<img src="https://www.tensorflow.org/_static/images/tensorflow/logo.png" width="125"></img>
