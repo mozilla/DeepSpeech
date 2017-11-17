@@ -18,13 +18,13 @@ If you're looking to train a model, you now have a `libctc_decoder_with_kenlm.so
 
 ## Installing the language bindings
 
-`native_client.tar.xz` doesn't include the language bindings by default. For that you can use the `--artifact` parameter to download a specific language binding file.
+For the Python bindings, you can use `pip`:
 
-For Python bindings, use `--artifact file_name`, where `file_name` is the appropriate file for your Python version and platform. The names of the available artifacts can be found on the listing page: [Linux](https://tools.taskcluster.net/index/artifacts/project.deepspeech.deepspeech.native_client.master/cpu) or [macOS](https://tools.taskcluster.net/index/artifacts/project.deepspeech.deepspeech.native_client.master/osx).
+```
+pip install deepspeech
+```
 
-For example, for Python 2.7 bindings on Linux, you can do `python util/taskcluster.py --target /destination --artifact deepspeech-0.0.2-cp27-cp27mu-manylinux1_x86_64.whl`.
-
-For Node.JS bindings, use `--artifact deepspeech-0.0.2.tgz`.
+For Node.JS bindings, use `python util/taskcluster.py --target . --artifact deepspeech-0.0.2.tgz` to download the package and `npm install deepspeech-0.0.2.tgz` to install it.
 
 ## Build Requirements
 
