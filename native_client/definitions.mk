@@ -34,9 +34,16 @@ NODE_PLATFORM_TARGET := --target_arch=arm --target_platform=linux
 TOOLCHAIN_LDD_OPTS   := --root $(RASPBIAN)/
 endif
 
-OS := $(shell uname -s)
+OS      := $(shell uname -s)
+
+# -Wl,--no-as-needed is required to force linker not to evict libs it thinks we
+# dont need ; will fail the build on OSX because that option does not exists
+ifneq ($(OS),Darwin)
+LDFLAGS += -Wl,--no-as-needed
+endif
+
 CFLAGS  += $(EXTRA_CFLAGS)
-LIBS    := -ldeepspeech -ldeepspeech_utils -ltensorflow_cc $(EXTRA_LIBS)
+LIBS    := -ldeepspeech -ldeepspeech_utils -ltensorflow_cc -ltensorflow_framework $(EXTRA_LIBS)
 LDFLAGS += -Wl,-rpath,. -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS) $(LIBS)
 
 AS      := $(TOOLCHAIN)as

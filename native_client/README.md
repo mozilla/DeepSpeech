@@ -72,7 +72,7 @@ Before building the DeepSpeech client libraries, you will need to prepare your e
 Then you can build the Tensorflow and DeepSpeech libraries.
 
 ```
-bazel build -c opt --copt=-O3 //tensorflow:libtensorflow_cc.so //native_client:deepspeech //native_client:deepspeech_utils //native_client:ctc_decoder_with_kenlm //native_client:generate_trie
+bazel build -c opt --copt=-O3 //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //native_client:deepspeech //native_client:deepspeech_utils //native_client:libctc_decoder_with_kenlm.so //native_client:generate_trie
 ```
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
@@ -101,7 +101,7 @@ Bazel targets:
 In the end, the previous example becomes:
 
 ```
-bazel build -c opt --copt=-O3 --define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64 --define=DS_MODEL_FRAMESIZE=494 --define=DS_MODEL_FILE=/tmp/model.ldc93s1.pb //tensorflow:libtensorflow_cc.so //native_client:deepspeech_model //tensorflow/compiler/aot:runtime //tensorflow/compiler/xla/service/cpu:runtime_matmul //tensorflow/compiler/xla:executable_run_options //native_client:deepspeech //native_client:deepspeech_utils //native_client:ctc_decoder_with_kenlm //native_client:generate_trie
+bazel build -c opt --copt=-O3 --define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64 --define=DS_MODEL_FRAMESIZE=494 --define=DS_MODEL_FILE=/tmp/model.ldc93s1.pb //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //native_client:deepspeech_model //tensorflow/compiler/aot:runtime //tensorflow/compiler/xla/service/cpu:runtime_matmul //tensorflow/compiler/xla:executable_run_options //native_client:deepspeech //native_client:deepspeech_utils //native_client:libctc_decoder_with_kenlm.so //native_client:generate_trie
 ```
 
 Later, when building either `deepspeech` binaries or bindings, you will have to add some extra variables to your `make` command-line (assuming `TFDIR` points to your TensorFlow's git clone):
