@@ -14,14 +14,14 @@ from deepspeech.model import Model
 BEAM_WIDTH = 500
 
 # The alpha hyperparameter of the CTC decoder. Language Model weight
-LM_WEIGHT = 2.15
+LM_WEIGHT = 1.75
 
 # The beta hyperparameter of the CTC decoder. Word insertion weight (penalty)
-WORD_COUNT_WEIGHT = -0.10
+WORD_COUNT_WEIGHT = 1.00
 
 # Valid word insertion weight. This is used to lessen the word insertion penalty
 # when the inserted word is part of the vocabulary
-VALID_WORD_COUNT_WEIGHT = 1.10
+VALID_WORD_COUNT_WEIGHT = 1.00
 
 
 # These constants are tied to the shape of the graph used (changing them changes
