@@ -12,6 +12,9 @@ LDFLAGS         :=
 SOX_CFLAGS      := `pkg-config --cflags sox`
 SOX_LDFLAGS     := `pkg-config --libs sox`
 PYTHON_PACKAGES := numpy
+ifeq ($(OS),Linux)
+PYTHON_PLATFORM_NAME := --plat-name manylinux1_x86_64
+endif
 endif
 
 ifeq ($(TARGET),rpi3)

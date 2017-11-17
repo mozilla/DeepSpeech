@@ -245,6 +245,8 @@ do_deepspeech_binary_build()
 
 do_deepspeech_python_build()
 {
+  rename_to_gpu=$1
+
   unset PYTHON_BIN_PATH
   unset PYTHONPATH
   export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
@@ -255,6 +257,11 @@ do_deepspeech_python_build()
 
   mkdir -p wheels
 
+  SETUP_FLAGS=""
+  if [ "${rename_to_gpu}" ]; then
+    SETUP_FLAGS="--project_name deepspeech-gpu"
+  fi
+
   for pyver in ${SUPPORTED_PYTHON_VERSIONS}; do
     pyenv install ${pyver}
     pyenv virtualenv ${pyver} deepspeech
@@ -264,9 +271,10 @@ do_deepspeech_python_build()
       TARGET=${SYSTEM_TARGET} \
       RASPBIAN=/tmp/multistrap-raspbian-jessie \
       TFDIR=${DS_TFDIR} \
+      SETUP_FLAGS="${SETUP_FLAGS}" \
       bindings-clean bindings
 
-    cp native_client/dist/deepspeech-*.whl wheels
+    cp native_client/dist/*.whl wheels
 
     make -C native_client/ bindings-clean
 
@@ -277,6 +285,8 @@ do_deepspeech_python_build()
 
 do_deepspeech_nodejs_build()
 {
+  rename_to_gpu=$1
+
   npm update && npm install node-gyp node-pre-gyp
 
   export PATH="$(npm root)/.bin/:$PATH"
@@ -291,6 +301,11 @@ do_deepspeech_nodejs_build()
   done;
 
   make -C native_client/javascript clean npm-pack
+
+  if [ "${rename_to_gpu}" ]; then
+    pkg=(native_client/javascript/deepspeech-*.tgz)
+    mv "${pkg}" "${pkg//deepspeech/deepspeech-gpu}"
+  fi
 }
 
 package_native_client()

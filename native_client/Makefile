@@ -35,7 +35,7 @@ MANIFEST.in:
 
 bindings-package: MANIFEST.in
 	cat MANIFEST.in
-	$(NUMPY_INCLUDE) python ./setup.py bdist_wheel $(PYTHON_PLATFORM_NAME)
+	$(NUMPY_INCLUDE) python ./setup.py bdist_wheel $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
 
 bindings: bindings-build bindings-package
 

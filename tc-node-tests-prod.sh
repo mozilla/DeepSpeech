@@ -19,7 +19,7 @@ download_data
 pushd ${HOME}/DeepSpeech/ds/native_client/
     node --version
     npm --version
-    npm install ${DEEPSPEECH_ARTIFACTS_ROOT}/deepspeech-0.0.1.tgz
+    npm install ${DEEPSPEECH_ARTIFACTS_ROOT}/deepspeech-0.0.2.tgz
     npm install
 
     phrase_pbmodel_withlm=$(node client.js /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)

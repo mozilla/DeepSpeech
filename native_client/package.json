@@ -1,6 +1,6 @@
 {
   "name": "ds-client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A client binary to access DeepSpeech trained models.",
   "license": "MPL-2.0",
   "author": {
@@ -12,6 +12,6 @@
     "argparse": "1.0.9",
     "sox-stream": "2.0.1",
     "memory-stream": "0.0.3",
-    "deepspeech": "0.0.1"
+    "deepspeech": "0.0.2"
   }
 }
