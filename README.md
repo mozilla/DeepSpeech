@@ -5,14 +5,25 @@
 
 Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to make the implementation easier.
 
+![Usage](images/usage.gif)
+
+Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. You can then use the `deepspeech` binary to do speech-to-text on an audio file:
+
+```bash
+pip install deepspeech
+deepspeech output_model.pb my_audio_file.wav alphabet.txt
+```
+
+See the output of `deepspeech -h` for more information.
+
 **Table of Contents**
 
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
 - [Using the model](#using-the-model)
+  - [Using the Python package](#using-the-python-package)
   - [Using the command line client](#using-the-command-line-client)
-  - [Installing Python bindings](#installing-python-bindings)
-  - [Installing Node.JS bindings](#installing-nodejs-bindings)
+  - [Using the Node.JS package](#using-the-nodejs-package)
 - [Training](#training)
   - [Recommendations](#recommendations)
   - [Training a model](#training-a-model)
@@ -39,6 +50,17 @@ git clone https://github.com/mozilla/DeepSpeech
 
 If all you want to do is use an already trained model for doing speech-to-text, you can grab one of our pre-built binaries. You can use a command-line binary, a Python package, or a Node.JS package.
 
+### Using the Python package
+
+Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. You can then use the `deepspeech` binary to do speech-to-text on an audio file:
+
+```bash
+pip install deepspeech
+deepspeech output_model.pb my_audio_file.wav alphabet.txt lm.binary trie
+```
+
+See [client.py](native_client/python/client.py) for an example of how to use the package programatically.
+
 ### Using the command-line client
 
 To download the pre-built binaries, use `util/taskcluster.py`:
@@ -61,22 +83,7 @@ This will download `native_client.tar.xz` which includes the deepspeech binary a
 
 See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
 
-### Installing Python bindings
-
-Pre-built binaries that can be used for performing inference with a trained model can be found on TaskCluster. You'll need to download the appropriate Python wheel package.
-
-[deepspeech-0.0.2-cp27-cp27mu-manylinux1_x86_64.whl (Python 2.7, Linux / amd64)](https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.cpu/artifacts/public/deepspeech-0.0.2-cp27-cp27mu-manylinux1_x86_64.whl)
-
-[Other configurations](https://tools.taskcluster.net/index/artifacts/#project.deepspeech.deepspeech.native_client.master/project.deepspeech.deepspeech.native_client.master)
-
-You can use pip to install the Python package, like so:
-```bash
-pip install <path to .whl file>
-```
-
-See [client.py](native_client/python/client.py) for an example of how to use the bindings.
-
-### Installing Node.JS bindings
+### Using the Node.JS package
 
 You can download the Node.JS bindings using `util/taskcluster.py` and install them with `npm`:
 
