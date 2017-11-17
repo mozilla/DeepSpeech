@@ -72,7 +72,7 @@ assert_correct_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had yeducksotingrecywachworallyear"
+  assert_correct_inference "$1" "she had the duck so ingrecywachworallyear"
 }
 
 assert_correct_ldc93s1_somodel()
