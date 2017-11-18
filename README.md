@@ -106,8 +106,8 @@ Install the required dendencies using pip:
 
 ```bash
 cd DeepSpeech
-python util/taskcluster.py --target /tmp --source tensorflow --artifact tensorflow_warpctc-1.3.0rc0-cp27-cp27mu-manylinux1_x86_64.whl
-pip install /tmp/tensorflow_warpctc-1.3.0rc0-cp27-cp27mu-manylinux1_x86_64.whl
+python util/taskcluster.py --target /tmp --source tensorflow --artifact tensorflow_warpctc-1.3.0rc0-cp27-cp27mu-linux_x86_64.whl
+pip install /tmp/tensorflow_warpctc-1.3.0rc0-cp27-cp27mu-linux_x86_64.whl
 pip install -r requirements.txt
 ```
 
@@ -125,8 +125,8 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip uninstall tensorflow
-python util/taskcluster.py --target /tmp --source tensorflow --arch gpu --artifact tensorflow_gpu_warpctc-1.3.0rc0-cp27-cp27mu-manylinux1_x86_64.whl
-pip install /tmp/tensorflow_gpu_warpctc-1.3.0rc0-cp27-cp27mu-manylinux1_x86_64.whl
+python util/taskcluster.py --target /tmp --source tensorflow --arch gpu --artifact tensorflow_gpu_warpctc-1.3.0rc0-cp27-cp27mu-linux_x86_64.whl
+pip install /tmp/tensorflow_gpu_warpctc-1.3.0rc0-cp27-cp27mu-linux_x86_64.whl
 ```
 
 ### Training a model
