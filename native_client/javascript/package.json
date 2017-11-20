@@ -10,7 +10,7 @@
     },
     "binary": {
         "module_name" : "deepspeech",
-        "module_path" : "./lib/binding/v{version}/{node_abi}-{platform}-{arch}/",
+        "module_path" : "./lib/binding/v{version}/{platform}-{arch}/{node_abi}/",
         "remote_path" : "./v{version}/{configuration}/",
         "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
         "host"        : "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/"

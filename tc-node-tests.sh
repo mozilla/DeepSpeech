@@ -20,7 +20,7 @@ pushd ${HOME}/DeepSpeech/ds/native_client/
     if [ "${aot_model}" = "--aot" ]; then
         npm install ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/deepspeech-0.0.2.tgz
     else
-        npm install ${DEEPSPEECH_ARTIFACTS_ROOT}/deepspeech-0.0.2.tgz
+        npm install ${DEEPSPEECH_NODEJS}/deepspeech-0.0.2.tgz
     fi
 
     npm install
