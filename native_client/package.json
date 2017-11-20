@@ -3,10 +3,7 @@
   "version": "0.0.2",
   "description": "A client binary to access DeepSpeech trained models.",
   "license": "MPL-2.0",
-  "author": {
-    "name": "Chris Lord",
-    "email": "contact@chrislord.net"
-  },
+  "author": "Mozilla",
   "main": "client.js",
   "dependencies": {
     "argparse": "1.0.9",
