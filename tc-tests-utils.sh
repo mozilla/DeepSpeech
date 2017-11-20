@@ -297,7 +297,7 @@ do_deepspeech_nodejs_build()
       RASPBIAN=/tmp/multistrap-raspbian-jessie \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$node \
-      clean package
+      clean node-wrapper
   done;
 
   make -C native_client/javascript clean npm-pack
@@ -306,6 +306,26 @@ do_deepspeech_nodejs_build()
     pkg=(native_client/javascript/deepspeech-*.tgz)
     mv "${pkg}" "${pkg//deepspeech/deepspeech-gpu}"
   fi
+
+  tar -czf native_client/javascript/wrapper.tar.gz \
+    -C native_client/javascript/ lib/
+}
+
+do_deepspeech_npm_package()
+{
+  cd ${DS_DSDIR}
+
+  npm update && npm install node-gyp node-pre-gyp
+
+  export PATH="$(npm root)/.bin/:$PATH"
+
+  all_tasks="$(curl -s https://queue.taskcluster.net/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+
+  for dep in ${all_tasks}; do
+    curl -L https://queue.taskcluster.net/v1/task/${dep}/artifacts/public/wrapper.tar.gz | tar -C native_client/javascript -xzvf -
+  done;
+
+  make -C native_client/javascript clean npm-pack
 }
 
 package_native_client()

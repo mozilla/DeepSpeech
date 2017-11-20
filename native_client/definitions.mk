@@ -46,12 +46,12 @@ LD      := $(TOOLCHAIN)ld
 LDD     := $(TOOLCHAIN)ldd $(TOOLCHAIN_LDD_OPTS)
 
 RPATH_PYTHON         := '-Wl,-rpath,\$$ORIGIN/lib/'
-RPATH_NODEJS         := '-Wl,-rpath,$$\$$ORIGIN/../../../'
+RPATH_NODEJS         := '-Wl,-rpath,$$\$$ORIGIN/../'
 META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
 META_LD_LIBRARY_PATH := DYLD_LIBRARY_PATH
 RPATH_PYTHON         := '-Wl,-rpath,@loader_path/lib/'
-RPATH_NODEJS         := '-Wl,-rpath,@loader_path/../../../'
+RPATH_NODEJS         := '-Wl,-rpath,@loader_path/../'
 endif
 
 # Takes care of looking into bindings built (SRC_FILE, can contain a wildcard)
