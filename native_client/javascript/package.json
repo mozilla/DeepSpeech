@@ -3,7 +3,7 @@
     "version" : "0.0.2",
     "description" : "DeepSpeech NodeJS bindings",
     "main" : "./index",
-    "author" : "Mozilla DeepSpeech <deepspeech>",
+    "author" : "Mozilla",
     "repository"   :  {
        "type" : "git",
        "url"  : "git://github.com/mozilla/DeepSpeech.git"
