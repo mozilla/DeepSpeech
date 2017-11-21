@@ -24,7 +24,11 @@ For the Python bindings, you can use `pip`:
 pip install deepspeech
 ```
 
-For Node.JS bindings, use `python util/taskcluster.py --target . --artifact deepspeech-0.0.2.tgz` to download the package and `npm install deepspeech-0.0.2.tgz` to install it.
+Check the [main README](../README.md) for more details about setup and virtual environment use.
+
+### Node.JS bindings
+
+For Node.JS bindings, use `python util/taskcluster.py --target . --artifact deepspeech-0.0.2.tgz` to download the package and `npm install deepspeech-0.0.2.tgz` to install it. Please note that as of now, we only support Node.JS versions 4, 4 and 6. Once [SWIG has support](https://github.com/swig/swig/pull/968) we can build for newer versions.
 
 ## Build Requirements
 

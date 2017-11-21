@@ -7,7 +7,7 @@ Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trai
 
 ![Usage](images/usage.gif)
 
-Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. You can then use the `deepspeech` binary to do speech-to-text on an audio file:
+Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. Proper setup using virtual environment is recommended and you can find that documented [below](#using-the-python-package). You can then use the `deepspeech` binary to do speech-to-text on an audio file:
 
 ```bash
 pip install deepspeech
@@ -54,8 +54,43 @@ If all you want to do is use an already trained model for doing speech-to-text, 
 
 Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. You can then use the `deepspeech` binary to do speech-to-text on an audio file:
 
+For the Python bindings, it is highly recommended that you perform the installation within a virtual environment. You can find more information about those in [this documentation](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
+We will continue under the assumption that you already have your system properly setup to create new virtual environments.
+
+#### Create a DeepSpeech virtual environment
+
+In creating a virtual environment you will create a directory containing a `python` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on `$HOME/tmp/deepspeech-venv`. You can create it using this command:
+
+```
+$ virtualenv $HOME/tmp/deepspeech-venv/
+```
+
+Once this command completes successfully, the environment will be ready to be activated.
+
+#### Activating the environment
+
+Each time you need to work with DeepSpeech, you have to *activate*, *load* this virtual environment. This is done with this simple command:
+
+```
+$ source $HOME/tmp/deepspeech-venv/bin/activate
+```
+
+#### Installing DeepSpeech Python bindings
+
+Once your environment has been setup and loaded, you can use `pip` to manage packages locally. On a fresh setup of the virtualenv, you will have to install the DeepSpeech wheel. You can check if it is already installed by taking a look at the output of `pip list`. To perform the installation, just issue:
+
+```
+$ pip install deepspeech
+```
+
+If it is already installed, you can also update it:
+```
+$ pip install --upgrade deepspeech
+```
+
+In both cases, it should take care of intalling all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
+
 ```bash
-pip install deepspeech
 deepspeech output_model.pb my_audio_file.wav alphabet.txt lm.binary trie
 ```
 
