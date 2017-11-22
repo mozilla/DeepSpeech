@@ -31,10 +31,11 @@ bindings-build:
 
 MANIFEST.in:
 	> $@
-	$(call copy_missing_libs,temp_build/*.so,temp_build/lib,$@)
+	$(call copy_missing_libs,temp_build/deepspeech/*.so,temp_build/deepspeech/lib,$@)
 
 bindings-package: MANIFEST.in
 	cat MANIFEST.in
+	rm temp_build/python/*_wrap.o
 	$(NUMPY_INCLUDE) python ./setup.py bdist_wheel $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
 
 bindings: bindings-build bindings-package
