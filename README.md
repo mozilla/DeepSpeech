@@ -127,7 +127,7 @@ python util/taskcluster.py --target . --artifact deepspeech-0.0.2.tgz
 npm install deepspeech-0.0.2.tgz
 ```
 
-See [client.js](native_client/client.js) for an example of how to use the bindings.
+See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.
 
 ### Installing bindings from source
 
