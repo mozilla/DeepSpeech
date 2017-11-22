@@ -300,11 +300,10 @@ do_deepspeech_nodejs_build()
       clean node-wrapper
   done;
 
-  make -C native_client/javascript clean npm-pack
-
   if [ "${rename_to_gpu}" ]; then
-    pkg=(native_client/javascript/deepspeech-*.tgz)
-    mv "${pkg}" "${pkg//deepspeech/deepspeech-gpu}"
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
+  else
+    make -C native_client/javascript clean npm-pack
   fi
 
   tar -czf native_client/javascript/wrapper.tar.gz \
