@@ -100,7 +100,7 @@ $ pip install --upgrade deepspeech
 Alternatively, if you have a supported NVIDIA GPU on Linux (See the release notes to find which GPU's are supported.), you can install the GPU specific package as follows:
 
 ```
-pip install deepspeech-gpu
+$ pip install deepspeech-gpu
 ```
 
 or update it as folllows:
