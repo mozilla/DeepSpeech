@@ -32,12 +32,12 @@ class BuildExtFirst(build):
                     ('build_clib', build.has_c_libraries),
                     ('build_scripts', build.has_scripts)]
 
-model = Extension('_model',
+model = Extension('deepspeech._model',
         ['python/model.i'],
         include_dirs = [numpy_include],
         libraries = list(map(lambda x: x.strip(), os.getenv('LIBS', '').split('-l')[1:])))
 
-utils = Extension('_utils',
+utils = Extension('deepspeech._utils',
         ['python/utils.i'],
         include_dirs = [numpy_include],
         libraries = ['deepspeech_utils'])
