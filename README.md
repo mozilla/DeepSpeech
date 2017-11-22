@@ -120,16 +120,11 @@ See the help output with `./deepspeech -h` and the [native client README](native
 
 ### Using the Node.JS package
 
-You can download the Node.JS bindings using `npm`:
+You can download the Node.JS bindings using `util/taskcluster.py` and install them with `npm`:
 
 ```bash
-npm install deepspeech
-```
-
-Alternatively, if you're using Linux and have a supported NVIDIA GPU (See the release notes to find which GPU's are supported.), you can install the GPU specific package as follows:
-
-```bash
-npm install deepspeech-gpu
+python util/taskcluster.py --target . --artifact deepspeech-0.0.2.tgz
+npm install deepspeech-0.0.2.tgz
 ```
 
 See [client.js](native_client/client.js) for an example of how to use the bindings.
