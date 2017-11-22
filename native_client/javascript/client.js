@@ -1,6 +1,8 @@
+#!/usr/bin/env node
+
 const Fs = require('fs');
 const Sox = require('sox-stream');
-const Ds = require('deepspeech');
+const Ds = require('./index.js');
 const ArgumentParser = require('argparse').ArgumentParser;
 const MemoryStream = require('memory-stream');
 

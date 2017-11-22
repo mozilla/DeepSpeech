@@ -16,12 +16,11 @@ model_name=$(basename "${model_source}")
 
 download_data
 
-pushd ${HOME}/DeepSpeech/ds/native_client/
-    node --version
-    npm --version
-    npm install ${DEEPSPEECH_NODEJS}/deepspeech-0.0.2.tgz
-    npm install
+node --version
+npm --version
+npm install ${DEEPSPEECH_NODEJS}/deepspeech-0.0.2.tgz
 
-    phrase_pbmodel_withlm=$(node client.js /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
-    assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
-popd
+export PATH=$HOME/node_modules/.bin/:$PATH
+
+phrase_pbmodel_withlm=$(deepspeech /tmp/${model_name} /tmp/LDC93S1.wav /tmp/alphabet.txt /tmp/lm.binary /tmp/trie)
+assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
