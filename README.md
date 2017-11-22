@@ -16,7 +16,7 @@ pip install deepspeech
 deepspeech output_model.pb my_audio_file.wav alphabet.txt
 ```
 
-Alternatively, quicker inference can be performed using a supported NVIDIA GPU. (See the release notes to find which GPU's are supported.) This is done by instead installing the GPU specific package:
+Alternatively, quicker inference can be performed using a supported NVIDIA GPU on Linux. (See the release notes to find which GPU's are supported.) This is done by instead installing the GPU specific package:
 
 ```bash
 pip install deepspeech-gpu
@@ -97,7 +97,7 @@ If it is already installed, you can also update it:
 $ pip install --upgrade deepspeech
 ```
 
-Alternatively, if you have a supported NVIDIA GPU (See the release notes to find which GPU's are supported.), you can install the GPU specific package as follows:
+Alternatively, if you have a supported NVIDIA GPU on Linux (See the release notes to find which GPU's are supported.), you can install the GPU specific package as follows:
 
 ```
 pip install deepspeech-gpu
