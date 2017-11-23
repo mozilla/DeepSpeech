@@ -11,7 +11,7 @@ curl -L --silent https://raw.githubusercontent.com/lissyx/taskcluster-github-dec
 
 # First, perform dry run for push and pull request
 # This should help us track merge failures in advance
-for event in pull_request.opened pull_request.synchronize pull_request.reopened push;
+for event in pull_request.opened pull_request.synchronize pull_request.reopened push release;
 do
     GITHUB_EVENT="${event}" TASK_ID="" GITHUB_HEAD_REF="refs/heads/branchName" python3 ${curdir}/tc-decision.py --dry
     GITHUB_EVENT="${event}" TASK_ID="" GITHUB_HEAD_REF="refs/tags/tagName" python3 ${curdir}/tc-decision.py --dry

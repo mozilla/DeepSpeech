@@ -17,6 +17,7 @@ tasks:
           - pull_request.synchronize
           - pull_request.reopened
           - push
+          - release
         branches:
           - master
 

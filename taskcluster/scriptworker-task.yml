@@ -7,7 +7,7 @@ build:
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
   allowed:
-    - "push"
+    - "release"
   ref_match: "refs/tags/"
   routes:
     - "notify.irc-channel.${notifications.irc}.on-exception"
