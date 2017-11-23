@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from timeit import default_timer as timer
 
 import argparse
 import sys
@@ -48,14 +49,29 @@ def main():
                         help='Path to the language model trie file created with native_client/generate_trie')
     args = parser.parse_args()
 
+    print('Loading model from file %s' % (args.model), file=sys.stderr)
+    model_load_start = timer()
     ds = Model(args.model, N_FEATURES, N_CONTEXT, args.alphabet, BEAM_WIDTH)
+    model_load_end = timer() - model_load_start
+    print('Loaded model in %0.3fs.' % (model_load_end), file=sys.stderr)
 
     if args.lm and args.trie:
+        print('Loading language model from files %s %s' % (args.lm, args.trie), file=sys.stderr)
+        lm_load_start = timer()
         ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_WEIGHT,
                                WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT)
+        lm_load_end = timer() - lm_load_start
+        print('Loaded language model in %0.3fs.' % (lm_load_end), file=sys.stderr)
 
     fs, audio = wav.read(args.audio)
+    # We can assume 16kHz
+    audio_length = len(audio) * ( 1 / 16000)
+
+    print('Running inference.', file=sys.stderr)
+    inference_start = timer()
     print(ds.stt(audio, fs))
+    inference_end = timer() - inference_start
+    print('Inference took %0.3fs for %0.3fs audio file.' % (inference_end, audio_length), file=sys.stderr)
 
 if __name__ == '__main__':
     main()

@@ -40,19 +40,39 @@ parser.addArgument(['lm'], {help: 'Path to the language model binary file', narg
 parser.addArgument(['trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
 var args = parser.parseArgs();
 
+function totalTime(hrtimeValue) {
+  return (hrtimeValue[0] + hrtimeValue[1] / 1000000000).toPrecision(4);
+}
+
 var audioStream = new MemoryStream();
 Fs.createReadStream(args['audio']).
   pipe(Sox({ output: { bits: 16, rate: 16000, channels: 1, type: 'raw' } })).
   pipe(audioStream);
 audioStream.on('finish', () => {
   audioBuffer = audioStream.toBuffer();
+
+  console.error('Loading model from file %s', args['model']);
+  const model_load_start = process.hrtime();
   var model = new Ds.Model(args['model'], N_FEATURES, N_CONTEXT, args['alphabet'], BEAM_WIDTH);
+  const model_load_end = process.hrtime(model_load_start);
+  console.error('Loaded model in %ds.', totalTime(model_load_end));
 
   if (args['lm'] && args['trie']) {
+    console.error('Loading language model from files %s %s', args['lm'], args['trie']);
+    const lm_load_start = process.hrtime();
     model.enableDecoderWithLM(args['alphabet'], args['lm'], args['trie'],
                               LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+    const lm_load_end = process.hrtime(lm_load_start);
+    console.error('Loaded language model in %ds.', totalTime(lm_load_end));
   }
+
+  const inference_start = process.hrtime();
+  console.error('Running inference.');
+  const audioLength = (audioBuffer.length / 2) * ( 1 / 16000);
+
   // We take half of the buffer_size because buffer is a char* while
   // LocalDsSTT() expected a short*
   console.log(model.stt(audioBuffer.slice(0, audioBuffer.length / 2), 16000));
+  const inference_stop = process.hrtime(inference_start);
+  console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
 });
