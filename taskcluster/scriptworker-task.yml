@@ -4,6 +4,7 @@ build:
     # Make sure builds are ready
     - "darwin-amd64-cpu-opt"
     - "linux-amd64-cpu-opt"
+    - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
   allowed:
     - "push"
@@ -14,6 +15,7 @@ build:
   artifacts_deps:
     - "darwin-amd64-cpu-opt"
     - "linux-amd64-cpu-opt"
+    - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
     - "node-package"
   metadata:

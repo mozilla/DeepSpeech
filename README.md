@@ -123,8 +123,8 @@ See the help output with `./deepspeech -h` and the [native client README](native
 You can download the Node.JS bindings using `util/taskcluster.py` and install them with `npm`:
 
 ```bash
-python util/taskcluster.py --target . --artifact deepspeech-0.0.2.tgz
-npm install deepspeech-0.0.2.tgz
+python util/taskcluster.py --target . --artifact deepspeech-0.0.3.tgz
+npm install deepspeech-0.0.3.tgz
 ```
 
 See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.
