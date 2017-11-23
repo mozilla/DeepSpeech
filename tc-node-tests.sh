@@ -17,9 +17,9 @@ download_data
 node --version
 npm --version
 if [ "${aot_model}" = "--aot" ]; then
-    npm install ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/deepspeech-0.0.2.tgz
+    npm install ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/deepspeech-0.0.3.tgz
 else
-    npm install ${DEEPSPEECH_NODEJS}/deepspeech-0.0.2.tgz
+    npm install ${DEEPSPEECH_NODEJS}/deepspeech-0.0.3.tgz
 fi
 
 export PATH=$HOME/node_modules/.bin/:$PATH
