@@ -42,7 +42,7 @@ pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
 platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); plat = "manylinux1" if plat == "linux" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
-deepspeech_pkg="deepspeech-0.0.3-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
+deepspeech_pkg="deepspeech-0.1.0-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
 pip install --upgrade ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 
