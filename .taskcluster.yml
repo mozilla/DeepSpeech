@@ -19,6 +19,8 @@ tasks:
           - push
         branches:
           - master
+          - v0.0.3
+          - v0.1.0
 
     routes:
       - "notify.irc-channel.#machinelearning.on-any"
