@@ -7,14 +7,23 @@ Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trai
 
 ![Usage](images/usage.gif)
 
-Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. Proper setup using virtual environment is recommended and you can find that documented [below](#using-the-python-package). You can then use the `deepspeech` binary to do speech-to-text on an audio file:
+Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. Proper setup using virtual environment is recommended and you can find that documented [below](#using-the-python-package). 
+
+Once installed you can then use the `deepspeech` binary to do speech-to-text on an audio file:
 
 ```bash
 pip install deepspeech
 deepspeech output_model.pb my_audio_file.wav alphabet.txt
 ```
 
-See the output of `deepspeech -h` for more information.
+Alternatively, quicker inference can be performed using a supported NVIDIA GPU on Linux. (See the release notes to find which GPU's are supported.) This is done by instead installing the GPU specific package:
+
+```bash
+pip install deepspeech-gpu
+deepspeech output_model.pb my_audio_file.wav alphabet.txt
+```
+
+See the output of `deepspeech -h` for more information on the use of `deepspeech`.
 
 **Table of Contents**
 
@@ -86,6 +95,17 @@ $ pip install deepspeech
 If it is already installed, you can also update it:
 ```
 $ pip install --upgrade deepspeech
+```
+
+Alternatively, if you have a supported NVIDIA GPU on Linux (See the release notes to find which GPU's are supported.), you can install the GPU specific package as follows:
+
+```
+$ pip install deepspeech-gpu
+```
+
+or update it as folllows:
+```
+$ pip install --upgrade deepspeech-gpu
 ```
 
 In both cases, it should take care of intalling all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
