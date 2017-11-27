@@ -23,7 +23,7 @@ pip install deepspeech-gpu
 deepspeech output_model.pb my_audio_file.wav alphabet.txt
 ```
 
-See the output of `deepspeech -h` for more information on the use of `deepspeech`.
+See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
 
 **Table of Contents**
 
