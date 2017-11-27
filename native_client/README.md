@@ -16,6 +16,16 @@ If you want the CUDA capable version of the binaries, use `--arch gpu`. Note tha
 
 If you're looking to train a model, you now have a `libctc_decoder_with_kenlm.so` file that you can pass to the `--decoder_library_path` parameter of `DeepSpeech.py`.
 
+## Required Dependencies
+
+Running inference might require some runtime dependencies to be already installed on your system. Those should be the same, whatever the bindings you are using:
+* libsox2
+* libstdc++6
+* libgomp1
+* libpthread
+
+Please refer to your system's documentation on how to install those dependencies.
+
 ## Installing the language bindings
 
 For the Python bindings, you can use `pip`:
