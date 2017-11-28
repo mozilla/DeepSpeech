@@ -39,8 +39,13 @@ tasks:
     payload:
       maxRunTime: 600
       image: "ubuntu:14.04"
+
       features:
         taskclusterProxy: true
+
+      env:
+        TC_DECISION_SHA: 4ab585bf7416350bf6caf4a57c441da473a195b4
+
       command:
         - "/bin/bash"
         - "--login"
