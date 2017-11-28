@@ -33,6 +33,8 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Using the Python package](#using-the-python-package)
   - [Using the command line client](#using-the-command-line-client)
   - [Using the Node.JS package](#using-the-nodejs-package)
+  - [Installing bindings from source](#installing-bindings-from-source)
+  - [Third party bindings](#third-party-bindings)
 - [Training](#training)
   - [Recommendations](#recommendations)
   - [Training a model](#training-a-model)
@@ -157,6 +159,12 @@ See [client.js](native_client/javascript/client.js) for an example of how to use
 ### Installing bindings from source
 
 If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow [these instructions](native_client/README.md).
+
+### Third party bindings
+
+In addition to the bindings above, third party developers have started to provide bindings to other languages:
+
+* [RustAudio](https://github.com/RustAudio) provide a [Rust](https://www.rust-lang.org) binding, the installation and use of which is described in their [deepspeech-rs](https://github.com/RustAudio/deepspeech-rs) repo.
 
 ## Training
 
