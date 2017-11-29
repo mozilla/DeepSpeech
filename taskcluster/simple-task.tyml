@@ -27,9 +27,14 @@ then:
 
   payload:
     artifacts_deps:
-      $map: { $eval: build.artifacts_deps }
-      each(b):
-        $eval: as_slugid(b)
+      python:
+        $map: { $eval: build.artifacts_deps.python }
+        each(b):
+          $eval: as_slugid(b)
+      javascript:
+        $map: { $eval: build.artifacts_deps.javascript }
+        each(b):
+          $eval: as_slugid(b)
 
   metadata:
     name: ${build.metadata.name}
