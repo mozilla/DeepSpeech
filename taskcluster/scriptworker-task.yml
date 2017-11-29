@@ -6,6 +6,7 @@ build:
     - "linux-amd64-cpu-opt"
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
+    - "node-package"
   allowed:
     - "push"
   ref_match: "refs/tags/"
