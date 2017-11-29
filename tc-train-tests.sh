@@ -5,6 +5,7 @@ set -xe
 source $(dirname "$0")/tc-tests-utils.sh
 
 pyver=$1
+tf=$2
 
 if [ -z "${pyver}" ]; then
     echo "No python version given, aborting."
@@ -28,8 +29,14 @@ pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
-pip install --upgrade ${TENSORFLOW_WHEEL}
-grep -v "tensorflow" ${HOME}/DeepSpeech/ds/requirements.txt | pip install --upgrade -r /dev/stdin
+if [ "${tf}" = "mozilla" ]; then
+    pip install --upgrade ${TENSORFLOW_WHEEL}
+    grep -v "tensorflow" ${HOME}/DeepSpeech/ds/requirements.txt | pip install --upgrade -r /dev/stdin
+fi;
+
+if [ "${tf}" = "upstream" ]; then
+    pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt
+fi;
 
 download_ctc_kenlm "/tmp/ds"
 
