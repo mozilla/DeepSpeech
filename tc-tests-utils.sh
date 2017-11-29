@@ -36,7 +36,7 @@ model_name=$(basename "${model_source}")
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.13 3.4.6 3.5.3 3.6.2}
 # 7.10.0 and 8.0.0 targets fails to build
 # > ../deepspeech_wrap.cxx:966:23: error: 'WeakCallbackData' in namespace 'v8' does not name a type
-SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.0 5.12.0 6.10.0}
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.6 5.12.0 6.12.0 7.10.1 8.9.1 9.2.0}
 
 assert_correct_inference()
 {
