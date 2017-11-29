@@ -20,7 +20,9 @@ build:
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
     javascript:
+      # GPU package
       - "linux-amd64-gpu-opt"
+      # CPU package with all archs
       - "node-package"
   metadata:
     name: "DeepSpeech Packages"
