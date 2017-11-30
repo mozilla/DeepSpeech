@@ -1,0 +1,13 @@
+build:
+  template_file: test-linux-gpu-base.tyml
+  dependencies:
+    - "linux-amd64-gpu-opt"
+    - "test-training-linux-amd64-opt"
+  system_setup:
+    >
+      apt-get -qq update && apt-get -qq -y install ${cuda.packages.apt} && nvidia-smi
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-cpp-ds-tests.sh"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CUDA C++ tests"
+    description: "Testing DeepSpeech C++ for Linux/AMD64, CUDA, optimized version"
