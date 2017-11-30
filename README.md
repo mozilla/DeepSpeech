@@ -9,7 +9,7 @@ Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trai
 
 Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. Proper setup using virtual environment is recommended and you can find that documented [below](#using-the-python-package).
 
-Once installed you can then use the `deepspeech` binary to do speech-to-text on an audio file:
+Once installed you can then use the `deepspeech` binary to do speech-to-text on an audio file (currently only WAVE files with 16-bit, 16 kHz, mono are supported in the Python client):
 
 ```bash
 pip install deepspeech
