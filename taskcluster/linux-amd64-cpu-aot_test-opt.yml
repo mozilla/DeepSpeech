@@ -12,6 +12,9 @@ build:
     >
       ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
       apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
   scripts:
     build: "taskcluster/aot-test-model-build.sh"
     package: "taskcluster/package.sh"

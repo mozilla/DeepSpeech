@@ -7,11 +7,31 @@ nodejs:
     prep_4: 'echo "deb http://deb.nodesource.com/node_4.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_5: 'echo "deb http://deb.nodesource.com/node_5.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_6: 'echo "deb http://deb.nodesource.com/node_6.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_7: 'echo "deb http://deb.nodesource.com/node_7.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_8: 'echo "deb http://deb.nodesource.com/node_8.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_9: 'echo "deb http://deb.nodesource.com/node_9.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
 ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:
   packages:
     install_script: 'wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig_3.0.10-1.1_amd64.deb -O /tmp/swig_3.0.10-1.1_amd64.deb && wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.1_amd64.deb -O /tmp/swig3.0_3.0.10-1.1_amd64.deb && dpkg -i /tmp/swig_3.0.10-1.1_amd64.deb /tmp/swig3.0_3.0.10-1.1_amd64.deb'
+  patch_nodejs:
+    linux: '(for patch_file in /home/build-user/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_*.patch; do patch -d /usr/share/swig3.0/ -p2 < $patch_file; done)'
+    # Test if we can reverse patch #2:
+    #   - if yes, likely we are in a good state, patch _0001 and _0002 have
+    #     been applied
+    #   - if no, then we need to apply both
+    #
+    # We cannot test reverse patch of _0002 AND of_0001 since testing reverse
+    # patch of _0001 would require the reverse patch of _0002 to be already
+    # applied, and we don't want to. So just test that reversing _0002 in
+    # dry-run.
+    osx: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_0002.patch ; then
+patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_0001.patch &&
+patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_0002.patch;
+else
+echo "NO PATCH NEEDED";
+fi)'
 system:
   username: 'build-user'
   homedir:
