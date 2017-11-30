@@ -16,18 +16,23 @@ export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
 export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 
-export BAZEL_CTC_TARGETS="//native_client:ctc_decoder_with_kenlm"
+export BAZEL_CTC_TARGETS="//native_client:libctc_decoder_with_kenlm.so"
 
 export EXTRA_AOT_CFLAGS=""
-export EXTRA_AOT_LDFLAGS="-L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/aot -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla/service/cpu"
-export EXTRA_AOT_LIBS="-ldeepspeech_model -lruntime -lruntime_matmul -lexecutable_run_options"
+export EXTRA_AOT_LDFLAGS="-L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/tf2xla -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/aot -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla/service/cpu"
+export EXTRA_AOT_LIBS="-ldeepspeech_model -lxla_compiled_cpu_function -lruntime -lruntime_matmul -lruntime_matvec -lexecutable_run_options"
 
-export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64"
+# FIXME:
+# Previously, with r1.3, we could use timesteps of 64
+# With r1.4 it seems to eat too much resources at tfcompile step
+export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=16"
 export BAZEL_AOT_TARGETS="
 //native_client:deepspeech_model
 //tensorflow/compiler/aot:runtime
 //tensorflow/compiler/xla/service/cpu:runtime_matmul
+//tensorflow/compiler/xla/service/cpu:runtime_matvec
 //tensorflow/compiler/xla:executable_run_options
+//tensorflow/compiler/tf2xla:xla_compiled_cpu_function
 "
 
 model_source=${DEEPSPEECH_TEST_MODEL}
@@ -206,9 +211,13 @@ do_get_model_parameters()
 
   wget "${model_url}" -O "${model_file}"
   wget "${SUMMARIZE_GRAPH_BINARY}" -O "/tmp/summarize_graph"
+  wget "${LIBTENSORFLOW_FRAMEWORK}" -O "/tmp/libtensorflow_framework.so"
 
   if [ "${OS}" = "Darwin" ]; then
-    mv  /tmp/summarize_graph /tmp/summarize_graph.gz && gunzip /tmp/summarize_graph.gz
+    for binary in summarize_graph libtensorflow_framework.so;
+    do
+      mv  /tmp/${binary} /tmp/${binary}.gz && gunzip /tmp/${binary}.gz
+    done;
   fi;
   chmod +x /tmp/summarize_graph
 
@@ -349,9 +358,12 @@ package_native_client()
   if [ -f "${tensorflow_dir}/bazel-bin/native_client/libdeepspeech_model.so" ]; then
     tar -cf - \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
+      -c ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/aot/ libruntime.so \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/service/cpu/ libruntime_matmul.so \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/service/cpu/ libruntime_matvec.so \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/ libexecutable_run_options.so \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/tf2xla/ libxla_compiled_cpu_function.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
@@ -364,6 +376,7 @@ package_native_client()
   else
     tar -cf - \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
+      -c ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \

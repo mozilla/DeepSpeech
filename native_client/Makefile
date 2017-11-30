@@ -29,7 +29,7 @@ bindings-build:
 	pip install --quiet $(PYTHON_PACKAGES) wheel
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(RPATH_PYTHON) $(LDFLAGS)" LIBS="$(LIBS)" $(NUMPY_INCLUDE) python ./setup.py build_ext $(PYTHON_PLATFORM_NAME)
 
-MANIFEST.in:
+MANIFEST.in: bindings-build
 	> $@
 	$(call copy_missing_libs,temp_build/deepspeech/*.so,temp_build/deepspeech/lib,$@)
 

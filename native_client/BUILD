@@ -1,7 +1,7 @@
 # Description: Deepspeech native client library.
 
 load("//tensorflow:tensorflow.bzl",
-     "if_linux_x86_64")
+     "if_linux_x86_64", "tf_cc_shared_object")
 
 load("//tensorflow/compiler/aot:tfcompile.bzl",
      "tf_library")
@@ -64,7 +64,7 @@ cc_library(
         "//tensorflow/core/util/ctc",
         "//third_party/eigen3",
         ":deepspeech_utils"
-    ] + if_native_model([":deepspeech_model"]),
+    ] + if_native_model([":deepspeech_model", "//tensorflow/compiler/tf2xla:xla_compiled_cpu_function"]),
     includes = ["kenlm", "boost_locale"],
     defines = ["KENLM_MAX_ORDER=6"],
 )
@@ -94,8 +94,8 @@ cc_library(
 )
 
 
-cc_library(
-    name = "ctc_decoder_with_kenlm",
+tf_cc_shared_object(
+    name = "libctc_decoder_with_kenlm.so",
     srcs = [
             "beam_search.cc",
             "beam_search.h",
@@ -109,7 +109,7 @@ cc_library(
     includes = ["kenlm", "boost_locale"],
     copts = ["-std=c++11"],
     defines = ["KENLM_MAX_ORDER=6"],
-    deps = ["//tensorflow/core:core",
+    deps = ["//tensorflow/core:framework_headers_lib",
             "//tensorflow/core/util/ctc",
             "//third_party/eigen3",
     ],

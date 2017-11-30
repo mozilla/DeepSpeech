@@ -8,6 +8,7 @@ build:
     - "notify.irc-channel.${notifications.irc}.on-failed"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.osx/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.osx/artifacts/public/summarize_graph"
+  libtensorflow_framework: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.osx/artifacts/public/libtensorflow_framework.so"
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"
