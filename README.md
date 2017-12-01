@@ -110,7 +110,7 @@ or update it as follows:
 $ pip install --upgrade deepspeech-gpu
 ```
 
-In both cases, it should take care of intalling all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
+In both cases, it should take care of installing all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
 
 ```bash
 deepspeech output_model.pb my_audio_file.wav alphabet.txt lm.binary trie
