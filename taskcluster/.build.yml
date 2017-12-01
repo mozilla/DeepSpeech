@@ -23,3 +23,4 @@ build:
     package: ''
   args:
     tests_cmdline: ''
+  python_wheel: ''
