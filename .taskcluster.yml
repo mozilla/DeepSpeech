@@ -10,6 +10,13 @@ tasks:
   - provisionerId: "{{ taskcluster.docker.provisionerId }}"
     workerType: "deepspeech-worker"
     extra:
+      notify:
+        ircChannelMessage: 'Decision Task for https://github.com/{{ event.base.user.login }}/{{ event.base.repo.name }}/pull/{{ event.pullNumber }} from https://github.com/{{ event.head.user.login }}/{{ event.head.repo.name }}/tree/{{ event.head.repo.branch }} is "${status.state}": https://tools.taskcluster.net/groups/${status.taskGroupId}'
+        #$if: 'event.event == "push"'
+        #then:
+        #  ircChannelMessage: 'Decision Task for merge in {{ event.head.repo.url }}/{{ event.head.repo.branch }} is "${status.state}": https://tools.taskcluster.net/groups/${status.taskGroupId}'
+        #else:
+
       github:
         env: true
         events:
