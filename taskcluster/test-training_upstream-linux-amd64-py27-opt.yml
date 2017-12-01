@@ -8,5 +8,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 2.7.13 upstream"
   metadata:
-    name: "DeepSpeech Linux AMD64 CPU upstream training"
-    description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 using upstream TensorFlow, CPU only, optimized version"
+    name: "DeepSpeech Linux AMD64 CPU upstream training Py2.7"
+    description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 using upstream TensorFlow Python 2.7, CPU only, optimized version"
