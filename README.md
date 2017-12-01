@@ -105,7 +105,7 @@ Alternatively, if you have a supported NVIDIA GPU on Linux (See the release note
 $ pip install deepspeech-gpu
 ```
 
-or update it as folllows:
+or update it as follows:
 ```
 $ pip install --upgrade deepspeech-gpu
 ```
@@ -170,7 +170,7 @@ In addition to the bindings above, third party developers have started to provid
 
 ### Installing prerequisites for training
 
-Install the required dendencies using pip:
+Install the required dependencies using pip:
 
 ```bash
 cd DeepSpeech
