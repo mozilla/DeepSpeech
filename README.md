@@ -13,14 +13,18 @@ Once installed you can then use the `deepspeech` binary to do speech-to-text on 
 
 ```bash
 pip install deepspeech
-deepspeech output_model.pb my_audio_file.wav alphabet.txt
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
+tar -xvzf deepspeech-0.1.0-models.tar.gz
+deepspeech models/output_model.pb my_audio_file.wav models/alphabet.txt
 ```
 
 Alternatively, quicker inference (The realtime factor on a GeForce GTX 1070 is about 0.44.) can be performed using a supported NVIDIA GPU on Linux. (See the release notes to find which GPU's are supported.) This is done by instead installing the GPU specific package:
 
 ```bash
 pip install deepspeech-gpu
-deepspeech output_model.pb my_audio_file.wav alphabet.txt
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
+tar -xvzf deepspeech-0.1.0-models.tar.gz
+deepspeech models/output_model.pb my_audio_file.wav models/alphabet.txt
 ```
 
 See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
@@ -113,8 +117,23 @@ $ pip install --upgrade deepspeech-gpu
 In both cases, it should take care of installing all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
 
 ```bash
-deepspeech output_model.pb my_audio_file.wav alphabet.txt lm.binary trie
+deepspeech -h
 ```
+
+To actually use the binary without doing your own training, you will need to download the pre-trained models:
+
+```bash
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
+tar -xvzf deepspeech-0.1.0-models.tar.gz
+```
+
+Then, for an input 16-bit 16 kHz WAV file `my_audio_file.wav`, you can run inferrence:
+
+```bash
+deepspeech models/output_model.pb my_audio_file.wav models/alphabet.txt models/lm.binary models/trie
+```
+
+The last two arguments are optional, and represent a language model.
 
 See [client.py](native_client/python/client.py) for an example of how to use the package programatically.
 
@@ -134,8 +153,17 @@ python util/taskcluster.py --arch osx --target .
 
 This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
 
+To use it, you will need a trained model, as with the Python client:
+
 ```bash
-./deepspeech model.pb audio_input.wav alphabet.txt lm.binary trie
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
+tar -xvzf deepspeech-0.1.0-models.tar.gz
+```
+
+Than you can run it just like the Python version:
+
+```bash
+./deepspeech models/output_model.pb audio_input.wav models/alphabet.txt models/lm.binary models/trie
 ```
 
 See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
