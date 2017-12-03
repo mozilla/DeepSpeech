@@ -358,7 +358,7 @@ package_native_client()
   if [ -f "${tensorflow_dir}/bazel-bin/native_client/libdeepspeech_model.so" ]; then
     tar -cf - \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
-      -c ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/aot/ libruntime.so \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/service/cpu/ libruntime_matmul.so \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/service/cpu/ libruntime_matvec.so \
@@ -376,7 +376,7 @@ package_native_client()
   else
     tar -cf - \
       -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
-      -c ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
+      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
