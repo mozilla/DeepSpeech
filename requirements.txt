@@ -4,7 +4,7 @@ python-utils
 tensorflow == 1.4.0
 numpy
 matplotlib
-scipy == 0.19.1
+scipy
 paramiko >= 2.1
 pysftp
 sox
