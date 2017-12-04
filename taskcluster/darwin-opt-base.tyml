@@ -85,6 +85,7 @@ payload:
         export TASKCLUSTER_ORIGIN_PATH="${system.homedir.osx}/TaskCluster/.*/task_[[:digit:]]\{10\}" &&
         export TASKCLUSTER_REWRITE_PATH="$TASKCLUSTER_TASK_DIR" &&
         export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
+        export MACOSX_DEPLOYMENT_TARGET=10.10 &&
         env &&
         (
           (
