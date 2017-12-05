@@ -37,6 +37,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Third party bindings](#third-party-bindings)
 - [Training](#training)
   - [Recommendations](#recommendations)
+  - [Common Voice training data](#common-voice-training-data)
   - [Training a model](#training-a-model)
   - [Checkpointing](#checkpointing)
   - [Exporting a model for inference](#exporting-a-model-for-inference)
