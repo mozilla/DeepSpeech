@@ -36,6 +36,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
 - [Training](#training)
+  - [Installing prerequisites for training](#installing-prerequisites-for-training)
   - [Recommendations](#recommendations)
   - [Common Voice training data](#common-voice-training-data)
   - [Training a model](#training-a-model)
