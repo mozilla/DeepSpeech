@@ -59,6 +59,12 @@ cc_library(
         "-DDS_MODEL_TIMESTEPS=$(DS_MODEL_TIMESTEPS)",
         "-DDS_NATIVE_MODEL=1",
     ]),
+    linkopts = select({
+        "//tensorflow:darwin": [
+            "-Wl,-install_name,@rpath/libdeepspeech.so"
+	],
+	"//conditions:default": []
+    }),
     deps = [
         "//tensorflow/core:core",
         "//tensorflow/core/util/ctc",
@@ -90,6 +96,12 @@ cc_library(
     # fma/avx/avx2 enabled in gcc cause significant performance decreases in
     # c_speech_features and so are force-disabled.
     copts = [] + if_linux_x86_64(["-mno-fma", "-mno-avx", "-mno-avx2"]),
+    linkopts = select({
+        "//tensorflow:darwin": [
+            "-Wl,-install_name,@rpath/libdeepspeech_utils.so"
+	],
+	"//conditions:default": []
+    }),
     nocopts = "(-fstack-protector|-fno-omit-frame-pointer)",
 )
 
