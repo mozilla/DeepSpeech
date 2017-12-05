@@ -10,6 +10,21 @@ nodejs:
     prep_7: 'echo "deb http://deb.nodesource.com/node_7.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_8: 'echo "deb http://deb.nodesource.com/node_8.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_9: 'echo "deb http://deb.nodesource.com/node_9.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+  brew:
+    # Using 'nvm' from homebrew results in installing v0.33.6 which seems to
+    # suffer from a bug making it unable to work as of now:
+    # https://github.com/creationix/nvm/issues/1652
+    #
+    # Documented workaround is to rely on 0.33.4 (bug seems to have been
+    # introduced by 0.33.5).
+    setup: 'install_local_homebrew "node-ds-test" && install_pkg_local_homebrew "sox" && curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.4/install.sh | NVM_DIR=$TASKCLUSTER_TASK_DIR/.nvm/ bash && source $TASKCLUSTER_TASK_DIR/.nvm/nvm.sh'
+    env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/node-ds-test.brew/bin/:$PATH"'
+    prep_4: 'nvm install 4.8.6 && nvm use 4.8.6'
+    prep_5: 'nvm install 5.12.0 && nvm use 5.12.0'
+    prep_6: 'nvm install 6.12.0 && nvm use 6.12.0'
+    prep_7: 'nvm install 7.10.1 && nvm use 7.10.1'
+    prep_8: 'nvm install 8.9.1 && nvm use 8.9.1'
+    prep_9: 'nvm install 9.2.0 && nvm use 9.2.0'
 ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:
@@ -32,6 +47,11 @@ patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p
 else
 echo "NO PATCH NEEDED";
 fi)'
+cpp:
+  brew:
+    setup: 'install_local_homebrew "cpp-ds-test"'
+    packages: 'install_pkg_local_homebrew "sox"'
+    env: 'export EXTRA_ENV="DYLD_LIBRARY_PATH=$LOCAL_HOMEBREW_DIRECTORY/lib/:$DYLD_LIBRARY_PATH"'
 system:
   username: 'build-user'
   homedir:
