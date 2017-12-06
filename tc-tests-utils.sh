@@ -213,12 +213,6 @@ do_get_model_parameters()
   wget "${SUMMARIZE_GRAPH_BINARY}" -O "/tmp/summarize_graph"
   wget "${LIBTENSORFLOW_FRAMEWORK}" -O "/tmp/libtensorflow_framework.so"
 
-  if [ "${OS}" = "Darwin" ]; then
-    for binary in summarize_graph libtensorflow_framework.so;
-    do
-      mv  /tmp/${binary} /tmp/${binary}.gz && gunzip /tmp/${binary}.gz
-    done;
-  fi;
   chmod +x /tmp/summarize_graph
 
   if [ ! -f "${model_file}" ]; then
