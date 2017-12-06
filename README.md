@@ -9,12 +9,12 @@ Project DeepSpeech is an open source Speech-To-Text engine. It uses a model trai
 
 Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. Proper setup using virtual environment is recommended and you can find that documented [below](#using-the-python-package).
 
-Once installed you can then use the `deepspeech` binary to do speech-to-text on short, approximately 5 second, audio files (currently only WAVE files with 16-bit, 16 kHz, mono are supported in the Python client):
+A pre-trained English model is available for use, and can be downloaded using [the instructions below](#getting-the-pre-trained-model).
+
+Once everything is installed you can then use the `deepspeech` binary to do speech-to-text on short, approximately 5 second, audio files (currently only WAVE files with 16-bit, 16 kHz, mono are supported in the Python client):
 
 ```bash
 pip install deepspeech
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
-tar -xvzf deepspeech-0.1.0-models.tar.gz
 deepspeech models/output_model.pb my_audio_file.wav models/alphabet.txt
 ```
 
@@ -22,8 +22,6 @@ Alternatively, quicker inference (The realtime factor on a GeForce GTX 1070 is a
 
 ```bash
 pip install deepspeech-gpu
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
-tar -xvzf deepspeech-0.1.0-models.tar.gz
 deepspeech models/output_model.pb my_audio_file.wav models/alphabet.txt
 ```
 
@@ -33,6 +31,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
+- [Getting the pre-trained model](#getting-the-pre-trained-model)
 - [Using the model](#using-the-model)
   - [Using the Python package](#using-the-python-package)
   - [Using the command line client](#using-the-command-line-client)
@@ -63,9 +62,22 @@ Manually install [Git Large File Storage](https://git-lfs.github.com/), then clo
 git clone https://github.com/mozilla/DeepSpeech
 ```
 
+## Getting the pre-trained model
+
+If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the [DeepSpeech releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the files in your current directory:
+
+```bash
+wget -O https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz | tar xvfz -
+```
+
 ## Using the model
 
-If all you want to do is use an already trained model for doing speech-to-text, you can grab one of our pre-built binaries. You can use a command-line binary, a Python package, or a Node.JS package.
+There are three ways to use DeepSpeech inference:
+
+- [The Python package](#using-the-python-package)
+- [The command-line client](#using-the-command-line-client)
+- [The Node.JS package](#using-the-nodejs-package)
+
 
 ### Using the Python package
 
@@ -118,18 +130,7 @@ $ pip install --upgrade deepspeech-gpu
 
 In both cases, it should take care of installing all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
 
-```bash
-deepspeech -h
-```
-
-To actually use the binary without doing your own training, you will need to download the pre-trained models:
-
-```bash
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
-tar -xvzf deepspeech-0.1.0-models.tar.gz
-```
-
-Then, for an input 16-bit 16 kHz WAV file `my_audio_file.wav`, you can run inferrence:
+Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
 deepspeech models/output_model.pb my_audio_file.wav models/alphabet.txt models/lm.binary models/trie
@@ -155,18 +156,12 @@ python util/taskcluster.py --arch osx --target .
 
 This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
 
-To use it, you will need a trained model, as with the Python client:
-
-```bash
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.1.0/deepspeech-0.1.0-models.tar.gz
-tar -xvzf deepspeech-0.1.0-models.tar.gz
-```
-
-Than you can run it just like the Python version:
+Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
 ./deepspeech models/output_model.pb audio_input.wav models/alphabet.txt models/lm.binary models/trie
 ```
+
 
 See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
 
