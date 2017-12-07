@@ -51,7 +51,7 @@ then:
       - "-cxe"
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
-          installGitlfs: { $eval: strip(str(build.git_lfs)) }
+          installGitlfs: { $eval: strip(str(build.git_lfs.linux)) }
         in: >
           apt-get -qq update && apt-get -qq -y install git pixz libsox2 wget && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
