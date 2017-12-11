@@ -4,7 +4,7 @@ build:
     - "pull_request.synchronize"
     - "pull_request.reopened"
   template_file: linux-opt-base.tyml
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/home.tar.xz"
+  tensorflow: "https://queue.taskcluster.net/v1/task/cLhrWu3vRbOqZXK0U8gTag/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/summarize_graph"
   libtensorflow_framework: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/libtensorflow_framework.so"
   scripts:

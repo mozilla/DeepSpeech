@@ -11,7 +11,7 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/home.tar.xz"
+  tensorflow: "https://queue.taskcluster.net/v1/task/e5lOX8ypQNeTZvtPG17gFQ/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/summarize_graph"
   libtensorflow_framework: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.gpu/artifacts/public/libtensorflow_framework.so"
   maxRunTime: 14400

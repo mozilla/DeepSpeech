@@ -6,7 +6,7 @@ build:
   template_file: linux-opt-base.tyml
   dependencies:
     - "test-training-linux-amd64-py27-opt"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/home.tar.xz"
+  tensorflow: "https://queue.taskcluster.net/v1/task/cLhrWu3vRbOqZXK0U8gTag/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/summarize_graph"
   libtensorflow_framework: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu/artifacts/public/libtensorflow_framework.so"
   system_setup:
