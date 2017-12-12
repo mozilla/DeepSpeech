@@ -189,6 +189,7 @@ If pre-built binaries aren't available for your system, you'll need to install t
 
 In addition to the bindings above, third party developers have started to provide bindings to other languages:
 
+* [Asticode](https://github.com/asticode) provides [Golang](https://golang.org) bindings in its [go-astideepspeech](https://github.com/asticode/go-astideepspeech) repo.
 * [RustAudio](https://github.com/RustAudio) provide a [Rust](https://www.rust-lang.org) binding, the installation and use of which is described in their [deepspeech-rs](https://github.com/RustAudio/deepspeech-rs) repo.
 
 ## Training
