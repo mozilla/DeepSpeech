@@ -56,7 +56,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 ## Getting the code
 
-Manually install [Git Large File Storage](https://git-lfs.github.com/), then clone the repository normally:
+Install [Git Large File Storage](https://git-lfs.github.com/), either manually or through a package like `git-lfs` if available on your system. Then clone the DeepSpeech repository normally:
 
 ```bash
 git clone https://github.com/mozilla/DeepSpeech
