@@ -56,7 +56,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 ## Getting the code
 
-Manually install [Git Large File Storage](https://git-lfs.github.com/), then clone the repository normally:
+Install [Git Large File Storage](https://git-lfs.github.com/), either manually or through a package like `git-lfs` if available on your system. Then clone the DeepSpeech repository normally:
 
 ```bash
 git clone https://github.com/mozilla/DeepSpeech
@@ -83,7 +83,7 @@ There are three ways to use DeepSpeech inference:
 
 Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. You can then use the `deepspeech` binary to do speech-to-text on an audio file:
 
-For the Python bindings, it is highly recommended that you perform the installation within a virtual environment. You can find more information about those in [this documentation](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
+For the Python bindings, it is highly recommended that you perform the installation within a Python 2.7 virtual environment. You can find more information about those in [this documentation](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 We will continue under the assumption that you already have your system properly setup to create new virtual environments.
 
 #### Create a DeepSpeech virtual environment
