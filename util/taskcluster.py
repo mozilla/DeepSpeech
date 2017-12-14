@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import, division
 import subprocess
 import sys
 import os
+import errno
 import stat
 import six.moves.urllib as urllib
 
@@ -34,6 +35,11 @@ def maybe_download_tc(target_dir, tc_url, progress=True):
     assert target_dir is not None
 
     target_dir = os.path.abspath(target_dir)
+    try:
+        os.makedirs(target_dir)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise e
     assert os.path.isdir(os.path.dirname(target_dir))
 
     tc_filename = os.path.basename(tc_url)
