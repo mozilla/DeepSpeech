@@ -6,6 +6,7 @@ source $(dirname "$0")/tc-tests-utils.sh
 
 pyver=$1
 tf=$2
+ds=$3
 
 if [ -z "${pyver}" ]; then
     echo "No python version given, aborting."
@@ -36,6 +37,11 @@ fi;
 
 if [ "${tf}" = "upstream" ]; then
     pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt
+fi;
+
+if [ "${ds}" = "deepspeech" ]; then
+    pip install "${DEEPSPEECH_PYTHON_PACKAGE}"
+    python -c "import tensorflow; from deepspeech.utils import audioToInputVector"
 fi;
 
 download_ctc_kenlm "/tmp/ds"

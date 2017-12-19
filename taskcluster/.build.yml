@@ -30,3 +30,4 @@ build:
   args:
     tests_cmdline: ''
   python_wheel: ''
+  deepspeech_pkg_name: ''

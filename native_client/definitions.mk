@@ -38,13 +38,19 @@ OS      := $(shell uname -s)
 
 # -Wl,--no-as-needed is required to force linker not to evict libs it thinks we
 # dont need ; will fail the build on OSX because that option does not exists
-ifneq ($(OS),Darwin)
-LDFLAGS += -Wl,--no-as-needed
+ifeq ($(OS),Linux)
+LDFLAGS_NEEDED := -Wl,--no-as-needed
+LDFLAGS_RPATH  := -Wl,-rpath,\$$ORIGIN
+endif
+ifeq ($(OS),Darwin)
+LDFLAGS_NEEDED :=
+LDFLAGS_RPATH  := -Wl,-rpath,@executable_path
 endif
 
 CFLAGS  += $(EXTRA_CFLAGS)
 LIBS    := -ldeepspeech -ldeepspeech_utils -ltensorflow_cc -ltensorflow_framework $(EXTRA_LIBS)
-LDFLAGS += -Wl,-rpath,. -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS) $(LIBS)
+LDFLAGS_DIRS := -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS)
+LDFLAGS += $(LDFLAGS_NEEDED) $(LDFLAGS_RPATH) $(LDFLAGS_DIRS) $(LIBS)
 
 AS      := $(TOOLCHAIN)as
 CC      := $(TOOLCHAIN)gcc
@@ -52,12 +58,12 @@ CXX     := $(TOOLCHAIN)c++
 LD      := $(TOOLCHAIN)ld
 LDD     := $(TOOLCHAIN)ldd $(TOOLCHAIN_LDD_OPTS)
 
-RPATH_PYTHON         := '-Wl,-rpath,\$$ORIGIN/lib/'
+RPATH_PYTHON         := '-Wl,-rpath,\$$ORIGIN/lib/' $(LDFLAGS_RPATH)
 RPATH_NODEJS         := '-Wl,-rpath,$$\$$ORIGIN/../'
 META_LD_LIBRARY_PATH := LD_LIBRARY_PATH
 ifeq ($(OS),Darwin)
 META_LD_LIBRARY_PATH := DYLD_LIBRARY_PATH
-RPATH_PYTHON         := '-Wl,-rpath,@loader_path/lib/'
+RPATH_PYTHON         := '-Wl,-rpath,@loader_path/lib/' $(LDFLAGS_RPATH)
 RPATH_NODEJS         := '-Wl,-rpath,@loader_path/../'
 endif
 
