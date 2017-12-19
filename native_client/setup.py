@@ -35,11 +35,13 @@ class BuildExtFirst(build):
 model = Extension('deepspeech._model',
         ['python/model.i'],
         include_dirs = [numpy_include],
-        libraries = list(map(lambda x: x.strip(), os.getenv('LIBS', '').split('-l')[1:])))
+        library_dirs = list(map(lambda x: x.strip(), os.getenv('MODEL_LDFLAGS', '').split('-L')[1:])),
+        libraries = list(map(lambda x: x.strip(), os.getenv('MODEL_LIBS', '').split('-l')[1:])))
 
 utils = Extension('deepspeech._utils',
         ['python/utils.i'],
         include_dirs = [numpy_include],
+        library_dirs = list(map(lambda x: x.strip(), os.getenv('UTILS_LDFLAGS', '').split('-L')[1:])),
         libraries = ['deepspeech_utils'])
 
 setup(name = project_name,
