@@ -12,6 +12,7 @@
 
 namespace DeepSpeech {
 
+DEEPSPEECH_EXPORT
 void
 audioToInputVector(const short* aBuffer, unsigned int aBufferSize,
                    int aSampleRate, int aNCep, int aNContext, float** aMfcc,
