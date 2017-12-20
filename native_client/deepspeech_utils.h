@@ -1,8 +1,9 @@
-
 #ifndef __DEEPSPEECH_UTILS_H__
 #define __DEEPSPEECH_UTILS_H__
 
 #include <cstddef>
+
+#define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
 
 namespace DeepSpeech
 {

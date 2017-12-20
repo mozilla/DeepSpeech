@@ -48,8 +48,8 @@ LDFLAGS_RPATH  := -Wl,-rpath,@executable_path
 endif
 
 CFLAGS  += $(EXTRA_CFLAGS)
-LIBS    := -ldeepspeech -ldeepspeech_utils -ltensorflow_cc -ltensorflow_framework $(EXTRA_LIBS)
-LDFLAGS_DIRS := -L${TFDIR}/bazel-bin/tensorflow -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS)
+LIBS    := -ldeepspeech -ldeepspeech_utils $(EXTRA_LIBS)
+LDFLAGS_DIRS := -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS)
 LDFLAGS += $(LDFLAGS_NEEDED) $(LDFLAGS_RPATH) $(LDFLAGS_DIRS) $(LIBS)
 
 AS      := $(TOOLCHAIN)as
@@ -85,7 +85,7 @@ define copy_missing_libs
     missing_libs=""; \
     for lib in $$SRC_FILE; do \
         if [ "$(OS)" = "Darwin" ]; then \
-            new_missing="$$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 | xargs basename)"; \
+            new_missing="$$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 | xargs basename -a)"; \
             missing_libs="$$missing_libs $$new_missing"; \
         else \
             missing_libs="$$missing_libs $$($(LDD) $$lib | grep 'not found' | awk '{ print $$1 }')"; \
