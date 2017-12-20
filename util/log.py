@@ -3,14 +3,20 @@ import __builtin__
 import sys
 
 # used for looking up level from step=0 to error=4
-LEVEL_NAMES = 'step,debug,info,warn,error'.split(',')
+LEVEL_NAMES = [
+    'step',
+    'debug',
+    'info',
+    'warn',
+    'error'
+]
 
 def set_log_levels(log_level_str):
     '''
     Sets the global log levels by parsing a log level configuration string.
     Typically called at startup by main routine of a program (passing-in a command line value).
     'log_level_str' - comma separated assignments of log levels to modules (e.g. "main=debug,persistence=step")
-        Modules are specified by their mudule IDs. 
+        Modules are specified by their mudule IDs.
         Levels can be "step", "debug", "info", "warn" and "error".
         If a part specifies only a level, this level will be used as the default one.
     '''
@@ -33,16 +39,16 @@ class Logger(object):
     '''
     Class for logging messages to the console. Supports log levels and module based logging.
     '''
-    def __init__(self, module_id, module_prefix):
+    def __init__(self, id, caption=None):
         '''
         Constructs a new Logger instance.
-        'module_id' - String identifier of the module this logger instance is created in.
+        'id' - String identifier of the module this logger instance is created in.
             Should be simple, as it is used for parsing the log-level config string.
-        'module_prefix' - Full name of the module this logger instance is created in.
-            Will be used as prefix in printed messages. If None, no prefix will be printed.
+        'caption' - Full name of the module this logger instance is created in.
+            Will be used as prefix in printed messages. If None (default), no prefix will be printed.
         '''
-        self.module_id = module_id
-        self.module_prefix = module_prefix
+        self.id = id
+        self.caption = caption
 
     def _print_message(self, msg_level, prefix, message, is_error=False):
         '''
@@ -52,11 +58,11 @@ class Logger(object):
         'message' - The actual message
         'is_error' - If the message should be printed to stderr instead of stdout.
         '''
-        log_level = MODULE_LOG_LEVELS[self.module_id] if self.module_id in MODULE_LOG_LEVELS else DEFAULT_LOG_LEVEL
+        log_level = MODULE_LOG_LEVELS[self.id] if self.id in MODULE_LOG_LEVELS else DEFAULT_LOG_LEVEL
         if log_level <= msg_level:
             prefix = prefix + ' '
-            if self.module_prefix:
-                prefix = prefix + '[' + self.module_prefix + '] '
+            if self.caption:
+                prefix = prefix + '[' + self.caption + '] '
             text = prefix + ('\n' + prefix).join(message.split('\n'))
             print(text, file=sys.stdout if is_error else sys.stderr)
 

@@ -51,6 +51,6 @@ cluster="--coord_host $first --nodes=$worker_hosts"
 echo "Starting allocated node no. $COMPUTE_NODE_INDEX on $hostname of cluster (workers: $worker_hosts) ..."
 
 # starting the worker
-logfile=../worker_$COMPUTE_NODE_INDEX.log
+logfile="../worker_${COMPUTE_NODE_INDEX}.log"
 touch $logfile # guarantees existence for "tail -f *.log"
 $base_cmd $cluster --job_name worker --task_index $COMPUTE_NODE_INDEX "$@" 2>&1 | ts "$time_format [worker $COMPUTE_NODE_INDEX]" >$logfile

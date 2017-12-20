@@ -6,7 +6,7 @@ import time
 from six.moves import range
 from util.log import Logger
 
-log = Logger('persistence', 'Persistence')
+log = Logger(id='persistence', caption='Persistence')
 
 class CheckpointManager(object):
     '''
@@ -26,7 +26,7 @@ class CheckpointManager(object):
          - 'init' (also fallback if no checkpoints were found) for initializing a new model
         'inter_secs' - time interval in seconds for saving intermediate checkpoints - 0 deactivates intermediate checkpointing
         'keep_n_inters' - how many intermediate checkpoints to keep - 0 deactivates intermediate checkpointing
-        'keep_n_epochs' - how many epoch checkpointsd to keep - 0 deactivates epoch checkpointing
+        'keep_n_epochs' - how many epoch checkpoints to keep - 0 deactivates epoch checkpointing
         'init_op' - optional initialization operation for the model (if omitted, it will use standard global initialization)
         'saver' - optional saver for the model (if omitted, it will use an internal one)
         '''
@@ -66,25 +66,26 @@ class CheckpointManager(object):
         for filename in glob.glob(self.checkpoint_dir + '/*'):
             # only process filenames of the following form
             found = re.search('(inter|epoch-[0-9]+)_([0-9]+)\\.ckpt.*', filename, re.IGNORECASE)
-            if found:
-                # extract the epoch index - 0 for intermediate checkpoints
-                epoch_index = found.group(1)
-                epoch_index = int(epoch_index[6:]) if epoch_index.startswith('epoch-') else 0
-                # extract the global index (underscore part)
-                global_index = int(found.group(2))
-                # for looking up checkpoint tuples within this loop
-                key = '%d-%d' % (epoch_index, global_index)
-                if key in checkpoints_lookup:
-                    # we already processed some file(s) for this checkpoint...
-                    _, _, filenames = checkpoints_lookup[key]
-                else:
-                    # creating a new checkpoint tuple
-                    filenames = []
-                    checkpoint = (epoch_index, global_index, filenames)
-                    checkpoints_lookup[key] = checkpoint
-                    checkpoints.append(checkpoint)
-                # add current filename to checkpoint's file-set
-                filenames.append(filename)
+            if not found:
+                continue
+            # extract the epoch index - 0 for intermediate checkpoints
+            epoch_index = found.group(1)
+            epoch_index = int(epoch_index[6:]) if epoch_index.startswith('epoch-') else 0
+            # extract the global index (underscore part)
+            global_index = int(found.group(2))
+            # for looking up checkpoint tuples within this loop
+            key = '%d-%d' % (epoch_index, global_index)
+            if key in checkpoints_lookup:
+                # we already processed some file(s) for this checkpoint...
+                _, _, filenames = checkpoints_lookup[key]
+            else:
+                # creating a new checkpoint tuple
+                filenames = []
+                checkpoint = (epoch_index, global_index, filenames)
+                checkpoints_lookup[key] = checkpoint
+                checkpoints.append(checkpoint)
+            # add current filename to checkpoint's file-set
+            filenames.append(filename)
         # return list of checkpoint tuples - ordered by their global index
         return sorted(checkpoints, key=lambda cp: cp[1])
 
@@ -128,7 +129,8 @@ class CheckpointManager(object):
                 (self._get_filename(filenames), keep))
             self._delete_files(filenames)
         # generating checkpoint filename
-        filename = '%s_%d.ckpt' % (('epoch-%d' % epoch_index) if epoch_index > 0 else 'inter', global_index)
+        prefix = ('epoch-%d' % epoch_index) if epoch_index > 0 else 'inter'
+        filename = '%s_%d.ckpt' % (prefix, global_index)
         filename = os.path.join(self.checkpoint_dir, filename)
         log.info('Writing checkpoint "%s"...' % filename)
         # finally: saving the new checkpoint
@@ -160,6 +162,7 @@ class CheckpointManager(object):
         checkpoint = None
         # collect available checkpoints
         checkpoints = self._get_checkpoints()
+        log.debug('Found %d checkpoints in directory "%s".' % (len(checkpoints), self.checkpoint_dir))
         if self.load == 'recent':
             if len(checkpoints) > 0:
                 # pick the most recent checkpoint (by means of global-index),

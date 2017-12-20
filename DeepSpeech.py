@@ -103,8 +103,8 @@ tf.app.flags.DEFINE_integer ('validation_step',  0,           'number of epochs 
 tf.app.flags.DEFINE_string  ('checkpoint_dir',   '',          'directory in which checkpoints are stored - defaults to directory "deepspeech/checkpoints" within user\'s data home specified by the XDG Base Directory Specification')
 tf.app.flags.DEFINE_string  ('load',             'recent',    'either "recent" to load most recent checkpoint from checkpoint_dir, "best-dev" to load lowest loss epoch checkpoint, "last-epoch" to load the last epoch checkpoint or a checkpoint filename to load - defaults to "recent"')
 tf.app.flags.DEFINE_integer ('inter_secs',       600,         'time interval for saving intermediate checkpoints in seconds (0 for turning off intermediate checkpoints) - defaults to 600')
-tf.app.flags.DEFINE_integer ('keep_n_epochs',    5,           'number of epoch checkpoint files to keep - default value is 5')
-tf.app.flags.DEFINE_integer ('keep_n_inters',    3,           'number of intermediate checkpoint files to keep - default value is 3')
+tf.app.flags.DEFINE_integer ('keep_n_epochs',    5,           'number of epoch checkpoint files to keep (0 for not writing epoch checkpoints) - default value is 5')
+tf.app.flags.DEFINE_integer ('keep_n_inters',    3,           'number of intermediate checkpoint files to keep (0 for not writing intermediate checkpoints) - default value is 3')
 
 # Exporting
 
@@ -159,7 +159,7 @@ FLAGS = tf.app.flags.FLAGS
 set_log_levels(FLAGS.log_level)
 
 # create local logger w/o module name
-log = Logger('main', None)
+log = Logger(id='main')
 
 def initialize_globals():
     # nodes required for cluster setup
@@ -178,6 +178,11 @@ def initialize_globals():
     if len(memory_limits) == 0:
         # no compatible GPU -> CPU training with specified memory allocation
         memory_limits.append(FLAGS.cpu_memory)
+
+    # get CSV lists
+    FLAGS.train_files = FLAGS.train_files.split(',')
+    FLAGS.dev_files =   FLAGS.dev_files.split(',')
+    FLAGS.test_files =  FLAGS.test_files.split(',')
 
     # by default we run as many sample loading threads per set as CPU cores
     # (as there is only one set active at a time)
@@ -424,41 +429,30 @@ def decode_with_lm(inputs, sequence_length, beam_width=100,
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_mean_edit_distance_and_loss(model_feeder, worker_index, tower_index):
+def calculate_mean_edit_distance_and_loss(model_feeder, batch):
     r'''
     This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
     Next to batch size, total and average loss it returns the mean edit distance,
     the decoded result and the batch's original Y.
     '''
-    # Obtain the next batch of data
-    batch_size, batch_x, batch_seq_len, batch_y = model_feeder.next_batch(worker_index, tower_index)
-
-    # Calculate the logits of the batch using BiRNN
-    logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout_rates)
-    # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
+    # obtain the next batch of data
+    batch.size, batch.x, batch.seq_len, batch.y = model_feeder.next_batch(batch.worker_index, batch.gpu_index)
+    # calculate the logits of the batch using BiRNN
+    logits = BiRNN(batch.x, tf.to_int64(batch.seq_len), dropout_rates)
+    # beam search decode the batch
+    batch.decoded, _ = decode_with_lm(logits, batch.seq_len, merge_repeated=False, beam_width=FLAGS.beam_width)
+    # compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
-        total_loss = tf.contrib.warpctc.warp_ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+        batch.loss = tf.contrib.warpctc.warp_ctc_loss(labels=batch.y, inputs=logits, sequence_length=batch.seq_len)
     else:
-        total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
-    # Calculate the average loss across the batch
-    avg_loss = tf.reduce_mean(total_loss)
-    # Beam search decode the batch
-    decoded, _ = decode_with_lm(logits, batch_seq_len, merge_repeated=False, beam_width=FLAGS.beam_width)
-
-    # Compute the edit (Levenshtein) distance
-    distance = tf.edit_distance(tf.cast(decoded[0], tf.int32), batch_y)
-    # Compute the mean edit distance
-    mean_edit_distance = tf.reduce_mean(distance)
-    # Finally we return the
-    # - worker and tower indices
-    # - calculated total and
-    # - average losses,
-    # - the Levenshtein distance,
-    # - the recognition mean edit distance,
-    # - the decoded batch and
-    # - the original batch_y (which contains the verified transcriptions).
-    return worker_index, tower_index, batch_size, total_loss, avg_loss, distance, mean_edit_distance, decoded, batch_y
-
+        batch.loss = tf.nn.ctc_loss(labels=batch.y, inputs=logits, sequence_length=batch.seq_len)
+    # calculate the mean loss
+    batch.avg_loss = tf.reduce_mean(batch.loss, 0)
+    # compute the edit (Levenshtein) distance
+    batch.distance = tf.edit_distance(tf.cast(batch.decoded[0], tf.int32), batch.y)
+    # calculate the mean distance
+    batch.avg_distance = tf.reduce_mean(batch.distance, 0)
+    return batch
 
 # Adam Optimization
 # =================
@@ -491,23 +485,6 @@ def create_optimizer(weight):
 # * **Device** - A hardware device, as provided by `tf.device()`,
 # on which all operations within the tower execute.
 # For example, all operations of 'tower 0' could execute on the first GPU `tf.device('/gpu:0')`.
-
-def for_each_tower(model_feeder, callback, former=None):
-    results = []
-    with tf.variable_scope(tf.get_variable_scope()):
-        # Loop over available_devices
-        for i, wtq in enumerate(model_feeder.tower_queues):
-            wt = (wtq[0], wtq[1])
-            # Execute operations of tower t on worker w
-            device = '/job:worker/task:%d/gpu:%d' % wt
-            with tf.device(device):
-                # Create a scope for all operations of tower t
-                with tf.name_scope('tower_%d_%d' % wt) as scope:
-                    params = former[i] if former else wt
-                    results.append(callback(model_feeder, *params))
-                    # Allow for variables to be re-used by the next tower
-                    tf.get_variable_scope().reuse_variables()
-    return results
 
 def average_gradients(device, gradients, batch_sizes):
     '''
@@ -557,50 +534,67 @@ def get_tower_results(model_feeder):
     * The Levenshtein distances between the decodings and their transcriptions ``distance``,
     * The mean edit distance of the outcome averaged over the whole batch ``mean_edit_distance``
     '''
+    # preparing data bags that represent the tower batches
+    class DataBag:
+        pass
+    tower_batches = []
+    for worker in model_feeder.workers:
+        for gpu in worker.gpus:
+            batch = DataBag()
+            batch.worker_index = worker.index
+            batch.gpu_index = gpu.index
+            tower_batches.append(batch)
+    def for_each_tower(callback):
+        '''
+        Helper routine that executes a provided function for each data bag
+        in its appropriate tower context
+        '''
+        with tf.variable_scope(tf.get_variable_scope()):
+            # Loop over available_devices
+            for batch in tower_batches:
+                wg = (batch.worker_index, batch.gpu_index)
+                # Execute operations of tower t on worker w
+                device = '/job:worker/task:%d/gpu:%d' % wg
+                with tf.device(device):
+                    # Create a scope for all operations of tower t
+                    with tf.name_scope('tower_%d_%d' % wg):
+                        callback(model_feeder, batch)
+                        # Allow for variables to be re-used by the next tower
+                        tf.get_variable_scope().reuse_variables()
     # building the graph
-    results = for_each_tower(model_feeder, calculate_mean_edit_distance_and_loss)
+    for_each_tower(calculate_mean_edit_distance_and_loss)
     # constructing sum of all tower batch sizes
-    batch_sizes = [result[2] for result in results]
+    batch_sizes = [batch.size for batch in tower_batches]
     batch_size_sum = tf.to_float(tf.maximum(1, tf.reduce_sum(batch_sizes)))
     # creating the optimizer by passing it the sum of all batch sizes for weighting
     optimizer = create_optimizer(batch_size_sum)
-
-    def weight_and_compute_gradients(model_feeder, worker_index, tower_index, \
-                                     batch_size, total_loss, avg_loss, distance, \
-                                     mean_edit_distance, decoded, labels):
-        batch_size_float = tf.to_float(batch_size)
-        return worker_index, \
-               tower_index, \
-               optimizer.compute_gradients(avg_loss), \
-               batch_size, \
-               total_loss, \
-               avg_loss * batch_size_float, \
-               distance, \
-               mean_edit_distance * batch_size_float, \
-               decoded, \
-               labels
-
+    def weight_and_compute_gradients(model_feeder, batch):
+        batch.gradients = optimizer.compute_gradients(batch.avg_loss)
+        batch_size_float = tf.to_float(batch.size)
+        batch.avg_loss = batch.avg_loss * batch_size_float
+        batch.avg_distance = batch.avg_distance * batch_size_float
     # compute gradients - also get weighted loss and weighted edit-distance
-    results = for_each_tower(model_feeder, weight_and_compute_gradients, results)
-    _, _, _, _, total_losses, avg_losses, distances, mean_edit_distances, decodings, labels = zip(*results)
-
-    worker_averages = []
+    for_each_tower(weight_and_compute_gradients)
+    # building result lists of selected attributes
+    labels, decodings, distances, losses, avg_losses, avg_distances = \
+        zip(*[(batch.y, batch.decoded, batch.distance, batch.loss, batch.avg_loss, batch.avg_distance) for batch in tower_batches])
     # saving transport bandwidth: first iterate over workers to compute averaged worker gradients...
-    for wi in range(len(model_feeder.tower_queues_per_worker)):
-        # pick worker wi's gradients and batch_sizes from results
-        gradients, batch_sizes = zip(*[(r[2], r[3]) for r in results if r[0] == wi])
-        # average weighted tower gradients to weighted worker gradients
-        worker_averages.append(average_gradients('/job:worker/task:%d/cpu' % wi, gradients, batch_sizes))
+    worker_averages = []
+    for worker in model_feeder.workers:
+        # pick worker's gradients and batch sizes
+        gradients, batch_sizes = zip(*[(batch.gradients, batch.size) for batch in tower_batches if batch.worker_index == worker.index])
+        # average weighted GPU gradients to weighted worker gradients on worker's CPU
+        worker_averages.append(average_gradients('/job:worker/task:%d/cpu' % worker.index, gradients, batch_sizes))
     # ... and then average weighted worker gradients to overall step gradients
-    # Note: This avoids transporting all tower gradients to chief node before averaging
+    # Note: This should avoid transporting all tower gradients to chief node before averaging
     gradients, batch_size = average_gradients('/cpu:0', *zip(*worker_averages))
     # return the optimizer, the results tuple, gradients, the batch size,
-    # and the means of mean edit distances and average losses
+    # and weighted means of edit distance and loss
     return optimizer, \
-           (labels, decodings, distances, total_losses), \
+           (labels, decodings, distances, losses), \
            gradients, \
            batch_size, \
-           tf.reduce_sum(mean_edit_distances, 0) / batch_size_sum, \
+           tf.reduce_sum(avg_distances, 0) / batch_size_sum, \
            tf.reduce_sum(avg_losses, 0) / batch_size_sum
 
 def log_variable(variable, gradient=None):
@@ -796,21 +790,21 @@ def train() :
     # creating local server
     server = tf.train.Server(cluster_spec, job_name='worker', task_index=FLAGS.task_index)
     # preparing local instances of all required data sets
-    train_set = DataSet(FLAGS.train_files.split(','),
+    train_set = DataSet(FLAGS.train_files,
                         batch_size=FLAGS.train_batch_size,
                         limit=FLAGS.limit_train,
                         skip=FLAGS.skip_train,
-                        ascending=FLAGS.train_ascending)
-    dev_set =   DataSet(FLAGS.dev_files.split(','),
+                        ascending=FLAGS.train_ascending) if len(FLAGS.train_files) > 0 else None
+    dev_set =   DataSet(FLAGS.dev_files,
                         batch_size=FLAGS.dev_batch_size,
                         limit=FLAGS.limit_dev,
                         skip=FLAGS.skip_dev,
-                        ascending=FLAGS.dev_ascending)
-    test_set =  DataSet(FLAGS.test_files.split(','),
+                        ascending=FLAGS.dev_ascending) if len(FLAGS.dev_files) > 0 else None
+    test_set =  DataSet(FLAGS.test_files,
                         batch_size=FLAGS.test_batch_size,
                         limit=FLAGS.limit_test,
                         skip=FLAGS.skip_test,
-                        ascending=FLAGS.test_ascending)
+                        ascending=FLAGS.test_ascending) if len(FLAGS.test_files) > 0 else None
     data_sets = [train_set, dev_set, test_set]
 
     with tf.Session(server.target, config=session_config) as session:
@@ -922,7 +916,7 @@ def train() :
                     if should_report:
                         samples, current_mean_edit_distance = current_report
                         # collect individual sample results
-                        for i in range(len(model_feeder.tower_queues)):
+                        for i in range(len(model_feeder.towers)):
                             # collect the labels
                             report_results[0].extend(sparse_tensor_value_to_texts(samples[0][i], alphabet))
                             # collect the decodings - at the moment we default to the first one
@@ -943,7 +937,9 @@ def train() :
                     samples = []
                     mean_wer = 0.0
                     # re-arrange list and exclude dummy samples
-                    report_results = [r for r in list(zip(*report_results)) if r[0] != ' ']
+                    report_results = list(zip(*report_results))
+                    print('LEN report_results: %r' % report_results)
+                    report_results = [r for r in report_results if r[0] != ' ']
                     # do spell-checking and compute WER - only keep samples with WER > 0
                     for s_label, s_decoding, s_distance, s_loss in report_results:
                         s_wer = wer(s_label, s_decoding)
@@ -1035,7 +1031,7 @@ def train() :
 def main(_) :
     # initializing all global variables (mostly from FLAGS values)
     initialize_globals()
-    if FLAGS.train:
+    if FLAGS.train or FLAGS.test:
         train()
     if FLAGS.export_dir and is_chief:
         export()

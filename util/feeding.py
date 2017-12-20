@@ -10,12 +10,12 @@ from util.audio import audiofile_to_input_vector
 from util.text import ctc_label_dense_to_sparse, text_to_char_array
 from util.log import Logger
 
-log = Logger('feeding', 'Feeding')
+log = Logger(id='feeding', caption='Feeding')
 
 class DataSet(object):
     '''
     Represents a collection of audio samples and their respective transcriptions.
-    Takes a set of CSV files produced by importers in /bin.
+    Takes a set of CSV files produced by importers in "bin/".
     '''
     def __init__(self, csvs, batch_size=0, skip=0, limit=0, ascending=True):
         '''
@@ -129,25 +129,31 @@ class ModelFeeder(object):
         #     and decrease t1 and t2 if there are still OOMs
         # 9 - If everything works, don't forget to comment the prints again
 
-        self.tower_queues_per_worker = []
-        self.tower_queues = []
-        for w in range(len(gpus_per_worker)):
-            tower_queues = []
-            for g in range(len(gpus_per_worker[w])):
-                queue = self._create_queue(w, g)
-                self.tower_queues.append((w, g, queue))
-                tower_queues.append(queue)
-            self.tower_queues_per_worker.append(tower_queues)
+        class DataBag:
+            pass
 
-        # tower feeders - each one typically feeds into a GPU
-        self._tower_feeders = [_TowerFeeder(self, i, queue) for i, queue in \
-                               enumerate(self.tower_queues_per_worker[self.worker_index])]
+        self.towers = []
+        self.workers = []
+        for worker_index, gpus in enumerate(gpus_per_worker):
+            worker = DataBag()
+            worker.index = worker_index
+            worker.gpus = []
+            for gpu_index, gpu_memory in enumerate(gpus_per_worker[worker_index]):
+                gpu = DataBag()
+                gpu.worker = worker
+                gpu.index = gpu_index
+                gpu.memory = gpu_memory
+                gpu.queue, gpu.enqueue, gpu.close = self._create_queue(worker_index, gpu_index)
+                worker.gpus.append(gpu)
+                self.towers.append(gpu)
+            self.workers.append(worker)
 
-    def next_batch(self, worker_index, tower_index):
-        queue = self.tower_queues_per_worker[worker_index][tower_index][0]
+        # local tower feeders - each one typically feeding into a GPU
+        self._tower_feeders = [_TowerFeeder(self, gpu.index, gpu.queue, gpu.enqueue, gpu.close) for gpu in self.workers[self.worker_index].gpus]
+
+    def next_batch(self, worker_index, gpu_index):
+        queue = self.workers[worker_index].gpus[gpu_index].queue
         _, batch_size, _, _ = queue.dequeue(name='Batch_Size_Dequeue')
-        #batch_size = tf.Print(batch_size, [batch_size], 'Dequeueing batch size (tower %d): ' % self.tower_index)
-        # to dequeue the dummy sample, dequeue_size has to be 1 in case of batch_size=0
         dequeue_size = tf.maximum(batch_size, 1)
         source, source_lengths, target, target_lengths = queue.dequeue_many(dequeue_size, name='Samples_Dequeue')
         sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, batch_size)
@@ -368,10 +374,12 @@ class _TowerFeeder(object):
     Keeps a DataSet reference to access its samples.
     If no data_set is provided (None), the loader will just enqueue dummy samples.
     '''
-    def __init__(self, model_feeder, tower_index, queue):
+    def __init__(self, model_feeder, tower_index, queue, enqueue, close):
         self.model_feeder = model_feeder
         self.tower_index = tower_index
-        self._queue, self._enqueue, self._close = queue
+        self._queue = queue
+        self._enqueue = enqueue
+        self._close = close
         self._size = self._queue.size()
 
     def start_queue_thread(self, session, coord):

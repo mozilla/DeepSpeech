@@ -4,7 +4,7 @@ from threading import Thread, Lock, Event
 import Queue
 from util.log import Logger
 
-log = Logger('messaging', 'Messaging')
+log = Logger(id='messaging', caption='Messaging')
 
 class ClusterMessagingClient(object):
     '''
