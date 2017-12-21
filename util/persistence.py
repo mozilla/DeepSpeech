@@ -1,5 +1,6 @@
 import os
 import re
+import csv
 import glob
 import tensorflow as tf
 import time
@@ -38,17 +39,16 @@ class CheckpointManager(object):
         self.init_op = init_op if init_op else tf.global_variables_initializer()
         self.saver = saver if saver else tf.train.Saver()
         self._t0 = None
+        self._results = []
         if checkpoint_dir:
             self._csv = os.path.join(checkpoint_dir, 'results.csv')
             if os.path.isfile(self._csv):
-                # read all lines and columns from results.csv
-                self._results = [l.split(',') for l in open(self._csv, 'r').readlines()[1:]]
-                # post-process lines to required data types of columns epoch, loss, dev-loss
-                self._results = [(int(r[0]), float(r[1]), None if len(r[2].strip()) == 0 else float(r[2])) for r in self._results]
+                with open(self._csv) as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for row in reader:
+                        self._results.append((int(row['epoch']), float(row['loss'], float(row['dev-loss']))
                 # ordered by epoch
                 self._results = sorted(self._results, key=lambda r: r[0])
-            else:
-                self._results = []
 
     def _get_checkpoints(self):
         '''
@@ -239,7 +239,9 @@ class CheckpointManager(object):
         # append our new epoch
         self._results.append((epoch_number, loss, dev_loss))
         # write out results.csv
-        with open(self._csv, 'w') as csv:
-            csv.write('epoch,loss,dev-loss\n')
-            csv.write('\n'.join([','.join(('' if v is None else str(v)) for v in r) for r in self._results]))
+        with open(self._csv, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=['epoch', 'loss', 'dev-loss'])
+            writer.writeheader()
+            for r in self._results:
+                writer.writerow({ 'epoch': r.epoch, 'loss': r.loss, 'dev-loss': r.dev_loss })
 
