@@ -54,7 +54,7 @@ class ModelFeeder(object):
     Creates, owns and delegates to num_tower_feeders internal tower feeder objects.
     '''
     def __init__(self,
-                 gpus_per_worker,
+                 towers_per_worker,
                  worker_index,
                  num_cep,
                  num_context,
@@ -65,7 +65,7 @@ class ModelFeeder(object):
                  queue_capacity,
                  allocate_indices=lambda n: 0):
 
-        self.gpus_per_worker = gpus_per_worker
+        self.towers_per_worker = towers_per_worker
         self.worker_index = worker_index
         self.num_cep = num_cep
         self.num_context = num_context
@@ -90,7 +90,7 @@ class ModelFeeder(object):
         self._dummy = (0, [None])
         # queue of batches that are ready to be enqueued on towers
         # a batch is a tuple of the batch size and a list of sample tuples
-        self.queue = Queue.Queue(maxsize=len(self.gpus_per_worker[self.worker_index]))
+        self.queue = Queue.Queue(maxsize=len(self.towers_per_worker[self.worker_index]))
         # take care data set member exists
         self._data_set = None
         # set it again to initialize all structures for feeding
@@ -129,30 +129,29 @@ class ModelFeeder(object):
         #     and decrease t1 and t2 if there are still OOMs
         # 9 - If everything works, don't forget to comment the prints again
 
-        class DataBag:
-            pass
-
+        class WorkerInfo: pass
+        class TowerInfo: pass
         self.towers = []
         self.workers = []
-        for worker_index, gpus in enumerate(gpus_per_worker):
-            worker = DataBag()
+        for worker_index, towers in enumerate(towers_per_worker):
+            worker = WorkerInfo()
             worker.index = worker_index
-            worker.gpus = []
-            for gpu_index, gpu_memory in enumerate(gpus_per_worker[worker_index]):
-                gpu = DataBag()
-                gpu.worker = worker
-                gpu.index = gpu_index
-                gpu.memory = gpu_memory
-                gpu.queue, gpu.enqueue, gpu.close = self._create_queue(worker_index, gpu_index)
-                worker.gpus.append(gpu)
-                self.towers.append(gpu)
+            worker.towers = []
+            for tower_index, tower_memory in enumerate(towers_per_worker[worker_index]):
+                tower = TowerInfo()
+                tower.worker = worker
+                tower.index = tower_index
+                tower.memory = tower_memory
+                tower.queue, tower.enqueue, tower.close = self._create_queue(worker_index, tower_index)
+                worker.towers.append(tower)
+                self.towers.append(tower)
             self.workers.append(worker)
 
         # local tower feeders - each one typically feeding into a GPU
-        self._tower_feeders = [_TowerFeeder(self, gpu.index, gpu.queue, gpu.enqueue, gpu.close) for gpu in self.workers[self.worker_index].gpus]
+        self._tower_feeders = [_TowerFeeder(self, tower.index, tower.queue, tower.enqueue, tower.close) for tower in self.workers[self.worker_index].towers]
 
-    def next_batch(self, worker_index, gpu_index):
-        queue = self.workers[worker_index].gpus[gpu_index].queue
+    def next_batch(self, worker_index, tower_index):
+        queue = self.workers[worker_index].towers[tower_index].queue
         _, batch_size, _, _ = queue.dequeue(name='Batch_Size_Dequeue')
         dequeue_size = tf.maximum(batch_size, 1)
         source, source_lengths, target, target_lengths = queue.dequeue_many(dequeue_size, name='Samples_Dequeue')
