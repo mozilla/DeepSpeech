@@ -761,14 +761,17 @@ def calculate_report(results_tuple):
     samples = []
     items = list(zip(*results_tuple))
     mean_wer = 0.0
+    total_label_length = 0.0
     for label, decoding, distance, loss in items:
         sample_wer = wer(label, decoding)
         sample = Sample(label, decoding, loss, distance, sample_wer)
         samples.append(sample)
-        mean_wer += sample_wer
+        label_length = len(label.split())
+        mean_wer += sample_wer * label_length
+        total_label_length += label_length
 
     # Getting the mean WER from the accumulated one
-    mean_wer = mean_wer / len(items)
+    mean_wer = mean_wer / total_label_length
 
     # Filter out all items with WER=0
     samples = [s for s in samples if s.wer > 0]
