@@ -430,10 +430,8 @@ def decode_with_lm(inputs, sequence_length, beam_width=100,
 # Thus, we can simply make use of this implementation to define our loss.
 
 def calculate_mean_edit_distance_and_loss(model_feeder, batch):
-    r'''
+    '''
     This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
-    Next to batch size, total and average loss it returns the mean edit distance,
-    the decoded result and the batch's original Y.
     '''
     # obtain the next batch of data
     batch.size, batch.x, batch.seq_len, batch.y = model_feeder.next_batch(batch.worker_index, batch.gpu_index)
@@ -452,7 +450,6 @@ def calculate_mean_edit_distance_and_loss(model_feeder, batch):
     batch.distance = tf.edit_distance(tf.cast(batch.decoded[0], tf.int32), batch.y)
     # calculate the mean distance
     batch.avg_distance = tf.reduce_mean(batch.distance, 0)
-    return batch
 
 # Adam Optimization
 # =================
@@ -534,20 +531,21 @@ def get_tower_results(model_feeder):
     * The Levenshtein distances between the decodings and their transcriptions ``distance``,
     * The mean edit distance of the outcome averaged over the whole batch ``mean_edit_distance``
     '''
+    # object to return results of this call
+    class EndPoints: pass
+    end_points = EndPoints()
     # preparing data bags that represent the tower batches
-    class DataBag:
-        pass
+    class TowerBatch: pass
     tower_batches = []
     for worker in model_feeder.workers:
         for gpu in worker.gpus:
-            batch = DataBag()
+            batch = TowerBatch()
             batch.worker_index = worker.index
             batch.gpu_index = gpu.index
             tower_batches.append(batch)
     def for_each_tower(callback):
         '''
-        Helper routine that executes a provided function for each data bag
-        in its appropriate tower context
+        Helper routine that applies a function on each batch in its respective tower context
         '''
         with tf.variable_scope(tf.get_variable_scope()):
             # Loop over available_devices
@@ -567,17 +565,21 @@ def get_tower_results(model_feeder):
     batch_sizes = [batch.size for batch in tower_batches]
     batch_size_sum = tf.to_float(tf.maximum(1, tf.reduce_sum(batch_sizes)))
     # creating the optimizer by passing it the sum of all batch sizes for weighting
-    optimizer = create_optimizer(batch_size_sum)
+    end_points.optimizer = create_optimizer(batch_size_sum)
     def weight_and_compute_gradients(model_feeder, batch):
-        batch.gradients = optimizer.compute_gradients(batch.avg_loss)
+        batch.gradients = end_points.optimizer.compute_gradients(batch.avg_loss)
         batch_size_float = tf.to_float(batch.size)
         batch.avg_loss = batch.avg_loss * batch_size_float
         batch.avg_distance = batch.avg_distance * batch_size_float
     # compute gradients - also get weighted loss and weighted edit-distance
     for_each_tower(weight_and_compute_gradients)
     # building result lists of selected attributes
-    labels, decodings, distances, losses, avg_losses, avg_distances = \
+    end_points.labels, end_points.decodings, end_points.distances, end_points.losses, avg_losses, avg_distances = \
         zip(*[(batch.y, batch.decoded, batch.distance, batch.loss, batch.avg_loss, batch.avg_distance) for batch in tower_batches])
+    # weighted mean edit distance
+    end_points.avg_distance = tf.reduce_sum(avg_distances, 0) / batch_size_sum
+    # weighted mean loss
+    end_points.avg_loss = tf.reduce_sum(avg_losses, 0) / batch_size_sum
     # saving transport bandwidth: first iterate over workers to compute averaged worker gradients...
     worker_averages = []
     for worker in model_feeder.workers:
@@ -587,15 +589,9 @@ def get_tower_results(model_feeder):
         worker_averages.append(average_gradients('/job:worker/task:%d/cpu' % worker.index, gradients, batch_sizes))
     # ... and then average weighted worker gradients to overall step gradients
     # Note: This should avoid transporting all tower gradients to chief node before averaging
-    gradients, batch_size = average_gradients('/cpu:0', *zip(*worker_averages))
-    # return the optimizer, the results tuple, gradients, the batch size,
-    # and weighted means of edit distance and loss
-    return optimizer, \
-           (labels, decodings, distances, losses), \
-           gradients, \
-           batch_size, \
-           tf.reduce_sum(avg_distances, 0) / batch_size_sum, \
-           tf.reduce_sum(avg_losses, 0) / batch_size_sum
+    end_points.gradients, end_points.batch_size = average_gradients('/cpu:0', *zip(*worker_averages))
+    # return graph's end points
+    return end_points
 
 def log_variable(variable, gradient=None):
     r'''
@@ -831,17 +827,18 @@ def train() :
         cluster.on_start_data_set = \
             lambda data_set_index: model_feeder.start_data_set(data_sets[data_set_index])
         # get all relevant graph end-points
-        optimizer, results_tuple, gradients, sample_number, mean_edit_distance, loss = \
-            get_tower_results(model_feeder)
+        end_points = get_tower_results(model_feeder)
+        # sample wise results tuple
+        results_tuple = (end_points.labels, end_points.decodings, end_points.distances, end_points.losses)
         # add summaries of all variables and gradients to log
-        log_grads_and_vars(gradients)
+        log_grads_and_vars(end_points.gradients)
         # op to merge all summaries for the summary hook
         merge_all_summaries_op = tf.summary.merge_all()
         # apply gradients to modify the model
-        apply_gradient_op = optimizer.apply_gradients(gradients)
+        apply_gradient_op = end_points.optimizer.apply_gradients(end_points.gradients)
         # increment global sample counter
         sample_counter = model_variable('sample_counter', None, 0, trainable=False)
-        sample_inc_op = tf.assign_add(sample_counter, sample_number)
+        sample_inc_op = tf.assign_add(sample_counter, end_points.batch_size)
 
         # checkpoint manager to deal with all saving, restoring and result logging
         checkpoint_manager = CheckpointManager(checkpoint_dir=FLAGS.checkpoint_dir,
@@ -893,7 +890,7 @@ def train() :
                     # create report results tuple
                     report_results = ([],[],[],[])
                     # extend the session.run parameters
-                    report_params = [results_tuple, mean_edit_distance]
+                    report_params = [results_tuple, end_points.avg_distance]
                 else:
                     report_params = []
                 # initializing all aggregators
@@ -906,7 +903,7 @@ def train() :
                 while offset + n_samples_applied < n_samples_to_apply:
                     # run one step
                     _, n_samples_trained_on_model, n_samples_in_step, current_loss, current_report = \
-                        session.run([train_op, overall_samples_op, sample_number, loss, report_params])
+                        session.run([train_op, overall_samples_op, end_points.batch_size, end_points.avg_loss, report_params])
                     # collect results
                     n_samples_applied += n_samples_in_step
                     log.step('Applied %d samples (%d of %d).' % \
