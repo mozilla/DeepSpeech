@@ -1743,8 +1743,8 @@ def export():
                                       output_graph_path, clear_devices, '')
 
             log_info('Models exported at %s' % (FLAGS.export_dir))
-        except RuntimeError:
-            log_error(sys.exc_info()[1])
+        except RuntimeError as e:
+            log_error(str(e))
 
 
 def do_single_file_inference(input_file_path):
