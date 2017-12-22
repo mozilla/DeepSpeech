@@ -1719,7 +1719,7 @@ def export():
             actual_export_dir = os.path.join(FLAGS.export_dir, '%08d' % FLAGS.export_version)
             if os.path.isdir(actual_export_dir):
                 log_info('Removing old export')
-                shutil.rmtree(actual_FLAGS.export_dir)
+                shutil.rmtree(actual_export_dir)
         try:
             # Export serving model
             model_exporter.export(FLAGS.export_dir, tf.constant(FLAGS.export_version), session)
