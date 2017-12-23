@@ -25,7 +25,7 @@ from util.audio import audiofile_to_input_vector
 from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.text import sparse_tensor_value_to_texts, wer, Alphabet, ndarray_to_text
+from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, ndarray_to_text
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -760,15 +760,17 @@ def calculate_report(results_tuple):
     '''
     samples = []
     items = list(zip(*results_tuple))
-    mean_wer = 0.0
+    total_levenshtein = 0.0
+    total_label_length = 0.0
     for label, decoding, distance, loss in items:
         sample_wer = wer(label, decoding)
         sample = Sample(label, decoding, loss, distance, sample_wer)
         samples.append(sample)
-        mean_wer += sample_wer
+        total_levenshtein += levenshtein(label, decoding)
+        total_label_length += float(len(label.split()))
 
-    # Getting the mean WER from the accumulated one
-    mean_wer = mean_wer / len(items)
+    # Getting the WER from the accumulated levenshteins and lengths
+    samples_wer = total_levenshtein / total_label_length
 
     # Filter out all items with WER=0
     samples = [s for s in samples if s.wer > 0]
@@ -782,7 +784,7 @@ def calculate_report(results_tuple):
     # Order this top FLAGS.report_count items by their WER (lowest WER on top)
     samples.sort(key=lambda s: s.wer)
 
-    return mean_wer, samples
+    return samples_wer, samples
 
 def collect_results(results_tuple, returns):
     r'''
