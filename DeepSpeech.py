@@ -25,7 +25,7 @@ from util.audio import audiofile_to_input_vector
 from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.text import sparse_tensor_value_to_texts, levenshtein, Alphabet, ndarray_to_text
+from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, ndarray_to_text
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -763,13 +763,11 @@ def calculate_report(results_tuple):
     total_levenshtein = 0.0
     total_label_length = 0.0
     for label, decoding, distance, loss in items:
-        sample_levenshtein = levenshtein(label, decoding)
-        label_length = float(len(label.split()))
-        sample_wer = sample_levenshtein / label_length
+        sample_wer = wer(label, decoding)
         sample = Sample(label, decoding, loss, distance, sample_wer)
         samples.append(sample)
-        total_levenshtein += sample_levenshtein
-        total_label_length += label_length
+        total_levenshtein += levenshtein(label, decoding)
+        total_label_length += float(len(label.split()))
 
     # Getting the WER from the accumulated levenshteins and lengths
     samples_wer = total_levenshtein / total_label_length
