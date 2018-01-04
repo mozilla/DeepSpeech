@@ -66,6 +66,7 @@ def main():
     fs, audio = wav.read(args.audio)
     # We can assume 16kHz
     audio_length = len(audio) * ( 1 / 16000)
+    assert fs == 16000, "Only 16000Hz input WAV files are supported for now!"
 
     print('Running inference.', file=sys.stderr)
     inference_start = timer()
