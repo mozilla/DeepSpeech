@@ -156,6 +156,10 @@ tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.00, 'valid word insert
 
 tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it. Disables training, testing and exporting.')
 
+# Initialize from frozen model
+
+tf.app.flags.DEFINE_string  ('initialize_from_frozen_model', '', 'path to frozen model to initialize from. This behaves like a checkpoint, loading the weights from the frozen model and starting training with those weights. The optimizer parameters aren\'t restored, so remember to adjust the learning rate.')
+
 for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
 
@@ -1550,6 +1554,26 @@ def train(server=None):
         saver = tf.train.Saver(max_to_keep=FLAGS.max_to_keep)
         hooks.append(tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.checkpoint_dir, save_secs=FLAGS.checkpoint_secs, saver=saver))
 
+    if len(FLAGS.initialize_from_frozen_model) > 0:
+        with tf.gfile.FastGFile(FLAGS.initialize_from_frozen_model, 'rb') as fin:
+            graph_def = tf.GraphDef()
+            graph_def.ParseFromString(fin.read())
+
+        var_names = [v.name for v in tf.trainable_variables()]
+        var_tensors = tf.import_graph_def(graph_def, return_elements=var_names)
+
+        # build a { var_name: var_tensor } dict
+        var_tensors = dict(zip(var_names, var_tensors))
+
+        training_graph = tf.get_default_graph()
+
+        assign_ops = []
+        for name, restored_tensor in var_tensors.items():
+            training_tensor = training_graph.get_tensor_by_name(name)
+            assign_ops.append(tf.assign(training_tensor, restored_tensor))
+
+        init_from_frozen_model_op = tf.group(*assign_ops)
+
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
@@ -1560,6 +1584,12 @@ def train(server=None):
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=FLAGS.checkpoint_secs if FLAGS.train else None,
                                                config=session_config) as session:
+            if len(FLAGS.initialize_from_frozen_model) > 0:
+                log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
+                feed_dict = {}
+                model_feeder.set_data_set(feed_dict, model_feeder.train)
+                session.run(init_from_frozen_model_op, feed_dict=feed_dict)
+
             try:
                 if is_chief:
                     # Retrieving global_step from the (potentially restored) model
