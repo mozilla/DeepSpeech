@@ -766,7 +766,7 @@ def calculate_report(results_tuple):
         sample_wer = wer(label, decoding)
         sample = Sample(label, decoding, loss, distance, sample_wer)
         samples.append(sample)
-        total_levenshtein += levenshtein(label, decoding)
+        total_levenshtein += levenshtein(label.split(), decoding.split())
         total_label_length += float(len(label.split()))
 
     # Getting the WER from the accumulated levenshteins and lengths
