@@ -1,4 +1,4 @@
-%module model
+%module(threads="1") model
 
 %{
 #define SWIG_FILE_WITH_INIT
