@@ -55,11 +55,11 @@ tf.app.flags.DEFINE_integer ('iters_per_worker', 1,           'number of train o
 # Global Constants
 # ================
 
-tf.app.flags.DEFINE_boolean ('train',            True,        'wether to train the network')
-tf.app.flags.DEFINE_boolean ('test',             True,        'wether to test the network')
+tf.app.flags.DEFINE_boolean ('train',            True,        'whether to train the network')
+tf.app.flags.DEFINE_boolean ('test',             True,        'whether to test the network')
 tf.app.flags.DEFINE_integer ('epoch',            75,          'target epoch to train - if negative, the absolute number of additional epochs will be trained')
 
-tf.app.flags.DEFINE_boolean ('use_warpctc',      False,       'wether to use GPU bound Warp-CTC')
+tf.app.flags.DEFINE_boolean ('use_warpctc',      False,       'whether to use GPU bound Warp-CTC')
 
 tf.app.flags.DEFINE_float   ('dropout_rate',     0.05,        'dropout rate for feedforward layers')
 tf.app.flags.DEFINE_float   ('dropout_rate2',    -1.0,        'dropout rate for layer 2 - defaults to dropout_rate')
@@ -104,7 +104,7 @@ tf.app.flags.DEFINE_integer ('max_to_keep',      5,           'number of checkpo
 
 tf.app.flags.DEFINE_string  ('export_dir',       '',          'directory in which exported models are stored - if omitted, the model won\'t get exported')
 tf.app.flags.DEFINE_integer ('export_version',   1,           'version number of the exported model')
-tf.app.flags.DEFINE_boolean ('remove_export',    False,       'wether to remove old exported models')
+tf.app.flags.DEFINE_boolean ('remove_export',    False,       'whether to remove old exported models')
 tf.app.flags.DEFINE_boolean ('use_seq_length',   True,        'have sequence_length in the exported graph (will make tfcompile unhappy)')
 
 # Reporting
@@ -114,7 +114,7 @@ tf.app.flags.DEFINE_boolean ('log_traffic',      False,       'log cluster trans
 
 tf.app.flags.DEFINE_string  ('wer_log_pattern',  '',          'pattern for machine readable global logging of WER progress; has to contain %%s, %%s and %%f for the set name, the date and the float respectively; example: "GLOBAL LOG: logwer(\'12ade231\', %%s, %%s, %%f)" would result in some entry like "GLOBAL LOG: logwer(\'12ade231\', \'train\', \'2017-05-18T03:09:48-0700\', 0.05)"; if omitted (default), there will be no logging')
 
-tf.app.flags.DEFINE_boolean ('log_placement',    False,       'wether to log device placement of the operators to the console')
+tf.app.flags.DEFINE_boolean ('log_placement',    False,       'whether to log device placement of the operators to the console')
 tf.app.flags.DEFINE_integer ('report_count',     10,          'number of phrases with lowest WER (best matching) to print out during a WER report')
 
 tf.app.flags.DEFINE_string  ('summary_dir',      '',          'target directory for TensorBoard summaries - defaults to directory "deepspeech/summaries" within user\'s data home specified by the XDG Base Directory Specification')
@@ -294,7 +294,7 @@ def initialize_globals():
             setattr(FLAGS, '%s_stddev' % var, FLAGS.default_stddev)
 
     # Queues that are used to gracefully stop parameter servers.
-    # Each queue stands for one ps. A finishing worker sends a token to each queue befor joining/quitting.
+    # Each queue stands for one ps. A finishing worker sends a token to each queue before joining/quitting.
     # Each ps will dequeue as many tokens as there are workers before joining/quitting.
     # This ensures parameter servers won't quit, if still required by at least one worker and
     # also won't wait forever (like with a standard `server.join()`).
@@ -554,7 +554,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
 # Adam Optimization
 # =================
 
-# In constrast to 'Deep Speech: Scaling up end-to-end speech recognition'
+# In contrast to 'Deep Speech: Scaling up end-to-end speech recognition'
 # (http://arxiv.org/abs/1412.5567),
 # in which 'Nesterov's Accelerated Gradient Descent'
 # (www.cs.toronto.edu/~fritz/absps/momentum.pdf) was used,
@@ -679,7 +679,7 @@ def get_tower_results(model_feeder, optimizer):
 def average_gradients(tower_gradients):
     r'''
     A routine for computing each variable's average of the gradients obtained from the GPUs.
-    Note also that this code acts as a syncronization point as it requires all
+    Note also that this code acts as a synchronization point as it requires all
     GPUs to be finished with their mini-batch before it can run to completion.
     '''
     # List of average gradients to return to the caller
@@ -1220,7 +1220,7 @@ class TrainingCoordinator(object):
         self.started = True
 
     def _next_epoch(self):
-        # State-machine of the coodination process
+        # State-machine of the coordination process
 
         # Indicates, if there were 'new' epoch(s) provided
         result = False
@@ -1375,7 +1375,7 @@ class TrainingCoordinator(object):
             WorkerJob. a job of one of the running epochs that will get
                 associated with the given worker and put into state 'running'
         '''
-        # Let's ensure that this does not interfer with other workers/requests
+        # Let's ensure that this does not interfere with other workers/requests
         with self._lock:
             if is_chief:
                 # First try to get a next job
@@ -1461,7 +1461,7 @@ def train(server=None):
     '''
 
     # Create a variable to hold the global_step.
-    # It will automgically get incremented by the optimizer.
+    # It will automagically get incremented by the optimizer.
     global_step = tf.Variable(0, trainable=False, name='global_step')
 
     # Reading training set
