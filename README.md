@@ -46,7 +46,8 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Checkpointing](#checkpointing)
   - [Exporting a model for inference](#exporting-a-model-for-inference)
   - [Distributed computing across more than one machine](#distributed-training-across-more-than-one-machine)
-- [Documentation](#documentation)
+  - [Continuing training from a frozen graph](#continuing-training-from-a-frozen-graph)
+- [Code documentation](#code-documentation)
 - [Contact/Getting Help](#contactgetting-help)
 
 ## Prerequisites
@@ -329,9 +330,22 @@ $ run-cluster.sh 1:2:1 --epoch 10
 Be aware that for the help example to be able to run, you need at least two `CUDA` capable GPUs (2 workers times 1 GPU). The script utilizes environment variable `CUDA_VISIBLE_DEVICES` for `DeepSpeech.py` to see only the provided number of GPUs per worker.
 The script is meant to be a template for your own distributed computing instrumentation. Just modify the startup code for the different servers (workers and parameter servers) accordingly. You could use SSH or something similar for running them on your remote hosts.
 
-## Documentation
+### Continuing training from a frozen graph
 
-Documentation (incomplete) for the project can be found here: http://deepspeech.readthedocs.io/en/latest/
+If you'd like to use one of the pre-trained models released by Mozilla to bootstrap your training process (transfer learning, fine tuning), you can do so by using the `--initialize_from_frozen_model` flag in `DeepSpeech.py`. For best results, make sure you're passing an empty `--checkpoint_dir` when resuming from a frozen model.
+
+For example, if you want to fine tune the entire graph using your own data in `my-train.csv`, `my-dev.csv` and `my-test.csv`, for three epochs, you can something like the following, tuning the hyperparameters as needed:
+
+```bash
+mkdir fine_tuning_checkpoints
+python DeepSpeech.py --n_hidden 2048 --initialize_from_frozen_model path/to/model/output_graph.pb --checkpoint_dir fine_tuning_checkpoints --epoch 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
+```
+
+Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
+
+## Code documentation
+
+Documentation (incomplete) for the code can be found here: http://deepspeech.readthedocs.io/en/latest/
 
 ## Contact/Getting Help
 
