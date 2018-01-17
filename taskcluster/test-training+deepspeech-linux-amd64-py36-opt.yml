@@ -8,7 +8,7 @@ build:
       apt-get -qq -y install ${python.packages.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.6.2 mozilla deepspeech"
-  python_wheel: 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.cpu-py36/artifacts/public/tensorflow_warpctc-1.4.0-cp36-cp36m-linux_x86_64.whl'
+  python_wheel: 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.cpu-py36/artifacts/public/tensorflow_warpctc-1.4.0-cp36-cp36m-linux_x86_64.whl'
   deepspeech_pkg_name: 'deepspeech-0.1.0-cp36-cp36m-manylinux1_x86_64.whl'
   metadata:
     name: "DeepSpeech Linux AMD64 CPU training Py3.6 (DS)"
