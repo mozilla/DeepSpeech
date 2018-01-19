@@ -47,7 +47,7 @@ if [ "${aot_model}" = "--aot" ]; then
 else
     deepspeech_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 fi
-pip install --upgrade ${deepspeech_pkg_url}
+pip install --upgrade ${deepspeech_pkg_url} | cat
 
 phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
 assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
