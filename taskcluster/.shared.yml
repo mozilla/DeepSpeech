@@ -29,7 +29,7 @@ nodejs:
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:
   packages:
-    install_script: 'wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig_3.0.10-1.1_amd64.deb -O /tmp/swig_3.0.10-1.1_amd64.deb && wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.1_amd64.deb -O /tmp/swig3.0_3.0.10-1.1_amd64.deb && dpkg -i /tmp/swig_3.0.10-1.1_amd64.deb /tmp/swig3.0_3.0.10-1.1_amd64.deb'
+    install_script: 'wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig_3.0.10-1.2_amd64.deb -O /tmp/swig_3.0.10-1.2_amd64.deb && wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.10-1.2_amd64.deb -O /tmp/swig3.0_3.0.10-1.2_amd64.deb && dpkg -i /tmp/swig_3.0.10-1.2_amd64.deb /tmp/swig3.0_3.0.10-1.2_amd64.deb'
   patch_nodejs:
     linux: '(for patch_file in /home/build-user/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_*.patch; do patch -d /usr/share/swig3.0/ -p2 < $patch_file; done)'
     # Test if we can reverse patch #2:
