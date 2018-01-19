@@ -7,7 +7,6 @@ build:
       apt-get -qq -y install ${python.packages.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.4.6 mozilla"
-  python_wheel: 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7d79b8f6422e5b7e0ba82504c500a86756c44a62.cpu-py34/artifacts/public/tensorflow_warpctc-1.4.0-cp34-cp34m-linux_x86_64.whl'
   metadata:
     name: "DeepSpeech Linux AMD64 CPU training Py3.4"
     description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 Python 3.4, CPU only, optimized version"
