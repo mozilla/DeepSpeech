@@ -5,7 +5,7 @@ build:
     - "pull_request.reopened"
   template_file: linux-opt-base.tyml
   dependencies:
-    - "test-training-linux-amd64-py27-opt"
+    - "test-training_upstream-linux-amd64-py27-opt"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7d79b8f6422e5b7e0ba82504c500a86756c44a62.cpu/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7d79b8f6422e5b7e0ba82504c500a86756c44a62.cpu/artifacts/public/summarize_graph"
   system_setup:
