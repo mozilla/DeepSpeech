@@ -106,7 +106,7 @@ pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
-pip install -r ${DS_ROOT_TASK}/DeepSpeech/ds/requirements.txt
+pip install -r ${DS_ROOT_TASK}/DeepSpeech/ds/requirements.txt | cat
 
 exec_benchmark "/tmp/test.frozen.e75.lstm494.ldc93s1.pb" "single-model_noAOT"
 exec_benchmark "/tmp/test.frozen.e75.lstm100-900.ldc93s1.zip" "zipfile-model_noAOT"

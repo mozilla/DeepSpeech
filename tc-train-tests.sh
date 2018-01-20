@@ -31,16 +31,16 @@ pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
 if [ "${tf}" = "mozilla" ]; then
-    pip install --upgrade ${TENSORFLOW_WHEEL}
-    grep -v "tensorflow" ${HOME}/DeepSpeech/ds/requirements.txt | pip install --upgrade -r /dev/stdin
+    pip install --upgrade ${TENSORFLOW_WHEEL} | cat
+    grep -v "tensorflow" ${HOME}/DeepSpeech/ds/requirements.txt | pip install --upgrade -r /dev/stdin | cat
 fi;
 
 if [ "${tf}" = "upstream" ]; then
-    pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt
+    pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 fi;
 
 if [ "${ds}" = "deepspeech" ]; then
-    pip install "${DEEPSPEECH_PYTHON_PACKAGE}"
+    pip install "${DEEPSPEECH_PYTHON_PACKAGE}" | cat
     python -c "import tensorflow; from deepspeech.utils import audioToInputVector"
 fi;
 
