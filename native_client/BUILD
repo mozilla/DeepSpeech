@@ -26,7 +26,7 @@ tf_library(
     config = "tfcompile.config.pbtxt",
     # This depends on //tensorflow:rpi3 condition defined in mozilla/tensorflow
     tfcompile_flags = select({
-        "//tensorflow:rpi3": str('--target_triple="armv6-linux-gnueabihf" --target_cpu="cortex-a53" --target_features="+neon-fp-armv8"'),
+        "//tensorflow:rpi3": str('--target_cpu="cortex-a53"'),
         "//conditions:default": str('')
     }),
 )

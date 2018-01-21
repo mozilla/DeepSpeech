@@ -6,9 +6,9 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.osx.${event.head.sha}"
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.osx/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.osx/artifacts/public/summarize_graph"
-  libtensorflow_framework: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.osx/artifacts/public/libtensorflow_framework.so"
+  tensorflow: "https://queue.taskcluster.net/v1/task/HPE3ROpgQb6RSBDlQK0OAA/artifacts/public/home.tar.xz"
+  summarize_graph: "https://queue.taskcluster.net/v1/task/HPE3ROpgQb6RSBDlQK0OAA/artifacts/public/summarize_graph"
+  libtensorflow_framework: "https://queue.taskcluster.net/v1/task/HPE3ROpgQb6RSBDlQK0OAA/artifacts/public/libtensorflow_framework.so"
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"

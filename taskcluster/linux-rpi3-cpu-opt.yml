@@ -4,9 +4,9 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.arm"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.arm"
     - "index.project.deepspeech.deepspeech.native_client.arm.${event.head.sha}"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.arm/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.cpu/artifacts/public/summarize_graph"
-  libtensorflow_framework: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.cpu/artifacts/public/libtensorflow_framework.so"
+  tensorflow: "https://queue.taskcluster.net/v1/task/aepwSspgTky58gJTO-eLQw/artifacts/public/home.tar.xz"
+  summarize_graph: "https://queue.taskcluster.net/v1/task/bBZaVQAgTAW6GzrvE-lEGA/artifacts/public/summarize_graph"
+  libtensorflow_framework: "https://queue.taskcluster.net/v1/task/bBZaVQAgTAW6GzrvE-lEGA/artifacts/public/libtensorflow_framework.so"
   ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
   system_setup:
     >

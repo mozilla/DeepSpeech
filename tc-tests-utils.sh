@@ -38,11 +38,6 @@ export EXTRA_AOT_LIBS="-ldeepspeech_model -lxla_compiled_cpu_function -lruntime 
 export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=16"
 export BAZEL_AOT_TARGETS="
 //native_client:deepspeech_model
-//tensorflow/compiler/aot:runtime
-//tensorflow/compiler/xla/service/cpu:runtime_matmul
-//tensorflow/compiler/xla/service/cpu:runtime_matvec
-//tensorflow/compiler/xla:executable_run_options
-//tensorflow/compiler/tf2xla:xla_compiled_cpu_function
 "
 
 model_source=${DEEPSPEECH_TEST_MODEL}
@@ -240,7 +235,7 @@ do_bazel_build()
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
   eval "export ${BAZEL_ENV_FLAGS}"
   PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+    --experimental_strict_action_env -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 }
 
 do_deepspeech_binary_build()
