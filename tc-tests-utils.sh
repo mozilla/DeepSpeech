@@ -240,7 +240,7 @@ do_bazel_build()
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
   eval "export ${BAZEL_ENV_FLAGS}"
   PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+    -s --explain bazel_monolithic.log --verbose_explanations -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 }
 
 do_deepspeech_binary_build()
