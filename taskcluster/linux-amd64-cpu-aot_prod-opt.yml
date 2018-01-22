@@ -4,9 +4,8 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.cpu_aot"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.cpu_aot"
     - "index.project.deepspeech.deepspeech.native_client.cpu_aot.${event.head.sha}"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.cpu/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.cpu/artifacts/public/summarize_graph"
-  libtensorflow_framework: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1390dc180e25b5821be80b407ddc5fad73d4ef6a.cpu/artifacts/public/libtensorflow_framework.so"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7d79b8f6422e5b7e0ba82504c500a86756c44a62.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7d79b8f6422e5b7e0ba82504c500a86756c44a62.cpu/artifacts/public/summarize_graph"
   system_setup:
     >
       ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&

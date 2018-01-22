@@ -33,11 +33,10 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training-linux-amd64-py27-opt") }
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27-opt") }
       in:
         TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
         SUMMARIZE_GRAPH_BINARY: ${build.summarize_graph}
-        LIBTENSORFLOW_FRAMEWORK: ${build.libtensorflow_framework}
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
         DEEPSPEECH_PROD_MODEL: https://github.com/lissyx/DeepSpeech/releases/download/0.0.2/tc-fake-prod.988_e120.LSTM.ldc93s1.pb
 

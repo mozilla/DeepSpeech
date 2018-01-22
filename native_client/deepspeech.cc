@@ -4,7 +4,7 @@
 
 #include "third_party/eigen3/unsupported/Eigen/CXX11/Tensor"
 
-#include "native_client/deepspeech_model.h" // generated
+#include "native_client/deepspeech_model_core.h" // generated
 #endif
 
 #include <iostream>
@@ -37,6 +37,7 @@ class Private {
     bool run_aot;
 };
 
+DEEPSPEECH_EXPORT
 Model::Model(const char* aModelPath, int aNCep, int aNContext,
              const char* aAlphabetConfigPath, int aBeamWidth)
 {
@@ -97,6 +98,7 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
   }
 }
 
+DEEPSPEECH_EXPORT
 Model::~Model()
 {
   if (mPriv->session) {
@@ -109,6 +111,7 @@ Model::~Model()
   delete mPriv;
 }
 
+DEEPSPEECH_EXPORT
 void
 Model::enableDecoderWithLM(const char* aAlphabetConfigPath, const char* aLMPath,
                            const char* aTriePath, float aLMWeight,
@@ -118,6 +121,7 @@ Model::enableDecoderWithLM(const char* aAlphabetConfigPath, const char* aLMPath,
                                       aLMWeight, aWordCountWeight, aValidWordCountWeight);
 }
 
+DEEPSPEECH_EXPORT
 void
 Model::getInputVector(const short* aBuffer, unsigned int aBufferSize,
                            int aSampleRate, float** aMfcc, int* aNFrames,
@@ -204,6 +208,7 @@ Model::decode(int aNFrames, float*** aLogits)
   return output;
 }
 
+DEEPSPEECH_EXPORT
 char*
 Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
 {
@@ -303,6 +308,7 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
   return decode(aNFrames, input_data_mat);
 }
 
+DEEPSPEECH_EXPORT
 char*
 Model::stt(const short* aBuffer, unsigned int aBufferSize, int aSampleRate)
 {

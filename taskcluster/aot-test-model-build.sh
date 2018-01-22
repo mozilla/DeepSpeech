@@ -7,7 +7,7 @@ source $(dirname "$0")/../tc-tests-utils.sh
 source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
 
 BAZEL_TARGETS="
-//native_client:deepspeech
+//native_client:libdeepspeech.so
 //native_client:deepspeech_utils
 ${BAZEL_AOT_TARGETS}"
 
@@ -19,7 +19,7 @@ EXTRA_LOCAL_LDFLAGS="${EXTRA_AOT_LDFLAGS}"
 EXTRA_LOCAL_LIBS="${EXTRA_AOT_LIBS}"
 
 do_get_model_parameters "${DEEPSPEECH_TEST_MODEL}" AOT_MODEL_PARAMS
-BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS} ${BAZEL_AOT_BUILD_FLAGS} ${AOT_MODEL_PARAMS}"
+BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BAZEL_AOT_BUILD_FLAGS} ${AOT_MODEL_PARAMS}"
 
 do_bazel_build
 

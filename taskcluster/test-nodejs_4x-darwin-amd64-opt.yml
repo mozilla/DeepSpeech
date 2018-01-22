@@ -2,7 +2,7 @@ build:
   template_file: test-darwin-opt-base.tyml
   dependencies:
     - "node-package"
-    - "test-training-linux-amd64-py27-opt"
+    - "test-training_upstream-linux-amd64-py27-opt"
   system_setup:
     >
       ${nodejs.brew.setup} && ${nodejs.brew.prep_4} && ${nodejs.brew.env}
