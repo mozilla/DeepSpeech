@@ -42,9 +42,15 @@ fi;
 if [ "${ds}" = "deepspeech" ]; then
     pip install "${DEEPSPEECH_PYTHON_PACKAGE}" | cat
     python -c "import tensorflow; from deepspeech.utils import audioToInputVector"
-fi;
 
-download_ctc_kenlm "/tmp/ds"
+    # Since this build depends on the completion of the whole deepspeech package
+    # and we might get into funny situation with --config=monolithic, then let's
+    # be extra-cautious and leverage our dependency against the build to also
+    # test with libctc_decoder_with_kenlm.so that is packaged for release
+    download_native_client_files "/tmp/ds"
+else
+    download_ctc_kenlm "/tmp/ds"
+fi;
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1.sh

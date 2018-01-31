@@ -1,9 +1,9 @@
 # Description: Deepspeech native client library.
 
-load("//tensorflow:tensorflow.bzl",
-     "if_linux_x86_64", "tf_cc_shared_object")
+load("@org_tensorflow//tensorflow:tensorflow.bzl",
+     "if_linux_x86_64", "tf_cc_shared_object", "if_cuda")
 
-load("//tensorflow/compiler/aot:tfcompile.bzl",
+load("@org_tensorflow//tensorflow/compiler/aot:tfcompile.bzl",
      "tf_library")
 
 load(":deepspeech.bzl", "if_native_model")
@@ -16,7 +16,7 @@ config_setting(
 )
 
 tf_library(
-    name = "deepspeech_model",
+    name = "deepspeech_model_core",
     cpp_class = "DeepSpeech::nativeModel",
     # We don't need tests or benchmark binaries
     gen_test=False, gen_benchmark=False,
@@ -26,7 +26,7 @@ tf_library(
     config = "tfcompile.config.pbtxt",
     # This depends on //tensorflow:rpi3 condition defined in mozilla/tensorflow
     tfcompile_flags = select({
-        "//tensorflow:rpi3": str('--target_triple="armv6-linux-gnueabihf" --target_cpu="cortex-a53" --target_features="+neon-fp-armv8"'),
+        "//tensorflow:rpi3": str('--target_cpu="cortex-a53"'),
         "//conditions:default": str('')
     }),
 )
@@ -45,34 +45,64 @@ genrule(
     cmd = "cp $(DS_MODEL_FILE) $@"
 )
 
-cc_library(
-    name = "deepspeech",
-    srcs = ["deepspeech.cc", "alphabet.h", "beam_search.h", "trie_node.h"] +
+tf_cc_shared_object(
+    name = "libdeepspeech.so",
+    srcs = ["deepspeech.cc", "deepspeech.h", "deepspeech_utils.h", "alphabet.h", "beam_search.h", "trie_node.h"] +
+           if_native_model(["deepspeech_model_core.h"]) +
            glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
                  "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
                 exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) +
            glob(["boost_locale/**/*.hpp"]),
-    hdrs = ["deepspeech.h"],
     # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
     # which makes it harder to see our own warnings
-    copts = ["-std=c++11", "-Wno-sign-compare"] + if_native_model([
+    copts = ["-std=c++11", "-Wno-sign-compare", "-fvisibility=hidden"] + if_native_model([
         "-DDS_MODEL_TIMESTEPS=$(DS_MODEL_TIMESTEPS)",
         "-DDS_NATIVE_MODEL=1",
     ]),
-    linkopts = select({
-        "//tensorflow:darwin": [
-            "-Wl,-install_name,@rpath/libdeepspeech.so"
-	],
-	"//conditions:default": []
-    }),
     deps = [
-        "//tensorflow/core:core",
+        "//tensorflow/core:core_cpu",
+        "//tensorflow/core:direct_session",
+        ### "//tensorflow/core:all_kernels",
+        ### => Trying to be more fine-grained
+        ### Obtained by trial/error process ...
+        ### CPU only build libdeepspeech.so from 63M to 36M
+        "//tensorflow/core/kernels:constant_op",        # Const
+        "//tensorflow/core/kernels:identity_op",        # Identity
+        "//tensorflow/core/kernels:transpose_op",       # Transpose
+        "//tensorflow/core/kernels:reshape_op",         # Reshape
+        "//tensorflow/core/kernels:shape_ops",          # Shape
+        "//tensorflow/core/kernels:strided_slice_op",   # StridedSlice
+        "//tensorflow/core/kernels:pack_op",            # Pack
+        "//tensorflow/core/kernels:reverse_op",         # ReverseV2
+        "//tensorflow/core/kernels:concat_op",          # ConcatV2
+        "//tensorflow/core/kernels:split_op",           # Split
+        "//tensorflow/core/kernels:sparse_to_dense_op", # SparseToDense
+        "//tensorflow/core/kernels:relu_op",            # Relu
+        "//tensorflow/core/kernels:bias_op",            # BiasAdd
+        "//tensorflow/core/kernels:math",               # Range, MatMul
+        "//tensorflow/core/kernels:tensor_array_ops",   # Placeholder, TensorArrayV3
+        "//tensorflow/core/kernels:control_flow_ops",   # Enter
+        "//tensorflow/core/kernels:ctc_ops",            # CTCBeamSearchDecoder
+        ### Needed by production model produced without "--use_seq_length False"
+        "//tensorflow/core/kernels:logging_ops",         # Assert
+        "//tensorflow/core/kernels:reverse_sequence_op", # ReverseSequence
+        # Classic deps
         "//tensorflow/core/util/ctc",
         "//third_party/eigen3",
-        ":deepspeech_utils"
-    ] + if_native_model([":deepspeech_model", "//tensorflow/compiler/tf2xla:xla_compiled_cpu_function"]),
+    ] + if_native_model([
+        "//tensorflow/compiler/tf2xla:xla_compiled_cpu_function",
+    ])
+      + if_cuda([
+        "//tensorflow/core:core",
+        "//tensorflow/core/kernels:slice_op_gpu",       # Slice GPU
+    ]),
     includes = ["kenlm", "boost_locale"],
     defines = ["KENLM_MAX_ORDER=6"],
+)
+
+tf_cc_shared_object(
+    name = "libdeepspeech_model.so",
+    deps = [":deepspeech_model_core"]
 )
 
 # We have a single rule including c_speech_features and kissfft here as Bazel

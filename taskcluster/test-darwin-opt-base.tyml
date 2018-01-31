@@ -30,11 +30,10 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training-linux-amd64-py27-opt") }
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27-opt") }
         darwin_amd64_build: { $eval: as_slugid("darwin-amd64-cpu-opt") }
         node_package: { $eval: as_slugid("node-package") }
       in:
-        TENSORFLOW_WHEEL: ${build.python_wheel}
         DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${darwin_amd64_build}/artifacts/public
         DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb

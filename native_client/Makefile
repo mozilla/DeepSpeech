@@ -46,15 +46,13 @@ bindings-package: MANIFEST.in
 bindings: bindings-build bindings-package
 
 run: deepspeech
-	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}
+	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}
 
 debug: deepspeech
-	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/tensorflow:${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} gdb --args ./deepspeech ${ARGS}
+	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} gdb --args ./deepspeech ${ARGS}
 
 install: deepspeech
 	install -d ${PREFIX}/lib
-	install -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow_cc.so ${PREFIX}/lib/
-	install -m 0644 ${TFDIR}/bazel-bin/tensorflow/libtensorflow_framework.so ${PREFIX}/lib/
 	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
 	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech_utils.so ${PREFIX}/lib/
 	install -d ${PREFIX}/bin
@@ -65,6 +63,4 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/bin
 	rm -f ${PREFIX}/lib/libdeepspeech_utils.so
 	rm -f ${PREFIX}/lib/libdeepspeech.so
-	rm -f ${PREFIX}/lib/libtensorflow_cc.so
-	rm -f ${PREFIX}/lib/libtensorflow_framework.so
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/lib

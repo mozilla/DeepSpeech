@@ -29,20 +29,15 @@ export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 export BAZEL_CTC_TARGETS="//native_client:libctc_decoder_with_kenlm.so"
 
 export EXTRA_AOT_CFLAGS=""
-export EXTRA_AOT_LDFLAGS="-L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/tf2xla -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/aot -L${DS_TFDIR}/bazel-bin/tensorflow/compiler/xla/service/cpu"
-export EXTRA_AOT_LIBS="-ldeepspeech_model -lxla_compiled_cpu_function -lruntime -lruntime_matmul -lruntime_matvec -lexecutable_run_options"
+export EXTRA_AOT_LDFLAGS=""
+export EXTRA_AOT_LIBS="-ldeepspeech_model"
 
 # FIXME:
 # Previously, with r1.3, we could use timesteps of 64
 # With r1.4 it seems to eat too much resources at tfcompile step
 export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=16"
 export BAZEL_AOT_TARGETS="
-//native_client:deepspeech_model
-//tensorflow/compiler/aot:runtime
-//tensorflow/compiler/xla/service/cpu:runtime_matmul
-//tensorflow/compiler/xla/service/cpu:runtime_matvec
-//tensorflow/compiler/xla:executable_run_options
-//tensorflow/compiler/tf2xla:xla_compiled_cpu_function
+//native_client:libdeepspeech_model.so
 "
 
 model_source=${DEEPSPEECH_TEST_MODEL}
@@ -221,7 +216,6 @@ do_get_model_parameters()
 
   wget "${model_url}" -O "${model_file}"
   wget "${SUMMARIZE_GRAPH_BINARY}" -O "/tmp/summarize_graph"
-  wget "${LIBTENSORFLOW_FRAMEWORK}" -O "/tmp/libtensorflow_framework.so"
 
   chmod +x /tmp/summarize_graph
 
@@ -235,12 +229,77 @@ do_get_model_parameters()
   eval $__result="'--define=DS_MODEL_FRAMESIZE=${model_width} --define=DS_MODEL_FILE=${model_file}'"
 }
 
+# Checks whether we run a patched version of bazel.
+# Patching is required to dump computeKey() parameters to .ckd files
+# See bazel.patch
+# Return 0 (success exit code) on patched version, 1 on release version
+is_patched_bazel()
+{
+  bazel_version=$(bazel version | grep 'Build label:' | cut -d':' -f2)
+
+  if [ -z "${bazel_version}" ]; then
+    return 0;
+  else
+    return 1;
+  fi;
+}
+
+verify_bazel_rebuild()
+{
+  bazel_explain_file="$1"
+
+  if [ ! -f "${bazel_explain_file}" ]; then
+    echo "No such explain file: ${bazel_explain_file}"
+    exit 1
+  fi;
+
+  spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|unconditional execution is requested' | wc -l)
+  if [ "${spurious_rebuilds}" -ne 0 ]; then
+    echo "Bazel rebuilds some file it should not, please check."
+
+    if is_patched_bazel; then
+      mkdir -p ${DS_ROOT_TASK}/DeepSpeech/ckd/ds ${DS_ROOT_TASK}/DeepSpeech/ckd/tf
+      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
+      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/
+
+      echo "Making a diff between CKD files"
+      mkdir -p ${TASKCLUSTER_ARTIFACTS}
+      diff -urNw ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/ | tee ${TASKCLUSTER_ARTIFACTS}/ckd.diff
+
+      rm -fr ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
+    else
+      echo "Cannot get CKD information from release, please use patched Bazel"
+    fi;
+
+    exit 1
+  fi;
+}
+
 do_bazel_build()
 {
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
   eval "export ${BAZEL_ENV_FLAGS}"
-  PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+
+  if is_patched_bazel; then
+    find ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar -T -
+  fi;
+
+  bazel ${BAZEL_OUTPUT_USER_ROOT} build \
+    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+
+  if is_patched_bazel; then
+    find ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar -T -
+  fi;
+
+  verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/tf/bazel_monolithic.log"
+}
+
+do_bazel_shared_build()
+{
+  cd ${DS_ROOT_TASK}/DeepSpeech/tf
+  eval "export ${BAZEL_ENV_FLAGS}"
+  bazel ${BAZEL_OUTPUT_USER_ROOT} build \
+    -s --explain bazel_shared.log --verbose_explanations --experimental_strict_action_env -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 }
 
 do_deepspeech_binary_build()
@@ -361,13 +420,6 @@ package_native_client()
 
   if [ -f "${tensorflow_dir}/bazel-bin/native_client/libdeepspeech_model.so" ]; then
     tar -cf - \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/aot/ libruntime.so \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/service/cpu/ libruntime_matmul.so \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/service/cpu/ libruntime_matvec.so \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/xla/ libexecutable_run_options.so \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/compiler/tf2xla/ libxla_compiled_cpu_function.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
@@ -379,8 +431,6 @@ package_native_client()
       | pixz -9 > "${artifacts_dir}/${artifact_name}"
   else
     tar -cf - \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_cc.so \
-      -C ${tensorflow_dir}/bazel-bin/tensorflow/ libtensorflow_framework.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
