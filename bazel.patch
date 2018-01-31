@@ -1,0 +1,264 @@
+diff --git a/src/main/java/com/google/devtools/build/lib/analysis/actions/FileWriteAction.java b/src/main/java/com/google/devtools/build/lib/analysis/actions/FileWriteAction.java
+index c7aa4cb63..e084bc27c 100644
+--- a/src/main/java/com/google/devtools/build/lib/analysis/actions/FileWriteAction.java
++++ b/src/main/java/com/google/devtools/build/lib/analysis/actions/FileWriteAction.java
+@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
+ import java.io.ByteArrayOutputStream;
+ import java.io.IOException;
+ import java.io.OutputStream;
++import java.io.PrintWriter;
+ import java.util.zip.GZIPInputStream;
+ import java.util.zip.GZIPOutputStream;
+ 
+@@ -73,6 +74,8 @@ public final class FileWriteAction extends AbstractFileWriteAction {
+    */
+   private final CharSequence fileContents;
+ 
++  private final Artifact output;
++
+   /** Minimum length (in chars) for content to be eligible for compression. */
+   private static final int COMPRESS_CHARS_THRESHOLD = 256;
+ 
+@@ -90,6 +93,7 @@ public final class FileWriteAction extends AbstractFileWriteAction {
+       fileContents = new CompressedString((String) fileContents);
+     }
+     this.fileContents = fileContents;
++    this.output = output;
+   }
+ 
+   /**
+@@ -230,11 +234,32 @@ public final class FileWriteAction extends AbstractFileWriteAction {
+    */
+   @Override
+   protected String computeKey() {
++    // System.err.println("src/main/java/com/google/devtools/build/lib/analysis/actions/FileWriteAction.java => output: " + output.getExecPath());
++    // ".ckd" Compute Key Debug
++    PrintWriter computeKeyDebugWriter = null;
++    String computeKeyDebugFile = output.getExecPath() + ".FileWriteAction.ckd";
++    try {
++      computeKeyDebugWriter = new PrintWriter(computeKeyDebugFile, "UTF-8");
++    } catch (java.io.FileNotFoundException ex) {
++      System.err.println("Unable to create " + computeKeyDebugFile);
++    } catch (java.io.UnsupportedEncodingException ex) {
++      System.err.println("Unsupported encoding");
++    }
++
+     Fingerprint f = new Fingerprint();
+     f.addString(GUID);
++    computeKeyDebugWriter.println("GUID: " + GUID);
++
+     f.addString(String.valueOf(makeExecutable));
++    computeKeyDebugWriter.println("MAKEEXECUTABLE: " + String.valueOf(makeExecutable));
++
+     f.addString(getFileContents());
+-    return f.hexDigestAndReset();
++    computeKeyDebugWriter.println("FILECONTENTS: " + getFileContents());
++
++    String rv = f.hexDigestAndReset();
++    computeKeyDebugWriter.println("KEY: " + rv);
++    computeKeyDebugWriter.close();
++    return rv;
+   }
+ 
+   /**
+diff --git a/src/main/java/com/google/devtools/build/lib/analysis/actions/SpawnAction.java b/src/main/java/com/google/devtools/build/lib/analysis/actions/SpawnAction.java
+index 580788160..26883eb92 100644
+--- a/src/main/java/com/google/devtools/build/lib/analysis/actions/SpawnAction.java
++++ b/src/main/java/com/google/devtools/build/lib/analysis/actions/SpawnAction.java
+@@ -60,6 +60,7 @@ import com.google.devtools.build.lib.util.ShellEscaper;
+ import com.google.devtools.build.lib.vfs.PathFragment;
+ import com.google.protobuf.GeneratedMessage.GeneratedExtension;
+ import java.nio.charset.Charset;
++import java.io.PrintWriter;
+ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.LinkedHashMap;
+@@ -91,6 +92,9 @@ public class SpawnAction extends AbstractAction implements ExecutionInfoSpecifie
+ 
+   private final CommandLine argv;
+ 
++  private final Iterable<Artifact> inputs;
++  private final Iterable<Artifact> outputs;
++
+   private final boolean executeUnconditionally;
+   private final boolean isShellCommand;
+   private final String progressMessage;
+@@ -197,6 +201,9 @@ public class SpawnAction extends AbstractAction implements ExecutionInfoSpecifie
+     this.mnemonic = mnemonic;
+     this.executeUnconditionally = executeUnconditionally;
+     this.extraActionInfoSupplier = extraActionInfoSupplier;
++
++    this.inputs = inputs;
++    this.outputs = outputs;
+   }
+ 
+   @Override
+@@ -312,23 +319,89 @@ public class SpawnAction extends AbstractAction implements ExecutionInfoSpecifie
+ 
+   @Override
+   protected String computeKey() {
++    boolean genruleSetup = String.valueOf(Iterables.get(inputs, 0).getExecPath()).contains("genrule/genrule-setup.sh");
++    boolean validGenrule = genruleSetup && (Iterables.size(inputs) > 1);
++
++    String genruleScript = null;
++    if (validGenrule) {
++      genruleScript = String.valueOf(Iterables.get(inputs, 1).getExecPath());
++    }
++
++    // ".ckd" Compute Key Debug
++    PrintWriter computeKeyDebugWriter = null;
++    if (validGenrule) {
++      String computeKeyDebugFile = genruleScript + ".SpawnAction.ckd";
++      try {
++        computeKeyDebugWriter = new PrintWriter(computeKeyDebugFile, "UTF-8");
++      } catch (java.io.FileNotFoundException ex) {
++        System.err.println("Unable to create " + computeKeyDebugFile);
++      } catch (java.io.UnsupportedEncodingException ex) {
++        System.err.println("Unsupported encoding");
++      }
++    }
++
++    validGenrule = validGenrule && (computeKeyDebugWriter != null);
++
+     Fingerprint f = new Fingerprint();
+     f.addString(GUID);
++    if (validGenrule) { computeKeyDebugWriter.println("GUID: " + GUID); }
++
+     f.addStrings(argv.arguments());
++    if (validGenrule) {
++      for (String input : argv.arguments()) {
++        computeKeyDebugWriter.println("ARGUMENTS: " + input);
++      }
++    }
++
+     f.addString(getMnemonic());
++    if (validGenrule) { computeKeyDebugWriter.println("MNEMONIC: " + getMnemonic()); }
++
+     // We don't need the toolManifests here, because they are a subset of the inputManifests by
+     // definition and the output of an action shouldn't change whether something is considered a
+     // tool or not.
+     f.addPaths(getRunfilesSupplier().getRunfilesDirs());
++    if (validGenrule) {
++      for (PathFragment path : getRunfilesSupplier().getRunfilesDirs()) {
++        computeKeyDebugWriter.println("RUNFILESDIRS: " + path.getPathString());
++      }
++    }
++
+     ImmutableList<Artifact> runfilesManifests = getRunfilesSupplier().getManifests();
+     f.addInt(runfilesManifests.size());
++    if (validGenrule) { computeKeyDebugWriter.println("RUNFILESMANIFESTSSIZE: " + runfilesManifests.size()); }
++
+     for (Artifact runfilesManifest : runfilesManifests) {
+       f.addPath(runfilesManifest.getExecPath());
++      if (validGenrule) { computeKeyDebugWriter.println("RUNFILESMANIFEST: " + runfilesManifest.getExecPath().getPathString()); }
+     }
++
+     f.addStringMap(getEnvironment());
++    if (validGenrule) {
++      for (Map.Entry<String, String> entry : getEnvironment().entrySet()) {
++        computeKeyDebugWriter.println("ENV: " + entry.getKey() + "=" + entry.getValue());
++      }
++    }
++
+     f.addStrings(getClientEnvironmentVariables());
++    if (validGenrule) {
++      for (String input : argv.arguments()) {
++        computeKeyDebugWriter.println("CLIENTENV: " + input);
++      }
++    }
++
+     f.addStringMap(getExecutionInfo());
+-    return f.hexDigestAndReset();
++    if (validGenrule) {
++      for (Map.Entry<String, String> entry : executionInfo.entrySet()) {
++        computeKeyDebugWriter.println("EXECINFO: " + entry.getKey() + "=" + entry.getValue());
++      }
++    }
++
++    String rv = f.hexDigestAndReset();
++    if (validGenrule) {
++      computeKeyDebugWriter.println("KEY: " + rv);
++      computeKeyDebugWriter.close();
++    }
++    return rv;
+   }
+ 
+   @Override
+diff --git a/src/main/java/com/google/devtools/build/lib/rules/cpp/CppCompileAction.java b/src/main/java/com/google/devtools/build/lib/rules/cpp/CppCompileAction.java
+index 3559fffde..3ba39617c 100644
+--- a/src/main/java/com/google/devtools/build/lib/rules/cpp/CppCompileAction.java
++++ b/src/main/java/com/google/devtools/build/lib/rules/cpp/CppCompileAction.java
+@@ -1111,10 +1111,30 @@ public class CppCompileAction extends AbstractAction
+ 
+   @Override
+   public String computeKey() {
++    // ".ckd" Compute Key Debug
++    PrintWriter computeKeyDebugWriter = null;
++    String computeKeyDebugFile = getInternalOutputFile() + ".CppCompileAction.ckd";
++    try {
++      computeKeyDebugWriter = new PrintWriter(computeKeyDebugFile, "UTF-8");
++    } catch (java.io.FileNotFoundException ex) {
++      System.err.println("Unable to create " + computeKeyDebugFile);
++    } catch (java.io.UnsupportedEncodingException ex) {
++      System.err.println("Unsupported encoding");
++    }
++
+     Fingerprint f = new Fingerprint();
+     f.addUUID(actionClassId);
++    computeKeyDebugWriter.println("UUID: " + actionClassId);
++
+     f.addStringMap(getEnvironment());
++    for (Map.Entry<String, String> entry : getEnvironment().entrySet()) {
++      computeKeyDebugWriter.println("ENV: " + entry.getKey() + "=" + entry.getValue());
++    }
++
+     f.addStringMap(executionInfo);
++    for (Map.Entry<String, String> entry : executionInfo.entrySet()) {
++      computeKeyDebugWriter.println("EXECINFO: " + entry.getKey() + "=" + entry.getValue());
++    }
+ 
+     // For the argv part of the cache key, ignore all compiler flags that explicitly denote module
+     // file (.pcm) inputs. Depending on input discovery, some of the unused ones are removed from
+@@ -1124,6 +1144,9 @@ public class CppCompileAction extends AbstractAction
+     // A better long-term solution would be to make the compiler to find them automatically and
+     // never hand in the .pcm files explicitly on the command line in the first place.
+     f.addStrings(compileCommandLine.getArgv(getInternalOutputFile(), null));
++    for (String input : compileCommandLine.getArgv(getInternalOutputFile(), null)) {
++      computeKeyDebugWriter.println("COMMAND: " + input);
++    }
+ 
+     /*
+      * getArgv() above captures all changes which affect the compilation
+@@ -1133,19 +1156,31 @@ public class CppCompileAction extends AbstractAction
+      * have changed, otherwise we might miss some errors.
+      */
+     f.addPaths(context.getDeclaredIncludeDirs());
++    for (PathFragment path : context.getDeclaredIncludeDirs()) {
++      computeKeyDebugWriter.println("DECLAREDINCLUDEDIRS: " + path.getPathString());
++    }
+     f.addPaths(context.getDeclaredIncludeWarnDirs());
++    for (PathFragment path : context.getDeclaredIncludeWarnDirs()) {
++      computeKeyDebugWriter.println("DECLAREDINCLUDEWARNDIRS: " + path.getPathString());
++    }
+     for (Artifact declaredIncludeSrc : context.getDeclaredIncludeSrcs()) {
+       f.addPath(declaredIncludeSrc.getExecPath());
++      computeKeyDebugWriter.println("DECLAREDINCLUDESRCS: " + declaredIncludeSrc.getExecPath().getPathString());
+     }
+     f.addInt(0);  // mark the boundary between input types
+     for (Artifact input : getMandatoryInputs()) {
+       f.addPath(input.getExecPath());
++      computeKeyDebugWriter.println("MANDATORYINPUTS: " + input.getExecPath().getPathString());
+     }
+     f.addInt(0);
+     for (Artifact input : prunableInputs) {
+       f.addPath(input.getExecPath());
++      computeKeyDebugWriter.println("PRUNABLEINPUTS: " + input.getExecPath().getPathString());
+     }
+-    return f.hexDigestAndReset();
++    String rv = f.hexDigestAndReset();
++    computeKeyDebugWriter.println("KEY: " + rv);
++    computeKeyDebugWriter.close();
++    return rv;
+   }
+ 
+   @Override

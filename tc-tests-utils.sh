@@ -229,20 +229,77 @@ do_get_model_parameters()
   eval $__result="'--define=DS_MODEL_FRAMESIZE=${model_width} --define=DS_MODEL_FILE=${model_file}'"
 }
 
+# Checks whether we run a patched version of bazel.
+# Patching is required to dump computeKey() parameters to .ckd files
+# See bazel.patch
+# Return 0 (success exit code) on patched version, 1 on release version
+is_patched_bazel()
+{
+  bazel_version=$(bazel version | grep 'Build label:' | cut -d':' -f2)
+
+  if [ -z "${bazel_version}" ]; then
+    return 0;
+  else
+    return 1;
+  fi;
+}
+
+verify_bazel_rebuild()
+{
+  bazel_explain_file="$1"
+
+  if [ ! -f "${bazel_explain_file}" ]; then
+    echo "No such explain file: ${bazel_explain_file}"
+    exit 1
+  fi;
+
+  spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|unconditional execution is requested' | wc -l)
+  if [ "${spurious_rebuilds}" -ne 0 ]; then
+    echo "Bazel rebuilds some file it should not, please check."
+
+    if is_patched_bazel; then
+      mkdir -p ${DS_ROOT_TASK}/DeepSpeech/ckd/ds ${DS_ROOT_TASK}/DeepSpeech/ckd/tf
+      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
+      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/
+
+      echo "Making a diff between CKD files"
+      mkdir -p ${TASKCLUSTER_ARTIFACTS}
+      diff -urNw ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/ | tee ${TASKCLUSTER_ARTIFACTS}/ckd.diff
+
+      rm -fr ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
+    else
+      echo "Cannot get CKD information from release, please use patched Bazel"
+    fi;
+
+    exit 1
+  fi;
+}
+
 do_bazel_build()
 {
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
   eval "export ${BAZEL_ENV_FLAGS}"
-  PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+
+  if is_patched_bazel; then
+    find ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar -T -
+  fi;
+
+  bazel ${BAZEL_OUTPUT_USER_ROOT} build \
+    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+
+  if is_patched_bazel; then
+    find ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar -T -
+  fi;
+
+  verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/tf/bazel_monolithic.log"
 }
 
 do_bazel_shared_build()
 {
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
   eval "export ${BAZEL_ENV_FLAGS}"
-  PATH=${DS_ROOT_TASK}/bin/:$PATH bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+  bazel ${BAZEL_OUTPUT_USER_ROOT} build \
+    -s --explain bazel_shared.log --verbose_explanations --experimental_strict_action_env -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 }
 
 do_deepspeech_binary_build()
