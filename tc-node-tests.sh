@@ -22,9 +22,9 @@ export NODE_PATH="${NODE_ROOT}/node_modules/"
 export PATH="${NODE_PATH}/.bin/:$PATH"
 
 if [ "${aot_model}" = "--aot" ]; then
-    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/deepspeech-0.1.0.tgz
+    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/deepspeech-0.1.1.tgz
 else
-    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_NODEJS}/deepspeech-0.1.0.tgz
+    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_NODEJS}/deepspeech-0.1.1.tgz
 fi
 
 phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
