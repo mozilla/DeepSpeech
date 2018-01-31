@@ -1,6 +1,6 @@
 {
     "name" : "$(PROJECT_NAME)",
-    "version" : "0.1.0",
+    "version" : "0.1.1",
     "description" : "DeepSpeech NodeJS bindings",
     "main" : "./index",
     "bin": {
