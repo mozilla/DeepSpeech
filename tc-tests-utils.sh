@@ -48,6 +48,7 @@ SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.13 3.4.6 3.5.3 3.6.2}
 # > ../deepspeech_wrap.cxx:966:23: error: 'WeakCallbackData' in namespace 'v8' does not name a type
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.6 5.12.0 6.12.0 7.10.1 8.9.1 9.2.0}
 
+# This verify exact inference result
 assert_correct_inference()
 {
   phrase=$1
@@ -75,6 +76,69 @@ assert_correct_inference()
   fi;
 }
 
+# This verify that ${expected} is contained within ${phrase}
+assert_working_inference()
+{
+  phrase=$1
+  expected=$2
+
+  if [ -z "${phrase}" -o -z "${expected}" ]; then
+      echo "One or more empty strings:"
+      echo "phrase: <${phrase}>"
+      echo "expected: <${expected}>"
+      return 1
+  fi;
+
+  case "${phrase}" in
+      *${expected}*)
+          echo "Proper output has been produced:"
+          echo "${phrase}"
+          return 0
+      ;;
+
+      *)
+          echo "!! Non matching output !!"
+          echo "got: <${phrase}>"
+          echo "xxd:"; echo "${phrase}" | xxd
+          echo "-------------------"
+          echo "expected: <${expected}>"
+          echo "xxd:"; echo "${expected}" | xxd
+          return 1
+      ;;
+  esac
+}
+
+assert_shows_warning()
+{
+  stderr=$1
+  expected=$2
+
+  if [ -z "${stderr}" -o -z "${expected}" ]; then
+      echo "One or more empty strings:"
+      echo "stderr: <${stderr}>"
+      echo "expected: <${expected}>"
+      return 1
+  fi;
+
+  case "${stderr}" in
+      *${expected}*)
+          echo "Proper output has been produced:"
+          echo "${stderr}"
+          return 0
+      ;;
+
+      *)
+          echo "!! Non matching output !!"
+          echo "got: <${stderr}>"
+          echo "xxd:"; echo "${stderr}" | xxd
+          echo "-------------------"
+          echo "expected: <${expected}>"
+          echo "xxd:"; echo "${expected}" | xxd
+          return 1
+      ;;
+  esac
+}
+
 assert_correct_ldc93s1()
 {
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
@@ -83,6 +147,11 @@ assert_correct_ldc93s1()
 assert_correct_ldc93s1_prodmodel()
 {
   assert_correct_inference "$1" "she had the duck so ingrecywachworallyear"
+}
+
+assert_working_ldc93s1_prodmodel()
+{
+  assert_working_inference "$1" "she had the duck so"
 }
 
 assert_correct_ldc93s1_somodel()
@@ -114,6 +183,61 @@ assert_correct_ldc93s1_somodel()
         echo "Unexpected status"
         exit 2
     fi
+}
+
+assert_correct_warning_upsampling()
+{
+  assert_shows_warning "$1" "is lower than 16kHz. Up-sampling might produce erratic speech recognition"
+}
+
+run_all_inference_tests()
+{
+  phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
+
+  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  assert_correct_ldc93s1 "${phrase_pbmodel_withlm}"
+
+  phrase_pbmodel_nolm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}"
+
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  assert_correct_ldc93s1 "${phrase_pbmodel_withlm_stereo_44k}"
+
+  phrase_pbmodel_nolm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt 2>&1 1>/dev/null)
+  assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
+
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie 2>&1 1>/dev/null)
+  assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
+
+  if [ "${aot_model}" = "--aot" ]; then
+      phrase_somodel_nolm=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
+      phrase_somodel_withlm=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+
+      assert_correct_ldc93s1_somodel "${phrase_somodel_nolm}" "${phrase_somodel_withlm}"
+
+      phrase_somodel_nolm_stereo_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
+      phrase_somodel_withlm_stere_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+
+      assert_correct_ldc93s1_somodel "${phrase_somodel_nolm_stereo_44k}" "${phrase_somodel_withlm_stereo_44k}"
+
+      phrase_somodel_nolm_mono_8k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt 2>&1 1>/dev/null)
+      phrase_somodel_withlm_stere_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie 2>&1 1>/dev/null)
+
+      assert_correct_warning_upsampling "${phrase_somodel_nolm_mono_8k}" "${phrase_somodel_withlm_mono_8k}"
+  fi;
+}
+
+run_prod_inference_tests()
+{
+  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
+
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  assert_working_ldc93s1_prodmodel "${phrase_pbmodel_withlm_stereo_44k}"
+
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie 2>&1 1>/dev/null)
+  assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
 
 generic_download_tarxz()
@@ -151,7 +275,7 @@ download_ctc_kenlm()
 download_data()
 {
   wget ${model_source} -O ${TASKCLUSTER_TMP_DIR}/${model_name}
-  wget https://catalog.ldc.upenn.edu/desc/addenda/LDC93S1.wav -O ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/lm.binary ${TASKCLUSTER_TMP_DIR}/lm.binary
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/trie ${TASKCLUSTER_TMP_DIR}/trie
@@ -170,7 +294,7 @@ download_material()
 
   download_data
 
-  ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
+  ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
 }
 
 install_pyenv()

@@ -1,6 +1,9 @@
 python:
   packages:
     apt: 'make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
+  brew:
+    setup: 'install_local_homebrew "python-ds-test" && install_pkg_local_homebrew "sox"'
+    env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/python-ds-test.brew/bin/:$PATH"'
 nodejs:
   packages:
     apt: 'nodejs sox'

@@ -89,16 +89,16 @@ main(int argc, char **argv)
   sox_format_t* input = sox_open_read(argv[2], NULL, NULL, NULL);
   assert(input);
 
-  int sampleRate = (int)input->signal.rate;
-
   // Resample/reformat the audio so we can pass it through the MFCC functions
   sox_signalinfo_t target_signal = {
-      SOX_UNSPEC, // Rate
+      16000, // Rate
       1, // Channels
       16, // Precision
       SOX_UNSPEC, // Length
       NULL // Effects headroom multiplier
   };
+
+  sox_signalinfo_t interm_signal;
 
   sox_encodinginfo_t target_encoding = {
     SOX_ENCODING_SIGN2, // Sample format
@@ -129,28 +129,42 @@ main(int argc, char **argv)
 
   assert(output);
 
+  int sampleRate = (int)output->signal.rate;
+
+  if ((int)input->signal.rate < 16000) {
+    fprintf(stderr, "Warning: original sample rate (%d) is lower than 16kHz. Up-sampling might produce erratic speech recognition.\n", (int)input->signal.rate);
+  }
+
   // Setup the effects chain to decode/resample
   char* sox_args[10];
   sox_effects_chain_t* chain =
     sox_create_effects_chain(&input->encoding, &output->encoding);
 
+  interm_signal = input->signal;
+
   sox_effect_t* e = sox_create_effect(sox_find_effect("input"));
   sox_args[0] = (char*)input;
   assert(sox_effect_options(e, 1, sox_args) == SOX_SUCCESS);
-  assert(sox_add_effect(chain, e, &input->signal, &input->signal) ==
+  assert(sox_add_effect(chain, e, &interm_signal, &input->signal) ==
+         SOX_SUCCESS);
+  free(e);
+
+  e = sox_create_effect(sox_find_effect("rate"));
+  assert(sox_effect_options(e, 0, NULL) == SOX_SUCCESS);
+  assert(sox_add_effect(chain, e, &interm_signal, &output->signal) ==
          SOX_SUCCESS);
   free(e);
 
   e = sox_create_effect(sox_find_effect("channels"));
   assert(sox_effect_options(e, 0, NULL) == SOX_SUCCESS);
-  assert(sox_add_effect(chain, e, &input->signal, &output->signal) ==
+  assert(sox_add_effect(chain, e, &interm_signal, &output->signal) ==
          SOX_SUCCESS);
   free(e);
 
   e = sox_create_effect(sox_find_effect("output"));
   sox_args[0] = (char*)output;
   assert(sox_effect_options(e, 1, sox_args) == SOX_SUCCESS);
-  assert(sox_add_effect(chain, e, &input->signal, &output->signal) ==
+  assert(sox_add_effect(chain, e, &interm_signal, &output->signal) ==
          SOX_SUCCESS);
   free(e);
 
