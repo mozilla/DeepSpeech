@@ -3,6 +3,7 @@ import tensorflow as tf
 
 from threading import Thread
 from math import ceil
+from math import isnan
 from six.moves import range
 from util.audio import audiofile_to_input_vector
 from util.gpu import get_available_gpus
@@ -145,6 +146,8 @@ class _DataSetLoader(object):
             wav_file, transcript = self._data_set.files[index]
             source = audiofile_to_input_vector(wav_file, self._model_feeder.numcep, self._model_feeder.numcontext)
             source_len = len(source)
+            if isinstance(transcript, float) and isnan(transcript):
+                raise ValueError('Error: Audio file {} has no transcription.'.format(wav_file))
             target = text_to_char_array(transcript, self._alphabet)
             target_len = len(target)
             if source_len < target_len:
