@@ -220,7 +220,7 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip uninstall tensorflow
-pip install 'tensorflow-gpu==1.4.0'
+pip install 'tensorflow-gpu==1.5.0'
 ```
 
 ### Common Voice training data
