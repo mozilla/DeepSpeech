@@ -5,6 +5,8 @@ const Sox = require('sox-stream');
 const Ds = require('./index.js');
 const ArgumentParser = require('argparse').ArgumentParser;
 const MemoryStream = require('memory-stream');
+const Wav = require('node-wav');
+const Duplex = require('stream').Duplex;
 
 // These constants control the beam search decoder
 
@@ -44,10 +46,25 @@ function totalTime(hrtimeValue) {
   return (hrtimeValue[0] + hrtimeValue[1] / 1000000000).toPrecision(4);
 }
 
+const buffer = Fs.readFileSync(args['audio']);
+const result = Wav.decode(buffer);
+
+if (result.sampleRate < 16000) {
+  console.error('Warning: original sample rate (' + result.sampleRate + ') is lower than 16kHz. Up-sampling might produce erratic speech recognition.');
+}
+
+function bufferToStream(buffer) {
+  var stream = new Duplex();
+  stream.push(buffer);
+  stream.push(null);
+  return stream;
+}
+
 var audioStream = new MemoryStream();
-Fs.createReadStream(args['audio']).
+bufferToStream(buffer).
   pipe(Sox({ output: { bits: 16, rate: 16000, channels: 1, type: 'raw' } })).
   pipe(audioStream);
+
 audioStream.on('finish', () => {
   audioBuffer = audioStream.toBuffer();
 

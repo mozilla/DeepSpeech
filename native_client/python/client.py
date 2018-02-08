@@ -37,20 +37,19 @@ N_FEATURES = 26
 N_CONTEXT = 9
 
 def convert_samplerate(audio_path):
-    sox_cmd = 'sox --norm {} -b 16 -t wav - channels 1 rate 16000'.format(audio_path)
+    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 - '.format(audio_path)
     try:
         p = subprocess.Popen(sox_cmd.split(),
                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         output, err = p.communicate()
 
         if p.returncode:
-            raise RuntimeError('SoX returned non-zero status')
+            raise RuntimeError('SoX returned non-zero status: {}'.format(err))
 
     except OSError as e:
-        raise OSError('SoX not found, use 16kHz files or install it')
+        raise OSError('SoX not found, use 16kHz files or install it: ', e)
 
-    # we already know the header information, get only the data from output
-    audio = np.fromstring(output.split('data')[1], dtype=np.int16)
+    audio = np.fromstring(output, dtype=np.int16)
     return 16000, audio
 
 def main():
@@ -83,6 +82,8 @@ def main():
 
     fs, audio = wav.read(args.audio)
     if fs != 16000:
+        if fs < 16000:
+            print('Warning: original sample rate (%d) is lower than 16kHz. Up-sampling might produce erratic speech recognition.' % (fs), file=sys.stderr)
         fs, audio = convert_samplerate(args.audio)
     audio_length = len(audio) * ( 1 / 16000)
 
