@@ -10,8 +10,8 @@ import stat
 import six.moves.urllib as urllib
 
 DEFAULT_SCHEMES = {
-    'deepspeech': 'https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.%(arch_string)s/artifacts/public/%(artifact_name)s',
-    'tensorflow': 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.%(arch_string)s/artifacts/public/%(artifact_name)s'
+    'deepspeech': 'https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.tf-master.%(arch_string)s/artifacts/public/%(artifact_name)s',
+    'tensorflow': 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.af777438203f002ec3b0ab6ed8336d9e411786f4.%(arch_string)s/artifacts/public/%(artifact_name)s'
 }
 
 TASKCLUSTER_SCHEME = os.getenv('TASKCLUSTER_SCHEME', DEFAULT_SCHEMES['deepspeech'])

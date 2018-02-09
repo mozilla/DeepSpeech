@@ -1,7 +1,7 @@
 # Project DeepSpeech
 
-[![Documentation Status](https://readthedocs.org/projects/deepspeech/badge/?version=master)](http://deepspeech.readthedocs.io/?badge=master)
-[![Task Status](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/badge.svg)](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/latest)
+[![Documentation Status](https://readthedocs.org/projects/deepspeech/badge/?version=tf-master)](http://deepspeech.readthedocs.io/?badge=tf-master)
+[![Task Status](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/tf-master/badge.svg)](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/tf-master/latest)
 
 Project DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to make the implementation easier.
 
@@ -220,7 +220,7 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip uninstall tensorflow
-pip install 'tensorflow-gpu==1.4.0'
+pip install 'tensorflow-gpu==1.6.0-rc0'
 ```
 
 ### Common Voice training data
