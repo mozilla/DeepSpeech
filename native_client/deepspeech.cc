@@ -231,7 +231,7 @@ Model::infer(float* aMfcc, int aNFrames, int aFrameLen)
     Eigen::ThreadPool tp(2);  // Size the thread pool as appropriate.
     Eigen::ThreadPoolDevice device(&tp, tp.NumThreads());
 
-    nativeModel nm(nativeModel::AllocMode::RESULTS_AND_TEMPS_ONLY);
+    nativeModel nm(nativeModel::AllocMode::RESULTS_PROFILES_AND_TEMPS_ONLY);
     nm.set_thread_pool(&device);
 
     for (int ot = 0; ot < timesteps; ot += DS_MODEL_TIMESTEPS) {

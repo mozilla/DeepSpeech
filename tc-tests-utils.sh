@@ -32,10 +32,7 @@ export EXTRA_AOT_CFLAGS=""
 export EXTRA_AOT_LDFLAGS=""
 export EXTRA_AOT_LIBS="-ldeepspeech_model"
 
-# FIXME:
-# Previously, with r1.3, we could use timesteps of 64
-# With r1.4 it seems to eat too much resources at tfcompile step
-export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=16"
+export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64"
 export BAZEL_AOT_TARGETS="
 //native_client:libdeepspeech_model.so
 "
@@ -44,8 +41,6 @@ model_source=${DEEPSPEECH_TEST_MODEL}
 model_name=$(basename "${model_source}")
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.13 3.4.6 3.5.3 3.6.2}
-# 7.10.0 and 8.0.0 targets fails to build
-# > ../deepspeech_wrap.cxx:966:23: error: 'WeakCallbackData' in namespace 'v8' does not name a type
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.6 5.12.0 6.12.0 7.10.1 8.9.1 9.2.0}
 
 # This verify exact inference result
