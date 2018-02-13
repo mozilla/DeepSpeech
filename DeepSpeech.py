@@ -18,6 +18,7 @@ import time
 import traceback
 import inspect
 
+from functools import partial
 from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from tensorflow.python.tools import freeze_graph
 from threading import Thread, Lock
@@ -106,6 +107,7 @@ tf.app.flags.DEFINE_string  ('export_dir',       '',          'directory in whic
 tf.app.flags.DEFINE_integer ('export_version',   1,           'version number of the exported model')
 tf.app.flags.DEFINE_boolean ('remove_export',    False,       'whether to remove old exported models')
 tf.app.flags.DEFINE_boolean ('use_seq_length',   True,        'have sequence_length in the exported graph (will make tfcompile unhappy)')
+tf.app.flags.DEFINE_integer ('n_steps',          16,          'how many timesteps to process at once by the export graph, higher values mean more latency')
 
 # Reporting
 
@@ -272,7 +274,7 @@ def initialize_globals():
 
     # The number of units in the third layer, which feeds in to the LSTM
     global n_hidden_3
-    n_hidden_3 = 2 * n_cell_dim
+    n_hidden_3 = n_cell_dim
 
     # The number of characters in the target language plus one
     global n_character
@@ -376,8 +378,40 @@ def variable_on_worker_level(name, shape, initializer):
         var = tf.get_variable(name=name, shape=shape, initializer=initializer)
     return var
 
+def rnn_impl_training(inputs, seq_length, fw_cell, batch_size, n_steps):
+    # Now we feed `layer_3` into the LSTM RNN cell and obtain the LSTM RNN output.
+    output, output_state = tf.nn.dynamic_rnn(cell=fw_cell,
+                                             inputs=inputs,
+                                             dtype=tf.float32,
+                                             time_major=True,
+                                             sequence_length=seq_length)
 
-def BiRNN(batch_x, seq_length, dropout):
+    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
+    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
+    output = tf.reshape(output, [-1, n_cell_dim])
+
+    return output, output_state
+
+def rnn_impl_inference(inputs, seq_length, fw_cell, batch_size, n_steps, previous_state):
+    inputs = tf.split(inputs, n_steps)
+    inputs = [tf.squeeze(split, axis=0) for split in inputs]
+
+    # Now we feed `inputs` into the LSTM RNN cell and obtain the LSTM RNN output.
+    outputs, output_state = tf.nn.static_rnn(cell=fw_cell,
+                                             inputs=inputs,
+                                             initial_state=previous_state,
+                                             dtype=tf.float32,
+                                             sequence_length=seq_length)
+
+    output = tf.concat(outputs, axis=0)
+
+    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
+    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
+    output = tf.reshape(output, [n_steps*batch_size, n_cell_dim])
+
+    return output, output_state
+
+def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, rnn_impl=rnn_impl_training):
     r'''
     That done, we will define the learned variables, the weights and biases,
     within the method ``BiRNN()`` which also constructs the neural network.
@@ -391,9 +425,11 @@ def BiRNN(batch_x, seq_length, dropout):
     The variables ``h3``, ``h5``, and ``h6`` are similar.
     Likewise, the biases, ``b1``, ``b2``..., hold the biases for the various layers.
     '''
+    layers = {}
 
     # Input shape: [batch_size, n_steps, n_input + 2*n_input*n_context]
-    batch_x_shape = tf.shape(batch_x)
+    if not batch_size:
+        batch_size = tf.shape(batch_x)[0]
 
     # Reshaping `batch_x` to a tensor with shape `[n_steps*batch_size, n_input + 2*n_input*n_context]`.
     # This is done to prepare the batch for input into the first layer which expects a tensor of rank `2`.
@@ -402,6 +438,7 @@ def BiRNN(batch_x, seq_length, dropout):
     batch_x = tf.transpose(batch_x, [1, 0, 2])
     # Reshape to prepare input for first layer
     batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
+    layers['input_reshaped'] = batch_x
 
     # The next three blocks will pass `batch_x` through three hidden layers with
     # clipped RELU activation and dropout.
@@ -410,72 +447,71 @@ def BiRNN(batch_x, seq_length, dropout):
     b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
     h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
-    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+    if dropout[0] > 0:
+        layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+    layers['layer_1'] = layer_1
 
     # 2nd layer
     b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
     h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
-    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+    if dropout[1] > 0:
+        layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+    layers['layer_2'] = layer_2
 
     # 3rd layer
     b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
     h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
-    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+    if dropout[2] > 0:
+        layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+    layers['layer_3'] = layer_3
 
     # Now we create the forward and backward LSTM units.
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
-    lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
+    fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
+    if dropout[3] > 0:
+        fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell,
                                                 input_keep_prob=1.0 - dropout[3],
                                                 output_keep_prob=1.0 - dropout[3],
                                                 seed=FLAGS.random_seed)
-    # Backward direction cell:
-    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
-    lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
-                                                input_keep_prob=1.0 - dropout[4],
-                                                output_keep_prob=1.0 - dropout[4],
-                                                seed=FLAGS.random_seed)
+    layers['fw_cell'] = fw_cell
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
-    # as the LSTM BRNN expects its input to be of shape `[max_time, batch_size, input_size]`.
-    layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
+    # as the LSTM RNN expects its input to be of shape `[max_time, batch_size, input_size]`.
+    layer_3 = tf.reshape(layer_3, [n_steps, batch_size, n_hidden_3])
 
-    # Now we feed `layer_3` into the LSTM BRNN cell and obtain the LSTM BRNN output.
-    outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=lstm_fw_cell,
-                                                             cell_bw=lstm_bw_cell,
-                                                             inputs=layer_3,
-                                                             dtype=tf.float32,
-                                                             time_major=True,
-                                                             sequence_length=seq_length)
+    # We parametrize the RNN implementation as the training and inference graph
+    # need to do different things here.
+    output, output_state = rnn_impl(layer_3, seq_length, fw_cell, batch_size, n_steps)
+    layers['rnn_output'] = output
+    layers['rnn_output_state'] = output_state
 
-    # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
-    # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
-    outputs = tf.concat(outputs, 2)
-    outputs = tf.reshape(outputs, [-1, 2*n_cell_dim])
-
-    # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
+    # Now we feed `output` to the fifth hidden layer with clipped RELU activation and dropout
     b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
-    h5 = variable_on_worker_level('h5', [(2 * n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
-    layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), FLAGS.relu_clip)
-    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+    h5 = variable_on_worker_level('h5', [n_cell_dim, n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
+    layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
+    if dropout[5] > 0:
+        layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+    layers['layer_5'] = layer_5
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
     b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
     h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
     layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
+    layers['layer_6'] = layer_6
 
     # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
     # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
     # Note, that this differs from the input in that it is time-major.
-    layer_6 = tf.reshape(layer_6, [-1, batch_x_shape[0], n_hidden_6], name="logits")
+    layer_6 = tf.reshape(layer_6, [n_steps, batch_size, n_hidden_6], name="raw_logits")
+    layers['logits'] = layer_6
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
-    return layer_6
+    return layer_6, layers
 
 def decode_with_lm(inputs, sequence_length, beam_width=100,
                    top_paths=1, merge_repeated=True):
@@ -513,7 +549,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
-    logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
+    logits, _ = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
@@ -1713,20 +1749,39 @@ def train(server=None):
                   ' or removing the contents of {0}.'.format(FLAGS.checkpoint_dir))
         sys.exit(1)
 
-def create_inference_graph(batch_size=None, use_new_decoder=False):
+def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False):
     # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
-    input_tensor = tf.placeholder(tf.float32, [batch_size, None, n_input + 2*n_input*n_context], name='input_node')
+    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps, n_input + 2*n_input*n_context], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
 
-    # Calculate the logits of the batch using BiRNN
-    logits = BiRNN(input_tensor, tf.to_int64(seq_length) if FLAGS.use_seq_length else None, no_dropout)
+    previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, n_cell_dim], initializer=None)
+    previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, n_cell_dim], initializer=None)
+    previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
-    # Beam search decode the batch
-    decoder = decode_with_lm if use_new_decoder else tf.nn.ctc_beam_search_decoder
+    rnn_impl = partial(rnn_impl_inference, previous_state=previous_state)
 
-    decoded, _ = decoder(logits, seq_length, merge_repeated=False, beam_width=FLAGS.beam_width)
-    decoded = tf.convert_to_tensor(
-        [tf.sparse_tensor_to_dense(sparse_tensor) for sparse_tensor in decoded], name='output_node')
+    logits, layers = BiRNN(batch_x=input_tensor,
+                           seq_length=seq_length if FLAGS.use_seq_length else None,
+                           dropout=no_dropout,
+                           batch_size=batch_size,
+                           n_steps=n_steps,
+                           rnn_impl=rnn_impl)
+
+    fw_cell = layers['fw_cell']
+    new_state_c, new_state_h = layers['rnn_output_state']
+
+    # Initial zero state
+    zero_state_c, zero_state_h = fw_cell.zero_state(batch_size, tf.float32)
+    zero_state_c = tf.identity(zero_state_c, name='zero_state_c')
+    zero_state_h = tf.identity(zero_state_h, name='zero_state_h')
+
+    initialize_c = tf.assign(previous_state_c, zero_state_c)
+    initialize_h = tf.assign(previous_state_h, zero_state_h)
+
+    initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
+
+    with tf.control_dependencies([tf.assign(previous_state_c, new_state_c), tf.assign(previous_state_h, new_state_h)]):
+        logits = tf.identity(logits, name='logits')
 
     return (
         {
@@ -1734,7 +1789,8 @@ def create_inference_graph(batch_size=None, use_new_decoder=False):
             'input_lengths': seq_length,
         },
         {
-            'outputs': decoded,
+            'outputs': logits,
+            'initialize_state': initialize_state,
         }
     )
 
@@ -1749,12 +1805,11 @@ def export():
         tf.reset_default_graph()
         session = tf.Session(config=session_config)
 
-        inputs, outputs = create_inference_graph()
+        inputs, outputs = create_inference_graph(batch_size=1, n_steps=FLAGS.n_steps)
 
-        # TODO: Transform the decoded output to a string
-
-        # Create a saver and exporter using variables from the above newly created graph
-        saver = tf.train.Saver(tf.global_variables())
+        # Create a saver using variables from the above newly created graph
+        mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
+        saver = tf.train.Saver(mapping)
 
         # Restore variables from training checkpoint
         checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
@@ -1775,12 +1830,13 @@ def export():
                 input_graph_def=session.graph_def,
                 input_saver_def=saver.as_saver_def(),
                 input_checkpoint=checkpoint_path,
-                output_node_names=','.join(node.op.name for node in six.itervalues(outputs)),
+                output_node_names='logits,initialize_state',
                 restore_op_name=None,
                 filename_tensor_name=None,
                 output_graph=output_graph_path,
                 clear_devices=False,
-                initializer_nodes='')
+                initializer_nodes='',
+                variable_names_blacklist='previous_state_c,previous_state_h')
 
             log_info('Models exported at %s' % (FLAGS.export_dir))
         except RuntimeError as e:
@@ -1792,7 +1848,8 @@ def do_single_file_inference(input_file_path):
         inputs, outputs = create_inference_graph(batch_size=1, use_new_decoder=True)
 
         # Create a saver using variables from the above newly created graph
-        saver = tf.train.Saver(tf.global_variables())
+        mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
+        saver = tf.train.Saver(mapping)
 
         # Restore variables from training checkpoint
         # TODO: This restores the most recent checkpoint, but if we use validation to counterract
@@ -1805,16 +1862,33 @@ def do_single_file_inference(input_file_path):
         checkpoint_path = checkpoint.model_checkpoint_path
         saver.restore(session, checkpoint_path)
 
+        session.run(outputs['initialize_state'])
+
         mfcc = audiofile_to_input_vector(input_file_path, n_input, n_context)
 
-        output = session.run(outputs['outputs'], feed_dict = {
-            inputs['input']: [mfcc],
-            inputs['input_lengths']: [len(mfcc)],
-        })
+        logits = np.empty([0, 1, alphabet.size()+1])
+        for i in range(0, len(mfcc), FLAGS.n_steps):
+            chunk = mfcc[i:i+FLAGS.n_steps]
 
-        text = ndarray_to_text(output[0][0], alphabet)
+            # pad with zeros if not enough steps (len(mfcc) % FLAGS.n_steps != 0)
+            if len(chunk) < FLAGS.n_steps:
+                chunk = np.pad(chunk,
+                               ((0, FLAGS.n_steps-len(chunk)), (0, 0)),
+                               mode='constant',
+                               constant_values=0)
 
-        print(text)
+            output = session.run(outputs['outputs'], feed_dict = {
+                inputs['input']: [chunk],
+                inputs['input_lengths']: [len(chunk)],
+            })
+            logits = np.concatenate((logits, output))
+
+        decoded, _ = decode_with_lm(logits, [len(logits)], merge_repeated=False, beam_width=FLAGS.beam_width)
+        output = session.run(decoded)
+
+        text = sparse_tensor_value_to_texts(output[0], alphabet)
+
+        print(text[0])
 
 
 def main(_) :

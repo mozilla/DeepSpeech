@@ -9,7 +9,7 @@ import subprocess
 import sys
 import wave
 
-from deepspeech.model import Model, print_versions
+from deepspeech import Model, print_versions
 from timeit import default_timer as timer
 
 try:

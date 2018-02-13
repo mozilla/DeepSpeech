@@ -2,25 +2,26 @@ from __future__ import absolute_import, print_function
 
 import scipy.io.wavfile as wav
 import sys
+import math
+import warnings
+
+class DeepSpeechDeprecationWarning(DeprecationWarning):
+    pass
+
+warnings.simplefilter('once', category=DeepSpeechDeprecationWarning)
 
 try:
-    from deepspeech.utils import audioToInputVector
+    from deepspeech import audioToInputVector
 except ImportError:
+    warnings.warn('DeepSpeech Python bindings could not be imported, resorting to slower code to compute audio features. '
+                  'Refer to README.md for instructions on how to install (or build) the DeepSpeech Python bindings.',
+                  category=DeepSpeechDeprecationWarning)
+
     import numpy as np
     from python_speech_features import mfcc
     from six.moves import range
 
-    class DeprecationWarning:
-        displayed = False
-
     def audioToInputVector(audio, fs, numcep, numcontext):
-        if DeprecationWarning.displayed is not True:
-            DeprecationWarning.displayed = True
-            print('------------------------------------------------------------------------', file=sys.stderr)
-            print('WARNING: libdeepspeech failed to load, resorting to deprecated code',      file=sys.stderr)
-            print('         Refer to README.md for instructions on installing libdeepspeech', file=sys.stderr)
-            print('------------------------------------------------------------------------', file=sys.stderr)
-
         # Get mfcc coefficients
         features = mfcc(audio, samplerate=fs, numcep=numcep)
 
@@ -45,11 +46,6 @@ except ImportError:
 
         # Flatten the second and third dimensions
         train_inputs = np.reshape(train_inputs, [num_strides, -1])
-
-        # Whiten inputs (TODO: Should we whiten?)
-        # Copy the strided array so that we can write to it safely
-        train_inputs = np.copy(train_inputs)
-        train_inputs = (train_inputs - np.mean(train_inputs))/np.std(train_inputs)
 
         # Return results
         return train_inputs

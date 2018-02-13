@@ -1,5 +1,5 @@
-#ifndef __DEEPSPEECH_H__
-#define __DEEPSPEECH_H__
+#ifndef DEEPSPEECH_H
+#define DEEPSPEECH_H
 
 #include <cstddef>
 
@@ -10,23 +10,11 @@ namespace DeepSpeech
 
   class Private;
 
-  void print_versions();
+  class StreamingState;
 
   class Model {
     private:
       Private* mPriv;
-
-      /**
-       * @brief Perform decoding of the logits, using basic CTC decoder or
-       *        CTC decoder with KenLM enabled
-       *
-       * @param aNFrames       Number of timesteps to deal with
-       * @param aLogits        Matrix of logits, of dimensions:
-       *                       [timesteps][batch_size][num_classes]
-       *
-       * @param[out] String representing the decoded text.
-       */
-      char* decode(int aNFrames, float*** aLogits);
 
     public:
       /**
@@ -47,7 +35,7 @@ namespace DeepSpeech
       /**
        * @brief Frees associated resources and destroys model object.
        */
-      ~Model();
+      virtual ~Model();
 
       /**
        * @brief Enable decoding using beam scoring with a KenLM language model.
@@ -83,12 +71,12 @@ namespace DeepSpeech
        *                sample rate.
        * @param aBufferSize The sample-length of the audio signal.
        * @param aSampleRate The sample-rate of the audio signal.
-       * @param[out] aMFCC An array containing features, of shape
+       * @param[out] aMfcc An array containing features, of shape
        *                   (@p aNFrames, ncep * ncontext). The user is
        *                   responsible for freeing the array.
-       * @param[out] aNFrames (optional) The number of frames in @p aMFCC.
+       * @param[out] aNFrames (optional) The number of frames in @p aMfcc.
        * @param[out] aFrameLen (optional) The length of each frame
-       *                       (ncep * ncontext) in @p aMFCC.
+       *                       (ncep * ncontext) in @p aMfcc.
        */
       void getInputVector(const short* aBuffer,
                           unsigned int aBufferSize,
@@ -96,26 +84,6 @@ namespace DeepSpeech
                           float** aMfcc,
                           int* aNFrames = NULL,
                           int* aFrameLen = NULL);
-
-      /**
-       * @brief Run inference on the given audio.
-       *
-       * Runs inference on the given input vector with the model.
-       * See getInputVector().
-       *
-       * @param aMfcc MFCC features with the appropriate amount of context per
-       *              frame.
-       * @param aNFrames The number of frames in @p aMfcc.
-       * @param aFrameLen (optional) The length of each frame in @p aMfcc. If
-       *                  specified, this will be used to verify the array is
-       *                  large enough.
-       *
-       * @return The resulting string after running inference. The user is
-       *         responsible for freeing this string.
-       */
-      char* infer(float* aMfcc,
-                  int aNFrames,
-                  int aFrameLen = 0);
 
       /**
        * @brief Use the DeepSpeech model to perform Speech-To-Text.
@@ -127,11 +95,84 @@ namespace DeepSpeech
        *
        * @return The STT result. The user is responsible for freeing the string.
        */
-      char* stt(const short* aBuffer,
-                unsigned int aBufferSize,
-                int aSampleRate);
+      const char* stt(const short* aBuffer,
+                      unsigned int aBufferSize,
+                      int aSampleRate);
+
+      /**
+       * @brief Setup a context used for performing streaming inference.
+       *        the context pointer returned by this function can then be passed
+       *        to {@link feedAudioContent()} and {@link finishStream()}.
+       *
+       * @param aPreAllocFrames Number of timestep frames to reserve. One timestep
+       *                        is equivalent to two window lengths (50ms), so
+       *                        by default we reserve enough frames for 3 seconds
+       *                        of audio.
+       * @param aSampleRate The sample-rate of the audio signal.
+       *
+       * @return A context pointer that represents the streaming state. Can be
+       *         null if an error occurs.
+       */
+      StreamingState* setupStream(unsigned int aPreAllocFrames = 150,
+                                  unsigned int aSampleRate = 16000);
+
+      /**
+       * @brief Feed audio samples to an ongoing streaming inference.
+       *
+       * @param aCtx A streaming context pointer returned by {@link setupStream()}.
+       * @param aBuffer An array of 16-bit, mono raw audio samples at the
+       *                appropriate sample rate.
+       * @param aBufferSize The number of samples in @p aBuffer.
+       */
+      void feedAudioContent(StreamingState* aCtx, const short* aBuffer, unsigned int aBufferSize);
+
+      /**
+       * @brief Signal the end of an audio signal to an ongoing streaming
+       *        inference, returns the STT result over the whole audio signal.
+       *
+       * @param aCtx A streaming context pointer returned by {@link setupStream()}.
+       *
+       * @return The STT result. The user is responsible for freeing the string.
+       *
+       * @note This method will free the context pointer (@p aCtx).
+       */
+      const char* finishStream(StreamingState* aCtx);
   };
+
+  extern "C"
+  void print_versions();
+
+  /**
+   * @brief Given audio, return a vector suitable for input to a DeepSpeech
+   *        model trained with the given parameters.
+   *
+   * Extracts MFCC features from a given audio signal and adds the appropriate
+   * amount of context to run inference on a DeepSpeech model trained with
+   * the given parameters.
+   *
+   * @param aBuffer A 16-bit, mono raw audio signal at the appropriate sample
+   *                rate.
+   * @param aBufferSize The sample-length of the audio signal.
+   * @param aSampleRate The sample-rate of the audio signal.
+   * @param aNCep The number of cepstrum.
+   * @param aNContext The size of the context window.
+   * @param[out] aMfcc An array containing features, of shape
+   *                   (@p aNFrames, ncep * ncontext). The user is responsible
+   *                   for freeing the array.
+   * @param[out] aNFrames (optional) The number of frames in @p aMfcc.
+   * @param[out] aFrameLen (optional) The length of each frame
+   *                       (ncep * ncontext) in @p aMfcc.
+   */
+  extern "C"
+  void audioToInputVector(const short* aBuffer,
+                          unsigned int aBufferSize,
+                          int aSampleRate,
+                          int aNCep,
+                          int aNContext,
+                          float** aMfcc,
+                          int* aNFrames = NULL,
+                          int* aFrameLen = NULL);
 
 }
 
-#endif /* __DEEPSPEECH_H__ */
+#endif /* DEEPSPEECH_H */

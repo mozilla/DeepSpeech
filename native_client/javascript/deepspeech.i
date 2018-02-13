@@ -6,7 +6,6 @@
 #include <string.h>
 #include <node_buffer.h>
 #include "deepspeech.h"
-#include "deepspeech_utils.h"
 
 using namespace v8;
 using namespace node;
@@ -76,4 +75,3 @@ using namespace node;
 %apply (float* IN_ARRAY2, int DIM1, int DIM2) {(float* aMfcc, int aNFrames, int aFrameLen)};
 
 %include "../deepspeech.h"
-%include "../deepspeech_utils.h"
