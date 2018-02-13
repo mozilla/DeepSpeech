@@ -53,7 +53,7 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
   // ExpandState is called when expanding a beam to one of its children.
   // Called at most once per child beam. In the simplest case, no state
   // expansion is done.
-  void ExpandState(const KenLMBeamState& from_state, int from_label,
+  void ExpandState(const KenLMBeamState& from_state, int /*from_label*/,
                          KenLMBeamState* to_state, int to_label) const {
     CopyState(from_state, to_state);
 

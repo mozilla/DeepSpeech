@@ -659,7 +659,6 @@ package_native_client()
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_model.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
       -C ${deepspeech_dir}/ LICENSE \
       -C ${deepspeech_dir}/native_client/ deepspeech \
       -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
@@ -669,7 +668,6 @@ package_native_client()
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
       -C ${deepspeech_dir}/ LICENSE \
       -C ${deepspeech_dir}/native_client/ deepspeech \
       -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \

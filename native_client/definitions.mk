@@ -71,7 +71,7 @@ endif
 
 CFLAGS   += $(EXTRA_CFLAGS)
 CXXFLAGS += $(EXTRA_CXXFLAGS)
-LIBS     := -ldeepspeech -ldeepspeech_utils $(EXTRA_LIBS)
+LIBS     := -ldeepspeech $(EXTRA_LIBS)
 LDFLAGS_DIRS := -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS)
 LDFLAGS  += $(LDFLAGS_NEEDED) $(LDFLAGS_RPATH) $(LDFLAGS_DIRS) $(LIBS)
 
