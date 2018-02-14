@@ -103,7 +103,7 @@ assert_working_inference()
   esac
 }
 
-assert_shows_warning()
+assert_shows_something()
 {
   stderr=$1
   expected=$2
@@ -137,6 +137,14 @@ assert_shows_warning()
 assert_correct_ldc93s1()
 {
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
+}
+
+assert_correct_multi_ldc93s1()
+{
+  assert_shows_something "$1" "/LDC93S1.wav%she had your dark suit in greasy wash water all year%"
+  assert_shows_something "$1" "/LDC93S1_pcms16le_2_44100.wav%she had your dark suit in greasy wash water all year%"
+  ## 8k will output garbage anyway ...
+  # assert_shows_something "$1" "/LDC93S1_pcms16le_1_8000.wav%she hayorasryrtl lyreasy asr watal w water all year%"
 }
 
 assert_correct_ldc93s1_prodmodel()
@@ -182,7 +190,7 @@ assert_correct_ldc93s1_somodel()
 
 assert_correct_warning_upsampling()
 {
-  assert_shows_warning "$1" "is lower than 16kHz. Up-sampling might produce erratic speech recognition"
+  assert_shows_something "$1" "is lower than 16kHz. Up-sampling might produce erratic speech recognition"
 }
 
 run_all_inference_tests()
@@ -233,6 +241,15 @@ run_prod_inference_tests()
 
   phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
+}
+
+run_multi_inference_tests()
+{
+  multi_phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/ | tr '\n' '%')
+  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_nolm}"
+
+  multi_phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/ | tr '\n' '%')
+  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}"
 }
 
 generic_download_tarxz()
