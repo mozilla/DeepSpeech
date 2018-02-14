@@ -83,7 +83,7 @@ tf_cc_shared_object(
         "//tensorflow/core/kernels:tensor_array_ops",   # Placeholder, TensorArrayV3
         "//tensorflow/core/kernels:control_flow_ops",   # Enter
         "//tensorflow/core/kernels:ctc_ops",            # CTCBeamSearchDecoder
-        ### Needed by production model produced without "--use_seq_length False"
+        ### Needed by production model produced without "--nouse_seq_length
         "//tensorflow/core/kernels:logging_ops",         # Assert
         "//tensorflow/core/kernels:reverse_sequence_op", # ReverseSequence
         # Classic deps
