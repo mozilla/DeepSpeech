@@ -56,14 +56,14 @@ def main():
     parser = argparse.ArgumentParser(description='Benchmarking tooling for DeepSpeech native_client.')
     parser.add_argument('model', type=str,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('audio', type=str,
-                        help='Path to the audio file to run (WAV format)')
     parser.add_argument('alphabet', type=str,
                         help='Path to the configuration file specifying the alphabet used by the network')
     parser.add_argument('lm', type=str, nargs='?',
                         help='Path to the language model binary file')
     parser.add_argument('trie', type=str, nargs='?',
                         help='Path to the language model trie file created with native_client/generate_trie')
+    parser.add_argument('audio', type=str,
+                        help='Path to the audio file to run (WAV format)')
     args = parser.parse_args()
 
     print('Loading model from file %s' % (args.model), file=sys.stderr)
