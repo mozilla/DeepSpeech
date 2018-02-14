@@ -192,37 +192,37 @@ assert_correct_warning_upsampling()
 
 run_all_inference_tests()
 {
-  phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
+  phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 
-  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_withlm}"
 
-  phrase_pbmodel_nolm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
+  phrase_pbmodel_nolm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}"
 
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_withlm_stereo_44k}"
 
-  phrase_pbmodel_nolm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt 2>&1 1>/dev/null)
+  phrase_pbmodel_nolm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
 
-  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie 2>&1 1>/dev/null)
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 
   if [ "${aot_model}" = "--aot" ]; then
-      phrase_somodel_nolm=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
-      phrase_somodel_withlm=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+      phrase_somodel_nolm=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
+      phrase_somodel_withlm=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie  ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
 
       assert_correct_ldc93s1_somodel "${phrase_somodel_nolm}" "${phrase_somodel_withlm}"
 
-      phrase_somodel_nolm_stereo_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt)
-      phrase_somodel_withlm_stere_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+      phrase_somodel_nolm_stereo_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
+      phrase_somodel_withlm_stereo_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie  ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
 
       assert_correct_ldc93s1_somodel "${phrase_somodel_nolm_stereo_44k}" "${phrase_somodel_withlm_stereo_44k}"
 
-      phrase_somodel_nolm_mono_8k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt 2>&1 1>/dev/null)
-      phrase_somodel_withlm_stere_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie 2>&1 1>/dev/null)
+      phrase_somodel_nolm_mono_8k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/alphabet.txt  ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+      phrase_somodel_withlm_stereo_44k=$(deepspeech "" ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
 
       assert_correct_warning_upsampling "${phrase_somodel_nolm_mono_8k}" "${phrase_somodel_withlm_mono_8k}"
   fi;
@@ -230,13 +230,13 @@ run_all_inference_tests()
 
 run_prod_inference_tests()
 {
-  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
 
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie)
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_working_ldc93s1_prodmodel "${phrase_pbmodel_withlm_stereo_44k}"
 
-  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie 2>&1 1>/dev/null)
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
 
