@@ -36,10 +36,10 @@ const N_CONTEXT = 9;
 
 var parser = new ArgumentParser({addHelp: true});
 parser.addArgument(['model'], {help: 'Path to the model (protocol buffer binary file)'});
-parser.addArgument(['audio'], {help: 'Path to the audio file to run (WAV format)'});
 parser.addArgument(['alphabet'], {help: 'Path to the configuration file specifying the alphabet used by the network'});
 parser.addArgument(['lm'], {help: 'Path to the language model binary file', nargs: '?'});
 parser.addArgument(['trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
+parser.addArgument(['audio'], {help: 'Path to the audio file to run (WAV format)'});
 var args = parser.parseArgs();
 
 function totalTime(hrtimeValue) {
