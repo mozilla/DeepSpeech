@@ -382,6 +382,74 @@ def variable_on_worker_level(name, shape, initializer):
     return var
 
 
+# 1d CONVOLUTION WITH DILATION
+def Conv1d(batch_x, output_channels, dilation=1, filter_width=3,
+           causal=False, name="dilated_conv"):
+    r'''Dilated conv1d by hacking tf.nn.atrous_conv2d() with skewed filter matrix (e.g. 1xW).
+    TODO: switch to native implementation once it is avail.
+    '''
+
+    with tf.variable_scope(name):
+        batch_x_shape = tf.transpose(batch_x, [0, 2, 1])
+
+        w = variable_on_worker_level('w',
+                [1, filter_width, batch_x.get_shape()[-1], output_channels],
+                tf.contrib.layers.xavier_initializer(uniform=False))
+        b = variable_on_worker_level('b',
+                [output_channels],
+                tf.random_normal_initializer(stddev=0.0))
+
+        if causal:
+            padding = [[0, 0], [(filter_width - 1) * dilation, 0], [0, 0]]
+            padded = tf.pad(batch_x, padding)
+            input_expanded = tf.expand_dims(padded, dim = 1)
+            out = tf.nn.atrous_conv2d(input_expanded, w, rate = dilation, padding = 'VALID') + b
+        else:
+            input_expanded = tf.expand_dims(batch_x, dim = 1)
+            out = tf.nn.atrous_conv2d(input_expanded, w, rate = dilation, padding = 'SAME') + b
+
+        return tf.squeeze(out, [1])
+
+def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilated_conv_stack"):
+    r'''
+    Shapes:
+        - input: [batch_size, n_steps, n_input + 2*n_input*n_context]
+        - output: [n_steps, batch_size, n_hidden_6]
+    '''
+
+    with tf.variable_scope(name):
+        batch_x_shape = tf.shape(batch_x)
+        conv1_out = Conv1d(batch_x, n_cell_dim, dilation_factors[0], name='dconv1')
+        conv2_out = Conv1d(conv1_out, n_cell_dim, dilation_factors[1], name='dconv2')
+        outputs = Conv1d(conv2_out, n_cell_dim, dilation_factors[2], name='dconv3')
+        # outputs = tf.transpose(outputs, [1, 0, 2])
+
+        # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
+        # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
+        # outputs = tf.concat(outputs, 2)
+        outputs = tf.reshape(outputs, [-1, n_cell_dim])
+
+        # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
+        b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
+        h5 = variable_on_worker_level('h5', [(n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
+        layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), FLAGS.relu_clip)
+        layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+
+        # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
+        # creating `n_classes` dimensional vectors, the logits.
+        b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
+        h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
+        layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
+
+        # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
+        # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
+        # Note, that this differs from the input in that it is time-major.
+        layer_6 = tf.reshape(layer_6, [-1, batch_x_shape[0], n_hidden_6], name="logits")
+
+        # Output shape: [n_steps, batch_size, n_hidden_6]
+        return layer_6
+
+
 def BiRNN(batch_x, seq_length, dropout):
     r'''
     That done, we will define the learned variables, the weights and biases,
@@ -522,7 +590,8 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
-    logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
+    logits = DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilated_conv_stack")
+    # logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
