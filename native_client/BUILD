@@ -67,6 +67,7 @@ tf_cc_shared_object(
         ### Obtained by trial/error process ...
         ### CPU only build libdeepspeech.so from 63M to 36M
         "//tensorflow/core/kernels:constant_op",        # Const
+        "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst
         "//tensorflow/core/kernels:identity_op",        # Identity
         "//tensorflow/core/kernels:transpose_op",       # Transpose
         "//tensorflow/core/kernels:reshape_op",         # Reshape

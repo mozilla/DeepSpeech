@@ -60,3 +60,11 @@ deactivate
 pyenv uninstall --force ${PYENV_NAME}
 
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
+
+if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
+  convert_graphdef=$(basename "${CONVERT_GRAPHDEF_MEMMAPPED}")
+  wget -P "/tmp/" "${CONVERT_GRAPHDEF_MEMMAPPED}" && chmod +x "/tmp/${convert_graphdef}"
+
+  /tmp/${convert_graphdef} --in_graph=/tmp/train/output_graph.pb --out_graph=/tmp/train/output_graph.pbmm
+  cp /tmp/train/output_graph.pbmm ${TASKCLUSTER_ARTIFACTS}
+fi;
