@@ -62,3 +62,4 @@ system:
     osx: '/Users/build-user'
 notifications:
   irc: '#machinelearning'
+aptEc2Mirrors: 'sed -ri -e "s|archive.ubuntu.com|${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com|g" -e "s|security.ubuntu.com|${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com|g" /etc/apt/sources.list'
