@@ -37,8 +37,10 @@ export BAZEL_AOT_TARGETS="
 //native_client:libdeepspeech_model.so
 "
 
-model_source=${DEEPSPEECH_TEST_MODEL}
-model_name=$(basename "${model_source}")
+model_source="${DEEPSPEECH_TEST_MODEL}"
+model_name="$(basename "${model_source}")"
+model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
+model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.13 3.4.6 3.5.3 3.6.2}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.6 5.12.0 6.12.0 7.10.1 8.9.1 9.2.0}
@@ -103,7 +105,7 @@ assert_working_inference()
   esac
 }
 
-assert_shows_warning()
+assert_shows_something()
 {
   stderr=$1
   expected=$2
@@ -139,14 +141,27 @@ assert_correct_ldc93s1()
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
 }
 
-assert_correct_ldc93s1_prodmodel()
+assert_correct_multi_ldc93s1()
 {
-  assert_correct_inference "$1" "she had the duck so ingrecywachworallyear"
+  assert_shows_something "$1" "/LDC93S1.wav%she had your dark suit in greasy wash water all year%"
+  assert_shows_something "$1" "/LDC93S1_pcms16le_2_44100.wav%she had your dark suit in greasy wash water all year%"
+  ## 8k will output garbage anyway ...
+  # assert_shows_something "$1" "/LDC93S1_pcms16le_1_8000.wav%she hayorasryrtl lyreasy asr watal w water all year%"
+}
+
+assert_correct_ldc93s1_prodmodel_v1()
+{
+  assert_correct_inference "$1" "she had yeduckso in greasy wash for all year"
+}
+
+assert_correct_ldc93s1_prodmodel_v2()
+{
+  assert_correct_inference "$1" "she had a ducsuot in greasy wathorerall year"
 }
 
 assert_working_ldc93s1_prodmodel()
 {
-  assert_working_inference "$1" "she had the duck so"
+  assert_working_inference "$1" "she had"
 }
 
 assert_correct_ldc93s1_somodel()
@@ -182,7 +197,7 @@ assert_correct_ldc93s1_somodel()
 
 assert_correct_warning_upsampling()
 {
-  assert_shows_warning "$1" "is lower than 16kHz. Up-sampling might produce erratic speech recognition"
+  assert_shows_something "$1" "is lower than 16kHz. Up-sampling might produce erratic speech recognition"
 }
 
 run_all_inference_tests()
@@ -190,19 +205,22 @@ run_all_inference_tests()
   phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 
-  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
+  phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
+
+  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_withlm}"
 
-  phrase_pbmodel_nolm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
+  phrase_pbmodel_nolm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}"
 
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_withlm_stereo_44k}"
 
-  phrase_pbmodel_nolm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  phrase_pbmodel_nolm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
 
-  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 
   if [ "${aot_model}" = "--aot" ]; then
@@ -226,13 +244,25 @@ run_all_inference_tests()
 run_prod_inference_tests()
 {
   phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
+  assert_correct_ldc93s1_prodmodel_v1 "${phrase_pbmodel_withlm}"
 
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
+  phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
+  assert_correct_ldc93s1_prodmodel_v2 "${phrase_pbmodel_withlm}"
+
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_working_ldc93s1_prodmodel "${phrase_pbmodel_withlm_stereo_44k}"
 
-  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
+}
+
+run_multi_inference_tests()
+{
+  multi_phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/ | tr '\n' '%')
+  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_nolm}"
+
+  multi_phrase_pbmodel_withlm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/lm.binary ${TASKCLUSTER_TMP_DIR}/trie ${TASKCLUSTER_TMP_DIR}/ | tr '\n' '%')
+  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}"
 }
 
 generic_download_tarxz()
@@ -269,11 +299,12 @@ download_ctc_kenlm()
 
 download_data()
 {
-  wget ${model_source} -O ${TASKCLUSTER_TMP_DIR}/${model_name}
+  wget -P "${TASKCLUSTER_TMP_DIR}" "${model_source}"
+  wget -P "${TASKCLUSTER_TMP_DIR}" "${model_source_mmap}"
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/lm.binary ${TASKCLUSTER_TMP_DIR}/lm.binary
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/trie ${TASKCLUSTER_TMP_DIR}/trie
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
 }
 
 download_material()
@@ -289,7 +320,7 @@ download_material()
 
   download_data
 
-  ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
+  ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
 }
 
 install_pyenv()
@@ -334,9 +365,7 @@ do_get_model_parameters()
   fi;
 
   wget "${model_url}" -O "${model_file}"
-  wget "${SUMMARIZE_GRAPH_BINARY}" -O "/tmp/summarize_graph"
-
-  chmod +x /tmp/summarize_graph
+  wget -P "/tmp/" "${SUMMARIZE_GRAPH_BINARY}" && chmod +x /tmp/summarize_graph
 
   if [ ! -f "${model_file}" ]; then
     echo "No such model: ${model_file}"

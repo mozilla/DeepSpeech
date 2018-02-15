@@ -134,7 +134,7 @@ In both cases, it should take care of installing all the required dependencies. 
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
-deepspeech models/output_graph.pb models/alphabet.txt models/lm.binary models/trie my_audio_file.wav
+deepspeech models/output_graph.pbmm models/alphabet.txt models/lm.binary models/trie my_audio_file.wav
 ```
 
 The last two arguments are optional, and represent a language model.
@@ -160,7 +160,7 @@ This will download `native_client.tar.xz` which includes the deepspeech binary a
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
-./deepspeech models/output_graph.pb models/alphabet.txt models/lm.binary models/trie audio_input.wav
+./deepspeech models/output_graph.pbmm models/alphabet.txt models/lm.binary models/trie audio_input.wav
 ```
 
 
@@ -304,6 +304,19 @@ Be aware however that checkpoints are only valid for the same model geometry the
 
 If the `--export_dir` parameter is provided, a model will have been exported to this directory during training.
 Refer to the corresponding [README.md](native_client/README.md) for information on building and running a client that can use the exported model.
+
+### Making a mmap-able model for inference
+
+The `output_graph.pb` model file generated in the above step will be loaded in memory to be dealt with when running inference.
+This will result in extra loading time and memory consumption. One way to avoid this is to directly read data from the disk.
+
+TensorFlow has tooling to achieve this: it requires building the target `//tensorflow/contrib/util:convert_graphdef_memmapped_format` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64).
+Producing a mmap-able model is as simple as:
+```
+$ convert_graphdef_memmapped_format --in_graph=output_graph.pb --out_graph=output_graph.pbmm
+```
+
+Upon sucessfull run, it should report about conversion of a non zero number of nodes. If it reports converting 0 nodes, something is wrong: make sure your model is a frozen one, and that you have not applied any incompatible changes (this includes `quantize_weights`).
 
 ### Distributed training across more than one machine
 

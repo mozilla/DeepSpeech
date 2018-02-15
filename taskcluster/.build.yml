@@ -13,20 +13,10 @@ build:
   system_config:
     >
       true
-  git_lfs:
-    linux:
-      >
-        export PATH=${system.homedir.linux}/bin:$PATH &&
-        wget https://github.com/git-lfs/git-lfs/releases/download/v2.3.1/git-lfs-linux-amd64-2.3.1.tar.gz -O - | tar -C /tmp -zxf - &&
-        PREFIX=${system.homedir.linux}/ /tmp/git-lfs-2.3.1/install.sh
-    osx:
-      >
-        export PATH=$TASKCLUSTER_TASK_DIR/bin:$PATH &&
-        wget https://github.com/git-lfs/git-lfs/releases/download/v2.3.1/git-lfs-darwin-amd64-2.3.1.tar.gz -O - | tar -C $TASKCLUSTER_TASK_DIR/ -zxf - &&
-        mkdir -p $TASKCLUSTER_TASK_DIR/bin/ && cp $TASKCLUSTER_TASK_DIR/git-lfs-2.3.1/git-lfs $TASKCLUSTER_TASK_DIR/bin/ && git lfs install --local && git lfs pull
   scripts:
     build: ''
     package: ''
   args:
     tests_cmdline: ''
   deepspeech_pkg_name: ''
+  convert_graphdef: ''
