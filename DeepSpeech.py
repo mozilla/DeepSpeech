@@ -278,9 +278,6 @@ def initialize_globals():
     global n_hidden_2
     n_hidden_2 = n_hidden
 
-    global n_hidden_5
-    n_hidden_5 = n_hidden
-
     # LSTM cell state dimension
     global n_cell_dim
     n_cell_dim = n_hidden
@@ -292,6 +289,10 @@ def initialize_globals():
     # The number of characters in the target language plus one
     global n_character
     n_character = alphabet.size() + 1 # +1 for CTC blank label
+
+    # The number of units in the fifth layer
+    global n_hidden_5
+    n_hidden_5 = n_hidden
 
     # The number of units in the sixth layer
     global n_hidden_6
@@ -440,40 +441,40 @@ def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilat
         # clipped RELU activation and dropout.
 
         # 1st layer
-        b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
-        h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
+        b1 = variable_on_worker_level('b1', [n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
+        h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden // 4], tf.contrib.layers.xavier_initializer(uniform=False))
         layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
         layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
 
         # 2nd layer
-        b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
-        h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
+        b2 = variable_on_worker_level('b2', [n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
+        h2 = variable_on_worker_level('h2', [n_hidden // 4, n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
         layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
         layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
 
         # 3rd layer
-        b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
-        h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
+        b3 = variable_on_worker_level('b3', [n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
+        h3 = variable_on_worker_level('h3', [n_hidden // 4, n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
         layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
         layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
-        layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
+        layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden // 4])
 
         # Apply convolutions
-        conv1_out = Conv1d(layer_3, n_cell_dim, dilation_factors[0], name='dconv1')
-        conv2_out = Conv1d(conv1_out, n_cell_dim, dilation_factors[1], name='dconv2')
-        outputs = Conv1d(conv2_out, n_cell_dim, dilation_factors[2], name='dconv3')
-        outputs = tf.reshape(outputs, [-1, n_cell_dim])
+        conv1_out = Conv1d(layer_3, n_cell_dim // 8, dilation_factors[0], name='dconv1')
+        conv2_out = Conv1d(conv1_out, n_cell_dim // 8, dilation_factors[1], name='dconv2')
+        outputs = Conv1d(conv2_out, n_cell_dim // 4, dilation_factors[2], name='dconv3')
+        outputs = tf.reshape(outputs, [-1, n_cell_dim // 4])
 
         # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
-        b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
-        h5 = variable_on_worker_level('h5', [(n_cell_dim), n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
+        b5 = variable_on_worker_level('b5', [n_hidden // 2], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
+        h5 = variable_on_worker_level('h5', [(n_cell_dim // 4), n_hidden // 2], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
         layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), FLAGS.relu_clip)
         layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
 
         # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
         # creating `n_classes` dimensional vectors, the logits.
         b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
-        h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
+        h6 = variable_on_worker_level('h6', [n_hidden // 2, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
         layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
 
         # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
