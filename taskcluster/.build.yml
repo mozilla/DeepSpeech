@@ -30,3 +30,4 @@ build:
   args:
     tests_cmdline: ''
   deepspeech_pkg_name: ''
+  convert_graphdef: ''
