@@ -44,8 +44,8 @@ then:
         DEEPSPEECH_AOT_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_amd64_aot_test}/artifacts/public
         DEEPSPEECH_LIBCTC: https://queue.taskcluster.net/v1/task/${linux_amd64_ctc}/artifacts/public/decoder.tar.xz
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
-        DEEPSPEECH_PROD_MODEL: https://s3-us-west-2.amazonaws.com/deepspeech/mmap/output_graph.pb
-        DEEPSPEECH_PROD_MODEL_MMAP: https://s3-us-west-2.amazonaws.com/deepspeech/mmap/output_graph.pbmm
+        DEEPSPEECH_PROD_MODEL: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pb
+        DEEPSPEECH_PROD_MODEL_MMAP: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pbmm
 
     command:
       - "/bin/bash"
