@@ -46,7 +46,6 @@ then:
         - "-cxe"
         - $let:
             extraSystemSetup: { $eval: strip(str(build.system_setup)) }
-            installGitlfs: { $eval: strip(str(build.git_lfs.osx)) }
           in: >
             export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
             export TASKCLUSTER_TASK_DIR="$(pwd)" &&
@@ -55,7 +54,7 @@ then:
             export MACOSX_DEPLOYMENT_TARGET=10.10 &&
             env &&
             git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
-            cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && ${installGitlfs} &&
+            cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
             cd $TASKCLUSTER_TASK_DIR &&
             source $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-brew-tests.sh && ${extraSystemSetup} &&
             /bin/bash ${build.args.tests_cmdline}
