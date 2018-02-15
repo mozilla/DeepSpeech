@@ -25,7 +25,9 @@ from util.audio import audiofile_to_input_vector
 from util.feeding import DataSet, ModelFeeder
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, ndarray_to_text
+from util.text import (sparse_tensor_value_to_texts, wer,
+                       levenshtein, Alphabet, ndarray_to_text)
+from util.progress import TrainProgressBar
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -1711,6 +1713,15 @@ def train(server=None):
 
                         # Uncomment the next line for debugging race conditions / distributed TF
                         log_debug('Finished batch step %d.' % current_step)
+
+                        # Update progress bar
+                        num_instances = len(FLAGS.train_files.split(','))
+                        num_batches = np.ceil(num_instances / FLAGS.train_batch_size)
+                        iter_batch = (current_step + 1) % num_batches
+                        print("Num batches: {}".format(num_batches))
+                        if iter_batch == 0:
+                            progbar = TrainProgressBar(num_batches)
+                        progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
 
                         # Add batch to loss
                         total_loss += batch_loss

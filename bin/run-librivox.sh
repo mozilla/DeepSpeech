@@ -24,9 +24,9 @@ else
 fi
 
 python -u DeepSpeech.py \
-  --train_files "$COMPUTE_DATA_DIR/librivox-train-clean-100.csv,$COMPUTE_DATA_DIR/librivox-train-clean-360.csv,$COMPUTE_DATA_DIR/librivox-train-other-500.csv" \
-  --dev_files "$COMPUTE_DATA_DIR/librivox-dev-clean.csv,$COMPUTE_DATA_DIR/librivox-dev-other.csv" \
-  --test_files "$COMPUTE_DATA_DIR/librivox-test-clean.csv,$COMPUTE_DATA_DIR/librivox-test-other.csv" \
+  --train_files "$COMPUTE_DATA_DIR/old/librivox-train-clean-100.csv,$COMPUTE_DATA_DIR/old/librivox-train-clean-360.csv,$COMPUTE_DATA_DIR/old/librivox-train-other-500.csv" \
+  --dev_files "$COMPUTE_DATA_DIR/old/librivox-dev-clean.csv,$COMPUTE_DATA_DIR/old/librivox-dev-other.csv" \
+  --test_files "$COMPUTE_DATA_DIR/old/librivox-test-clean.csv,$COMPUTE_DATA_DIR/old/librivox-test-other.csv" \
   --train_batch_size 12 \
   --dev_batch_size 12 \
   --test_batch_size 12 \
