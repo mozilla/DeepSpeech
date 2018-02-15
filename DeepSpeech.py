@@ -72,12 +72,21 @@ tf.app.flags.DEFINE_float   ('dropout_rate6',    -1.0,        'dropout rate for 
 
 tf.app.flags.DEFINE_float   ('relu_clip',        20.0,        'ReLU clipping value for non-recurrant layers')
 
+# Optimizer 
 # Adam optimizer (http://arxiv.org/abs/1412.6980) parameters
 
 tf.app.flags.DEFINE_float   ('beta1',            0.9,         'beta 1 parameter of Adam optimizer')
 tf.app.flags.DEFINE_float   ('beta2',            0.999,       'beta 2 parameter of Adam optimizer')
 tf.app.flags.DEFINE_float   ('epsilon',          1e-8,        'epsilon parameter of Adam optimizer')
-tf.app.flags.DEFINE_float   ('learning_rate',    0.001,       'learning rate of Adam optimizer')
+
+# Momentum optimizer parameters
+
+tf.app.flags.DEFINE_float   ('momentum',         0.9,         'momentum parameter for Momentum optimizer')
+
+# Generic optimizer parameters
+
+tf.app.flags.DEFINE_string  ('optimizer',       'Momentum',  'optimizer algorithm in use. (Momentum or Adam)')
+tf.app.flags.DEFINE_float   ('learning_rate',    0.001,       'learning rate of the optimizer')
 
 # Batch sizes
 
@@ -166,7 +175,6 @@ for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
     tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
 
 FLAGS = tf.app.flags.FLAGS
-
 def initialize_globals():
 
     # ps and worker hosts required for p2p cluster setup
@@ -423,8 +431,35 @@ def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilat
     with tf.variable_scope(name):
         batch_x_shape = tf.shape(batch_x)
 
+        # Permute n_steps and batch_size
+        batch_x = tf.transpose(batch_x, [1, 0, 2])
+        # Reshape to prepare input for first layer
+        batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
+
+        # The next three blocks will pass `batch_x` through three hidden layers with
+        # clipped RELU activation and dropout.
+
+        # 1st layer
+        b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
+        h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
+        layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
+        layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+
+        # 2nd layer
+        b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
+        h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
+        layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
+        layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+
+        # 3rd layer
+        b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
+        h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
+        layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
+        layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+        layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden_3])
+
         # Apply convolutions
-        conv1_out = Conv1d(batch_x, n_cell_dim, dilation_factors[0], name='dconv1')
+        conv1_out = Conv1d(layer_3, n_cell_dim, dilation_factors[0], name='dconv1')
         conv2_out = Conv1d(conv1_out, n_cell_dim, dilation_factors[1], name='dconv2')
         outputs = Conv1d(conv2_out, n_cell_dim, dilation_factors[2], name='dconv3')
         outputs = tf.reshape(outputs, [-1, n_cell_dim])
@@ -503,7 +538,8 @@ def BiRNN(batch_x, seq_length, dropout):
     # Forward direction cell: (if else required for TF 1.0 and 1.1 compat)
     lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
                    if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
-                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
+                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True,
+                                                reuse=tf.get_variable_scope().reuse)
     lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
                                                 input_keep_prob=1.0 - dropout[3],
                                                 output_keep_prob=1.0 - dropout[3],
@@ -511,7 +547,8 @@ def BiRNN(batch_x, seq_length, dropout):
     # Backward direction cell: (if else required for TF 1.0 and 1.1 compat)
     lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
                    if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
-                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
+                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, 
+                                                reuse=tf.get_variable_scope().reuse)
     lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
                                                 input_keep_prob=1.0 - dropout[4],
                                                 output_keep_prob=1.0 - dropout[4],
@@ -631,10 +668,17 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
 # we will use the Adam method for optimization (http://arxiv.org/abs/1412.6980),
 # because, generally, it requires less fine-tuning.
 def create_optimizer():
-    optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate,
-                                       beta1=FLAGS.beta1,
-                                       beta2=FLAGS.beta2,
-                                       epsilon=FLAGS.epsilon)
+    if FLAGS.optimizer == 'Adam':
+        optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate,
+                                           beta1=FLAGS.beta1,
+                                           beta2=FLAGS.beta2,
+                                           epsilon=FLAGS.epsilon)
+    elif FLAGS.optimizer == 'Momentum':
+        optimizer = tf.train.MomentumOptimizer(learning_rate=FLAGS.learning_rate,
+                                               momentum=FLAGS.momentum,
+                                               use_nesterov=True)
+    else:
+        raise RuntimeError("Wrong optimizer name: {}".format(FLAGS.optimizer))
     return optimizer
 
 
@@ -1714,9 +1758,11 @@ def train(server=None):
 
                         # Update progress bar       
                         iter_batch = (current_step - 1) % train_set.total_batches
-                        if iter_batch == 0:
+                        try:
+                            progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
+                        except: 
                             progbar = TrainProgressBar(train_set.total_batches)
-                        progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
+                            progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
 
                         # Add batch to loss
                         total_loss += batch_loss
