@@ -410,6 +410,7 @@ def Conv1d(batch_x, output_channels, dilation=1, filter_width=3,
             input_expanded = tf.expand_dims(batch_x, dim = 1)
             out = tf.nn.atrous_conv2d(input_expanded, w, rate = dilation, padding = 'SAME') + b
 
+        out = tf.minimum(tf.nn.relu(out), FLAGS.relu_clip)
         return tf.squeeze(out, [1])
 
 def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilated_conv_stack"):
@@ -421,14 +422,11 @@ def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilat
 
     with tf.variable_scope(name):
         batch_x_shape = tf.shape(batch_x)
+
+        # Apply convolutions
         conv1_out = Conv1d(batch_x, n_cell_dim, dilation_factors[0], name='dconv1')
         conv2_out = Conv1d(conv1_out, n_cell_dim, dilation_factors[1], name='dconv2')
         outputs = Conv1d(conv2_out, n_cell_dim, dilation_factors[2], name='dconv3')
-        # outputs = tf.transpose(outputs, [1, 0, 2])
-
-        # Reshape outputs from two tensors each of shape [n_steps, batch_size, n_cell_dim]
-        # to a single tensor of shape [n_steps*batch_size, 2*n_cell_dim]
-        # outputs = tf.concat(outputs, 2)
         outputs = tf.reshape(outputs, [-1, n_cell_dim])
 
         # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
