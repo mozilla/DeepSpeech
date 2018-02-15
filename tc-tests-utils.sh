@@ -151,12 +151,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel_v1()
 {
-  assert_correct_inference "$1" "she had the duck so ingrecywachworallyear"
+  assert_correct_inference "$1" "she had yeduckso in greasy wash for all year"
 }
 
 assert_correct_ldc93s1_prodmodel_v2()
 {
-  assert_correct_inference "$1" "she had a ducsuotangresywathorerall year"
+  assert_correct_inference "$1" "she had a ducsuot in greasy wathorerall year"
 }
 
 assert_working_ldc93s1_prodmodel()
@@ -303,8 +303,8 @@ download_data()
   wget -P "${TASKCLUSTER_TMP_DIR}" "${model_source_mmap}"
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/lm.binary ${TASKCLUSTER_TMP_DIR}/lm.binary
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/lm/trie ${TASKCLUSTER_TMP_DIR}/trie
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
 }
 
 download_material()
