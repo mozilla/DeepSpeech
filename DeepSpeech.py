@@ -1714,13 +1714,10 @@ def train(server=None):
                         # Uncomment the next line for debugging race conditions / distributed TF
                         log_debug('Finished batch step %d.' % current_step)
 
-                        # Update progress bar
-                        num_instances = len(FLAGS.train_files.split(','))
-                        num_batches = np.ceil(num_instances / FLAGS.train_batch_size)
-                        iter_batch = (current_step + 1) % num_batches
-                        print("Num batches: {}".format(num_batches))
+                        # Update progress bar       
+                        iter_batch = (current_step - 1) % train_set.total_batches
                         if iter_batch == 0:
-                            progbar = TrainProgressBar(num_batches)
+                            progbar = TrainProgressBar(train_set.total_batches)
                         progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
 
                         # Add batch to loss
