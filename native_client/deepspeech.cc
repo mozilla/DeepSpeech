@@ -16,6 +16,7 @@
 
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/platform/env.h"
+#include "tensorflow/core/util/memmapped_file_system.h"
 
 #define BATCH_SIZE 1
 
@@ -27,6 +28,7 @@ namespace DeepSpeech {
 
 class Private {
   public:
+    MemmappedEnv* mmap_env;
     Session* session;
     GraphDef graph_def;
     int ncep;
@@ -42,6 +44,7 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
              const char* aAlphabetConfigPath, int aBeamWidth)
 {
   mPriv             = new Private;
+  mPriv->mmap_env   = new MemmappedEnv(Env::Default());
   mPriv->session    = NULL;
   mPriv->scorer     = NULL;
   mPriv->ncep       = aNCep;
@@ -56,13 +59,39 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
     return;
   }
 
-  Status status = NewSession(SessionOptions(), &mPriv->session);
+  Status status;
+  SessionOptions options;
+  bool is_mmap = std::string(aModelPath).find(".pbmm") != std::string::npos;
+  if (!is_mmap) {
+    std::cerr << "Warning: reading entire model file into memory. Transform model file into an mmapped graph to reduce heap usage." << std::endl;
+  }
+
+  if (is_mmap) {
+    status = mPriv->mmap_env->InitializeFromFile(aModelPath);
+    if (!status.ok()) {
+      std::cerr << status.ToString() << std::endl;
+      return;
+    }
+
+    options.config.mutable_graph_options()
+      ->mutable_optimizer_options()
+      ->set_opt_level(::OptimizerOptions::L0);
+    options.env = mPriv->mmap_env;
+  }
+
+  status = NewSession(options, &mPriv->session);
   if (!status.ok()) {
     std::cerr << status.ToString() << std::endl;
     return;
   }
 
-  status = ReadBinaryProto(Env::Default(), aModelPath, &mPriv->graph_def);
+  if (is_mmap) {
+    status = ReadBinaryProto(mPriv->mmap_env,
+                             MemmappedFileSystem::kMemmappedPackageDefaultGraphDef,
+                             &mPriv->graph_def);
+  } else {
+    status = ReadBinaryProto(Env::Default(), aModelPath, &mPriv->graph_def);
+  }
   if (!status.ok()) {
     mPriv->session->Close();
     mPriv->session = NULL;
@@ -105,6 +134,7 @@ Model::~Model()
     mPriv->session->Close();
   }
 
+  delete mPriv->mmap_env;
   delete mPriv->alphabet;
   delete mPriv->scorer;
 
