@@ -398,10 +398,14 @@ def Conv1d(batch_x, output_channels, dilation=1, filter_width=3,
            causal=False, name="dilated_conv"):
     r'''Dilated conv1d by hacking tf.nn.atrous_conv2d() with skewed filter matrix (e.g. 1xW).
     TODO: switch to native implementation once it is avail.
+
+    Shapes:
+        - input: batch x time x dim
+        - output: batch x time x channels
     '''
 
     with tf.variable_scope(name):
-        batch_x_shape = tf.transpose(batch_x, [0, 2, 1])
+        # batch_x_shape = tf.transpose(batch_x, [0, 2, 1])  # time x dim x batch
 
         w = variable_on_worker_level('w',
                 [1, filter_width, batch_x.get_shape()[-1], output_channels],
@@ -413,7 +417,7 @@ def Conv1d(batch_x, output_channels, dilation=1, filter_width=3,
         if causal:
             padding = [[0, 0], [(filter_width - 1) * dilation, 0], [0, 0]]
             padded = tf.pad(batch_x, padding)
-            input_expanded = tf.expand_dims(padded, dim = 1)
+            input_expanded = tf.expand_dims(padded, dim = 1)  # batch x 1 x time x dim
             out = tf.nn.atrous_conv2d(input_expanded, w, rate = dilation, padding = 'VALID') + b
         else:
             input_expanded = tf.expand_dims(batch_x, dim = 1)
@@ -430,12 +434,13 @@ def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilat
     '''
 
     with tf.variable_scope(name):
+        # [batch, time, dim]
         batch_x_shape = tf.shape(batch_x)
 
         # Permute n_steps and batch_size
-        batch_x = tf.transpose(batch_x, [1, 0, 2])
+        batch_x = tf.transpose(batch_x, [1, 0, 2])  # time x batch x dim
         # Reshape to prepare input for first layer
-        batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
+        batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # time*batch x dim
 
         # The next three blocks will pass `batch_x` through three hidden layers with
         # clipped RELU activation and dropout.
@@ -457,15 +462,15 @@ def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilat
         h3 = variable_on_worker_level('h3', [n_hidden // 4, n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
         layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
         layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
-        layer_3 = tf.reshape(layer_3, [-1, batch_x_shape[0], n_hidden // 4])
+        layer_3 = tf.reshape(layer_3, [batch_x_shape[0], batch_x_shape[1], n_hidden // 4])  # batch x time x dim
 
         # Apply convolutions
         conv1_out = Conv1d(layer_3, n_cell_dim // 8, dilation_factors[0], name='dconv1')
         conv2_out = Conv1d(conv1_out, n_cell_dim // 8, dilation_factors[1], name='dconv2')
         outputs = Conv1d(conv2_out, n_cell_dim // 4, dilation_factors[2], name='dconv3')
-        outputs = tf.reshape(outputs, [-1, n_cell_dim // 4])
+        outputs = tf.reshape(outputs, [-1, n_cell_dim // 4])  # batch*time x dim
 
-        # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and dropout
+        # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and drop 
         b5 = variable_on_worker_level('b5', [n_hidden // 2], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
         h5 = variable_on_worker_level('h5', [(n_cell_dim // 4), n_hidden // 2], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
         layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), FLAGS.relu_clip)
@@ -536,20 +541,14 @@ def BiRNN(batch_x, seq_length, dropout):
     # Now we create the forward and backward LSTM units.
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
-    # Forward direction cell: (if else required for TF 1.0 and 1.1 compat)
-    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
-                   if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
-                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True,
-                                                reuse=tf.get_variable_scope().reuse)
+    # Forward direction cell:
+    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
     lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell,
                                                 input_keep_prob=1.0 - dropout[3],
                                                 output_keep_prob=1.0 - dropout[3],
                                                 seed=FLAGS.random_seed)
-    # Backward direction cell: (if else required for TF 1.0 and 1.1 compat)
-    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True) \
-                   if 'reuse' not in inspect.getargspec(tf.contrib.rnn.BasicLSTMCell.__init__).args else \
-                   tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, 
-                                                reuse=tf.get_variable_scope().reuse)
+    # Backward direction cell:
+    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
     lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell,
                                                 input_keep_prob=1.0 - dropout[4],
                                                 output_keep_prob=1.0 - dropout[4],
@@ -591,6 +590,7 @@ def BiRNN(batch_x, seq_length, dropout):
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
     return layer_6
+
 
 def decode_with_lm(inputs, sequence_length, beam_width=100,
                    top_paths=1, merge_repeated=True):
@@ -1630,7 +1630,6 @@ def train(server=None):
     # Apply gradients to modify the model
     apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
-
     if FLAGS.early_stop is True and not FLAGS.validation_step > 0:
         log_warn('Parameter --validation_step needs to be >0 for early stopping to work')
 
@@ -1716,6 +1715,8 @@ def train(server=None):
                 # Get the first job
                 job = COORD.get_job()
 
+                # Init progressbar
+                progbar = TrainProgressBar(train_set.total_batches / len(get_available_gpus()))
                 while job and not session.should_stop():
                     log_debug('Computing %s...' % job)
 
@@ -1758,12 +1759,11 @@ def train(server=None):
                         log_debug('Finished batch step %d.' % current_step)
 
                         # Update progress bar       
-                        iter_batch = (current_step - 1) % train_set.total_batches
-                        try:
-                            progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
-                        except: 
-                            progbar = TrainProgressBar(train_set.total_batches)
-                            progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
+                        num_iters_per_epoch = train_set.total_batches / len(get_available_gpus())
+                        iter_batch = (current_step - 1) % num_iters_per_epoch
+                        if iter_batch == 0 or len(FLAGS.initialize_from_frozen_model) > 0:
+                            progbar = TrainProgressBar(num_iters_per_epoch)
+                        progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
 
                         # Add batch to loss
                         total_loss += batch_loss
