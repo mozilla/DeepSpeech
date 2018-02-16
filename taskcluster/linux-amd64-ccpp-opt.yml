@@ -1,0 +1,22 @@
+build:
+  template_file: linux-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.ccpp"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.ccpp"
+    - "index.project.deepspeech.deepspeech.native_client.ccpp.${event.head.sha}"
+  system_setup:
+    >
+      ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml ocl-icd-libopencl1 ocl-icd-dev opencl-headers &&
+      apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.ccpp.a3fedf32153f97a8d2ea6da4eef57a5a3cc0f348.ccpp/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.ccpp.a3fedf32153f97a8d2ea6da4eef57a5a3cc0f348.ccpp/artifacts/public/summarize_graph"
+  maxRunTime: 14400
+  scripts:
+    build: "taskcluster/ccpp-build.sh"
+    package: "taskcluster/package.sh"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CCPP"
+    description: "Building DeepSpeech for Linux/AMD64, CCPP-enabled, optimized version"

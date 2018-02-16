@@ -25,6 +25,7 @@ mkdir -p ${TASKCLUSTER_TMP_DIR} || true
 
 export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
+export DS_CCPPDIR=${DS_ROOT_TASK}/DeepSpeech/ComputeCpp-CE
 
 export BAZEL_CTC_TARGETS="//native_client:libctc_decoder_with_kenlm.so"
 
@@ -479,7 +480,7 @@ do_deepspeech_python_build()
 
   SETUP_FLAGS=""
   if [ "${rename_to_gpu}" ]; then
-    SETUP_FLAGS="--project_name deepspeech-gpu"
+    SETUP_FLAGS="--project_name deepspeech-${rename_to_gpu}"
   fi
 
   for pyver in ${SUPPORTED_PYTHON_VERSIONS}; do
@@ -491,6 +492,7 @@ do_deepspeech_python_build()
       TARGET=${SYSTEM_TARGET} \
       RASPBIAN=/tmp/multistrap-raspbian-jessie \
       TFDIR=${DS_TFDIR} \
+      CCPPDIR=${DS_CCPPDIR} \
       SETUP_FLAGS="${SETUP_FLAGS}" \
       bindings-clean bindings
 
@@ -516,12 +518,13 @@ do_deepspeech_nodejs_build()
       TARGET=${SYSTEM_TARGET} \
       RASPBIAN=/tmp/multistrap-raspbian-jessie \
       TFDIR=${DS_TFDIR} \
+      CCPPDIR=${DS_CCPPDIR} \
       NODE_ABI_TARGET=--target=$node \
       clean node-wrapper
   done;
 
   if [ "${rename_to_gpu}" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-${rename_to_gpu}
   else
     make -C native_client/javascript clean npm-pack
   fi
@@ -551,6 +554,7 @@ package_native_client()
 {
   tensorflow_dir=${DS_TFDIR}
   deepspeech_dir=${DS_DSDIR}
+  computecpp_dir=${DS_CCPPDIR}
   artifacts_dir=${TASKCLUSTER_ARTIFACTS}
   artifact_name=$1
 
@@ -573,6 +577,17 @@ package_native_client()
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_model.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
+      -C ${deepspeech_dir}/ LICENSE \
+      -C ${deepspeech_dir}/native_client/ deepspeech \
+      -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
+      | pixz -9 > "${artifacts_dir}/${artifact_name}"
+  elif [ -f "${computecpp_dir}/lib/libComputeCpp.so" ]; then
+    tar -cf - \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
+      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
+      -C ${computecpp_dir}/lib/ libComputeCpp.so \
       -C ${deepspeech_dir}/ LICENSE \
       -C ${deepspeech_dir}/native_client/ deepspeech \
       -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \

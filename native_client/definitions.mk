@@ -2,8 +2,9 @@ NC_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 TARGET    ?= host
 TFDIR     ?= $(abspath $(NC_DIR)/../../tensorflow)
+CCPPDIR   ?= $(abspath $(NC_DIR)/../../ComputeCpp)
 PREFIX    ?= /usr/local
-SO_SEARCH ?= $(TFDIR)/bazel-bin/
+SO_SEARCH ?= $(TFDIR)/bazel-bin/ $(CCPPDIR)/lib/
 
 ifeq ($(TARGET),host)
 TOOLCHAIN       :=
