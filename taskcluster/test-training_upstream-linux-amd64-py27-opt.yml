@@ -7,7 +7,7 @@ build:
       apt-get -qq -y install ${python.packages.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 2.7.13 upstream"
-  convert_graphdef: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1cab2ebf03a32c818887bae5840c93d15b80afc9.cpu/artifacts/public/convert_graphdef_memmapped_format"
+  convert_graphdef: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.23d3d54b3cbc9099678e9f01e45ea2627c835fc1.cpu/artifacts/public/convert_graphdef_memmapped_format"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU upstream training Py2.7"
     description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 using upstream TensorFlow Python 2.7, CPU only, optimized version"
