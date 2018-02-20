@@ -11,4 +11,4 @@ taskcluster:
       events:
         - push
       branches:
-        - tf-master
+        - ccpp
