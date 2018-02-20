@@ -61,6 +61,8 @@ tf.app.flags.DEFINE_boolean ('train',            True,        'whether to train 
 tf.app.flags.DEFINE_boolean ('test',             True,        'whether to test the network')
 tf.app.flags.DEFINE_integer ('epoch',            75,          'target epoch to train - if negative, the absolute number of additional epochs will be trained')
 
+
+                    
 tf.app.flags.DEFINE_boolean ('use_warpctc',      False,       'whether to use GPU bound Warp-CTC')
 
 tf.app.flags.DEFINE_float   ('dropout_rate',     0.05,        'dropout rate for feedforward layers')
@@ -1759,11 +1761,11 @@ def train(server=None):
                         log_debug('Finished batch step %d.' % current_step)
 
                         # Update progress bar       
-                        num_iters_per_epoch = train_set.total_batches / len(get_available_gpus())
-                        iter_batch = (current_step - 1) % num_iters_per_epoch
-                        if iter_batch == 0 or len(FLAGS.initialize_from_frozen_model) > 0:
+                        num_iters_per_epoch = np.ceil(train_set.total_batches / len(get_available_gpus()))
+                        iter_batch = current_step % num_iters_per_epoch
+                        if iter_batch ==  1 or len(FLAGS.initialize_from_frozen_model) > 0:
                             progbar = TrainProgressBar(num_iters_per_epoch)
-                        progbar.update(iter_batch + 1, values=[('loss', batch_loss)])
+                        progbar.update(iter_batch, values=[('loss', batch_loss)])
 
                         # Add batch to loss
                         total_loss += batch_loss
