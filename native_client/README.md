@@ -69,10 +69,11 @@ ln -s ../DeepSpeech/native_client ./
 
 Before building the DeepSpeech client libraries, you will need to prepare your environment to configure and build TensorFlow. Follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
 
-Then you can build the Tensorflow and DeepSpeech libraries.
+Then you can build the Tensorflow and DeepSpeech libraries. Please note that the flags for `libctc_decoder_with_kenlm.so` differs a little bit.
 
 ```
-bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:libctc_decoder_with_kenlm.so //native_client:generate_trie
+bazel build -c opt --copt=-O3 //native_client:libctc_decoder_with_kenlm.so
+bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie
 ```
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
@@ -97,10 +98,10 @@ Bazel defines:
 Bazel targets:
 * `//native_client:deepspeech_model`: to produce `libdeepspeech_model.so`
 
-In the end, the previous example becomes:
+In the end, the previous example becomes (no change for `libctc_decoder_with_kenlm.so`):
 
 ```
-bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden --define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64 --define=DS_MODEL_FRAMESIZE=494 --define=DS_MODEL_FILE=/tmp/model.ldc93s1.pb //native_client:deepspeech_model //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:libctc_decoder_with_kenlm.so //native_client:generate_trie
+bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden --define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64 --define=DS_MODEL_FRAMESIZE=494 --define=DS_MODEL_FILE=/tmp/model.ldc93s1.pb //native_client:deepspeech_model //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie
 ```
 
 Later, when building either `deepspeech` binaries or bindings, you will have to add some extra variables to your `make` command-line (assuming `TFDIR` points to your TensorFlow's git clone):
