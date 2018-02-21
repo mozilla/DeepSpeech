@@ -6,8 +6,8 @@ build:
   template_file: linux-opt-base.tyml
   dependencies:
     - "test-training_upstream-linux-amd64-py27-opt"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.ccpp.a3fedf32153f97a8d2ea6da4eef57a5a3cc0f348.cpu/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.ccpp.a3fedf32153f97a8d2ea6da4eef57a5a3cc0f348.cpu/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.ccpp.e999fb4ed9c9a8e986ecdbabfa551dc82a3ea0dc.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.ccpp.e999fb4ed9c9a8e986ecdbabfa551dc82a3ea0dc.cpu/artifacts/public/summarize_graph"
   system_setup:
     >
       ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
