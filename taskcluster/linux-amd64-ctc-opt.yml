@@ -4,8 +4,8 @@ build:
     - "pull_request.synchronize"
     - "pull_request.reopened"
   template_file: linux-opt-base.tyml
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.23d3d54b3cbc9099678e9f01e45ea2627c835fc1.cpu/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.23d3d54b3cbc9099678e9f01e45ea2627c835fc1.cpu/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.bc9b221d6b3bcabcd17c09e3205c84d8179dad24.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.bc9b221d6b3bcabcd17c09e3205c84d8179dad24.cpu/artifacts/public/summarize_graph"
   scripts:
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'
