@@ -30,7 +30,7 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27-opt") }
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
         darwin_amd64_build: { $eval: as_slugid("darwin-amd64-cpu-opt") }
         node_package: { $eval: as_slugid("node-package") }
       in:

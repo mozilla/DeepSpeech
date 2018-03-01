@@ -4,13 +4,22 @@ set -xe
 
 source $(dirname "$0")/tc-tests-utils.sh
 
-pyver=$1
+pyver_full=$1
 tf=$2
 ds=$3
 
-if [ -z "${pyver}" ]; then
+if [ -z "${pyver_full}" ]; then
     echo "No python version given, aborting."
     exit 1
+fi;
+
+pyver=$(echo "${pyver_full}" | cut -d':' -f1)
+
+py_unicode_type=$(echo "${pyver_full}" | cut -d':' -f2)
+if [ "${py_unicode_type}" = "m" ]; then
+  pyconf="ucs2"
+elif [ "${py_unicode_type}" = "mu" ]; then
+  pyconf="ucs4"
 fi;
 
 unset PYTHON_BIN_PATH
@@ -26,7 +35,7 @@ install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
 PYENV_NAME=deepspeech-train
-pyenv install ${pyver}
+PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
