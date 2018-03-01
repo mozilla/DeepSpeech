@@ -43,7 +43,7 @@ model_name="$(basename "${model_source}")"
 model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.13 3.4.6 3.5.3 3.6.2}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.6 5.12.0 6.12.0 7.10.1 8.9.1 9.2.0}
 
 # This verify exact inference result
@@ -333,7 +333,7 @@ install_pyenv()
 
   git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
   pushd ${PYENV_ROOT}
-    git checkout --quiet 0c909f7457a027276a1d733d78bfbe70ba652047
+    git checkout --quiet a8e207f330509b12724454b1dd38dcc31193212f
   popd
   eval "$(pyenv init -)"
 }
@@ -349,7 +349,7 @@ install_pyenv_virtualenv()
 
   git clone --quiet https://github.com/pyenv/pyenv-virtualenv.git ${PYENV_VENV}
   pushd ${PYENV_VENV}
-      git checkout --quiet 27270877575fe8c3e7be5385b8b6a1e4089b39aa
+      git checkout --quiet 5419dc732066b035a28680475acd7b661c7c397d
   popd
   eval "$(pyenv virtualenv-init -)"
 }
@@ -483,8 +483,11 @@ do_deepspeech_python_build()
     SETUP_FLAGS="--project_name deepspeech-${rename_to_gpu}"
   fi
 
-  for pyver in ${SUPPORTED_PYTHON_VERSIONS}; do
-    pyenv install ${pyver}
+  for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do
+    pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
+    pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
+
+    PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv install ${pyver}
     pyenv virtualenv ${pyver} deepspeech
     source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
 
@@ -502,6 +505,7 @@ do_deepspeech_python_build()
 
     deactivate
     pyenv uninstall --force deepspeech
+    pyenv uninstall --force ${pyver}
   done;
 }
 
