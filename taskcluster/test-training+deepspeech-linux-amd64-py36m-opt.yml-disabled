@@ -7,7 +7,7 @@ build:
     >
       apt-get -qq -y install ${python.packages.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.6.2 mozilla deepspeech"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.6.4:m mozilla deepspeech"
   deepspeech_pkg_name: 'deepspeech-0.1.1-cp36-cp36m-manylinux1_x86_64.whl'
   metadata:
     name: "DeepSpeech Linux AMD64 CPU training Py3.6 (DS)"
