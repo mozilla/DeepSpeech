@@ -87,7 +87,7 @@ tf.app.flags.DEFINE_float   ('momentum',         0.9,         'momentum paramete
 
 # Generic optimizer parameters
 
-tf.app.flags.DEFINE_string  ('optimizer',       'Momentum',  'optimizer algorithm in use. (Momentum or Adam)')
+tf.app.flags.DEFINE_string  ('optimizer',       'Momentum',   'optimizer algorithm in use. (Momentum or Adam)')
 tf.app.flags.DEFINE_float   ('learning_rate',    0.001,       'learning rate of the optimizer')
 
 # Batch sizes
@@ -396,8 +396,8 @@ def variable_on_worker_level(name, shape, initializer):
 
 
 # 1d CONVOLUTION WITH DILATION
-def Conv1d(batch_x, output_channels, dilation=1, filter_width=3,
-           causal=False, name="dilated_conv"):
+def ConvDilated(batch_x, output_channels, dilation=1,
+           kernel_size= 3, causal=False, name="dilated_conv"):
     r'''Dilated conv1d by hacking tf.nn.atrous_conv2d() with skewed filter matrix (e.g. 1xW).
     TODO: switch to native implementation once it is avail.
 
@@ -407,28 +407,22 @@ def Conv1d(batch_x, output_channels, dilation=1, filter_width=3,
     '''
 
     with tf.variable_scope(name):
-        # batch_x_shape = tf.transpose(batch_x, [0, 2, 1])  # time x dim x batch
-
-        w = variable_on_worker_level('w',
-                [1, filter_width, batch_x.get_shape()[-1], output_channels],
-                tf.contrib.layers.xavier_initializer(uniform=False))
-        b = variable_on_worker_level('b',
-                [output_channels],
-                tf.random_normal_initializer(stddev=0.0))
-
-        if causal:
-            padding = [[0, 0], [(filter_width - 1) * dilation, 0], [0, 0]]
-            padded = tf.pad(batch_x, padding)
-            input_expanded = tf.expand_dims(padded, dim = 1)  # batch x 1 x time x dim
-            out = tf.nn.atrous_conv2d(input_expanded, w, rate = dilation, padding = 'VALID') + b
-        else:
-            input_expanded = tf.expand_dims(batch_x, dim = 1)
-            out = tf.nn.atrous_conv2d(input_expanded, w, rate = dilation, padding = 'SAME') + b
+        # batch_x = tf.transpose(batch_x, [0, 2, 1])  # time x dim x batch
+        ek_size = (dilation - 1) * (kernel_size - 1) + kernel_size - 1
+        padding = [[0, 0],
+                   [ek_size // 2, ek_size // 2],
+                   [0, 0]]
+        padded = tf.pad(batch_x, padding)  # batch x time x dim 
+        out = tf.layers.conv1d(padded, output_channels,
+                               kernel_size=kernel_size,
+                               strides=1,
+                               dilation_rate=dilation,
+                               padding='VALID')
 
         out = tf.minimum(tf.nn.relu(out), FLAGS.relu_clip)
-        return tf.squeeze(out, [1])
+        return out
 
-def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilated_conv_stack"):
+def DilatedConvStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilated_conv_stack"):
     r'''
     Shapes:
         - input: [batch_size, n_steps, n_input + 2*n_input*n_context]
@@ -448,40 +442,47 @@ def DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilat
         # clipped RELU activation and dropout.
 
         # 1st layer
-        b1 = variable_on_worker_level('b1', [n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
-        h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden // 4], tf.contrib.layers.xavier_initializer(uniform=False))
+        b1 = variable_on_worker_level('b1', [n_hidden], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
+        h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden ], tf.contrib.layers.xavier_initializer(uniform=False))
         layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
         layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
 
         # 2nd layer
-        b2 = variable_on_worker_level('b2', [n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
-        h2 = variable_on_worker_level('h2', [n_hidden // 4, n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
+        b2 = variable_on_worker_level('b2', [n_hidden ], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
+        h2 = variable_on_worker_level('h2', [n_hidden , n_hidden ], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
         layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
         layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
 
         # 3rd layer
-        b3 = variable_on_worker_level('b3', [n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
-        h3 = variable_on_worker_level('h3', [n_hidden // 4, n_hidden // 4], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
+        b3 = variable_on_worker_level('b3', [n_hidden ], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
+        h3 = variable_on_worker_level('h3', [n_hidden , n_hidden ], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
         layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
         layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
-        layer_3 = tf.reshape(layer_3, [batch_x_shape[0], batch_x_shape[1], n_hidden // 4])  # batch x time x dim
+        layer_3 = tf.reshape(layer_3, [batch_x_shape[0], batch_x_shape[1], n_hidden ])  # batch x time x dim
 
         # Apply convolutions
-        conv1_out = Conv1d(layer_3, n_cell_dim // 8, dilation_factors[0], name='dconv1')
-        conv2_out = Conv1d(conv1_out, n_cell_dim // 8, dilation_factors[1], name='dconv2')
-        outputs = Conv1d(conv2_out, n_cell_dim // 4, dilation_factors[2], name='dconv3')
-        outputs = tf.reshape(outputs, [-1, n_cell_dim // 4])  # batch*time x dim
+        conv1_out = ConvDilated(layer_3, n_hidden, dilation_factors[0],
+                                kernel_size=3,
+                                name='dconv1')
+        print(conv1_out.get_shape())
+        conv2_out = ConvDilated(conv1_out, n_hidden, dilation_factors[1],
+                                kernel_size=3,
+                                name='dconv2')
+        outputs = ConvDilated(conv2_out, n_hidden , dilation_factors[2],
+                                kernel_size=3,
+                                name='dconv3')
+        outputs = tf.reshape(outputs, [-1, n_hidden ])  # batch*time x dim
 
         # Now we feed `outputs` to the fifth hidden layer with clipped RELU activation and drop 
-        b5 = variable_on_worker_level('b5', [n_hidden // 2], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
-        h5 = variable_on_worker_level('h5', [(n_cell_dim // 4), n_hidden // 2], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
+        b5 = variable_on_worker_level('b5', [n_hidden * 2], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
+        h5 = variable_on_worker_level('h5', [(n_hidden ), n_hidden * 2], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
         layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(outputs, h5), b5)), FLAGS.relu_clip)
         layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
 
         # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
         # creating `n_classes` dimensional vectors, the logits.
         b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
-        h6 = variable_on_worker_level('h6', [n_hidden // 2, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
+        h6 = variable_on_worker_level('h6', [n_hidden * 2, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
         layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
 
         # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
@@ -630,7 +631,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
-    logits = DilatedConv1dStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilated_conv_stack")
+    logits = DilatedConvStack(batch_x, dropout, dilation_factors=[1, 2, 4], name="dilated_conv_stack")
     # logits = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
@@ -1718,7 +1719,6 @@ def train(server=None):
                 job = COORD.get_job()
 
                 # Init progressbar
-                progbar = TrainProgressBar(train_set.total_batches / len(get_available_gpus()))
                 while job and not session.should_stop():
                     log_debug('Computing %s...' % job)
 
@@ -1760,14 +1760,8 @@ def train(server=None):
                         # Uncomment the next line for debugging race conditions / distributed TF
                         log_debug('Finished batch step %d.' % current_step)
 
-                        # Update progress bar       
-                        num_iters_per_epoch = np.ceil(train_set.total_batches / len(get_available_gpus()))
-                        iter_batch = current_step % num_iters_per_epoch
-                        if iter_batch ==  1 or len(FLAGS.initialize_from_frozen_model) > 0:
-                            progbar = TrainProgressBar(num_iters_per_epoch)
-                        progbar.update(iter_batch, values=[('loss', batch_loss)])
-
                         # Add batch to loss
+                        assert batch_loss > 0
                         total_loss += batch_loss
 
                         if job.report:
@@ -1775,6 +1769,14 @@ def train(server=None):
                             collect_results(report_results, batch_report[0])
                             # Add batch to total_mean_edit_distance
                             total_mean_edit_distance += batch_report[1]
+
+                        # Update progress bar
+                        target_set = getattr(model_feeder, job.set_name)
+                        num_iters_per_epoch = np.ceil(target_set.total_batches / len(get_available_gpus()))
+                        iter_batch = current_step % num_iters_per_epoch
+                        if iter_batch ==  1 or len(FLAGS.initialize_from_frozen_model) > 0:
+                            progbar = TrainProgressBar(num_iters_per_epoch)
+                        progbar.update(iter_batch, values=[('loss', batch_loss)])
 
                     # Gathering job results
                     job.loss = total_loss / job.steps
