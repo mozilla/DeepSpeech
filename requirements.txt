@@ -12,3 +12,4 @@ python_speech_features
 pyxdg
 bs4
 six
+requests
