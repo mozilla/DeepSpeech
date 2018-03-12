@@ -86,7 +86,7 @@ make deepspeech
 ## Building with AOT model
 
 First, please note that this is still experimental. AOT model relies on TensorFlow's [AOT tfcompile](https://www.tensorflow.org/performance/xla/tfcompile) tooling. It takes a protocol buffer file graph as input, and produces a .so library that one can call from C++ code.
-To experiment, you will need to build TensorFlow from [github.com/mozilla/tensorflow r1.5 branch](https://github.com/mozilla/tensorflow/tree/r1.5). Follow TensorFlow's documentation for the configuration of your system.
+To experiment, you will need to build TensorFlow from [github.com/mozilla/tensorflow r1.6 branch](https://github.com/mozilla/tensorflow/tree/r1.6). Follow TensorFlow's documentation for the configuration of your system.
 When building, you will have to add some extra parameter and targets.
 
 Bazel defines:
