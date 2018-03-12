@@ -96,12 +96,12 @@ Bazel defines:
 * `--define=DS_MODEL_FILE=/path/to/graph.pb`: the model you want to use
 
 Bazel targets:
-* `//native_client:deepspeech_model`: to produce `libdeepspeech_model.so`
+* `//native_client:libdeepspeech_model.so`: to produce `libdeepspeech_model.so`
 
 In the end, the previous example becomes (no change for `libctc_decoder_with_kenlm.so`):
 
 ```
-bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden --define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64 --define=DS_MODEL_FRAMESIZE=494 --define=DS_MODEL_FILE=/tmp/model.ldc93s1.pb //native_client:deepspeech_model //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie
+bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden --define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64 --define=DS_MODEL_FRAMESIZE=494 --define=DS_MODEL_FILE=/tmp/model.ldc93s1.pb //native_client:libdeepspeech_model.so //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie
 ```
 
 Later, when building either `deepspeech` binaries or bindings, you will have to add some extra variables to your `make` command-line (assuming `TFDIR` points to your TensorFlow's git clone):
