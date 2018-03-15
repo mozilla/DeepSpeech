@@ -52,6 +52,7 @@ then:
             export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
             export LC_ALL=C &&
             export MACOSX_DEPLOYMENT_TARGET=10.10 &&
+            export PIP_DEFAULT_TIMEOUT=60 &&
             env &&
             git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
             cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
