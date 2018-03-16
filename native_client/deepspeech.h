@@ -10,6 +10,8 @@ namespace DeepSpeech
 
   class Private;
 
+  void print_versions();
+
   class Model {
     private:
       Private* mPriv;
