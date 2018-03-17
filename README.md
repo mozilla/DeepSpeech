@@ -107,7 +107,7 @@ $ source $HOME/tmp/deepspeech-venv/bin/activate
 
 #### Installing DeepSpeech Python bindings
 
-Once your environment has been setup and loaded, you can use `pip` to manage packages locally. On a fresh setup of the virtualenv, you will have to install the DeepSpeech wheel. You can check if it is already installed by taking a look at the output of `pip3 list`. To perform the installation, just issue:
+Once your environment has been setup and loaded, you can use `pip3` to manage packages locally. On a fresh setup of the virtualenv, you will have to install the DeepSpeech wheel. You can check if it is already installed by taking a look at the output of `pip3 list`. To perform the installation, just issue:
 
 ```
 $ pip3 install deepspeech
