@@ -7,7 +7,7 @@ Project DeepSpeech is an open source Speech-To-Text engine, using a model traine
 
 ![Usage](images/usage.gif)
 
-Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. Proper setup using virtual environment is recommended and you can find that documented [below](#using-the-python-package).
+Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip3`. Proper setup using virtual environment is recommended and you can find that documented [below](#using-the-python-package).
 
 A pre-trained English model is available for use, and can be downloaded using [the instructions below](#getting-the-pre-trained-model).
 
@@ -21,7 +21,7 @@ deepspeech models/output_graph.pb models/alphabet.txt my_audio_file.wav
 Alternatively, quicker inference (The realtime factor on a GeForce GTX 1070 is about 0.44.) can be performed using a supported NVIDIA GPU on Linux. (See the release notes to find which GPU's are supported.) This is done by instead installing the GPU specific package:
 
 ```bash
-pip install deepspeech-gpu
+pip3 install deepspeech-gpu
 deepspeech models/output_graph.pb models/alphabet.txt my_audio_file.wav
 ```
 
