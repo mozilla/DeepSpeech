@@ -14,7 +14,7 @@ A pre-trained English model is available for use, and can be downloaded using [t
 Once everything is installed you can then use the `deepspeech` binary to do speech-to-text on short, approximately 5 second, audio files (currently only WAVE files with 16-bit, 16 kHz, mono are supported in the Python client):
 
 ```bash
-pip install deepspeech
+pip3 install deepspeech
 deepspeech models/output_graph.pb models/alphabet.txt my_audio_file.wav
 ```
 
@@ -52,7 +52,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 ## Prerequisites
 
-* [Python 2.7](https://www.python.org/)
+* [Python 3.5](https://www.python.org/)
 * [Git Large File Storage](https://git-lfs.github.com/)
 
 ## Getting the code
@@ -82,9 +82,9 @@ There are three ways to use DeepSpeech inference:
 
 ### Using the Python package
 
-Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip`. You can then use the `deepspeech` binary to do speech-to-text on an audio file:
+Pre-built binaries that can be used for performing inference with a trained model can be installed with `pip3`. You can then use the `deepspeech` binary to do speech-to-text on an audio file:
 
-For the Python bindings, it is highly recommended that you perform the installation within a Python 2.7 virtual environment. You can find more information about those in [this documentation](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
+For the Python bindings, it is highly recommended that you perform the installation within a Python 3.5 or later virtual environment. You can find more information about those in [this documentation](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 We will continue under the assumption that you already have your system properly setup to create new virtual environments.
 
 #### Create a DeepSpeech virtual environment
@@ -92,7 +92,7 @@ We will continue under the assumption that you already have your system properly
 In creating a virtual environment you will create a directory containing a `python` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on `$HOME/tmp/deepspeech-venv`. You can create it using this command:
 
 ```
-$ virtualenv $HOME/tmp/deepspeech-venv/
+$ virtualenv -p python3 $HOME/tmp/deepspeech-venv/
 ```
 
 Once this command completes successfully, the environment will be ready to be activated.
@@ -107,26 +107,26 @@ $ source $HOME/tmp/deepspeech-venv/bin/activate
 
 #### Installing DeepSpeech Python bindings
 
-Once your environment has been setup and loaded, you can use `pip` to manage packages locally. On a fresh setup of the virtualenv, you will have to install the DeepSpeech wheel. You can check if it is already installed by taking a look at the output of `pip list`. To perform the installation, just issue:
+Once your environment has been setup and loaded, you can use `pip` to manage packages locally. On a fresh setup of the virtualenv, you will have to install the DeepSpeech wheel. You can check if it is already installed by taking a look at the output of `pip3 list`. To perform the installation, just issue:
 
 ```
-$ pip install deepspeech
+$ pip3 install deepspeech
 ```
 
 If it is already installed, you can also update it:
 ```
-$ pip install --upgrade deepspeech
+$ pip3 install --upgrade deepspeech
 ```
 
 Alternatively, if you have a supported NVIDIA GPU on Linux (See the release notes to find which GPU's are supported.), you can install the GPU specific package as follows:
 
 ```
-$ pip install deepspeech-gpu
+$ pip3 install deepspeech-gpu
 ```
 
 or update it as follows:
 ```
-$ pip install --upgrade deepspeech-gpu
+$ pip3 install --upgrade deepspeech-gpu
 ```
 
 In both cases, it should take care of installing all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
@@ -146,13 +146,13 @@ See [client.py](native_client/python/client.py) for an example of how to use the
 To download the pre-built binaries, use `util/taskcluster.py`:
 
 ```bash
-python util/taskcluster.py --target .
+python3 util/taskcluster.py --target .
 ```
 
 or if you're on macOS:
 
 ```bash
-python util/taskcluster.py --arch osx --target .
+python3 util/taskcluster.py --arch osx --target .
 ```
 
 This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
@@ -203,13 +203,13 @@ Install the required dependencies using pip:
 
 ```bash
 cd DeepSpeech
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 You'll also need to download `native_client.tar.xz` or build the native client files yourself to get the custom TensorFlow OP needed for decoding the outputs of the neural network. You can use `util/taskcluster.py` to download the files for your architecture:
 
 ```bash
-python util/taskcluster.py --target .
+python3 util/taskcluster.py --target .
 ```
 
 This will download the native client files for the x86_64 architecture without CUDA support, and extract them into the current folder. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). We also have binaries with CUDA enabled ("--arch gpu") and for ARM7 ("--arch arm").
@@ -219,8 +219,8 @@ This will download the native client files for the x86_64 architecture without C
 If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommended to install TensorFlow with GPU support. Training will likely be significantly quicker than using the CPU. To enable GPU support, you can do:
 
 ```bash
-pip uninstall tensorflow
-pip install 'tensorflow-gpu==1.6.0'
+pip3 uninstall tensorflow
+pip3 install 'tensorflow-gpu==1.6.0'
 ```
 
 ### Common Voice training data
@@ -349,7 +349,7 @@ For example, if you want to fine tune the entire graph using your own data in `m
 
 ```bash
 mkdir fine_tuning_checkpoints
-python DeepSpeech.py --n_hidden 2048 --initialize_from_frozen_model path/to/model/output_graph.pb --checkpoint_dir fine_tuning_checkpoints --epoch 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
+python3 DeepSpeech.py --n_hidden 2048 --initialize_from_frozen_model path/to/model/output_graph.pb --checkpoint_dir fine_tuning_checkpoints --epoch 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
 ```
 
 Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
