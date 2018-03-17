@@ -52,7 +52,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 ## Prerequisites
 
-* [Python 3.5](https://www.python.org/)
+* [Python 3.6](https://www.python.org/)
 * [Git Large File Storage](https://git-lfs.github.com/)
 
 ## Getting the code
