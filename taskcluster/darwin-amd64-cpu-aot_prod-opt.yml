@@ -4,8 +4,8 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.osx_aot"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.osx_aot"
     - "index.project.deepspeech.deepspeech.native_client.osx_aot.${event.head.sha}"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.8cbf4dd293ab98e4c97de8ca76091874e0101382.osx/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.8cbf4dd293ab98e4c97de8ca76091874e0101382.osx/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7455bfae5cc3b5eafbc9a5d8faee33e7772a4d12.osx/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7455bfae5cc3b5eafbc9a5d8faee33e7772a4d12.osx/artifacts/public/summarize_graph"
   scripts:
     build: "taskcluster/host-build.sh --aot"
     package: "taskcluster/package.sh"
