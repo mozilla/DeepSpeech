@@ -14,6 +14,9 @@
 #include "alphabet.h"
 #include "beam_search.h"
 
+#include "tensorflow/core/public/version.h"
+#include "native_client/ds_version.h"
+
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/platform/env.h"
 #include "tensorflow/core/util/memmapped_file_system.h"
@@ -52,6 +55,8 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
   mPriv->alphabet   = new Alphabet(aAlphabetConfigPath);
   mPriv->beam_width = aBeamWidth;
   mPriv->run_aot    = false;
+
+  print_versions();
 
   if (!aModelPath || strlen(aModelPath) < 1) {
     std::cerr << "No model specified, will rely on built-in model." << std::endl;
@@ -350,6 +355,13 @@ Model::stt(const short* aBuffer, unsigned int aBufferSize, int aSampleRate)
   string = infer(mfcc, n_frames);
   free(mfcc);
   return string;
+}
+
+DEEPSPEECH_EXPORT
+void
+print_versions() {
+  std::cerr << "TensorFlow: " << tf_git_version() << std::endl;
+  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
 }
 
 }
