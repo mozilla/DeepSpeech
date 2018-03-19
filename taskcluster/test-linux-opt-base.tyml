@@ -47,7 +47,7 @@ then:
         DEEPSPEECH_PROD_MODEL: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pbmm
         PIP_DEFAULT_TIMEOUT: 60
-        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.6.0-9-g236f83e"
+        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.6.0-11-g7554dd8"
 
     command:
       - "/bin/bash"
