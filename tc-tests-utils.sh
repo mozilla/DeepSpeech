@@ -200,6 +200,20 @@ assert_correct_warning_upsampling()
   assert_shows_something "$1" "is lower than 16kHz. Up-sampling might produce erratic speech recognition"
 }
 
+assert_tensorflow_version()
+{
+  assert_shows_something "$1" "${EXPECTED_TENSORFLOW_VERSION}"
+}
+
+check_tensorflow_version()
+{
+  set +e
+  ds_help=$(deepspeech 2>&1 1>/dev/null)
+  set -e
+
+  assert_tensorflow_version "${ds_help}"
+}
+
 run_all_inference_tests()
 {
   phrase_pbmodel_nolm=$(deepspeech ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/alphabet.txt ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)

@@ -228,6 +228,7 @@ main(int argc, char **argv)
     printf("  AUDIO_PATH\tPath to the audio file (or directory of files) to run"
            " (any file format supported by libsox). \n");
     printf("  -t\t\tRun in benchmark mode, output mfcc & inference time\n");
+    print_versions();
     return 1;
   }
 

@@ -45,9 +45,16 @@ genrule(
     cmd = "cp $(DS_MODEL_FILE) $@"
 )
 
+genrule(
+    name = "ds_git_version",
+    outs = ["ds_version.h"],
+    cmd = "$(location :ds_git_version.sh) >$@",
+    tools = [":ds_git_version.sh"]
+)
+
 tf_cc_shared_object(
     name = "libdeepspeech.so",
-    srcs = ["deepspeech.cc", "deepspeech.h", "deepspeech_utils.h", "alphabet.h", "beam_search.h", "trie_node.h"] +
+    srcs = ["deepspeech.cc", "deepspeech.h", "deepspeech_utils.h", "alphabet.h", "beam_search.h", "trie_node.h", "ds_version.h"] +
            if_native_model(["deepspeech_model_core.h"]) +
            glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
                  "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
