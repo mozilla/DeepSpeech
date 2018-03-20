@@ -22,5 +22,5 @@ build:
     build: "taskcluster/rpi3-build.sh --aot"
     package: "taskcluster/package.sh"
   metadata:
-    name: "DeepSpeech Linux RPi3/ARMv6 CPU AOT"
-    description: "Building DeepSpeech for Linux RPi3 ARMv6, AOT model, CPU only, optimized version"
+    name: "DeepSpeech Linux RPi3/ARMv7 CPU AOT"
+    description: "Building DeepSpeech for Linux RPi3 ARMv7, AOT model, CPU only, optimized version"
