@@ -3,6 +3,9 @@ taskcluster:
   docker:
     provisionerId: aws-provisioner-v1
     workerType: deepspeech-worker
+  dockerrpi3:
+    provisionerId: deepspeech-provisioner
+    workerType: ds-rpi3
   generic:
     provisionerId: deepspeech-provisioner
     workerType: ds-macos-light

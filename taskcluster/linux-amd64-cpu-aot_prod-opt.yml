@@ -8,8 +8,8 @@ build:
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.e4869c8460b8e806428fbba7240c78fc669959f5.cpu/artifacts/public/summarize_graph"
   system_setup:
     >
-      ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
+      ${nodejs.packages_trusty.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
   system_config:
     >
       ${swig.patch_nodejs.linux}
