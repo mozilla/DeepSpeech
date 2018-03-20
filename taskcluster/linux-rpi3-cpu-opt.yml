@@ -22,5 +22,5 @@ build:
     build: "taskcluster/rpi3-build.sh"
     package: "taskcluster/package.sh"
   metadata:
-    name: "DeepSpeech Linux RPi3/ARMv6 CPU"
-    description: "Building DeepSpeech for Linux RPi3 ARMv6, CPU only, optimized version"
+    name: "DeepSpeech Linux RPi3/ARMv7 CPU"
+    description: "Building DeepSpeech for Linux RPi3 ARMv7, CPU only, optimized version"
