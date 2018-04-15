@@ -11,8 +11,8 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.7554dd8d54cc081f97d34d4f1574aa15dff5eb0d.gpu/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.7554dd8d54cc081f97d34d4f1574aa15dff5eb0d.gpu/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.e4869c8460b8e806428fbba7240c78fc669959f5.gpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.e4869c8460b8e806428fbba7240c78fc669959f5.gpu/artifacts/public/summarize_graph"
   maxRunTime: 14400
   scripts:
     build: "taskcluster/cuda-build.sh"
