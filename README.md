@@ -52,7 +52,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 ## Prerequisites
 
-* [Python 3.5](https://www.python.org/)
+* [Python 3.6](https://www.python.org/)
 * [Git Large File Storage](https://git-lfs.github.com/)
 
 ## Getting the code
@@ -89,7 +89,7 @@ We will continue under the assumption that you already have your system properly
 
 #### Create a DeepSpeech virtual environment
 
-In creating a virtual environment you will create a directory containing a `python` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on `$HOME/tmp/deepspeech-venv`. You can create it using this command:
+In creating a virtual environment you will create a directory containing a `python3` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on `$HOME/tmp/deepspeech-venv`. You can create it using this command:
 
 ```
 $ virtualenv -p python3 $HOME/tmp/deepspeech-venv/
@@ -107,7 +107,7 @@ $ source $HOME/tmp/deepspeech-venv/bin/activate
 
 #### Installing DeepSpeech Python bindings
 
-Once your environment has been setup and loaded, you can use `pip` to manage packages locally. On a fresh setup of the virtualenv, you will have to install the DeepSpeech wheel. You can check if it is already installed by taking a look at the output of `pip3 list`. To perform the installation, just issue:
+Once your environment has been setup and loaded, you can use `pip3` to manage packages locally. On a fresh setup of the virtualenv, you will have to install the DeepSpeech wheel. You can check if it is already installed by taking a look at the output of `pip3 list`. To perform the installation, just issue:
 
 ```
 $ pip3 install deepspeech
