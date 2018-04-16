@@ -1,0 +1,13 @@
+build:
+  template_file: test-raspbian-opt-base.tyml
+  dependencies:
+    - "linux-rpi3-cpu-opt"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  system_setup:
+    >
+      apt-get -qq -y install ${python.packages_stretch.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-python-tests.sh 3.4.8:m"
+  metadata:
+    name: "DeepSpeech Raspbian RPi3/ARMv7 CPU Python v3.4 tests"
+    description: "Testing DeepSpeech for Raspbian RPi3/ARMv7 on Python v3.4, CPU only, optimized version"

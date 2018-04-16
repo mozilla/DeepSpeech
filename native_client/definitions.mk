@@ -8,6 +8,7 @@ SO_SEARCH ?= $(TFDIR)/bazel-bin/
 ifeq ($(TARGET),host)
 TOOLCHAIN       :=
 CFLAGS          :=
+CXXFLAGS        :=
 LDFLAGS         :=
 SOX_CFLAGS      := `pkg-config --cflags sox`
 SOX_LDFLAGS     := `pkg-config --libs sox`
@@ -20,7 +21,8 @@ endif
 ifeq ($(TARGET),rpi3)
 TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroArmGcc49/bin/arm-linux-gnueabihf-
 RASPBIAN    ?= $(abspath $(NC_DIR)/../multistrap-raspbian-stretch)
-CFLAGS      := -D_GLIBCXX_USE_CXX11_ABI=0 -isystem $(RASPBIAN)/usr/include -isystem $(RASPBIAN)/usr/include/arm-linux-gnueabihf
+CFLAGS      := -march=armv7-a -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -D_GLIBCXX_USE_CXX11_ABI=0 -isystem $(RASPBIAN)/usr/include -isystem $(RASPBIAN)/usr/include/arm-linux-gnueabihf
+CXXFLAGS    := $(CXXFLAGS)
 LDFLAGS     := $(RASPBIAN)/lib/arm-linux-gnueabihf/libc.so.6 -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf/ -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/
 
 SOX_CFLAGS  :=
@@ -28,7 +30,8 @@ SOX_LDFLAGS := $(RASPBIAN)/usr/lib/arm-linux-gnueabihf/libsox.so
 
 PYVER := $(shell python -c "import platform; maj, min, _ = platform.python_version_tuple(); print(maj+'.'+min);")
 PYTHON_PACKAGES      :=
-NUMPY_INCLUDE        := NUMPY_INCLUDE=$(RASPBIAN)/usr/include/python$(PYVER)/
+PYTHON_PATH          := PYTHONPATH=$(RASPBIAN)/usr/lib/python$(PYVER)/:$(RASPBIAN)/usr/lib/python$(PYVER)/plat-arm-linux-gnueabihf/:$(RASPBIAN)/usr/lib/python3/dist-packages/
+NUMPY_INCLUDE        := NUMPY_INCLUDE=$(RASPBIAN)/usr/include/python3.5/
 PYTHON_PLATFORM_NAME := --plat-name linux_armv7l
 NODE_PLATFORM_TARGET := --target_arch=arm --target_platform=linux
 TOOLCHAIN_LDD_OPTS   := --root $(RASPBIAN)/
@@ -47,10 +50,11 @@ LDFLAGS_NEEDED :=
 LDFLAGS_RPATH  := -Wl,-rpath,@executable_path
 endif
 
-CFLAGS  += $(EXTRA_CFLAGS)
-LIBS    := -ldeepspeech -ldeepspeech_utils $(EXTRA_LIBS)
+CFLAGS   += $(EXTRA_CFLAGS)
+CXXFLAGS += $(EXTRA_CXXFLAGS)
+LIBS     := -ldeepspeech -ldeepspeech_utils $(EXTRA_LIBS)
 LDFLAGS_DIRS := -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS)
-LDFLAGS += $(LDFLAGS_NEEDED) $(LDFLAGS_RPATH) $(LDFLAGS_DIRS) $(LIBS)
+LDFLAGS  += $(LDFLAGS_NEEDED) $(LDFLAGS_RPATH) $(LDFLAGS_DIRS) $(LIBS)
 
 AS      := $(TOOLCHAIN)as
 CC      := $(TOOLCHAIN)gcc

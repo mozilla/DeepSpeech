@@ -4,7 +4,7 @@ build:
     - "linux-amd64-ctc-opt"
   system_setup:
     >
-      apt-get -qq -y install ${python.packages.apt}
+      apt-get -qq -y install ${python.packages_trusty.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 2.7.14:mu upstream"
   convert_graphdef: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.e4869c8460b8e806428fbba7240c78fc669959f5.cpu/artifacts/public/convert_graphdef_memmapped_format"

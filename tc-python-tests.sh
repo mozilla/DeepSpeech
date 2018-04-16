@@ -37,11 +37,11 @@ install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
 PYENV_NAME=deepspeech-test
-PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv install ${pyver}
+PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${EXTRA_PYTHON_CONFIGURE_OPTS}" pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
-platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); plat = "manylinux1" if plat == "linux" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
+platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
 deepspeech_pkg="deepspeech-0.1.1-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
 if [ "${aot_model}" = "--aot" ]; then
@@ -49,7 +49,7 @@ if [ "${aot_model}" = "--aot" ]; then
 else
     deepspeech_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 fi
-pip install --upgrade ${deepspeech_pkg_url} | cat
+pip install --only-binary :all: --upgrade ${deepspeech_pkg_url} | cat
 
 run_all_inference_tests
 
