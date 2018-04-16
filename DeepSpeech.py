@@ -1579,7 +1579,7 @@ def train(server=None):
                                                is_chief=is_chief,
                                                hooks=hooks,
                                                checkpoint_dir=FLAGS.checkpoint_dir,
-                                               save_checkpoint_secs=FLAGS.checkpoint_secs if FLAGS.train else None,
+                                               save_checkpoint_secs=None, # already taken care of by a hook
                                                config=session_config) as session:
             if len(FLAGS.initialize_from_frozen_model) > 0:
                 log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
