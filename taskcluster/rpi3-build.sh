@@ -27,11 +27,13 @@ if [ $1 = "--aot" ]; then
   BAZEL_BUILD_FLAGS="${BAZEL_BUILD_FLAGS} ${BAZEL_AOT_BUILD_FLAGS} ${AOT_MODEL_PARAMS}"
 fi;
 
+maybe_install_xldd
+
 do_bazel_build
 
 do_deepspeech_binary_build
 
-export SUPPORTED_PYTHON_VERSIONS="2.7.14:ucs4 3.4.8:ucs4"
+export SUPPORTED_PYTHON_VERSIONS="3.4.8:ucs4 3.5.3:ucs4"
 do_deepspeech_python_build
 
 do_deepspeech_nodejs_build
