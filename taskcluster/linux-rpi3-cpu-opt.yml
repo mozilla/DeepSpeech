@@ -4,16 +4,16 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.arm"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.arm"
     - "index.project.deepspeech.deepspeech.native_client.arm.${event.head.sha}"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.4d842daffdfde9da80d14fea3e3befeeb994872a.arm/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.4d842daffdfde9da80d14fea3e3befeeb994872a.cpu/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1c092cdf6c4da9ccb7cb89c804f842f97a025d2d.arm/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1c092cdf6c4da9ccb7cb89c804f842f97a025d2d.cpu/artifacts/public/summarize_graph"
   ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
   system_setup:
     >
       apt-get -qq -y install gdebi git pixz &&
       wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb &&
       echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
-      ${nodejs.packages.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install ${python.packages.apt} && ${swig.packages.install_script}
+      ${nodejs.packages_trusty.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
   system_config:
     >
       multistrap -d /tmp/multistrap-raspbian-jessie/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap.conf &&
@@ -22,5 +22,5 @@ build:
     build: "taskcluster/rpi3-build.sh"
     package: "taskcluster/package.sh"
   metadata:
-    name: "DeepSpeech Linux RPi3/ARMv6 CPU"
-    description: "Building DeepSpeech for Linux RPi3 ARMv6, CPU only, optimized version"
+    name: "DeepSpeech Linux RPi3/ARMv7 CPU"
+    description: "Building DeepSpeech for Linux RPi3 ARMv7, CPU only, optimized version"

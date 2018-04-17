@@ -43,7 +43,7 @@ model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4}
-SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.8.6 5.12.0 6.12.0 7.10.1 8.9.1 9.2.0}
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.1 7.10.1 8.11.1 9.11.1}
 
 # This verify exact inference result
 assert_correct_inference()
@@ -367,6 +367,15 @@ install_pyenv_virtualenv()
   eval "$(pyenv virtualenv-init -)"
 }
 
+maybe_install_xldd()
+{
+  # -s required to avoid the noisy output like "Entering / Leaving directories"
+  toolchain=$(make -s -C ${DS_DSDIR}/native_client/ TARGET=${SYSTEM_TARGET} TFDIR=${DS_TFDIR} print-toolchain)
+  if [ ! -x "${toolchain}ldd" ]; then
+    cp "${DS_DSDIR}/native_client/xldd" "${toolchain}ldd" && chmod +x "${toolchain}ldd"
+  fi
+}
+
 do_get_model_parameters()
 {
   local __result=$2
@@ -414,6 +423,10 @@ verify_bazel_rebuild()
     echo "No such explain file: ${bazel_explain_file}"
     exit 1
   fi;
+
+  mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
+
+  cp ${DS_ROOT_TASK}/DeepSpeech/tf/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
   spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|unconditional execution is requested' | wc -l)
   if [ "${spurious_rebuilds}" -ne 0 ]; then
