@@ -1,0 +1,10 @@
+build:
+  template_file: test-armbian-opt-base.tyml
+  dependencies:
+    - "linux-arm64-cpu-aot_prod-opt"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-cpp-ds-tests.sh --aot"
+  metadata:
+    name: "DeepSpeech ARMbian ARM64 Cortex-A53 CPU C++ tests AOT (Test)"
+    description: "Testing DeepSpeech C++ for ARMbian ARM64 Cortex-A53, AOT Model (test), CPU only, optimized version"

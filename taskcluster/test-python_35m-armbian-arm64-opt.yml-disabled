@@ -1,0 +1,13 @@
+build:
+  template_file: test-armbian-opt-base.tyml
+  dependencies:
+    - "linux-arm64-cpu-opt"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  system_setup:
+    >
+      apt-get -qq -y install ${python.packages_stretch.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-python-tests.sh 3.5.5:m"
+  metadata:
+    name: "DeepSpeech ARMbian ARM64 Cortex-A53 CPU Python v3.5 tests"
+    description: "Testing DeepSpeech for ARMbian ARM64 Cortex-A53 on Python v3.5, CPU only, optimized version"

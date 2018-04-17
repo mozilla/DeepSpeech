@@ -1,6 +1,6 @@
 ###
 ### From topdir, first use multistrap to prepare a raspbian stretch armhf root
-### $ sudo multistrap -d multistrap-raspbian-stretch -f native_client/multistrap.conf
+### $ sudo multistrap -d multistrap-raspbian-stretch -f native_client/multistrap_raspbian_stretch.conf
 ###
 ### You can make a tarball after:
 ### $ touch multistrap-raspbian-stretch.tar && sudo tar cf multistrap-raspbian-stretch.tar multistrap-raspbian-stretch/ && xz multistrap-raspbian-stretch.tar

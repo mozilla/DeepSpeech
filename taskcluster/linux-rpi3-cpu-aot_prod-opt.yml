@@ -16,7 +16,7 @@ build:
       apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
   system_config:
     >
-      multistrap -d /tmp/multistrap-raspbian-stretch/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap.conf &&
+      multistrap -d /tmp/multistrap-raspbian-stretch/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_raspbian_stretch.conf &&
       ${swig.patch_nodejs.linux}
   scripts:
     build: "taskcluster/rpi3-build.sh --aot"
