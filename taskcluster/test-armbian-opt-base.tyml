@@ -45,6 +45,8 @@ then:
         DEEPSPEECH_PROD_MODEL: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pbmm
         PIP_DEFAULT_TIMEOUT: 60
+        PIP_EXTRA_INDEX_URL: "https://lissyx.github.io/deepspeech-python-wheels/"
+        EXTRA_PYTHON_CONFIGURE_OPTS: "--with-fpectl" # Required by Debian Stretch
         EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.6.0-15-g1abb46f"
 
     command:
