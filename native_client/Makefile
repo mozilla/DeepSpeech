@@ -1,9 +1,9 @@
 ###
-### From topdir, first use multistrap to prepare a raspbian jessie armhf root
-### $ sudo multistrap -d multistrap-raspbian-jessie -f native_client/multistrap.conf
+### From topdir, first use multistrap to prepare a raspbian stretch armhf root
+### $ sudo multistrap -d multistrap-raspbian-stretch -f native_client/multistrap_raspbian_stretch.conf
 ###
 ### You can make a tarball after:
-### $ touch multistrap-raspbian-jessie.tar && sudo tar cf multistrap-raspbian-jessie.tar multistrap-raspbian-jessie/ && xz multistrap-raspbian-jessie.tar
+### $ touch multistrap-raspbian-stretch.tar && sudo tar cf multistrap-raspbian-stretch.tar multistrap-raspbian-stretch/ && xz multistrap-raspbian-stretch.tar
 ###
 ### Then cross-build:
 ### $ make -C native_client/ TARGET=rpi3 TFDIR=../../tensorflow/tensorflow/

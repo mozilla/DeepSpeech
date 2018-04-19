@@ -6,6 +6,7 @@ build:
     - "linux-amd64-cpu-opt"
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
+    - "linux-arm64-cpu-opt"
     - "node-package"
   allowed:
     - "push"
@@ -19,6 +20,7 @@ build:
       - "linux-amd64-cpu-opt"
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
+      - "linux-arm64-cpu-opt"
     javascript:
       # GPU package
       - "linux-amd64-gpu-opt"
