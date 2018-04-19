@@ -12,10 +12,10 @@ BAZEL_TARGETS="
 //native_client:generate_trie
 "
 
-BAZEL_BUILD_FLAGS="${BAZEL_ARM_FLAGS} ${BAZEL_EXTRA_FLAGS}"
+BAZEL_BUILD_FLAGS="${BAZEL_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS}"
 BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
-SYSTEM_TARGET=rpi3
-SYSTEM_RASPBIAN=/tmp/multistrap-raspbian-stretch
+SYSTEM_TARGET=rpi3-armv8
+SYSTEM_RASPBIAN=/tmp/multistrap-armbian64-stretch
 
 if [ $1 = "--aot" ]; then
   EXTRA_LOCAL_CFLAGS="${EXTRA_AOT_CFLAGS}"
@@ -34,7 +34,7 @@ do_bazel_build
 
 do_deepspeech_binary_build
 
-export SUPPORTED_PYTHON_VERSIONS="3.4.8:ucs4 3.5.3:ucs4"
+export SUPPORTED_PYTHON_VERSIONS="3.5.3:ucs4"
 do_deepspeech_python_build
 
 do_deepspeech_nodejs_build

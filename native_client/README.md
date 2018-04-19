@@ -67,14 +67,18 @@ ln -s ../DeepSpeech/native_client ./
 
 ## Building
 
-Before building the DeepSpeech client libraries, you will need to prepare your environment to configure and build TensorFlow. Follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
+Before building the DeepSpeech client libraries, you will need to prepare your environment to configure and build TensorFlow. 
+Preferably, checkout the version of tensorflow which is currently supported by DeepSpeech (see requirements.txt), and use bazel version 0.10.0. 
+Then, follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
 
-Then you can build the Tensorflow and DeepSpeech libraries. Please note that the flags for `libctc_decoder_with_kenlm.so` differs a little bit.
+After that, you can build the Tensorflow and DeepSpeech libraries using the following commands. Please note that the flags for `libctc_decoder_with_kenlm.so` differs a little bit.
 
 ```
-bazel build -c opt --copt=-O3 //native_client:libctc_decoder_with_kenlm.so
-bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie
+bazel build -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" //native_client:libctc_decoder_with_kenlm.so
+bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie
 ```
+
+If your build target requires extra flags, add them, like, for example --config=cuda if you do a CUDA build.
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
 

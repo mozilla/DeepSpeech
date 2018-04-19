@@ -4,6 +4,7 @@ build:
     - "darwin-amd64-cpu-opt"
     - "linux-amd64-cpu-opt"
     - "linux-rpi3-cpu-opt"
+    - "linux-arm64-cpu-opt"
   routes:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"

@@ -483,7 +483,7 @@ do_deepspeech_binary_build()
   make -C native_client/ \
     TARGET=${SYSTEM_TARGET} \
     TFDIR=${DS_TFDIR} \
-    RASPBIAN=/tmp/multistrap-raspbian-jessie \
+    RASPBIAN=${SYSTEM_RASPBIAN} \
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
     EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
     EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
@@ -519,7 +519,7 @@ do_deepspeech_python_build()
 
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/ \
       TARGET=${SYSTEM_TARGET} \
-      RASPBIAN=/tmp/multistrap-raspbian-jessie \
+      RASPBIAN=${SYSTEM_RASPBIAN} \
       TFDIR=${DS_TFDIR} \
       SETUP_FLAGS="${SETUP_FLAGS}" \
       bindings-clean bindings
@@ -545,7 +545,7 @@ do_deepspeech_nodejs_build()
   for node in ${SUPPORTED_NODEJS_VERSIONS}; do
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
       TARGET=${SYSTEM_TARGET} \
-      RASPBIAN=/tmp/multistrap-raspbian-jessie \
+      RASPBIAN=${SYSTEM_RASPBIAN} \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$node \
       clean node-wrapper
