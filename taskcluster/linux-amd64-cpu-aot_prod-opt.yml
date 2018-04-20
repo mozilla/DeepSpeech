@@ -4,8 +4,8 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.cpu_aot"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.cpu_aot"
     - "index.project.deepspeech.deepspeech.native_client.cpu_aot.${event.head.sha}"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1c092cdf6c4da9ccb7cb89c804f842f97a025d2d.cpu/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1c092cdf6c4da9ccb7cb89c804f842f97a025d2d.cpu/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.cpu/artifacts/public/summarize_graph"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&

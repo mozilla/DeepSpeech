@@ -28,6 +28,7 @@ tasks:
       "queue:create-task:lowest:deepspeech-provisioner/ds-macos-light",
       "queue:create-task:lowest:deepspeech-provisioner/ds-scriptworker",
       "queue:create-task:lowest:deepspeech-provisioner/ds-rpi3",
+      "queue:create-task:lowest:deepspeech-provisioner/ds-lepotato",
       "queue:route:index.project.deepspeech.*",
       "queue:route:notify.irc-channel.*",
       "queue:scheduler-id:taskcluster-github",

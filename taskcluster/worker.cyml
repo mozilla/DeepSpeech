@@ -6,6 +6,9 @@ taskcluster:
   dockerrpi3:
     provisionerId: deepspeech-provisioner
     workerType: ds-rpi3
+  dockerarm64:
+    provisionerId: deepspeech-provisioner
+    workerType: ds-lepotato
   generic:
     provisionerId: deepspeech-provisioner
     workerType: ds-macos-light

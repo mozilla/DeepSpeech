@@ -4,6 +4,7 @@ build:
     - "darwin-amd64-cpu-opt"
     - "linux-amd64-cpu-opt"
     - "linux-rpi3-cpu-opt"
+    - "linux-arm64-cpu-opt"
   routes:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
@@ -14,8 +15,8 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1c092cdf6c4da9ccb7cb89c804f842f97a025d2d.cpu/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.1c092cdf6c4da9ccb7cb89c804f842f97a025d2d.cpu/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.cpu/artifacts/public/summarize_graph"
   scripts:
     build: "taskcluster/node-build.sh"
     package: "taskcluster/node-package.sh"
