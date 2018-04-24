@@ -1,0 +1,14 @@
+build:
+  template_file: archlinux-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.archlinux"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.archlinux"
+    - "index.project.deepspeech.deepspeech.native_client.archlinux.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  scripts:
+    build: "packages/archlinux/build.sh"
+    package: "packages/archlinux/package.sh"
+  metadata:
+    name: "DeepSpeech ArchLinux AMD64 CPU PKGBUILD"
+    description: "Building DeepSpeech PKGBUILD for ArchLinux/AMD64, CPU only, optimized version"

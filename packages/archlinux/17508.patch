@@ -1,0 +1,28 @@
+From 340327dc8cc637fef01e66f7dd7cae68ce259b94 Mon Sep 17 00:00:00 2001
+From: Yun Peng <pcloudy@google.com>
+Date: Wed, 7 Mar 2018 13:50:31 +0100
+Subject: [PATCH] jpeg.BUILD: Using --cpu instead of --android_cpu
+
+---
+ third_party/jpeg/jpeg.BUILD | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/third_party/jpeg/jpeg.BUILD b/third_party/jpeg/jpeg.BUILD
+index 87a23925c43..4418ac32fc4 100644
+--- a/third_party/jpeg/jpeg.BUILD
++++ b/third_party/jpeg/jpeg.BUILD
+@@ -526,12 +526,12 @@ config_setting(
+
+ config_setting(
+     name = "armeabi-v7a",
+-    values = {"android_cpu": "armeabi-v7a"},
++    values = {"cpu": "armeabi-v7a"},
+ )
+
+ config_setting(
+     name = "arm64-v8a",
+-    values = {"android_cpu": "arm64-v8a"},
++    values = {"cpu": "arm64-v8a"},
+ )
+
+ config_setting(
