@@ -26,6 +26,9 @@ if '--project_name' in sys.argv:
   sys.argv.remove('--project_name')
   sys.argv.pop(project_name_idx)
 
+with open('../VERSION', 'r') as ver:
+  project_version = ver.read()
+
 class BuildExtFirst(build):
     sub_commands = [('build_ext', build.has_ext_modules),
                     ('build_py', build.has_pure_modules),
@@ -47,7 +50,7 @@ utils = Extension('deepspeech._utils',
 setup(name = project_name,
       description = 'A library for running inference on a DeepSpeech model',
       author = 'Mozilla',
-      version = '0.1.1',
+      version = project_version,
       package_dir = {'deepspeech': 'python'},
       packages = ['deepspeech'],
       cmdclass = {'build': BuildExtFirst},

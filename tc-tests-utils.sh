@@ -37,6 +37,8 @@ export BAZEL_AOT_TARGETS="
 //native_client:libdeepspeech_model.so
 "
 
+export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
+
 model_source="${DEEPSPEECH_TEST_MODEL}"
 model_name="$(basename "${model_source}")"
 model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"

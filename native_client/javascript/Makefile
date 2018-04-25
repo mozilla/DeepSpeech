@@ -2,6 +2,7 @@ NODE_BUILD_TOOL    ?= node-pre-gyp
 NODE_ABI_TARGET    ?= 
 NODE_BUILD_VERBOSE ?= --verbose
 PROJECT_NAME       ?= deepspeech
+PROJECT_VERSION    ?= $(shell cat ../../VERSION)
 
 include ../definitions.mk
 
@@ -19,7 +20,10 @@ really-clean: clean clean-npm-pack
 	rm -fr ./lib/
 
 package.json: package.json.in
-	sed 's/$$(PROJECT_NAME)/$(PROJECT_NAME)/' package.json.in > package.json
+	sed \
+		-e 's/$$(PROJECT_NAME)/$(PROJECT_NAME)/' \
+		-e 's/$$(PROJECT_VERSION)/$(PROJECT_VERSION)/' \
+		package.json.in > package.json && cat package.json
 
 configure: deepspeech_wrap.cxx package.json
 	$(NODE_BUILD_TOOL) configure $(NODE_BUILD_VERBOSE)
