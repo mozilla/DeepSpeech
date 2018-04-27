@@ -15,6 +15,9 @@ fi;
 
 pyver=$(echo "${pyver_full}" | cut -d':' -f1)
 
+# 2.7.x => 27
+pyver_pkg=$(echo "${pyver}" | cut -d'.' -f1,2 | tr -d '.')
+
 py_unicode_type=$(echo "${pyver_full}" | cut -d':' -f2)
 if [ "${py_unicode_type}" = "m" ]; then
   pyconf="ucs2"
@@ -48,8 +51,12 @@ if [ "${tf}" = "upstream" ]; then
     pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 fi;
 
+platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
+whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
+deepspeech_pkg="deepspeech-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
+
 if [ "${ds}" = "deepspeech" ]; then
-    pip install "${DEEPSPEECH_PYTHON_PACKAGE}" | cat
+    pip install ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg} | cat
     python -c "import tensorflow; from deepspeech.utils import audioToInputVector"
 
     # Since this build depends on the completion of the whole deepspeech package
