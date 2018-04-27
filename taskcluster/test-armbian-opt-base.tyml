@@ -1,4 +1,4 @@
-$if: 'event.event != "push"'
+$if: '(event.event != "push") && (event.event != "tag")'
 then:
   taskId: ${taskcluster.taskId}
   provisionerId: ${taskcluster.dockerarm64.provisionerId}
