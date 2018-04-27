@@ -8,7 +8,7 @@ build:
     - "linux-rpi3-cpu-opt"
     - "node-package"
   allowed:
-    - "push"
+    - "tag"
   ref_match: "refs/tags/"
   routes:
     - "notify.irc-channel.${notifications.irc}.on-exception"

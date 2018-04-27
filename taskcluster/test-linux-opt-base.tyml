@@ -1,4 +1,4 @@
-$if: 'event.event != "push"'
+$if: '(event.event != "push") && (event.event != "tag")'
 then:
   taskId: ${taskcluster.taskId}
   provisionerId: ${taskcluster.docker.provisionerId}
@@ -65,10 +65,7 @@ then:
       "public":
         type: "directory"
         path: "/tmp/artifacts/"
-        expires:
-          $if: 'event.event == "push"'
-          then: { $fromNow: '6 months' }
-          else: { $fromNow: '7 days' }
+        expires: { $fromNow: '7 days' }
 
   metadata:
     name: ${build.metadata.name}
