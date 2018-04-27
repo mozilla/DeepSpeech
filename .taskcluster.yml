@@ -17,12 +17,9 @@ tasks:
           - pull_request.synchronize
           - pull_request.reopened
           - push
+          - tag
         branches:
           - master
-          - v0.0.3
-          - v0.1.0
-          - v0.1.1
-          - 0.2.0-alpha.0
 
     routes:
       - "notify.irc-channel.#machinelearning.on-any"
