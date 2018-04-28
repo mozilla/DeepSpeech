@@ -16,12 +16,11 @@ do
     GITHUB_EVENT="${event}" TASK_ID="aa" GITHUB_HEAD_BRANCHORTAG="branchName" GITHUB_HEAD_REF="refs/heads/branchName" python3 ${curdir}/tc-decision.py --dry
 done;
 
-(
-  unset GITHUB_BRANCH
-  unset GITHUB_HEAD_BRANCH
-  unset GITHUB_BASE_BRANCH
-  GITHUB_EVENT="tag" TASK_ID="aa" GITHUB_HEAD_BRANCHORTAG="tagName" GITHUB_HEAD_REF="refs/tags/tagName" python3 ${curdir}/tc-decision.py --dry
-)
+GITHUB_EVENT="tag" TASK_ID="aa" GITHUB_HEAD_BRANCHORTAG="tagName" GITHUB_HEAD_REF="refs/tags/tagName" python3 ${curdir}/tc-decision.py --dry
 
+# Quick hack because tc-decision uses GITHUB_HEAD_BRANCH
+export GITHUB_HEAD_BRANCH="${GITHUB_HEAD_BRANCH}${GITHUB_HEAD_TAG}"
+
+# Create a new env variable for usage in TaskCluster .yml files
 export GITHUB_HEAD_BRANCHORTAG="${GITHUB_HEAD_BRANCH}${GITHUB_HEAD_TAG}"
 python3 ${curdir}/tc-decision.py
