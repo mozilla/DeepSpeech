@@ -9,7 +9,6 @@ build:
     - "linux-arm64-cpu-opt"
     - "node-package"
   allowed:
-    - "push"
     - "tag"
   ref_match: "refs/tags/"
   routes:
