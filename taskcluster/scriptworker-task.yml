@@ -2,11 +2,11 @@ build:
   template_file: simple-task.tyml
   dependencies:
     # Make sure builds are ready
+    # - "linux-arm64-cpu-opt" Aarch64 packages are refused by upload.pypi.org
     - "darwin-amd64-cpu-opt"
     - "linux-amd64-cpu-opt"
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
-    - "linux-arm64-cpu-opt"
     - "node-package"
   allowed:
     - "tag"
