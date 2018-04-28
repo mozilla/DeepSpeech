@@ -20,7 +20,7 @@ build:
       - "linux-amd64-cpu-opt"
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
-      - "linux-arm64-cpu-opt"
+      # - "linux-arm64-cpu-opt" Aarch64 packages are refused by upload.pypi.org
     javascript:
       # GPU package
       - "linux-amd64-gpu-opt"
