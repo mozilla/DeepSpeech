@@ -140,17 +140,22 @@ RUN ln -s /DeepSpeech/native_client /tensorflow
 
 WORKDIR /tensorflow
 
+# Using CPU optimizations:
+# -mtune=generic -march=x86-64 -msse -msse2 -msse3 -msse4.1 -msse4.2 -mavx.
+# Adding --config=cuda flag to build using CUDA.
+
 # passing LD_LIBRARY_PATH is required cause Bazel doesn't pickup it from environment
 
-# Build LM Prefix Decoder
-RUN bazel build -c opt --copt=-O3 --config=cuda --copt="-D_GLIBCXX_USE_CXX11_ABI=0" //native_client:libctc_decoder_with_kenlm.so  --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+
+# Build LM Prefix Decoder, CPU only - no need for CUDA flag
+RUN bazel build -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //native_client:libctc_decoder_with_kenlm.so  --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 # Build DeepSpeech
-RUN bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+RUN bazel build --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 
 # Build TF pip package
-RUN bazel build --config=opt --config=cuda  --copt=-msse4.2 //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+RUN bazel build --config=opt --config=cuda --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 # Fix for not found script https://github.com/tensorflow/tensorflow/issues/471
 RUN ./configure
@@ -187,12 +192,7 @@ ENV PYTHONIOENCODING UTF-8
 # Build KenLM in /DeepSpeech/native_client/kenlm folder
 WORKDIR /DeepSpeech/native_client
 RUN rm -rf kenlm \
-    && git clone https://github.com/kpu/kenlm && cd kenlm \
-    && mkdir -p eigen3 \
-    && cd eigen3 && wget -O - https://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2 |tar xj && cd - \
-    && export EIGEN3_ROOT=/DeepSpeech/native_client/kenlm/eigen3/eigen-eigen-07105f7124f9 \
-    && mkdir -p lm/builder && mkdir -p lm/filter \
-    && mkdir -p util/stream \
+    && git clone https://github.com/kpu/kenlm && cd kenlm \    
     && mkdir -p build \
     && cd build \
     && cmake .. \
