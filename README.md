@@ -160,7 +160,7 @@ This will download `native_client.tar.xz` which includes the deepspeech binary a
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
-./deepspeech models/output_graph.pbmm models/alphabet.txt models/lm.binary models/trie audio_input.wav
+./deepspeech models/output_graph.pb audio/2830-3980-0043.wav models/alphabet.txt models/lm.binary models/trie
 ```
 
 
