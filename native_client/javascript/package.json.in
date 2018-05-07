@@ -7,6 +7,17 @@
        "deepspeech": "./client.js"
     },
     "author" : "Mozilla",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/mozilla/DeepSpeech/tree/$(PROJECT_VERSION)#project-deepspeech",
+    "files": [
+       "README.md",
+       "client.js",
+       "index.js",
+       "lib/*"
+    ],
+    "bugs": {
+       "url": "https://github.com/mozilla/DeepSpeech/issues"
+    },
     "repository"   :  {
        "type" : "git",
        "url"  : "git://github.com/mozilla/DeepSpeech.git"

@@ -31,7 +31,7 @@ bindings-clean:
 	rm -f python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
 
 bindings-build:
-	pip install --quiet $(PYTHON_PACKAGES) wheel
+	pip install --quiet $(PYTHON_PACKAGES) wheel==0.31.0 setuptools==39.1.0
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED) $(RPATH_PYTHON)" MODEL_LDFLAGS="$(LDFLAGS_DIRS)" UTILS_LDFLAGS="-L${TFDIR}/bazel-bin/native_client" MODEL_LIBS="$(LIBS)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py build_ext $(PYTHON_PLATFORM_NAME)
 
 MANIFEST.in: bindings-build
