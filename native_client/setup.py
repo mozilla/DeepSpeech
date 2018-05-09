@@ -30,7 +30,7 @@ if '--project_name' in sys.argv:
   sys.argv.pop(project_name_idx)
 
 with open('../VERSION', 'r') as ver:
-  project_version = ver.read()
+  project_version = ver.read().strip()
 
 class BuildExtFirst(build):
     sub_commands = [('build_ext', build.has_ext_modules),
@@ -62,10 +62,9 @@ setup(name = project_name,
       license = 'MPL-2.0',
       url = 'https://github.com/mozilla/DeepSpeech',
       project_urls = {
-        'Documentation': 'https://github.com/mozilla/DeepSpeech/tree/{}#project-deepspeech'.format(project_version),
+        'Documentation': 'https://github.com/mozilla/DeepSpeech/tree/v{}#project-deepspeech'.format(project_version),
         'Tracker': 'https://github.com/mozilla/DeepSpeech/issues',
-        'Repository': 'https://github.com/mozilla/DeepSpeech/tree/{}'.format(project_version),
-        'Home': 'https://github.com/mozilla/DeepSpeech',
+        'Repository': 'https://github.com/mozilla/DeepSpeech/tree/v{}'.format(project_version),
         'Discussions': 'https://discourse.mozilla.org/c/deep-speech',
       },
       ext_modules = [model, utils],

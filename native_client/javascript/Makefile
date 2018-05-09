@@ -2,7 +2,7 @@ NODE_BUILD_TOOL    ?= node-pre-gyp
 NODE_ABI_TARGET    ?= 
 NODE_BUILD_VERBOSE ?= --verbose
 PROJECT_NAME       ?= deepspeech
-PROJECT_VERSION    ?= $(shell cat ../../VERSION)
+PROJECT_VERSION    ?= $(shell cat ../../VERSION | tr -d '\n')
 
 include ../definitions.mk
 
