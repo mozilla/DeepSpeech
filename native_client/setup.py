@@ -30,7 +30,7 @@ if '--project_name' in sys.argv:
   sys.argv.pop(project_name_idx)
 
 with open('../VERSION', 'r') as ver:
-  project_version = ver.read()
+  project_version = ver.read().strip()
 
 class BuildExtFirst(build):
     sub_commands = [('build_ext', build.has_ext_modules),
