@@ -39,8 +39,8 @@ class BuildExtFirst(build):
                     ('build_clib', build.has_c_libraries),
                     ('build_scripts', build.has_scripts)]
 
-ds_ext = Extension('___init__',
-         ['python/__init__.i'],
+ds_ext = Extension('deepspeech._impl',
+         ['python/impl.i'],
          include_dirs = [numpy_include],
          library_dirs = list(map(lambda x: x.strip(), os.getenv('MODEL_LDFLAGS', '').split('-L')[1:])),
          libraries = list(map(lambda x: x.strip(), os.getenv('MODEL_LIBS', '').split('-l')[1:])))
@@ -62,7 +62,7 @@ setup(name = project_name,
         'Discussions': 'https://discourse.mozilla.org/c/deep-speech',
       },
       ext_modules = [ds_ext],
-      py_modules = ['deepspeech', 'deepspeech.client'],
+      py_modules = ['deepspeech', 'deepspeech.client', 'deepspeech.impl'],
       entry_points={'console_scripts':['deepspeech = deepspeech.client:main']},
       install_requires = ['numpy>=%s' % numpy_min_ver],
       include_package_data = True,

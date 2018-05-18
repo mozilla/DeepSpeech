@@ -7,30 +7,28 @@
 #include "deepspeech.h"
 
 bool has_model = false;
-std::string model;
+char* model;
 
 bool has_alphabet = false;
-std::string alphabet;
+char* alphabet;
 
 bool has_lm = false;
-std::string lm;
+char* lm;
 
 bool has_trie = false;
-std::string trie;
+char* trie;
 
 bool has_audio = false;
-std::string audio;
+char* audio;
 
 bool show_times = false;
 
 bool has_versions = false;
 
-using namespace DeepSpeech;
-
 void PrintHelp(const char* bin)
 {
     std::cout <<
-    "Usage: " << std::string(bin) << " --model MODEL --alphabet ALPHABET [--lm LM --trie TRIE] --audio AUDIO [-t]\n"
+    "Usage: " << bin << " --model MODEL --alphabet ALPHABET [--lm LM --trie TRIE] --audio AUDIO [-t]\n"
     "\n"
     "Running DeepSpeech inference.\n"
     "\n"
@@ -42,7 +40,7 @@ void PrintHelp(const char* bin)
     "	-t			Run in benchmark mode, output mfcc & inference time\n"
     "	--help			Show help\n"
     "	--version		Print version and exits\n";
-    print_versions();
+    DS_PrintVersions();
     exit(1);
 }
 
@@ -71,27 +69,27 @@ bool ProcessArgs(int argc, char** argv)
         switch (opt)
         {
         case 'm':
-            model     = std::string(optarg);
+            model     = optarg;
             has_model = true;
             break;
 
         case 'a':
-            alphabet     = std::string(optarg);
+            alphabet     = optarg;
             has_alphabet = true;
             break;
 
         case 'l':
-            lm     = std::string(optarg);
+            lm     = optarg;
             has_lm = true;
             break;
 
         case 'r':
-            trie     = std::string(optarg);
+            trie     = optarg;
             has_trie = true;
             break;
 
         case 'w':
-            audio     = std::string(optarg);
+            audio     = optarg;
             has_audio = true;
             break;
 
@@ -112,11 +110,11 @@ bool ProcessArgs(int argc, char** argv)
     }
 
     if (has_versions) {
-        print_versions();
+        DS_PrintVersions();
         return false;
     }
 
-    if (!has_model || !has_alphabet || !has_audio || alphabet.length() == 0 || audio.length() == 0) {
+    if (!has_model || !has_alphabet || !has_audio || strlen(alphabet) == 0 || strlen(audio) == 0) {
         PrintHelp(argv[0]);
         return false;
     }
