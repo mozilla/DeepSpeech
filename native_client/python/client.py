@@ -9,7 +9,7 @@ import subprocess
 import sys
 import wave
 
-from deepspeech import Model, print_versions
+from deepspeech import Model, printVersions
 from timeit import default_timer as timer
 
 try:
@@ -71,7 +71,7 @@ def main():
     args = parser.parse_args()
 
     if args.version:
-        print_versions()
+        printVersions()
         return 0
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)

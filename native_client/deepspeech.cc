@@ -56,33 +56,7 @@ using tensorflow::ctc::CTCDecoder;
 
 using std::vector;
 
-namespace DeepSpeech {
-
-class StreamingState {
-public:
-  vector<float> accumulated_logits;
-  vector<float> audio_buffer;
-  float last_sample; // used for preemphasis
-  vector<float> mfcc_buffer;
-  vector<float> batch_buffer;
-  bool skip_next_mfcc;
-};
-
-class Private {
-public:
-  MemmappedEnv* mmap_env;
-  Session* session;
-  GraphDef graph_def;
-  int ncep;
-  int ncontext;
-  Alphabet* alphabet;
-  KenLMBeamScorer* scorer;
-  int beam_width;
-  bool run_aot;
-
-  Private();
-  ~Private();
-
+struct StreamingState {
   /* This is the actual implementation of the streaming inference API, with the
      Model class just forwarding the calls to this class.
 
@@ -96,9 +70,9 @@ public:
 
      - mfcc_buffer, used to buffer input features until there's enough data for
        a single timestep. Remember there's overlap in the features, each timestep
-       contains N_CONTEXT past feature frames, the current feature frame, and
-       N_CONTEXT future feature frames, for a total of MFCC_WIN_LEN feature frames
-       per timestep.
+       contains MFCC_CONTEXT past feature frames, the current feature frame, and
+       MFCC_CONTEXT future feature frames, for a total of MFCC_WIN_LEN feature
+       frames per timestep.
 
      - batch_buffer, used to buffer timesteps until there's enough data to compute
        a batch of N_STEPS_PER_BATCH.
@@ -112,11 +86,38 @@ public:
      When fininshStream() is called, we decode the accumulated logits and return
      the corresponding transcription.
   */
-  StreamingState* setupStream(unsigned int prealloc_frames, unsigned int sample_rate);
-  void feedAudioContent(StreamingState* ctx, const short* buffer, unsigned int buffer_size);
-  const char* finishStream(StreamingState* ctx);
+  vector<float> accumulated_logits;
+  vector<float> audio_buffer;
+  float last_sample; // used for preemphasis
+  vector<float> mfcc_buffer;
+  vector<float> batch_buffer;
+  bool skip_next_mfcc;
+  ModelState* model;
 
-private:
+  void feedAudioContent(const short* buffer, unsigned int buffer_size);
+  char* finishStream();
+
+  void processAudioWindow(const vector<float>& buf);
+  void processMfccWindow(const vector<float>& buf);
+  void pushMfccBuffer(const float* buf, unsigned int len);
+  void addZeroMfccWindow();
+  void processBatch(const vector<float>& buf, unsigned int n_steps);
+};
+
+struct ModelState {
+  MemmappedEnv* mmap_env;
+  Session* session;
+  GraphDef graph_def;
+  int ncep;
+  int ncontext;
+  Alphabet* alphabet;
+  KenLMBeamScorer* scorer;
+  int beam_width;
+  bool run_aot;
+
+  ModelState();
+  ~ModelState();
+
   /**
    * @brief Perform decoding of the logits, using basic CTC decoder or
    *        CTC decoder with KenLM enabled
@@ -127,7 +128,7 @@ private:
    *
    * @return String representing the decoded text.
    */
-  const char* decode(vector<float>& logits);
+  char* decode(vector<float>& logits);
 
   /**
    * @brief Do a single inference step in the acoustic model, with:
@@ -141,27 +142,21 @@ private:
    *                           aNFrames * alphabet_size floats.
    */
   void infer(const float* mfcc, int n_frames, vector<float>& output_logits);
-
-  void processAudioWindow(StreamingState* ctx, const vector<float>& buf);
-  void processMfccWindow(StreamingState* ctx, const vector<float>& buf);
-  void pushMfccBuffer(StreamingState* ctx, const float* buf, unsigned int len);
-  void addZeroMfccWindow(StreamingState* ctx);
-  void processBatch(StreamingState* ctx, const vector<float>& buf, unsigned int n_steps);
 };
 
-Private::Private()
+ModelState::ModelState()
   : mmap_env(nullptr)
   , session(nullptr)
-  , scorer(nullptr)
-  , alphabet(nullptr)
   , ncep(0)
   , ncontext(0)
+  , alphabet(nullptr)
+  , scorer(nullptr)
   , beam_width(0)
   , run_aot(false)
 {
 }
 
-Private::~Private()
+ModelState::~ModelState()
 {
   if (session) {
     Status status = session->Close();
@@ -175,91 +170,57 @@ Private::~Private()
   delete alphabet;
 }
 
-StreamingState*
-Private::setupStream(unsigned int prealloc_frames,
-                     unsigned int /*sample_rate*/)
-{
-  Status status = session->Run({}, {}, {"initialize_state"}, nullptr);
-  if (!status.ok()) {
-    std::cerr << "Error running session: " << status << std::endl;
-    return nullptr;
-  }
-
-  StreamingState* ctx = new StreamingState;
-  if (!ctx) {
-    std::cerr << "Could not allocate streaming state." << std::endl;
-    return nullptr;
-  }
-
-  const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
-
-  ctx->accumulated_logits.reserve(prealloc_frames * BATCH_SIZE * num_classes);
-
-  ctx->audio_buffer.reserve(AUDIO_WIN_LEN_SAMPLES);
-  ctx->last_sample = 0;
-  ctx->mfcc_buffer.reserve(MFCC_FEATS_PER_TIMESTEP);
-  ctx->mfcc_buffer.resize(MFCC_FEATURES*MFCC_CONTEXT, 0.f);
-  ctx->batch_buffer.reserve(N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP);
-
-  ctx->skip_next_mfcc = false;
-
-  return ctx;
-}
-
 void
-Private::feedAudioContent(StreamingState* ctx,
-                          const short* buffer,
-                          unsigned int buffer_size)
+StreamingState::feedAudioContent(const short* buffer,
+                                 unsigned int buffer_size)
 {
   // Consume all the data that was passed in, processing full buffers if needed
   while (buffer_size > 0) {
-    while (buffer_size > 0 && ctx->audio_buffer.size() < AUDIO_WIN_LEN_SAMPLES) {
+    while (buffer_size > 0 && audio_buffer.size() < AUDIO_WIN_LEN_SAMPLES) {
       // Apply preemphasis to input sample and buffer it
-      float sample = (float)(*buffer) - (PREEMPHASIS_COEFF * ctx->last_sample);
-      ctx->audio_buffer.push_back(sample);
-      ctx->last_sample = *buffer;
+      float sample = (float)(*buffer) - (PREEMPHASIS_COEFF * last_sample);
+      audio_buffer.push_back(sample);
+      last_sample = *buffer;
       ++buffer;
       --buffer_size;
     }
 
     // If the buffer is full, process and shift it
-    if (ctx->audio_buffer.size() == AUDIO_WIN_LEN_SAMPLES) {
-      processAudioWindow(ctx, ctx->audio_buffer);
+    if (audio_buffer.size() == AUDIO_WIN_LEN_SAMPLES) {
+      processAudioWindow(audio_buffer);
       // Shift data by one step of 10ms
-      std::rotate(ctx->audio_buffer.begin(), ctx->audio_buffer.begin() + AUDIO_WIN_STEP_SAMPLES, ctx->audio_buffer.end());
-      ctx->audio_buffer.resize(ctx->audio_buffer.size() - AUDIO_WIN_STEP_SAMPLES);
+      std::rotate(audio_buffer.begin(), audio_buffer.begin() + AUDIO_WIN_STEP_SAMPLES, audio_buffer.end());
+      audio_buffer.resize(audio_buffer.size() - AUDIO_WIN_STEP_SAMPLES);
     }
 
     // Repeat until buffer empty
   }
 }
 
-const char*
-Private::finishStream(StreamingState* ctx)
+char*
+StreamingState::finishStream()
 {
   // Flush audio buffer
-  processAudioWindow(ctx, ctx->audio_buffer);
+  processAudioWindow(audio_buffer);
 
   // Add empty mfcc vectors at end of sample
   for (int i = 0; i < MFCC_CONTEXT; ++i) {
-    addZeroMfccWindow(ctx);
+    addZeroMfccWindow();
   }
 
   // Process final batch
-  if (ctx->batch_buffer.size() > 0) {
-    processBatch(ctx, ctx->batch_buffer, ctx->batch_buffer.size()/MFCC_FEATS_PER_TIMESTEP);
+  if (batch_buffer.size() > 0) {
+    processBatch(batch_buffer, batch_buffer.size()/MFCC_FEATS_PER_TIMESTEP);
   }
 
-  const char* str = decode(ctx->accumulated_logits);
-  delete ctx;
-  return str;
+  return model->decode(accumulated_logits);
 }
 
 void
-Private::processAudioWindow(StreamingState* ctx, const vector<float>& buf)
+StreamingState::processAudioWindow(const vector<float>& buf)
 {
-  ctx->skip_next_mfcc = !ctx->skip_next_mfcc;
-  if (!ctx->skip_next_mfcc) { // Was true
+  skip_next_mfcc = !skip_next_mfcc;
+  if (!skip_next_mfcc) { // Was true
     return;
   }
 
@@ -271,61 +232,62 @@ Private::processAudioWindow(StreamingState* ctx, const vector<float>& buf)
                           &mfcc);
   assert(n_frames == 1);
 
-  pushMfccBuffer(ctx, mfcc, n_frames * MFCC_FEATURES);
+  pushMfccBuffer(mfcc, n_frames * MFCC_FEATURES);
   free(mfcc);
 }
 
 void
-Private::addZeroMfccWindow(StreamingState* ctx)
+StreamingState::addZeroMfccWindow()
 {
   static const float zero_buffer[MFCC_FEATURES] = {0.f};
-  pushMfccBuffer(ctx, zero_buffer, MFCC_FEATURES);
+  pushMfccBuffer(zero_buffer, MFCC_FEATURES);
 }
 
 void
-Private::pushMfccBuffer(StreamingState* ctx, const float* buf, unsigned int len)
+StreamingState::pushMfccBuffer(const float* buf, unsigned int len)
 {
   while (len > 0) {
-    unsigned int next_copy_amount = std::min(len, (unsigned int)(MFCC_FEATS_PER_TIMESTEP - ctx->mfcc_buffer.size()));
-    ctx->mfcc_buffer.insert(ctx->mfcc_buffer.end(), buf, buf + next_copy_amount);
+    unsigned int next_copy_amount = std::min(len, (unsigned int)(MFCC_FEATS_PER_TIMESTEP - mfcc_buffer.size()));
+    mfcc_buffer.insert(mfcc_buffer.end(), buf, buf + next_copy_amount);
     buf += next_copy_amount;
     len -= next_copy_amount;
-    assert(ctx->mfcc_buffer.size() <= MFCC_FEATS_PER_TIMESTEP);
+    assert(mfcc_buffer.size() <= MFCC_FEATS_PER_TIMESTEP);
 
-    if (ctx->mfcc_buffer.size() == MFCC_FEATS_PER_TIMESTEP) {
-      processMfccWindow(ctx, ctx->mfcc_buffer);
+    if (mfcc_buffer.size() == MFCC_FEATS_PER_TIMESTEP) {
+      processMfccWindow(mfcc_buffer);
       // Shift data by one step of one mfcc feature vector
-      std::rotate(ctx->mfcc_buffer.begin(), ctx->mfcc_buffer.begin() + MFCC_FEATURES, ctx->mfcc_buffer.end());
-      ctx->mfcc_buffer.resize(ctx->mfcc_buffer.size() - MFCC_FEATURES);
+      std::rotate(mfcc_buffer.begin(), mfcc_buffer.begin() + MFCC_FEATURES, mfcc_buffer.end());
+      mfcc_buffer.resize(mfcc_buffer.size() - MFCC_FEATURES);
     }
   }
 }
 
 void
-Private::processMfccWindow(StreamingState* ctx, const vector<float>& buf)
+StreamingState::processMfccWindow(const vector<float>& buf)
 {
   auto start = buf.begin();
-  while (start != buf.end()) {
-    unsigned int next_copy_amount = std::min(std::distance(start, buf.end()), (long)(N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP - ctx->batch_buffer.size()));
-    ctx->batch_buffer.insert(ctx->batch_buffer.end(), start, start + next_copy_amount);
+  auto end = buf.end();
+  while (start != end) {
+    unsigned int next_copy_amount = std::min<unsigned int>(std::distance(start, end), (unsigned int)(N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP - batch_buffer.size()));
+    batch_buffer.insert(batch_buffer.end(), start, start + next_copy_amount);
     start += next_copy_amount;
-    assert(ctx->batch_buffer.size() <= N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP);
+    assert(batch_buffer.size() <= N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP);
 
-    if (ctx->batch_buffer.size() == N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP) {
-      processBatch(ctx, ctx->batch_buffer, N_STEPS_PER_BATCH);
-      ctx->batch_buffer.resize(0);
+    if (batch_buffer.size() == N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP) {
+      processBatch(batch_buffer, N_STEPS_PER_BATCH);
+      batch_buffer.resize(0);
     }
   }
 }
 
 void
-Private::processBatch(StreamingState* ctx, const vector<float>& buf, unsigned int n_steps)
+StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 {
-  infer(buf.data(), n_steps, ctx->accumulated_logits);
+  model->infer(buf.data(), n_steps, accumulated_logits);
 }
 
 void
-Private::infer(const float* aMfcc, int n_frames, vector<float>& logits_output)
+ModelState::infer(const float* aMfcc, int n_frames, vector<float>& logits_output)
 {
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
 
@@ -386,8 +348,8 @@ Private::infer(const float* aMfcc, int n_frames, vector<float>& logits_output)
   }
 }
 
-const char*
-Private::decode(vector<float>& logits)
+char*
+ModelState::decode(vector<float>& logits)
 {
   const int top_paths = 1;
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
@@ -440,24 +402,30 @@ Private::decode(vector<float>& logits)
   return strdup(output.str().c_str());
 }
 
-DEEPSPEECH_EXPORT
-Model::Model(const char* aModelPath, int aNCep, int aNContext,
-             const char* aAlphabetConfigPath, int aBeamWidth)
+int
+DS_CreateModel(char* aModelPath,
+               int aNCep,
+               int aNContext,
+               char* aAlphabetConfigPath,
+               int aBeamWidth,
+               ModelState** retval)
 {
-  mPriv             = new Private();
-  mPriv->mmap_env   = new MemmappedEnv(Env::Default());
-  mPriv->ncep       = aNCep;
-  mPriv->ncontext   = aNContext;
-  mPriv->alphabet   = new Alphabet(aAlphabetConfigPath);
-  mPriv->beam_width = aBeamWidth;
-  mPriv->run_aot    = false;
+  ModelState* model = new ModelState();
+  model->mmap_env   = new MemmappedEnv(Env::Default());
+  model->ncep       = aNCep;
+  model->ncontext   = aNContext;
+  model->alphabet   = new Alphabet(aAlphabetConfigPath);
+  model->beam_width = aBeamWidth;
+  model->run_aot    = false;
 
-  print_versions();
+  *retval = nullptr;
+
+  DS_PrintVersions();
 
   if (!aModelPath || strlen(aModelPath) < 1) {
     std::cerr << "No model specified, will rely on built-in model." << std::endl;
-    mPriv->run_aot = true;
-    return;
+    model->run_aot = true;
+    return 0;
   }
 
   Status status;
@@ -467,46 +435,46 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
   if (!is_mmap) {
     std::cerr << "Warning: reading entire model file into memory. Transform model file into an mmapped graph to reduce heap usage." << std::endl;
   } else {
-    status = mPriv->mmap_env->InitializeFromFile(aModelPath);
+    status = model->mmap_env->InitializeFromFile(aModelPath);
     if (!status.ok()) {
       std::cerr << status << std::endl;
-      return;
+      return status.code();
     }
 
     options.config.mutable_graph_options()
       ->mutable_optimizer_options()
       ->set_opt_level(::OptimizerOptions::L0);
-    options.env = mPriv->mmap_env;
+    options.env = model->mmap_env;
   }
 
-  status = NewSession(options, &mPriv->session);
+  status = NewSession(options, &model->session);
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    return;
+    return status.code();
   }
 
   if (is_mmap) {
-    status = ReadBinaryProto(mPriv->mmap_env,
+    status = ReadBinaryProto(model->mmap_env,
                              MemmappedFileSystem::kMemmappedPackageDefaultGraphDef,
-                             &mPriv->graph_def);
+                             &model->graph_def);
   } else {
-    status = ReadBinaryProto(Env::Default(), aModelPath, &mPriv->graph_def);
+    status = ReadBinaryProto(Env::Default(), aModelPath, &model->graph_def);
   }
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    delete mPriv;
-    return;
+    delete model;
+    return status.code();
   }
 
-  status = mPriv->session->Create(mPriv->graph_def);
+  status = model->session->Create(model->graph_def);
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    delete mPriv;
-    return;
+    delete model;
+    return status.code();
   }
 
-  for (int i = 0; i < mPriv->graph_def.node_size(); ++i) {
-    NodeDef node = mPriv->graph_def.node(i);
+  for (int i = 0; i < model->graph_def.node_size(); ++i) {
+    NodeDef node = model->graph_def.node(i);
     if (node.name() == "logits_shape") {
       Tensor logits_shape = Tensor(DT_INT32, TensorShape({3}));
       if (!logits_shape.FromProto(node.attr().at("value").tensor())) {
@@ -514,90 +482,122 @@ Model::Model(const char* aModelPath, int aNCep, int aNContext,
       }
 
       int final_dim_size = logits_shape.vec<int>()(2) - 1;
-      if (final_dim_size != mPriv->alphabet->GetSize()) {
+      if (final_dim_size != model->alphabet->GetSize()) {
         std::cerr << "Error: Alphabet size does not match loaded model: alphabet "
-                  << "has size " << mPriv->alphabet->GetSize()
+                  << "has size " << model->alphabet->GetSize()
                   << ", but model has " << final_dim_size
                   << " classes in its output. Make sure you're passing an alphabet "
                   << "file with the same size as the one used for training."
                   << std::endl;
-        delete mPriv;
-        return;
+        delete model;
+        return error::INVALID_ARGUMENT;
       }
       break;
     }
   }
+
+  *retval = model;
+  return tensorflow::error::OK;
 }
 
-DEEPSPEECH_EXPORT
-Model::~Model()
-{
-  delete mPriv;
-}
-
-DEEPSPEECH_EXPORT
 void
-Model::enableDecoderWithLM(const char* aAlphabetConfigPath, const char* aLMPath,
-                           const char* aTriePath, float aLMWeight,
-                           float aWordCountWeight, float aValidWordCountWeight)
+DS_DestroyModel(ModelState* ctx)
 {
-  mPriv->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
-                                      aLMWeight, aWordCountWeight, aValidWordCountWeight);
+  delete ctx;
 }
 
-DEEPSPEECH_EXPORT
 void
-Model::getInputVector(const short* aBuffer, unsigned int aBufferSize,
-                      int aSampleRate, float** aMfcc, int* aNFrames,
-                      int* aFrameLen)
+DS_EnableDecoderWithLM(ModelState* aCtx,
+                       char* aAlphabetConfigPath,
+                       char* aLMPath,
+                       char* aTriePath,
+                       float aLMWeight,
+                       float aWordCountWeight,
+                       float aValidWordCountWeight)
 {
-  return audioToInputVector(aBuffer, aBufferSize, aSampleRate, mPriv->ncep,
-                            mPriv->ncontext, aMfcc, aNFrames, aFrameLen);
+  aCtx->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
+                                     aLMWeight, aWordCountWeight,
+                                     aValidWordCountWeight);
 }
 
-DEEPSPEECH_EXPORT
-const char*
-Model::stt(const short* aBuffer,
-           unsigned int aBufferSize,
-           int aSampleRate)
+char*
+DS_SpeechToText(ModelState* aCtx,
+                short* aBuffer,
+                unsigned int aBufferSize,
+                int aSampleRate)
 {
-  StreamingState* ctx = setupStream();
-  if (!ctx) {
+  StreamingState* ctx;
+  int status = DS_SetupStream(aCtx, 150, aSampleRate, &ctx);
+  if (status != tensorflow::error::OK) {
     return nullptr;
   }
-  feedAudioContent(ctx, aBuffer, aBufferSize);
-  return finishStream(ctx);
+  DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
+  return DS_FinishStream(ctx);
 }
 
-DEEPSPEECH_EXPORT
-StreamingState*
-Model::setupStream(unsigned int aPreAllocFrames,
-                   unsigned int aSampleRate)
+int
+DS_SetupStream(ModelState* aCtx,
+               unsigned int aPreAllocFrames,
+               unsigned int aSampleRate,
+               StreamingState** retval)
 {
-  return mPriv->setupStream(aPreAllocFrames, aSampleRate);
+  *retval = nullptr;
+
+  Status status = aCtx->session->Run({}, {}, {"initialize_state"}, nullptr);
+  if (!status.ok()) {
+    std::cerr << "Error running session: " << status << std::endl;
+    return status.code();
+  }
+
+  StreamingState* ctx = new StreamingState;
+  if (!ctx) {
+    std::cerr << "Could not allocate streaming state." << std::endl;
+    return status.code();
+  }
+
+  const size_t num_classes = aCtx->alphabet->GetSize() + 1; // +1 for blank
+
+  ctx->accumulated_logits.reserve(aPreAllocFrames * BATCH_SIZE * num_classes);
+
+  ctx->audio_buffer.reserve(AUDIO_WIN_LEN_SAMPLES);
+  ctx->last_sample = 0;
+  ctx->mfcc_buffer.reserve(MFCC_FEATS_PER_TIMESTEP);
+  ctx->mfcc_buffer.resize(MFCC_FEATURES*MFCC_CONTEXT, 0.f);
+  ctx->batch_buffer.reserve(N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP);
+
+  ctx->skip_next_mfcc = false;
+
+  ctx->model = aCtx;
+
+  *retval = ctx;
+  return tensorflow::error::OK;
 }
 
-DEEPSPEECH_EXPORT
 void
-Model::feedAudioContent(StreamingState* ctx,
-                        const short* aBuffer,
-                        unsigned int aBufferSize)
+DS_FeedAudioContent(StreamingState* aSctx,
+                    short* aBuffer,
+                    unsigned int aBufferSize)
 {
-  mPriv->feedAudioContent(ctx, aBuffer, aBufferSize);
+  aSctx->feedAudioContent(aBuffer, aBufferSize);
 }
 
-DEEPSPEECH_EXPORT
-const char*
-Model::finishStream(StreamingState* ctx)
+char*
+DS_FinishStream(StreamingState* aSctx)
 {
-  return mPriv->finishStream(ctx);
+  char* str = aSctx->finishStream();
+  free(aSctx);
+  return str;
 }
 
-DEEPSPEECH_EXPORT
 void
-audioToInputVector(const short* aBuffer, unsigned int aBufferSize,
-                   int aSampleRate, int aNCep, int aNContext, float** aMfcc,
-                   int* aNFrames, int* aFrameLen)
+DS_AudioToInputVector(short* aBuffer,
+                      unsigned int aBufferSize,
+                      int aSampleRate,
+                      int aNCep,
+                      int aNContext,
+                      float** aMfcc,
+                      int* aNFrames,
+                      int* aFrameLen)
 {
   const int contextSize = aNCep * aNContext;
   const int frameSize = aNCep + (2 * aNCep * aNContext);
@@ -657,11 +657,9 @@ audioToInputVector(const short* aBuffer, unsigned int aBufferSize,
   }
 }
 
-DEEPSPEECH_EXPORT
 void
-print_versions() {
+DS_PrintVersions() {
   std::cerr << "TensorFlow: " << tf_git_version() << std::endl;
   std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
 }
 
-}
