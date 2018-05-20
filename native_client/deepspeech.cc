@@ -31,18 +31,12 @@ const int BATCH_SIZE = 1;
 //TODO: use dynamic sample rate
 const int SAMPLE_RATE = 16000;
 
-//TODO: infer n_steps from model
-const int N_STEPS_PER_BATCH = 16;
-
 const float AUDIO_WIN_LEN = 0.025f;
 const float AUDIO_WIN_STEP = 0.01f;
 const int AUDIO_WIN_LEN_SAMPLES = (int)(AUDIO_WIN_LEN * SAMPLE_RATE);
 const int AUDIO_WIN_STEP_SAMPLES = (int)(AUDIO_WIN_STEP * SAMPLE_RATE);
 
 const int MFCC_FEATURES = 26;
-const int MFCC_CONTEXT = 9;
-const int MFCC_WIN_LEN = 2 * MFCC_CONTEXT + 1;
-const int MFCC_FEATS_PER_TIMESTEP = MFCC_FEATURES * MFCC_WIN_LEN;
 
 const float PREEMPHASIS_COEFF = 0.97f;
 const int N_FFT = 512;
@@ -70,12 +64,12 @@ struct StreamingState {
 
      - mfcc_buffer, used to buffer input features until there's enough data for
        a single timestep. Remember there's overlap in the features, each timestep
-       contains MFCC_CONTEXT past feature frames, the current feature frame, and
-       MFCC_CONTEXT future feature frames, for a total of MFCC_WIN_LEN feature
+       contains n_context past feature frames, the current feature frame, and
+       n_context future feature frames, for a total of 2*n_context + 1 feature
        frames per timestep.
 
      - batch_buffer, used to buffer timesteps until there's enough data to compute
-       a batch of N_STEPS_PER_BATCH.
+       a batch of n_steps.
 
      Data flows through all three buffers as audio samples are fed via the public
      API. When audio_buffer is full, features are computed from it and pushed to
@@ -114,6 +108,9 @@ struct ModelState {
   KenLMBeamScorer* scorer;
   int beam_width;
   bool run_aot;
+  int n_steps;
+  int mfcc_feats_per_timestep;
+  int n_context;
 
   ModelState();
   ~ModelState();
@@ -153,6 +150,9 @@ ModelState::ModelState()
   , scorer(nullptr)
   , beam_width(0)
   , run_aot(false)
+  , n_steps(-1)
+  , mfcc_feats_per_timestep(-1)
+  , n_context(-1)
 {
 }
 
@@ -204,13 +204,13 @@ StreamingState::finishStream()
   processAudioWindow(audio_buffer);
 
   // Add empty mfcc vectors at end of sample
-  for (int i = 0; i < MFCC_CONTEXT; ++i) {
+  for (int i = 0; i < model->n_context; ++i) {
     addZeroMfccWindow();
   }
 
   // Process final batch
   if (batch_buffer.size() > 0) {
-    processBatch(batch_buffer, batch_buffer.size()/MFCC_FEATS_PER_TIMESTEP);
+    processBatch(batch_buffer, batch_buffer.size()/model->mfcc_feats_per_timestep);
   }
 
   return model->decode(accumulated_logits);
@@ -247,13 +247,13 @@ void
 StreamingState::pushMfccBuffer(const float* buf, unsigned int len)
 {
   while (len > 0) {
-    unsigned int next_copy_amount = std::min(len, (unsigned int)(MFCC_FEATS_PER_TIMESTEP - mfcc_buffer.size()));
+    unsigned int next_copy_amount = std::min(len, (unsigned int)(model->mfcc_feats_per_timestep - mfcc_buffer.size()));
     mfcc_buffer.insert(mfcc_buffer.end(), buf, buf + next_copy_amount);
     buf += next_copy_amount;
     len -= next_copy_amount;
-    assert(mfcc_buffer.size() <= MFCC_FEATS_PER_TIMESTEP);
+    assert(mfcc_buffer.size() <= model->mfcc_feats_per_timestep);
 
-    if (mfcc_buffer.size() == MFCC_FEATS_PER_TIMESTEP) {
+    if (mfcc_buffer.size() == model->mfcc_feats_per_timestep) {
       processMfccWindow(mfcc_buffer);
       // Shift data by one step of one mfcc feature vector
       std::rotate(mfcc_buffer.begin(), mfcc_buffer.begin() + MFCC_FEATURES, mfcc_buffer.end());
@@ -268,13 +268,13 @@ StreamingState::processMfccWindow(const vector<float>& buf)
   auto start = buf.begin();
   auto end = buf.end();
   while (start != end) {
-    unsigned int next_copy_amount = std::min<unsigned int>(std::distance(start, end), (unsigned int)(N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP - batch_buffer.size()));
+    unsigned int next_copy_amount = std::min<unsigned int>(std::distance(start, end), (unsigned int)(model->n_steps * model->mfcc_feats_per_timestep - batch_buffer.size()));
     batch_buffer.insert(batch_buffer.end(), start, start + next_copy_amount);
     start += next_copy_amount;
-    assert(batch_buffer.size() <= N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP);
+    assert(batch_buffer.size() <= model->n_steps * model->mfcc_feats_per_timestep);
 
-    if (batch_buffer.size() == N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP) {
-      processBatch(batch_buffer, N_STEPS_PER_BATCH);
+    if (batch_buffer.size() == model->n_steps * model->mfcc_feats_per_timestep) {
+      processBatch(batch_buffer, model->n_steps);
       batch_buffer.resize(0);
     }
   }
@@ -300,7 +300,7 @@ ModelState::infer(const float* aMfcc, int n_frames, vector<float>& logits_output
     nm.set_thread_pool(&device);
 
     for (int ot = 0; ot < n_frames; ot += DS_MODEL_TIMESTEPS) {
-      nm.set_arg0_data(&(aMfcc[ot * MFCC_FEATS_PER_TIMESTEP]));
+      nm.set_arg0_data(&(aMfcc[ot * mfcc_feats_per_timestep]));
       nm.Run();
 
       // The CTCDecoder works with log-probs.
@@ -317,12 +317,12 @@ ModelState::infer(const float* aMfcc, int n_frames, vector<float>& logits_output
     return;
 #endif // DS_NATIVE_MODEL
   } else {
-    Tensor input(DT_FLOAT, TensorShape({BATCH_SIZE, N_STEPS_PER_BATCH, MFCC_FEATS_PER_TIMESTEP}));
+    Tensor input(DT_FLOAT, TensorShape({BATCH_SIZE, n_steps, mfcc_feats_per_timestep}));
 
     auto input_mapped = input.tensor<float, 3>();
     int idx = 0;
     for (int i = 0; i < n_frames; i++) {
-      for (int j = 0; j < MFCC_FEATS_PER_TIMESTEP; j++, idx++) {
+      for (int j = 0; j < mfcc_feats_per_timestep; j++, idx++) {
         input_mapped(0, i, j) = aMfcc[idx];
       }
     }
@@ -475,10 +475,16 @@ DS_CreateModel(char* aModelPath,
 
   for (int i = 0; i < model->graph_def.node_size(); ++i) {
     NodeDef node = model->graph_def.node(i);
-    if (node.name() == "logits_shape") {
+    if (node.name() == "input_node") {
+      const auto& shape = node.attr().at("shape").shape();
+      model->n_steps = shape.dim(1).size();
+      model->mfcc_feats_per_timestep = shape.dim(2).size();
+      // mfcc_features_per_timestep = MFCC_FEATURES * ((2*n_context) + 1)
+      model->n_context = (model->mfcc_feats_per_timestep - MFCC_FEATURES) / (2 * MFCC_FEATURES);
+    } else if (node.name() == "logits_shape") {
       Tensor logits_shape = Tensor(DT_INT32, TensorShape({3}));
       if (!logits_shape.FromProto(node.attr().at("value").tensor())) {
-        break;
+        continue;
       }
 
       int final_dim_size = logits_shape.vec<int>()(2) - 1;
@@ -492,8 +498,18 @@ DS_CreateModel(char* aModelPath,
         delete model;
         return error::INVALID_ARGUMENT;
       }
-      break;
     }
+  }
+
+  if (model->n_context == -1) {
+    std::cerr << "Error: Could not infer context window size from model file. "
+              << "Make sure input_node is a 3D tensor with the last dimension "
+              << "of size MFCC_FEATURES * ((2 * context window) + 1). If you "
+              << "changed the number of features in the input, adjust the "
+              << "MFCC_FEATURES constant in " __FILE__
+              << std::endl;
+    delete model;
+    return error::INVALID_ARGUMENT;
   }
 
   *retval = model;
@@ -561,9 +577,9 @@ DS_SetupStream(ModelState* aCtx,
 
   ctx->audio_buffer.reserve(AUDIO_WIN_LEN_SAMPLES);
   ctx->last_sample = 0;
-  ctx->mfcc_buffer.reserve(MFCC_FEATS_PER_TIMESTEP);
-  ctx->mfcc_buffer.resize(MFCC_FEATURES*MFCC_CONTEXT, 0.f);
-  ctx->batch_buffer.reserve(N_STEPS_PER_BATCH*MFCC_FEATS_PER_TIMESTEP);
+  ctx->mfcc_buffer.reserve(aCtx->mfcc_feats_per_timestep);
+  ctx->mfcc_buffer.resize(MFCC_FEATURES*aCtx->n_context, 0.f);
+  ctx->batch_buffer.reserve(aCtx->n_steps * aCtx->mfcc_feats_per_timestep);
 
   ctx->skip_next_mfcc = false;
 
