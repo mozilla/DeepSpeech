@@ -15,14 +15,14 @@ Once everything is installed you can then use the `deepspeech` binary to do spee
 
 ```bash
 pip3 install deepspeech
-deepspeech models/output_graph.pb models/alphabet.txt my_audio_file.wav
+deepspeech models/output_graph.pb my_audio_file.wav models/alphabet.txt
 ```
 
 Alternatively, quicker inference (The realtime factor on a GeForce GTX 1070 is about 0.44.) can be performed using a supported NVIDIA GPU on Linux. (See the release notes to find which GPU's are supported.) This is done by instead installing the GPU specific package:
 
 ```bash
 pip3 install deepspeech-gpu
-deepspeech models/output_graph.pb models/alphabet.txt my_audio_file.wav
+deepspeech models/output_graph.pb my_audio_file.wav models/alphabet.txt
 ```
 
 See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
@@ -134,7 +134,7 @@ In both cases, it should take care of installing all the required dependencies. 
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
-deepspeech models/output_graph.pbmm models/alphabet.txt models/lm.binary models/trie my_audio_file.wav
+deepspeech models/output_graph.pbmm my_audio_file.wav models/alphabet.txt models/lm.binary models/trie
 ```
 
 The last two arguments are optional, and represent a language model.
@@ -160,7 +160,7 @@ This will download `native_client.tar.xz` which includes the deepspeech binary a
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
-./deepspeech models/output_graph.pbmm models/alphabet.txt models/lm.binary models/trie audio_input.wav
+./deepspeech models/output_graph.pbmm audio_input.wav models/alphabet.txt models/lm.binary models/trie
 ```
 
 
