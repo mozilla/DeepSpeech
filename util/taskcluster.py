@@ -61,16 +61,14 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Tooling to ease downloading of components from TaskCluster.')
-    parser.add_argument('--target', type=str, required=True,
+    parser.add_argument('--target', required=True,
                         help='Where to put the native client binary files')
-    parser.add_argument('--arch', type=str, required=False,
-                        default='cpu',
+    parser.add_argument('--arch', required=False, default='cpu',
                         help='Which architecture to download binaries for. "arm" for ARM 7 (32-bit), "gpu" for CUDA enabled x86_64 binaries, "cpu" for CPU-only x86_64 binaries, "osx" for CPU-only x86_64 OSX binaries. Optional ("cpu" by default)')
-    parser.add_argument('--artifact', type=str, required=False,
+    parser.add_argument('--artifact', required=False,
                         default='native_client.tar.xz',
                         help='Name of the artifact to download. Defaults to "native_client.tar.xz"')
-    parser.add_argument('--source', type=str, required=False,
-                        default=None,
+    parser.add_argument('--source', required=False, default=None,
                         help='Name of the TaskCluster scheme to use.')
 
     args = parser.parse_args()
