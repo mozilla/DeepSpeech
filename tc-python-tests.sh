@@ -36,8 +36,10 @@ download_data
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
+maybe_ssl102_py37 ${pyver}
+
 PYENV_NAME=deepspeech-test
-PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${EXTRA_PYTHON_CONFIGURE_OPTS}" pyenv install ${pyver}
+LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL} ${EXTRA_PYTHON_CONFIGURE_OPTS}" pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
@@ -50,7 +52,7 @@ if [ "${aot_model}" = "--aot" ]; then
 else
     deepspeech_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 fi
-pip install --only-binary :all: --upgrade ${deepspeech_pkg_url} | cat
+LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${deepspeech_pkg_url} | cat
 
 run_all_inference_tests
 

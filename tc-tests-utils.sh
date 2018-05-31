@@ -44,7 +44,7 @@ model_name="$(basename "${model_source}")"
 model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4 3.7.0b5:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.1 7.10.1 8.11.1 9.11.1 10.3.0}
 
 # This verify exact inference result
@@ -348,7 +348,7 @@ install_pyenv()
 
   git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
   pushd ${PYENV_ROOT}
-    git checkout --quiet a8e207f330509b12724454b1dd38dcc31193212f
+    git checkout --quiet 8eeddaebc1153313010724f81917a96d62dc4e2a
   popd
   eval "$(pyenv init -)"
 }
@@ -492,6 +492,50 @@ do_deepspeech_binary_build()
     deepspeech
 }
 
+# Hack to extract Ubuntu's 16.04 libssl 1.0.2 packages and use them during the
+# local build of Python.
+#
+# Avoid (risky) upgrade of base system, allowing to keep one task build that
+# builds all the python packages
+maybe_ssl102_py37()
+{
+    pyver=$1
+
+    unset PY37_OPENSSL
+    unset PY37_LDPATH
+    unset PY37_SOURCE_PACKAGE
+
+    case "${pyver}" in
+        3.7*)
+            if [ "${OS}" = "Linux" ]; then
+                PY37_OPENSSL_DIR=${DS_ROOT_TASK}/ssl-xenial
+                mkdir -p ${PY37_OPENSSL_DIR}
+                wget -P ${TASKCLUSTER_TMP_DIR} \
+                        http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.0.2g-1ubuntu4.12_amd64.deb \
+                        http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.0.0_1.0.2g-1ubuntu4.12_amd64.deb
+
+                for deb in ${TASKCLUSTER_TMP_DIR}/libssl*.deb; do
+                    dpkg -x ${deb} ${PY37_OPENSSL_DIR}
+                done;
+
+                # Python configure expects things to be under lib/
+                mv ${PY37_OPENSSL_DIR}/usr/include/x86_64-linux-gnu/openssl/opensslconf.h ${PY37_OPENSSL_DIR}/usr/include/openssl/
+                mv ${PY37_OPENSSL_DIR}/lib/x86_64-linux-gnu/lib* ${PY37_OPENSSL_DIR}/usr/lib/
+                mv ${PY37_OPENSSL_DIR}/usr/lib/x86_64-linux-gnu/* ${PY37_OPENSSL_DIR}/usr/lib/
+                ln -sfn libcrypto.so.1.0.0 ${PY37_OPENSSL_DIR}/usr/lib/libcrypto.so
+                ln -sfn libssl.so.1.0.0 ${PY37_OPENSSL_DIR}/usr/lib/libssl.so
+
+                export PY37_OPENSSL="--with-openssl=${PY37_OPENSSL_DIR}/usr"
+                export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
+            fi;
+
+            # TODO: Temporary workaround because no py37m numpy wheel and we
+            # want to be able to test that.
+            export PY37_SOURCE_PACKAGE="--extra-index-url https://lissyx.github.io/deepspeech-python-wheels/"
+        ;;
+    esac
+}
+
 do_deepspeech_python_build()
 {
   rename_to_gpu=$1
@@ -515,16 +559,24 @@ do_deepspeech_python_build()
     pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
     pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
 
-    PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv install ${pyver}
+    maybe_ssl102_py37 ${pyver}
+
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv install ${pyver}
+
     pyenv virtualenv ${pyver} deepspeech
     source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
 
-    EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/ \
-      TARGET=${SYSTEM_TARGET} \
-      RASPBIAN=${SYSTEM_RASPBIAN} \
-      TFDIR=${DS_TFDIR} \
-      SETUP_FLAGS="${SETUP_FLAGS}" \
-      bindings-clean bindings
+    # Set LD path because python ssl might require it
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
+    EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
+    EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
+    EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
+    make -C native_client/ \
+        TARGET=${SYSTEM_TARGET} \
+        RASPBIAN=${SYSTEM_RASPBIAN} \
+        TFDIR=${DS_TFDIR} \
+        SETUP_FLAGS="${SETUP_FLAGS}" \
+        bindings-clean bindings
 
     cp native_client/dist/*.whl wheels
 
