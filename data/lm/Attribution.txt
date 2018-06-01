@@ -1,0 +1,8 @@
+All text used to create lm.binary, trie, and vocab.txt are from LibriSpeech[1]'s training data set,
+a corpus of approximately 1000 hours of 16 kHz read English speech, prepared by Vassil Panayotov
+with the assistance of Daniel Povey. The data is derived from read audiobooks from the LibriVox
+project[2], and has been carefully segmented and aligned. For license info see the License.txt
+file in this directory.
+
+[1] http://www.openslr.org/12
+[2] https://librivox.org/
