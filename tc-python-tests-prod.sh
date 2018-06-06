@@ -41,8 +41,10 @@ download_data
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
+maybe_ssl102_py37 ${pyver}
+
 PYENV_NAME=deepspeech-test
-PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${EXTRA_PYTHON_CONFIGURE_OPTS}" pyenv install ${pyver}
+LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL} ${EXTRA_PYTHON_CONFIGURE_OPTS}" pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
@@ -50,7 +52,7 @@ platform=$(python -c 'import sys; import platform; plat = platform.system().lowe
 whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
 deepspeech_pkg="deepspeech-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
-pip install --only-binary :all: --upgrade ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg} | cat
+LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg} | cat
 
 run_prod_inference_tests
 
