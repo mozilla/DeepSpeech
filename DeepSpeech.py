@@ -338,7 +338,7 @@ def initialize_globals():
 # =================
 
 def prefix_print(prefix, message):
-    print(prefix + ('\n' + prefix).join(message.split('\n')))
+    print(prefix + message.encode('utf-8').replace('\n', '\n'+prefix))
 
 def log_debug(message):
     if FLAGS.log_level == 0:
