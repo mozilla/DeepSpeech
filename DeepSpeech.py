@@ -710,22 +710,23 @@ def average_gradients(tower_gradients):
     return average_grads
 
 
-
 # Logging
 # =======
-
-def log_variable(variable, gradient=None):
+def log_variable(variable, name=None, gradient=None, simple=False):
     r'''
     We introduce a function for logging a tensor variable's current state.
     It logs scalar values for the mean, standard deviation, minimum and maximum.
     Furthermore it logs a histogram of its state and (if given) of an optimization gradient.
     '''
-    name = variable.name
+    if not name:
+        name = variable.name
     mean = tf.reduce_mean(variable)
     tf.summary.scalar(name='%s/mean'   % name, tensor=mean)
-    tf.summary.scalar(name='%s/sttdev' % name, tensor=tf.sqrt(tf.reduce_mean(tf.square(variable - mean))))
     tf.summary.scalar(name='%s/max'    % name, tensor=tf.reduce_max(variable))
     tf.summary.scalar(name='%s/min'    % name, tensor=tf.reduce_min(variable))
+    if simple and gradient is None:
+        return
+    tf.summary.scalar(name='%s/sttdev' % name, tensor=tf.sqrt(tf.reduce_mean(tf.square(variable - mean))))
     tf.summary.histogram(name=name, values=variable)
     if gradient is not None:
         if isinstance(gradient, tf.IndexedSlices):
@@ -1506,8 +1507,15 @@ def train(server=None):
     # Add summaries of all variables and gradients to log
     log_grads_and_vars(avg_tower_gradients)
 
-    # MKT Tweak - attempt to add loss to tensorboard (I doubt this will work)
-    log_variable(loss)
+    # Explicitly call out loss on tensorflow (it appears as mean_xx something)
+    log_variable(loss, name="loss", simple=True)
+
+    # attempt to log useful hyper parameters from optimizer
+    if isinstance(optimizer, tf.train.AdamOptimizer):
+        log_variable(tf.reduce_mean(optimizer._beta1, optimizer._beta1_t), name="optimizer_beta1", simple=True)
+        log_variable(tf.reduce_mean(optimizer._beta2, optimizer._beta2_t), name="optimizer_beta2", simple=True)
+        log_variable(tf.reduce_mean(optimizer._epsilon, optimizer._epsilon_t), name="optimizer_epsilon", simple=True)
+        log_variable(tf.reduce_mean(optimizer._lr, optimizer._lr_t), name="optimizer_lr", simple=True)
 
     # Op to merge all summaries for the summary hook
     merge_all_summaries_op = tf.summary.merge_all()
