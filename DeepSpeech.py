@@ -417,24 +417,21 @@ def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, previous_st
     b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
     h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
-    if dropout[0] > 0:
-        layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
     layers['layer_1'] = layer_1
 
     # 2nd layer
     b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
     h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
-    if dropout[1] > 0:
-        layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
     layers['layer_2'] = layer_2
 
     # 3rd layer
     b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
     h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
-    if dropout[2] > 0:
-        layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
     layers['layer_3'] = layer_3
 
     # Now we create the forward and backward LSTM units.
@@ -462,8 +459,7 @@ def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, previous_st
     b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
     h5 = variable_on_worker_level('h5', [n_cell_dim, n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
-    if dropout[5] > 0:
-        layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
     layers['layer_5'] = layer_5
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
