@@ -380,40 +380,8 @@ def variable_on_worker_level(name, shape, initializer):
         var = tf.get_variable(name=name, shape=shape, initializer=initializer)
     return var
 
-def rnn_impl_training(inputs, seq_length, fw_cell, batch_size, n_steps):
-    # Now we feed `layer_3` into the LSTM RNN cell and obtain the LSTM RNN output.
-    output, output_state = tf.nn.dynamic_rnn(cell=fw_cell,
-                                             inputs=inputs,
-                                             dtype=tf.float32,
-                                             time_major=True,
-                                             sequence_length=seq_length)
 
-    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
-    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
-    output = tf.reshape(output, [-1, n_cell_dim])
-
-    return output, output_state
-
-def rnn_impl_inference(inputs, seq_length, fw_cell, batch_size, n_steps, previous_state):
-    inputs = tf.split(inputs, n_steps)
-    inputs = [tf.squeeze(split, axis=0) for split in inputs]
-
-    # Now we feed `inputs` into the LSTM RNN cell and obtain the LSTM RNN output.
-    outputs, output_state = tf.nn.static_rnn(cell=fw_cell,
-                                             inputs=inputs,
-                                             initial_state=previous_state,
-                                             dtype=tf.float32,
-                                             sequence_length=seq_length)
-
-    output = tf.concat(outputs, axis=0)
-
-    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
-    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
-    output = tf.reshape(output, [n_steps*batch_size, n_cell_dim])
-
-    return output, output_state
-
-def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, rnn_impl=rnn_impl_training):
+def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, previous_state=None):
     r'''
     That done, we will define the learned variables, the weights and biases,
     within the method ``BiRNN()`` which also constructs the neural network.
@@ -473,12 +441,7 @@ def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, rnn_impl=rn
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
-    if dropout[3] > 0:
-        fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell,
-                                                input_keep_prob=1.0 - dropout[3],
-                                                output_keep_prob=1.0 - dropout[3],
-                                                seed=FLAGS.random_seed)
+    fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(n_cell_dim)
     layers['fw_cell'] = fw_cell
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
@@ -487,7 +450,11 @@ def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, rnn_impl=rn
 
     # We parametrize the RNN implementation as the training and inference graph
     # need to do different things here.
-    output, output_state = rnn_impl(layer_3, seq_length, fw_cell, batch_size, n_steps)
+    output, output_state = fw_cell(inputs=layer_3, dtype=tf.float32, sequence_length=seq_length, initial_state=previous_state)
+
+    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
+    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
+    output = tf.reshape(output, [-1, n_cell_dim])
     layers['rnn_output'] = output
     layers['rnn_output_state'] = output_state
 
@@ -551,7 +518,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
-    logits, _ = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
+    logits, _ = BiRNN(batch_x, batch_seq_len, dropout)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
@@ -1753,32 +1720,27 @@ def train(server=None):
 
 def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False):
     # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
-    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps, n_input + 2*n_input*n_context], name='input_node')
+    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, n_input + 2*n_input*n_context], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
 
     previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, n_cell_dim], initializer=None)
     previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, n_cell_dim], initializer=None)
     previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
-    rnn_impl = partial(rnn_impl_inference, previous_state=previous_state)
-
     logits, layers = BiRNN(batch_x=input_tensor,
                            seq_length=seq_length if FLAGS.use_seq_length else None,
                            dropout=no_dropout,
                            batch_size=batch_size,
                            n_steps=n_steps,
-                           rnn_impl=rnn_impl)
+                           previous_state=previous_state)
 
-    fw_cell = layers['fw_cell']
     new_state_c, new_state_h = layers['rnn_output_state']
 
     # Initial zero state
-    zero_state_c, zero_state_h = fw_cell.zero_state(batch_size, tf.float32)
-    zero_state_c = tf.identity(zero_state_c, name='zero_state_c')
-    zero_state_h = tf.identity(zero_state_h, name='zero_state_h')
+    zero_state = tf.zeros([batch_size, n_cell_dim], tf.float32)
 
-    initialize_c = tf.assign(previous_state_c, zero_state_c)
-    initialize_h = tf.assign(previous_state_h, zero_state_h)
+    initialize_c = tf.assign(previous_state_c, zero_state)
+    initialize_h = tf.assign(previous_state_h, zero_state)
 
     initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
 
