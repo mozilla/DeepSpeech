@@ -89,6 +89,7 @@ struct StreamingState {
   ModelState* model;
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
+  char* intermediateDecode();
   char* finishStream();
 
   void processAudioWindow(const vector<float>& buf);
@@ -195,6 +196,12 @@ StreamingState::feedAudioContent(const short* buffer,
 
     // Repeat until buffer empty
   }
+}
+
+char*
+StreamingState::intermediateDecode()
+{
+  return model->decode(accumulated_logits);
 }
 
 char*
@@ -595,6 +602,12 @@ DS_FeedAudioContent(StreamingState* aSctx,
                     unsigned int aBufferSize)
 {
   aSctx->feedAudioContent(aBuffer, aBufferSize);
+}
+
+char*
+DS_IntermediateDecode(StreamingState* aSctx)
+{
+  return aSctx->intermediateDecode();
 }
 
 char*

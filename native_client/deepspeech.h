@@ -116,6 +116,10 @@ void DS_FeedAudioContent(StreamingState* aSctx,
                          short* aBuffer,
                          unsigned int aBufferSize);
 
+
+DEEPSPEECH_EXPORT
+char* DS_IntermediateDecode(StreamingState* aSctx);
+
 /**
  * @brief Signal the end of an audio signal to an ongoing streaming
  *        inference, returns the STT result over the whole audio signal.
