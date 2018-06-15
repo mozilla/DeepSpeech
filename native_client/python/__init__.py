@@ -36,5 +36,8 @@ class Model(object):
     def feedAudioContent(self, *args, **kwargs):
         deepspeech.impl.FeedAudioContent(*args, **kwargs)
 
+    def intermediateDecode(self, *args, **kwargs):
+        deepspeech.impl.IntermediateDecode(*args, **kwargs)
+
     def finishStream(self, *args, **kwargs):
         return deepspeech.impl.FinishStream(*args, **kwargs)

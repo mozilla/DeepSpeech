@@ -42,6 +42,10 @@ Model.prototype.feedAudioContent = function() {
     binding.FeedAudioContent.apply(null, arguments);
 }
 
+Model.prototype.intermediateDecode = function() {
+    binding.IntermediateDecode.apply(null, arguments);
+}
+
 Model.prototype.finishStream = function() {
     return binding.FinishStream.apply(null, arguments);
 }
