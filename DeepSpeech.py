@@ -1599,6 +1599,8 @@ def train(server=None):
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=None, # already taken care of by a hook
                                                config=session_config) as session:
+            tf.get_default_graph().finalize()
+
             if len(FLAGS.initialize_from_frozen_model) > 0:
                 log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
                 model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
