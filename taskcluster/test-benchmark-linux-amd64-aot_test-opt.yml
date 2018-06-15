@@ -1,0 +1,13 @@
+build:
+  template_file: test-linux-opt-base.tyml
+  dependencies:
+    - "linux-amd64-cpu-aot_test-opt"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  system_setup:
+    >
+      apt-get -qq -y install ${python.packages_trusty.apt} zip
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-benchmark-tests.sh --aot"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CPU benchmarking AOT (Test)"
+    description: "Benchmarking DeepSpeech for Linux/AMD64, AOT model (test), CPU only, optimized version"

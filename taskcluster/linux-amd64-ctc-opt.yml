@@ -1,0 +1,14 @@
+build:
+  allowed:
+    - "pull_request.opened"
+    - "pull_request.synchronize"
+    - "pull_request.reopened"
+  template_file: linux-opt-base.tyml
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.c346f2c8fdedbbfdc1a551e193552d26cf30eb9c.cpu/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.c346f2c8fdedbbfdc1a551e193552d26cf30eb9c.cpu/artifacts/public/summarize_graph"
+  scripts:
+    build: 'taskcluster/decoder-build.sh'
+    package: 'taskcluster/decoder-package.sh'
+  metadata:
+    name: "DeepSpeech CTC KenLM Decoder Linux AMD64 CPU"
+    description: "Building DeepSpeech CTC KenLM Decoder for Linux/AMD64, CPU only, optimized version"

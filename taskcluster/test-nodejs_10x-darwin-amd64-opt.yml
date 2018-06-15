@@ -1,0 +1,13 @@
+build:
+  template_file: test-darwin-opt-base.tyml
+  dependencies:
+    - "node-package"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  system_setup:
+    >
+      ${nodejs.brew.setup} && ${nodejs.brew.prep_10} && ${nodejs.brew.env}
+  args:
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-node-tests.sh 10.x"
+  metadata:
+    name: "DeepSpeech OSX AMD64 CPU NodeJS 10.x tests"
+    description: "Testing DeepSpeech for OSX/AMD64 on NodeJS v10.x, CPU only, optimized version"

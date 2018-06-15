@@ -1,0 +1,22 @@
+build:
+  allowed:
+    - "pull_request.opened"
+    - "pull_request.synchronize"
+    - "pull_request.reopened"
+    - "push"
+    - "tag"
+  ref_match: "invalid-refs-should-not-work"
+  dependencies: []
+  maxRunTime: 3600
+  system_setup:
+    >
+      true
+  system_config:
+    >
+      true
+  scripts:
+    build: ''
+    package: ''
+  args:
+    tests_cmdline: ''
+  convert_graphdef: ''

@@ -9,7 +9,12 @@
 /exports
 /native_client/setup.cfg
 /native_client/build
-/native_client/deepspeech.egg-info
+/native_client/*.egg-info
 /native_client/dist
-/native_client/python/deepspeech.py
-/native_client/python/deepspeech_wrap.cpp
+/native_client/node_modules
+/native_client/python/model.py
+/native_client/python/utils.py
+/native_client/python/model_wrap.cpp
+/native_client/python/utils_wrap.cpp
+/native_client/javascript/build
+/native_client/javascript/deepspeech_wrap.cxx

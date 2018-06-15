@@ -1,0 +1,32 @@
+# Each feed is a positional input argument for the generated function.  The order
+# of each entry matches the order of each input argument.  Here “x_hold” and “y_hold”
+# refer to the names of placeholder nodes defined in the graph.
+#
+## From: input_tensor = tf.placeholder(tf.float32, [None, None, n_input + 2*n_input*n_context], name='input_node')
+feed {
+  id { node_name: "input_node" }
+  shape {
+    dim { size: 1 } # Batch size of 1
+    dim { size: $DS_MODEL_TIMESTEPS } # aNFrames: 146 for data/ldc93s1/LDC93S1.wav
+    dim { size: $DS_MODEL_FRAMESIZE } # frameSize: n_input + 2*n_input*n_context] ; n_input=26, n_context=9
+  }
+}
+
+#feed {
+#  id { node_name: "input_lengths" }
+#  shape {
+#    dim { size: 1 }
+#  }
+#}
+
+# Each fetch is a positional output argument for the generated function.  The order
+# of each entry matches the order of each output argument.  Here “x_y_prod”
+# refers to the name of a matmul node defined in the graph.
+#fetch {
+#  id { node_name: "output_node" }
+#}
+
+fetch {
+  id { node_name: "logits" }
+}
+

@@ -1,0 +1,76 @@
+$if: '(event.event != "push") && (event.event != "tag")'
+then:
+  taskId: ${taskcluster.taskId}
+  provisionerId: ${taskcluster.docker.provisionerId}
+  workerType: ${taskcluster.docker.workerType}
+  taskGroupId: ${taskcluster.taskGroupId}
+  schedulerId: ${taskcluster.schedulerId}
+  dependencies:
+    $map: { $eval: build.dependencies }
+    each(b):
+      $eval: as_slugid(b)
+  created: { $fromNow: '0 sec' }
+  deadline: { $fromNow: '1 day' }
+  expires: { $fromNow: '7 days' }
+
+  extra:
+    github:
+      { $eval: taskcluster.github_events.pull_request }
+
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+
+  scopes: [
+    "queue:route:notify.irc-channel.*"
+  ]
+
+  payload:
+    maxRunTime: { $eval: to_int(build.maxRunTime) }
+    image: "ubuntu:14.04"
+
+    env:
+      $let:
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
+        linux_amd64_aot_test: { $eval: as_slugid("linux-amd64-cpu-aot_test-opt") }
+        linux_amd64_build: { $eval: as_slugid("linux-amd64-cpu-opt") }
+        linux_amd64_ctc: { $eval: as_slugid("linux-amd64-ctc-opt") }
+        node_package: { $eval: as_slugid("node-package") }
+      in:
+        CONVERT_GRAPHDEF_MEMMAPPED: ${build.convert_graphdef}
+        DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_amd64_build}/artifacts/public
+        DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package}/artifacts/public
+        DEEPSPEECH_AOT_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_amd64_aot_test}/artifacts/public
+        DEEPSPEECH_LIBCTC: https://queue.taskcluster.net/v1/task/${linux_amd64_ctc}/artifacts/public/decoder.tar.xz
+        DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
+        DEEPSPEECH_PROD_MODEL: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pb
+        DEEPSPEECH_PROD_MODEL_MMAP: https://s3.amazonaws.com/deep-speech/mmap/output_graph.pbmm
+        PIP_DEFAULT_TIMEOUT: 60
+        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.6.0-16-gc346f2c"
+
+    command:
+      - "/bin/bash"
+      - "--login"
+      - "-cxe"
+      - $let:
+          extraSystemSetup: { $eval: strip(str(build.system_setup)) }
+        in: >
+          ${aptEc2Mirrors} &&
+          apt-get -qq update && apt-get -qq -y install git pixz sox wget && ${extraSystemSetup} &&
+          adduser --system --home ${system.homedir.linux} ${system.username} &&
+          cd ${system.homedir.linux} &&
+          echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          sudo -H -u ${system.username} /bin/bash /tmp/clone.sh &&
+          sudo -H -u ${system.username} --preserve-env /bin/bash ${build.args.tests_cmdline}
+
+    artifacts:
+      "public":
+        type: "directory"
+        path: "/tmp/artifacts/"
+        expires: { $fromNow: '7 days' }
+
+  metadata:
+    name: ${build.metadata.name}
+    description: ${build.metadata.description}
+    owner: ${event.head.user.email}
+    source: ${event.head.repo.url}

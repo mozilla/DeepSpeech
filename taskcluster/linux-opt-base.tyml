@@ -1,0 +1,74 @@
+$if: 'event.event in build.allowed'
+then:
+  taskId: ${taskcluster.taskId}
+  provisionerId: ${taskcluster.docker.provisionerId}
+  workerType: ${taskcluster.docker.workerType}
+  taskGroupId: ${taskcluster.taskGroupId}
+  schedulerId: ${taskcluster.schedulerId}
+  dependencies:
+    $map: { $eval: build.dependencies }
+    each(b):
+      $eval: as_slugid(b)
+  created: { $fromNow: '0 sec' }
+  deadline: { $fromNow: '1 day' }
+  expires:
+    $if: '(event.event == "push") || (event.event == "tag")'
+    then: { $fromNow: '6 months' }
+    else: { $fromNow: '7 days' }
+
+  extra:
+    github:
+      $if: '(event.event == "push") || (event.event == "tag")'
+      then: { $eval: taskcluster.github_events.merge }
+      else: { $eval: taskcluster.github_events.pull_request }
+
+  routes:
+    $if: '(event.event == "push") || (event.event == "tag")'
+    then:
+      { $eval: build.routes }
+
+  payload:
+    maxRunTime: { $eval: to_int(build.maxRunTime) }
+    image: "ubuntu:14.04"
+
+    env:
+      $let:
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
+      in:
+        TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
+        SUMMARIZE_GRAPH_BINARY: ${build.summarize_graph}
+        DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
+        DEEPSPEECH_PROD_MODEL: https://github.com/lissyx/DeepSpeech/releases/download/0.0.2/tc-fake-prod.988_e120.LSTM.ldc93s1.pb
+
+    command:
+      - "/bin/bash"
+      - "--login"
+      - "-cxe"
+      - $let:
+          extraSystemSetup: { $eval: strip(str(build.system_setup)) }
+          extraSystemConfig: { $eval: strip(str(build.system_config)) }
+        in: >
+          ${aptEc2Mirrors} &&
+          apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev && ${extraSystemSetup} &&
+          adduser --system --home ${system.homedir.linux} ${system.username} &&
+          cd ${system.homedir.linux}/ &&
+          echo -e "#!/bin/bash\nset -xe\n env && id && (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | tar -C ${system.homedir.linux}/ -xf - ) && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          sudo -H -u ${system.username} /bin/bash /tmp/clone.sh &&
+          ${system.homedir.linux}/DeepSpeech/tf/tc-apt.sh && ${extraSystemConfig} &&
+          sudo -H -u ${system.username} --preserve-env /bin/bash ${system.homedir.linux}/DeepSpeech/ds/${build.scripts.build} &&
+          sudo -H -u ${system.username} /bin/bash ${system.homedir.linux}/DeepSpeech/ds/${build.scripts.package}
+
+    artifacts:
+      "public":
+        type: "directory"
+        path: "/tmp/artifacts/"
+        expires:
+          $if: '(event.event == "push") || (event.event == "tag")'
+          then: { $fromNow: '6 months' }
+          else: { $fromNow: '7 days' }
+
+  metadata:
+    name: ${build.metadata.name}
+    description: ${build.metadata.description}
+    owner: ${event.head.user.email}
+    source: ${event.head.repo.url}

@@ -1,0 +1,68 @@
+$if: '(event.event != "push") && (event.event != "tag")'
+then:
+  taskId: ${taskcluster.taskId}
+  provisionerId: ${taskcluster.generic.provisionerId}
+  workerType: ${taskcluster.generic.workerType}
+  taskGroupId: ${taskcluster.taskGroupId}
+  schedulerId: ${taskcluster.schedulerId}
+  dependencies:
+    $map: { $eval: build.dependencies }
+    each(b):
+      $eval: as_slugid(b)
+  created: { $fromNow: '0 sec' }
+  deadline: { $fromNow: '1 day' }
+  expires: { $fromNow: '7 days' }
+
+  extra:
+    github:
+      { $eval: taskcluster.github_events.pull_request }
+
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+
+  scopes: [
+    "queue:route:notify.irc-channel.*",
+  ]
+
+  payload:
+    maxRunTime: { $eval: to_int(build.maxRunTime) }
+
+    env:
+      $let:
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
+        darwin_amd64_build: { $eval: as_slugid("darwin-amd64-cpu-opt") }
+        node_package: { $eval: as_slugid("node-package") }
+      in:
+        DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${darwin_amd64_build}/artifacts/public
+        DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package}/artifacts/public
+        DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
+        DEEPSPEECH_PROD_MODEL: https://s3-us-west-2.amazonaws.com/deepspeech/mmap/output_graph.pb
+        DEEPSPEECH_PROD_MODEL_MMAP: https://s3-us-west-2.amazonaws.com/deepspeech/mmap/output_graph.pbmm
+        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.6.0-16-gc346f2c"
+
+    command:
+      - - "/bin/bash"
+        - "--login"
+        - "-cxe"
+        - $let:
+            extraSystemSetup: { $eval: strip(str(build.system_setup)) }
+          in: >
+            export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+            export TASKCLUSTER_TASK_DIR="$(pwd)" &&
+            export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
+            export LC_ALL=C &&
+            export MACOSX_DEPLOYMENT_TARGET=10.10 &&
+            export PIP_DEFAULT_TIMEOUT=60 &&
+            env &&
+            git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
+            cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
+            cd $TASKCLUSTER_TASK_DIR &&
+            source $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-brew-tests.sh && ${extraSystemSetup} &&
+            /bin/bash ${build.args.tests_cmdline}
+
+  metadata:
+    name: ${build.metadata.name}
+    description: ${build.metadata.description}
+    owner: ${event.head.user.email}
+    source: ${event.head.repo.url}

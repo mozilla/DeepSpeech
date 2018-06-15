@@ -1,0 +1,17 @@
+build:
+  template_file: darwin-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx"
+    - "index.project.deepspeech.deepspeech.native_client.osx.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.c346f2c8fdedbbfdc1a551e193552d26cf30eb9c.osx/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.c346f2c8fdedbbfdc1a551e193552d26cf30eb9c.osx/artifacts/public/summarize_graph"
+  scripts:
+    build: "taskcluster/host-build.sh"
+    package: "taskcluster/package.sh"
+  maxRunTime: 14400
+  metadata:
+    name: "DeepSpeech OSX AMD64 CPU"
+    description: "Building DeepSpeech for OSX AMD64, CPU only, optimized version"

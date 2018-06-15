@@ -1,0 +1,15 @@
+build:
+  template_file: darwin-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx_aot"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx_aot"
+    - "index.project.deepspeech.deepspeech.native_client.osx_aot.${event.head.sha}"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.c346f2c8fdedbbfdc1a551e193552d26cf30eb9c.osx/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.6.c346f2c8fdedbbfdc1a551e193552d26cf30eb9c.osx/artifacts/public/summarize_graph"
+  scripts:
+    build: "taskcluster/host-build.sh --aot"
+    package: "taskcluster/package.sh"
+  maxRunTime: 14400
+  metadata:
+    name: "DeepSpeech OSX AMD64 CPU AOT"
+    description: "Building DeepSpeech for OSX AMD64, AOT model, CPU only, optimized version"

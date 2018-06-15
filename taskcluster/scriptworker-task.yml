@@ -1,0 +1,31 @@
+build:
+  template_file: simple-task.tyml
+  dependencies:
+    # Make sure builds are ready
+    # - "linux-arm64-cpu-opt" Aarch64 packages are refused by upload.pypi.org
+    - "darwin-amd64-cpu-opt"
+    - "linux-amd64-cpu-opt"
+    - "linux-amd64-gpu-opt"
+    - "linux-rpi3-cpu-opt"
+    - "node-package"
+  allowed:
+    - "tag"
+  ref_match: "refs/tags/"
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  artifacts_deps:
+    python:
+      - "darwin-amd64-cpu-opt"
+      - "linux-amd64-cpu-opt"
+      - "linux-amd64-gpu-opt"
+      - "linux-rpi3-cpu-opt"
+      # - "linux-arm64-cpu-opt" Aarch64 packages are refused by upload.pypi.org
+    javascript:
+      # GPU package
+      - "linux-amd64-gpu-opt"
+      # CPU package with all archs
+      - "node-package"
+  metadata:
+    name: "DeepSpeech Packages"
+    description: "Trigger Uploading of DeepSpeech Packages to the Internets"

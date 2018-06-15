@@ -2,108 +2,11 @@
 version: 0
 # Top level metadata is always required
 metadata:
-  name: "TaskCluster DeepSpeech build"
-  description: "Building CPU & GPU DeepSpeech"
+  name: "DeepSpeech"
+  description: "DeepSpeech builds"
   owner: "{{ event.head.user.email }}" # the user who sent the pr/push e-mail will be inserted here
   source: "{{ event.head.repo.url }}"  # the repo where the pr came from will be inserted here
 tasks:
-  ## PULL REQUEST FOR GPU BUILDS
-  # What kind of environment will you need (docker, windows, etc...)
-  - provisionerId: "{{ taskcluster.docker.provisionerId }}"
-    # Be careful with spacing under the lines with dashes. Next line should begin under the word, not under the dash.
-    # Worker types correspond to particular machine types (aws size, etc...)
-    # worker types may be added by priveleged taskcluster users at https://tools.taskcluster.net/aws-provisioner
-    workerType: "deepspeech-worker"
-    extra:
-      github:
-        # This must be set in order access GitHub info from inside your environment
-        env: true
-        # Events that will trigger this task
-        events:
-          - pull_request.opened
-          - pull_request.synchronize
-          - pull_request.reopened
-    payload:
-      maxRunTime: 14400
-      image: "ubuntu:14.04"
-      env:
-        TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.gpu/artifacts/public/home.tar.xz
-      command:
-        - "/bin/bash"
-        - "--login"
-        - "-cxe"
-        - >
-          apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev &&
-          adduser --system --home /home/build-user build-user &&
-          cd /home/build-user/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
-          sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh --gpu &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
-      artifacts:
-        "public":
-          type: "directory"
-          path: "/tmp/artifacts/"
-          expires: "{{ '7 days' | $fromNow }}"
-    # Each task also requires explicit metadata
-    metadata:
-      name: "TaskCluster DeepSpeech GPU"
-      description: "Building DeepSpeech with GPU support"
-      owner: "{{ event.head.user.email }}"
-      source: "{{ event.head.repo.url }}"
-
-  ## PUSH TO MAIN REPO FOR GPU BUILDS
-  # What kind of environment will you need (docker, windows, etc...)
-  - provisionerId: "{{ taskcluster.docker.provisionerId }}"
-    # Be careful with spacing under the lines with dashes. Next line should begin under the word, not under the dash.
-    # Worker types correspond to particular machine types (aws size, etc...)
-    # worker types may be added by priveleged taskcluster users at https://tools.taskcluster.net/aws-provisioner
-    workerType: "deepspeech-worker"
-    extra:
-      github:
-        # This must be set in order access GitHub info from inside your environment
-        env: true
-        # Events that will trigger this task
-        events:
-          - push
-        branches:
-          - master
-    routes:
-      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.gpu"
-      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.{{ event.head.sha }}.gpu"
-      - "index.project.deepspeech.deepspeech.native_client.gpu.{{ event.head.sha }}"
-    payload:
-      maxRunTime: 14400
-      image: "ubuntu:14.04"
-      env:
-        TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.gpu/artifacts/public/home.tar.xz
-      command:
-        - "/bin/bash"
-        - "--login"
-        - "-cxe"
-        - >
-          apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev &&
-          adduser --system --home /home/build-user build-user &&
-          cd /home/build-user/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
-          sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh --gpu &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
-      artifacts:
-        "public":
-          type: "directory"
-          path: "/tmp/artifacts/"
-          expires: "{{ '6 months' | $fromNow }}"
-    # Each task also requires explicit metadata
-    metadata:
-      name: "TaskCluster DeepSpeech GPU"
-      description: "Building DeepSpeech with GPU support"
-      owner: "{{ event.head.user.email }}"
-      source: "{{ event.head.repo.url }}"
-
-  ## PULL REQUEST FOR CPU BUILDS
   - provisionerId: "{{ taskcluster.docker.provisionerId }}"
     workerType: "deepspeech-worker"
     extra:
@@ -113,24 +16,48 @@ tasks:
           - pull_request.opened
           - pull_request.synchronize
           - pull_request.reopened
+          - push
+          - tag
+        branches:
+          - master
+
+    routes:
+      - "notify.irc-channel.#machinelearning.on-any"
+
+    scopes: [
+      "queue:create-task:lowest:{{ taskcluster.docker.provisionerId }}/deepspeech-worker",
+      "queue:create-task:lowest:deepspeech-provisioner/ds-macos-light",
+      "queue:create-task:lowest:deepspeech-provisioner/ds-scriptworker",
+      "queue:create-task:lowest:deepspeech-provisioner/ds-rpi3",
+      "queue:create-task:lowest:deepspeech-provisioner/ds-lepotato",
+      "queue:route:index.project.deepspeech.*",
+      "queue:route:notify.irc-channel.*",
+      "queue:scheduler-id:taskcluster-github",
+      "generic-worker:cache:deepspeech-homebrew-bin",
+      "generic-worker:cache:deepspeech-homebrew-cache"
+    ]
+
     payload:
-      maxRunTime: 7200
+      maxRunTime: 600
       image: "ubuntu:14.04"
+
+      features:
+        taskclusterProxy: true
+
       env:
-        TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.cpu/artifacts/public/home.tar.xz
+        TC_DECISION_SHA: d5e8b7cf5b88efb7b1c890a903a350316ad7e932
+
       command:
         - "/bin/bash"
         - "--login"
         - "-cxe"
         - >
-          apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev &&
+          apt-get -qq update && apt-get -qq -y install git python3-pip curl &&
           adduser --system --home /home/build-user build-user &&
           cd /home/build-user/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          echo -e "#!/bin/bash\nset -xe\nenv && id && mkdir ~/DeepSpeech/ && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
+          sudo -H -u build-user --preserve-env /bin/bash /home/build-user/DeepSpeech/ds/tc-schedule.sh
       artifacts:
         "public":
           type: "directory"
@@ -138,141 +65,7 @@ tasks:
           expires: "{{ '7 days' | $fromNow }}"
     # Each task also requires explicit metadata
     metadata:
-      name: "TaskCluster DeepSpeech CPU only"
-      description: "Building DeepSpeech with CPU only support"
-      owner: "{{ event.head.user.email }}"
-      source: "{{ event.head.repo.url }}"
-
-  ## PUSH TO MAIN REPO FOR CPU BUILDS
-  - provisionerId: "{{ taskcluster.docker.provisionerId }}"
-    workerType: "deepspeech-worker"
-    extra:
-      github:
-        env: true
-        events:
-          - push
-        branches:
-          - master
-    routes:
-      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.cpu"
-      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.{{ event.head.sha }}.cpu"
-      - "index.project.deepspeech.deepspeech.native_client.cpu.{{ event.head.sha }}"
-    payload:
-      maxRunTime: 7200
-      image: "ubuntu:14.04"
-      env:
-        TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.cpu/artifacts/public/home.tar.xz
-      command:
-        - "/bin/bash"
-        - "--login"
-        - "-cxe"
-        - >
-          apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev &&
-          adduser --system --home /home/build-user build-user &&
-          cd /home/build-user/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
-          sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
-      artifacts:
-        "public":
-          type: "directory"
-          path: "/tmp/artifacts/"
-          expires: "{{ '6 months' | $fromNow }}"
-    # Each task also requires explicit metadata
-    metadata:
-      name: "TaskCluster DeepSpeech CPU only"
-      description: "Building DeepSpeech with CPU only support"
-      owner: "{{ event.head.user.email }}"
-      source: "{{ event.head.repo.url }}"
-
-  ## PULL REQUEST FOR ARM CPU BUILDS
-  - provisionerId: "{{ taskcluster.docker.provisionerId }}"
-    workerType: "deepspeech-worker"
-    extra:
-      github:
-        env: true
-        events:
-          - pull_request.opened
-          - pull_request.synchronize
-          - pull_request.reopened
-    payload:
-      maxRunTime: 7200
-      image: "ubuntu:14.04"
-      ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
-      env:
-        TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/home.tar.xz
-      command:
-        - "/bin/bash"
-        - "--login"
-        - "-cxe"
-        - >
-          apt-get -qq update && apt-get -qq -y install wget gdebi git pixz &&
-          wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb && echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
-          adduser --system --home /home/build-user build-user &&
-          cd /home/build-user/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
-          sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          multistrap -d /tmp/multistrap-raspbian-jessie/ -f /home/build-user/DeepSpeech/ds/native_client/multistrap.conf &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh --arm &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
-      artifacts:
-        "public":
-          type: "directory"
-          path: "/tmp/artifacts/"
-          expires: "{{ '7 days' | $fromNow }}"
-    # Each task also requires explicit metadata
-    metadata:
-      name: "TaskCluster DeepSpeech ARM CPU only"
-      description: "Building DeepSpeech with ARM CPU only support"
-      owner: "{{ event.head.user.email }}"
-      source: "{{ event.head.repo.url }}"
-
-  ## PUSH TO MAIN REPO FOR ARM CPU BUILDS
-  - provisionerId: "{{ taskcluster.docker.provisionerId }}"
-    workerType: "deepspeech-worker"
-    extra:
-      github:
-        env: true
-        events:
-          - push
-        branches:
-          - master
-    routes:
-      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.arm"
-      - "index.project.deepspeech.deepspeech.native_client.{{ event.head.repo.branch }}.{{ event.head.sha }}.arm"
-      - "index.project.deepspeech.deepspeech.native_client.arm.{{ event.head.sha }}"
-    payload:
-      maxRunTime: 7200
-      image: "ubuntu:14.04"
-      ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
-      env:
-        TENSORFLOW_BUILD_ARTIFACT: https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/home.tar.xz
-      command:
-        - "/bin/bash"
-        - "--login"
-        - "-cxe"
-        - >
-          apt-get -qq update && apt-get -qq -y install wget gdebi git pixz &&
-          wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb && echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
-          adduser --system --home /home/build-user build-user &&
-          cd /home/build-user/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && (wget -O - ${TENSORFLOW_BUILD_ARTIFACT} | pixz -d | tar xf - ) && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
-          sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          /home/build-user/DeepSpeech/tf/tc-apt.sh &&
-          multistrap -d /tmp/multistrap-raspbian-jessie/ -f /home/build-user/DeepSpeech/ds/native_client/multistrap.conf &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-build.sh --arm &&
-          sudo -H -u build-user /bin/bash /home/build-user/DeepSpeech/ds/tc-package.sh
-      artifacts:
-        "public":
-          type: "directory"
-          path: "/tmp/artifacts/"
-          expires: "{{ '6 months' | $fromNow }}"
-    # Each task also requires explicit metadata
-    metadata:
-      name: "TaskCluster DeepSpeech ARM CPU only"
-      description: "Building DeepSpeech with ARM CPU only support"
+      name: "DeepSpeech Decision Task"
+      description: "DeepSpeech Decision Task: triggers everything."
       owner: "{{ event.head.user.email }}"
       source: "{{ event.head.repo.url }}"

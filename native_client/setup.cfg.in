@@ -1,4 +1,0 @@
-[build_ext]
-include-dirs=./
-library-dirs=@LIBDIRS@
-swig-opts=-c++ -keyword

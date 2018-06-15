@@ -1,0 +1,159 @@
+taskId: ${taskcluster.taskId}
+provisionerId: ${taskcluster.generic.provisionerId}
+workerType: ${taskcluster.generic.workerType}
+taskGroupId: ${taskcluster.taskGroupId}
+schedulerId: ${taskcluster.schedulerId}
+dependencies:
+  $map: { $eval: build.dependencies }
+  each(b):
+    $eval: as_slugid(b)
+created: { $fromNow: '0 sec' }
+deadline: { $fromNow: '1 day' }
+expires:
+  $if: '(event.event == "push") || (event.event == "tag")'
+  then: { $fromNow: '6 months' }
+  else: { $fromNow: '7 days' }
+
+extra:
+  github:
+    $if: '(event.event == "push") || (event.event == "tag")'
+    then: { $eval: taskcluster.github_events.merge }
+    else: { $eval: taskcluster.github_events.pull_request }
+
+routes:
+  $if: '(event.event == "push") || (event.event == "tag")'
+  then:
+    { $eval: build.routes }
+
+scopes:
+  $if: '(event.event != "push") && (event.event != "tag")'
+  then:
+    - generic-worker:cache:deepspeech-homebrew-bin
+    - generic-worker:cache:deepspeech-homebrew-cache
+
+payload:
+  maxRunTime: { $eval: to_int(build.maxRunTime) }
+
+  env:
+    $let:
+      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
+    in:
+      TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
+      SUMMARIZE_GRAPH_BINARY: ${build.summarize_graph}
+      DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
+      DEEPSPEECH_PROD_MODEL: https://github.com/lissyx/DeepSpeech/releases/download/0.0.2/tc-fake-prod.988_e120.LSTM.ldc93s1.pb
+
+  # There is no VM yet running tasks on OSX
+  # so one should install by hand:
+  # - brew
+  # - xcode (brew would install)
+  # - brew install gnu-tar
+  # - brew install git
+  # - brew install pixz
+  # - brew cask install java
+  # - sudo easy_install pip
+  #
+  # gtar needed for --transform
+  #   --transform used to rewrite symlinks
+  #     this rewrite should take care of tranforming
+  #      - ${system.homedir.osx}/TaskCluster/Tasks/task_[[:digit:]]\{10\}/
+  #      - ${system.homedir.osx}/TaskCluster/HeavyTasks/X/task_[[:digit:]]\{10\}/
+  #      - ${system.homedir.osx}/TaskCluster/LightTasks/X/task_[[:digit:]]\{10\}/
+  #      into
+  #      - $TASKCLUSTER_TASK_DIR/
+  #  => goal:
+  #     - no dangling symlink that points to broken/invalid path
+  #       all symlinks should point to (full)path scoped only on this task
+  #     - no file referring to anything else than $TASKCLUSTER_TASK_DIR/
+  #       sed to the rescue to change all text files that references the wrong
+  #       dir and hopefully keep the tensorflow bazel cache usable
+  #     - the huge grep -R serves this purpose (without, later build of
+  #       native_client fails)
+  #     - we need to remove from the grep result anything matching
+  #       "generic-worker/" to avoid screwing the generic-worker/live_backing.log
+  #       and this breaking the build in undebuggable ways
+
+  command:
+    - - "/bin/bash"
+      - "--login"
+      - "-cxe"
+      - >
+        export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+        export TASKCLUSTER_TASK_DIR="$(pwd)" &&
+        export LC_ALL=C &&
+        export TASKCLUSTER_ORIGIN_PATH="${system.homedir.osx}/TaskCluster/.*/task_[[:digit:]]\{10\}" &&
+        export TASKCLUSTER_REWRITE_PATH="$TASKCLUSTER_TASK_DIR" &&
+        export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
+        export MACOSX_DEPLOYMENT_TARGET=10.10 &&
+        env &&
+        (
+          (
+            for link in $(find -L "$TASKCLUSTER_TASK_DIR/homebrew/" -type l);
+            do
+                newloc=$(readlink "$link" | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
+                ln -hfs "$newloc" "$link";
+            done) || true) &&
+        (
+          (
+            for lib in $(find "$TASKCLUSTER_TASK_DIR/homebrew/" -type f -name "*.dylib");
+            do
+                chmod +w "$lib";
+                for id in $(otool -D "$lib" | grep "$TASKCLUSTER_ORIGIN_PATH");
+                do
+                    newid=$(echo $id | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
+                    install_name_tool -id "$newid" "$lib";
+                done;
+
+                for dep in $(otool -L "$lib" | awk '{ print $1 }' | grep "$TASKCLUSTER_ORIGIN_PATH");
+                do
+                    newdep=$(echo $dep | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
+                    install_name_tool -change "$dep" "$newdep" "$lib";
+                done;
+                chmod -w "$lib";
+                otool -L "$lib";
+            done) || true) &&
+        (
+          (
+            for bin in $(find "$TASKCLUSTER_TASK_DIR/homebrew/" -perm +111 -type f);
+            do
+                chmod +w "$bin";
+                for dep in $(otool -L "$bin" | awk '{ print $1 }' | grep "$TASKCLUSTER_ORIGIN_PATH");
+                do
+                    newdep=$(echo $dep | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
+                    install_name_tool -change "$dep" "$newdep" "$bin";
+                done;
+                chmod -w "$bin";
+                otool -L "$bin";
+            done) || true) &&
+        (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR --transform "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g" -xf - ) &&
+        ((grep -R -I --files-with-matches "$TASKCLUSTER_ORIGIN_PATH" $TASKCLUSTER_TASK_DIR | grep -v "$TASKCLUSTER_TASK_DIR/generic-worker/" | xargs -n 1 -P 16 sed -i '' -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g") || true) &&
+        git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
+        cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
+        ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
+        cd $TASKCLUSTER_TASK_DIR &&
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
+        ${swig.patch_nodejs.osx} &&
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package}
+
+  artifacts:
+    - type: "directory"
+      path: "public/"
+      expires:
+        $if: '(event.event == "push") || (event.event == "tag")'
+        then: { $fromNow: '6 months' }
+        else: { $fromNow: '7 days' }
+
+  mounts:
+    $if: '(event.event != "push") && (event.event != "tag")'
+    then:
+      - cacheName: deepspeech-homebrew-bin
+        directory: homebrew/
+      - cacheName: deepspeech-homebrew-cache
+        directory: homebrew.cache/
+
+metadata:
+  name: ${build.metadata.name}
+  description: ${build.metadata.description}
+  owner: ${event.head.user.email}
+  source: ${event.head.repo.url}

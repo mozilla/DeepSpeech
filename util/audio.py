@@ -1,9 +1,59 @@
-from __future__ import absolute_import
-import numpy as np
-import scipy.io.wavfile as wav
+from __future__ import absolute_import, print_function
 
-from python_speech_features import mfcc
-from six.moves import range
+import scipy.io.wavfile as wav
+import sys
+
+try:
+    from deepspeech.utils import audioToInputVector
+except ImportError:
+    import numpy as np
+    from python_speech_features import mfcc
+    from six.moves import range
+
+    class DeprecationWarning:
+        displayed = False
+
+    def audioToInputVector(audio, fs, numcep, numcontext):
+        if DeprecationWarning.displayed is not True:
+            DeprecationWarning.displayed = True
+            print('------------------------------------------------------------------------', file=sys.stderr)
+            print('WARNING: libdeepspeech failed to load, resorting to deprecated code',      file=sys.stderr)
+            print('         Refer to README.md for instructions on installing libdeepspeech', file=sys.stderr)
+            print('------------------------------------------------------------------------', file=sys.stderr)
+
+        # Get mfcc coefficients
+        features = mfcc(audio, samplerate=fs, numcep=numcep)
+
+        # We only keep every second feature (BiRNN stride = 2)
+        features = features[::2]
+
+        # One stride per time step in the input
+        num_strides = len(features)
+
+        # Add empty initial and final contexts
+        empty_context = np.zeros((numcontext, numcep), dtype=features.dtype)
+        features = np.concatenate((empty_context, features, empty_context))
+
+        # Create a view into the array with overlapping strides of size
+        # numcontext (past) + 1 (present) + numcontext (future)
+        window_size = 2*numcontext+1
+        train_inputs = np.lib.stride_tricks.as_strided(
+            features,
+            (num_strides, window_size, numcep),
+            (features.strides[0], features.strides[0], features.strides[1]),
+            writeable=False)
+
+        # Flatten the second and third dimensions
+        train_inputs = np.reshape(train_inputs, [num_strides, -1])
+
+        # Whiten inputs (TODO: Should we whiten?)
+        # Copy the strided array so that we can write to it safely
+        train_inputs = np.copy(train_inputs)
+        train_inputs = (train_inputs - np.mean(train_inputs))/np.std(train_inputs)
+
+        # Return results
+        return train_inputs
+
 
 def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     r"""
@@ -15,65 +65,4 @@ def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     # Load wav files
     fs, audio = wav.read(audio_filename)
 
-    # Get mfcc coefficients
-    orig_inputs = mfcc(audio, samplerate=fs, numcep=numcep)
-
-    # We only keep every second feature (BiRNN stride = 2)
-    orig_inputs = orig_inputs[::2]
-
-    # For each time slice of the training set, we need to copy the context this makes
-    # the numcep dimensions vector into a numcep + 2*numcep*numcontext dimensions
-    # because of:
-    #  - numcep dimensions for the current mfcc feature set
-    #  - numcontext*numcep dimensions for each of the past and future (x2) mfcc feature set
-    # => so numcep + 2*numcontext*numcep
-    train_inputs = np.array([], np.float32)
-    train_inputs.resize((orig_inputs.shape[0], numcep + 2*numcep*numcontext))
-
-    # Prepare pre-fix post fix context (TODO: Fill empty_mfcc with MCFF of silence)
-    empty_mfcc = np.array([])
-    empty_mfcc.resize((numcep))
-
-    # Prepare train_inputs with past and future contexts
-    time_slices = list(range(train_inputs.shape[0]))
-    context_past_min   = time_slices[0]  + numcontext
-    context_future_max = time_slices[-1] - numcontext
-    for time_slice in time_slices:
-        ### Reminder: array[start:stop:step]
-        ### slices from indice |start| up to |stop| (not included), every |step|
-        # Pick up to numcontext time slices in the past, and complete with empty
-        # mfcc features
-        need_empty_past     = max(0, (context_past_min - time_slice))
-        empty_source_past   = list(empty_mfcc for empty_slots in range(need_empty_past))
-        data_source_past    = orig_inputs[max(0, time_slice - numcontext):time_slice]
-        assert(len(empty_source_past) + len(data_source_past) == numcontext)
-
-        # Pick up to numcontext time slices in the future, and complete with empty
-        # mfcc features
-        need_empty_future   = max(0, (time_slice - context_future_max))
-        empty_source_future = list(empty_mfcc for empty_slots in range(need_empty_future))
-        data_source_future  = orig_inputs[time_slice + 1:time_slice + numcontext + 1]
-        assert(len(empty_source_future) + len(data_source_future) == numcontext)
-
-        if need_empty_past:
-            past   = np.concatenate((empty_source_past, data_source_past))
-        else:
-            past   = data_source_past
-
-        if need_empty_future:
-            future = np.concatenate((data_source_future, empty_source_future))
-        else:
-            future = data_source_future
-
-        past   = np.reshape(past, numcontext*numcep)
-        now    = orig_inputs[time_slice]
-        future = np.reshape(future, numcontext*numcep)
-
-        train_inputs[time_slice] = np.concatenate((past, now, future))
-        assert(len(train_inputs[time_slice]) == numcep + 2*numcep*numcontext)
-
-    # Whiten inputs (TODO: Should we whiten)
-    train_inputs = (train_inputs - np.mean(train_inputs))/np.std(train_inputs)
-
-    # Return results
-    return train_inputs
+    return audioToInputVector(audio, fs, numcep, numcontext)
