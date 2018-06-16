@@ -155,7 +155,7 @@ RUN bazel build --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_G
 
 
 # Build TF pip package
-RUN bazel build --config=opt --config=cuda --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+RUN bazel build --config=opt --config=cuda --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 # Fix for not found script https://github.com/tensorflow/tensorflow/issues/471
 RUN ./configure
