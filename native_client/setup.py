@@ -21,6 +21,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 numpy_include = os.getenv('NUMPY_INCLUDE', numpy_include)
+numpy_min_ver = os.getenv('NUMPY_VERSION', '1.7.0')
 
 project_name = 'deepspeech'
 if '--project_name' in sys.argv:
@@ -69,7 +70,7 @@ setup(name = project_name,
       },
       ext_modules = [model, utils],
       entry_points={'console_scripts':['deepspeech = deepspeech.client:main']},
-      install_requires = ['numpy', 'scipy'],
+      install_requires = ['numpy>=%s' % numpy_min_ver, 'scipy'],
       include_package_data = True,
       classifiers = [
         'Development Status :: 3 - Alpha',
