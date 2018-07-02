@@ -263,6 +263,12 @@ To use Common Voice data during training, validation and testing, you pass (comm
 If, for example, Common Voice was imported into `../data/CV`, `DeepSpeech.py` could be called like this:
 
 ```bash
+./DeepSpeech.py --train_files ../data/CV/cv-valid-train.csv --dev_files ../data/CV/cv-valid-dev.csv --test_files ../data/CV/cv-valid-test.csv
+```
+
+If you are brave enough, you can also include the `other` dataset, which contains not-yet-validated content, and thus can be broken from time to time:
+
+```bash
 ./DeepSpeech.py --train_files ../data/CV/cv-valid-train.csv,../data/CV/cv-other-train.csv --dev_files ../data/CV/cv-valid-dev.csv --test_files ../data/CV/cv-valid-test.csv
 ```
 
