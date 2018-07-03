@@ -44,7 +44,7 @@ model_name="$(basename "${model_source}")"
 model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4 3.7.0b5:ucs4}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4 3.7.0:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.1 7.10.1 8.11.1 9.11.1 10.3.0}
 
 # This verify exact inference result
@@ -348,7 +348,7 @@ install_pyenv()
 
   git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
   pushd ${PYENV_ROOT}
-    git checkout --quiet 8eeddaebc1153313010724f81917a96d62dc4e2a
+    git checkout --quiet c057a80c8296a7c694e4ef80ecbac0d0c169df7a
   popd
   eval "$(pyenv init -)"
 }
@@ -528,10 +528,6 @@ maybe_ssl102_py37()
                 export PY37_OPENSSL="--with-openssl=${PY37_OPENSSL_DIR}/usr"
                 export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
             fi;
-
-            # TODO: Temporary workaround because no py37m numpy wheel and we
-            # want to be able to test that.
-            export PY37_SOURCE_PACKAGE="--extra-index-url https://lissyx.github.io/deepspeech-python-wheels/"
         ;;
     esac
 }
