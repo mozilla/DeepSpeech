@@ -10,18 +10,20 @@ import stat
 import six.moves.urllib as urllib
 
 DEFAULT_SCHEMES = {
-    'deepspeech': 'https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.master.%(arch_string)s/artifacts/public/%(artifact_name)s',
-    'tensorflow': 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.%(arch_string)s/artifacts/public/%(artifact_name)s'
+    'deepspeech': 'https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s',
+    'tensorflow': 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s'
 }
 
 TASKCLUSTER_SCHEME = os.getenv('TASKCLUSTER_SCHEME', DEFAULT_SCHEMES['deepspeech'])
 
-def get_tc_url(arch_string=None, artifact_name='native_client.tar.xz'):
+def get_tc_url(arch_string=None, artifact_name='native_client.tar.xz', branch_name='master'):
     assert arch_string is not None
     assert artifact_name is not None
     assert len(artifact_name) > 0
+    assert branch_name is not None
+    assert len(branch_name) > 0
 
-    return TASKCLUSTER_SCHEME % { 'arch_string': arch_string, 'artifact_name': artifact_name }
+    return TASKCLUSTER_SCHEME % { 'arch_string': arch_string, 'artifact_name': artifact_name, 'branch_name': branch_name}
 
 def maybe_download_tc(target_dir, tc_url, progress=True):
     def report_progress(count, block_size, total_size):
@@ -70,6 +72,8 @@ if __name__ == '__main__':
                         help='Name of the artifact to download. Defaults to "native_client.tar.xz"')
     parser.add_argument('--source', required=False, default=None,
                         help='Name of the TaskCluster scheme to use.')
+    parser.add_argument('--branch', required=False, default='master',
+                        help='Branch name to use. Defaulting to "master".')
 
     args = parser.parse_args()
 
@@ -80,7 +84,7 @@ if __name__ == '__main__':
             print('No such scheme: %s' % args.source)
             exit(1)
 
-    maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(args.arch, args.artifact))
+    maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(args.arch, args.artifact, args.branch))
 
     if '.tar.' in args.artifact:
         subprocess.check_call(['tar', 'xvf', os.path.join(args.target, args.artifact), '-C', args.target])
