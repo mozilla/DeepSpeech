@@ -155,7 +155,12 @@ or if you're on macOS:
 python3 util/taskcluster.py --arch osx --target .
 ```
 
-This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
+also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
+```bash
+python3 util/taskcluster.py --branch "v0.2.0-alpha.6 --target ."
+```
+
+This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Proper DeepSpeech or TensorFlow's branch can be specified as well.
 
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
@@ -316,7 +321,7 @@ Refer to the corresponding [README.md](native_client/README.md) for information 
 The `output_graph.pb` model file generated in the above step will be loaded in memory to be dealt with when running inference.
 This will result in extra loading time and memory consumption. One way to avoid this is to directly read data from the disk.
 
-TensorFlow has tooling to achieve this: it requires building the target `//tensorflow/contrib/util:convert_graphdef_memmapped_format` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64).
+TensorFlow has tooling to achieve this: it requires building the target `//tensorflow/contrib/util:convert_graphdef_memmapped_format` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64), use `util/taskcluster.py` tool to download, specifying `tensorflow` as a source.
 Producing a mmap-able model is as simple as:
 ```
 $ convert_graphdef_memmapped_format --in_graph=output_graph.pb --out_graph=output_graph.pbmm
