@@ -199,7 +199,7 @@ assert_correct_ldc93s1_somodel()
 
 assert_correct_warning_upsampling()
 {
-  assert_shows_something "$1" "is lower than 16kHz. Up-sampling might produce erratic speech recognition"
+  assert_shows_something "$1" "erratic speech recognition"
 }
 
 assert_tensorflow_version()

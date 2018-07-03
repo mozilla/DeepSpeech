@@ -69,7 +69,7 @@ setup(name = project_name,
       },
       ext_modules = [model, utils],
       entry_points={'console_scripts':['deepspeech = deepspeech.client:main']},
-      install_requires = ['numpy', 'scipy'],
+      install_requires = ['numpy'],
       include_package_data = True,
       classifiers = [
         'Development Status :: 3 - Alpha',
