@@ -7,7 +7,7 @@ build:
     >
       ${python.brew.setup} && ${python.brew.env}
   args:
-    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-python-tests.sh 3.7.0b5:m"
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-python-tests.sh 3.7.0:m"
   metadata:
     name: "DeepSpeech OSX AMD64 CPU Python v3.7 tests"
-    description: "Testing DeepSpeech for OSX/AMD64 on Python v3.7.0b5:m, CPU only, optimized version"
+    description: "Testing DeepSpeech for OSX/AMD64 on Python v3.7.0:m, CPU only, optimized version"
