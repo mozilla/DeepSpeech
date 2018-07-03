@@ -1,8 +1,6 @@
 python:
   packages_trusty:
     apt: 'make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
-  packages_trusty_py37: # TODO: Extra packages to be able to run our build of scipy, until official manylinux cp37m are available
-    apt: 'libopenblas-base liblapack3'
   packages_stretch:
     apt: 'make build-essential libssl1.0-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
   brew:
