@@ -56,15 +56,15 @@ def convert_samplerate(audio_path):
 
 def main():
     parser = argparse.ArgumentParser(description='Benchmarking tooling for DeepSpeech native_client.')
-    parser.add_argument('model',
+    parser.add_argument('--model',
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('alphabet',
+    parser.add_argument('--alphabet',
                         help='Path to the configuration file specifying the alphabet used by the network')
-    parser.add_argument('lm', nargs='?',
+    parser.add_argument('--lm', nargs='?',
                         help='Path to the language model binary file')
-    parser.add_argument('trie', nargs='?',
+    parser.add_argument('--trie', nargs='?',
                         help='Path to the language model trie file created with native_client/generate_trie')
-    parser.add_argument('audio',
+    parser.add_argument('--audio',
                         help='Path to the audio file to run (WAV format)')
     args = parser.parse_args()
 

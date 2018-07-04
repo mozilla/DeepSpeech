@@ -133,7 +133,7 @@ It is assumed that `$PREFIX/lib` is a valid library path, otherwise you may need
 The client can be run via the `Makefile`. The client will accept audio of any format your installation of SoX supports.
 
 ```
-ARGS="/path/to/output_graph.pbmm /path/to/audio/file.ogg" make run
+ARGS="--model /path/to/output_graph.pbmm --alphabet /path/to/alphabet.txt --audio /path/to/audio/file.wav" make run
 ```
 
 ## Python bindings
