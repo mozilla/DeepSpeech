@@ -12,7 +12,7 @@ CXXFLAGS        :=
 LDFLAGS         :=
 SOX_CFLAGS      := `pkg-config --cflags sox`
 SOX_LDFLAGS     := `pkg-config --libs sox`
-PYTHON_PACKAGES := numpy
+PYTHON_PACKAGES := numpy==${NUMPY_VERSION}
 ifeq ($(OS),Linux)
 PYTHON_PLATFORM_NAME := --plat-name manylinux1_x86_64
 endif

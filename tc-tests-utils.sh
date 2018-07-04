@@ -528,6 +528,8 @@ maybe_ssl102_py37()
                 export PY37_OPENSSL="--with-openssl=${PY37_OPENSSL_DIR}/usr"
                 export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
             fi;
+
+	    export NUMPY_VERSION="1.14.5"
         ;;
     esac
 }
@@ -555,6 +557,8 @@ do_deepspeech_python_build()
     pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
     pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
 
+    export NUMPY_VERSION="1.7.0"
+
     maybe_ssl102_py37 ${pyver}
 
     LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv install ${pyver}
@@ -577,6 +581,8 @@ do_deepspeech_python_build()
     cp native_client/dist/*.whl wheels
 
     make -C native_client/ bindings-clean
+
+    unset NUMPY_VERSION
 
     deactivate
     pyenv uninstall --force deepspeech
