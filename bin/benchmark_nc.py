@@ -402,9 +402,9 @@ def run_benchmarks(dir, models, wav, alphabet, lm_binary=None, trie=None, iters=
         }
 
         if lm_binary and trie:
-            cmdline = './deepspeech "%s" "%s" "%s" "%s" "%s" -t' % (model_filename, alphabet, lm_binary, trie, wav)
+            cmdline = './deepspeech --model "%s" --alphabet "%s" --lm "%s" --trie "%s" --audio "%s" -t' % (model_filename, alphabet, lm_binary, trie, wav)
         else:
-            cmdline = './deepspeech "%s" "%s" "%s" -t' % (model_filename, alphabet, wav)
+            cmdline = './deepspeech --model "%s" --alphabet "%s" --audio "%s" -t' % (model_filename, alphabet, wav)
 
         for it in range(iters):
             sys.stdout.write('\rRunning %s: %d/%d' % (os.path.basename(model), (it+1), iters))
