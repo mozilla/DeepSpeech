@@ -9,7 +9,7 @@ import subprocess
 import sys
 import wave
 
-from deepspeech.model import Model
+from deepspeech.model import Model, print_versions
 from timeit import default_timer as timer
 
 try:
@@ -66,7 +66,13 @@ def main():
                         help='Path to the language model trie file created with native_client/generate_trie')
     parser.add_argument('--audio',
                         help='Path to the audio file to run (WAV format)')
+    parser.add_argument('--version',
+                        help='Print version and exits')
     args = parser.parse_args()
+
+    if args.version:
+        print_versions()
+        return 0
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
