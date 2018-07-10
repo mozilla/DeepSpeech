@@ -29,6 +29,9 @@ void PrintHelp(const char* bin)
 {
     std::cout <<
     "Usage: " << std::string(bin) << " --model MODEL --alphabet ALPHABET [--lm LM --trie TRIE] --audio AUDIO [-t]\n"
+    "\n"
+    "Running DeepSpeech inference.\n"
+    "\n"
     "	--model MODEL		Path to the model (protocol buffer binary file)\n"
     "	--alphabet ALPHABET	Path to the configuration file specifying the alphabet used by the network\n"
     "	--lm LM			Path to the language model binary file\n"

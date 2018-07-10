@@ -55,7 +55,7 @@ def convert_samplerate(audio_path):
     return 16000, np.frombuffer(output, np.int16)
 
 def main():
-    parser = argparse.ArgumentParser(description='Benchmarking tooling for DeepSpeech native_client.')
+    parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model',
                         help='Path to the model (protocol buffer binary file)')
     parser.add_argument('--alphabet',
