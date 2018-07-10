@@ -9,6 +9,7 @@ python:
 nodejs:
   packages_trusty:
     apt: 'nodejs sox'
+    apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
     prep_4: 'echo "deb http://deb.nodesource.com/node_4.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_5: 'echo "deb http://deb.nodesource.com/node_5.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_6: 'echo "deb http://deb.nodesource.com/node_6.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
@@ -18,6 +19,7 @@ nodejs:
     prep_10: 'echo "deb http://deb.nodesource.com/node_10.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_stretch:
     apt: 'nodejs sox'
+    apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
     prep_4: 'echo "deb http://deb.nodesource.com/node_4.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_5: 'echo "deb http://deb.nodesource.com/node_5.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_6: 'echo "deb http://deb.nodesource.com/node_6.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
