@@ -34,13 +34,19 @@ const N_FEATURES = 26;
 // Size of the context window used for producing timesteps in the input vector
 const N_CONTEXT = 9;
 
-var parser = new ArgumentParser({addHelp: true});
+var parser = new ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
 parser.addArgument(['--model'], {help: 'Path to the model (protocol buffer binary file)'});
 parser.addArgument(['--alphabet'], {help: 'Path to the configuration file specifying the alphabet used by the network'});
 parser.addArgument(['--lm'], {help: 'Path to the language model binary file', nargs: '?'});
 parser.addArgument(['--trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
 parser.addArgument(['--audio'], {help: 'Path to the audio file to run (WAV format)'});
+parser.addArgument(['--version'], {help: 'Print version and exits'})
 var args = parser.parseArgs();
+
+if (args['version']) {
+  Ds.print_versions();
+  return 0;
+}
 
 function totalTime(hrtimeValue) {
   return (hrtimeValue[0] + hrtimeValue[1] / 1000000000).toPrecision(4);
