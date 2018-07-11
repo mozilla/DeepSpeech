@@ -9,15 +9,16 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import csv
 import tarfile
+import progressbar
 import requests
 import subprocess
+
 from glob import glob
 from os import path
 from sox import Transformer
-from threading import Lock
+from threading import RLock
 from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
-from util.progress import print_progress
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000
@@ -25,6 +26,8 @@ MAX_SECS = 10
 ARCHIVE_DIR_NAME = 'cv_corpus_v1'
 ARCHIVE_NAME = ARCHIVE_DIR_NAME + '.tar.gz'
 ARCHIVE_URL = 'https://s3.us-east-2.amazonaws.com/common-voice-data-download/' + ARCHIVE_NAME
+
+SIMPLE_BAR = ['Progress ', progressbar.Bar(), ' ', progressbar.Percentage(), ' completed']
 
 def _download_and_preprocess_data(target_dir):
     # Making path absolute
@@ -45,10 +48,11 @@ def _maybe_download(archive_name, target_dir, archive_url):
         total_size = int(req.headers.get('content-length', 0))
         done = 0
         with open(archive_path, 'wb') as f:
+            bar = progressbar.ProgressBar(max_value=total_size, widgets=SIMPLE_BAR)
             for data in req.iter_content(1024*1024):
                 done += len(data)
                 f.write(data)
-                print_progress(done, total_size)
+                bar.update(done)
     else:
         print('Found archive "%s" - not downloading.' % archive_path)
     return archive_path
@@ -59,10 +63,7 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
     if not path.exists(extracted_path):
         print('No directory "%s" - extracting archive...' % archive_path)
         with tarfile.open(archive_path) as tar:
-            members = list(tar.getmembers())
-            for i, member in enumerate(members):
-                print_progress(i + 1, len(members))
-                tar.extract(member, path=target_dir)
+            tar.extractall(target_dir)
     else:
         print('Found directory "%s" - not extracting it from archive.' % archive_path)
 
@@ -85,7 +86,7 @@ def _maybe_convert_set(extracted_dir, source_csv, target_csv):
 
     # Mutable counters for the concurrent embedded routine
     counter = { 'all': 0, 'too_short': 0, 'too_long': 0 }
-    lock = Lock()
+    lock = RLock()
     num_samples = len(samples)
     rows = []
 
@@ -107,24 +108,23 @@ def _maybe_convert_set(extracted_dir, source_csv, target_csv):
             else:
                 # This one is good - keep it for the target CSV
                 rows.append((wav_filename, file_size, sample[1]))
-            print_progress(counter['all'], num_samples)
             counter['all'] += 1
 
     print('Importing mp3 files...')
     pool = Pool(cpu_count())
-    pool.map(one_sample, samples)
+    bar = progressbar.ProgressBar(max_value=num_samples, widgets=SIMPLE_BAR)
+    for i, _ in enumerate(pool.imap_unordered(one_sample, samples), start=1):
+        bar.update(i)
+    bar.update(num_samples)
     pool.close()
     pool.join()
-
-    print_progress(num_samples, num_samples)
 
     print('Writing "%s"...' % target_csv)
     with open(target_csv, 'w') as target_csv_file:
         writer = csv.DictWriter(target_csv_file, fieldnames=FIELDNAMES)
         writer.writeheader()
-        for i, row in enumerate(rows):
-            filename, file_size, transcript = row
-            print_progress(i + 1, len(rows))
+        bar = progressbar.ProgressBar(max_value=len(rows), widgets=SIMPLE_BAR)
+        for filename, file_size, transcript in bar(rows):
             writer.writerow({ 'wav_filename': filename, 'wav_filesize': file_size, 'transcript': transcript })
 
     print('Imported %d samples.' % (counter['all'] - counter['too_short'] - counter['too_long']))
