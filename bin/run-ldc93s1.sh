@@ -24,6 +24,11 @@ python -u DeepSpeech.py \
   --dev_batch_size 1 \
   --test_batch_size 1 \
   --n_hidden 494 \
-  --epoch 50 \
+  --epoch 100 \
   --checkpoint_dir "$checkpoint_dir" \
+  --decoder_library_path '/home/ubuntu/DeepSpeech/native_client_bin/libctc_decoder_with_kenlm.so' \
+  --summary_dir '/home/ubuntu/tboard' \
+  --summary_secs 5 \
+  --display_step 1 \
+  --log_level 0 \
   "$@"

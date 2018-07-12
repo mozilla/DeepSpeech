@@ -63,6 +63,10 @@ def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     in a numpy array.
     """
     # Load wav files
-    fs, audio = wav.read(audio_filename)
+    
+    try:
+        fs, audio = wav.read(audio_filename)
+    except:
+        raise ValueError("Unable to read %s" % audio_filename)
 
     return audioToInputVector(audio, fs, numcep, numcontext)

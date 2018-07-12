@@ -148,7 +148,7 @@ class _DataSetLoader(object):
             target = text_to_char_array(transcript, self._alphabet)
             target_len = len(target)
             if source_len < target_len:
-                raise ValueError('Error: Audio file {} is too short for transcription.'.format(wav_file))
+                raise ValueError('Error: Audio file {} is too short ({} < {}) for transcription "{}".'.format(wav_file, source_len, target_len, transcript))
             try:
                 session.run(self._enqueue_op, feed_dict={ self._model_feeder.ph_x: source,
                                                           self._model_feeder.ph_x_length: source_len,
