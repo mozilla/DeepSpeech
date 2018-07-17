@@ -51,8 +51,6 @@ void DS_DestroyModel(ModelState* ctx);
  *                  lary as the language model binary.
  * @param aLMWeight The weight to give to language model results when sco-
  *                  ring.
- * @param aWordCountWeight The weight (penalty) to give to beams when in-
- *                         creasing the word count of the decoding.
  * @param aValidWordCountWeight The weight (bonus) to give to beams when
  *                              adding a new valid word to the decoding.
  */
@@ -62,7 +60,6 @@ void DS_EnableDecoderWithLM(ModelState* aCtx,
                             char* aLMPath,
                             char* aTriePath,
                             float aLMWeight,
-                            float aWordCountWeight,
                             float aValidWordCountWeight);
 
 /**

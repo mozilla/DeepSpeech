@@ -535,12 +535,10 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
                        char* aLMPath,
                        char* aTriePath,
                        float aLMWeight,
-                       float aWordCountWeight,
                        float aValidWordCountWeight)
 {
   aCtx->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
-                                     aLMWeight, aWordCountWeight,
-                                     aValidWordCountWeight);
+                                     aLMWeight, aValidWordCountWeight);
 }
 
 char*

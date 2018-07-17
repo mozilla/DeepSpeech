@@ -207,7 +207,6 @@ main(int argc, char **argv)
         lm,
         trie,
         LM_WEIGHT,
-        WORD_COUNT_WEIGHT,
         VALID_WORD_COUNT_WEIGHT);
   }
 
