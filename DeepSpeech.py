@@ -661,11 +661,15 @@ def get_tower_results(model_feeder, optimizer):
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
+    avg_loss_across_towers = tf.reduce_mean(tower_avg_losses, 0)
+
+    tf.summary.scalar(name='step_loss', tensor=avg_loss_across_towers, collections=['step_summaries'])
+
     # Return the results tuple, the gradients, and the means of mean edit distances and losses
     return (tower_labels, tower_decodings, tower_distances, tower_total_losses), \
            tower_gradients, \
            tf.reduce_mean(tower_mean_edit_distances, 0), \
-           tf.reduce_mean(tower_avg_losses, 0)
+           avg_loss_across_towers
 
 
 def average_gradients(tower_gradients):
@@ -1504,6 +1508,15 @@ def train(server=None):
     # Op to merge all summaries for the summary hook
     merge_all_summaries_op = tf.summary.merge_all()
 
+    # These are saved on every step
+    step_summaries_op = tf.summary.merge_all('step_summaries')
+
+    step_summary_writers = {
+        'train': tf.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'train'), max_queue=120),
+        'dev': tf.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'dev'), max_queue=120),
+        'test': tf.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'test'), max_queue=120)
+    }
+
     # Apply gradients to modify the model
     apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
@@ -1641,6 +1654,8 @@ def train(server=None):
                     # So far the only extra parameter is the feed_dict
                     extra_params = { 'feed_dict': feed_dict }
 
+                    step_summary_writer = step_summary_writers.get(job.set_name)
+
                     # Loop over the batches
                     for job_step in range(job.steps):
                         if session.should_stop():
@@ -1648,7 +1663,10 @@ def train(server=None):
 
                         log_debug('Starting batch...')
                         # Compute the batch
-                        _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
+                        _, current_step, batch_loss, batch_report, step_summary = session.run([train_op, global_step, loss, report_params, step_summaries_op], **extra_params)
+
+                        # Log step summaries
+                        step_summary_writer.add_summary(step_summary, current_step)
 
                         # Uncomment the next line for debugging race conditions / distributed TF
                         log_debug('Finished batch step %d.' % current_step)
