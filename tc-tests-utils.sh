@@ -529,7 +529,8 @@ maybe_ssl102_py37()
                 export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
             fi;
 
-	    export NUMPY_VERSION="1.14.5"
+	    export NUMPY_BUILD_VERSION="==1.14.5"
+	    export NUMPY_DEP_VERSION=">=1.14.5"
         ;;
     esac
 }
@@ -557,7 +558,8 @@ do_deepspeech_python_build()
     pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
     pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
 
-    export NUMPY_VERSION="1.7.0"
+    export NUMPY_BUILD_VERSION="==1.7.0"
+    export NUMPY_DEP_VERSION=">=1.7.0"
 
     maybe_ssl102_py37 ${pyver}
 
@@ -582,7 +584,8 @@ do_deepspeech_python_build()
 
     make -C native_client/ bindings-clean
 
-    unset NUMPY_VERSION
+    unset NUMPY_BUILD_VERSION
+    unset NUMPY_DEP_VERSION
 
     deactivate
     pyenv uninstall --force deepspeech
