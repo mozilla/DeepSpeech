@@ -1,12 +1,13 @@
 build:
   template_file: linux-opt-base.tyml
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.gpu"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.gpu"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.gpu"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.gpu"
     - "index.project.deepspeech.deepspeech.native_client.gpu.${event.head.sha}"
   system_setup:
     >
-      ${nodejs.packages_trusty.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      ${nodejs.packages_trusty.prep_6} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
       apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
   system_config:
     >

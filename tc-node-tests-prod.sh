@@ -21,7 +21,7 @@ download_data
 
 node --version
 npm --version
-npm install ${DEEPSPEECH_NODEJS}/deepspeech-0.1.1.tgz
+npm install ${DEEPSPEECH_NODEJS}/deepspeech-${DS_VERSION}.tgz
 
 export PATH=$HOME/node_modules/.bin/:$PATH
 

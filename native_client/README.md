@@ -10,6 +10,11 @@ To download the pre-built binaries, use `util/taskcluster.py`:
 python util/taskcluster.py --target /path/to/destination/folder
 ```
 
+If you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
+```bash
+python3 util/taskcluster.py --branch "v0.2.0-alpha.6"
+```
+
 This will download and extract `native_client.tar.xz` which includes the deepspeech binary and associated libraries as well as the custom decoder OP. `taskcluster.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
@@ -128,7 +133,7 @@ It is assumed that `$PREFIX/lib` is a valid library path, otherwise you may need
 The client can be run via the `Makefile`. The client will accept audio of any format your installation of SoX supports.
 
 ```
-ARGS="/path/to/output_graph.pbmm /path/to/audio/file.ogg" make run
+ARGS="--model /path/to/output_graph.pbmm --alphabet /path/to/alphabet.txt --audio /path/to/audio/file.wav" make run
 ```
 
 ## Python bindings

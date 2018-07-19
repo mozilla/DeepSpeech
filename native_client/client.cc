@@ -16,6 +16,7 @@
 #include <string>
 
 #include "deepspeech.h"
+#include "args.h"
 
 #define N_CEP 26
 #define N_CONTEXT 9
@@ -217,50 +218,41 @@ ProcessFile(Model& context, const char* path, bool show_times)
 int
 main(int argc, char **argv)
 {
-  if (argc < 4 || argc > 7) {
-    printf("Usage: deepspeech MODEL_PATH ALPHABET_PATH [LM_PATH] [TRIE_PATH] AUDIO_PATH [-t]\n");
-    printf("  MODEL_PATH\tPath to the model (protocol buffer binary file)\n");
-    printf("  ALPHABET_PATH\tPath to the configuration file specifying"
-           " the alphabet used by the network.\n");
-    printf("  LM_PATH\tOptional: Path to the language model binary file.\n");
-    printf("  TRIE_PATH\tOptional: Path to the language model trie file created with"
-           " native_client/generate_trie.\n");
-    printf("  AUDIO_PATH\tPath to the audio file (or directory of files) to run"
-           " (any file format supported by libsox). \n");
-    printf("  -t\t\tRun in benchmark mode, output mfcc & inference time\n");
-    print_versions();
+  if (!ProcessArgs(argc, argv)) {
     return 1;
   }
 
   // Initialise DeepSpeech
-  Model ctx = Model(argv[1], N_CEP, N_CONTEXT, argv[2], BEAM_WIDTH);
+  Model ctx = Model(model.c_str(), N_CEP, N_CONTEXT, alphabet.c_str(), BEAM_WIDTH);
 
-  if (argc > 5) {
-    ctx.enableDecoderWithLM(argv[2], argv[3], argv[4], LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+  if (lm.length() > 0 && trie.length() > 0) {
+    ctx.enableDecoderWithLM(
+		    alphabet.c_str(),
+		    lm.c_str(),
+		    trie.c_str(),
+		    LM_WEIGHT,
+		    WORD_COUNT_WEIGHT,
+		    VALID_WORD_COUNT_WEIGHT);
   }
 
   // Initialise SOX
   assert(sox_init() == SOX_SUCCESS);
 
-  // Handle case when LM_PATH and TRIE_PATH are not passed
-  const char* path = (argc <= 5) ? argv[3] : argv[5];
-  bool show_times = !strncmp(argv[argc-1], "-t", 3);
-
   struct stat wav_info;
-  if (0 != stat(path, &wav_info)) {
+  if (0 != stat(audio.c_str(), &wav_info)) {
     printf("Error on stat: %d\n", errno);
   }
 
   switch (wav_info.st_mode & S_IFMT) {
     case S_IFLNK:
     case S_IFREG:
-        ProcessFile(ctx, path, show_times);
+        ProcessFile(ctx, audio.c_str(), show_times);
       break;
 
     case S_IFDIR:
         {
-          printf("Running on directory %s\n", path);
-          DIR* wav_dir = opendir(path);
+          printf("Running on directory %s\n", audio.c_str());
+          DIR* wav_dir = opendir(audio.c_str());
           assert(wav_dir);
 
           struct dirent* entry;
@@ -270,7 +262,7 @@ main(int argc, char **argv)
               continue;
             }
 
-            std::string fullpath = std::string(path) + std::string("/") + fname;
+            std::string fullpath = audio + std::string("/") + fname;
             printf("> %s\n", fullpath.c_str());
             ProcessFile(ctx, fullpath.c_str(), show_times);
           }
@@ -279,7 +271,7 @@ main(int argc, char **argv)
       break;
 
     default:
-        printf("Unexpected type for %s: %d\n", path, (wav_info.st_mode & S_IFMT));
+        printf("Unexpected type for %s: %d\n", audio.c_str(), (wav_info.st_mode & S_IFMT));
       break;
   }
 

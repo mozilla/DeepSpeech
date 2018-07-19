@@ -1,4 +1,4 @@
-$if: 'event.event != "push"'
+$if: '(event.event != "push") && (event.event != "tag")'
 then:
   taskId: ${taskcluster.taskId}
   provisionerId: ${taskcluster.dockerrpi3.provisionerId}
@@ -38,7 +38,6 @@ then:
       in:
         CONVERT_GRAPHDEF_MEMMAPPED: ${build.convert_graphdef}
         DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_rpi3_build}/artifacts/public
-        DEEPSPEECH_PYTHON_PACKAGE: https://queue.taskcluster.net/v1/task/${linux_rpi3_build}/artifacts/public/${build.deepspeech_pkg_name}
         DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package}/artifacts/public
         DEEPSPEECH_AOT_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_rpi3_aot_prod}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb

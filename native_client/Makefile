@@ -19,7 +19,7 @@ clean: bindings-clean
 	rm -f deepspeech
 
 deepspeech: client.cc
-	$(CXX) -o deepspeech $(CFLAGS) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS)
+	$(CXX) -std=c++11 -o deepspeech $(CFLAGS) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS)
 ifeq ($(OS),Darwin)
 	install_name_tool -change $$TASKCLUSTER_TASK_DIR/homebrew/opt/sox/lib/libsox.3.dylib @rpath/libsox.3.dylib deepspeech
 	install_name_tool -change bazel-out/local-opt/bin/native_client/libdeepspeech.so @rpath/libdeepspeech.so deepspeech
@@ -31,7 +31,7 @@ bindings-clean:
 	rm -f python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
 
 bindings-build:
-	pip install --quiet $(PYTHON_PACKAGES) wheel
+	pip install --quiet $(PYTHON_PACKAGES) wheel==0.31.0 setuptools==39.1.0
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED) $(RPATH_PYTHON)" MODEL_LDFLAGS="$(LDFLAGS_DIRS)" UTILS_LDFLAGS="-L${TFDIR}/bazel-bin/native_client" MODEL_LIBS="$(LIBS)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py build_ext $(PYTHON_PLATFORM_NAME)
 
 MANIFEST.in: bindings-build

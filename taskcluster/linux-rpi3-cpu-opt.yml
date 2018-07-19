@@ -1,8 +1,8 @@
 build:
   template_file: linux-opt-base.tyml
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.arm"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.arm"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.arm"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.arm"
     - "index.project.deepspeech.deepspeech.native_client.arm.${event.head.sha}"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.arm/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.cpu/artifacts/public/summarize_graph"
@@ -12,7 +12,8 @@ build:
       apt-get -qq -y install gdebi git pixz &&
       wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb &&
       echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
-      ${nodejs.packages_trusty.prep_6} && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      ${nodejs.packages_trusty.prep_6} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
       apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
   system_config:
     >

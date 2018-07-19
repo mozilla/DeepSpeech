@@ -1,8 +1,8 @@
 build:
   template_file: darwin-opt-base.tyml
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.osx_aot"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branch}.${event.head.sha}.osx_aot"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx_aot"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx_aot"
     - "index.project.deepspeech.deepspeech.native_client.osx_aot.${event.head.sha}"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.osx/artifacts/public/home.tar.xz"
   summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.osx/artifacts/public/summarize_graph"
