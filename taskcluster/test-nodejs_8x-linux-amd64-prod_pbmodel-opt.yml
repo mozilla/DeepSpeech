@@ -2,7 +2,6 @@ build:
   template_file: test-linux-opt-base.tyml
   dependencies:
     - "node-package"
-    - "test-training_upstream-linux-amd64-py27mu-opt"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_8} && ${nodejs.packages_trusty.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_trusty.apt}
