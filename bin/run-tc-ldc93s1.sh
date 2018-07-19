@@ -14,9 +14,9 @@ python -u DeepSpeech.py \
   --train_files ${ldc93s1_csv} --train_batch_size 1 \
   --dev_files ${ldc93s1_csv} --dev_batch_size 1 \
   --test_files ${ldc93s1_csv} --test_batch_size 1 \
-  --n_hidden 494 --epoch 75 --random_seed 4567 --default_stddev 0.046875 \
+  --n_hidden 494 --epoch 85 --random_seed 4567 --default_stddev 0.046875 \
   --max_to_keep 1 --checkpoint_dir '/tmp/ckpt' --checkpoint_secs 0 \
   --learning_rate 0.001 --dropout_rate 0.05  --export_dir '/tmp/train' \
-  --nouse_seq_length --decoder_library_path '/tmp/ds/libctc_decoder_with_kenlm.so' \
+  --decoder_library_path '/tmp/ds/libctc_decoder_with_kenlm.so' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \

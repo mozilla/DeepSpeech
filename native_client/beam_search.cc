@@ -36,7 +36,6 @@ REGISTER_OP("CTCBeamSearchDecoderWithLM")
     .Attr("trie_path: string")
     .Attr("alphabet_path: string")
     .Attr("lm_weight: float")
-    .Attr("word_count_weight: float")
     .Attr("valid_word_count_weight: float")
     .Attr("beam_width: int >= 1 = 100")
     .Attr("top_paths: int >= 1 = 1")
@@ -90,7 +89,6 @@ model_path: A string containing the path to the KenLM model file to use.
 trie_path: A string containing the path to the trie file built from the vocabulary.
 alphabet_path: A string containing the path to the alphabet file (see alphabet.h).
 lm_weight: alpha hyperparameter of CTC decoder. LM weight.
-word_count_weight: beta hyperparameter of CTC decoder. Word insertion weight.
 valid_word_count_weight: beta' hyperparameter of CTC decoder. Valid word insertion weight.
 beam_width: A scalar >= 0 (beam search beam width).
 top_paths: A scalar >= 0, <= beam_width (controls output size).
@@ -239,7 +237,6 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
                    GetTriePath(ctx),
                    GetAlphabetPath(ctx),
                    GetLMWeight(ctx),
-                   GetWordCountWeight(ctx),
                    GetValidWordCountWeight(ctx))
   {
     OP_REQUIRES_OK(ctx, ctx->GetAttr("merge_repeated", &merge_repeated_));
@@ -351,12 +348,6 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     float lm_weight;
     ctx->GetAttr("lm_weight", &lm_weight);
     return lm_weight;
-  }
-
-  float GetWordCountWeight(tf::OpKernelConstruction *ctx) {
-    float word_count_weight;
-    ctx->GetAttr("word_count_weight", &word_count_weight);
-    return word_count_weight;
   }
 
   float GetValidWordCountWeight(tf::OpKernelConstruction *ctx) {

@@ -6,12 +6,12 @@
 #include <string.h>
 #include <node_buffer.h>
 #include "deepspeech.h"
-#include "deepspeech_utils.h"
 
 using namespace v8;
 using namespace node;
 %}
 
+// convert Node Buffer into a C ptr + length
 %typemap(in) (short* IN_ARRAY1, int DIM1)
 {
   Local<Object> bufferObj = $input->ToObject();
@@ -22,31 +22,11 @@ using namespace node;
   $2 = ($2_ltype)bufferLength;
 }
 
-%typemap(in) (float* IN_ARRAY2, int DIM1, int DIM2) (float* mfcc = NULL)
-{
-  Local<Array> array = Local<Array>::Cast($input);
+// apply to DS_FeedAudioContent and DS_SpeechToText
+%apply (short* IN_ARRAY1, int DIM1) {(short* aBuffer, unsigned int aBufferSize)};
 
-  $2 = array->Length();
-  $3 = 0;
 
-  for (int i = 0, idx = 0; i < $2; i++) {
-    Local<Float32Array> dataObj = Local<Float32Array>::Cast(array->Get(i));
-    if (i == 0) {
-      $3 = dataObj->Length();
-      mfcc = (float*)malloc(sizeof(float) * $2 * $3);
-    }
-    memcpy(mfcc + (idx += $3), dataObj->Buffer()->GetContents().Data(), $3);
-  }
-
-  $1 = mfcc;
-}
-%typemap(freearg) (float* IN_ARRAY2, int DIM1, int DIM2)
-{
-  if (mfcc$argnum) {
-    free(mfcc$argnum);
-  }
-}
-
+// convert DS_AudioToInputVector return values to a Node Buffer
 %typemap(in,numinputs=0)
   (float** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2)
   (float* data_temp, int dim1_temp, int dim2_temp)
@@ -71,9 +51,54 @@ using namespace node;
   $result = array;
 }
 
-%apply (short* IN_ARRAY1, int DIM1) {(const short* aBuffer, unsigned int aBufferSize)};
 %apply (float** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {(float** aMfcc, int* aNFrames, int* aFrameLen)};
-%apply (float* IN_ARRAY2, int DIM1, int DIM2) {(float* aMfcc, int aNFrames, int aFrameLen)};
+
+// make sure the string returned by SpeechToText is freed
+%typemap(newfree) char* "free($1);";
+%newobject DS_SpeechToText;
+%newobject DS_IntermediateDecode;
+%newobject DS_FinishStream;
+
+// convert double pointer retval in CreateModel to an output
+%typemap(in, numinputs=0) ModelState **retval (ModelState *ret) {
+  ret = NULL;
+  $1 = &ret;
+}
+
+%typemap(argout) ModelState **retval {
+  $result = SWIGV8_ARRAY_NEW();
+  SWIGV8_AppendOutput($result, SWIG_From_int(result));
+  // owned by SWIG, ModelState destructor gets called when the Python object is finalized (see below)
+  %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, SWIG_POINTER_OWN));
+}
+
+
+// convert double pointer retval in SetupStream to an output
+%typemap(in, numinputs=0) StreamingState **retval (StreamingState *ret) {
+  ret = NULL;
+  $1 = &ret;
+}
+
+%typemap(argout) StreamingState **retval {
+  $result = SWIGV8_ARRAY_NEW();
+  SWIGV8_AppendOutput($result, SWIG_From_int(result));
+  // not owned, DS_FinishStream deallocates StreamingState
+  %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
+}
+
+// extend ModelState with a destructor so that DestroyModel will be called
+// when the Python object gets finalized.
+%nodefaultctor ModelState;
+%nodefaultdtor ModelState;
+
+struct ModelState {};
+
+%extend ModelState {
+  ~ModelState() {
+    DS_DestroyModel($self);
+  }
+}
+
+%rename ("%(strip:[DS_])s") "";
 
 %include "../deepspeech.h"
-%include "../deepspeech_utils.h"
