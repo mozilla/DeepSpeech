@@ -15,14 +15,14 @@ Once everything is installed you can then use the `deepspeech` binary to do spee
 
 ```bash
 pip3 install deepspeech
-deepspeech models/output_graph.pb models/alphabet.txt my_audio_file.wav
+deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
 Alternatively, quicker inference (The realtime factor on a GeForce GTX 1070 is about 0.44.) can be performed using a supported NVIDIA GPU on Linux. (See the release notes to find which GPU's are supported.) This is done by instead installing the GPU specific package:
 
 ```bash
 pip3 install deepspeech-gpu
-deepspeech models/output_graph.pb models/alphabet.txt my_audio_file.wav
+deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
 See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
@@ -134,7 +134,7 @@ In both cases, it should take care of installing all the required dependencies. 
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
-deepspeech models/output_graph.pbmm models/alphabet.txt models/lm.binary models/trie my_audio_file.wav
+deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
 The last two arguments are optional, and represent a language model.
@@ -155,12 +155,17 @@ or if you're on macOS:
 python3 util/taskcluster.py --arch osx --target .
 ```
 
-This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details.
+also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
+```bash
+python3 util/taskcluster.py --branch "v0.2.0-alpha.6 --target ."
+```
+
+This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Proper DeepSpeech or TensorFlow's branch can be specified as well.
 
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
-./deepspeech models/output_graph.pbmm models/alphabet.txt models/lm.binary models/trie audio_input.wav
+./deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio audio_input.wav
 ```
 
 
@@ -263,6 +268,12 @@ To use Common Voice data during training, validation and testing, you pass (comm
 If, for example, Common Voice was imported into `../data/CV`, `DeepSpeech.py` could be called like this:
 
 ```bash
+./DeepSpeech.py --train_files ../data/CV/cv-valid-train.csv --dev_files ../data/CV/cv-valid-dev.csv --test_files ../data/CV/cv-valid-test.csv
+```
+
+If you are brave enough, you can also include the `other` dataset, which contains not-yet-validated content, and thus can be broken from time to time:
+
+```bash
 ./DeepSpeech.py --train_files ../data/CV/cv-valid-train.csv,../data/CV/cv-other-train.csv --dev_files ../data/CV/cv-valid-dev.csv --test_files ../data/CV/cv-valid-test.csv
 ```
 
@@ -310,7 +321,7 @@ Refer to the corresponding [README.md](native_client/README.md) for information 
 The `output_graph.pb` model file generated in the above step will be loaded in memory to be dealt with when running inference.
 This will result in extra loading time and memory consumption. One way to avoid this is to directly read data from the disk.
 
-TensorFlow has tooling to achieve this: it requires building the target `//tensorflow/contrib/util:convert_graphdef_memmapped_format` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64).
+TensorFlow has tooling to achieve this: it requires building the target `//tensorflow/contrib/util:convert_graphdef_memmapped_format` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64), use `util/taskcluster.py` tool to download, specifying `tensorflow` as a source.
 Producing a mmap-able model is as simple as:
 ```
 $ convert_graphdef_memmapped_format --in_graph=output_graph.pb --out_graph=output_graph.pbmm

@@ -10,23 +10,23 @@ dependencies:
 created: { $fromNow: '0 sec' }
 deadline: { $fromNow: '1 day' }
 expires:
-  $if: 'event.event == "push"'
+  $if: '(event.event == "push") || (event.event == "tag")'
   then: { $fromNow: '6 months' }
   else: { $fromNow: '7 days' }
 
 extra:
   github:
-    $if: 'event.event == "push"'
+    $if: '(event.event == "push") || (event.event == "tag")'
     then: { $eval: taskcluster.github_events.merge }
     else: { $eval: taskcluster.github_events.pull_request }
 
 routes:
-  $if: 'event.event == "push"'
+  $if: '(event.event == "push") || (event.event == "tag")'
   then:
     { $eval: build.routes }
 
 scopes:
-  $if: 'event.event != "push"'
+  $if: '(event.event != "push") && (event.event != "tag")'
   then:
     - generic-worker:cache:deepspeech-homebrew-bin
     - generic-worker:cache:deepspeech-homebrew-cache
@@ -140,12 +140,12 @@ payload:
     - type: "directory"
       path: "public/"
       expires:
-        $if: 'event.event == "push"'
+        $if: '(event.event == "push") || (event.event == "tag")'
         then: { $fromNow: '6 months' }
         else: { $fromNow: '7 days' }
 
   mounts:
-    $if: 'event.event != "push"'
+    $if: '(event.event != "push") && (event.event != "tag")'
     then:
       - cacheName: deepspeech-homebrew-bin
         directory: homebrew/

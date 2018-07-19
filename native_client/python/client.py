@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from timeit import default_timer as timer
 
 import argparse
+import numpy as np
+import shlex
 import subprocess
 import sys
-import scipy.io.wavfile as wav
-import numpy as np
-from deepspeech.model import Model
+import wave
+
+from deepspeech.model import Model, print_versions
+from timeit import default_timer as timer
+
+try:
+    from shhlex import quote
+except ImportError:
+    from pipes import quote
 
 # These constants control the beam search decoder
 
@@ -37,55 +44,60 @@ N_FEATURES = 26
 N_CONTEXT = 9
 
 def convert_samplerate(audio_path):
-    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 - '.format(audio_path)
+    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 - '.format(quote(audio_path))
     try:
-        p = subprocess.Popen(sox_cmd.split(),
-                             stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        output, err = p.communicate()
-
-        if p.returncode:
-            raise RuntimeError('SoX returned non-zero status: {}'.format(err))
-
+        output = subprocess.check_output(shlex.split(sox_cmd), stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError('SoX returned non-zero status: {}'.format(e.stderr))
     except OSError as e:
-        raise OSError('SoX not found, use 16kHz files or install it: ', e)
+        raise OSError(e.errno, 'SoX not found, use 16kHz files or install it: {}'.format(e.strerror))
 
-    audio = np.fromstring(output, dtype=np.int16)
-    return 16000, audio
+    return 16000, np.frombuffer(output, np.int16)
 
 def main():
-    parser = argparse.ArgumentParser(description='Benchmarking tooling for DeepSpeech native_client.')
-    parser.add_argument('model', type=str,
+    parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
+    parser.add_argument('--model',
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('alphabet', type=str,
+    parser.add_argument('--alphabet',
                         help='Path to the configuration file specifying the alphabet used by the network')
-    parser.add_argument('lm', type=str, nargs='?',
+    parser.add_argument('--lm', nargs='?',
                         help='Path to the language model binary file')
-    parser.add_argument('trie', type=str, nargs='?',
+    parser.add_argument('--trie', nargs='?',
                         help='Path to the language model trie file created with native_client/generate_trie')
-    parser.add_argument('audio', type=str,
+    parser.add_argument('--audio',
                         help='Path to the audio file to run (WAV format)')
+    parser.add_argument('--version',
+                        help='Print version and exits')
     args = parser.parse_args()
 
-    print('Loading model from file %s' % (args.model), file=sys.stderr)
+    if args.version:
+        print_versions()
+        return 0
+
+    print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
     ds = Model(args.model, N_FEATURES, N_CONTEXT, args.alphabet, BEAM_WIDTH)
     model_load_end = timer() - model_load_start
-    print('Loaded model in %0.3fs.' % (model_load_end), file=sys.stderr)
+    print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
 
     if args.lm and args.trie:
-        print('Loading language model from files %s %s' % (args.lm, args.trie), file=sys.stderr)
+        print('Loading language model from files {} {}'.format(args.lm, args.trie), file=sys.stderr)
         lm_load_start = timer()
         ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_WEIGHT,
                                WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT)
         lm_load_end = timer() - lm_load_start
-        print('Loaded language model in %0.3fs.' % (lm_load_end), file=sys.stderr)
+        print('Loaded language model in {:.3}s.'.format(lm_load_end), file=sys.stderr)
 
-    fs, audio = wav.read(args.audio)
+    fin = wave.open(args.audio, 'rb')
+    fs = fin.getframerate()
     if fs != 16000:
-        if fs < 16000:
-            print('Warning: original sample rate (%d) is lower than 16kHz. Up-sampling might produce erratic speech recognition.' % (fs), file=sys.stderr)
+        print('Warning: original sample rate ({}) is different than 16kHz. Resampling might produce erratic speech recognition.'.format(fs), file=sys.stderr)
         fs, audio = convert_samplerate(args.audio)
-    audio_length = len(audio) * ( 1 / 16000)
+    else:
+        audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
+
+    audio_length = fin.getnframes() * (1/16000)
+    fin.close()
 
     print('Running inference.', file=sys.stderr)
     inference_start = timer()

@@ -219,12 +219,7 @@ def initialize_globals():
         FLAGS.dropout_rate6 = FLAGS.dropout_rate
 
     global dropout_rates
-    dropout_rates = [ FLAGS.dropout_rate,
-                      FLAGS.dropout_rate2,
-                      FLAGS.dropout_rate3,
-                      FLAGS.dropout_rate4,
-                      FLAGS.dropout_rate5,
-                      FLAGS.dropout_rate6 ]
+    dropout_rates = [tf.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
 
     global no_dropout
     no_dropout = [ 0.0 ] * 6
@@ -637,7 +632,7 @@ def get_tower_results(model_feeder, optimizer):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
                     total_loss, avg_loss, distance, mean_edit_distance, decoded, labels = \
-                        calculate_mean_edit_distance_and_loss(model_feeder, i, no_dropout if optimizer is None else dropout_rates)
+                        calculate_mean_edit_distance_and_loss(model_feeder, i, dropout_rates)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
@@ -666,11 +661,15 @@ def get_tower_results(model_feeder, optimizer):
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
+    avg_loss_across_towers = tf.reduce_mean(tower_avg_losses, 0)
+
+    tf.summary.scalar(name='step_loss', tensor=avg_loss_across_towers, collections=['step_summaries'])
+
     # Return the results tuple, the gradients, and the means of mean edit distances and losses
     return (tower_labels, tower_decodings, tower_distances, tower_total_losses), \
            tower_gradients, \
            tf.reduce_mean(tower_mean_edit_distances, 0), \
-           tf.reduce_mean(tower_avg_losses, 0)
+           avg_loss_across_towers
 
 
 def average_gradients(tower_gradients):
@@ -1509,6 +1508,15 @@ def train(server=None):
     # Op to merge all summaries for the summary hook
     merge_all_summaries_op = tf.summary.merge_all()
 
+    # These are saved on every step
+    step_summaries_op = tf.summary.merge_all('step_summaries')
+
+    step_summary_writers = {
+        'train': tf.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'train'), max_queue=120),
+        'dev': tf.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'dev'), max_queue=120),
+        'test': tf.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'test'), max_queue=120)
+    }
+
     # Apply gradients to modify the model
     apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
@@ -1571,6 +1579,15 @@ def train(server=None):
 
         init_from_frozen_model_op = tf.group(*assign_ops)
 
+    no_dropout_feed_dict = {
+        dropout_rates[0]: 0.,
+        dropout_rates[1]: 0.,
+        dropout_rates[2]: 0.,
+        dropout_rates[3]: 0.,
+        dropout_rates[4]: 0.,
+        dropout_rates[5]: 0.,
+    }
+
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
@@ -1583,16 +1600,14 @@ def train(server=None):
                                                config=session_config) as session:
             if len(FLAGS.initialize_from_frozen_model) > 0:
                 log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
-                feed_dict = {}
-                model_feeder.set_data_set(feed_dict, model_feeder.train)
+                model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
                 session.run(init_from_frozen_model_op, feed_dict=feed_dict)
 
             try:
                 if is_chief:
                     # Retrieving global_step from the (potentially restored) model
-                    feed_dict = {}
-                    model_feeder.set_data_set(feed_dict, model_feeder.train)
-                    step = session.run(global_step, feed_dict=feed_dict)
+                    model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
+                    step = session.run(global_step, feed_dict=no_dropout_feed_dict)
                     COORD.start_coordination(model_feeder, step)
 
                 # Get the first job
@@ -1601,8 +1616,20 @@ def train(server=None):
                 while job and not session.should_stop():
                     log_debug('Computing %s...' % job)
 
+                    is_train = job.set_name == 'train'
+
                     # The feed_dict (mainly for switching between queues)
-                    feed_dict = {}
+                    if is_train:
+                        feed_dict = {
+                            dropout_rates[0]: FLAGS.dropout_rate,
+                            dropout_rates[1]: FLAGS.dropout_rate2,
+                            dropout_rates[2]: FLAGS.dropout_rate3,
+                            dropout_rates[3]: FLAGS.dropout_rate4,
+                            dropout_rates[4]: FLAGS.dropout_rate5,
+                            dropout_rates[5]: FLAGS.dropout_rate6,
+                        }
+                    else:
+                        feed_dict = no_dropout_feed_dict
 
                     # Sets the current data_set for the respective placeholder in feed_dict
                     model_feeder.set_data_set(feed_dict, getattr(model_feeder, job.set_name))
@@ -1611,7 +1638,7 @@ def train(server=None):
                     total_loss = 0.0
 
                     # Setting the training operation in case of training requested
-                    train_op = apply_gradient_op if job.set_name == 'train' else []
+                    train_op = apply_gradient_op if is_train else []
 
                     # Requirements to display a WER report
                     if job.report:
@@ -1627,6 +1654,8 @@ def train(server=None):
                     # So far the only extra parameter is the feed_dict
                     extra_params = { 'feed_dict': feed_dict }
 
+                    step_summary_writer = step_summary_writers.get(job.set_name)
+
                     # Loop over the batches
                     for job_step in range(job.steps):
                         if session.should_stop():
@@ -1634,7 +1663,10 @@ def train(server=None):
 
                         log_debug('Starting batch...')
                         # Compute the batch
-                        _, current_step, batch_loss, batch_report = session.run([train_op, global_step, loss, report_params], **extra_params)
+                        _, current_step, batch_loss, batch_report, step_summary = session.run([train_op, global_step, loss, report_params, step_summaries_op], **extra_params)
+
+                        # Log step summaries
+                        step_summary_writer.add_summary(step_summary, current_step)
 
                         # Uncomment the next line for debugging race conditions / distributed TF
                         log_debug('Finished batch step %d.' % current_step)

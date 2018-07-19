@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ `uname` = "Darwin" ]; then
+   export PATH="${TASKCLUSTER_TASK_DIR}/homebrew/opt/coreutils/libexec/gnubin:${PATH}"
+fi;
+
 GIT_DIR="$(realpath "$(dirname "$(realpath "$0")")/../.git/")"
 if [ ! -d "${GIT_DIR}" ]; then
    return 1

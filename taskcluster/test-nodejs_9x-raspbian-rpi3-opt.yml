@@ -5,7 +5,7 @@ build:
     - "test-training_upstream-linux-amd64-py27mu-opt"
   system_setup:
     >
-      ${nodejs.packages_stretch.prep_9} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_stretch.apt}
+      ${nodejs.packages_stretch.prep_9} && ${nodejs.packages_stretch.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_stretch.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-node-tests.sh 9.x"
   metadata:

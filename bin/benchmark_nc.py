@@ -402,9 +402,9 @@ def run_benchmarks(dir, models, wav, alphabet, lm_binary=None, trie=None, iters=
         }
 
         if lm_binary and trie:
-            cmdline = './deepspeech "%s" "%s" "%s" "%s" "%s" -t' % (model_filename, alphabet, lm_binary, trie, wav)
+            cmdline = './deepspeech --model "%s" --alphabet "%s" --lm "%s" --trie "%s" --audio "%s" -t' % (model_filename, alphabet, lm_binary, trie, wav)
         else:
-            cmdline = './deepspeech "%s" "%s" "%s" -t' % (model_filename, alphabet, wav)
+            cmdline = './deepspeech --model "%s" --alphabet "%s" --audio "%s" -t' % (model_filename, alphabet, wav)
 
         for it in range(iters):
             sys.stdout.write('\rRunning %s: %d/%d' % (os.path.basename(model), (it+1), iters))
@@ -441,7 +441,7 @@ def produce_csv(input, output):
 
 def handle_args():
     parser = argparse.ArgumentParser(description='Benchmarking tooling for DeepSpeech native_client.')
-    parser.add_argument('--target', type=str, required=False,
+    parser.add_argument('--target', required=False,
                                  help='SSH user:pass@host string for remote benchmarking. This can also be a name of a matching \'Host\' in your SSH config.')
     parser.add_argument('--autotrust', action='store_true', default=False,
                                  help='SSH Paramiko policy to automatically trust unknown keys.')
@@ -453,19 +453,19 @@ def handle_args():
                                  help='Allow to look for SSH keys in ~/.ssh/.')
     parser.add_argument('--no-lookforkeys', action='store_false', dest='lookforkeys',
                                  help='Disallow to look for SSH keys in ~/.ssh/.')
-    parser.add_argument('--dir', type=str, required=False, default=None,
+    parser.add_argument('--dir', required=False, default=None,
                                  help='Local directory where to copy stuff. This will be mirrored to the remote system if needed (make sure to use path that will work on both).')
-    parser.add_argument('--models', type=str, nargs='+', required=False,
+    parser.add_argument('--models', nargs='+', required=False,
                                  help='List of files (protocolbuffer) to work on. Might be a zip file.')
-    parser.add_argument('--so-model', type=str, required=False,
+    parser.add_argument('--so-model', required=False,
                                  help='Perform one step using AOT-based .so model')
-    parser.add_argument('--wav', type=str, required=False,
+    parser.add_argument('--wav', required=False,
                                  help='WAV file to pass to native_client. Supply again in plotting mode to draw realine line.')
-    parser.add_argument('--alphabet', type=str, required=False,
+    parser.add_argument('--alphabet', required=False,
                                  help='Text file to pass to native_client for the alphabet.')
-    parser.add_argument('--lm_binary', type=str, required=False,
+    parser.add_argument('--lm_binary', required=False,
                                  help='Path to the LM binary file used by the decoder.')
-    parser.add_argument('--trie', type=str, required=False,
+    parser.add_argument('--trie', required=False,
                                  help='Path to the trie file used by the decoder.')
     parser.add_argument('--iters', type=int, required=False, default=5,
                                  help='How many iterations to perfom on each model.')
@@ -473,7 +473,7 @@ def handle_args():
                                  help='Keeping run files (binaries & models).')
     parser.add_argument('--csv', type=argparse.FileType('w'), required=False,
                                  help='Target CSV file where to dump data.')
-    parser.add_argument('--binaries', type=str, required=False, default=None,
+    parser.add_argument('--binaries', required=False, default=None,
                                  help='Specify non TaskCluster native_client.tar.xz to use')
     return parser.parse_args()
 

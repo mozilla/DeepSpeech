@@ -10,5 +10,6 @@ taskcluster:
       env: true
       events:
         - push
+        - tag
       branches:
         - tf-master

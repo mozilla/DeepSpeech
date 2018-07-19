@@ -117,19 +117,18 @@ def produce_plot_multiseries(input=None, output=None, title=None, size=None, fig
 
 def handle_args():
     parser = argparse.ArgumentParser(description='Benchmarking tooling for DeepSpeech native_client.')
-    parser.add_argument('--wav', type=str, required=False,
+    parser.add_argument('--wav', required=False,
                                  help='WAV file to pass to native_client. Supply again in plotting mode to draw realine line.')
     parser.add_argument('--dataset', action='append', nargs=2, metavar=('name','source'),
                                 help='Include dataset NAME from file SOURCE. Repeat the option to add more datasets.')
-    parser.add_argument('--title', type=str, default=None,
-                                help='Title of the plot.')
+    parser.add_argument('--title', default=None, help='Title of the plot.')
     parser.add_argument('--plot', type=argparse.FileType('w'), required=False,
                                 help='Target file where to plot data. Format will be deduced from extension.')
-    parser.add_argument('--size', type=str, default='800x600',
+    parser.add_argument('--size', default='800x600',
                                 help='Size (px) of the resulting plot.')
     parser.add_argument('--dpi', type=int, default=96,
                                 help='Set plot DPI.')
-    parser.add_argument('--range', type=str, default=None,
+    parser.add_argument('--range', default=None,
                                 help='Range of model size to use. Comma-separated string of boundaries: min,max')
     return parser.parse_args()
 

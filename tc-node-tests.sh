@@ -22,9 +22,9 @@ export NODE_PATH="${NODE_ROOT}/node_modules/"
 export PATH="${NODE_PATH}/.bin/:$PATH"
 
 if [ "${aot_model}" = "--aot" ]; then
-    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/deepspeech-0.1.1.tgz
+    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/deepspeech-${DS_VERSION}.tgz
 else
-    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_NODEJS}/deepspeech-0.1.1.tgz
+    npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_NODEJS}/deepspeech-${DS_VERSION}.tgz
 fi
 
 run_all_inference_tests
