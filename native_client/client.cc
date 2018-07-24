@@ -24,6 +24,7 @@
 #define LM_WEIGHT 1.75f
 #define WORD_COUNT_WEIGHT 1.00f
 #define VALID_WORD_COUNT_WEIGHT 1.00f
+#define INVALID_WORD_PENALTY -5.00f
 
 using namespace DeepSpeech;
 
@@ -232,7 +233,8 @@ main(int argc, char **argv)
 		    trie.c_str(),
 		    LM_WEIGHT,
 		    WORD_COUNT_WEIGHT,
-		    VALID_WORD_COUNT_WEIGHT);
+		    VALID_WORD_COUNT_WEIGHT,
+		    INVALID_WORD_PENALTY);
   }
 
   // Initialise SOX

@@ -23,6 +23,9 @@ const WORD_COUNT_WEIGHT = 1.00;
 // when the inserted word is part of the vocabulary
 const VALID_WORD_COUNT_WEIGHT = 1.00;
 
+// Invalid word insertion weight, for non-Māori words
+const INVALID_WORD_PENALTY = -5.00;
+
 
 // These constants are tied to the shape of the graph used (changing them changes
 // the geometry of the first layer), so make sure you use the same constants that
@@ -84,7 +87,8 @@ audioStream.on('finish', () => {
     console.error('Loading language model from files %s %s', args['lm'], args['trie']);
     const lm_load_start = process.hrtime();
     model.enableDecoderWithLM(args['alphabet'], args['lm'], args['trie'],
-                              LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+                              LM_WEIGHT, WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT,
+                              INVALID_WORD_PENALTY);
     const lm_load_end = process.hrtime(lm_load_start);
     console.error('Loaded language model in %ds.', totalTime(lm_load_end));
   }

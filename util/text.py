@@ -17,7 +17,7 @@ class Alphabet(object):
             for line in fin:
                 if line[0:2] == '\\#':
                     line = '#\n'
-                elif line[0] == '#':
+                elif line[0] == '#' or line[0] == '\n':  #Remove blank character
                     continue
                 self._label_to_str += line[:-1] # remove the line ending
                 self._str_to_label[line[:-1]] = self._size

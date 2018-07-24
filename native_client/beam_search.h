@@ -19,16 +19,55 @@ struct KenLMBeamState {
   Model::State model_state;
 };
 
+static bool IsMaoriWord(std::string word) {
+  /* Could this word be Māori according to Māori orthographic rules forbidding
+     consonant clusters */
+  uint i;
+  static const char consonants[256] = {
+    ['g'] = 'g',
+    ['h'] = 'h',
+    ['k'] = 'k',
+    ['m'] = 'm',
+    ['n'] = 'n',
+    ['p'] = 'p',
+    ['r'] = 'r',
+    ['t'] = 't',
+    ['w'] = 'w'
+  };
+  char *str = word.c_str();
+  char prev = 0;
+  char s;
+  for (i = 0; str[i]; i++) {
+    s = consonants[str[i]];
+    if (s) { /* consonant, we need to check previous state */
+      if (prev) {
+        if (!((s == 'g' && prev == 'n') ||
+              (s == 'h' && prev == 'w'))) {
+          return false;
+        }
+      }
+      prev = s;
+    }
+  }
+  if (s) { /* a trailing consonant */
+    return false;
+  }
+  return true;
+}
+
+
 class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
  public:
   KenLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path,
                   const std::string &alphabet_path, float lm_weight,
-                  float word_count_weight, float valid_word_count_weight)
+                  float word_count_weight, float valid_word_count_weight,
+                  float invalid_word_penalty)
     : model_(kenlm_path.c_str(), GetLMConfig())
     , alphabet_(alphabet_path.c_str())
     , lm_weight_(lm_weight)
     , word_count_weight_(word_count_weight)
     , valid_word_count_weight_(valid_word_count_weight)
+    , invalid_word_penalty_(invalid_word_penalty)
   {
     std::ifstream in(trie_path, std::ios::in);
     TrieNode::ReadFromStream(in, trieRoot_, alphabet_.GetSize());
@@ -84,6 +123,8 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
       // Give fixed word bonus
       if (!IsOOV(to_state->incomplete_word)) {
         to_state->language_model_score += valid_word_count_weight_;
+      } else if (IsMaoriWord(to_state->incomplete_word)) {
+        to_state->language_model_score += invalid_word_penalty_;
       }
       to_state->language_model_score += word_count_weight_;
       UpdateWithLMScore(to_state, lm_score_delta);
@@ -136,6 +177,10 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     this->word_count_weight_ = word_count_weight;
   }
 
+  void SetInvalidWordPenalty(float invalid_word_penalty) {
+    this->invalid_word_penalty_ = invalid_word_penalty;
+  }
+
   void SetValidWordCountWeight(float valid_word_count_weight) {
     this->valid_word_count_weight_ = valid_word_count_weight;
   }
@@ -147,6 +192,7 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
   float lm_weight_;
   float word_count_weight_;
   float valid_word_count_weight_;
+  float invalid_word_penalty_;
   float oov_score_;
 
   lm::ngram::Config GetLMConfig() {
