@@ -150,10 +150,12 @@ DEEPSPEECH_EXPORT
 void
 Model::enableDecoderWithLM(const char* aAlphabetConfigPath, const char* aLMPath,
                            const char* aTriePath, float aLMWeight,
-                           float aWordCountWeight, float aValidWordCountWeight)
+                           float aWordCountWeight, float aValidWordCountWeight,
+                           float InalidWordPenalty)
 {
   mPriv->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
-                                      aLMWeight, aWordCountWeight, aValidWordCountWeight);
+                                      aLMWeight, aWordCountWeight, aValidWordCountWeight,
+                                      aInvalidWordPenalty);
 }
 
 DEEPSPEECH_EXPORT

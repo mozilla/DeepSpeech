@@ -68,7 +68,8 @@ namespace DeepSpeech
                                const char* aLMPath, const char* aTriePath,
                                float aLMWeight,
                                float aWordCountWeight,
-                               float aValidWordCountWeight);
+                               float aValidWordCountWeight,
+                               float InvalidWordPenalty);
 
       /**
        * @brief Given audio, return a vector suitable for input to the
