@@ -8,6 +8,12 @@ pyver_full=$1
 tf=$2
 ds=$3
 
+if [ "$#" -eq 3 ]; then
+    frozen=$3
+else
+    frozen=$4
+fi;
+
 if [ -z "${pyver_full}" ]; then
     echo "No python version given, aborting."
     exit 1
@@ -69,7 +75,12 @@ else
 fi;
 
 pushd ${HOME}/DeepSpeech/ds/
-    time ./bin/run-tc-ldc93s1.sh
+    if [ "${frozen}" = "frozen" ]; then
+        download_for_frozen
+        time ./bin/run-tc-ldc93s1_frozen.sh
+    else
+        time ./bin/run-tc-ldc93s1_new.sh
+    fi;
 popd
 
 deactivate
