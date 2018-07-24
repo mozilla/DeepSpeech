@@ -1601,7 +1601,7 @@ def train(server=None):
             if len(FLAGS.initialize_from_frozen_model) > 0:
                 log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
                 model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
-                session.run(init_from_frozen_model_op, feed_dict=feed_dict)
+                session.run(init_from_frozen_model_op, feed_dict=no_dropout_feed_dict)
 
             try:
                 if is_chief:
