@@ -7,7 +7,7 @@ build:
     >
       apt-get -qq -y install ${python.packages_trusty.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.6.4:m upstream frozen"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.6.4:m frozen"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU upstream training frozen Py3.6"
     description: "Training a DeepSpeech LDC93S1 model from frozen model file for Linux/AMD64 using upstream TensorFlow Python 3.6, CPU only, optimized version"
