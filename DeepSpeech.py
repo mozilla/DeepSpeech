@@ -83,6 +83,10 @@ tf.app.flags.DEFINE_integer ('train_batch_size', 1,           'number of element
 tf.app.flags.DEFINE_integer ('dev_batch_size',   1,           'number of elements in a validation batch')
 tf.app.flags.DEFINE_integer ('test_batch_size',  1,           'number of elements in a test batch')
 
+# Performance
+tf.app.flags.DEFINE_integer ('inter_op',         0,           'number of inter-op parallelism threads - see tf.ConfigProto for more details')
+tf.app.flags.DEFINE_integer ('intra_op',         0,           'number of intra-op parallelism threads - see tf.ConfigProto for more details')
+
 # Sample limits
 
 tf.app.flags.DEFINE_integer ('limit_train',      0,           'maximum number of elements to use from train set - 0 means no limit')
@@ -234,7 +238,9 @@ def initialize_globals():
 
     # Standard session configuration that'll be used for all new sessions.
     global session_config
-    session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement)
+    session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement,
+                                    inter_op_parallelism_threads=FLAGS.inter_op_parallelism_threads,
+                                    intra_op_parallelism_threads=FLAGS.intra_op_parallelism_threads)
 
     global alphabet
     alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
