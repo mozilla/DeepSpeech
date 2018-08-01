@@ -12,8 +12,6 @@ source /usr/local/tensorflow/bin/activate
 # the standard script to execute
 if [ -f ".run" ]; then
   base_cmd="./.run"
-else
-  base_cmd="bin/run-wer-automation.sh"
 fi
 
 # reading the comma separated node list into array "nodes"
