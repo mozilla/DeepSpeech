@@ -23,23 +23,23 @@ using namespace node;
 }
 
 // apply to DS_FeedAudioContent and DS_SpeechToText
-%apply (short* IN_ARRAY1, int DIM1) {(short* aBuffer, unsigned int aBufferSize)};
+%apply (short* IN_ARRAY1, int DIM1) {(const short* aBuffer, unsigned int aBufferSize)};
 
 
 // convert DS_AudioToInputVector return values to a Node Buffer
 %typemap(in,numinputs=0)
-  (float** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2)
-  (float* data_temp, int dim1_temp, int dim2_temp)
+  (float** ARGOUTVIEWM_ARRAY2, unsigned int* DIM1, unsigned int* DIM2)
+  (float* data_temp, unsigned int dim1_temp, unsigned int dim2_temp)
 {
   $1 = &data_temp;
   $2 = &dim1_temp;
   $3 = &dim2_temp;
 }
 %typemap(argout)
-  (float** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2)
+  (float** ARGOUTVIEWM_ARRAY2, unsigned int* DIM1, unsigned int* DIM2)
 {
   Handle<Array> array = Array::New(Isolate::GetCurrent(), *$2);
-  for (int i = 0, idx = 0; i < *$2; i++) {
+  for (unsigned int i = 0, idx = 0; i < *$2; i++) {
     Handle<ArrayBuffer> buffer =
       ArrayBuffer::New(Isolate::GetCurrent(), *$1, *$3 * sizeof(float));
     memcpy(buffer->GetContents().Data(),
@@ -51,7 +51,7 @@ using namespace node;
   $result = array;
 }
 
-%apply (float** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {(float** aMfcc, int* aNFrames, int* aFrameLen)};
+%apply (float** ARGOUTVIEWM_ARRAY2, unsigned int* DIM1, unsigned int* DIM2) {(float** aMfcc, unsigned int* aNFrames, unsigned int* aFrameLen)};
 
 // make sure the string returned by SpeechToText is freed
 %typemap(newfree) char* "free($1);";

@@ -32,7 +32,7 @@ typedef struct {
 } ds_result;
 
 ds_result
-LocalDsSTT(ModelState* aCtx, short* aBuffer, size_t aBufferSize,
+LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
            int aSampleRate)
 {
   ds_result res = {0};
@@ -170,7 +170,7 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
   // We take half of buffer_size because buffer is a char* while
   // LocalDsSTT() expected a short*
   ds_result result = LocalDsSTT(context,
-                                (short*)audio.buffer,
+                                (const short*)audio.buffer,
                                 audio.buffer_size / 2,
                                 audio.sample_rate);
   free(audio.buffer);
@@ -197,17 +197,21 @@ main(int argc, char **argv)
   ModelState* ctx;
   int status = DS_CreateModel(model, N_CEP, N_CONTEXT, alphabet, BEAM_WIDTH, &ctx);
   if (status != 0) {
+    fprintf(stderr, "Could not create model.\n");
     return 1;
   }
 
-  if (has_lm && has_trie) {
-    DS_EnableDecoderWithLM(
-        ctx,
-        alphabet,
-        lm,
-        trie,
-        LM_WEIGHT,
-        VALID_WORD_COUNT_WEIGHT);
+  if (lm && trie) {
+    int status = DS_EnableDecoderWithLM(ctx,
+                                        alphabet,
+                                        lm,
+                                        trie,
+                                        LM_WEIGHT,
+                                        VALID_WORD_COUNT_WEIGHT);
+    if (status != 0) {
+      fprintf(stderr, "Could not enable CTC decoder with LM.\n");
+      return 1;
+    }
   }
 
   // Initialise SOX

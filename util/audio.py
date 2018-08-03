@@ -2,7 +2,6 @@ from __future__ import absolute_import, print_function
 
 import scipy.io.wavfile as wav
 import sys
-import math
 import warnings
 
 class DeepSpeechDeprecationWarning(DeprecationWarning):

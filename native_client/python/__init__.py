@@ -20,7 +20,7 @@ class Model(object):
             self._impl = None
 
     def enableDecoderWithLM(self, *args, **kwargs):
-        deepspeech.impl.EnableDecoderWithLM(self._impl, *args, **kwargs)
+        return deepspeech.impl.EnableDecoderWithLM(self._impl, *args, **kwargs)
 
     def stt(self, *args, **kwargs):
         return deepspeech.impl.SpeechToText(self._impl, *args, **kwargs)
@@ -37,7 +37,7 @@ class Model(object):
         deepspeech.impl.FeedAudioContent(*args, **kwargs)
 
     def intermediateDecode(self, *args, **kwargs):
-        deepspeech.impl.IntermediateDecode(*args, **kwargs)
+        return deepspeech.impl.IntermediateDecode(*args, **kwargs)
 
     def finishStream(self, *args, **kwargs):
         return deepspeech.impl.FinishStream(*args, **kwargs)

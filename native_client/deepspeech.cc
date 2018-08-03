@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -26,23 +27,23 @@
 #include "c_speech_features.h"
 
 //TODO: infer batch size from model/use dynamic batch size
-const int BATCH_SIZE = 1;
+const unsigned int BATCH_SIZE = 1;
 
 //TODO: use dynamic sample rate
-const int SAMPLE_RATE = 16000;
+const unsigned int SAMPLE_RATE = 16000;
 
 const float AUDIO_WIN_LEN = 0.025f;
 const float AUDIO_WIN_STEP = 0.01f;
-const int AUDIO_WIN_LEN_SAMPLES = (int)(AUDIO_WIN_LEN * SAMPLE_RATE);
-const int AUDIO_WIN_STEP_SAMPLES = (int)(AUDIO_WIN_STEP * SAMPLE_RATE);
+const unsigned int AUDIO_WIN_LEN_SAMPLES = (unsigned int)(AUDIO_WIN_LEN * SAMPLE_RATE);
+const unsigned int AUDIO_WIN_STEP_SAMPLES = (unsigned int)(AUDIO_WIN_STEP * SAMPLE_RATE);
 
-const int MFCC_FEATURES = 26;
+const unsigned int MFCC_FEATURES = 26;
 
 const float PREEMPHASIS_COEFF = 0.97f;
-const int N_FFT = 512;
-const int N_FILTERS = 26;
-const int LOWFREQ = 0;
-const int CEP_LIFTER = 22;
+const unsigned int N_FFT = 512;
+const unsigned int N_FILTERS = 26;
+const unsigned int LOWFREQ = 0;
+const unsigned int CEP_LIFTER = 22;
 
 using namespace tensorflow;
 using tensorflow::ctc::CTCBeamSearchDecoder;
@@ -50,36 +51,36 @@ using tensorflow::ctc::CTCDecoder;
 
 using std::vector;
 
+/* This is the actual implementation of the streaming inference API, with the
+   Model class just forwarding the calls to this class.
+
+   The streaming process uses three buffers that are fed eagerly as audio data
+   is fed in. The buffers only hold the minimum amount of data needed to do a
+   step in the acoustic model. The three buffers which live in StreamingContext
+   are:
+
+   - audio_buffer, used to buffer audio samples until there's enough data to
+     compute input features for a single window.
+
+   - mfcc_buffer, used to buffer input features until there's enough data for
+     a single timestep. Remember there's overlap in the features, each timestep
+     contains n_context past feature frames, the current feature frame, and
+     n_context future feature frames, for a total of 2*n_context + 1 feature
+     frames per timestep.
+
+   - batch_buffer, used to buffer timesteps until there's enough data to compute
+     a batch of n_steps.
+
+   Data flows through all three buffers as audio samples are fed via the public
+   API. When audio_buffer is full, features are computed from it and pushed to
+   mfcc_buffer. When mfcc_buffer is full, the timestep is copied to batch_buffer.
+   When batch_buffer is full, we do a single step through the acoustic model
+   and accumulate results in StreamingState::accumulated_logits.
+
+   When fininshStream() is called, we decode the accumulated logits and return
+   the corresponding transcription.
+*/
 struct StreamingState {
-  /* This is the actual implementation of the streaming inference API, with the
-     Model class just forwarding the calls to this class.
-
-     The streaming process uses three buffers that are fed eagerly as audio data
-     is fed in. The buffers only hold the minimum amount of data needed to do a
-     step in the acoustic model. The three buffers which live in StreamingContext
-     are:
-
-     - audio_buffer, used to buffer audio samples until there's enough data to
-       compute input features for a single window.
-
-     - mfcc_buffer, used to buffer input features until there's enough data for
-       a single timestep. Remember there's overlap in the features, each timestep
-       contains n_context past feature frames, the current feature frame, and
-       n_context future feature frames, for a total of 2*n_context + 1 feature
-       frames per timestep.
-
-     - batch_buffer, used to buffer timesteps until there's enough data to compute
-       a batch of n_steps.
-
-     Data flows through all three buffers as audio samples are fed via the public
-     API. When audio_buffer is full, features are computed from it and pushed to
-     mfcc_buffer. When mfcc_buffer is full, the timestep is copied to batch_buffer.
-     When batch_buffer is full, we do a single step through the acoustic model
-     and accumulate results in StreamingState::accumulated_logits.
-
-     When fininshStream() is called, we decode the accumulated logits and return
-     the corresponding transcription.
-  */
   vector<float> accumulated_logits;
   vector<float> audio_buffer;
   float last_sample; // used for preemphasis
@@ -103,15 +104,15 @@ struct ModelState {
   MemmappedEnv* mmap_env;
   Session* session;
   GraphDef graph_def;
-  int ncep;
-  int ncontext;
+  unsigned int ncep;
+  unsigned int ncontext;
   Alphabet* alphabet;
   KenLMBeamScorer* scorer;
-  int beam_width;
+  unsigned int beam_width;
   bool run_aot;
-  int n_steps;
-  int mfcc_feats_per_timestep;
-  int n_context;
+  unsigned int n_steps;
+  unsigned int mfcc_feats_per_timestep;
+  unsigned int n_context;
 
   ModelState();
   ~ModelState();
@@ -120,7 +121,6 @@ struct ModelState {
    * @brief Perform decoding of the logits, using basic CTC decoder or
    *        CTC decoder with KenLM enabled
    *
-   * @param n_frames       Number of timesteps to deal with
    * @param logits         Flat matrix of logits, of size:
    *                       n_frames * batch_size * num_classes
    *
@@ -136,10 +136,9 @@ struct ModelState {
    * @param mfcc batch input data
    * @param n_frames number of timesteps in the data
    *
-   * @param[out] output_logits Should be large enough to fit
-   *                           aNFrames * alphabet_size floats.
+   * @param[out] output_logits Where to store computed logits.
    */
-  void infer(const float* mfcc, int n_frames, vector<float>& output_logits);
+  void infer(const float* mfcc, unsigned int n_frames, vector<float>& output_logits);
 };
 
 ModelState::ModelState()
@@ -294,7 +293,7 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 }
 
 void
-ModelState::infer(const float* aMfcc, int n_frames, vector<float>& logits_output)
+ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logits_output)
 {
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
 
@@ -410,14 +409,14 @@ ModelState::decode(vector<float>& logits)
 }
 
 int
-DS_CreateModel(char* aModelPath,
-               int aNCep,
-               int aNContext,
-               char* aAlphabetConfigPath,
-               int aBeamWidth,
+DS_CreateModel(const char* aModelPath,
+               unsigned int aNCep,
+               unsigned int aNContext,
+               const char* aAlphabetConfigPath,
+               unsigned int aBeamWidth,
                ModelState** retval)
 {
-  ModelState* model = new ModelState();
+  std::unique_ptr<ModelState> model(new ModelState());
   model->mmap_env   = new MemmappedEnv(Env::Default());
   model->ncep       = aNCep;
   model->ncontext   = aNContext;
@@ -469,14 +468,12 @@ DS_CreateModel(char* aModelPath,
   }
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    delete model;
     return status.code();
   }
 
   status = model->session->Create(model->graph_def);
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    delete model;
     return status.code();
   }
 
@@ -502,7 +499,6 @@ DS_CreateModel(char* aModelPath,
                   << " classes in its output. Make sure you're passing an alphabet "
                   << "file with the same size as the one used for training."
                   << std::endl;
-        delete model;
         return error::INVALID_ARGUMENT;
       }
     }
@@ -515,11 +511,10 @@ DS_CreateModel(char* aModelPath,
               << "changed the number of features in the input, adjust the "
               << "MFCC_FEATURES constant in " __FILE__
               << std::endl;
-    delete model;
     return error::INVALID_ARGUMENT;
   }
 
-  *retval = model;
+  *retval = model.release();
   return tensorflow::error::OK;
 }
 
@@ -529,26 +524,31 @@ DS_DestroyModel(ModelState* ctx)
   delete ctx;
 }
 
-void
+int
 DS_EnableDecoderWithLM(ModelState* aCtx,
-                       char* aAlphabetConfigPath,
-                       char* aLMPath,
-                       char* aTriePath,
+                       const char* aAlphabetConfigPath,
+                       const char* aLMPath,
+                       const char* aTriePath,
                        float aLMWeight,
                        float aValidWordCountWeight)
 {
-  aCtx->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
-                                     aLMWeight, aValidWordCountWeight);
+  try {
+    aCtx->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
+                                       aLMWeight, aValidWordCountWeight);
+    return 0;
+  } catch (...) {
+    return 1;
+  }
 }
 
 char*
 DS_SpeechToText(ModelState* aCtx,
-                short* aBuffer,
+                const short* aBuffer,
                 unsigned int aBufferSize,
-                int aSampleRate)
+                unsigned int aSampleRate)
 {
   StreamingState* ctx;
-  int status = DS_SetupStream(aCtx, 150, aSampleRate, &ctx);
+  int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
   if (status != tensorflow::error::OK) {
     return nullptr;
   }
@@ -570,13 +570,18 @@ DS_SetupStream(ModelState* aCtx,
     return status.code();
   }
 
-  StreamingState* ctx = new StreamingState;
+  std::unique_ptr<StreamingState> ctx(new StreamingState());
   if (!ctx) {
     std::cerr << "Could not allocate streaming state." << std::endl;
     return status.code();
   }
 
   const size_t num_classes = aCtx->alphabet->GetSize() + 1; // +1 for blank
+
+  // Default initial allocation = 3 seconds.
+  if (aPreAllocFrames == 0) {
+    aPreAllocFrames = 150;
+  }
 
   ctx->accumulated_logits.reserve(aPreAllocFrames * BATCH_SIZE * num_classes);
 
@@ -590,13 +595,13 @@ DS_SetupStream(ModelState* aCtx,
 
   ctx->model = aCtx;
 
-  *retval = ctx;
+  *retval = ctx.release();
   return tensorflow::error::OK;
 }
 
 void
 DS_FeedAudioContent(StreamingState* aSctx,
-                    short* aBuffer,
+                    const short* aBuffer,
                     unsigned int aBufferSize)
 {
   aSctx->feedAudioContent(aBuffer, aBufferSize);
@@ -617,11 +622,11 @@ DS_FinishStream(StreamingState* aSctx)
 }
 
 void
-DS_AudioToInputVector(short* aBuffer,
+DS_AudioToInputVector(const short* aBuffer,
                       unsigned int aBufferSize,
-                      int aSampleRate,
-                      int aNCep,
-                      int aNContext,
+                      unsigned int aSampleRate,
+                      unsigned int aNCep,
+                      unsigned int aNContext,
                       float** aMfcc,
                       int* aNFrames,
                       int* aFrameLen)

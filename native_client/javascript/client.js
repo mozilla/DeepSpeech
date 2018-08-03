@@ -41,7 +41,7 @@ parser.addArgument(['--version'], {help: 'Print version and exits'})
 var args = parser.parseArgs();
 
 if (args['version']) {
-  Ds.print_versions();
+  Ds.printVersions();
   return 0;
 }
 

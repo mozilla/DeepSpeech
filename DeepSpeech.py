@@ -131,7 +131,6 @@ def create_flags():
     # Initialization
 
     tf.app.flags.DEFINE_integer ('random_seed',      4567,        'default random seed that is used to initialize variables')
-    tf.app.flags.DEFINE_float   ('default_stddev',   0.046875,    'default standard deviation to use when initialising weights and biases')
 
     # Early Stopping
 
@@ -162,9 +161,6 @@ def create_flags():
     # Initialize from frozen model
 
     tf.app.flags.DEFINE_string  ('initialize_from_frozen_model', '', 'path to frozen model to initialize from. This behaves like a checkpoint, loading the weights from the frozen model and starting training with those weights. The optimizer parameters aren\'t restored, so remember to adjust the learning rate.')
-
-    for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
-        tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -284,12 +280,6 @@ def initialize_globals():
     # The number of units in the sixth layer
     global n_hidden_6
     n_hidden_6 = n_character
-
-    # Assign default values for standard deviation
-    for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
-        val = getattr(FLAGS, '%s_stddev' % var)
-        if val is None:
-            setattr(FLAGS, '%s_stddev' % var, FLAGS.default_stddev)
 
     # Queues that are used to gracefully stop parameter servers.
     # Each queue stands for one ps. A finishing worker sends a token to each queue before joining/quitting.

@@ -6,20 +6,15 @@
 
 #include "deepspeech.h"
 
-bool has_model = false;
-char* model;
+char* model = NULL;
 
-bool has_alphabet = false;
-char* alphabet;
+char* alphabet = NULL;
 
-bool has_lm = false;
-char* lm;
+char* lm = NULL;
 
-bool has_trie = false;
-char* trie;
+char* trie = NULL;
 
-bool has_audio = false;
-char* audio;
+char* audio = NULL;
 
 bool show_times = false;
 
@@ -70,27 +65,22 @@ bool ProcessArgs(int argc, char** argv)
         {
         case 'm':
             model     = optarg;
-            has_model = true;
             break;
 
         case 'a':
             alphabet     = optarg;
-            has_alphabet = true;
             break;
 
         case 'l':
             lm     = optarg;
-            has_lm = true;
             break;
 
         case 'r':
             trie     = optarg;
-            has_trie = true;
             break;
 
         case 'w':
             audio     = optarg;
-            has_audio = true;
             break;
 
         case 't':
@@ -114,7 +104,7 @@ bool ProcessArgs(int argc, char** argv)
         return false;
     }
 
-    if (!has_model || !has_alphabet || !has_audio || strlen(alphabet) == 0 || strlen(audio) == 0) {
+    if (!model || !alphabet || !audio) {
         PrintHelp(argv[0]);
         return false;
     }

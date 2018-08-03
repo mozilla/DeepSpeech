@@ -27,11 +27,11 @@ struct StreamingState;
  * @return Zero on success, non-zero on failure.
  */
 DEEPSPEECH_EXPORT
-int DS_CreateModel(char* aModelPath,
-                   int aNCep,
-                   int aNContext,
-                   char* aAlphabetConfigPath,
-                   int aBeamWidth,
+int DS_CreateModel(const char* aModelPath,
+                   unsigned int aNCep,
+                   unsigned int aNContext,
+                   const char* aAlphabetConfigPath,
+                   unsigned int aBeamWidth,
                    ModelState** retval);
 
 /**
@@ -53,14 +53,16 @@ void DS_DestroyModel(ModelState* ctx);
  *                  ring.
  * @param aValidWordCountWeight The weight (bonus) to give to beams when
  *                              adding a new valid word to the decoding.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
  */
 DEEPSPEECH_EXPORT
-void DS_EnableDecoderWithLM(ModelState* aCtx,
-                            char* aAlphabetConfigPath,
-                            char* aLMPath,
-                            char* aTriePath,
-                            float aLMWeight,
-                            float aValidWordCountWeight);
+int DS_EnableDecoderWithLM(ModelState* aCtx,
+                           const char* aAlphabetConfigPath,
+                           const char* aLMPath,
+                           const char* aTriePath,
+                           float aLMWeight,
+                           float aValidWordCountWeight);
 
 /**
  * @brief Use the DeepSpeech model to perform Speech-To-Text.
@@ -72,25 +74,26 @@ void DS_EnableDecoderWithLM(ModelState* aCtx,
  * @param aSampleRate The sample-rate of the audio signal.
  *
  * @return The STT result. The user is responsible for freeing the string.
+ *         Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
-                      short* aBuffer,
+                      const short* aBuffer,
                       unsigned int aBufferSize,
-                      int aSampleRate);
+                      unsigned int aSampleRate);
 
 /**
- * @brief Setup a context used for performing streaming inference.
- *        the context pointer returned by this function can then be passed
- *        to {@link DS_FeedAudioContent()} and {@link DS_FinishStream()}.
+ * @brief Create a new streaming inference state. The streaming state returned
+ *        by this function can then be passed to {@link DS_FeedAudioContent()}
+ *        and {@link DS_FinishStream()}.
  *
+ * @param aCtx The ModelState pointer for the model to use.
  * @param aPreAllocFrames Number of timestep frames to reserve. One timestep
- *                        is equivalent to two window lengths (50ms), so
- *                        by default we reserve enough frames for 3 seconds
- *                        of audio.
+ *                        is equivalent to two window lengths (20ms). If set to 
+ *                        0 we reserve enough frames for 3 seconds of audio (150).
  * @param aSampleRate The sample-rate of the audio signal.
- * @param[out] retval a context pointer that represents the streaming state. Can
- *                    be null if an error occurs.
+ * @param[out] retval an opaque pointer that represents the streaming state. Can
+ *                    be NULL if an error occurs.
  *
  * @return Zero for success, non-zero on failure.
  */
@@ -103,17 +106,27 @@ int DS_SetupStream(ModelState* aCtx,
 /**
  * @brief Feed audio samples to an ongoing streaming inference.
  *
- * @param aCtx A streaming context pointer returned by {@link DS_SetupStream()}.
+ * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  * @param aBuffer An array of 16-bit, mono raw audio samples at the
  *                appropriate sample rate.
  * @param aBufferSize The number of samples in @p aBuffer.
  */
 DEEPSPEECH_EXPORT
 void DS_FeedAudioContent(StreamingState* aSctx,
-                         short* aBuffer,
+                         const short* aBuffer,
                          unsigned int aBufferSize);
 
-
+/**
+ * @brief Compute the intermediate decoding of an ongoing streaming inference.
+ *        This is an expensive process as the decoder implementation is isn't
+ *        currently capable of streaming, so it always starts from the beginning
+ *        of the audio.
+ *
+ * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ *
+ * @return The STT intermediate result. The user is responsible for freeing the
+ *         string.
+ */
 DEEPSPEECH_EXPORT
 char* DS_IntermediateDecode(StreamingState* aSctx);
 
@@ -121,11 +134,11 @@ char* DS_IntermediateDecode(StreamingState* aSctx);
  * @brief Signal the end of an audio signal to an ongoing streaming
  *        inference, returns the STT result over the whole audio signal.
  *
- * @param aSctx A streaming context pointer returned by {@link DS_SetupStream()}.
+ * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
  * @return The STT result. The user is responsible for freeing the string.
  *
- * @note This method will free the context pointer (@p aCtx).
+ * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
@@ -152,11 +165,11 @@ char* DS_FinishStream(StreamingState* aSctx);
  *                       (ncep * ncontext) in @p aMfcc.
  */
 DEEPSPEECH_EXPORT
-void DS_AudioToInputVector(short* aBuffer,
+void DS_AudioToInputVector(const short* aBuffer,
                            unsigned int aBufferSize,
-                           int aSampleRate,
-                           int aNCep,
-                           int aNContext,
+                           unsigned int aSampleRate,
+                           unsigned int aNCep,
+                           unsigned int aNContext,
                            float** aMfcc,
                            int* aNFrames = NULL,
                            int* aFrameLen = NULL);

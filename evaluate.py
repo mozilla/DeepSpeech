@@ -84,26 +84,28 @@ def preprocess(dataset_files, batch_size, hdf5_dest_path=None):
         features, features_len, transcript, transcript_len = zip(*out_data)
 
         with tables.open_file(hdf5_dest_path, 'w') as file:
-            features_dset = file.create_vlarray(file.root, 'features',
-                                                tables.Float32Atom(shape=()), filters=tables.Filters(complevel=1))
+            features_dset = file.create_vlarray(file.root,
+                                                'features',
+                                                tables.Float32Atom(),
+                                                filters=tables.Filters(complevel=1))
             # VLArray atoms need to be 1D, so flatten feature array
             for f in features:
                 features_dset.append(np.reshape(f, -1))
 
-            features_len_dset = file.create_array(
-                file.root, 'features_len', features_len)
+            features_len_dset = file.create_array(file.root,
+                                                  'features_len',
+                                                  features_len)
 
-            transcript_dset = file.create_vlarray(
-                file.root,
-                'transcript',
-                tables.Int32Atom(),
-                filters=tables.Filters(
-                    complevel=1))
+            transcript_dset = file.create_vlarray(file.root,
+                                                  'transcript',
+                                                  tables.Int32Atom(),
+                                                  filters=tables.Filters(complevel=1))
             for t in transcript:
                 transcript_dset.append(t)
 
-            transcript_len_dset = file.create_array(
-                file.root, 'transcript_len', transcript_len)
+            transcript_len_dset = file.create_array(file.root,
+                                                    'transcript_len',
+                                                    transcript_len)
 
     return pandas.DataFrame(data=out_data, columns=COLUMNS)
 
@@ -159,8 +161,8 @@ def calculate_report(labels, decodings, distances, losses):
     # Order the remaining items by their loss (lowest loss on top)
     samples.sort(key=lambda s: s.loss)
 
-    # Then order by WER (lowest WER on top)
-    samples.sort(key=lambda s: s.wer)
+    # Then order by WER (highest WER on top)
+    samples.sort(key=lambda s: s.wer, reverse=True)
 
     return samples_wer, samples
 

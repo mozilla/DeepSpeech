@@ -19,7 +19,7 @@ function Model() {
 
 Model.prototype.enableDecoderWithLM = function() {
     const args = [this._impl].concat(Array.prototype.slice.call(arguments));
-    binding.EnableDecoderWithLM.apply(null, args);
+    return binding.EnableDecoderWithLM.apply(null, args);
 }
 
 Model.prototype.stt = function() {
@@ -43,7 +43,7 @@ Model.prototype.feedAudioContent = function() {
 }
 
 Model.prototype.intermediateDecode = function() {
-    binding.IntermediateDecode.apply(null, arguments);
+    return binding.IntermediateDecode.apply(null, arguments);
 }
 
 Model.prototype.finishStream = function() {
@@ -52,5 +52,6 @@ Model.prototype.finishStream = function() {
 
 module.exports = {
     Model: Model,
-    audioToInputVector: binding.AudioToInputVector
+    audioToInputVector: binding.AudioToInputVector,
+    printVersions: binding.PrintVersions
 };
