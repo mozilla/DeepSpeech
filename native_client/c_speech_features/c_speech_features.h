@@ -19,10 +19,6 @@
 #define CSF_2D_INDEX(w,x,y) (((y)*(w))+(x))
 #define CSF_2D_REF(m,w,x,y) ((m)[CSF_2D_INDEX(w,x,y)])
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @brief Compute MFCC features from an audio signal.
  *
@@ -53,7 +49,8 @@ extern "C" {
  *
  * @return The number of frames.
  */
-int csf_mfcc(const short* aSignal,
+template<typename T>
+int csf_mfcc(const T* aSignal,
              unsigned int aSignalLen,
              int aSampleRate,
              csf_float aWinLen,
@@ -98,7 +95,8 @@ int csf_mfcc(const short* aSignal,
  *
  * @return The number of frames.
  */
-int csf_fbank(const short* aSignal,
+template<typename T>
+int csf_fbank(const T* aSignal,
               unsigned int aSignalLen,
               int aSampleRate,
               csf_float aWinLen,
@@ -141,7 +139,8 @@ int csf_fbank(const short* aSignal,
  *
  * @return The number of frames.
  */
-int csf_logfbank(const short* aSignal,
+template<typename T>
+int csf_logfbank(const T* aSignal,
                  unsigned int aSignalLen,
                  int aSampleRate,
                  csf_float aWinLen,
@@ -180,7 +179,8 @@ int csf_logfbank(const short* aSignal,
  *                       (frames, @p aNFilters). The user is responsible for
  *                       freeing the array.
  */
-int csf_ssc(const short* aSignal,
+template<typename T>
+int csf_ssc(const T* aSignal,
             unsigned int aSignalLen,
             int aSampleRate,
             csf_float aWinLen,
@@ -289,7 +289,8 @@ csf_float* csf_delta(const csf_float* aFeatures,
  *
  * @return The filtered signal. The user is responsible for freeing this array.
  */
-csf_float* csf_preemphasis(const short* aSignal,
+template<typename T>
+csf_float* csf_preemphasis(const T* aSignal,
                            unsigned int aSignalLen,
                            csf_float aCoeff);
 
@@ -405,9 +406,5 @@ csf_float* csf_logpowspec(const csf_float* aFrames,
                           int aNFrames,
                           int aNFFT,
                           int aNorm);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __C_SPEECH_FEATURES_H__ */

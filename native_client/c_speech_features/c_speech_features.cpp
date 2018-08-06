@@ -6,8 +6,9 @@
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define CLAMP(x,y,z) MIN(MAX(x,y),z)
 
+template <typename T>
 int
-csf_mfcc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+csf_mfcc(const T* aSignal, unsigned int aSignalLen, int aSampleRate,
          csf_float aWinLen, csf_float aWinStep, int aNCep, int aNFilters,
          int aNFFT, int aLowFreq, int aHighFreq, csf_float aPreemph,
          int aCepLifter, int aAppendEnergy, csf_float* aWinFunc,
@@ -70,8 +71,26 @@ csf_mfcc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
   return n_frames;
 }
 
+template
 int
-csf_fbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+csf_mfcc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+         csf_float aWinLen, csf_float aWinStep, int aNCep, int aNFilters,
+         int aNFFT, int aLowFreq, int aHighFreq, csf_float aPreemph,
+         int aCepLifter, int aAppendEnergy, csf_float* aWinFunc,
+         csf_float** aMFCC);
+
+template
+int
+csf_mfcc(const float* aSignal, unsigned int aSignalLen, int aSampleRate,
+         csf_float aWinLen, csf_float aWinStep, int aNCep, int aNFilters,
+         int aNFFT, int aLowFreq, int aHighFreq, csf_float aPreemph,
+         int aCepLifter, int aAppendEnergy, csf_float* aWinFunc,
+         csf_float** aMFCC);
+
+
+template<typename T>
+int
+csf_fbank(const T* aSignal, unsigned int aSignalLen, int aSampleRate,
           csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
           int aLowFreq, int aHighFreq, csf_float aPreemph, csf_float* aWinFunc,
           csf_float** aFeatures, csf_float** aEnergy)
@@ -144,8 +163,23 @@ csf_fbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
   return n_frames;
 }
 
+template
 int
-csf_logfbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+csf_fbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+          csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
+          int aLowFreq, int aHighFreq, csf_float aPreemph, csf_float* aWinFunc,
+          csf_float** aFeatures, csf_float** aEnergy);
+
+template
+int
+csf_fbank(const float* aSignal, unsigned int aSignalLen, int aSampleRate,
+          csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
+          int aLowFreq, int aHighFreq, csf_float aPreemph, csf_float* aWinFunc,
+          csf_float** aFeatures, csf_float** aEnergy);
+
+template <typename T>
+int
+csf_logfbank(const T* aSignal, unsigned int aSignalLen, int aSampleRate,
              csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
              int aLowFreq, int aHighFreq, csf_float aPreemph,
              csf_float* aWinFunc, csf_float** aFeatures, csf_float** aEnergy)
@@ -164,8 +198,23 @@ csf_logfbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
   return n_frames;
 }
 
+template
 int
-csf_ssc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+csf_logfbank(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+             csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
+             int aLowFreq, int aHighFreq, csf_float aPreemph,
+             csf_float* aWinFunc, csf_float** aFeatures, csf_float** aEnergy);
+
+template
+int
+csf_logfbank(const float* aSignal, unsigned int aSignalLen, int aSampleRate,
+             csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
+             int aLowFreq, int aHighFreq, csf_float aPreemph,
+             csf_float* aWinFunc, csf_float** aFeatures, csf_float** aEnergy);
+
+template<typename T>
+int
+csf_ssc(const T* aSignal, unsigned int aSignalLen, int aSampleRate,
         csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
         int aLowFreq, int aHighFreq, csf_float aPreemph, csf_float* aWinFunc,
         csf_float** aFeatures)
@@ -242,6 +291,20 @@ csf_ssc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
   return n_frames;
 }
 
+template
+int
+csf_ssc(const short* aSignal, unsigned int aSignalLen, int aSampleRate,
+        csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
+        int aLowFreq, int aHighFreq, csf_float aPreemph, csf_float* aWinFunc,
+        csf_float** aFeatures);
+
+template
+int
+csf_ssc(const float* aSignal, unsigned int aSignalLen, int aSampleRate,
+        csf_float aWinLen, csf_float aWinStep, int aNFilters, int aNFFT,
+        int aLowFreq, int aHighFreq, csf_float aPreemph, csf_float* aWinFunc,
+        csf_float** aFeatures);
+
 csf_float
 csf_hz2mel(csf_float aHz)
 {
@@ -260,7 +323,7 @@ csf_lifter(csf_float* aCepstra, int aNFrames, int aNCep, int aCepLifter)
   int i, j, idx;
 
   csf_float lifter = aCepLifter / 2.0;
-  csf_float* factors = malloc(sizeof(csf_float) * aNCep);
+  csf_float* factors = (csf_float*)malloc(sizeof(csf_float) * aNCep);
   for (i = 0; i < aNCep; i++) {
     factors[i] = 1 + lifter * csf_sin(M_PI * i / (csf_float)aCepLifter);
   }
@@ -428,8 +491,9 @@ csf_deframesig(const csf_float* aFrames, int aNFrames, int aSigLen,
   return aSigLen;
 }
 
+template<typename T>
 csf_float*
-csf_preemphasis(const short* aSignal, unsigned int aSignalLen, csf_float aCoeff)
+csf_preemphasis(const T* aSignal, unsigned int aSignalLen, csf_float aCoeff)
 {
   int i;
   csf_float* preemph = (csf_float*)malloc(sizeof(csf_float) * aSignalLen);
@@ -441,6 +505,14 @@ csf_preemphasis(const short* aSignal, unsigned int aSignalLen, csf_float aCoeff)
 
   return preemph;
 }
+
+template
+csf_float*
+csf_preemphasis(const short* aSignal, unsigned int aSignalLen, csf_float aCoeff);
+
+template
+csf_float*
+csf_preemphasis(const float* aSignal, unsigned int aSignalLen, csf_float aCoeff);
 
 csf_float*
 csf_magspec(const csf_float* aFrames, int aNFrames, int aNFFT)
