@@ -40,7 +40,7 @@ copy-deps: build
 node-wrapper: copy-deps build
 	$(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_ABI_TARGET) package $(NODE_BUILD_VERBOSE)
 
-npm-pack: clean package.json README.md
+npm-pack: clean package.json README.md index.js
 	npm install node-pre-gyp@0.6.x
 	npm pack $(NODE_BUILD_VERBOSE)
 

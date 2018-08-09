@@ -31,141 +31,140 @@ from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, 
 from xdg import BaseDirectory as xdg
 import numpy as np
 
+def create_flags():
+    # Importer
+    # ========
 
-# Importer
-# ========
+    tf.app.flags.DEFINE_string  ('train_files',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
+    tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
+    tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
+    tf.app.flags.DEFINE_boolean ('fulltrace',        False,       'if full trace debug info should be generated during training')
 
-tf.app.flags.DEFINE_string  ('train_files',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
-tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
-tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
-tf.app.flags.DEFINE_boolean ('fulltrace',        False,       'if full trace debug info should be generated during training')
+    # Cluster configuration
+    # =====================
 
-# Cluster configuration
-# =====================
+    tf.app.flags.DEFINE_string  ('ps_hosts',         '',          'parameter servers - comma separated list of hostname:port pairs')
+    tf.app.flags.DEFINE_string  ('worker_hosts',     '',          'workers - comma separated list of hostname:port pairs')
+    tf.app.flags.DEFINE_string  ('job_name',         'localhost', 'job name - one of localhost (default), worker, ps')
+    tf.app.flags.DEFINE_integer ('task_index',       0,           'index of task within the job - worker with index 0 will be the chief')
+    tf.app.flags.DEFINE_integer ('replicas',         -1,          'total number of replicas - if negative, its absolute value is multiplied by the number of workers')
+    tf.app.flags.DEFINE_integer ('replicas_to_agg',  -1,          'number of replicas to aggregate - if negative, its absolute value is multiplied by the number of workers')
+    tf.app.flags.DEFINE_integer ('coord_retries',    100,         'number of tries of workers connecting to training coordinator before failing')
+    tf.app.flags.DEFINE_string  ('coord_host',       'localhost', 'coordination server host')
+    tf.app.flags.DEFINE_integer ('coord_port',       2500,        'coordination server port')
+    tf.app.flags.DEFINE_integer ('iters_per_worker', 1,           'number of train or inference iterations per worker before results are sent back to coordinator')
 
-tf.app.flags.DEFINE_string  ('ps_hosts',         '',          'parameter servers - comma separated list of hostname:port pairs')
-tf.app.flags.DEFINE_string  ('worker_hosts',     '',          'workers - comma separated list of hostname:port pairs')
-tf.app.flags.DEFINE_string  ('job_name',         'localhost', 'job name - one of localhost (default), worker, ps')
-tf.app.flags.DEFINE_integer ('task_index',       0,           'index of task within the job - worker with index 0 will be the chief')
-tf.app.flags.DEFINE_integer ('replicas',         -1,          'total number of replicas - if negative, its absolute value is multiplied by the number of workers')
-tf.app.flags.DEFINE_integer ('replicas_to_agg',  -1,          'number of replicas to aggregate - if negative, its absolute value is multiplied by the number of workers')
-tf.app.flags.DEFINE_integer ('coord_retries',    100,         'number of tries of workers connecting to training coordinator before failing')
-tf.app.flags.DEFINE_string  ('coord_host',       'localhost', 'coordination server host')
-tf.app.flags.DEFINE_integer ('coord_port',       2500,        'coordination server port')
-tf.app.flags.DEFINE_integer ('iters_per_worker', 1,           'number of train or inference iterations per worker before results are sent back to coordinator')
+    # Global Constants
+    # ================
 
-# Global Constants
-# ================
+    tf.app.flags.DEFINE_boolean ('train',            True,        'whether to train the network')
+    tf.app.flags.DEFINE_boolean ('test',             True,        'whether to test the network')
+    tf.app.flags.DEFINE_integer ('epoch',            75,          'target epoch to train - if negative, the absolute number of additional epochs will be trained')
 
-tf.app.flags.DEFINE_boolean ('train',            True,        'whether to train the network')
-tf.app.flags.DEFINE_boolean ('test',             True,        'whether to test the network')
-tf.app.flags.DEFINE_integer ('epoch',            75,          'target epoch to train - if negative, the absolute number of additional epochs will be trained')
+    tf.app.flags.DEFINE_boolean ('use_warpctc',      False,       'whether to use GPU bound Warp-CTC')
 
-tf.app.flags.DEFINE_boolean ('use_warpctc',      False,       'whether to use GPU bound Warp-CTC')
+    tf.app.flags.DEFINE_float   ('dropout_rate',     0.05,        'dropout rate for feedforward layers')
+    tf.app.flags.DEFINE_float   ('dropout_rate2',    -1.0,        'dropout rate for layer 2 - defaults to dropout_rate')
+    tf.app.flags.DEFINE_float   ('dropout_rate3',    -1.0,        'dropout rate for layer 3 - defaults to dropout_rate')
+    tf.app.flags.DEFINE_float   ('dropout_rate4',    0.0,         'dropout rate for layer 4 - defaults to 0.0')
+    tf.app.flags.DEFINE_float   ('dropout_rate5',    0.0,         'dropout rate for layer 5 - defaults to 0.0')
+    tf.app.flags.DEFINE_float   ('dropout_rate6',    -1.0,        'dropout rate for layer 6 - defaults to dropout_rate')
 
-tf.app.flags.DEFINE_float   ('dropout_rate',     0.05,        'dropout rate for feedforward layers')
-tf.app.flags.DEFINE_float   ('dropout_rate2',    -1.0,        'dropout rate for layer 2 - defaults to dropout_rate')
-tf.app.flags.DEFINE_float   ('dropout_rate3',    -1.0,        'dropout rate for layer 3 - defaults to dropout_rate')
-tf.app.flags.DEFINE_float   ('dropout_rate4',    0.0,         'dropout rate for layer 4 - defaults to 0.0')
-tf.app.flags.DEFINE_float   ('dropout_rate5',    0.0,         'dropout rate for layer 5 - defaults to 0.0')
-tf.app.flags.DEFINE_float   ('dropout_rate6',    -1.0,        'dropout rate for layer 6 - defaults to dropout_rate')
+    tf.app.flags.DEFINE_float   ('relu_clip',        20.0,        'ReLU clipping value for non-recurrant layers')
 
-tf.app.flags.DEFINE_float   ('relu_clip',        20.0,        'ReLU clipping value for non-recurrant layers')
+    # Adam optimizer (http://arxiv.org/abs/1412.6980) parameters
 
-# Adam optimizer (http://arxiv.org/abs/1412.6980) parameters
+    tf.app.flags.DEFINE_float   ('beta1',            0.9,         'beta 1 parameter of Adam optimizer')
+    tf.app.flags.DEFINE_float   ('beta2',            0.999,       'beta 2 parameter of Adam optimizer')
+    tf.app.flags.DEFINE_float   ('epsilon',          1e-8,        'epsilon parameter of Adam optimizer')
+    tf.app.flags.DEFINE_float   ('learning_rate',    0.001,       'learning rate of Adam optimizer')
 
-tf.app.flags.DEFINE_float   ('beta1',            0.9,         'beta 1 parameter of Adam optimizer')
-tf.app.flags.DEFINE_float   ('beta2',            0.999,       'beta 2 parameter of Adam optimizer')
-tf.app.flags.DEFINE_float   ('epsilon',          1e-8,        'epsilon parameter of Adam optimizer')
-tf.app.flags.DEFINE_float   ('learning_rate',    0.001,       'learning rate of Adam optimizer')
+    # Batch sizes
 
-# Batch sizes
+    tf.app.flags.DEFINE_integer ('train_batch_size', 1,           'number of elements in a training batch')
+    tf.app.flags.DEFINE_integer ('dev_batch_size',   1,           'number of elements in a validation batch')
+    tf.app.flags.DEFINE_integer ('test_batch_size',  1,           'number of elements in a test batch')
 
-tf.app.flags.DEFINE_integer ('train_batch_size', 1,           'number of elements in a training batch')
-tf.app.flags.DEFINE_integer ('dev_batch_size',   1,           'number of elements in a validation batch')
-tf.app.flags.DEFINE_integer ('test_batch_size',  1,           'number of elements in a test batch')
+    tf.app.flags.DEFINE_integer ('export_batch_size', 1,          'number of elements per batch on the exported graph')
 
-# Sample limits
+    # Sample limits
 
-tf.app.flags.DEFINE_integer ('limit_train',      0,           'maximum number of elements to use from train set - 0 means no limit')
-tf.app.flags.DEFINE_integer ('limit_dev',        0,           'maximum number of elements to use from validation set- 0 means no limit')
-tf.app.flags.DEFINE_integer ('limit_test',       0,           'maximum number of elements to use from test set- 0 means no limit')
+    tf.app.flags.DEFINE_integer ('limit_train',      0,           'maximum number of elements to use from train set - 0 means no limit')
+    tf.app.flags.DEFINE_integer ('limit_dev',        0,           'maximum number of elements to use from validation set- 0 means no limit')
+    tf.app.flags.DEFINE_integer ('limit_test',       0,           'maximum number of elements to use from test set- 0 means no limit')
 
-# Step widths
+    # Step widths
 
-tf.app.flags.DEFINE_integer ('display_step',     0,           'number of epochs we cycle through before displaying detailed progress - 0 means no progress display')
-tf.app.flags.DEFINE_integer ('validation_step',  0,           'number of epochs we cycle through before validating the model - a detailed progress report is dependent on "--display_step" - 0 means no validation steps')
+    tf.app.flags.DEFINE_integer ('display_step',     0,           'number of epochs we cycle through before displaying detailed progress - 0 means no progress display')
+    tf.app.flags.DEFINE_integer ('validation_step',  0,           'number of epochs we cycle through before validating the model - a detailed progress report is dependent on "--display_step" - 0 means no validation steps')
 
-# Checkpointing
+    # Checkpointing
 
-tf.app.flags.DEFINE_string  ('checkpoint_dir',   '',          'directory in which checkpoints are stored - defaults to directory "deepspeech/checkpoints" within user\'s data home specified by the XDG Base Directory Specification')
-tf.app.flags.DEFINE_integer ('checkpoint_secs',  600,         'checkpoint saving interval in seconds')
-tf.app.flags.DEFINE_integer ('max_to_keep',      5,           'number of checkpoint files to keep - default value is 5')
+    tf.app.flags.DEFINE_string  ('checkpoint_dir',   '',          'directory in which checkpoints are stored - defaults to directory "deepspeech/checkpoints" within user\'s data home specified by the XDG Base Directory Specification')
+    tf.app.flags.DEFINE_integer ('checkpoint_secs',  600,         'checkpoint saving interval in seconds')
+    tf.app.flags.DEFINE_integer ('max_to_keep',      5,           'number of checkpoint files to keep - default value is 5')
 
-# Exporting
+    # Exporting
 
-tf.app.flags.DEFINE_string  ('export_dir',       '',          'directory in which exported models are stored - if omitted, the model won\'t get exported')
-tf.app.flags.DEFINE_integer ('export_version',   1,           'version number of the exported model')
-tf.app.flags.DEFINE_boolean ('remove_export',    False,       'whether to remove old exported models')
-tf.app.flags.DEFINE_boolean ('use_seq_length',   True,        'have sequence_length in the exported graph (will make tfcompile unhappy)')
-tf.app.flags.DEFINE_integer ('n_steps',          16,          'how many timesteps to process at once by the export graph, higher values mean more latency')
+    tf.app.flags.DEFINE_string  ('export_dir',       '',          'directory in which exported models are stored - if omitted, the model won\'t get exported')
+    tf.app.flags.DEFINE_integer ('export_version',   1,           'version number of the exported model')
+    tf.app.flags.DEFINE_boolean ('remove_export',    False,       'whether to remove old exported models')
+    tf.app.flags.DEFINE_boolean ('use_seq_length',   True,        'have sequence_length in the exported graph (will make tfcompile unhappy)')
+    tf.app.flags.DEFINE_integer ('n_steps',          16,          'how many timesteps to process at once by the export graph, higher values mean more latency')
 
-# Reporting
+    # Reporting
 
-tf.app.flags.DEFINE_integer ('log_level',        1,           'log level for console logs - 0: INFO, 1: WARN, 2: ERROR, 3: FATAL')
-tf.app.flags.DEFINE_boolean ('show_progressbar', True,        'Show progress for training, validation and testing processes. Log level should be > 0.')
-tf.app.flags.DEFINE_boolean ('log_traffic',      False,       'log cluster transaction and traffic information during debug logging')
 
-tf.app.flags.DEFINE_string  ('wer_log_pattern',  '',          'pattern for machine readable global logging of WER progress; has to contain %%s, %%s and %%f for the set name, the date and the float respectively; example: "GLOBAL LOG: logwer(\'12ade231\', %%s, %%s, %%f)" would result in some entry like "GLOBAL LOG: logwer(\'12ade231\', \'train\', \'2017-05-18T03:09:48-0700\', 0.05)"; if omitted (default), there will be no logging')
+    tf.app.flags.DEFINE_boolean ('log_traffic',      False,       'log cluster transaction and traffic information during debug logging')
+    tf.app.flags.DEFINE_integer ('log_level',        1,           'log level for console logs - 0: INFO, 1: WARN, 2: ERROR, 3: FATAL')
+    tf.app.flags.DEFINE_boolean ('log_traffic',      False,       'log cluster transaction and traffic information during debug logging')
 
-tf.app.flags.DEFINE_boolean ('log_placement',    False,       'whether to log device placement of the operators to the console')
-tf.app.flags.DEFINE_integer ('report_count',     10,          'number of phrases with lowest WER (best matching) to print out during a WER report')
 
-tf.app.flags.DEFINE_string  ('summary_dir',      '',          'target directory for TensorBoard summaries - defaults to directory "deepspeech/summaries" within user\'s data home specified by the XDG Base Directory Specification')
-tf.app.flags.DEFINE_integer ('summary_secs',     0,           'interval in seconds for saving TensorBoard summaries - if 0, no summaries will be written')
+    tf.app.flags.DEFINE_string  ('wer_log_pattern',  '',          'pattern for machine readable global logging of WER progress; has to contain %%s, %%s and %%f for the set name, the date and the float respectively; example: "GLOBAL LOG: logwer(\'12ade231\', %%s, %%s, %%f)" would result in some entry like "GLOBAL LOG: logwer(\'12ade231\', \'train\', \'2017-05-18T03:09:48-0700\', 0.05)"; if omitted (default), there will be no logging')
 
-# Geometry
+    tf.app.flags.DEFINE_boolean ('log_placement',    False,       'whether to log device placement of the operators to the console')
+    tf.app.flags.DEFINE_integer ('report_count',     10,          'number of phrases with lowest WER (best matching) to print out during a WER report')
 
-tf.app.flags.DEFINE_integer ('n_hidden',         2048,        'layer width to use when initialising layers')
+    tf.app.flags.DEFINE_string  ('summary_dir',      '',          'target directory for TensorBoard summaries - defaults to directory "deepspeech/summaries" within user\'s data home specified by the XDG Base Directory Specification')
+    tf.app.flags.DEFINE_integer ('summary_secs',     0,           'interval in seconds for saving TensorBoard summaries - if 0, no summaries will be written')
 
-# Initialization
+    # Geometry
 
-tf.app.flags.DEFINE_integer ('random_seed',      4567,        'default random seed that is used to initialize variables')
-tf.app.flags.DEFINE_float   ('default_stddev',   0.046875,    'default standard deviation to use when initialising weights and biases')
+    tf.app.flags.DEFINE_integer ('n_hidden',         2048,        'layer width to use when initialising layers')
 
-# Early Stopping
+    # Initialization
 
-tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset. Make sure that dev FLAG is enabled for this to work')
+    tf.app.flags.DEFINE_integer ('random_seed',      4567,        'default random seed that is used to initialize variables')
 
-# This parameter is irrespective of the time taken by single epoch to complete and checkpoint saving intervals.
-# It is possible that early stopping is triggered far after the best checkpoint is already replaced by checkpoint saving interval mechanism.
-# One has to align the parameters (earlystop_nsteps, checkpoint_secs) accordingly as per the time taken by an epoch on different datasets.
+    # Early Stopping
 
-tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps to consider for early stopping. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
-tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
-tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
+    tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset. Make sure that dev FLAG is enabled for this to work')
 
-# Decoder
+    # This parameter is irrespective of the time taken by single epoch to complete and checkpoint saving intervals.
+    # It is possible that early stopping is triggered far after the best checkpoint is already replaced by checkpoint saving interval mechanism.
+    # One has to align the parameters (earlystop_nsteps, checkpoint_secs) accordingly as per the time taken by an epoch on different datasets.
 
-tf.app.flags.DEFINE_string  ('decoder_library_path', 'native_client/libctc_decoder_with_kenlm.so', 'path to the libctc_decoder_with_kenlm.so library containing the decoder implementation.')
-tf.app.flags.DEFINE_string  ('alphabet_config_path', 'data/alphabet.txt', 'path to the configuration file specifying the alphabet used by the network. See the comment in data/alphabet.txt for a description of the format.')
-tf.app.flags.DEFINE_string  ('lm_binary_path',       'data/lm/lm.binary', 'path to the language model binary file created with KenLM')
-tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
-tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
-tf.app.flags.DEFINE_float   ('lm_weight',         1.75,       'the alpha hyperparameter of the CTC decoder. Language Model weight.')
-tf.app.flags.DEFINE_float   ('word_count_weight', 1.00,      'the beta hyperparameter of the CTC decoder. Word insertion weight (penalty).')
-tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.00, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
+    tf.app.flags.DEFINE_integer ('earlystop_nsteps',  4,          'number of steps to consider for early stopping. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
+    tf.app.flags.DEFINE_float   ('estop_mean_thresh', 0.5,        'mean threshold for loss to determine the condition if early stopping is required')
+    tf.app.flags.DEFINE_float   ('estop_std_thresh',  0.5,        'standard deviation threshold for loss to determine the condition if early stopping is required')
 
-# Inference mode
+    # Decoder
 
-tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it. Disables training, testing and exporting.')
+    tf.app.flags.DEFINE_string  ('decoder_library_path', 'native_client/libctc_decoder_with_kenlm.so', 'path to the libctc_decoder_with_kenlm.so library containing the decoder implementation.')
+    tf.app.flags.DEFINE_string  ('alphabet_config_path', 'data/alphabet.txt', 'path to the configuration file specifying the alphabet used by the network. See the comment in data/alphabet.txt for a description of the format.')
+    tf.app.flags.DEFINE_string  ('lm_binary_path',       'data/lm/lm.binary', 'path to the language model binary file created with KenLM')
+    tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
+    tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
+    tf.app.flags.DEFINE_float   ('lm_weight',         1.75,       'the alpha hyperparameter of the CTC decoder. Language Model weight.')
+    tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.00, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
 
-# Initialize from frozen model
+    # Inference mode
 
-tf.app.flags.DEFINE_string  ('initialize_from_frozen_model', '', 'path to frozen model to initialize from. This behaves like a checkpoint, loading the weights from the frozen model and starting training with those weights. The optimizer parameters aren\'t restored, so remember to adjust the learning rate.')
+    tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it. Disables training, testing and exporting.')
 
-for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
-    tf.app.flags.DEFINE_float('%s_stddev' % var, None, 'standard deviation to use when initialising %s' % var)
+    # Initialize from frozen model
+
+    tf.app.flags.DEFINE_string  ('initialize_from_frozen_model', '', 'path to frozen model to initialize from. This behaves like a checkpoint, loading the weights from the frozen model and starting training with those weights. The optimizer parameters aren\'t restored, so remember to adjust the learning rate.')
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -286,12 +285,6 @@ def initialize_globals():
     global n_hidden_6
     n_hidden_6 = n_character
 
-    # Assign default values for standard deviation
-    for var in ['b1', 'h1', 'b2', 'h2', 'b3', 'h3', 'b5', 'h5', 'b6', 'h6']:
-        val = getattr(FLAGS, '%s_stddev' % var)
-        if val is None:
-            setattr(FLAGS, '%s_stddev' % var, FLAGS.default_stddev)
-
     # Queues that are used to gracefully stop parameter servers.
     # Each queue stands for one ps. A finishing worker sends a token to each queue before joining/quitting.
     # Each ps will dequeue as many tokens as there are workers before joining/quitting.
@@ -380,40 +373,8 @@ def variable_on_worker_level(name, shape, initializer):
         var = tf.get_variable(name=name, shape=shape, initializer=initializer)
     return var
 
-def rnn_impl_training(inputs, seq_length, fw_cell, batch_size, n_steps):
-    # Now we feed `layer_3` into the LSTM RNN cell and obtain the LSTM RNN output.
-    output, output_state = tf.nn.dynamic_rnn(cell=fw_cell,
-                                             inputs=inputs,
-                                             dtype=tf.float32,
-                                             time_major=True,
-                                             sequence_length=seq_length)
 
-    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
-    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
-    output = tf.reshape(output, [-1, n_cell_dim])
-
-    return output, output_state
-
-def rnn_impl_inference(inputs, seq_length, fw_cell, batch_size, n_steps, previous_state):
-    inputs = tf.split(inputs, n_steps)
-    inputs = [tf.squeeze(split, axis=0) for split in inputs]
-
-    # Now we feed `inputs` into the LSTM RNN cell and obtain the LSTM RNN output.
-    outputs, output_state = tf.nn.static_rnn(cell=fw_cell,
-                                             inputs=inputs,
-                                             initial_state=previous_state,
-                                             dtype=tf.float32,
-                                             sequence_length=seq_length)
-
-    output = tf.concat(outputs, axis=0)
-
-    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
-    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
-    output = tf.reshape(output, [n_steps*batch_size, n_cell_dim])
-
-    return output, output_state
-
-def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, rnn_impl=rnn_impl_training):
+def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, previous_state=None):
     r'''
     That done, we will define the learned variables, the weights and biases,
     within the method ``BiRNN()`` which also constructs the neural network.
@@ -446,39 +407,31 @@ def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, rnn_impl=rn
     # clipped RELU activation and dropout.
 
     # 1st layer
-    b1 = variable_on_worker_level('b1', [n_hidden_1], tf.random_normal_initializer(stddev=FLAGS.b1_stddev))
-    h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer(uniform=False))
+    b1 = variable_on_worker_level('b1', [n_hidden_1], tf.zeros_initializer())
+    h1 = variable_on_worker_level('h1', [n_input + 2*n_input*n_context, n_hidden_1], tf.contrib.layers.xavier_initializer())
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
-    if dropout[0] > 0:
-        layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
     layers['layer_1'] = layer_1
 
     # 2nd layer
-    b2 = variable_on_worker_level('b2', [n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.b2_stddev))
-    h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.random_normal_initializer(stddev=FLAGS.h2_stddev))
+    b2 = variable_on_worker_level('b2', [n_hidden_2], tf.zeros_initializer())
+    h2 = variable_on_worker_level('h2', [n_hidden_1, n_hidden_2], tf.contrib.layers.xavier_initializer())
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
-    if dropout[1] > 0:
-        layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
     layers['layer_2'] = layer_2
 
     # 3rd layer
-    b3 = variable_on_worker_level('b3', [n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.b3_stddev))
-    h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.random_normal_initializer(stddev=FLAGS.h3_stddev))
+    b3 = variable_on_worker_level('b3', [n_hidden_3], tf.zeros_initializer())
+    h3 = variable_on_worker_level('h3', [n_hidden_2, n_hidden_3], tf.contrib.layers.xavier_initializer())
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
-    if dropout[2] > 0:
-        layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
     layers['layer_3'] = layer_3
 
     # Now we create the forward and backward LSTM units.
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    fw_cell = tf.contrib.rnn.BasicLSTMCell(n_cell_dim, forget_bias=1.0, state_is_tuple=True, reuse=tf.get_variable_scope().reuse)
-    if dropout[3] > 0:
-        fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell,
-                                                input_keep_prob=1.0 - dropout[3],
-                                                output_keep_prob=1.0 - dropout[3],
-                                                seed=FLAGS.random_seed)
+    fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(n_cell_dim)
     layers['fw_cell'] = fw_cell
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
@@ -487,22 +440,25 @@ def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, rnn_impl=rn
 
     # We parametrize the RNN implementation as the training and inference graph
     # need to do different things here.
-    output, output_state = rnn_impl(layer_3, seq_length, fw_cell, batch_size, n_steps)
+    output, output_state = fw_cell(inputs=layer_3, dtype=tf.float32, sequence_length=seq_length, initial_state=previous_state)
+
+    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
+    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
+    output = tf.reshape(output, [-1, n_cell_dim])
     layers['rnn_output'] = output
     layers['rnn_output_state'] = output_state
 
     # Now we feed `output` to the fifth hidden layer with clipped RELU activation and dropout
-    b5 = variable_on_worker_level('b5', [n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.b5_stddev))
-    h5 = variable_on_worker_level('h5', [n_cell_dim, n_hidden_5], tf.random_normal_initializer(stddev=FLAGS.h5_stddev))
+    b5 = variable_on_worker_level('b5', [n_hidden_5], tf.zeros_initializer())
+    h5 = variable_on_worker_level('h5', [n_cell_dim, n_hidden_5], tf.contrib.layers.xavier_initializer())
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
-    if dropout[5] > 0:
-        layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
     layers['layer_5'] = layer_5
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
-    b6 = variable_on_worker_level('b6', [n_hidden_6], tf.random_normal_initializer(stddev=FLAGS.b6_stddev))
-    h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer(uniform=False))
+    b6 = variable_on_worker_level('b6', [n_hidden_6], tf.zeros_initializer())
+    h6 = variable_on_worker_level('h6', [n_hidden_5, n_hidden_6], tf.contrib.layers.xavier_initializer())
     layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
     layers['layer_6'] = layer_6
 
@@ -521,7 +477,7 @@ def decode_with_lm(inputs, sequence_length, beam_width=100,
       custom_op_module.ctc_beam_search_decoder_with_lm(
           inputs, sequence_length, beam_width=beam_width,
           model_path=FLAGS.lm_binary_path, trie_path=FLAGS.lm_trie_path, alphabet_path=FLAGS.alphabet_config_path,
-          lm_weight=FLAGS.lm_weight, word_count_weight=FLAGS.word_count_weight, valid_word_count_weight=FLAGS.valid_word_count_weight,
+          lm_weight=FLAGS.lm_weight, valid_word_count_weight=FLAGS.valid_word_count_weight,
           top_paths=top_paths, merge_repeated=merge_repeated))
 
   return (
@@ -551,7 +507,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
-    logits, _ = BiRNN(batch_x, tf.to_int64(batch_seq_len), dropout)
+    logits, _ = BiRNN(batch_x, batch_seq_len, dropout)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
@@ -1646,19 +1602,13 @@ def train(server=None):
             if job.set_name == "train":
                 log_info('Training epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_train
-                total_samples = model_feeder.train.total_batches*FLAGS.train_batch_size
-                log_info("Total samples: %i, total jobs: %i" % (total_samples, update_progressbar.total_jobs))
             elif job.set_name == "dev":
                 log_info('Validating epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_dev
-                total_samples = model_feeder.dev.total_batches*FLAGS.dev_batch_size
-                log_info("Total samples: %i, total jobs: %i" % (total_samples, update_progressbar.total_jobs))
             elif job.set_name == "test":
                 log_info('Testing epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_test
-                total_samples = model_feeder.test.total_batches*FLAGS.test_batch_size
-                log_info("Total samples: %i, total jobs: %i" % (total_samples, update_progressbar.total_jobs))
-
+                
             # recreate pbar
             update_progressbar.pbar = progressbar.ProgressBar(max_value=update_progressbar.total_jobs).start()
 
@@ -1680,6 +1630,8 @@ def train(server=None):
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=None, # already taken care of by a hook
                                                config=session_config) as session:
+            tf.get_default_graph().finalize()
+
             if len(FLAGS.initialize_from_frozen_model) > 0:
                 log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
                 model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
@@ -1696,7 +1648,7 @@ def train(server=None):
                 job = COORD.get_job()
 
                 while job and not session.should_stop():
-                    log_debug('Computing %s...' % job)                    
+                    log_debug('Computing %s...' % job)
 
                     is_train = job.set_name == 'train'
 
@@ -1800,32 +1752,27 @@ def train(server=None):
 
 def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False):
     # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
-    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps, n_input + 2*n_input*n_context], name='input_node')
+    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, n_input + 2*n_input*n_context], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
 
     previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, n_cell_dim], initializer=None)
     previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, n_cell_dim], initializer=None)
     previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
-    rnn_impl = partial(rnn_impl_inference, previous_state=previous_state)
-
     logits, layers = BiRNN(batch_x=input_tensor,
                            seq_length=seq_length if FLAGS.use_seq_length else None,
                            dropout=no_dropout,
                            batch_size=batch_size,
                            n_steps=n_steps,
-                           rnn_impl=rnn_impl)
+                           previous_state=previous_state)
 
-    fw_cell = layers['fw_cell']
     new_state_c, new_state_h = layers['rnn_output_state']
 
     # Initial zero state
-    zero_state_c, zero_state_h = fw_cell.zero_state(batch_size, tf.float32)
-    zero_state_c = tf.identity(zero_state_c, name='zero_state_c')
-    zero_state_h = tf.identity(zero_state_h, name='zero_state_h')
+    zero_state = tf.zeros([batch_size, n_cell_dim], tf.float32)
 
-    initialize_c = tf.assign(previous_state_c, zero_state_c)
-    initialize_h = tf.assign(previous_state_h, zero_state_h)
+    initialize_c = tf.assign(previous_state_c, zero_state)
+    initialize_h = tf.assign(previous_state_h, zero_state)
 
     initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
 
@@ -1990,4 +1937,5 @@ def main(_) :
     COORD.stop()
 
 if __name__ == '__main__' :
-    tf.app.run()
+    create_flags()
+    tf.app.run(main)

@@ -27,7 +27,7 @@ endif
 
 bindings-clean:
 	rm -rf dist temp_build deepspeech.egg-info MANIFEST.in temp_lib
-	rm -f python/__init___wrap.cpp python/__init__.py
+	rm -f python/impl_wrap.cpp python/impl.py
 
 bindings-build:
 	pip install --quiet $(PYTHON_PACKAGES) wheel==0.31.0 setuptools==39.1.0
@@ -35,7 +35,7 @@ bindings-build:
 
 MANIFEST.in: bindings-build
 	> $@
-	$(call copy_missing_libs,temp_build/*.so,temp_build/lib,$@)
+	$(call copy_missing_libs,temp_build/deepspeech/*.so,temp_build/deepspeech/lib,$@)
 
 bindings-package: MANIFEST.in
 	cat MANIFEST.in

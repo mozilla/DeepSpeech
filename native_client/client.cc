@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <sstream>
 #include <string>
 
 #include "deepspeech.h"
@@ -25,22 +26,20 @@
 #define WORD_COUNT_WEIGHT 1.00f
 #define VALID_WORD_COUNT_WEIGHT 1.00f
 
-using namespace DeepSpeech;
-
 typedef struct {
   const char* string;
   double cpu_time_overall;
 } ds_result;
 
 ds_result
-LocalDsSTT(Model& aCtx, const short* aBuffer, size_t aBufferSize,
+LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
            int aSampleRate)
 {
   ds_result res = {0};
 
   clock_t ds_start_time = clock();
 
-  res.string = aCtx.stt(aBuffer, aBufferSize, aSampleRate);
+  res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
 
   clock_t ds_end_infer = clock();
 
@@ -163,7 +162,7 @@ GetAudioBuffer(const char* path)
 }
 
 void
-ProcessFile(Model& context, const char* path, bool show_times)
+ProcessFile(ModelState* context, const char* path, bool show_times)
 {
   ds_audio_buffer audio = GetAudioBuffer(path);
 
@@ -195,36 +194,44 @@ main(int argc, char **argv)
   }
 
   // Initialise DeepSpeech
-  Model ctx = Model(model.c_str(), N_CEP, N_CONTEXT, alphabet.c_str(), BEAM_WIDTH);
+  ModelState* ctx;
+  int status = DS_CreateModel(model, N_CEP, N_CONTEXT, alphabet, BEAM_WIDTH, &ctx);
+  if (status != 0) {
+    fprintf(stderr, "Could not create model.\n");
+    return 1;
+  }
 
-  if (lm.length() > 0 && trie.length() > 0) {
-    ctx.enableDecoderWithLM(
-		    alphabet.c_str(),
-		    lm.c_str(),
-		    trie.c_str(),
-		    LM_WEIGHT,
-		    WORD_COUNT_WEIGHT,
-		    VALID_WORD_COUNT_WEIGHT);
+  if (lm && trie) {
+    int status = DS_EnableDecoderWithLM(ctx,
+                                        alphabet,
+                                        lm,
+                                        trie,
+                                        LM_WEIGHT,
+                                        VALID_WORD_COUNT_WEIGHT);
+    if (status != 0) {
+      fprintf(stderr, "Could not enable CTC decoder with LM.\n");
+      return 1;
+    }
   }
 
   // Initialise SOX
   assert(sox_init() == SOX_SUCCESS);
 
   struct stat wav_info;
-  if (0 != stat(audio.c_str(), &wav_info)) {
+  if (0 != stat(audio, &wav_info)) {
     printf("Error on stat: %d\n", errno);
   }
 
   switch (wav_info.st_mode & S_IFMT) {
     case S_IFLNK:
     case S_IFREG:
-        ProcessFile(ctx, audio.c_str(), show_times);
+        ProcessFile(ctx, audio, show_times);
       break;
 
     case S_IFDIR:
         {
-          printf("Running on directory %s\n", audio.c_str());
-          DIR* wav_dir = opendir(audio.c_str());
+          printf("Running on directory %s\n", audio);
+          DIR* wav_dir = opendir(audio);
           assert(wav_dir);
 
           struct dirent* entry;
@@ -234,21 +241,25 @@ main(int argc, char **argv)
               continue;
             }
 
-            std::string fullpath = audio + std::string("/") + fname;
-            printf("> %s\n", fullpath.c_str());
-            ProcessFile(ctx, fullpath.c_str(), show_times);
+            std::ostringstream fullpath;
+            fullpath << audio << "/" << fname;
+            std::string path = fullpath.str();
+            printf("> %s\n", path.c_str());
+            ProcessFile(ctx, path.c_str(), show_times);
           }
           closedir(wav_dir);
         }
       break;
 
     default:
-        printf("Unexpected type for %s: %d\n", audio.c_str(), (wav_info.st_mode & S_IFMT));
+        printf("Unexpected type for %s: %d\n", audio, (wav_info.st_mode & S_IFMT));
       break;
   }
 
   // Deinitialise and quit
   sox_quit();
+
+  DS_DestroyModel(ctx);
 
   return 0;
 }
