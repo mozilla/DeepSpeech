@@ -24,6 +24,6 @@ python -u DeepSpeech.py \
   --dev_batch_size 1 \
   --test_batch_size 1 \
   --n_hidden 494 \
-  --epoch 50 \
+  --epoch 75 \
   --checkpoint_dir "$checkpoint_dir" \
   "$@"
