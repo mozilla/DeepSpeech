@@ -1600,19 +1600,13 @@ def train(server=None):
             if job.set_name == "train":
                 log_info('Training epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_train
-                total_samples = model_feeder.train.total_batches*FLAGS.train_batch_size
-                log_info("Total samples: %i, total jobs: %i" % (total_samples, update_progressbar.total_jobs))
             elif job.set_name == "dev":
                 log_info('Validating epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_dev
-                total_samples = model_feeder.dev.total_batches*FLAGS.dev_batch_size
-                log_info("Total samples: %i, total jobs: %i" % (total_samples, update_progressbar.total_jobs))
             elif job.set_name == "test":
                 log_info('Testing epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_test
-                total_samples = model_feeder.test.total_batches*FLAGS.test_batch_size
-                log_info("Total samples: %i, total jobs: %i" % (total_samples, update_progressbar.total_jobs))
-
+                
             # recreate pbar
             update_progressbar.pbar = progressbar.ProgressBar(max_value=update_progressbar.total_jobs).start()
 
@@ -1652,7 +1646,7 @@ def train(server=None):
                 job = COORD.get_job()
 
                 while job and not session.should_stop():
-                    log_debug('Computing %s...' % job)                    
+                    log_debug('Computing %s...' % job)
 
                     is_train = job.set_name == 'train'
 
