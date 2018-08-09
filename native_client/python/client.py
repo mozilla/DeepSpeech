@@ -9,7 +9,7 @@ import subprocess
 import sys
 import wave
 
-from deepspeech.model import Model, print_versions
+from deepspeech import Model, printVersions
 from timeit import default_timer as timer
 
 try:
@@ -24,9 +24,6 @@ BEAM_WIDTH = 500
 
 # The alpha hyperparameter of the CTC decoder. Language Model weight
 LM_WEIGHT = 1.75
-
-# The beta hyperparameter of the CTC decoder. Word insertion weight (penalty)
-WORD_COUNT_WEIGHT = 1.00
 
 # Valid word insertion weight. This is used to lessen the word insertion penalty
 # when the inserted word is part of the vocabulary
@@ -71,7 +68,7 @@ def main():
     args = parser.parse_args()
 
     if args.version:
-        print_versions()
+        printVersions()
         return 0
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
@@ -84,7 +81,7 @@ def main():
         print('Loading language model from files {} {}'.format(args.lm, args.trie), file=sys.stderr)
         lm_load_start = timer()
         ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_WEIGHT,
-                               WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT)
+                               VALID_WORD_COUNT_WEIGHT)
         lm_load_end = timer() - lm_load_start
         print('Loaded language model in {:.3}s.'.format(lm_load_end), file=sys.stderr)
 

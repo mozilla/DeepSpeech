@@ -50,7 +50,7 @@ deepspeech_pkg="deepspeech-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_u
 
 if [ "${ds}" = "deepspeech" ]; then
     pip install ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg} | cat
-    python -c "import tensorflow; from deepspeech.utils import audioToInputVector"
+    python -c "import tensorflow; from deepspeech import audioToInputVector"
 
     # Since this build depends on the completion of the whole deepspeech package
     # and we might get into funny situation with --config=monolithic, then let's

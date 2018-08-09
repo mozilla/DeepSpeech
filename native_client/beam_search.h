@@ -14,6 +14,7 @@ struct KenLMBeamState {
   float language_model_score;
   float score;
   float delta_score;
+  int num_words;
   std::string incomplete_word;
   TrieNode *incomplete_word_trie_node;
   Model::State model_state;
@@ -23,18 +24,17 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
  public:
   KenLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path,
                   const std::string &alphabet_path, float lm_weight,
-                  float word_count_weight, float valid_word_count_weight)
+                  float valid_word_count_weight)
     : model_(kenlm_path.c_str(), GetLMConfig())
     , alphabet_(alphabet_path.c_str())
     , lm_weight_(lm_weight)
-    , word_count_weight_(word_count_weight)
     , valid_word_count_weight_(valid_word_count_weight)
   {
     std::ifstream in(trie_path, std::ios::in);
     TrieNode::ReadFromStream(in, trieRoot_, alphabet_.GetSize());
 
-    Model::State out;
-    oov_score_ = model_.FullScore(model_.NullContextState(), model_.GetVocabulary().NotFound(), out).prob;
+    // low probability for OOV words
+    oov_score_ = -10.0;
   }
 
   virtual ~KenLMBeamScorer() {
@@ -47,13 +47,14 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     root->score = 0.0f;
     root->delta_score = 0.0f;
     root->incomplete_word.clear();
+    root->num_words = 0;
     root->incomplete_word_trie_node = trieRoot_;
     root->model_state = model_.BeginSentenceState();
   }
   // ExpandState is called when expanding a beam to one of its children.
   // Called at most once per child beam. In the simplest case, no state
   // expansion is done.
-  void ExpandState(const KenLMBeamState& from_state, int from_label,
+  void ExpandState(const KenLMBeamState& from_state, int /*from_label*/,
                          KenLMBeamState* to_state, int to_label) const {
     CopyState(from_state, to_state);
 
@@ -78,14 +79,15 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
       to_state->score = min_unigram_score + to_state->language_model_score;
       to_state->delta_score = to_state->score - from_state.score;
     } else {
+      auto word_index = WordIndex(to_state->incomplete_word);
       float lm_score_delta = ScoreIncompleteWord(from_state.model_state,
-                            to_state->incomplete_word,
-                            to_state->model_state);
+                                                 word_index,
+                                                 to_state->model_state);
       // Give fixed word bonus
-      if (!IsOOV(to_state->incomplete_word)) {
+      if (!IsOOV(word_index)) {
         to_state->language_model_score += valid_word_count_weight_;
       }
-      to_state->language_model_score += word_count_weight_;
+      to_state->num_words += 1;
       UpdateWithLMScore(to_state, lm_score_delta);
       ResetIncompleteWord(to_state);
     }
@@ -98,15 +100,28 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     Model::State out;
     if (state->incomplete_word.size() > 0) {
       lm_score_delta += ScoreIncompleteWord(state->model_state,
-                                            state->incomplete_word,
+                                            WordIndex(state->incomplete_word),
                                             out);
       ResetIncompleteWord(state);
       state->model_state = out;
     }
     lm_score_delta += model_.FullScore(state->model_state,
-                                      model_.GetVocabulary().EndSentence(),
-                                      out).prob;
+                                       model_.GetVocabulary().EndSentence(),
+                                       out).prob;
     UpdateWithLMScore(state, lm_score_delta);
+
+
+    // This is a bit of a hack. In order to implement length normalization, we
+    // compute the final state score here (and not in GetStateEndExpansionScore)
+    // and then set the state delta score to the value that would normalize
+    // the state score when added to it. This way, we can normalize the internal
+    // scores in TensorFlow's CTC code when it adds the final state expansion
+    // score to this beam's score.
+    state->score += lm_weight_ * state->delta_score;
+    if (state->num_words > 0) {
+      float normalized_score = state->score / (float)state->num_words;
+      state->delta_score = normalized_score - state->score;
+    }
   }
   // GetStateExpansionScore should be an inexpensive method to retrieve the
   // (cached) expansion score computed within ExpandState. The score is
@@ -125,15 +140,11 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
   //
   // The score returned should be a log-probability.
   float GetStateEndExpansionScore(const KenLMBeamState& state) const {
-    return lm_weight_ * state.delta_score;
+    return state.delta_score;
   }
 
   void SetLMWeight(float lm_weight) {
     this->lm_weight_ = lm_weight;
-  }
-
-  void SetWordCountWeight(float word_count_weight) {
-    this->word_count_weight_ = word_count_weight;
   }
 
   void SetValidWordCountWeight(float valid_word_count_weight) {
@@ -145,11 +156,10 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
   Alphabet alphabet_;
   TrieNode *trieRoot_;
   float lm_weight_;
-  float word_count_weight_;
   float valid_word_count_weight_;
   float oov_score_;
 
-  lm::ngram::Config GetLMConfig() {
+  lm::ngram::Config GetLMConfig() const {
     lm::ngram::Config config;
     config.load_method = util::POPULATE_OR_READ;
     return config;
@@ -167,16 +177,19 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     state->incomplete_word_trie_node = trieRoot_;
   }
 
-  bool IsOOV(const std::string& word) const {
+  lm::WordIndex WordIndex(const std::string& word) const {
+    return model_.GetVocabulary().Index(word);
+  }
+
+  bool IsOOV(const lm::WordIndex& word) const {
     auto &vocabulary = model_.GetVocabulary();
-    return vocabulary.Index(word) == vocabulary.NotFound();
+    return word == vocabulary.NotFound();
   }
 
   float ScoreIncompleteWord(const Model::State& model_state,
-                            const std::string& word,
+                            const lm::WordIndex& word,
                             Model::State& out) const {
-    lm::WordIndex word_index = model_.GetVocabulary().Index(word);
-    return model_.FullScore(model_state, word_index, out).prob;
+    return model_.FullScore(model_state, word, out).prob;
   }
 
   void CopyState(const KenLMBeamState& from, KenLMBeamState* to) const {

@@ -151,19 +151,9 @@ assert_correct_multi_ldc93s1()
   # assert_shows_something "$1" "/LDC93S1_pcms16le_1_8000.wav%she hayorasryrtl lyreasy asr watal w water all year%"
 }
 
-assert_correct_ldc93s1_prodmodel_v1()
+assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had yeduckso in greasy wash for all year"
-}
-
-assert_correct_ldc93s1_prodmodel_v2()
-{
-  assert_correct_inference "$1" "she had a ducsuot in greasy wathorerall year"
-}
-
-assert_working_ldc93s1_prodmodel()
-{
-  assert_working_inference "$1" "she had"
+  assert_correct_inference "$1" "she had to ducksoan greasy wash water all earl"
 }
 
 assert_correct_ldc93s1_somodel()
@@ -260,13 +250,13 @@ run_all_inference_tests()
 run_prod_inference_tests()
 {
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_prodmodel_v1 "${phrase_pbmodel_withlm}"
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
 
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_prodmodel_v2 "${phrase_pbmodel_withlm}"
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
 
   phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_working_ldc93s1_prodmodel "${phrase_pbmodel_withlm_stereo_44k}"
+  assert_correct_inference "${phrase_pbmodel_withlm_stereo_44k}" "she had to ducksoan greasy wash water all earl"
 
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
@@ -667,7 +657,6 @@ package_native_client()
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_model.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
       -C ${deepspeech_dir}/ LICENSE \
       -C ${deepspeech_dir}/native_client/ deepspeech \
       -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
@@ -677,7 +666,6 @@ package_native_client()
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
       -C ${deepspeech_dir}/ LICENSE \
       -C ${deepspeech_dir}/native_client/ deepspeech \
       -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \

@@ -8,7 +8,6 @@ source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
 
 BAZEL_TARGETS="
 //native_client:libdeepspeech.so
-//native_client:deepspeech_utils
 ${BAZEL_AOT_TARGETS}"
 
 BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
