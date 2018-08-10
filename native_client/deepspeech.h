@@ -144,6 +144,18 @@ DEEPSPEECH_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
 
 /**
+ * @brief Destroy a streaming state without decoding the computed logits. This
+ *        can be used if you no longer need the result of an ongoing streaming
+ *        inference and don't want to perform a costly decode operation.
+ *
+ * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ *
+ * @note This method will free the state pointer (@p aSctx).
+ */
+DEEPSPEECH_EXPORT
+void DS_DiscardStream(StreamingState* aSctx);
+
+/**
  * @brief Given audio, return a vector suitable for input to a DeepSpeech
  *        model trained with the given parameters.
  *

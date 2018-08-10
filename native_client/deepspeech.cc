@@ -617,8 +617,14 @@ char*
 DS_FinishStream(StreamingState* aSctx)
 {
   char* str = aSctx->finishStream();
-  free(aSctx);
+  DS_DiscardStream(aSctx);
   return str;
+}
+
+void
+DS_DiscardStream(StreamingState* aSctx)
+{
+  delete aSctx;
 }
 
 void
