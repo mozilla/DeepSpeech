@@ -1583,9 +1583,10 @@ def train(server=None):
     # Progress Bar
     def update_progressbar(set_name):
         if not hasattr(update_progressbar, 'current_set_name'):
-            update_progressbar.current_set_name = None            
+            update_progressbar.current_set_name = None
 
-        if update_progressbar.current_set_name != set_name:
+        if (update_progressbar.current_set_name != set_name or
+            update_progressbar.current_job_index == update_progressbar.total_jobs):
 
             # finish prev pbar if it exists
             if hasattr(update_progressbar, 'pbar') and update_progressbar.pbar:
@@ -1605,14 +1606,14 @@ def train(server=None):
             elif job.set_name == "test":
                 log_info('Testing epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_test
-                
+
             # recreate pbar
             update_progressbar.pbar = progressbar.ProgressBar(max_value=update_progressbar.total_jobs).start()
 
             update_progressbar.current_set_name = set_name
 
-        if update_progressbar.pbar:            
-            update_progressbar.pbar.update(update_progressbar.current_job_index+1, force=True)        
+        if update_progressbar.pbar:
+            update_progressbar.pbar.update(update_progressbar.current_job_index+1, force=True)
 
         update_progressbar.current_job_index += 1
 
