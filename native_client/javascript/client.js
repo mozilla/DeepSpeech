@@ -3,10 +3,11 @@
 const Fs = require('fs');
 const Sox = require('sox-stream');
 const Ds = require('./index.js');
-const ArgumentParser = require('argparse').ArgumentParser;
+const argparse = require('argparse');
 const MemoryStream = require('memory-stream');
 const Wav = require('node-wav');
 const Duplex = require('stream').Duplex;
+const util = require('util');
 
 // These constants control the beam search decoder
 
@@ -31,19 +32,26 @@ const N_FEATURES = 26;
 // Size of the context window used for producing timesteps in the input vector
 const N_CONTEXT = 9;
 
-var parser = new ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
-parser.addArgument(['--model'], {help: 'Path to the model (protocol buffer binary file)'});
-parser.addArgument(['--alphabet'], {help: 'Path to the configuration file specifying the alphabet used by the network'});
+var VersionAction = function VersionAction(options) {
+  options = options || {};
+  options.nargs = 0;
+  argparse.Action.call(this, options);
+}
+util.inherits(VersionAction, argparse.Action);
+
+VersionAction.prototype.call = function(parser) {
+  Ds.printVersions();
+  process.exit(0);
+}
+
+var parser = new argparse.ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
+parser.addArgument(['--model'], {required: true, help: 'Path to the model (protocol buffer binary file)'});
+parser.addArgument(['--alphabet'], {required: true, help: 'Path to the configuration file specifying the alphabet used by the network'});
 parser.addArgument(['--lm'], {help: 'Path to the language model binary file', nargs: '?'});
 parser.addArgument(['--trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
-parser.addArgument(['--audio'], {help: 'Path to the audio file to run (WAV format)'});
-parser.addArgument(['--version'], {help: 'Print version and exits'})
+parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});
+parser.addArgument(['--version'], {action: VersionAction, help: 'Print version and exits'})
 var args = parser.parseArgs();
-
-if (args['version']) {
-  Ds.printVersions();
-  return 0;
-}
 
 function totalTime(hrtimeValue) {
   return (hrtimeValue[0] + hrtimeValue[1] / 1000000000).toPrecision(4);
