@@ -25,6 +25,9 @@ BEAM_WIDTH = 500
 # The alpha hyperparameter of the CTC decoder. Language Model weight
 LM_WEIGHT = 1.75
 
+# The beta hyperparameter of the CTC decoder. Word insertion weight (penalty)
+WORD_COUNT_WEIGHT = 1.00
+
 # Valid word insertion weight. This is used to lessen the word insertion penalty
 # when the inserted word is part of the vocabulary
 VALID_WORD_COUNT_WEIGHT = 1.00
@@ -85,7 +88,7 @@ def main():
     if args.lm and args.trie:
         print('Loading language model from files {} {}'.format(args.lm, args.trie), file=sys.stderr)
         lm_load_start = timer()
-        ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_WEIGHT,
+        ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_WEIGHT,WORD_COUNT_WEIGHT,
                                VALID_WORD_COUNT_WEIGHT)
         lm_load_end = timer() - lm_load_start
         print('Loaded language model in {:.3}s.'.format(lm_load_end), file=sys.stderr)
