@@ -1614,7 +1614,8 @@ def train(server=None):
                 update_progressbar.total_jobs = COORD._num_jobs_test
 
             # recreate pbar
-            update_progressbar.pbar = progressbar.ProgressBar(max_value=update_progressbar.total_jobs).start()
+            update_progressbar.pbar = progressbar.ProgressBar(max_value=update_progressbar.total_jobs,
+                                                              redirect_stdout=True).start()
 
             update_progressbar.current_set_name = set_name
 
