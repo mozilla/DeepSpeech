@@ -378,7 +378,7 @@ def variable_on_worker_level(name, shape, initializer):
     return var
 
 
-def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, previous_state=None):
+def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1, previous_state=None):
     r'''
     That done, we will define the learned variables, the weights and biases,
     within the method ``BiRNN()`` which also constructs the neural network.
@@ -435,7 +435,7 @@ def BiRNN(batch_x, seq_length, dropout, batch_size=None, n_steps=-1, previous_st
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
     # Forward direction cell:
-    fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(n_cell_dim)
+    fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(n_cell_dim, reuse=reuse)
     layers['fw_cell'] = fw_cell
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
@@ -501,7 +501,7 @@ def decode_with_lm(inputs, sequence_length, beam_width=100,
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
+def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout, reuse):
     r'''
     This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
     Next to total and average loss it returns the mean edit distance,
@@ -511,7 +511,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout):
     batch_x, batch_seq_len, batch_y = model_feeder.next_batch(tower)
 
     # Calculate the logits of the batch using BiRNN
-    logits, _ = BiRNN(batch_x, batch_seq_len, dropout)
+    logits, _ = BiRNN(batch_x, batch_seq_len, dropout, reuse)
 
     # Compute the CTC loss using either TensorFlow's `ctc_loss` or Baidu's `warp_ctc_loss`.
     if FLAGS.use_warpctc:
@@ -630,7 +630,7 @@ def get_tower_results(model_feeder, optimizer):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
                     total_loss, avg_loss, distance, mean_edit_distance, decoded, labels = \
-                        calculate_mean_edit_distance_and_loss(model_feeder, i, dropout_rates)
+                        calculate_mean_edit_distance_and_loss(model_feeder, i, dropout_rates, reuse=i>0)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
