@@ -131,13 +131,17 @@ $ pip3 install --upgrade deepspeech-gpu
 
 In both cases, it should take care of installing all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
 
-Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
+Notes
+- The following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model) and that you're accessing it from a directory that has the 
+resulting `models` directory.
+- The command is currently configured to require parameters in a fixed order, rather than more conventional named arguments prefixed with `-` and `--`. 
+- Only 16000Hz WAV files are currently supported; `ffmpeg` is a good tool for converting from other formats. 
+- The last two arguments are optional, and represent a language model, which will substantially increase spelling accuracy and word matching. 
 
 ```bash
-deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
+deepspeech models/output_graph.pb yourdeepspeech16000Hzfile.wav models/alphabet.txt models/lm.binary models/trie
 ```
 
-The last two arguments are optional, and represent a language model.
 
 See [client.py](native_client/python/client.py) for an example of how to use the package programatically.
 
@@ -380,3 +384,4 @@ There are several ways to contact us or to get help:
 3. [**IRC**](https://wiki.mozilla.org/IRC) - If your question is not addressed by either the [FAQ](https://github.com/mozilla/DeepSpeech/wiki#frequently-asked-questions) or [Discourse Forums](https://discourse.mozilla.org/c/deep-speech), you can contact us on the `#machinelearning` channel on [Mozilla IRC](https://wiki.mozilla.org/IRC); people there can try to answer/help
 
 4. [**Issues**](https://github.com/mozilla/deepspeech/issues) - Finally, if all else fails, you can open an issue in our repo.
+
