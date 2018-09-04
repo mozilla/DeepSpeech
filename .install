@@ -1,0 +1,10 @@
+#!/bin/bash
+
+virtualenv -p python3 ../tmp/venv
+source ../tmp/venv/bin/activate
+pip install -r <(grep -v tensorflow requirements.txt)
+pip install tensorflow-gpu==1.6
+
+python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
+
+mkdir -p ../keep/summaries
