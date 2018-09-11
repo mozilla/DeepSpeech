@@ -1603,13 +1603,13 @@ def train(server=None):
 
             current_epoch = COORD._epoch-1
 
-            if job.set_name == "train":
+            if set_name == "train":
                 log_info('Training epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_train
-            elif job.set_name == "dev":
+            elif set_name == "dev":
                 log_info('Validating epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_dev
-            elif job.set_name == "test":
+            elif set_name == "test":
                 log_info('Testing epoch %i...' % current_epoch)
                 update_progressbar.total_jobs = COORD._num_jobs_test
 
@@ -1725,12 +1725,16 @@ def train(server=None):
                         job.wer, job.samples = calculate_report(report_results)
 
                     # Display progressbar
-                    if FLAGS.show_progressbar and FLAGS.log_level > 0:
+                    if FLAGS.show_progressbar:
                         update_progressbar(job.set_name)
 
                     # Send the current job to coordinator and receive the next one
                     log_debug('Sending %s...' % job)
                     job = COORD.next_job(job)
+
+                if update_progressbar.pbar:
+                    update_progressbar.pbar.finish()
+
             except Exception as e:
                 log_error(str(e))
                 traceback.print_exc()
