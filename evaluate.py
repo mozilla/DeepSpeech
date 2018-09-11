@@ -19,6 +19,7 @@ from multiprocessing import Pool
 from six.moves import zip, range
 from util.audio import audiofile_to_input_vector
 from util.text import sparse_tensor_value_to_texts, text_to_char_array, Alphabet, ctc_label_dense_to_sparse, wer, levenshtein
+from util.preprocess import pmap, preprocess
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -26,88 +27,6 @@ FLAGS = tf.app.flags.FLAGS
 N_STEPS = 16
 N_FEATURES = 26
 N_CONTEXT = 9
-
-
-def pmap(fun, iterable, threads=8):
-    pool = Pool(threads)
-    results = pool.map(fun, iterable)
-    pool.close()
-    return results
-
-
-def process_single_file(row):
-    # row = index, Series
-    _, file = row
-    features = audiofile_to_input_vector(file.wav_filename, N_FEATURES, N_CONTEXT)
-    transcript = text_to_char_array(file.transcript, alphabet)
-
-    return features, len(features), transcript, len(transcript)
-
-
-# load samples from CSV, compute features, optionally cache results on disk
-def preprocess(dataset_files, batch_size, hdf5_dest_path=None):
-    COLUMNS = ('features', 'features_len', 'transcript', 'transcript_len')
-
-    if hdf5_dest_path and os.path.exists(hdf5_dest_path):
-        with tables.open_file(hdf5_dest_path, 'r') as file:
-            features = file.root.features[:]
-            features_len = file.root.features_len[:]
-            transcript = file.root.transcript[:]
-            transcript_len = file.root.transcript_len[:]
-
-            # features are stored flattened, so reshape into
-            # [n_steps, (n_input + 2*n_context*n_input)]
-            for i in range(len(features)):
-                features[i] = np.reshape(features[i], [features_len[i], -1])
-
-            in_data = list(zip(features, features_len,
-                               transcript, transcript_len))
-            return pandas.DataFrame(data=in_data, columns=COLUMNS)
-
-    csv_files = dataset_files.split(',')
-    source_data = None
-    for csv in csv_files:
-        file = pandas.read_csv(csv, encoding='utf-8', na_filter=False)
-        if source_data is None:
-            source_data = file
-        else:
-            source_data = source_data.append(file)
-
-    # discard last samples if dataset does not divide batch size evenly
-    if len(source_data) % batch_size != 0:
-        source_data = source_data[:-(len(source_data) % batch_size)]
-
-    out_data = pmap(process_single_file, source_data.iterrows())
-
-    if hdf5_dest_path:
-        # list of tuples -> tuple of lists
-        features, features_len, transcript, transcript_len = zip(*out_data)
-
-        with tables.open_file(hdf5_dest_path, 'w') as file:
-            features_dset = file.create_vlarray(file.root,
-                                                'features',
-                                                tables.Float32Atom(),
-                                                filters=tables.Filters(complevel=1))
-            # VLArray atoms need to be 1D, so flatten feature array
-            for f in features:
-                features_dset.append(np.reshape(f, -1))
-
-            features_len_dset = file.create_array(file.root,
-                                                  'features_len',
-                                                  features_len)
-
-            transcript_dset = file.create_vlarray(file.root,
-                                                  'transcript',
-                                                  tables.Int32Atom(),
-                                                  filters=tables.Filters(complevel=1))
-            for t in transcript:
-                transcript_dset.append(t)
-
-            transcript_len_dset = file.create_array(file.root,
-                                                    'transcript_len',
-                                                    transcript_len)
-
-    return pandas.DataFrame(data=out_data, columns=COLUMNS)
 
 
 def split_data(dataset, batch_size):

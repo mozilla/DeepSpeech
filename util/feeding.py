@@ -1,12 +1,12 @@
-import pandas
+import numpy as np
 import tensorflow as tf
 
-from threading import Thread
 from math import ceil
 from six.moves import range
-from util.audio import audiofile_to_input_vector
+from threading import Thread
 from util.gpu import get_available_gpus
-from util.text import ctc_label_dense_to_sparse, text_to_char_array
+from util.text import ctc_label_dense_to_sparse
+
 
 class ModelFeeder(object):
     '''
@@ -24,7 +24,7 @@ class ModelFeeder(object):
                  numcontext,
                  alphabet,
                  tower_feeder_count=-1,
-                 threads_per_queue=2):
+                 threads_per_queue=4):
 
         self.train = train_set
         self.dev = dev_set
@@ -35,7 +35,7 @@ class ModelFeeder(object):
         self.tower_feeder_count = max(len(get_available_gpus()), 1) if tower_feeder_count < 0 else tower_feeder_count
         self.threads_per_queue = threads_per_queue
 
-        self.ph_x = tf.placeholder(tf.float32, [None, numcep + (2 * numcep * numcontext)])
+        self.ph_x = tf.placeholder(tf.float32, [None, 2*numcontext+1, numcep])
         self.ph_x_length = tf.placeholder(tf.int32, [])
         self.ph_y = tf.placeholder(tf.int32, [None,])
         self.ph_y_length = tf.placeholder(tf.int32, [])
@@ -77,27 +77,19 @@ class ModelFeeder(object):
         '''
         return self._tower_feeders[tower_feeder_index].next_batch()
 
+
 class DataSet(object):
     '''
     Represents a collection of audio samples and their respective transcriptions.
     Takes a set of CSV files produced by importers in /bin.
     '''
-    def __init__(self, csvs, batch_size, skip=0, limit=0, ascending=True, next_index=lambda i: i + 1):
+    def __init__(self, data, batch_size, skip=0, limit=0, ascending=True, next_index=lambda i: i + 1):
+        self.data = data
+        self.data.sort_values(by="features_len", ascending=ascending, inplace=True)
         self.batch_size = batch_size
         self.next_index = next_index
-        self.files = None
-        for csv in csvs:
-            file = pandas.read_csv(csv, encoding='utf-8', na_filter=False)
-            if self.files is None:
-                self.files = file
-            else:
-                self.files = self.files.append(file)
-        self.files = self.files.sort_values(by="wav_filesize", ascending=ascending) \
-                         .ix[:, ["wav_filename", "transcript"]] \
-                         .values[skip:]
-        if limit > 0:
-            self.files = self.files[:limit]
-        self.total_batches = int(ceil(len(self.files) / batch_size))
+        self.total_batches = int(ceil(len(self.data) / batch_size))
+
 
 class _DataSetLoader(object):
     '''
@@ -109,9 +101,9 @@ class _DataSetLoader(object):
     def __init__(self, model_feeder, data_set, alphabet):
         self._model_feeder = model_feeder
         self._data_set = data_set
-        self.queue = tf.PaddingFIFOQueue(shapes=[[None, model_feeder.numcep + (2 * model_feeder.numcep * model_feeder.numcontext)], [], [None,], []],
+        self.queue = tf.PaddingFIFOQueue(shapes=[[None, 2 * model_feeder.numcontext + 1, model_feeder.numcep], [], [None,], []],
                                                   dtypes=[tf.float32, tf.int32, tf.int32, tf.int32],
-                                                  capacity=data_set.batch_size * 2)
+                                                  capacity=data_set.batch_size * 8)
         self._enqueue_op = self.queue.enqueue([model_feeder.ph_x, model_feeder.ph_x_length, model_feeder.ph_y, model_feeder.ph_y_length])
         self._close_op = self.queue.close(cancel_pending_enqueues=True)
         self._alphabet = alphabet
@@ -138,24 +130,34 @@ class _DataSetLoader(object):
         '''
         Queue thread routine.
         '''
-        file_count = len(self._data_set.files)
+        file_count = len(self._data_set.data)
         index = -1
         while not coord.should_stop():
             index = self._data_set.next_index(index) % file_count
-            wav_file, transcript = self._data_set.files[index]
-            source = audiofile_to_input_vector(wav_file, self._model_feeder.numcep, self._model_feeder.numcontext)
-            source_len = len(source)
-            target = text_to_char_array(transcript, self._alphabet)
-            target_len = len(target)
-            if source_len < target_len:
-                raise ValueError('Error: Audio file {} is too short for transcription.'.format(wav_file))
+            features, _, transcript, transcript_len = self._data_set.data.iloc[index]
+
+            # One stride per time step in the input
+            num_strides = len(features) - (self._model_feeder.numcontext * 2)
+
+            # Create a view into the array with overlapping strides of size
+            # numcontext (past) + 1 (present) + numcontext (future)
+            window_size = 2*self._model_feeder.numcontext+1
+            features = np.lib.stride_tricks.as_strided(
+                features,
+                (num_strides, window_size, self._model_feeder.numcep),
+                (features.strides[0], features.strides[0], features.strides[1]),
+                writeable=False)
+
             try:
-                session.run(self._enqueue_op, feed_dict={ self._model_feeder.ph_x: source,
-                                                          self._model_feeder.ph_x_length: source_len,
-                                                          self._model_feeder.ph_y: target,
-                                                          self._model_feeder.ph_y_length: target_len })
+                session.run(self._enqueue_op, feed_dict={
+                    self._model_feeder.ph_x: features,
+                    self._model_feeder.ph_x_length: num_strides,
+                    self._model_feeder.ph_y: transcript,
+                    self._model_feeder.ph_y_length: transcript_len
+                })
             except tf.errors.CancelledError:
                 return
+
 
 class _TowerFeeder(object):
     '''

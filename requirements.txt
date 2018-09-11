@@ -13,3 +13,4 @@ pyxdg
 bs4
 six
 requests
+tables
