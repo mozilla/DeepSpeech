@@ -1,89 +1,26 @@
 #!/bin/bash
 
-# this script gets executed on every node of an allocation;
-# in our case we use the provided COMPUTE_* env variables
-# to construct a distributed TensorFlow cluster definition
+source ../tmp/venv/bin/activate
 
-set -o pipefail
+data="${DATA_ROOT}/shared/data"
+fis="${data}/LDC/fisher"
+swb="${data}/LDC/LDC97S62/swb"
+lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
-# activating standard TensorFlow Python virtual environment
-source /usr/local/tensorflow/bin/activate
-
-# the standard script to execute
-if [ -f ".run" ]; then
-  base_cmd="./.run"
-fi
-
-# reading the comma separated node list into array "nodes"
-IFS=',' read -r -a nodes <<< "$COMPUTE_NODES"
-# keep fist node for convenience
-first=${nodes[0]}
-# hostname for debugging
-hostname=`hostname`
-# log timestamp prefix
-time_format='[%Y-%m-%d %H:%M:%.S]'
-sub_processes=1
-
-if ((${#nodes[@]} == 1)); then
-    # there is only one (this) node - so we are alone and we don't need a cluster definition
-    echo "Starting single node process on $hostname ..."
-    logfile=../single.log
-    touch $logfile # guarantees existence for "tail -f *.log"
-    $base_cmd --job_name localhost "$@" 2>&1 | ts "$time_format [single  ]" >$logfile &
-else
-    # there is more than one node so we will build a cluster definition
-
-    # defining all cluster ports in a way that avoids collisions with other cluster allocations
-    # (that could eventually get scheduled on the same node)
-    ((port_base=10000 + (COMPUTE_JOB_NUMBER * 100) % 50000))
-    ((coord_port=port_base))
-    ((ps_port=port_base + 1))
-    ((worker_port=port_base + 2))
-    for node in "${nodes[@]}"; do
-        worker_hosts[$worker_port]="$node:$worker_port"
-        ((worker_port=worker_port + 1))
-    done
-
-    # converting worker_hosts array of host:port pairs into a comma separated list
-    worker_hosts=$(printf ",%s" "${worker_hosts[@]}")
-    worker_hosts=${worker_hosts:1}
-
-    # shared cluster configuration
-    # assert: for this job it should be exactly the same on all allocated nodes
-    cluster="--coord_host $first --coord_port $coord_port --ps_hosts=$first:$ps_port --worker_hosts=$worker_hosts"
-
-    # helpful for debugging potential networking issues
-    echo "Starting allocated node no. $COMPUTE_NODE_INDEX on $hostname of cluster (coordinator: $first:$coord_port, ps: $first:$ps_port, workers: $worker_hosts) ..."
-
-    # starting the parameter server side by side with first worker on the first node;
-    # so for the moment we only run one ps per allocation
-    if ((COMPUTE_NODE_INDEX == 0)); then
-        # CUDA_VISIBLE_DEVICES="" - as the parameter server does not require a GPU;
-        # the GPU would be shared with the worker on the same machine;
-        # it turned out that this would reduce available GPU memory for the worker by almost 50%
-        sub_processes=2
-        logfile=../ps_$COMPUTE_NODE_INDEX.log
-        touch $logfile # guarantees existence for "tail -f *.log"
-        CUDA_VISIBLE_DEVICES="" $base_cmd $cluster --job_name ps --task_index 0 "$@" 2>&1 | ts "$time_format [ps     $COMPUTE_NODE_INDEX]" >$logfile &
-    fi
-
-    # starting the worker
-    logfile=../worker_$COMPUTE_NODE_INDEX.log
-    touch $logfile # guarantees existence for "tail -f *.log"
-    $base_cmd $cluster --job_name worker --task_index $COMPUTE_NODE_INDEX "$@" 2>&1 | ts "$time_format [worker $COMPUTE_NODE_INDEX]" >$logfile &
-fi
-
-for index in $(seq 1 $sub_processes);
-do
-  # "wait -n" waits for any sub-process to exit
-  # doing this sub_processes times will wait for all sub-processes to finish
-  # in case of any sub-process failing, it will exit immediately
-  wait -n
-  code=$?
-  if ((code > 0)); then
-    echo "One compute process failed with exit code $code."
-    exit $code
-  else
-    echo "One compute process succeeded."
-  fi
-done
+python3 -u DeepSpeech.py \
+  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
+  --dev_files "${lbs}-dev-clean.csv"\
+  --test_files "${lbs}-test-clean.csv" \
+  --train_batch_size 24 \
+  --dev_batch_size 48 \
+  --test_batch_size 48 \
+  --n_hidden 2048 \
+  --learning_rate 0.0001 \
+  --dropout_rate 0.2367 \
+  --epoch 13 \
+  --display_step 0 \
+  --validation_step 1 \
+  --log_level 0 \
+  --checkpoint_dir "../keep" \
+  --summary_dir "../keep/summaries" \
+  --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
