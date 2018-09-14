@@ -53,6 +53,9 @@ def preprocess(csv_files, batch_size, numcep, numcontext, alphabet, hdf5_cache_p
     source_data = None
     for csv in csv_files:
         file = pandas.read_csv(csv, encoding='utf-8', na_filter=False)
+        #FIXME: not cross-platform
+        csv_dir = os.path.dirname(os.path.abspath(csv))
+        file['wav_filename'] = file['wav_filename'].str.replace(r'(^[^/])', lambda m: os.path.join(csv_dir, m.group(1)))
         if source_data is None:
             source_data = file
         else:
