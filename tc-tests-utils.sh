@@ -47,11 +47,15 @@ model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4 3.7.0:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.1 7.10.1 8.11.1 9.11.1 10.3.0}
 
+strip() {
+  echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
+}
+
 # This verify exact inference result
 assert_correct_inference()
 {
-  phrase=$1
-  expected=$2
+  phrase=$(strip "$1")
+  expected=$(strip "$2")
 
   if [ -z "${phrase}" -o -z "${expected}" ]; then
       echo "One or more empty strings:"
@@ -158,8 +162,8 @@ assert_correct_ldc93s1_prodmodel()
 
 assert_correct_ldc93s1_somodel()
 {
-    somodel_nolm=$1
-    somodel_withlm=$2
+    somodel_nolm=$(strip "$1")
+    somodel_withlm=$(strip "$2")
 
     # We want to be able to return non zero value from the function, while not
     # failing the whole execution
