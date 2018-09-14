@@ -55,7 +55,7 @@ then:
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
-          apt-get -qq update && apt-get -qq -y install git pixz sox wget libatlas3-base && ${extraSystemSetup} &&
+          apt-get -qq update && apt-get -qq -y install git pixz sox wget libatlas3-base xxd && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
           cd ${system.homedir.linux} &&
           echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
