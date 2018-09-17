@@ -9,7 +9,7 @@ import subprocess
 import sys
 import wave
 
-from deepspeech.model import Model, print_versions
+from deepspeech import Model, printVersions
 from timeit import default_timer as timer
 
 try:
@@ -24,9 +24,6 @@ BEAM_WIDTH = 500
 
 # The alpha hyperparameter of the CTC decoder. Language Model weight
 LM_WEIGHT = 1.75
-
-# The beta hyperparameter of the CTC decoder. Word insertion weight (penalty)
-WORD_COUNT_WEIGHT = 1.00
 
 # Valid word insertion weight. This is used to lessen the word insertion penalty
 # when the inserted word is part of the vocabulary
@@ -54,25 +51,30 @@ def convert_samplerate(audio_path):
 
     return 16000, np.frombuffer(output, np.int16)
 
+
+class VersionAction(argparse.Action):
+    def __init__(self, *args, **kwargs):
+        super(VersionAction, self).__init__(nargs=0, *args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        printVersions()
+        exit(0)
+
 def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
-    parser.add_argument('--model',
+    parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('--alphabet',
+    parser.add_argument('--alphabet', required=True,
                         help='Path to the configuration file specifying the alphabet used by the network')
     parser.add_argument('--lm', nargs='?',
                         help='Path to the language model binary file')
     parser.add_argument('--trie', nargs='?',
                         help='Path to the language model trie file created with native_client/generate_trie')
-    parser.add_argument('--audio',
+    parser.add_argument('--audio', required=True,
                         help='Path to the audio file to run (WAV format)')
-    parser.add_argument('--version',
+    parser.add_argument('--version', action=VersionAction,
                         help='Print version and exits')
     args = parser.parse_args()
-
-    if args.version:
-        print_versions()
-        return 0
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
@@ -84,7 +86,7 @@ def main():
         print('Loading language model from files {} {}'.format(args.lm, args.trie), file=sys.stderr)
         lm_load_start = timer()
         ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_WEIGHT,
-                               WORD_COUNT_WEIGHT, VALID_WORD_COUNT_WEIGHT)
+                               VALID_WORD_COUNT_WEIGHT)
         lm_load_end = timer() - lm_load_start
         print('Loaded language model in {:.3}s.'.format(lm_load_end), file=sys.stderr)
 

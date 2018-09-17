@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.append(os.path.abspath('.'))
 
-from util.automation import GPUUsage
+from util.gpu_usage import GPUUsage
 
 gu = GPUUsage()
 gu.start()

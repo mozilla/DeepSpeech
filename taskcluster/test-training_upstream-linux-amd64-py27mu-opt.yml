@@ -6,7 +6,7 @@ build:
     >
       apt-get -qq -y install ${python.packages_trusty.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 2.7.14:mu upstream"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 2.7.14:mu"
   convert_graphdef: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.68696edf0298cf6066de0de380e0a385b34093ff.cpu/artifacts/public/convert_graphdef_memmapped_format"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU upstream training Py2.7 mu"
