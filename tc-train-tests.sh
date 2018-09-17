@@ -5,8 +5,8 @@ set -xe
 source $(dirname "$0")/tc-tests-utils.sh
 
 pyver_full=$1
-tf=$2
-ds=$3
+ds=$2
+frozen=$2
 
 if [ -z "${pyver_full}" ]; then
     echo "No python version given, aborting."
@@ -42,14 +42,7 @@ PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
-if [ "${tf}" = "mozilla" ]; then
-    pip install --upgrade ${TENSORFLOW_WHEEL} | cat
-    grep -v "tensorflow" ${HOME}/DeepSpeech/ds/requirements.txt | pip install --upgrade -r /dev/stdin | cat
-fi;
-
-if [ "${tf}" = "upstream" ]; then
-    pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
-fi;
+pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 
 platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
 whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
@@ -57,7 +50,7 @@ deepspeech_pkg="deepspeech-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_u
 
 if [ "${ds}" = "deepspeech" ]; then
     pip install ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg} | cat
-    python -c "import tensorflow; from deepspeech.utils import audioToInputVector"
+    python -c "import tensorflow; from deepspeech import audioToInputVector"
 
     # Since this build depends on the completion of the whole deepspeech package
     # and we might get into funny situation with --config=monolithic, then let's
@@ -69,7 +62,12 @@ else
 fi;
 
 pushd ${HOME}/DeepSpeech/ds/
-    time ./bin/run-tc-ldc93s1.sh
+    if [ "${frozen}" = "frozen" ]; then
+        download_for_frozen
+        time ./bin/run-tc-ldc93s1_frozen.sh
+    else
+        time ./bin/run-tc-ldc93s1_new.sh
+    fi;
 popd
 
 deactivate

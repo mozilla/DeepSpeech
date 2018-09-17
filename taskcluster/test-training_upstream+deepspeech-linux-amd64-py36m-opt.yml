@@ -7,7 +7,7 @@ build:
     >
       apt-get -qq -y install ${python.packages_trusty.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.6.4:m upstream deepspeech"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-train-tests.sh 3.6.4:m deepspeech"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU upstream training Py3.6 (DS)"
     description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 using upstream TensorFlow Python 3.6 with DeepSpeech package installed, CPU only, optimized version"

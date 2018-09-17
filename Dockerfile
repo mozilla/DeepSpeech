@@ -70,7 +70,7 @@ ENV CUDA_TOOLKIT_PATH /usr/local/cuda
 ENV CUDA_PKG_VERSION 9-0=9.0.176-1
 ENV CUDA_VERSION 9.0.176
 ENV TF_CUDA_VERSION 9.0
-ENV TF_CUDNN_VERSION 7.1.1
+ENV TF_CUDNN_VERSION 7.2.1
 ENV CUDNN_INSTALL_PATH /usr/lib/x86_64-linux-gnu/
 ENV TF_CUDA_COMPUTE_CAPABILITIES 6.0
 
@@ -151,7 +151,7 @@ WORKDIR /tensorflow
 RUN bazel build -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //native_client:libctc_decoder_with_kenlm.so  --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 # Build DeepSpeech
-RUN bazel build --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:deepspeech_utils //native_client:generate_trie --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+RUN bazel build --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 
 # Build TF pip package
@@ -169,8 +169,7 @@ RUN pip install /tmp/tensorflow_pkg/*.whl
 # Copy built libs to /DeepSpeech/native_client
 RUN cp /tensorflow/bazel-bin/native_client/libctc_decoder_with_kenlm.so /DeepSpeech/native_client/ \
     && cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_client/ \
-    && cp /tensorflow/bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/ \
-    && cp /tensorflow/bazel-bin/native_client/libdeepspeech_utils.so /DeepSpeech/native_client/
+    && cp /tensorflow/bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/
  
 
 # Make DeepSpeech and install Python bindings

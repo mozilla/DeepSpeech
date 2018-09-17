@@ -54,6 +54,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 * [Python 3.6](https://www.python.org/)
 * [Git Large File Storage](https://git-lfs.github.com/)
+* Mac or Linux environment
 
 ## Getting the code
 

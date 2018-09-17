@@ -23,12 +23,11 @@ deepspeech: client.cc
 ifeq ($(OS),Darwin)
 	install_name_tool -change $$TASKCLUSTER_TASK_DIR/homebrew/opt/sox/lib/libsox.3.dylib @rpath/libsox.3.dylib deepspeech
 	install_name_tool -change bazel-out/local-opt/bin/native_client/libdeepspeech.so @rpath/libdeepspeech.so deepspeech
-	install_name_tool -change bazel-out/local-opt/bin/native_client/libdeepspeech_utils.so @rpath/libdeepspeech_utils.so deepspeech
 endif
 
 bindings-clean:
 	rm -rf dist temp_build deepspeech.egg-info MANIFEST.in temp_lib
-	rm -f python/model_wrap.cpp python/utils_wrap.cpp python/model.py python/utils.py
+	rm -f python/impl_wrap.cpp python/impl.py
 
 bindings-build:
 	pip install --quiet $(PYTHON_PACKAGES) wheel==0.31.0 setuptools==39.1.0
@@ -54,14 +53,12 @@ debug: deepspeech
 install: deepspeech
 	install -d ${PREFIX}/lib
 	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
-	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech_utils.so ${PREFIX}/lib/
 	install -d ${PREFIX}/bin
 	install -m 0755 deepspeech ${PREFIX}/bin/
 
 uninstall:
 	rm -f ${PREFIX}/bin/deepspeech
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/bin
-	rm -f ${PREFIX}/lib/libdeepspeech_utils.so
 	rm -f ${PREFIX}/lib/libdeepspeech.so
 	rmdir --ignore-fail-on-non-empty ${PREFIX}/lib
 
