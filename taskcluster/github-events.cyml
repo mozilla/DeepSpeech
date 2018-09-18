@@ -10,5 +10,6 @@ taskcluster:
       env: true
       events:
         - push
+        - tag
       branches:
         - rebuild-0.1.1
