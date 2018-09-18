@@ -32,6 +32,7 @@ from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, 
 from xdg import BaseDirectory as xdg
 import numpy as np
 
+
 def create_flags():
     # Importer
     # ========
