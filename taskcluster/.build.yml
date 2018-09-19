@@ -4,6 +4,7 @@ build:
     - "pull_request.synchronize"
     - "pull_request.reopened"
     - "push"
+    - "tag"
   ref_match: "invalid-refs-should-not-work"
   dependencies: []
   maxRunTime: 3600
