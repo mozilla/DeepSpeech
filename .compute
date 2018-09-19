@@ -16,11 +16,10 @@ python3 -u DeepSpeech.py \
   --test_batch_size 48 \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
-  --dropout_rate 0.2367 \
+  --dropout_rate 0.2 \
   --epoch 13 \
   --display_step 0 \
   --validation_step 1 \
-  --log_level 0 \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries" \
   --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"

@@ -25,11 +25,13 @@ from tensorflow.python.tools import freeze_graph
 from threading import Thread, Lock
 from util.audio import audiofile_to_input_vector
 from util.feeding import DataSet, ModelFeeder
+from util.preprocess import preprocess
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
 from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, ndarray_to_text
 from xdg import BaseDirectory as xdg
 import numpy as np
+
 
 def create_flags():
     # Importer
@@ -39,6 +41,10 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
     tf.app.flags.DEFINE_boolean ('fulltrace',        False,       'if full trace debug info should be generated during training')
+
+    tf.app.flags.DEFINE_string  ('train_cached_features_path',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
+    tf.app.flags.DEFINE_string  ('dev_cached_features_path',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
+    tf.app.flags.DEFINE_string  ('test_cached_features_path',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
 
     # Cluster configuration
     # =====================
@@ -157,8 +163,8 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('lm_binary_path',       'data/lm/lm.binary', 'path to the language model binary file created with KenLM')
     tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
     tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
-    tf.app.flags.DEFINE_float   ('lm_weight',         1.75,       'the alpha hyperparameter of the CTC decoder. Language Model weight.')
-    tf.app.flags.DEFINE_float   ('valid_word_count_weight', 1.00, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
+    tf.app.flags.DEFINE_float   ('lm_weight',         1.50,       'the alpha hyperparameter of the CTC decoder. Language Model weight.')
+    tf.app.flags.DEFINE_float   ('valid_word_count_weight', 2.25, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
 
     # Inference mode
 
@@ -402,7 +408,7 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     # This is done to prepare the batch for input into the first layer which expects a tensor of rank `2`.
 
     # Permute n_steps and batch_size
-    batch_x = tf.transpose(batch_x, [1, 0, 2])
+    batch_x = tf.transpose(batch_x, [1, 0, 2, 3])
     # Reshape to prepare input for first layer
     batch_x = tf.reshape(batch_x, [-1, n_input + 2*n_input*n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
     layers['input_reshaped'] = batch_x
@@ -1459,19 +1465,40 @@ def train(server=None):
     global_step = tf.Variable(0, trainable=False, name='global_step')
 
     # Reading training set
-    train_set = DataSet(FLAGS.train_files.split(','),
+    train_data = preprocess(FLAGS.train_files.split(','),
+                            FLAGS.train_batch_size,
+                            n_input,
+                            n_context,
+                            alphabet,
+                            hdf5_cache_path=FLAGS.train_cached_features_path)
+
+    train_set = DataSet(train_data,
                         FLAGS.train_batch_size,
                         limit=FLAGS.limit_train,
                         next_index=lambda i: COORD.get_next_index('train'))
 
     # Reading validation set
-    dev_set = DataSet(FLAGS.dev_files.split(','),
+    dev_data = preprocess(FLAGS.dev_files.split(','),
+                          FLAGS.dev_batch_size,
+                          n_input,
+                          n_context,
+                          alphabet,
+                          hdf5_cache_path=FLAGS.dev_cached_features_path)
+
+    dev_set = DataSet(dev_data,
                       FLAGS.dev_batch_size,
                       limit=FLAGS.limit_dev,
                       next_index=lambda i: COORD.get_next_index('dev'))
 
     # Reading test set
-    test_set = DataSet(FLAGS.test_files.split(','),
+    test_data = preprocess(FLAGS.test_files.split(','),
+                           FLAGS.test_batch_size,
+                           n_input,
+                           n_context,
+                           alphabet,
+                           hdf5_cache_path=FLAGS.test_cached_features_path)
+
+    test_set = DataSet(test_data,
                        FLAGS.test_batch_size,
                        limit=FLAGS.limit_test,
                        next_index=lambda i: COORD.get_next_index('test'))
@@ -1759,8 +1786,8 @@ def train(server=None):
         sys.exit(1)
 
 def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False):
-    # Input tensor will be of shape [batch_size, n_steps, n_input + 2*n_input*n_context]
-    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, n_input + 2*n_input*n_context], name='input_node')
+    # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
+    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2*n_context+1, n_input], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
 
     previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, n_cell_dim], initializer=None)
