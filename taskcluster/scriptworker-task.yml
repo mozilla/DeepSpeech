@@ -29,7 +29,6 @@ build:
       - "linux-amd64-cpu-opt"
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
-      - "linux-arm64-cpu-opt"
   metadata:
     name: "DeepSpeech Packages"
     description: "Trigger Uploading of DeepSpeech Packages to the Internets"
