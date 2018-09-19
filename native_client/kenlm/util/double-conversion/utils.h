@@ -126,7 +126,7 @@ typedef unsigned __int64 uint64_t;
   DISALLOW_COPY_AND_ASSIGN(TypeName)
 #endif
 
-namespace double_conversion {
+namespace kenlm_double_conversion {
 
 static const int kCharSize = sizeof(char);
 
@@ -315,6 +315,6 @@ inline Dest BitCast(Source* source) {
   return BitCast<Dest>(reinterpret_cast<uintptr_t>(source));
 }
 
-}  // namespace double_conversion
+}  // namespace kenlm_double_conversion
 
 #endif  // DOUBLE_CONVERSION_UTILS_H_

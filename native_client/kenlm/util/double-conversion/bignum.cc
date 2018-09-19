@@ -28,7 +28,7 @@
 #include "bignum.h"
 #include "utils.h"
 
-namespace double_conversion {
+namespace kenlm_double_conversion {
 
 Bignum::Bignum()
     : bigits_(bigits_buffer_, kBigitCapacity), used_digits_(0), exponent_(0) {
@@ -761,4 +761,4 @@ void Bignum::SubtractTimes(const Bignum& other, int factor) {
 }
 
 
-}  // namespace double_conversion
+}  // namespace kenlm_double_conversion
