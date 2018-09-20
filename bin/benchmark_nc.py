@@ -125,12 +125,10 @@ def maybe_inspect_zip(models):
     that were inside.
     '''
 
-    if len(models) > 1:
+    if not(is_zip_file(models)):
         return models
 
-    # With AOT, we may have just one file that is not a ZIP file
-    # so verify that we don't have a .zip extension
-    if not(is_zip_file(models)):
+    if len(models) > 1:
         return models
 
     if len(models) < 1:
@@ -376,23 +374,18 @@ def establish_ssh(target=None, auto_trust=False, allow_agent=True, look_keys=Tru
 
     return ssh_conn
 
-def run_benchmarks(dir, models, wav, alphabet, lm_binary=None, trie=None, iters=-1, extra_aot_model=None):
+def run_benchmarks(dir, models, wav, alphabet, lm_binary=None, trie=None, iters=-1):
     r'''
     Core of the running of the benchmarks. We will run on all of models, against
     the WAV file provided as wav, and the provided alphabet.
-
-    If supplied extra_aot_model, add another pass with the .so built AOT model.
     '''
 
     assert_valid_dir(dir)
 
     inference_times = [ ]
 
-    if extra_aot_model:
-        models.append(extra_aot_model)
-
     for model in models:
-        model_filename = '' if model is extra_aot_model else model
+        model_filename = model
 
         current_model = {
           'name':   model,
@@ -457,8 +450,6 @@ def handle_args():
                                  help='Local directory where to copy stuff. This will be mirrored to the remote system if needed (make sure to use path that will work on both).')
     parser.add_argument('--models', nargs='+', required=False,
                                  help='List of files (protocolbuffer) to work on. Might be a zip file.')
-    parser.add_argument('--so-model', required=False,
-                                 help='Perform one step using AOT-based .so model')
     parser.add_argument('--wav', required=False,
                                  help='WAV file to pass to native_client. Supply again in plotting mode to draw realine line.')
     parser.add_argument('--alphabet', required=False,
@@ -483,19 +474,6 @@ def do_main():
     if not cli_args.models or not cli_args.wav or not cli_args.alphabet:
         raise AssertionError('Missing arguments (models, wav or alphabet)')
 
-    if cli_args.so_model:
-        '''
-        Verify we have a string that matches the format described in
-        reduce_filename above: NAME.aot.EPOCHS.XXX.YYY.so
-         - Where XXX is a variation on the model size for example
-         - And where YYY is a const related to the training dataset
-        '''
-
-        parts = cli_args.so_model.split('.')
-        assert len(parts) == 6
-        assert parts[1]   == 'aot'
-        assert parts[-1]  == 'so'
-
     if cli_args.dir is not None and not os.path.isdir(cli_args.dir):
         raise AssertionError('Inexistent temp directory')
 
@@ -514,9 +492,9 @@ def do_main():
     if cli_args.lm_binary and cli_args.trie:
         dest_lm_binary = os.path.join(tempdir, os.path.basename(cli_args.lm_binary))
         dest_trie = os.path.join(tempdir, os.path.basename(cli_args.trie))
-        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, extra_aot_model=cli_args.so_model, wav=dest_wav, alphabet=dest_alphabet, lm_binary=dest_lm_binary, trie=dest_trie, iters=cli_args.iters)
+        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, wav=dest_wav, alphabet=dest_alphabet, lm_binary=dest_lm_binary, trie=dest_trie, iters=cli_args.iters)
     else:
-        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, extra_aot_model=cli_args.so_model, wav=dest_wav, alphabet=dest_alphabet, iters=cli_args.iters)
+        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, wav=dest_wav, alphabet=dest_alphabet, iters=cli_args.iters)
 
     if cli_args.csv:
         produce_csv(input=inference_times, output=cli_args.csv)

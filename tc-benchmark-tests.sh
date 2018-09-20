@@ -8,7 +8,6 @@ exec_benchmark()
 {
     model_file="$1"
     run_postfix=$2
-    aot_model=$3
 
     mkdir -p /tmp/bench-ds/ || true
     mkdir -p /tmp/bench-ds-nolm/ || true
@@ -18,14 +17,9 @@ exec_benchmark()
     png=${TASKCLUSTER_ARTIFACTS}/benchmark-${run_postfix}.png
     svg=${TASKCLUSTER_ARTIFACTS}/benchmark-${run_postfix}.svg
 
-    AOT_MODEL_ARGS=""
-    if [ ! -z "${aot_model}" ]; then
-        AOT_MODEL_ARGS="--so-model ${aot_model}"
-    fi;
-
     python ${DS_ROOT_TASK}/DeepSpeech/ds/bin/benchmark_nc.py \
         --dir /tmp/bench-ds/ \
-        --models ${model_file} ${AOT_MODEL_ARGS} \
+        --models ${model_file} \
         --wav /tmp/LDC93S1.wav \
         --alphabet /tmp/alphabet.txt \
         --lm_binary /tmp/lm.binary \
@@ -34,7 +28,7 @@ exec_benchmark()
 
     python ${DS_ROOT_TASK}/DeepSpeech/ds/bin/benchmark_nc.py \
         --dir /tmp/bench-ds-nolm/ \
-        --models ${model_file} ${AOT_MODEL_ARGS} \
+        --models ${model_file} \
         --wav /tmp/LDC93S1.wav \
         --alphabet /tmp/alphabet.txt \
         --csv ${csv_nolm}
@@ -91,12 +85,7 @@ done;
 # Let's prepare another model for single-model codepath
 mv /tmp/${model_name} /tmp/test.frozen.e75.lstm494.ldc93s1.pb
 
-# We don't need download_material here, benchmark code should take care of it.
-if [ "$1" = "--aot" ]; then
-    export TASKCLUSTER_SCHEME=${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/native_client.tar.xz
-else
-    export TASKCLUSTER_SCHEME=${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz
-fi;
+export TASKCLUSTER_SCHEME=${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz
 
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
@@ -108,15 +97,9 @@ source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
 pip install -r ${DS_ROOT_TASK}/DeepSpeech/ds/requirements.txt | cat
 
-exec_benchmark "/tmp/test.frozen.e75.lstm494.ldc93s1.pb" "single-model_noAOT"
-exec_benchmark "/tmp/test.frozen.e75.lstm100-900.ldc93s1.zip" "zipfile-model_noAOT"
-exec_benchmark "${model_list}" "multi-model_noAOT"
-
-if [ "$1" = "--aot" ]; then
-    exec_benchmark "/tmp/test.frozen.e75.lstm494.ldc93s1.pb" "single-model_AOT" "test.aot.e5.lstm494.ldc93s1.so"
-    exec_benchmark "/tmp/test.frozen.e75.lstm100-900.ldc93s1.zip" "zipfile-model_AOT" "test.aot.e5.lstm494.ldc93s1.so"
-    exec_benchmark "${model_list}" "multi-model_AOT" "test.aot.e5.lstm494.ldc93s1.so"
-fi;
+exec_benchmark "/tmp/test.frozen.e75.lstm494.ldc93s1.pb" "single-model"
+exec_benchmark "/tmp/test.frozen.e75.lstm100-900.ldc93s1.zip" "zipfile-model"
+exec_benchmark "${model_list}" "multi-model"
 
 deactivate
 pyenv uninstall --force ${PYENV_NAME}
