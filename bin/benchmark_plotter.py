@@ -35,10 +35,7 @@ def reduce_filename(f):
     '''
 
     f = os.path.basename(f).split('.')
-    if f[1] == 'aot':
-        return 'AOT:' + str(keep_only_digits(f[-3]))
-    else:
-        return keep_only_digits(f[-3])
+    return keep_only_digits(f[-3])
 
 def ingest_csv(datasets=None, range=None):
     existing_files = filter(lambda x: os.path.isfile(x[1]), datasets)
