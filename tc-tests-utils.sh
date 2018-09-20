@@ -28,15 +28,6 @@ export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 
 export BAZEL_CTC_TARGETS="//native_client:libctc_decoder_with_kenlm.so"
 
-export EXTRA_AOT_CFLAGS=""
-export EXTRA_AOT_LDFLAGS=""
-export EXTRA_AOT_LIBS="-ldeepspeech_model"
-
-export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64"
-export BAZEL_AOT_TARGETS="
-//native_client:libdeepspeech_model.so
-"
-
 export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
 
 model_source="${DEEPSPEECH_TEST_MODEL}"
@@ -160,37 +151,6 @@ assert_correct_ldc93s1_prodmodel()
   assert_correct_inference "$1" "she had tired or so and greasy wash war or year"
 }
 
-assert_correct_ldc93s1_somodel()
-{
-    somodel_nolm=$(strip "$1")
-    somodel_withlm=$(strip "$2")
-
-    # We want to be able to return non zero value from the function, while not
-    # failing the whole execution
-    set +e
-
-    assert_correct_ldc93s1 "${somodel_nolm}"
-    so_nolm=$?
-
-    assert_correct_ldc93s1 "${somodel_withlm}"
-    so_lm=$?
-
-    set -e
-
-    # We accept that with no LM there may be errors, but we do not accept that
-    # for LM. For now.
-    if [ ${so_lm} -eq 1 ] && [ ${so_nolm} -eq 1 -o ${so_nolm} -eq 0 ];
-    then
-        exit 1
-    elif [ ${so_lm} -eq 0 ] && [ ${so_nolm} -eq 1 -o ${so_nolm} -eq 0 ];
-    then
-        exit 0
-    else
-        echo "Unexpected status"
-        exit 2
-    fi
-}
-
 assert_correct_warning_upsampling()
 {
   assert_shows_something "$1" "erratic speech recognition"
@@ -232,23 +192,6 @@ run_all_inference_tests()
 
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
-
-  if [ "${aot_model}" = "--aot" ]; then
-      phrase_somodel_nolm=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-      phrase_somodel_withlm=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-
-      assert_correct_ldc93s1_somodel "${phrase_somodel_nolm}" "${phrase_somodel_withlm}"
-
-      phrase_somodel_nolm_stereo_44k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-      phrase_somodel_withlm_stereo_44k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-
-      assert_correct_ldc93s1_somodel "${phrase_somodel_nolm_stereo_44k}" "${phrase_somodel_withlm_stereo_44k}"
-
-      phrase_somodel_nolm_mono_8k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
-      phrase_somodel_withlm_stereo_44k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
-
-      assert_correct_warning_upsampling "${phrase_somodel_nolm_mono_8k}" "${phrase_somodel_withlm_mono_8k}"
-  fi;
 }
 
 run_prod_inference_tests()
@@ -297,11 +240,6 @@ download_native_client_files()
   generic_download_tarxz "$1" "${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz"
 }
 
-download_aot_model_files()
-{
-  generic_download_tarxz "$1" "${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/native_client.tar.xz"
-}
-
 download_ctc_kenlm()
 {
   generic_download_tarxz "$1" "${DEEPSPEECH_LIBCTC}"
@@ -325,14 +263,8 @@ download_for_frozen()
 download_material()
 {
   target_dir=$1
-  maybe_aot=$2
 
-  if [ "${maybe_aot}" = "--aot" ]; then
-    download_aot_model_files "${target_dir}"
-  else
-    download_native_client_files "${target_dir}"
-  fi
-
+  download_native_client_files "${target_dir}"
   download_data
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
@@ -375,30 +307,6 @@ maybe_install_xldd()
   if [ ! -x "${toolchain}ldd" ]; then
     cp "${DS_DSDIR}/native_client/xldd" "${toolchain}ldd" && chmod +x "${toolchain}ldd"
   fi
-}
-
-do_get_model_parameters()
-{
-  local __result=$2
-  model_url=$1
-  model_file=/tmp/$(basename "${model_url}")
-
-  if [ -z "${model_url}" ]; then
-    echo "Empty URL for model"
-    exit 1
-  fi;
-
-  wget "${model_url}" -O "${model_file}"
-  wget -P "/tmp/" "${SUMMARIZE_GRAPH_BINARY}" && chmod +x /tmp/summarize_graph
-
-  if [ ! -f "${model_file}" ]; then
-    echo "No such model: ${model_file}"
-    exit 1
-  fi;
-
-  model_width=$(/tmp/summarize_graph --in_graph="${model_file}" | grep "inputs" | grep -Eo "shape=\[\?,\?,[[:digit:]]+" | cut -d',' -f3)
-
-  eval $__result="'--define=DS_MODEL_FRAMESIZE=${model_width} --define=DS_MODEL_FILE=${model_file}'"
 }
 
 # Checks whether we run a patched version of bazel.
