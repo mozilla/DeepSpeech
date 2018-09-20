@@ -1,12 +1,3 @@
-#ifdef DS_NATIVE_MODEL
-#define EIGEN_USE_THREADS
-#define EIGEN_USE_CUSTOM_THREAD_POOL
-
-#include "third_party/eigen3/unsupported/Eigen/CXX11/Tensor"
-
-#include "native_client/deepspeech_model_core.h" // generated
-#endif
-
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -109,7 +100,6 @@ struct ModelState {
   Alphabet* alphabet;
   KenLMBeamScorer* scorer;
   unsigned int beam_width;
-  bool run_aot;
   unsigned int n_steps;
   unsigned int mfcc_feats_per_timestep;
   unsigned int n_context;
@@ -149,7 +139,6 @@ ModelState::ModelState()
   , alphabet(nullptr)
   , scorer(nullptr)
   , beam_width(0)
-  , run_aot(false)
   , n_steps(-1)
   , mfcc_feats_per_timestep(-1)
   , n_context(-1)
@@ -297,61 +286,34 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
 {
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
 
-  if (run_aot) {
-#ifdef DS_NATIVE_MODEL
-    Eigen::ThreadPool tp(2);  // Size the thread pool as appropriate.
-    Eigen::ThreadPoolDevice device(&tp, tp.NumThreads());
+  Tensor input(DT_FLOAT, TensorShape({BATCH_SIZE, n_steps, 2*n_context+1, MFCC_FEATURES}));
 
-    nativeModel nm(nativeModel::AllocMode::RESULTS_PROFILES_AND_TEMPS_ONLY);
-    nm.set_thread_pool(&device);
+  auto input_mapped = input.flat<float>();
+  int i;
+  for (i = 0; i < n_frames*mfcc_feats_per_timestep; ++i) {
+    input_mapped(i) = aMfcc[i];
+  }
+  for (; i < n_steps*mfcc_feats_per_timestep; ++i) {
+    input_mapped(i) = 0;
+  }
 
-    for (int ot = 0; ot < n_frames; ot += DS_MODEL_TIMESTEPS) {
-      nm.set_arg0_data(&(aMfcc[ot * mfcc_feats_per_timestep]));
-      nm.Run();
+  Tensor input_lengths(DT_INT32, TensorShape({1}));
+  input_lengths.scalar<int>()() = n_frames;
 
-      // The CTCDecoder works with log-probs.
-      for (int t = 0; t < DS_MODEL_TIMESTEPS, (ot + t) < n_frames; ++t) {
-        for (int b = 0; b < BATCH_SIZE; ++b) {
-          for (int c = 0; c < num_classes; ++c) {
-            logits_output.push_back(nm.result0(t, b, c));
-          }
-        }
-      }
-    }
-#else
-    std::cerr << "No support for native model built-in." << std::endl;
+  vector<Tensor> outputs;
+  Status status = session->Run(
+    {{"input_node", input}, {"input_lengths", input_lengths}},
+    {"logits"}, {}, &outputs);
+
+  if (!status.ok()) {
+    std::cerr << "Error running session: " << status << "\n";
     return;
-#endif // DS_NATIVE_MODEL
-  } else {
-    Tensor input(DT_FLOAT, TensorShape({BATCH_SIZE, n_steps, 2*n_context+1, MFCC_FEATURES}));
+  }
 
-    auto input_mapped = input.flat<float>();
-    int i;
-    for (i = 0; i < n_frames*mfcc_feats_per_timestep; ++i) {
-      input_mapped(i) = aMfcc[i];
-    }
-    for (; i < n_steps*mfcc_feats_per_timestep; ++i) {
-      input_mapped(i) = 0;
-    }
-
-    Tensor input_lengths(DT_INT32, TensorShape({1}));
-    input_lengths.scalar<int>()() = n_frames;
-
-    vector<Tensor> outputs;
-    Status status = session->Run(
-      {{"input_node", input}, {"input_lengths", input_lengths}},
-      {"logits"}, {}, &outputs);
-
-    if (!status.ok()) {
-      std::cerr << "Error running session: " << status << "\n";
-      return;
-    }
-
-    auto logits_mapped = outputs[0].flat<float>();
-    // The CTCDecoder works with log-probs.
-    for (int t = 0; t < n_frames * BATCH_SIZE * num_classes; ++t) {
-      logits_output.push_back(logits_mapped(t));
-    }
+  auto logits_mapped = outputs[0].flat<float>();
+  // The CTCDecoder works with log-probs.
+  for (int t = 0; t < n_frames * BATCH_SIZE * num_classes; ++t) {
+    logits_output.push_back(logits_mapped(t));
   }
 }
 
@@ -423,16 +385,14 @@ DS_CreateModel(const char* aModelPath,
   model->ncontext   = aNContext;
   model->alphabet   = new Alphabet(aAlphabetConfigPath);
   model->beam_width = aBeamWidth;
-  model->run_aot    = false;
 
   *retval = nullptr;
 
   DS_PrintVersions();
 
   if (!aModelPath || strlen(aModelPath) < 1) {
-    std::cerr << "No model specified, will rely on built-in model." << std::endl;
-    model->run_aot = true;
-    return 0;
+    std::cerr << "No model specified, cannot continue." << std::endl;
+    return error::INVALID_ARGUMENT;
   }
 
   Status status;

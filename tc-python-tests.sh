@@ -5,7 +5,6 @@ set -xe
 source $(dirname "$0")/tc-tests-utils.sh
 
 pyver_full=$1
-aot_model=$2
 
 if [ -z "${pyver_full}" ]; then
     echo "No python version given, aborting."
@@ -47,11 +46,7 @@ platform=$(python -c 'import sys; import platform; plat = platform.system().lowe
 whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
 deepspeech_pkg="deepspeech-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
-if [ "${aot_model}" = "--aot" ]; then
-    deepspeech_pkg_url=${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/${deepspeech_pkg}
-else
-    deepspeech_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
-fi
+deepspeech_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg}
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${deepspeech_pkg_url} | cat
 
 run_all_inference_tests

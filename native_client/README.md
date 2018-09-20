@@ -92,32 +92,6 @@ cd ../DeepSpeech/native_client
 make deepspeech
 ```
 
-## Building with AOT model
-
-First, please note that this is still experimental. AOT model relies on TensorFlow's [AOT tfcompile](https://www.tensorflow.org/performance/xla/tfcompile) tooling. It takes a protocol buffer file graph as input, and produces a .so library that one can call from C++ code.
-To experiment, you will need to build TensorFlow from [github.com/mozilla/tensorflow master branch](https://github.com/mozilla/tensorflow/tree/master). Follow TensorFlow's documentation for the configuration of your system.
-When building, you will have to add some extra parameter and targets.
-
-Bazel defines:
-* `--define=DS_NATIVE_MODEL=1`: to toggle AOT support.
-* `--define=DS_MODEL_TIMESTEPS=x`: to define how many timesteps you want to handle. Relying on prebuilt model implies we need to use a fixed value for how much audio value we want to use. Timesteps defines that value, and an audio file bigger than this will just be dealt with over several samples. This means there's a compromise between quality and minimum audio segment you want to handle.
-* `--define=DS_MODEL_FRAMESIZE=y`: to define your model framesize, this is the second component of your model's input layer shape. Can be extracted using TensorFlow's `summarize_graph` tool.
-* `--define=DS_MODEL_FILE=/path/to/graph.pb`: the model you want to use
-
-Bazel targets:
-* `//native_client:libdeepspeech_model.so`: to produce `libdeepspeech_model.so`
-
-In the end, the previous example becomes (no change for `libctc_decoder_with_kenlm.so`):
-
-```
-bazel build --config=monolithic -c opt --copt=-O3 --copt=-fvisibility=hidden --define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64 --define=DS_MODEL_FRAMESIZE=494 --define=DS_MODEL_FILE=/tmp/model.ldc93s1.pb //native_client:libdeepspeech_model.so //native_client:libdeepspeech.so //native_client:generate_trie
-```
-
-Later, when building either `deepspeech` binaries or bindings, you will have to add some extra variables to your `make` command-line (assuming `TFDIR` points to your TensorFlow's git clone):
-```
-EXTRA_LIBS="-ldeepspeech_model"
-```
-
 ## Installing
 
 After building, the library files and binary can optionally be installed to a system path for ease of development. This is also a required step for bindings generation.
