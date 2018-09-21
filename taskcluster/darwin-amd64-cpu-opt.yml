@@ -6,8 +6,8 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.osx.${event.head.sha}"
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.d38d945dcf94382a737ffb252a733c7f30bf7d2e.osx/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.d38d945dcf94382a737ffb252a733c7f30bf7d2e.osx/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.ee903d1b348019d28048a5581871fcd8cbb3deff.osx/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.ee903d1b348019d28048a5581871fcd8cbb3deff.osx/artifacts/public/summarize_graph"
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"
