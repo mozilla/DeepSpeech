@@ -30,7 +30,7 @@
 
 #include "utils.h"
 
-namespace double_conversion {
+namespace kenlm_double_conversion {
 
 class Bignum {
  public:
@@ -140,6 +140,6 @@ class Bignum {
   DISALLOW_COPY_AND_ASSIGN(Bignum);
 };
 
-}  // namespace double_conversion
+}  // namespace kenlm_double_conversion
 
 #endif  // DOUBLE_CONVERSION_BIGNUM_H_

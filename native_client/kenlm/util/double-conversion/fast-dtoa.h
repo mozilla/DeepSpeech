@@ -30,7 +30,7 @@
 
 #include "utils.h"
 
-namespace double_conversion {
+namespace kenlm_double_conversion {
 
 enum FastDtoaMode {
   // Computes the shortest representation of the given input. The returned
@@ -83,6 +83,6 @@ bool FastDtoa(double d,
               int* length,
               int* decimal_point);
 
-}  // namespace double_conversion
+}  // namespace kenlm_double_conversion
 
 #endif  // DOUBLE_CONVERSION_FAST_DTOA_H_

@@ -58,7 +58,10 @@ tf_cc_shared_object(
         "//tensorflow/core/kernels:control_flow_ops",   # Enter
         "//tensorflow/core/kernels:tile_ops",           # Tile
         "//tensorflow/core/kernels:gather_op",          # Gather
-        "//tensorflow/contrib/rnn:lstm_ops_kernels"     # BlockLSTM
+        "//tensorflow/contrib/rnn:lstm_ops_kernels",    # BlockLSTM
+        "//tensorflow/core/kernels:random_ops",         # RandomGammaGrad
+        "//tensorflow/core/kernels:pack_op",            # Pack
+        "//tensorflow/core/kernels:gather_nd_op",       # GatherNd
         #### Needed by production model produced without "--use_seq_length False"
         #"//tensorflow/core/kernels:logging_ops",         # Assert
         #"//tensorflow/core/kernels:reverse_sequence_op", # ReverseSequence

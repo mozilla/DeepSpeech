@@ -37,7 +37,7 @@
 #include "strtod.h"
 #include "utils.h"
 
-namespace double_conversion {
+namespace kenlm_double_conversion {
 
 const DoubleToStringConverter& DoubleToStringConverter::EcmaScriptConverter() {
   int flags = UNIQUE_ZERO | EMIT_POSITIVE_EXPONENT_SIGN;
@@ -886,4 +886,4 @@ double StringToDoubleConverter::StringToIeee(
   return sign? -converted: converted;
 }
 
-}  // namespace double_conversion
+}  // namespace kenlm_double_conversion
