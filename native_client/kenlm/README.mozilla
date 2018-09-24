@@ -7,3 +7,6 @@ The following procedure was run to remove unneeded files:
 
 cd kenlm
 rm -rf windows include lm/filter lm/builder util/stream util/getopt.* python
+
+This was done in order to ensure uniqueness of double_conversion:
+git grep 'double_conversion' | cut -d':' -f1 | sort | uniq | xargs sed -ri 's/double_conversion/kenlm_double_conversion/g'
