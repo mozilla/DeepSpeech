@@ -40,7 +40,7 @@ endif # ($(TARGET),rpi3)
 ifeq ($(TARGET),rpi3-armv8)
 TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroAarch64Gcc72/bin/aarch64-linux-gnu-
 RASPBIAN    ?= $(abspath $(NC_DIR)/../multistrap-raspbian64-stretch)
-CFLAGS      := -march=armv8-a -mtune=cortex-a53 -D_GLIBCXX_USE_CXX11_ABI=0 -isystem $(RASPBIAN)/usr/include -isystem $(RASPBIAN)/usr/include/aarch64-linux-gnu
+CFLAGS      := -march=armv8-a -mtune=cortex-a53 -D_GLIBCXX_USE_CXX11_ABI=0 -isystem $(RASPBIAN)/usr/include/aarch64-linux-gnu
 CXXFLAGS    := $(CFLAGS)
 LDFLAGS     := $(RASPBIAN)/lib/aarch64-linux-gnu/libc.so.6 -Wl,-rpath-link,$(RASPBIAN)/lib/aarch64-linux-gnu/ -Wl,-rpath-link,$(RASPBIAN)/usr/lib/aarch64-linux-gnu/
 
