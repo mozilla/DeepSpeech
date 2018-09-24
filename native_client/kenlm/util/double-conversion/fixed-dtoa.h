@@ -30,7 +30,7 @@
 
 #include "utils.h"
 
-namespace double_conversion {
+namespace kenlm_double_conversion {
 
 // Produces digits necessary to print a given number with
 // 'fractional_count' digits after the decimal point.
@@ -51,6 +51,6 @@ namespace double_conversion {
 bool FastFixedDtoa(double v, int fractional_count,
                    Vector<char> buffer, int* length, int* decimal_point);
 
-}  // namespace double_conversion
+}  // namespace kenlm_double_conversion
 
 #endif  // DOUBLE_CONVERSION_FIXED_DTOA_H_
