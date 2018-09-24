@@ -33,7 +33,7 @@
 #include "cached-powers.h"
 #include "ieee.h"
 
-namespace double_conversion {
+namespace kenlm_double_conversion {
 
 // 2^53 = 9007199254740992.
 // Any integer with at most 15 decimal digits will hence fit into a double
@@ -555,4 +555,4 @@ float Strtof(Vector<const char> buffer, int exponent) {
   }
 }
 
-}  // namespace double_conversion
+}  // namespace kenlm_double_conversion
