@@ -36,9 +36,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install NCCL 2.2
 RUN apt-get install -qq -y --allow-downgrades --allow-change-held-packages libnccl2=2.2.13-1+cuda9.0 libnccl-dev=2.2.13-1+cuda9.0
 
-RUN dpkg -L libnccl2
-RUN dpkg -L libnccl-dev
-
 
 # Install Bazel
 RUN apt-get install -y openjdk-8-jdk
@@ -146,8 +143,6 @@ COPY . /DeepSpeech/
 
 WORKDIR /DeepSpeech
 
-RUN ls -hal
-
 RUN pip --no-cache-dir install -r requirements.txt
 
 # Link DeepSpeech native_client libs to tf folder
@@ -176,20 +171,27 @@ RUN bazel build -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mt
 # Build DeepSpeech
 RUN bazel build --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
-# Build TF pip package
-RUN bazel build --config=opt --config=cuda --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-
-# Build wheel
-RUN bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
-
-# Install tensorflow from our custom wheel
-RUN pip install /tmp/tensorflow_pkg/*.whl
+###
+### Using TensorFlow upstream should work
+###
+# # Build TF pip package
+# RUN bazel build --config=opt --config=cuda --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+#
+# # Build wheel
+# RUN bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
+#
+# # Install tensorflow from our custom wheel
+# RUN pip install /tmp/tensorflow_pkg/*.whl
 
 # Copy built libs to /DeepSpeech/native_client
 RUN cp /tensorflow/bazel-bin/native_client/libctc_decoder_with_kenlm.so /DeepSpeech/native_client/ \
     && cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_client/ \
     && cp /tensorflow/bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/
- 
+
+# Install TensorFlow
+WORKDIR /DeepSpeech/
+RUN pip install tensorflow-gpu==1.11.0rc2
+
 
 # Make DeepSpeech and install Python bindings
 ENV TFDIR /tensorflow
@@ -215,7 +217,6 @@ RUN rm -rf kenlm \
     && cd build \
     && cmake .. \
     && make -j 4
-
 
 # Done
 WORKDIR /DeepSpeech
