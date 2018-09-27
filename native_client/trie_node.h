@@ -42,7 +42,7 @@ public:
     for (int i = 0; i < vocab_size_; i++) {
       delete children_[i];
     }
-    delete children_;
+    delete[] children_;
   }
 
   void WriteToStream(std::ostream& os) const {
