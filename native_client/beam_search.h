@@ -196,6 +196,7 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     to->language_model_score = from.language_model_score;
     to->score = from.score;
     to->delta_score = from.delta_score;
+    to->num_words = from.num_words;
     to->incomplete_word = from.incomplete_word;
     to->incomplete_word_trie_node = from.incomplete_word_trie_node;
     to->model_state = from.model_state;
