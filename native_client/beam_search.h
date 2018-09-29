@@ -119,7 +119,7 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     // score to this beam's score.
     state->score += lm_weight_ * state->delta_score;
     if (state->num_words > 0) {
-      float normalized_score = state->score / (float)state->num_words;
+      float normalized_score = state->score / pow((float)state->num_words, 0.7f);
       state->delta_score = normalized_score - state->score;
     }
   }
