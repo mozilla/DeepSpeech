@@ -875,15 +875,15 @@ def new_id():
     return id_counter
 
 class Sample(object):
-    def __init__(self, src, res, loss, mean_edit_distance, sample_wer):
-        '''Represents one item of a WER report.
+    '''Represents one item of a WER report.
 
-        Args:
-            src (str): source text
-            res (str): resulting text
-            loss (float): computed loss of this item
-            mean_edit_distance (float): computed mean edit distance of this item
-        '''
+    Args:
+        src (str): source text
+        res (str): resulting text
+        loss (float): computed loss of this item
+        mean_edit_distance (float): computed mean edit distance of this item
+    '''
+    def __init__(self, src, res, loss, mean_edit_distance, sample_wer):
         self.src = src
         self.res = res
         self.loss = loss
@@ -894,16 +894,16 @@ class Sample(object):
         return 'WER: %f, loss: %f, mean edit distance: %f\n - src: "%s"\n - res: "%s"' % (self.wer, self.loss, self.mean_edit_distance, self.src, self.res)
 
 class WorkerJob(object):
-    def __init__(self, epoch_id, index, set_name, steps, report):
-        '''Represents a job that should be executed by a worker.
+    '''Represents a job that should be executed by a worker.
 
-        Args:
-            epoch_id (int): the ID of the 'parent' epoch
-            index (int): the epoch index of the 'parent' epoch
-            set_name (str): the name of the data-set - one of 'train', 'dev', 'test'
-            steps (int): the number of `session.run` calls
-            report (bool): if this job should produce a WER report
-        '''
+    Args:
+        epoch_id (int): the ID of the 'parent' epoch
+        index (int): the epoch index of the 'parent' epoch
+        set_name (str): the name of the data-set - one of 'train', 'dev', 'test'
+        steps (int): the number of `session.run` calls
+        report (bool): if this job should produce a WER report
+    '''
+    def __init__(self, epoch_id, index, set_name, steps, report):
         self.id = new_id()
         self.epoch_id = epoch_id
         self.index = index
@@ -1075,6 +1075,12 @@ class Epoch(object):
 
 
 class TrainingCoordinator(object):
+    ''' Central training coordination class.
+    Used for distributing jobs among workers of a cluster.
+    Instantiated on all workers, calls of non-chief workers will transparently
+    HTTP-forwarded to the chief worker instance.
+    '''
+
     class TrainingCoordinationHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''Handles HTTP requests from remote workers to the Training Coordinator.
         '''
@@ -1119,13 +1125,7 @@ class TrainingCoordinator(object):
             '''
             return
 
-
     def __init__(self):
-        ''' Central training coordination class.
-        Used for distributing jobs among workers of a cluster.
-        Instantiated on all workers, calls of non-chief workers will transparently
-        HTTP-forwarded to the chief worker instance.
-        '''
         self._init()
         self._lock = Lock()
         self.started = False
