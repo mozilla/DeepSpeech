@@ -9,8 +9,6 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import csv
 import tarfile
-import progressbar
-import requests
 import subprocess
 
 from glob import glob
@@ -20,6 +18,8 @@ from threading import RLock
 from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
 
+from util.downloader import maybe_download, SIMPLE_BAR
+
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000
 MAX_SECS = 10
@@ -27,35 +27,15 @@ ARCHIVE_DIR_NAME = 'cv_corpus_v1'
 ARCHIVE_NAME = ARCHIVE_DIR_NAME + '.tar.gz'
 ARCHIVE_URL = 'https://s3.us-east-2.amazonaws.com/common-voice-data-download/' + ARCHIVE_NAME
 
-SIMPLE_BAR = ['Progress ', progressbar.Bar(), ' ', progressbar.Percentage(), ' completed']
-
 def _download_and_preprocess_data(target_dir):
     # Making path absolute
     target_dir = path.abspath(target_dir)
     # Conditionally download data
-    archive_path = _maybe_download(ARCHIVE_NAME, target_dir, ARCHIVE_URL)
+    archive_path = maybe_download(ARCHIVE_NAME, target_dir, ARCHIVE_URL)
     # Conditionally extract common voice data
     _maybe_extract(target_dir, ARCHIVE_DIR_NAME, archive_path)
     # Conditionally convert common voice CSV files and mp3 data to DeepSpeech CSVs and wav
     _maybe_convert_sets(target_dir, ARCHIVE_DIR_NAME)
-
-def _maybe_download(archive_name, target_dir, archive_url):
-    # If archive file does not exist, download it...
-    archive_path = path.join(target_dir, archive_name)
-    if not path.exists(archive_path):
-        print('No archive "%s" - downloading...' % archive_path)
-        req = requests.get(archive_url, stream=True)
-        total_size = int(req.headers.get('content-length', 0))
-        done = 0
-        with open(archive_path, 'wb') as f:
-            bar = progressbar.ProgressBar(max_value=total_size, widgets=SIMPLE_BAR)
-            for data in req.iter_content(1024*1024):
-                done += len(data)
-                f.write(data)
-                bar.update(done)
-    else:
-        print('Found archive "%s" - not downloading.' % archive_path)
-    return archive_path
 
 def _maybe_extract(target_dir, extracted_data, archive_path):
     # If target_dir/extracted_data does not exist, extract archive in target_dir
