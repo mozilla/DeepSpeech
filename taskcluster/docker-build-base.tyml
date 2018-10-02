@@ -1,0 +1,59 @@
+$if: '(event.event != "push") && (event.event != "tag")'
+then:
+  taskId: ${taskcluster.taskId}
+  provisionerId: ${taskcluster.docker.provisionerId}
+  workerType: ${taskcluster.docker.workerType}
+  taskGroupId: ${taskcluster.taskGroupId}
+  schedulerId: ${taskcluster.schedulerId}
+  created: { $fromNow: '0 sec' }
+  deadline: { $fromNow: '1 day' }
+  expires: { $fromNow: '7 days' }
+
+  extra:
+    github:
+      { $eval: taskcluster.github_events.pull_request }
+
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+
+  scopes: [
+    "queue:route:notify.irc-channel.*"
+  ]
+
+  payload:
+    maxRunTime: { $eval: to_int(build.maxRunTime) }
+    image: "ubuntu:14.04"
+    features:
+      dind: true
+
+    env:
+      DOCKER_API_VERSION: "1.18"
+
+    command:
+      - "/bin/bash"
+      - "--login"
+      - "-cxe"
+      - $let:
+          dockerfile: { $eval: strip(str(build.dockerfile)) }
+        in: >
+          ${aptEc2Mirrors} &&
+          apt-get -qq update && apt-get -qq -y install git wget pkg-config apt-transport-https ca-certificates curl software-properties-common &&
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - &&
+          add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" &&
+          apt-get -qq update && apt-get -qq -y install docker-ce && mkdir -p /opt/deepspeech &&
+          git clone --quiet ${event.head.repo.url} /opt/deepspeech && cd /opt/deepspeech && git checkout --quiet ${event.head.sha} &&
+          curl -fsSL "https://raw.githubusercontent.com/${event.head.user.login}/${event.head.repo.name}/${event.head.sha}/${dockerfile}" > ${dockerfile} &&
+          docker build .
+
+    artifacts:
+      "public":
+        type: "directory"
+        path: "/tmp/artifacts/"
+        expires: { $fromNow: '7 days' }
+
+  metadata:
+    name: ${build.metadata.name}
+    description: ${build.metadata.description}
+    owner: ${event.head.user.email}
+    source: ${event.head.repo.url}

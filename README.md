@@ -226,7 +226,7 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip3 uninstall tensorflow
-pip3 install 'tensorflow-gpu==1.6.0'
+pip3 install 'tensorflow-gpu==1.11.0'
 ```
 
 ### Common Voice training data

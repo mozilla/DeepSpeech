@@ -1895,16 +1895,30 @@ def do_single_file_inference(input_file_path):
 
         session.run(outputs['initialize_state'])
 
-        mfcc = audiofile_to_input_vector(input_file_path, n_input, n_context)
+        features = audiofile_to_input_vector(input_file_path, n_input, n_context)
+        num_strides = len(features) - (n_context * 2)
+
+        # Create a view into the array with overlapping strides of size
+        # numcontext (past) + 1 (present) + numcontext (future)
+        window_size = 2*n_context+1
+        features = np.lib.stride_tricks.as_strided(
+            features,
+            (num_strides, window_size, n_input),
+            (features.strides[0], features.strides[0], features.strides[1]),
+            writeable=False)
 
         logits = np.empty([0, 1, alphabet.size()+1])
-        for i in range(0, len(mfcc), FLAGS.n_steps):
-            chunk = mfcc[i:i+FLAGS.n_steps]
+        for i in range(0, len(features), FLAGS.n_steps):
+            chunk = features[i:i+FLAGS.n_steps]
 
-            # pad with zeros if not enough steps (len(mfcc) % FLAGS.n_steps != 0)
+            # pad with zeros if not enough steps (len(features) % FLAGS.n_steps != 0)
             if len(chunk) < FLAGS.n_steps:
                 chunk = np.pad(chunk,
-                               ((0, FLAGS.n_steps-len(chunk)), (0, 0)),
+                               (
+                                (0, FLAGS.n_steps - len(chunk)),
+                                (0, 0),
+                                (0, 0)
+                               ),
                                mode='constant',
                                constant_values=0)
 

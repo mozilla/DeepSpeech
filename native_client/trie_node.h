@@ -24,10 +24,11 @@ limitations under the License.
 
 #include <boost/locale/encoding_utf.hpp>
 
+static const int MAGIC = 'TRIE';
+static const int FILE_VERSION = 2;
+
 class TrieNode {
 public:
-  static const int MAGIC = 'TRIE';
-  static const int FILE_VERSION = 1;
 
   TrieNode(int vocab_size)
     : vocab_size_(vocab_size)
@@ -42,17 +43,19 @@ public:
     for (int i = 0; i < vocab_size_; i++) {
       delete children_[i];
     }
-    delete children_;
+    delete[] children_;
   }
 
   void WriteToStream(std::ostream& os) const {
-    os << MAGIC << std::endl << FILE_VERSION << std::endl << vocab_size_ << std::endl;
+    os.write(reinterpret_cast<const char *>(&MAGIC), sizeof(MAGIC));
+    os.write(reinterpret_cast<const char *>(&FILE_VERSION), sizeof(FILE_VERSION));
+    os.write(reinterpret_cast<const char *>(&vocab_size_), sizeof(vocab_size_));
     WriteNodeAndChildren(os);
   }
 
   static void ReadFromStream(std::istream& is, TrieNode* &obj, int vocab_size) {
     int magic;
-    is >> magic;
+    is.read(reinterpret_cast<char *>(&magic), sizeof(magic));
     if (magic != MAGIC) {
       std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
                    "your trie file." << std::endl;
@@ -61,16 +64,18 @@ public:
     }
 
     int version;
-    is >> version;
+    is.read(reinterpret_cast<char *>(&version), sizeof(version));
     if (version != FILE_VERSION) {
-      std::cerr << "Error: Trie file version mismatch. Update your trie file."
+      std::cerr << "Error: Trie file version mismatch (" << version
+                << " instead of expected " << FILE_VERSION
+                << "). Update your trie file."
                 << std::endl;
       obj = nullptr;
       return;
     }
 
     int fileVocabSize;
-    is >> fileVocabSize;
+    is.read(reinterpret_cast<char *>(&fileVocabSize), sizeof(fileVocabSize));
     if (fileVocabSize != vocab_size) {
       std::cerr << "Error: Mismatching alphabet size in trie file and alphabet "
                    "file. Trie file will not be loaded." << std::endl;
@@ -143,22 +148,23 @@ private:
   }
 
   void WriteNode(std::ostream& os) const {
-    os << prefixCount_ << std::endl;
-    os << min_score_word_ << std::endl;
-    os << min_unigram_score_ << std::endl;
+    os.write(reinterpret_cast<const char *>(&prefixCount_), sizeof(prefixCount_));
+    os.write(reinterpret_cast<const char *>(&min_score_word_), sizeof(min_score_word_));
+    os.write(reinterpret_cast<const char *>(&min_unigram_score_), sizeof(min_unigram_score_));
   }
 
   void ReadNode(std::istream& is, int first_input) {
     prefixCount_ = first_input;
-    is >> min_score_word_;
-    is >> min_unigram_score_;
+    is.read(reinterpret_cast<char *>(&min_score_word_), sizeof(min_score_word_));
+    is.read(reinterpret_cast<char *>(&min_unigram_score_), sizeof(min_unigram_score_));
   }
 
   void WriteNodeAndChildren(std::ostream& os) const {
+    int noChildren = -1;
     WriteNode(os);
     for (int i = 0; i < vocab_size_; i++) {
       if (children_[i] == nullptr) {
-        os << -1 << std::endl;
+        os.write(reinterpret_cast<const char *>(&noChildren), sizeof(noChildren));
       } else {
         // Recursive call
         children_[i]->WriteNodeAndChildren(os);
@@ -168,7 +174,7 @@ private:
 
   static void ReadPrefixAndNode(std::istream& is, TrieNode* &obj, int vocab_size) {
     int prefixCount;
-    is >> prefixCount;
+    is.read(reinterpret_cast<char *>(&prefixCount), sizeof(prefixCount));
 
     if (prefixCount == -1) {
       // This is an undefined child
