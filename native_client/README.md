@@ -51,10 +51,11 @@ Check the [main README](../README.md) for more details.
 
 If you'd like to build the binaries yourself, you'll need the following pre-requisites downloaded/installed:
 
-* [TensorFlow source and requirements](https://www.tensorflow.org/install/install_sources)
+* [TensorFlow requirements](https://www.tensorflow.org/install/install_sources)
+* [TensorFlow `r1.11` sources](https://github.com/mozilla/tensorflow/tree/r1.11)
 * [libsox](https://sourceforge.net/projects/sox/)
 
-We recommend using our fork of TensorFlow since it includes fixes for common problems encountered when building the native client files, you can [get it here](https://github.com/mozilla/tensorflow/).
+It is required to use our fork of TensorFlow since it includes fixes for common problems encountered when building the native client files.
 
 If you'd like to build the language bindings, you'll also need:
 
@@ -73,7 +74,7 @@ ln -s ../DeepSpeech/native_client ./
 ## Building
 
 Before building the DeepSpeech client libraries, you will need to prepare your environment to configure and build TensorFlow. 
-Preferably, checkout the version of tensorflow which is currently supported by DeepSpeech (see requirements.txt), and use bazel version 0.10.0. 
+Preferably, checkout the version of tensorflow which is currently supported by DeepSpeech (see requirements.txt), and use the bazel version recommended by TensorFlow for that version.
 Then, follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
 
 After that, you can build the Tensorflow and DeepSpeech libraries using the following commands. Please note that the flags for `libctc_decoder_with_kenlm.so` differs a little bit.

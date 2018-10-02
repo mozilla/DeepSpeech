@@ -16,7 +16,7 @@ import wave
 from glob import glob
 from os import makedirs, path, remove, rmdir
 from sox import Transformer
-from tensorflow.contrib.learn.python.learn.datasets import base
+from util.downloader import maybe_download
 from tensorflow.python.platform import gfile
 from util.stm import parse_stm_file
 
@@ -24,7 +24,7 @@ def _download_and_preprocess_data(data_dir):
     # Conditionally download data
     TED_DATA = "TEDLIUM_release2.tar.gz"
     TED_DATA_URL = "http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz"
-    local_file = base.maybe_download(TED_DATA, data_dir, TED_DATA_URL)
+    local_file = maybe_download(TED_DATA, data_dir, TED_DATA_URL)
 
     # Conditionally extract TED data
     TED_DIR = "TEDLIUM_release2"

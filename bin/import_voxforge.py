@@ -15,7 +15,7 @@ from glob import glob
 from os import makedirs, path
 from bs4 import BeautifulSoup
 from tensorflow.python.platform import gfile
-from tensorflow.contrib.learn.python.learn.datasets import base
+from util.downloader import maybe_download
 
 """The number of jobs to run in parallel"""
 NUM_PARALLEL = 8
@@ -68,7 +68,7 @@ def _parallel_downloader(voxforge_url, archive_dir, total, counter):
         download_url = voxforge_url + '/' + file
         c = counter.increment()
         print('Downloading file {} ({}/{})...'.format(i+1, c, total))
-        base.maybe_download(filename_of(download_url), archive_dir, download_url)
+        maybe_download(filename_of(download_url), archive_dir, download_url)
     return download
 
 def _parallel_extracter(data_dir, number_of_test, number_of_dev, total, counter):

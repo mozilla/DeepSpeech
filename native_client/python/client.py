@@ -41,7 +41,7 @@ N_FEATURES = 26
 N_CONTEXT = 9
 
 def convert_samplerate(audio_path):
-    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 - '.format(quote(audio_path))
+    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path))
     try:
         output = subprocess.check_output(shlex.split(sox_cmd), stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:

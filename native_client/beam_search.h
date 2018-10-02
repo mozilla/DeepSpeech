@@ -30,7 +30,7 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     , lm_weight_(lm_weight)
     , valid_word_count_weight_(valid_word_count_weight)
   {
-    std::ifstream in(trie_path, std::ios::in);
+    std::ifstream in(trie_path, std::ios::in | std::ios::binary);
     TrieNode::ReadFromStream(in, trieRoot_, alphabet_.GetSize());
 
     // low probability for OOV words
@@ -196,6 +196,7 @@ class KenLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<KenLMBeamState> {
     to->language_model_score = from.language_model_score;
     to->score = from.score;
     to->delta_score = from.delta_score;
+    to->num_words = from.num_words;
     to->incomplete_word = from.incomplete_word;
     to->incomplete_word_trie_node = from.incomplete_word_trie_node;
     to->model_state = from.model_state;
