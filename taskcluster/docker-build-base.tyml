@@ -28,7 +28,7 @@ then:
       dind: true
 
     env:
-      DOCKER_API_VERSION: 1.18
+      DOCKER_API_VERSION: "1.18"
 
     command:
       - "/bin/bash"
