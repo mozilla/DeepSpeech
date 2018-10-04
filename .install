@@ -5,6 +5,6 @@ source ../tmp/venv/bin/activate
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.11.0
 
-python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
+python3 util/taskcluster.py --arch cuda --target ../tmp/native_client
 
 mkdir -p ../keep/summaries
