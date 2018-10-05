@@ -1,0 +1,22 @@
+--- deepspeech_wrap.cxx	2018-10-05 18:53:51.831790313 +0200
++++ deepspeech_wrap.cxx	2018-10-05 18:53:48.071831597 +0200
+@@ -167,16 +167,15 @@
+ #define SWIG_V8_VERSION 0x031110
+ #endif
+ 
++#include <errno.h>
++#include <limits.h>
++#include <stdlib.h>
+ 
+ #include <node.h>
+ 
+ 
+ #include <v8.h>
+ 
+-#include <errno.h>
+-#include <limits.h>
+-#include <stdlib.h>
+-
+ /* -----------------------------------------------------------------------------
+  * swigrun.swg
+  *
