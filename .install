@@ -3,7 +3,7 @@
 virtualenv -p python3 ../tmp/venv
 source ../tmp/venv/bin/activate
 pip install -r <(grep -v tensorflow requirements.txt)
-pip install tensorflow-gpu==1.11.0
+pip install tf-nightly==1.12.0.dev20181004
 
 python3 util/taskcluster.py --arch cuda --target ../tmp/native_client
 

@@ -1,7 +1,7 @@
 pandas
 progressbar2
 python-utils
-tensorflow == 1.11.0
+tf-nightly==1.12.0.dev20181004
 numpy
 matplotlib
 scipy
