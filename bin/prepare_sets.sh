@@ -5,11 +5,11 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
-target_dir="${data}/Mozilla/DS"
+target_dir="${DATA_ROOT}/groups/ds/cached"
 mkdir -p "${target_dir}"
 
 vocoto \
-    add "${data}/UPF/freesound/noise.csv" \
+    add "${data}/UPF/freesound-cc0/ds.csv" \
     stash noise \
     add "${lbs}-train-clean-100.csv" \
     add "${lbs}-train-clean-360.csv" \
