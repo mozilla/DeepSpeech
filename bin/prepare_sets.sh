@@ -5,8 +5,7 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
-target_dir="${DATA_ROOT}/groups/ds/cached"
-mkdir -p "${target_dir}"
+target_dir="$1"
 
 vocoto \
     add "${data}/UPF/freesound-cc0/ds.csv" \
