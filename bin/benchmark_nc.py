@@ -84,7 +84,7 @@ def get_arch_string():
         nv_rc, nv_stdout, nv_stderr = exec_command('nvidia-smi')
         nv_stdout = nv_stdout.lower().strip()
         if 'NVIDIA-SMI' in nv_stdout:
-            return 'gpu'
+            return 'cuda'
         else:
             return 'cpu'
 

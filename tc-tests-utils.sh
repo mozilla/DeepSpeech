@@ -450,7 +450,7 @@ maybe_ssl102_py37()
 
 do_deepspeech_python_build()
 {
-  rename_to_gpu=$1
+  rename_to_cuda=$1
 
   unset PYTHON_BIN_PATH
   unset PYTHONPATH
@@ -463,8 +463,8 @@ do_deepspeech_python_build()
   mkdir -p wheels
 
   SETUP_FLAGS=""
-  if [ "${rename_to_gpu}" ]; then
-    SETUP_FLAGS="--project_name deepspeech-gpu"
+  if [ "${rename_to_cuda}" ]; then
+    SETUP_FLAGS="--project_name deepspeech-cuda"
   fi
 
   for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do
@@ -508,7 +508,7 @@ do_deepspeech_python_build()
 
 do_deepspeech_nodejs_build()
 {
-  rename_to_gpu=$1
+  rename_to_cuda=$1
 
   npm update && npm install node-gyp node-pre-gyp
 
@@ -523,8 +523,8 @@ do_deepspeech_nodejs_build()
       clean node-wrapper
   done;
 
-  if [ "${rename_to_gpu}" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
+  if [ "${rename_to_cuda}" ]; then
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-cuda
   else
     make -C native_client/javascript clean npm-pack
   fi

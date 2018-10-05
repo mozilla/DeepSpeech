@@ -1,9 +1,9 @@
 build:
   template_file: linux-opt-base.tyml
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.gpu"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.gpu"
-    - "index.project.deepspeech.deepspeech.native_client.gpu.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.cuda"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.cuda"
+    - "index.project.deepspeech.deepspeech.native_client.cuda.${event.head.sha}"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_6} && ${nodejs.packages_trusty.apt_pinning}
@@ -12,8 +12,8 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.ee903d1b348019d28048a5581871fcd8cbb3deff.gpu/artifacts/public/home.tar.xz"
-  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.ee903d1b348019d28048a5581871fcd8cbb3deff.gpu/artifacts/public/summarize_graph"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7cd8e9590457006d9a1be029e69d721b671f6a0c.cuda/artifacts/public/home.tar.xz"
+  summarize_graph: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.7cd8e9590457006d9a1be029e69d721b671f6a0c.cuda/artifacts/public/summarize_graph"
   maxRunTime: 14400
   scripts:
     build: "taskcluster/cuda-build.sh"

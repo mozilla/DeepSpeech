@@ -21,8 +21,8 @@ do_bazel_build
 
 do_deepspeech_binary_build
 
-do_deepspeech_python_build rename_to_gpu
+do_deepspeech_python_build rename_to_cuda
 
-do_deepspeech_nodejs_build rename_to_gpu
+do_deepspeech_nodejs_build rename_to_cuda
 
 $(dirname "$0")/decoder-build.sh

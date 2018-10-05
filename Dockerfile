@@ -190,7 +190,7 @@ RUN cp /tensorflow/bazel-bin/native_client/libctc_decoder_with_kenlm.so /DeepSpe
 
 # Install TensorFlow
 WORKDIR /DeepSpeech/
-RUN pip install tensorflow-gpu==1.11.0
+RUN pip install tf-nightly==1.12.0.dev20181004
 
 
 # Make DeepSpeech and install Python bindings

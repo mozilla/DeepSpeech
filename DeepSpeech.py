@@ -1646,6 +1646,9 @@ def train(server=None):
 
         update_progressbar.current_job_index += 1
 
+    # Initialize update_progressbar()'s child fields to safe values
+    update_progressbar.pbar = None
+
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
