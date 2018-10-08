@@ -21,11 +21,11 @@ endif
 ifeq ($(TARGET),rpi3)
 TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroArmGcc49/bin/arm-linux-gnueabihf-
 RASPBIAN    ?= $(abspath $(NC_DIR)/../multistrap-raspbian-stretch)
-CFLAGS      := -march=armv7-a -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -D_GLIBCXX_USE_CXX11_ABI=0 -isystem $(RASPBIAN)/usr/include -isystem $(RASPBIAN)/usr/include/arm-linux-gnueabihf
+CFLAGS      := -march=armv7-a -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -D_GLIBCXX_USE_CXX11_ABI=0 --sysroot $(RASPBIAN)
 CXXFLAGS    := $(CXXFLAGS)
-LDFLAGS     := $(RASPBIAN)/lib/arm-linux-gnueabihf/libc.so.6 -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf/ -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/
+LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf/ -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/
 
-SOX_CFLAGS  :=
+SOX_CFLAGS  := -I$(RASPBIAN)/usr/include
 SOX_LDFLAGS := $(RASPBIAN)/usr/lib/arm-linux-gnueabihf/libsox.so
 
 PYVER := $(shell python -c "import platform; maj, min, _ = platform.python_version_tuple(); print(maj+'.'+min);")
@@ -40,11 +40,11 @@ endif # ($(TARGET),rpi3)
 ifeq ($(TARGET),rpi3-armv8)
 TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroAarch64Gcc49/bin/aarch64-linux-gnu-
 RASPBIAN    ?= $(abspath $(NC_DIR)/../multistrap-raspbian64-stretch)
-CFLAGS      := -march=armv8-a -mtune=cortex-a53 -D_GLIBCXX_USE_CXX11_ABI=0 -isystem $(RASPBIAN)/usr/include -isystem $(RASPBIAN)/usr/include/aarch64-linux-gnu
+CFLAGS      := -march=armv8-a -mtune=cortex-a53 -D_GLIBCXX_USE_CXX11_ABI=0 --sysroot $(RASPBIAN)
 CXXFLAGS    := $(CFLAGS)
-LDFLAGS     := $(RASPBIAN)/lib/aarch64-linux-gnu/libc.so.6 -Wl,-rpath-link,$(RASPBIAN)/lib/aarch64-linux-gnu/ -Wl,-rpath-link,$(RASPBIAN)/usr/lib/aarch64-linux-gnu/
+LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/aarch64-linux-gnu/ -Wl,-rpath-link,$(RASPBIAN)/usr/lib/aarch64-linux-gnu/
 
-SOX_CFLAGS  :=
+SOX_CFLAGS  := -I$(RASPBIAN)/usr/include
 SOX_LDFLAGS := $(RASPBIAN)/usr/lib/aarch64-linux-gnu/libsox.so
 
 PYVER := $(shell python -c "import platform; maj, min, _ = platform.python_version_tuple(); print(maj+'.'+min);")
