@@ -26,21 +26,22 @@ vocoto \
     \
     shuffle \
     stash remaining \
-    slice remaining 70 \
+    slice remaining 80 \
         augment noise -gain -5 \
     push result \
     clear \
-    slice remaining 40 \
+    slice remaining 80 \
         augment crosstalk -times 10 -gain -10 \
     push result \
     clear \
-    slice remaining 50 \
-        distcompression 4 \
+    slice remaining 20 \
+        compr 4 \
     push result \
     clear \
     add remaining \
     drop remaining \
-        distrate 8000 \
+        rate 8000 \
+        rate 16000 \
     push result \
     clear \
     add result \
@@ -52,21 +53,22 @@ vocoto \
     add original \
     shuffle \
     stash remaining \
-    slice remaining 70 \
+    slice remaining 80 \
         augment noise -times 2 \
     push result \
     clear \
-    slice remaining 40 \
+    slice remaining 80 \
         augment crosstalk -times 5 -gain -5 \
     push result \
     clear \
-    slice remaining 50 \
-        distcompression 2 \
+    slice remaining 20 \
+        compr 2 \
     push result \
     clear \
     add remaining \
     drop remaining \
-        distrate 4000 \
+        rate 4000 \
+        rate 16000 \
     push result \
     clear \
     add result \
