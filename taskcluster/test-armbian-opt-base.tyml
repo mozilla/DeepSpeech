@@ -27,7 +27,7 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-    image: "arm64v8/debian:stretch-20180312"
+    image: "arm64v8/debian:stretch-20180831"
 
     env:
       $let:
