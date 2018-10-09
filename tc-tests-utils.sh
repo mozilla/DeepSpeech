@@ -486,16 +486,16 @@ do_deepspeech_python_build()
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
     EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
     EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
-    make -C native_client/ \
+    make -C native_client/python/ \
         TARGET=${SYSTEM_TARGET} \
         RASPBIAN=${SYSTEM_RASPBIAN} \
         TFDIR=${DS_TFDIR} \
         SETUP_FLAGS="${SETUP_FLAGS}" \
         bindings-clean bindings
 
-    cp native_client/dist/*.whl wheels
+    cp native_client/python/dist/*.whl wheels
 
-    make -C native_client/ bindings-clean
+    make -C native_client/python/ bindings-clean
 
     unset NUMPY_BUILD_VERSION
     unset NUMPY_DEP_VERSION

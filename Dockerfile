@@ -197,6 +197,7 @@ RUN pip install tensorflow-gpu==1.11.0
 ENV TFDIR /tensorflow
 WORKDIR /DeepSpeech/native_client
 RUN make deepspeech
+WORKDIR /DeepSpeech/native_client/python
 RUN make bindings
 RUN pip install dist/deepspeech*
 

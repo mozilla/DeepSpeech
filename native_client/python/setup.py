@@ -30,7 +30,7 @@ if '--project_name' in sys.argv:
   sys.argv.remove('--project_name')
   sys.argv.pop(project_name_idx)
 
-with open('../VERSION', 'r') as ver:
+with open('../../VERSION', 'r') as ver:
   project_version = ver.read().strip()
 
 class BuildExtFirst(build):
@@ -40,18 +40,18 @@ class BuildExtFirst(build):
                     ('build_scripts', build.has_scripts)]
 
 ds_ext = Extension('deepspeech._impl',
-         ['python/impl.i'],
-         include_dirs = [numpy_include],
+         ['impl.i'],
+         include_dirs = [ numpy_include, '../' ],
          library_dirs = list(map(lambda x: x.strip(), os.getenv('MODEL_LDFLAGS', '').split('-L')[1:])),
          libraries = list(map(lambda x: x.strip(), os.getenv('MODEL_LIBS', '').split('-l')[1:])))
 
 setup(name = project_name,
       description = 'A library for running inference on a DeepSpeech model',
-      long_description = read('../README.md'),
+      long_description = read('../../README.md'),
       long_description_content_type = 'text/markdown; charset=UTF-8',
       author = 'Mozilla',
       version = project_version,
-      package_dir = {'deepspeech': 'python'},
+      package_dir = {'deepspeech': '.'},
       cmdclass = {'build': BuildExtFirst},
       license = 'MPL-2.0',
       url = 'https://github.com/mozilla/DeepSpeech',
