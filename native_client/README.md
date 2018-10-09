@@ -116,7 +116,7 @@ ARGS="--model /path/to/output_graph.pbmm --alphabet /path/to/alphabet.txt --audi
 Included are a set of generated Python bindings. After following the above build and installation instructions, these can be installed by executing the following commands (or equivalent on your system):
 
 ```
-cd native_client
+cd native_client/python
 make bindings
 sudo pip install dist/deepspeech*
 ```
