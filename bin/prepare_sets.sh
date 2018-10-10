@@ -81,9 +81,11 @@ process_set train \
 
 process_set dev \
     add "${cv}dev.csv" \
-    add "${lbs}-dev-clean.csv"
+    add "${lbs}-dev-clean.csv" \
+    add "${lbs}-dev-other.csv"
 
 vocoto \
     add "${cv}test.csv" \
     add "${lbs}-test-clean.csv" \
+    add "${lbs}-test-other.csv" \
     hdf5 data/alphabet.txt "${target_dir}/ds_test.hdf5"
