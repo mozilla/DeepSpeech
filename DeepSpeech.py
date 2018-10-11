@@ -162,7 +162,7 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
     tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
     tf.app.flags.DEFINE_float   ('lm_weight',         1.50,       'the alpha hyperparameter of the CTC decoder. Language Model weight.')
-    tf.app.flags.DEFINE_float   ('valid_word_count_weight', 2.25, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
+    tf.app.flags.DEFINE_float   ('valid_word_count_weight', 2.10, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
 
     # Inference mode
 
