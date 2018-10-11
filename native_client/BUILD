@@ -33,6 +33,14 @@ tf_cc_shared_object(
     # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
     # which makes it harder to see our own warnings
     copts = ["-Wno-sign-compare", "-fvisibility=hidden"],
+    linkopts = select({
+        "//tensorflow:darwin": [],
+        "//conditions:default": [
+            "-Wl,-Bsymbolic",
+            "-Wl,-Bsymbolic-functions",
+            "-Wl,-export-dynamic",
+        ],
+    }),
     deps = [
         "//tensorflow/core:core_cpu",
         "//tensorflow/core:direct_session",
