@@ -99,5 +99,5 @@ vocoto \
     add "${lbs}-test-other.csv" \
     write "${target_dir}/ds_test"
 
-vocoto add "${target_dir}/ds_test.csv"
+vocoto add "${target_dir}/ds_test.csv" \
     hdf5 data/alphabet.txt "${target_dir}/ds_test.hdf5"
