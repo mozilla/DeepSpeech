@@ -43,8 +43,7 @@ then:
           add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" &&
           apt-get -qq update && apt-get -qq -y install docker-ce && mkdir -p /opt/deepspeech &&
           git clone --quiet ${event.head.repo.url} /opt/deepspeech && cd /opt/deepspeech && git checkout --quiet ${event.head.sha} &&
-          curl -fsSL "https://raw.githubusercontent.com/${event.head.user.login}/${event.head.repo.name}/${event.head.sha}/${dockerfile}" > ${dockerfile} &&
-          docker build .
+          docker build --file ${dockerfile} .
 
     artifacts:
       "public":
