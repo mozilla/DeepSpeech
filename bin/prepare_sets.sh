@@ -17,7 +17,7 @@ process_set() {
         "$@" \
         shuffle \
         set original \
-        hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_clean.hdf5" \
+        write "${target_dir}/ds_${target_set}_clean" \
         shuffle \
         set crosstalk \
         \
@@ -42,7 +42,7 @@ process_set() {
         push result \
         clear \
         add result \
-        hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_noise1.hdf5" \
+        write "${target_dir}/ds_${target_set}_noise1" \
         \
         clear \
         drop result \
@@ -68,7 +68,16 @@ process_set() {
         push result \
         clear \
         add result \
-        hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_noise2.hdf5"
+        write "${target_dir}/ds_${target_set}_noise2"
+
+    vocoto add "${target_dir}/ds_${target_set}_clean.csv" \
+           hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_clean.hdf5"
+
+    vocoto add "${target_dir}/ds_${target_set}_noise1.csv" \
+           hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_noise1.hdf5"
+
+    vocoto add "${target_dir}/ds_${target_set}_noise2.csv" \
+           hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_noise2.hdf5"
 }
 
 process_set train \
@@ -88,4 +97,7 @@ vocoto \
     add "${cv}test.csv" \
     add "${lbs}-test-clean.csv" \
     add "${lbs}-test-other.csv" \
+    write "${target_dir}/ds_test"
+
+vocoto add "${target_dir}/ds_test.csv"
     hdf5 data/alphabet.txt "${target_dir}/ds_test.hdf5"
