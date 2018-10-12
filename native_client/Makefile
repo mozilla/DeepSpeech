@@ -9,13 +9,13 @@
 ### $ make -C native_client/ TARGET=rpi3 TFDIR=../../tensorflow/tensorflow/
 ###
 
-.PHONY: clean run bindings print-toolchain
+.PHONY: clean run print-toolchain
 
 include definitions.mk
 
 default: deepspeech
 
-clean: bindings-clean
+clean:
 	rm -f deepspeech
 
 deepspeech: client.cc
@@ -24,25 +24,6 @@ ifeq ($(OS),Darwin)
 	install_name_tool -change $$TASKCLUSTER_TASK_DIR/homebrew/opt/sox/lib/libsox.3.dylib @rpath/libsox.3.dylib deepspeech
 	install_name_tool -change bazel-out/local-opt/bin/native_client/libdeepspeech.so @rpath/libdeepspeech.so deepspeech
 endif
-
-bindings-clean:
-	rm -rf dist temp_build deepspeech.egg-info MANIFEST.in temp_lib
-	rm -f python/impl_wrap.cpp python/impl.py
-
-bindings-build:
-	pip install --quiet $(PYTHON_PACKAGES) wheel==0.31.0 setuptools==39.1.0
-	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED) $(RPATH_PYTHON)" MODEL_LDFLAGS="$(LDFLAGS_DIRS)" UTILS_LDFLAGS="-L${TFDIR}/bazel-bin/native_client" MODEL_LIBS="$(LIBS)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py build_ext $(PYTHON_PLATFORM_NAME)
-
-MANIFEST.in: bindings-build
-	> $@
-	$(call copy_missing_libs,temp_build/deepspeech/*.so,temp_build/deepspeech/lib,$@)
-
-bindings-package: MANIFEST.in
-	cat MANIFEST.in
-	rm temp_build/python/*_wrap.o
-	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED) $(RPATH_PYTHON)" MODEL_LDFLAGS="$(LDFLAGS_DIRS)" UTILS_LDFLAGS="-L${TFDIR}/bazel-bin/native_client" MODEL_LIBS="$(LIBS)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py bdist_wheel $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
-
-bindings: bindings-build bindings-package
 
 run: deepspeech
 	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}

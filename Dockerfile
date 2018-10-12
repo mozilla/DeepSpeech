@@ -197,6 +197,7 @@ RUN pip install tf-nightly==1.12.0.dev20181004
 ENV TFDIR /tensorflow
 WORKDIR /DeepSpeech/native_client
 RUN make deepspeech
+WORKDIR /DeepSpeech/native_client/python
 RUN make bindings
 RUN pip install dist/deepspeech*
 
