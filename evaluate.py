@@ -99,11 +99,30 @@ def main(_):
 
     # sort examples by length, improves packing of batches and timesteps
     test_data = preprocess(
-        FLAGS.test_files,
+        FLAGS.test_files.split(','),
         FLAGS.test_batch_size,
-        hdf5_dest_path=FLAGS.hdf5_test_set).sort_values(
+        alphabet=alphabet,
+        numcep=N_FEATURES,
+        numcontext=N_CONTEXT,
+        hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
         by="features_len",
         ascending=False)
+
+    def create_windows(features):
+        num_strides = len(features) - (N_CONTEXT * 2)
+
+        # Create a view into the array with overlapping strides of size
+        # numcontext (past) + 1 (present) + numcontext (future)
+        window_size = 2*N_CONTEXT+1
+        features = np.lib.stride_tricks.as_strided(
+            features,
+            (num_strides, window_size, N_FEATURES),
+            (features.strides[0], features.strides[0], features.strides[1]),
+            writeable=False)
+
+        return features
+
+    test_data['features'] = test_data['features'].apply(create_windows)
 
     with tf.Session() as session:
         inputs, outputs = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=N_STEPS)
@@ -158,7 +177,7 @@ def main(_):
 
             logits = np.empty([0, FLAGS.test_batch_size, alphabet.size() + 1])
             for i in range(0, batch_features.shape[1], N_STEPS):
-                chunk_features = batch_features[:, i:i + N_STEPS, :]
+                chunk_features = batch_features[:, i:i + N_STEPS, :, :]
                 chunk_features_len = np.minimum(
                     batch_features_len, full_step_len)
 
@@ -168,6 +187,7 @@ def main(_):
                     chunk_features = np.pad(chunk_features,
                                             ((0, 0),
                                              (0, FLAGS.n_steps - steps_in_chunk),
+                                             (0, 0),
                                              (0, 0)),
                                             mode='constant',
                                             constant_values=0)
