@@ -11,6 +11,7 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import csv
+import unidecode
 import zipfile
 
 from os import path
@@ -96,7 +97,7 @@ def cleanup_transcript(text):
     text = text.replace('’', "'").replace('\u00A0', ' ')
     text = PUNCTUATIONS_REG.sub(' ', text)
     text = MULTIPLE_SPACES_REG.sub(' ', text)
-    return text.strip().lower()
+    return unidecode.unidecode(text).strip().lower()
 
 
 if __name__ == "__main__":
