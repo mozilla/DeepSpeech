@@ -133,4 +133,4 @@ make package
 make npm-pack
 ```
 
-This will create the package `deepspeech-0.2.0.tgz` in `native_client/javascript`.
+This will create the package `deepspeech-0.3.0.tgz` in `native_client/javascript`.
