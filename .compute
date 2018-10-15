@@ -2,24 +2,41 @@
 
 source ../tmp/venv/bin/activate
 
-data="${DATA_ROOT}/shared/data"
-fis="${data}/LDC/fisher"
-swb="${data}/LDC/LDC97S62/swb"
-lbs="${data}/OpenSLR/LibriSpeech/librivox"
+sets="${DATA_ROOT}/groups/ds/sets/"
 
-python3 -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
-  --dev_files "${lbs}-dev-clean.csv"\
-  --test_files "${lbs}-test-clean.csv" \
-  --train_batch_size 24 \
-  --dev_batch_size 48 \
-  --test_batch_size 48 \
-  --n_hidden 2048 \
-  --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
-  --epoch 13 \
-  --display_step 0 \
-  --validation_step 1 \
-  --checkpoint_dir "../keep" \
-  --summary_dir "../keep/summaries" \
-  --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
+training_phase() {
+  python3 -u DeepSpeech.py \
+    --train_batch_size 24 \
+    --dev_batch_size 48 \
+    --test_batch_size 48 \
+    --n_hidden 2048 \
+    --learning_rate 0.0001 \
+    --display_step 0 \
+    --validation_step 1 \
+    --coord_port=${GROUP0_PROCESS0_PORT0:=0} \
+    --checkpoint_dir "../keep" \
+    --summary_dir "../keep/summaries" \
+    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so" \
+    "$@"
+}
+
+training_phase \
+    --train_cached_features_path "${sets}/ds_train_clean.hdf5" \
+    --dev_cached_features_path   "${sets}/ds_dev_clean.hdf5" \
+    --test_cached_features_path  "${sets}/ds_test_clean.hdf5" \
+    --dropout_rate 0.2 \
+    --epoch 8
+
+training_phase \
+    --train_cached_features_path "${sets}/ds_train_noise1.hdf5" \
+    --dev_cached_features_path   "${sets}/ds_dev_noise1.hdf5" \
+    --test_cached_features_path  "${sets}/ds_test_noise1.hdf5" \
+    --dropout_rate 0.1 \
+    --epoch 16
+
+training_phase \
+    --train_cached_features_path "${sets}/ds_train_noise2.hdf5" \
+    --dev_cached_features_path   "${sets}/ds_dev_noise2.hdf5" \
+    --test_cached_features_path  "${sets}/ds_test_noise2.hdf5" \
+    --dropout_rate 0.05 \
+    --epoch 64
