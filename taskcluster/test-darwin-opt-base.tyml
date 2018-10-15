@@ -23,6 +23,8 @@ then:
 
   scopes: [
     "queue:route:notify.irc-channel.*",
+    "generic-worker:cache:deepspeech-homebrew-bin",
+    "generic-worker:cache:deepspeech-homebrew-cache",
   ]
 
   payload:
@@ -49,6 +51,10 @@ then:
             extraSystemSetup: { $eval: strip(str(build.system_setup)) }
           in: >
             export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+            export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
+            (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
+            (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew/ homebrew/ || true) &&
+            (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ homebrew.cache/ || true) &&
             export TASKCLUSTER_TASK_DIR="$(pwd)" &&
             export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
             export LC_ALL=C &&
@@ -59,7 +65,16 @@ then:
             cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
             cd $TASKCLUSTER_TASK_DIR &&
             source $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-brew-tests.sh && ${extraSystemSetup} &&
-            /bin/bash ${build.args.tests_cmdline}
+            /bin/bash ${build.args.tests_cmdline} ;
+            mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
+            mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
+            cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/
+
+    mounts:
+      - cacheName: deepspeech-homebrew-bin
+        directory: homebrew/
+      - cacheName: deepspeech-homebrew-cache
+        directory: homebrew.cache/
 
   metadata:
     name: ${build.metadata.name}
