@@ -79,54 +79,16 @@ payload:
       - "-cxe"
       - >
         export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+        export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
+        (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
+        (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew/ homebrew/ || true) &&
+        (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ homebrew.cache/ || true) &&
         export TASKCLUSTER_TASK_DIR="$(pwd)" &&
         export LC_ALL=C &&
-        export TASKCLUSTER_ORIGIN_PATH="${system.homedir.osx}/TaskCluster/.*/task_[[:digit:]]\{10\}" &&
-        export TASKCLUSTER_REWRITE_PATH="$TASKCLUSTER_TASK_DIR" &&
         export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
         export MACOSX_DEPLOYMENT_TARGET=10.10 &&
         env &&
-        (
-          (
-            for link in $(find -L "$TASKCLUSTER_TASK_DIR/homebrew/" -type l);
-            do
-                newloc=$(readlink "$link" | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
-                ln -hfs "$newloc" "$link";
-            done) || true) &&
-        (
-          (
-            for lib in $(find "$TASKCLUSTER_TASK_DIR/homebrew/" -type f -name "*.dylib");
-            do
-                chmod +w "$lib";
-                for id in $(otool -D "$lib" | grep "$TASKCLUSTER_ORIGIN_PATH");
-                do
-                    newid=$(echo $id | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
-                    install_name_tool -id "$newid" "$lib";
-                done;
-
-                for dep in $(otool -L "$lib" | awk '{ print $1 }' | grep "$TASKCLUSTER_ORIGIN_PATH");
-                do
-                    newdep=$(echo $dep | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
-                    install_name_tool -change "$dep" "$newdep" "$lib";
-                done;
-                chmod -w "$lib";
-                otool -L "$lib";
-            done) || true) &&
-        (
-          (
-            for bin in $(find "$TASKCLUSTER_TASK_DIR/homebrew/" -perm +111 -type f);
-            do
-                chmod +w "$bin";
-                for dep in $(otool -L "$bin" | awk '{ print $1 }' | grep "$TASKCLUSTER_ORIGIN_PATH");
-                do
-                    newdep=$(echo $dep | sed -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g");
-                    install_name_tool -change "$dep" "$newdep" "$bin";
-                done;
-                chmod -w "$bin";
-                otool -L "$bin";
-            done) || true) &&
-        (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR --transform "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g" -xf - ) &&
-        ((grep -R -I --files-with-matches "$TASKCLUSTER_ORIGIN_PATH" $TASKCLUSTER_TASK_DIR | grep -v "$TASKCLUSTER_TASK_DIR/generic-worker/" | xargs -n 1 -P 16 sed -i '' -e "s|$TASKCLUSTER_ORIGIN_PATH|$TASKCLUSTER_REWRITE_PATH|g") || true) &&
+        (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
         git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
         cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
@@ -134,7 +96,10 @@ payload:
         $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
         ${swig.patch_nodejs.osx} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
-        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package}
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
+        mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
+        mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
+        cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/
 
   artifacts:
     - type: "directory"
