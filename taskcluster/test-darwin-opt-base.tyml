@@ -41,7 +41,7 @@ then:
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
         DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod/output_graph.pbmm
-        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.11.0-7-g689b0da"
+        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.11.0-9-g97d851f"
 
     command:
       - - "/bin/bash"
