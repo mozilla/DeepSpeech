@@ -236,6 +236,9 @@ def initialize_globals():
     if len(FLAGS.checkpoint_dir) == 0:
         FLAGS.checkpoint_dir = xdg.save_data_path(os.path.join('deepspeech','checkpoints'))
 
+    global best_validation_save_path
+    best_validation_save_path = os.path.join(FLAGS.checkpoint_dir, 'best_validation')
+
     # Set default summary dir
     if len(FLAGS.summary_dir) == 0:
         FLAGS.summary_dir = xdg.save_data_path(os.path.join('deepspeech','summaries'))
@@ -929,6 +932,15 @@ class WorkerJob(object):
     def __str__(self):
         return 'Job (ID: %d, worker: %d, epoch: %d, set_name: %s)' % (self.id, self.worker, self.index, self.set_name)
 
+best_validation_loss = float('inf')
+best_validation_saver = None
+
+def get_session(sess):
+    session = sess
+    while session is not None and type(session).__name__ != 'Session':
+        session = session._sess
+    return session
+
 class Epoch(object):
     '''Represents an epoch that should be executed by the Training Coordinator.
     Creates `num_jobs` `WorkerJob` instances in state 'open'.
@@ -1033,6 +1045,13 @@ class Epoch(object):
                         self.samples.extend(job.samples)
 
                 self.loss = agg_loss / num_jobs
+
+                global best_validation_loss
+                if self.set_name == 'dev':
+                    if self.loss < best_validation_loss:
+                        best_validation_loss = self.loss
+                        path = best_validation_saver.save(sess=get_session(train_session), save_path=best_validation_save_path, write_state=False, latest_filename='foobarbaz')
+                        log_info('Saving model with best validation loss ({}) at {}...'.format(best_validation_loss, path))
 
                 # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
                 if (FLAGS.early_stop is True) and (self.set_name == 'dev'):
@@ -1594,6 +1613,9 @@ def train(server=None):
         saver = tf.train.Saver(max_to_keep=FLAGS.max_to_keep)
         hooks.append(tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.checkpoint_dir, save_secs=FLAGS.checkpoint_secs, saver=saver))
 
+    global best_validation_saver
+    best_validation_saver = tf.train.Saver(max_to_keep=1)
+
     no_dropout_feed_dict = {
         dropout_rates[0]: 0.,
         dropout_rates[1]: 0.,
@@ -1644,6 +1666,8 @@ def train(server=None):
     # Initialize update_progressbar()'s child fields to safe values
     update_progressbar.pbar = None
 
+    global train_session
+
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
@@ -1654,6 +1678,7 @@ def train(server=None):
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=None, # already taken care of by a hook
                                                config=session_config) as session:
+            train_session = session
             tf.get_default_graph().finalize()
 
             try:
