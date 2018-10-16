@@ -44,7 +44,7 @@ then:
         PIP_DEFAULT_TIMEOUT: "60"
         PIP_EXTRA_INDEX_URL: "https://www.piwheels.org/simple"
         EXTRA_PYTHON_CONFIGURE_OPTS: "--with-fpectl" # Required by Raspbian Stretch / PiWheels
-        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.9.0-rc2-5462-g3747d2d"
+        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.9.0-rc2-5464-geb72bde"
 
     command:
       - "/bin/bash"
