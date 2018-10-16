@@ -24,20 +24,20 @@ training_phase() {
 training_phase \
     --train_cached_features_path "${sets}/ds_train_clean.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_clean.hdf5" \
-    --test_cached_features_path  "${sets}/ds_test_clean.hdf5" \
+    --test_cached_features_path  "${sets}/ds_test.hdf5" \
     --dropout_rate 0.2 \
     --epoch 8
 
 training_phase \
     --train_cached_features_path "${sets}/ds_train_noise1.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_noise1.hdf5" \
-    --test_cached_features_path  "${sets}/ds_test_noise1.hdf5" \
+    --test_cached_features_path  "${sets}/ds_test.hdf5" \
     --dropout_rate 0.1 \
     --epoch 16
 
 training_phase \
     --train_cached_features_path "${sets}/ds_train_noise2.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_noise2.hdf5" \
-    --test_cached_features_path  "${sets}/ds_test_noise2.hdf5" \
+    --test_cached_features_path  "${sets}/ds_test.hdf5" \
     --dropout_rate 0.05 \
     --epoch 64
