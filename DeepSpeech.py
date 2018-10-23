@@ -168,10 +168,6 @@ def create_flags():
 
     tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it. Disables training, testing and exporting.')
 
-    # Initialize from frozen model
-
-    tf.app.flags.DEFINE_string  ('initialize_from_frozen_model', '', 'path to frozen model to initialize from. This behaves like a checkpoint, loading the weights from the frozen model and starting training with those weights. The optimizer parameters aren\'t restored, so remember to adjust the learning rate.')
-
 FLAGS = tf.app.flags.FLAGS
 
 def initialize_globals():
@@ -1579,26 +1575,6 @@ def train(server=None):
         saver = tf.train.Saver(max_to_keep=FLAGS.max_to_keep)
         hooks.append(tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.checkpoint_dir, save_secs=FLAGS.checkpoint_secs, saver=saver))
 
-    if len(FLAGS.initialize_from_frozen_model) > 0:
-        with tf.gfile.FastGFile(FLAGS.initialize_from_frozen_model, 'rb') as fin:
-            graph_def = tf.GraphDef()
-            graph_def.ParseFromString(fin.read())
-
-        var_names = [v.name for v in tf.trainable_variables()]
-        var_tensors = tf.import_graph_def(graph_def, return_elements=var_names)
-
-        # build a { var_name: var_tensor } dict
-        var_tensors = dict(zip(var_names, var_tensors))
-
-        training_graph = tf.get_default_graph()
-
-        assign_ops = []
-        for name, restored_tensor in var_tensors.items():
-            training_tensor = training_graph.get_tensor_by_name(name)
-            assign_ops.append(tf.assign(training_tensor, restored_tensor))
-
-        init_from_frozen_model_op = tf.group(*assign_ops)
-
     no_dropout_feed_dict = {
         dropout_rates[0]: 0.,
         dropout_rates[1]: 0.,
@@ -1660,11 +1636,6 @@ def train(server=None):
                                                save_checkpoint_secs=None, # already taken care of by a hook
                                                config=session_config) as session:
             tf.get_default_graph().finalize()
-
-            if len(FLAGS.initialize_from_frozen_model) > 0:
-                log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
-                model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
-                session.run(init_from_frozen_model_op, feed_dict=no_dropout_feed_dict)
 
             try:
                 if is_chief:
