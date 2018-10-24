@@ -7,4 +7,9 @@ pip install tensorflow-gpu==1.12.0rc2
 
 python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
 
-mkdir -p ../keep/summaries
+mkdir -p ../keep/summaries/phase1
+mkdir -p ../keep/summaries/phase2
+mkdir -p ../keep/summaries/phase3
+mkdir -p ../keep/checkpoints/phase1
+mkdir -p ../keep/checkpoints/phase2
+mkdir -p ../keep/checkpoints/phase3

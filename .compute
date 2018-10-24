@@ -14,28 +14,42 @@ training_phase() {
     --noearly_stop \
     --display_step 0 \
     --validation_step 1 \
+    --noshow_progressbar \
     --coord_port=${GROUP0_PROCESS0_PORT0:=0} \
-    --checkpoint_dir "../keep" \
-    --summary_dir "../keep/summaries" \
     --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so" \
     "$@"
 }
 
+echo "Starting training-phase 1 (no noise)..."
 training_phase \
+    --checkpoint_dir "../keep/phase1" \
+    --summary_dir "../keep/summaries/phase1" \
     --train_cached_features_path "${sets}/ds_train_clean.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_clean.hdf5" \
     --test_cached_features_path  "${sets}/ds_test.hdf5" \
     --dropout_rate 0.2 \
     --epoch 8
 
+echo "Copying checkpoint files over to next phase..."
+cp -r ../keep/phase1/* ../keep/phase2/
+
+echo "Starting training-phase 2 (low noise)..."
 training_phase \
+    --checkpoint_dir "../keep/phase2" \
+    --summary_dir "../keep/summaries/phase2" \
     --train_cached_features_path "${sets}/ds_train_noise1.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_noise1.hdf5" \
     --test_cached_features_path  "${sets}/ds_test.hdf5" \
     --dropout_rate 0.1 \
     --epoch 16
 
+echo "Copying checkpoint files over to next phase..."
+cp -r ../keep/phase2/* ../keep/phase3/
+
+echo "Starting training-phase 3 (high noise)..."
 training_phase \
+    --checkpoint_dir "../keep/phase3" \
+    --summary_dir "../keep/summaries/phase3" \
     --train_cached_features_path "${sets}/ds_train_noise2.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_noise2.hdf5" \
     --test_cached_features_path  "${sets}/ds_test.hdf5" \
