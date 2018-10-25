@@ -62,11 +62,7 @@ fi;
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1_new.sh 105
-    time ./bin/run-tc-ldc93s1_checkpoint.sh 105
 popd
-
-deactivate
-pyenv uninstall --force ${PYENV_NAME}
 
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
 
@@ -77,3 +73,10 @@ if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
   /tmp/${convert_graphdef} --in_graph=/tmp/train/output_graph.pb --out_graph=/tmp/train/output_graph.pbmm
   cp /tmp/train/output_graph.pbmm ${TASKCLUSTER_ARTIFACTS}
 fi;
+
+pushd ${HOME}/DeepSpeech/ds/
+    time ./bin/run-tc-ldc93s1_checkpoint.sh 105
+popd
+
+deactivate
+pyenv uninstall --force ${PYENV_NAME}
