@@ -153,12 +153,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she hadered or so and greasy wash war or year"
+  assert_correct_inference "$1" "she had out in greasy wash water all year"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had tered or so and greasy wash war or year"
+  assert_correct_inference "$1" "she had out and greasy wash water all year"
 }
 
 assert_correct_warning_upsampling()
@@ -262,7 +262,7 @@ download_data()
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie.ctcdecode ${TASKCLUSTER_TMP_DIR}/trie
 }
 
 download_material()
