@@ -16,31 +16,23 @@ using FSTMATCH = fst::SortedMatcher<fst::StdVectorFst>;
 
 std::vector<std::pair<double, Output>> ctc_beam_search_decoder(
     const std::vector<std::vector<double>> &probs_seq,
-    const std::vector<std::string> &vocabulary,
+    const Alphabet &alphabet,
     size_t beam_size,
     double cutoff_prob,
     size_t cutoff_top_n,
-    size_t blank_id,
     Scorer *ext_scorer) {
   // dimension check
   size_t num_time_steps = probs_seq.size();
   for (size_t i = 0; i < num_time_steps; ++i) {
     VALID_CHECK_EQ(probs_seq[i].size(),
-                   vocabulary.size(),
+                   alphabet.GetSize()+1,
                    "The shape of probs_seq does not match with "
                    "the shape of the vocabulary");
   }
 
-  // assign blank id
-  // size_t blank_id = vocabulary.size();
-
-  // assign space id
-  auto it = std::find(vocabulary.begin(), vocabulary.end(), " ");
-  int space_id = it - vocabulary.begin();
-  // if no space in vocabulary
-  if ((size_t)space_id >= vocabulary.size()) {
-    space_id = -2;
-  }
+  // assign special ids
+  int space_id = alphabet.GetSpaceLabel();
+  int blank_id = alphabet.GetSize();
 
   // init prefixes' root
   PathTrie root;
@@ -190,12 +182,11 @@ std::vector<std::pair<double, Output>> ctc_beam_search_decoder(
 std::vector<std::vector<std::pair<double, Output>>>
 ctc_beam_search_decoder_batch(
     const std::vector<std::vector<std::vector<double>>> &probs_split,
-    const std::vector<std::string> &vocabulary,
+    const Alphabet &alphabet,
     size_t beam_size,
     size_t num_processes,
     double cutoff_prob,
     size_t cutoff_top_n,
-    size_t blank_id,
     Scorer *ext_scorer) {
   VALID_CHECK_GT(num_processes, 0, "num_processes must be nonnegative!");
   // thread pool
@@ -208,11 +199,10 @@ ctc_beam_search_decoder_batch(
   for (size_t i = 0; i < batch_size; ++i) {
     res.emplace_back(pool.enqueue(ctc_beam_search_decoder,
                                   probs_split[i],
-                                  vocabulary,
+                                  alphabet,
                                   beam_size,
                                   cutoff_prob,
                                   cutoff_top_n,
-                                  blank_id,
                                   ext_scorer));
   }
 

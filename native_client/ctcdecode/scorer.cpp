@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 
 #include "lm/config.hh"
 #include "lm/model.hh"
@@ -12,22 +13,34 @@
 
 using namespace lm::ngram;
 
+static const int MAGIC = 'TRIE';
+static const int FILE_VERSION = 3;
+
 Scorer::Scorer(double alpha,
                double beta,
                const std::string& lm_path,
-               const std::vector<std::string>& vocab_list) {
-  this->alpha = alpha;
-  this->beta = beta;
+               const std::string& trie_path,
+               const Alphabet& alphabet)
+  : dictionary(nullptr)
+  , language_model_(nullptr)
+  , is_character_based_(true)
+  , max_order_(0)
+  , alphabet_(alphabet)
+{
+  reset_params(alpha, beta);
 
-  dictionary = nullptr;
-  is_character_based_ = true;
-  language_model_ = nullptr;
+  char_map_.clear();
 
-  max_order_ = 0;
-  dict_size_ = 0;
-  SPACE_ID_ = -1;
+  SPACE_ID_ = alphabet_.GetSpaceLabel();
 
-  setup(lm_path, vocab_list);
+  for (int i = 0; i < alphabet_.GetSize(); i++) {
+    // The initial state of FST is state 0, hence the index of chars in
+    // the FST should start from 1 to avoid the conflict with the initial
+    // state, otherwise wrong decoding results would be given.
+    char_map_[alphabet_.StringFromLabel(i)] = i + 1;
+  }
+
+  setup(lm_path, trie_path);
 }
 
 Scorer::~Scorer() {
@@ -39,35 +52,71 @@ Scorer::~Scorer() {
   }
 }
 
-void Scorer::setup(const std::string& lm_path,
-                   const std::vector<std::string>& vocab_list) {
+void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
   // load language model
-  load_lm(lm_path);
-  // set char map for scorer
-  set_char_map(vocab_list);
-  // fill the dictionary for FST
-  if (!is_character_based()) {
-    fill_dictionary(true);
+  const char* filename = lm_path.c_str();
+  VALID_CHECK_EQ(access(filename, R_OK), 0, "Invalid language model path");
+
+  bool has_trie = trie_path.size() && access(trie_path.c_str(), R_OK) == 0;
+
+  lm::ngram::Config config;
+
+  if (!has_trie) { // no trie was specified, build it now
+    RetrieveStrEnumerateVocab enumerate;
+    config.enumerate_vocab = &enumerate;
+    language_model_ = lm::ngram::LoadVirtual(filename, config);
+    auto vocab = enumerate.vocabulary;
+    for (size_t i = 0; i < vocab.size(); ++i) {
+      if (is_character_based_ && vocab[i] != UNK_TOKEN &&
+          vocab[i] != START_TOKEN && vocab[i] != END_TOKEN &&
+          get_utf8_str_len(enumerate.vocabulary[i]) > 1) {
+        is_character_based_ = false;
+      }
+    }
+    // fill the dictionary for FST
+    if (!is_character_based()) {
+      fill_dictionary(vocab, true);
+    }
+  } else {
+    language_model_ = lm::ngram::LoadVirtual(filename, config);
+
+    // Read metadata and trie from file
+    std::ifstream fin(trie_path, std::ios::binary);
+
+    int magic;
+    fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
+    if (magic != MAGIC) {
+      std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
+                   "your trie file." << std::endl;
+      throw 1;
+    }
+
+    int version;
+    fin.read(reinterpret_cast<char*>(&version), sizeof(version));
+    if (version != FILE_VERSION) {
+      std::cerr << "Error: Trie file version mismatch (" << version
+                << " instead of expected " << FILE_VERSION
+                << "). Update your trie file."
+                << std::endl;
+      throw 1;
+    }
+
+    fin.read(reinterpret_cast<char*>(&is_character_based_), sizeof(is_character_based_));
+
+    fst::FstReadOptions opt;
+    dictionary = fst::StdVectorFst::Read(fin, opt);
   }
+
+  max_order_ = static_cast<lm::base::Model*>(language_model_)->Order();
 }
 
-void Scorer::load_lm(const std::string& lm_path) {
-  const char* filename = lm_path.c_str();
-  VALID_CHECK_EQ(access(filename, F_OK), 0, "Invalid language model path");
-
-  RetriveStrEnumerateVocab enumerate;
-  lm::ngram::Config config;
-  config.enumerate_vocab = &enumerate;
-  language_model_ = lm::ngram::LoadVirtual(filename, config);
-  max_order_ = static_cast<lm::base::Model*>(language_model_)->Order();
-  vocabulary_ = enumerate.vocabulary;
-  for (size_t i = 0; i < vocabulary_.size(); ++i) {
-    if (is_character_based_ && vocabulary_[i] != UNK_TOKEN &&
-        vocabulary_[i] != START_TOKEN && vocabulary_[i] != END_TOKEN &&
-        get_utf8_str_len(enumerate.vocabulary[i]) > 1) {
-      is_character_based_ = false;
-    }
-  }
+void Scorer::save_dictionary(const std::string& path) {
+  std::ofstream fout(path, std::ios::binary);
+  fout.write(reinterpret_cast<const char*>(&MAGIC), sizeof(MAGIC));
+  fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
+  fout.write(reinterpret_cast<const char*>(&is_character_based_), sizeof(is_character_based_));
+  fst::FstWriteOptions opt;
+  static_cast<fst::StdVectorFst*>(dictionary)->Write(fout, opt);
 }
 
 double Scorer::get_log_cond_prob(const std::vector<std::string>& words) {
@@ -123,18 +172,10 @@ void Scorer::reset_params(float alpha, float beta) {
   this->beta = beta;
 }
 
-std::string Scorer::vec2str(const std::vector<int>& input) {
-  std::string word;
-  for (auto ind : input) {
-    word += char_list_[ind];
-  }
-  return word;
-}
-
 std::vector<std::string> Scorer::split_labels(const std::vector<int>& labels) {
   if (labels.empty()) return {};
 
-  std::string s = vec2str(labels);
+  std::string s = alphabet_.LabelsToString(labels);
   std::vector<std::string> words;
   if (is_character_based_) {
     words = split_utf8_str(s);
@@ -142,21 +183,6 @@ std::vector<std::string> Scorer::split_labels(const std::vector<int>& labels) {
     words = split_str(s, " ");
   }
   return words;
-}
-
-void Scorer::set_char_map(const std::vector<std::string>& char_list) {
-  char_list_ = char_list;
-  char_map_.clear();
-
-  for (size_t i = 0; i < char_list_.size(); i++) {
-    if (char_list_[i] == " ") {
-      SPACE_ID_ = i;
-    }
-    // The initial state of FST is state 0, hence the index of chars in
-    // the FST should start from 1 to avoid the conflict with the initial
-    // state, otherwise wrong decoding results would be given.
-    char_map_[char_list_[i]] = i + 1;
-  }
 }
 
 std::vector<std::string> Scorer::make_ngram(PathTrie* prefix) {
@@ -177,7 +203,7 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix) {
     }
 
     // reconstruct word
-    std::string word = vec2str(prefix_vec);
+    std::string word = alphabet_.LabelsToString(prefix_vec);
     ngram.push_back(word);
 
     if (new_node->character == -1) {
@@ -192,17 +218,12 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix) {
   return ngram;
 }
 
-void Scorer::fill_dictionary(bool add_space) {
+void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary, bool add_space) {
   fst::StdVectorFst dictionary;
   // For each unigram convert to ints and put in trie
-  int dict_size = 0;
-  for (const auto& word : vocabulary_) {
-    bool added = add_word_to_dictionary(
-        word, char_map_, add_space, SPACE_ID_ + 1, &dictionary);
-    dict_size += added ? 1 : 0;
+  for (const auto& word : vocabulary) {
+    add_word_to_dictionary(word, char_map_, add_space, SPACE_ID_ + 1, &dictionary);
   }
-
-  dict_size_ = dict_size;
 
   /* Simplify FST
 

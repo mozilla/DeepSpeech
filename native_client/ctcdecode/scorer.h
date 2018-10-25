@@ -12,16 +12,17 @@
 #include "util/string_piece.hh"
 
 #include "path_trie.h"
+#include "alphabet.h"
 
 const double OOV_SCORE = -1000.0;
 const std::string START_TOKEN = "<s>";
 const std::string UNK_TOKEN = "<unk>";
 const std::string END_TOKEN = "</s>";
 
-// Implement a callback to retrive the dictionary of language model.
-class RetriveStrEnumerateVocab : public lm::EnumerateVocab {
+// Implement a callback to retrieve the dictionary of language model.
+class RetrieveStrEnumerateVocab : public lm::EnumerateVocab {
 public:
-  RetriveStrEnumerateVocab() {}
+  RetrieveStrEnumerateVocab() {}
 
   void Add(lm::WordIndex index, const StringPiece &str) {
     vocabulary.push_back(std::string(str.data(), str.length()));
@@ -43,7 +44,8 @@ public:
   Scorer(double alpha,
          double beta,
          const std::string &lm_path,
-         const std::vector<std::string> &vocabulary);
+         const std::string &trie_path,
+         const Alphabet &alphabet);
   ~Scorer();
 
   double get_log_cond_prob(const std::vector<std::string> &words);
@@ -52,9 +54,6 @@ public:
 
   // return the max order
   size_t get_max_order() const { return max_order_; }
-
-  // return the dictionary size of language model
-  size_t get_dict_size() const { return dict_size_; }
 
   // retrun true if the language model is character based
   bool is_character_based() const { return is_character_based_; }
@@ -69,6 +68,9 @@ public:
   // the vector of characters (character based lm)
   std::vector<std::string> split_labels(const std::vector<int> &labels);
 
+  // save dictionary in file
+  void save_dictionary(const std::string &path);
+
   // language model weight
   double alpha;
   // word insertion weight
@@ -78,35 +80,25 @@ public:
   void *dictionary;
 
 protected:
-  // necessary setup: load language model, set char map, fill FST's dictionary
-  void setup(const std::string &lm_path,
-             const std::vector<std::string> &vocab_list);
+  // necessary setup: load language model, fill FST's dictionary
+  void setup(const std::string &lm_path, const std::string &trie_path);
 
   // load language model from given path
   void load_lm(const std::string &lm_path);
 
   // fill dictionary for FST
-  void fill_dictionary(bool add_space);
-
-  // set char map
-  void set_char_map(const std::vector<std::string> &char_list);
+  void fill_dictionary(const std::vector<std::string> &vocabulary, bool add_space);
 
   double get_log_prob(const std::vector<std::string> &words);
-
-  // translate the vector in index to string
-  std::string vec2str(const std::vector<int> &input);
 
 public:
   void *language_model_;
   bool is_character_based_;
   size_t max_order_;
-  size_t dict_size_;
 
   int SPACE_ID_;
-  std::vector<std::string> char_list_;
+  Alphabet alphabet_;
   std::unordered_map<std::string, int> char_map_;
-
-  std::vector<std::string> vocabulary_;
 };
 
 #endif  // SCORER_H_

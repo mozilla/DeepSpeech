@@ -7,6 +7,7 @@
 
 #include "scorer.h"
 #include "output.h"
+#include "alphabet.h"
 
 /* CTC Beam Search Decoder
 
@@ -27,11 +28,10 @@
 
 std::vector<std::pair<double, Output>> ctc_beam_search_decoder(
     const std::vector<std::vector<double>> &probs_seq,
-    const std::vector<std::string> &vocabulary,
+    const Alphabet &vocabulary,
     size_t beam_size,
     double cutoff_prob = 1.0,
     size_t cutoff_top_n = 40,
-    size_t blank_id = 0,
     Scorer *ext_scorer = nullptr);
 
 /* CTC Beam Search Decoder for batch data
