@@ -36,8 +36,6 @@ tf_cc_shared_object(
     srcs = ["deepspeech.cc",
             "deepspeech.h",
             "alphabet.h",
-            "beam_search.h",
-            "trie_node.h",
             "c_speech_features/c_speech_features.cpp",
             "kiss_fft130/kiss_fft.c",
             "kiss_fft130/tools/kiss_fftr.c",
@@ -72,6 +70,7 @@ tf_cc_shared_object(
         "//tensorflow/core/kernels:constant_op",        # Const
         "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst
         "//tensorflow/core/kernels:identity_op",        # Identity
+        "//tensorflow/core/kernels:softmax_op",         # Softmax
         "//tensorflow/core/kernels:transpose_op",       # Transpose
         "//tensorflow/core/kernels:reshape_op",         # Reshape
         "//tensorflow/core/kernels:shape_ops",          # Shape
