@@ -162,15 +162,11 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
     tf.app.flags.DEFINE_integer ('beam_width',        1024,       'beam width used in the CTC decoder when building candidate transcriptions')
     tf.app.flags.DEFINE_float   ('lm_weight',         1.50,       'the alpha hyperparameter of the CTC decoder. Language Model weight.')
-    tf.app.flags.DEFINE_float   ('valid_word_count_weight', 2.25, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
+    tf.app.flags.DEFINE_float   ('valid_word_count_weight', 2.10, 'valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary.')
 
     # Inference mode
 
     tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it. Disables training, testing and exporting.')
-
-    # Initialize from frozen model
-
-    tf.app.flags.DEFINE_string  ('initialize_from_frozen_model', '', 'path to frozen model to initialize from. This behaves like a checkpoint, loading the weights from the frozen model and starting training with those weights. The optimizer parameters aren\'t restored, so remember to adjust the learning rate.')
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -870,15 +866,15 @@ def new_id():
     return id_counter
 
 class Sample(object):
-    def __init__(self, src, res, loss, mean_edit_distance, sample_wer):
-        '''Represents one item of a WER report.
+    '''Represents one item of a WER report.
 
-        Args:
-            src (str): source text
-            res (str): resulting text
-            loss (float): computed loss of this item
-            mean_edit_distance (float): computed mean edit distance of this item
-        '''
+    Args:
+        src (str): source text
+        res (str): resulting text
+        loss (float): computed loss of this item
+        mean_edit_distance (float): computed mean edit distance of this item
+    '''
+    def __init__(self, src, res, loss, mean_edit_distance, sample_wer):
         self.src = src
         self.res = res
         self.loss = loss
@@ -889,16 +885,16 @@ class Sample(object):
         return 'WER: %f, loss: %f, mean edit distance: %f\n - src: "%s"\n - res: "%s"' % (self.wer, self.loss, self.mean_edit_distance, self.src, self.res)
 
 class WorkerJob(object):
-    def __init__(self, epoch_id, index, set_name, steps, report):
-        '''Represents a job that should be executed by a worker.
+    '''Represents a job that should be executed by a worker.
 
-        Args:
-            epoch_id (int): the ID of the 'parent' epoch
-            index (int): the epoch index of the 'parent' epoch
-            set_name (str): the name of the data-set - one of 'train', 'dev', 'test'
-            steps (int): the number of `session.run` calls
-            report (bool): if this job should produce a WER report
-        '''
+    Args:
+        epoch_id (int): the ID of the 'parent' epoch
+        index (int): the epoch index of the 'parent' epoch
+        set_name (str): the name of the data-set - one of 'train', 'dev', 'test'
+        steps (int): the number of `session.run` calls
+        report (bool): if this job should produce a WER report
+    '''
+    def __init__(self, epoch_id, index, set_name, steps, report):
         self.id = new_id()
         self.epoch_id = epoch_id
         self.index = index
@@ -1070,6 +1066,12 @@ class Epoch(object):
 
 
 class TrainingCoordinator(object):
+    ''' Central training coordination class.
+    Used for distributing jobs among workers of a cluster.
+    Instantiated on all workers, calls of non-chief workers will transparently
+    HTTP-forwarded to the chief worker instance.
+    '''
+
     class TrainingCoordinationHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''Handles HTTP requests from remote workers to the Training Coordinator.
         '''
@@ -1114,13 +1116,7 @@ class TrainingCoordinator(object):
             '''
             return
 
-
     def __init__(self):
-        ''' Central training coordination class.
-        Used for distributing jobs among workers of a cluster.
-        Instantiated on all workers, calls of non-chief workers will transparently
-        HTTP-forwarded to the chief worker instance.
-        '''
         self._init()
         self._lock = Lock()
         self.started = False
@@ -1579,26 +1575,6 @@ def train(server=None):
         saver = tf.train.Saver(max_to_keep=FLAGS.max_to_keep)
         hooks.append(tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.checkpoint_dir, save_secs=FLAGS.checkpoint_secs, saver=saver))
 
-    if len(FLAGS.initialize_from_frozen_model) > 0:
-        with tf.gfile.FastGFile(FLAGS.initialize_from_frozen_model, 'rb') as fin:
-            graph_def = tf.GraphDef()
-            graph_def.ParseFromString(fin.read())
-
-        var_names = [v.name for v in tf.trainable_variables()]
-        var_tensors = tf.import_graph_def(graph_def, return_elements=var_names)
-
-        # build a { var_name: var_tensor } dict
-        var_tensors = dict(zip(var_names, var_tensors))
-
-        training_graph = tf.get_default_graph()
-
-        assign_ops = []
-        for name, restored_tensor in var_tensors.items():
-            training_tensor = training_graph.get_tensor_by_name(name)
-            assign_ops.append(tf.assign(training_tensor, restored_tensor))
-
-        init_from_frozen_model_op = tf.group(*assign_ops)
-
     no_dropout_feed_dict = {
         dropout_rates[0]: 0.,
         dropout_rates[1]: 0.,
@@ -1660,11 +1636,6 @@ def train(server=None):
                                                save_checkpoint_secs=None, # already taken care of by a hook
                                                config=session_config) as session:
             tf.get_default_graph().finalize()
-
-            if len(FLAGS.initialize_from_frozen_model) > 0:
-                log_info('Initializing from frozen model: {}'.format(FLAGS.initialize_from_frozen_model))
-                model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
-                session.run(init_from_frozen_model_op, feed_dict=no_dropout_feed_dict)
 
             try:
                 if is_chief:

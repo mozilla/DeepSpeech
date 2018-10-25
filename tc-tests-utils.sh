@@ -135,26 +135,30 @@ assert_shows_something()
 
 assert_correct_ldc93s1()
 {
-  # FIXME: RE-ENABLE AFTER FIXING LM HYPERPARAMETERS
-  # assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
-  assert_working_inference "$1" "she had"
+  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
+}
+
+assert_correct_ldc93s1_lm()
+{
+  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
 }
 
 assert_correct_multi_ldc93s1()
 {
-  # FIXME: RE-ENABLE AFTER FIXING LM HYPERPARAMETERS
-  #assert_shows_something "$1" "/LDC93S1.wav%she had your dark suit in greasy wash water all year%"
-  #assert_shows_something "$1" "/LDC93S1_pcms16le_2_44100.wav%she had your dark suit in greasy wash water all year%"
-  return 0
+  assert_shows_something "$1" "/LDC93S1.wav%she had your dark suit in greasy wash water all year%"
+  assert_shows_something "$1" "/LDC93S1_pcms16le_2_44100.wav%she had your dark suit in greasy wash water all year%"
   ## 8k will output garbage anyway ...
   # assert_shows_something "$1" "/LDC93S1_pcms16le_1_8000.wav%she hayorasryrtl lyreasy asr watal w water all year%"
 }
 
 assert_correct_ldc93s1_prodmodel()
 {
-  # FIXME: RE-ENABLE AFTER FIXING LM HYPERPARAMETERS
-  #assert_correct_inference "$1" "she had tired or so and greasy wash war or year"
-  assert_working_inference "$1" "she had"
+  assert_correct_inference "$1" "she hadered or so and greasy wash war or year"
+}
+
+assert_correct_ldc93s1_prodmodel_stereo_44k()
+{
+  assert_correct_inference "$1" "she had tered or so and greasy wash war or year"
 }
 
 assert_correct_warning_upsampling()
@@ -185,13 +189,13 @@ run_all_inference_tests()
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_withlm}"
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}"
 
   phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}"
 
   phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_withlm_stereo_44k}"
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_stereo_44k}"
 
   phrase_pbmodel_nolm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
@@ -209,7 +213,7 @@ run_prod_inference_tests()
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
 
   phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm_stereo_44k}"
+  assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}"
 
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
@@ -259,11 +263,6 @@ download_data()
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
-}
-
-download_for_frozen()
-{
-  wget -O "${TASKCLUSTER_TMP_DIR}/frozen_model.pb" "${DEEPSPEECH_TEST_MODEL}"
 }
 
 download_material()

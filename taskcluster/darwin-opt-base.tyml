@@ -87,6 +87,7 @@ payload:
         export LC_ALL=C &&
         export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
         export MACOSX_DEPLOYMENT_TARGET=10.10 &&
+        export HOMEBREW_NO_AUTO_UPDATE=1 &&
         env &&
         (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
         git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
@@ -97,9 +98,10 @@ payload:
         ${swig.patch_nodejs.osx} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
+        export TASKCLUSTER_TASK_EXIT_CODE=$? &&
         mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
         mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
-        cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/
+        cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE
 
   artifacts:
     - type: "directory"

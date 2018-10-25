@@ -8,6 +8,21 @@
       ],
       "include_dirs": [
         "../"
+      ],
+      "conditions": [
+        [ "OS=='mac'", {
+            "xcode_settings": {
+              "OTHER_CXXFLAGS": [
+                "-stdlib=libc++",
+                "-mmacosx-version-min=10.10"
+              ],
+              "OTHER_LDFLAGS": [
+                "-stdlib=libc++",
+                "-mmacosx-version-min=10.10"
+              ]
+            }
+          }
+        ]
       ]
     },
     {

@@ -27,7 +27,7 @@ LM_WEIGHT = 1.50
 
 # Valid word insertion weight. This is used to lessen the word insertion penalty
 # when the inserted word is part of the vocabulary
-VALID_WORD_COUNT_WEIGHT = 2.25
+VALID_WORD_COUNT_WEIGHT = 2.10
 
 
 # These constants are tied to the shape of the graph used (changing them changes

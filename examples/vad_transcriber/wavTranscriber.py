@@ -19,8 +19,8 @@ def load_model(models, alphabet, lm, trie):
     N_FEATURES = 26
     N_CONTEXT = 9
     BEAM_WIDTH = 500
-    LM_WEIGHT = 1.75
-    VALID_WORD_COUNT_WEIGHT = 1.00
+    LM_WEIGHT = 1.50
+    VALID_WORD_COUNT_WEIGHT = 2.10
 
     model_load_start = timer()
     ds = Model(models, N_FEATURES, N_CONTEXT, alphabet, BEAM_WIDTH)

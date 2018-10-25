@@ -65,7 +65,8 @@ LDFLAGS_NEEDED := -Wl,--no-as-needed
 LDFLAGS_RPATH  := -Wl,-rpath,\$$ORIGIN
 endif
 ifeq ($(OS),Darwin)
-LDFLAGS_NEEDED :=
+CXXFLAGS       += -stdlib=libc++ -mmacosx-version-min=10.10
+LDFLAGS_NEEDED := -stdlib=libc++ -mmacosx-version-min=10.10
 LDFLAGS_RPATH  := -Wl,-rpath,@executable_path
 endif
 
