@@ -82,7 +82,7 @@ def main():
     model_load_end = timer() - model_load_start
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
 
-    if args.lm and args.trie:
+    if args.lm:
         print('Loading language model from files {} {}'.format(args.lm, args.trie), file=sys.stderr)
         lm_load_start = timer()
         ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_WEIGHT,

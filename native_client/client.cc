@@ -200,7 +200,7 @@ main(int argc, char **argv)
     return 1;
   }
 
-  if (lm && trie) {
+  if (lm) {
     int status = DS_EnableDecoderWithLM(ctx,
                                         alphabet,
                                         lm,

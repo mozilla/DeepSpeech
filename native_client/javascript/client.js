@@ -98,7 +98,7 @@ audioStream.on('finish', () => {
   const model_load_end = process.hrtime(model_load_start);
   console.error('Loaded model in %ds.', totalTime(model_load_end));
 
-  if (args['lm'] && args['trie']) {
+  if (args['lm']) {
     console.error('Loading language model from files %s %s', args['lm'], args['trie']);
     const lm_load_start = process.hrtime();
     model.enableDecoderWithLM(args['alphabet'], args['lm'], args['trie'],
