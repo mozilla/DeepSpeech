@@ -52,6 +52,8 @@ tf_cc_shared_object(
     linkopts = select({
         "//tensorflow:darwin": [],
         "//conditions:default": [
+            "-ldl",
+            "-pthread",
             "-Wl,-Bsymbolic",
             "-Wl,-Bsymbolic-functions",
             "-Wl,-export-dynamic",
@@ -123,7 +125,7 @@ cc_binary(
            ] + DECODER_SOURCES,
     includes = DECODER_INCLUDES,
     copts = ["-std=c++11"],
-    linkopts = ["-lm"],
+    linkopts = ["-lm", "-ldl", "-pthread"],
     defines = ["KENLM_MAX_ORDER=6"],
 )
 
@@ -135,6 +137,6 @@ cc_binary(
            ] + DECODER_SOURCES,
     includes = DECODER_INCLUDES,
     copts = ["-std=c++11"],
-    linkopts = ["-lm"],
+    linkopts = ["-lm", "-ldl", "-pthread"],
     defines = ["KENLM_MAX_ORDER=6"],
 )
