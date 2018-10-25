@@ -44,7 +44,7 @@ then:
         DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod/output_graph.pbmm
         PIP_DEFAULT_TIMEOUT: "60"
-        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.11.0-9-g97d851f"
+        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.11.0-11-gbee8254"
 
     command:
       - "/bin/bash"
