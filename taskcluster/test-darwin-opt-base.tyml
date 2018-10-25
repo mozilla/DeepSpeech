@@ -67,16 +67,10 @@ then:
             cd $TASKCLUSTER_TASK_DIR &&
             source $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-brew-tests.sh && ${extraSystemSetup} &&
             /bin/bash ${build.args.tests_cmdline} ;
-<<<<<<< HEAD
-            mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
-            mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
-            cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/
-=======
             export TASKCLUSTER_TASK_EXIT_CODE=$? &&
             mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
             mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
             cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE
->>>>>>> upstream/master
 
     mounts:
       - cacheName: deepspeech-homebrew-bin
