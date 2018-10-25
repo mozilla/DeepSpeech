@@ -23,7 +23,7 @@
 #define N_CONTEXT 9
 #define BEAM_WIDTH 500
 #define LM_WEIGHT 1.50f
-#define VALID_WORD_COUNT_WEIGHT 2.25f
+#define VALID_WORD_COUNT_WEIGHT 2.10f
 
 typedef struct {
   const char* string;
