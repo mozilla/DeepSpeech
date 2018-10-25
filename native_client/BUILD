@@ -51,12 +51,28 @@ tf_cc_shared_object(
     copts = ["-Wno-sign-compare", "-fvisibility=hidden"],
     linkopts = select({
         "//tensorflow:darwin": [],
-        "//conditions:default": [
-            "-ldl",
-            "-pthread",
-            "-Wl,-Bsymbolic",
-            "-Wl,-Bsymbolic-functions",
-            "-Wl,-export-dynamic",
+        "//tensorflow:linux_x86_64": [
+                "-ldl",
+                "-pthread",
+                "-Wl,-Bsymbolic",
+                "-Wl,-Bsymbolic-functions",
+                "-Wl,-export-dynamic",
+        ],
+        "//tensorflow:rpi3": [
+                "-ldl",
+                "-pthread",
+                "-Wl,-Bsymbolic",
+                "-Wl,-Bsymbolic-functions",
+                "-Wl,-export-dynamic",
+                "-l:libstdc++.a",
+        ],
+        "//tensorflow:rpi3-armv8": [
+                "-ldl",
+                "-pthread",
+                "-Wl,-Bsymbolic",
+                "-Wl,-Bsymbolic-functions",
+                "-Wl,-export-dynamic",
+                "-l:libstdc++.a",
         ],
     }),
     deps = [
