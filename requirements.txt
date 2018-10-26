@@ -5,9 +5,8 @@ tensorflow == 1.11.0
 numpy
 matplotlib
 scipy
-paramiko >= 2.1
-pysftp
 sox
+paramiko >= 2.1
 python_speech_features
 pyxdg
 bs4
