@@ -91,7 +91,7 @@ protected:
 
   double get_log_prob(const std::vector<std::string> &words);
 
-public:
+private:
   void *language_model_;
   bool is_character_based_;
   size_t max_order_;
