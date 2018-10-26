@@ -475,7 +475,7 @@ do_deepspeech_python_build()
 
     maybe_ssl102_py37 ${pyver}
 
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" time pyenv install ${pyver}
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" MAKE_OPTS="-j12" time pyenv install ${pyver}
 
     pyenv virtualenv ${pyver} deepspeech
     source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate

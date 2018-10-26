@@ -38,7 +38,7 @@ install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
 PYENV_NAME=deepspeech-train
-PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" time pyenv install ${pyver}
+PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" MAKE_OPTS="-j12" time pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
