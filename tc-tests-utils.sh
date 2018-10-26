@@ -284,7 +284,7 @@ install_pyenv()
 
   git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
   pushd ${PYENV_ROOT}
-    git checkout --quiet c057a80c8296a7c694e4ef80ecbac0d0c169df7a
+    git checkout --quiet 835707da2237b8f69560b2de27ae8ddd3e6cb1a4
   popd
   eval "$(pyenv init -)"
 }
