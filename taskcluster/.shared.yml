@@ -38,11 +38,11 @@ nodejs:
     env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/node-ds-test.brew/bin/:$PATH"'
     prep_4: 'nvm install 4.9.1 && nvm use 4.9.1'
     prep_5: 'nvm install 5.12.0 && nvm use 5.12.0'
-    prep_6: 'nvm install 6.14.1 && nvm use 6.14.1'
+    prep_6: 'nvm install 6.14.4 && nvm use 6.14.4'
     prep_7: 'nvm install 7.10.1 && nvm use 7.10.1'
-    prep_8: 'nvm install 8.11.1 && nvm use 8.11.1'
-    prep_9: 'nvm install 9.11.1 && nvm use 9.11.1'
-    prep_10: 'nvm install 10.3.0 && nvm use 10.3.0'
+    prep_8: 'nvm install 8.12.0 && nvm use 8.12.0'
+    prep_9: 'nvm install 9.11.2 && nvm use 9.11.2'
+    prep_10: 'nvm install 10.12.0 && nvm use 10.12.0'
 ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:
