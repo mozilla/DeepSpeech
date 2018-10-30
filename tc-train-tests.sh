@@ -62,9 +62,11 @@ fi;
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1_new.sh 105
+    time ./bin/run-tc-ldc93s1_tflite.sh
 popd
 
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
+cp /tmp/train/output_graph.fb ${TASKCLUSTER_ARTIFACTS}
 
 if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
   convert_graphdef=$(basename "${CONVERT_GRAPHDEF_MEMMAPPED}")
