@@ -2,11 +2,11 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "deepspeech.h"
 #include "alphabet.h"
-#include "beam_search.h"
 
 #include "tensorflow/core/public/version.h"
 #include "native_client/ds_version.h"
@@ -16,6 +16,8 @@
 #include "tensorflow/core/util/memmapped_file_system.h"
 
 #include "c_speech_features.h"
+
+#include "ctcdecode/ctc_beam_search_decoder.h"
 
 //TODO: infer batch size from model/use dynamic batch size
 const unsigned int BATCH_SIZE = 1;
@@ -37,8 +39,6 @@ const unsigned int LOWFREQ = 0;
 const unsigned int CEP_LIFTER = 22;
 
 using namespace tensorflow;
-using tensorflow::ctc::CTCBeamSearchDecoder;
-using tensorflow::ctc::CTCDecoder;
 
 using std::vector;
 
@@ -98,7 +98,7 @@ struct ModelState {
   unsigned int ncep;
   unsigned int ncontext;
   Alphabet* alphabet;
-  KenLMBeamScorer* scorer;
+  Scorer* scorer;
   unsigned int beam_width;
   unsigned int n_steps;
   unsigned int mfcc_feats_per_timestep;
@@ -177,7 +177,7 @@ StreamingState::feedAudioContent(const short* buffer,
     // If the buffer is full, process and shift it
     if (audio_buffer.size() == AUDIO_WIN_LEN_SAMPLES) {
       processAudioWindow(audio_buffer);
-      // Shift data by one step of 10ms
+      // Shift data by one step
       std::rotate(audio_buffer.begin(), audio_buffer.begin() + AUDIO_WIN_STEP_SAMPLES, audio_buffer.end());
       audio_buffer.resize(audio_buffer.size() - AUDIO_WIN_STEP_SAMPLES);
     }
@@ -320,55 +320,24 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
 char*
 ModelState::decode(vector<float>& logits)
 {
-  const int top_paths = 1;
+  const int cutoff_top_n = 40;
+  const double cutoff_prob = 1.0;
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
   const int n_frames = logits.size() / (BATCH_SIZE * num_classes);
 
-  // Raw data containers (arrays of floats, ints, etc.).
-  int sequence_lengths[BATCH_SIZE] = {n_frames};
-
-  // Convert data containers to the format accepted by the decoder, simply
-  // mapping the memory from the container to an Eigen::ArrayXi,::MatrixXf,
-  // using Eigen::Map.
-  Eigen::Map<const Eigen::ArrayXi> seq_len(&sequence_lengths[0], BATCH_SIZE);
-  vector<Eigen::Map<const Eigen::MatrixXf>> inputs;
-  inputs.reserve(n_frames);
+  vector<vector<double>> inputs;
+  inputs.resize(n_frames);
   for (int t = 0; t < n_frames; ++t) {
-    inputs.emplace_back(&logits[t * BATCH_SIZE * num_classes], BATCH_SIZE, num_classes);
+    for (int i = 0; i < num_classes; ++i) {
+      inputs[t].push_back(logits[t * num_classes + i]);
+    }
   }
 
-  // Prepare containers for output and scores.
-  // CTCDecoder::Output is vector<vector<int>>
-  vector<CTCDecoder::Output> decoder_outputs(top_paths);
-  for (CTCDecoder::Output& output : decoder_outputs) {
-    output.resize(BATCH_SIZE);
-  }
-  float score[BATCH_SIZE][top_paths] = {{0.0}};
-  Eigen::Map<Eigen::MatrixXf> scores(&score[0][0], BATCH_SIZE, top_paths);
+  // Vector of <probability, Output(tokens, timings)> pairs
+  vector<std::pair<double, Output>> out = ctc_beam_search_decoder(
+    inputs, *alphabet, beam_width, cutoff_prob, cutoff_top_n, scorer);
 
-  if (scorer == nullptr) {
-    CTCBeamSearchDecoder<>::DefaultBeamScorer default_scorer;
-    CTCBeamSearchDecoder<> decoder(num_classes,
-                                   beam_width,
-                                   &default_scorer,
-                                   BATCH_SIZE);
-    decoder.Decode(seq_len, inputs, &decoder_outputs, &scores).ok();
-  } else {
-    CTCBeamSearchDecoder<KenLMBeamState> decoder(num_classes,
-                                                 beam_width,
-                                                 scorer,
-                                                 BATCH_SIZE);
-    decoder.Decode(seq_len, inputs, &decoder_outputs, &scores).ok();
-  }
-
-  // Output is an array of shape (batch_size, top_paths, result_length).
-
-  std::stringstream output;
-  for (int64 character : decoder_outputs[0][0]) {
-    output << alphabet->StringFromLabel(character);
-  }
-
-  return strdup(output.str().c_str());
+  return strdup(alphabet->LabelsToString(out[0].second.tokens).c_str());
 }
 
 int
@@ -493,8 +462,10 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
                        float aValidWordCountWeight)
 {
   try {
-    aCtx->scorer = new KenLMBeamScorer(aLMPath, aTriePath, aAlphabetConfigPath,
-                                       aLMWeight, aValidWordCountWeight);
+    aCtx->scorer = new Scorer(aLMWeight, aValidWordCountWeight,
+                              aLMPath ? aLMPath : "",
+                              aTriePath ? aTriePath : "",
+                              *aCtx->alphabet);
     return 0;
   } catch (...) {
     return 1;

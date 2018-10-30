@@ -16,6 +16,8 @@ char* trie = NULL;
 
 char* audio = NULL;
 
+bool load_without_trie = false;
+
 bool show_times = false;
 
 bool has_versions = false;
@@ -48,6 +50,7 @@ bool ProcessArgs(int argc, char** argv)
             {"lm", required_argument, nullptr, 'l'},
             {"trie", required_argument, nullptr, 'r'},
             {"audio", required_argument, nullptr, 'w'},
+            {"run_very_slowly_without_trie_I_really_know_what_Im_doing", no_argument, nullptr, 999},
             {"t", no_argument, nullptr, 't'},
             {"help", no_argument, nullptr, 'h'},
             {"version", no_argument, nullptr, 'v'},
@@ -64,23 +67,27 @@ bool ProcessArgs(int argc, char** argv)
         switch (opt)
         {
         case 'm':
-            model     = optarg;
+            model = optarg;
             break;
 
         case 'a':
-            alphabet     = optarg;
+            alphabet = optarg;
             break;
 
         case 'l':
-            lm     = optarg;
+            lm = optarg;
             break;
 
         case 'r':
-            trie     = optarg;
+            trie = optarg;
             break;
 
         case 'w':
-            audio     = optarg;
+            audio = optarg;
+            break;
+
+        case 999:
+            load_without_trie = true;
             break;
 
         case 't':

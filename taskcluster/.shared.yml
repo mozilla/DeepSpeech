@@ -16,7 +16,11 @@ nodejs:
     prep_7: 'echo "deb http://deb.nodesource.com/node_7.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_8: 'echo "deb http://deb.nodesource.com/node_8.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_9: 'echo "deb http://deb.nodesource.com/node_9.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_10: 'echo "deb http://deb.nodesource.com/node_10.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+  packages_xenial:
+    apt: 'nodejs sox'
+    apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
+    prep_10: 'echo "deb http://deb.nodesource.com/node_10.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_11: 'echo "deb http://deb.nodesource.com/node_11.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_stretch:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
@@ -27,6 +31,7 @@ nodejs:
     prep_8: 'echo "deb http://deb.nodesource.com/node_8.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_9: 'echo "deb http://deb.nodesource.com/node_9.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_10: 'echo "deb http://deb.nodesource.com/node_10.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_11: 'echo "deb http://deb.nodesource.com/node_11.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   brew:
     # Using 'nvm' from homebrew results in installing v0.33.6 which seems to
     # suffer from a bug making it unable to work as of now:
@@ -43,6 +48,7 @@ nodejs:
     prep_8: 'nvm install 8.12.0 && nvm use 8.12.0'
     prep_9: 'nvm install 9.11.2 && nvm use 9.11.2'
     prep_10: 'nvm install 10.12.0 && nvm use 10.12.0'
+    prep_11: 'nvm install 11.0.0 && nvm use 11.0.0'
 ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:

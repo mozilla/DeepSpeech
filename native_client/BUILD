@@ -10,13 +10,40 @@ genrule(
     tools = [":ds_git_version.sh"]
 )
 
+KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
+                      "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
+                     exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) + glob(["boost_locale/**/*.hpp"])
+
+KENLM_INCLUDES = [
+    "kenlm",
+    "boost_locale"
+]
+
+DECODER_SOURCES = glob([
+    "ctcdecode/*.h",
+    "ctcdecode/*.cpp",
+    "ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"
+]) + KENLM_SOURCES
+
+DECODER_INCLUDES = [
+    ".",
+    "ctcdecode/third_party/openfst-1.6.7/src/include",
+    "ctcdecode/third_party/ThreadPool"
+] + KENLM_INCLUDES
+
+LINUX_LINKOPTS = [
+    "-ldl",
+    "-pthread",
+    "-Wl,-Bsymbolic",
+    "-Wl,-Bsymbolic-functions",
+    "-Wl,-export-dynamic"
+]
+
 tf_cc_shared_object(
     name = "libdeepspeech.so",
     srcs = ["deepspeech.cc",
             "deepspeech.h",
             "alphabet.h",
-            "beam_search.h",
-            "trie_node.h",
             "c_speech_features/c_speech_features.cpp",
             "kiss_fft130/kiss_fft.c",
             "kiss_fft130/tools/kiss_fftr.c",
@@ -26,37 +53,19 @@ tf_cc_shared_object(
             "kiss_fft130/_kiss_fft_guts.h",
             "kiss_fft130/tools/kiss_fftr.h",
             "ds_version.h"] +
-           glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
-                 "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
-                exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) +
-           glob(["boost_locale/**/*.hpp"]),
+           DECODER_SOURCES,
     # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
     # which makes it harder to see our own warnings
     copts = ["-Wno-sign-compare", "-fvisibility=hidden"],
     linkopts = select({
         "//tensorflow:darwin": [],
-	"//tensorflow:linux_x86_64": [
-            "-Wl,-Bsymbolic",
-            "-Wl,-Bsymbolic-functions",
-            "-Wl,-export-dynamic",
-        ],
-	"//tensorflow:rpi3": [
-            "-Wl,-Bsymbolic",
-            "-Wl,-Bsymbolic-functions",
-            "-Wl,-export-dynamic",
-            "-l:libstdc++.a",
-        ],
-	"//tensorflow:rpi3-armv8": [
-            "-Wl,-Bsymbolic",
-            "-Wl,-Bsymbolic-functions",
-            "-Wl,-export-dynamic",
-            "-l:libstdc++.a",
-        ],
+        "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
+        "//tensorflow:rpi3": LINUX_LINKOPTS + ["-l:libstdc++.a"],
+        "//tensorflow:rpi3-armv8": LINUX_LINKOPTS + ["-l:libstdc++.a"],
     }),
     deps = [
         "//tensorflow/core:core_cpu",
         "//tensorflow/core:direct_session",
-        "//tensorflow/core/util/ctc",
         "//third_party/eigen3",
         #"//tensorflow/core:all_kernels",
         ### => Trying to be more fine-grained
@@ -66,6 +75,7 @@ tf_cc_shared_object(
         "//tensorflow/core/kernels:constant_op",        # Const
         "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst
         "//tensorflow/core/kernels:identity_op",        # Identity
+        "//tensorflow/core/kernels:softmax_op",         # Softmax
         "//tensorflow/core/kernels:transpose_op",       # Transpose
         "//tensorflow/core/kernels:reshape_op",         # Reshape
         "//tensorflow/core/kernels:shape_ops",          # Shape
@@ -88,7 +98,7 @@ tf_cc_shared_object(
     ] + if_cuda([
         "//tensorflow/core:core",
     ]),
-    includes = ["kenlm", "boost_locale", "c_speech_features", "kiss_fft130"],
+    includes = ["c_speech_features", "kiss_fft130"] + DECODER_INCLUDES,
     defines = ["KENLM_MAX_ORDER=6"],
 )
 
@@ -100,11 +110,8 @@ tf_cc_shared_object(
             "alphabet.h",
             "trie_node.h"
            ] +
-           glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
-                 "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
-                exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) +
-           glob(["boost_locale/**/*.hpp"]),
-    includes = ["kenlm", "boost_locale"],
+           KENLM_SOURCES,
+    includes = KENLM_INCLUDES,
     copts = ["-std=c++11"],
     defines = ["KENLM_MAX_ORDER=6"],
     deps = ["//tensorflow/core:framework_headers_lib",
@@ -117,16 +124,11 @@ cc_binary(
     name = "generate_trie",
     srcs = [
             "generate_trie.cpp",
-            "trie_node.h",
             "alphabet.h",
-           ] +
-           glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
-                 "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
-                exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) +
-           glob(["boost_locale/**/*.hpp"]),
-    includes = ["kenlm", "boost_locale"],
+           ] + DECODER_SOURCES,
+    includes = DECODER_INCLUDES,
     copts = ["-std=c++11"],
-    linkopts = ["-lm"],
+    linkopts = ["-lm", "-ldl", "-pthread"],
     defines = ["KENLM_MAX_ORDER=6"],
 )
 
@@ -134,15 +136,10 @@ cc_binary(
     name = "trie_load",
     srcs = [
             "trie_load.cc",
-            "trie_node.h",
             "alphabet.h",
-           ] +
-           glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
-                 "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
-                exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) +
-           glob(["boost_locale/**/*.hpp"]),
-    includes = ["kenlm", "boost_locale"],
+           ] + DECODER_SOURCES,
+    includes = DECODER_INCLUDES,
     copts = ["-std=c++11"],
-    linkopts = ["-lm"],
+    linkopts = ["-lm", "-ldl", "-pthread"],
     defines = ["KENLM_MAX_ORDER=6"],
 )
