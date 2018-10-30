@@ -36,7 +36,7 @@ model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.15:ucs2 2.7.15:ucs4 3.4.9:ucs4 3.5.6:ucs4 3.6.7:ucs4 3.7.1:ucs4}
-SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.4 7.10.1 8.12.0 9.11.2 10.12.0}
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.4 7.10.1 8.12.0 9.11.2 10.12.0 11.0.0}
 
 strip() {
   echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
@@ -510,6 +510,15 @@ do_deepspeech_nodejs_build()
   rename_to_gpu=$1
 
   npm update && npm install node-gyp node-pre-gyp
+
+  #FIXME: Remove when https://github.com/mapbox/node-pre-gyp/issues/421 is fixed
+  node_pre_gyp="$(npm root)/node-pre-gyp/"
+  abi_crosswalk="${node_pre_gyp}lib/util/abi_crosswalk.json"
+  has_node_v11=$(grep -q "11.0.0" "${abi_crosswalk}" ; echo $?)
+
+  if [ "${has_node_v11}" -eq 1 ]; then
+    patch -d "${node_pre_gyp}" -p1 < native_client/javascript/node-pre-gyp_nodejs_v11.patch
+  fi;
 
   export PATH="$(npm root)/.bin/:$PATH"
 
