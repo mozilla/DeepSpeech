@@ -41,8 +41,7 @@ std::vector<std::pair<double, Output>> ctc_beam_search_decoder(
   prefixes.push_back(&root);
 
   if (ext_scorer != nullptr && !ext_scorer->is_character_based()) {
-    auto fst_dict = static_cast<fst::StdVectorFst *>(ext_scorer->dictionary);
-    fst::StdVectorFst *dict_ptr = fst_dict->Copy(true);
+    auto dict_ptr = ext_scorer->dictionary->Copy(true);
     root.set_dictionary(dict_ptr);
     auto matcher = std::make_shared<FSTMATCH>(*dict_ptr, fst::MATCH_INPUT);
     root.set_matcher(matcher);

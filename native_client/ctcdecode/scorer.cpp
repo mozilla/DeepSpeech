@@ -21,8 +21,8 @@ Scorer::Scorer(double alpha,
                const std::string& lm_path,
                const std::string& trie_path,
                const Alphabet& alphabet)
-  : dictionary(nullptr)
-  , language_model_(nullptr)
+  : dictionary()
+  , language_model_()
   , is_character_based_(true)
   , max_order_(0)
   , alphabet_(alphabet)
@@ -44,12 +44,6 @@ Scorer::Scorer(double alpha,
 }
 
 Scorer::~Scorer() {
-  if (language_model_ != nullptr) {
-    delete language_model_;
-  }
-  if (dictionary != nullptr) {
-    delete dictionary;
-  }
 }
 
 void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
@@ -64,7 +58,7 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
   if (!has_trie) { // no trie was specified, build it now
     RetrieveStrEnumerateVocab enumerate;
     config.enumerate_vocab = &enumerate;
-    language_model_ = lm::ngram::LoadVirtual(filename, config);
+    language_model_.reset(lm::ngram::LoadVirtual(filename, config));
     auto vocab = enumerate.vocabulary;
     for (size_t i = 0; i < vocab.size(); ++i) {
       if (is_character_based_ && vocab[i] != UNK_TOKEN &&
@@ -78,7 +72,7 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
       fill_dictionary(vocab, true);
     }
   } else {
-    language_model_ = lm::ngram::LoadVirtual(filename, config);
+    language_model_.reset(lm::ngram::LoadVirtual(filename, config));
 
     // Read metadata and trie from file
     std::ifstream fin(trie_path, std::ios::binary);
@@ -104,7 +98,7 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
     fin.read(reinterpret_cast<char*>(&is_character_based_), sizeof(is_character_based_));
 
     fst::FstReadOptions opt;
-    dictionary = fst::StdVectorFst::Read(fin, opt);
+    dictionary.reset(fst::StdVectorFst::Read(fin, opt));
   }
 
   max_order_ = language_model_->Order();
@@ -245,5 +239,5 @@ void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary, bool ad
    * memory usage of the dictionary
    */
   fst::Minimize(new_dict);
-  this->dictionary = new_dict;
+  this->dictionary.reset(new_dict);
 }
