@@ -45,10 +45,10 @@ Scorer::Scorer(double alpha,
 
 Scorer::~Scorer() {
   if (language_model_ != nullptr) {
-    delete static_cast<lm::base::Model*>(language_model_);
+    delete language_model_;
   }
   if (dictionary != nullptr) {
-    delete static_cast<fst::StdVectorFst*>(dictionary);
+    delete dictionary;
   }
 }
 
@@ -107,7 +107,7 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
     dictionary = fst::StdVectorFst::Read(fin, opt);
   }
 
-  max_order_ = static_cast<lm::base::Model*>(language_model_)->Order();
+  max_order_ = language_model_->Order();
 }
 
 void Scorer::save_dictionary(const std::string& path) {
@@ -116,22 +116,21 @@ void Scorer::save_dictionary(const std::string& path) {
   fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
   fout.write(reinterpret_cast<const char*>(&is_character_based_), sizeof(is_character_based_));
   fst::FstWriteOptions opt;
-  static_cast<fst::StdVectorFst*>(dictionary)->Write(fout, opt);
+  dictionary->Write(fout, opt);
 }
 
 double Scorer::get_log_cond_prob(const std::vector<std::string>& words) {
-  lm::base::Model* model = static_cast<lm::base::Model*>(language_model_);
   double cond_prob;
   lm::ngram::State state, tmp_state, out_state;
   // avoid to inserting <s> in begin
-  model->NullContextWrite(&state);
+  language_model_->NullContextWrite(&state);
   for (size_t i = 0; i < words.size(); ++i) {
-    lm::WordIndex word_index = model->BaseVocabulary().Index(words[i]);
+    lm::WordIndex word_index = language_model_->BaseVocabulary().Index(words[i]);
     // encounter OOV
     if (word_index == 0) {
       return OOV_SCORE;
     }
-    cond_prob = model->BaseScore(&state, word_index, &out_state);
+    cond_prob = language_model_->BaseScore(&state, word_index, &out_state);
     tmp_state = state;
     state = out_state;
     out_state = tmp_state;

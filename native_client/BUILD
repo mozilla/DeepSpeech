@@ -31,6 +31,14 @@ DECODER_INCLUDES = [
     "ctcdecode/third_party/ThreadPool"
 ] + KENLM_INCLUDES
 
+LINUX_LINKOPTS = [
+    "-ldl",
+    "-pthread",
+    "-Wl,-Bsymbolic",
+    "-Wl,-Bsymbolic-functions",
+    "-Wl,-export-dynamic"
+]
+
 tf_cc_shared_object(
     name = "libdeepspeech.so",
     srcs = ["deepspeech.cc",
@@ -51,34 +59,13 @@ tf_cc_shared_object(
     copts = ["-Wno-sign-compare", "-fvisibility=hidden"],
     linkopts = select({
         "//tensorflow:darwin": [],
-        "//tensorflow:linux_x86_64": [
-                "-ldl",
-                "-pthread",
-                "-Wl,-Bsymbolic",
-                "-Wl,-Bsymbolic-functions",
-                "-Wl,-export-dynamic",
-        ],
-        "//tensorflow:rpi3": [
-                "-ldl",
-                "-pthread",
-                "-Wl,-Bsymbolic",
-                "-Wl,-Bsymbolic-functions",
-                "-Wl,-export-dynamic",
-                "-l:libstdc++.a",
-        ],
-        "//tensorflow:rpi3-armv8": [
-                "-ldl",
-                "-pthread",
-                "-Wl,-Bsymbolic",
-                "-Wl,-Bsymbolic-functions",
-                "-Wl,-export-dynamic",
-                "-l:libstdc++.a",
-        ],
+        "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
+        "//tensorflow:rpi3": LINUX_LINKOPTS + ["-l:libstdc++.a"],
+        "//tensorflow:rpi3-armv8": LINUX_LINKOPTS + ["-l:libstdc++.a"],
     }),
     deps = [
         "//tensorflow/core:core_cpu",
         "//tensorflow/core:direct_session",
-        "//tensorflow/core/util/ctc",
         "//third_party/eigen3",
         #"//tensorflow/core:all_kernels",
         ### => Trying to be more fine-grained

@@ -77,7 +77,7 @@ public:
   double beta;
 
   // pointer to the dictionary of FST
-  void *dictionary;
+  fst::StdVectorFst *dictionary;
 
 protected:
   // necessary setup: load language model, fill FST's dictionary
@@ -92,7 +92,7 @@ protected:
   double get_log_prob(const std::vector<std::string> &words);
 
 private:
-  void *language_model_;
+  lm::base::Model *language_model_;
   bool is_character_based_;
   size_t max_order_;
 

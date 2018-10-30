@@ -33,7 +33,6 @@ public:
       str_to_label_[line] = label;
       ++label;
     }
-    label_to_str_.push_back("*");
     size_ = label;
     in.close();
   }
