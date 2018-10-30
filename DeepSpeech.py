@@ -1770,6 +1770,9 @@ def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False):
                            n_steps=n_steps,
                            previous_state=previous_state)
 
+    # Apply softmax for CTC decoder
+    logits = tf.nn.softmax(logits)
+
     new_state_c, new_state_h = layers['rnn_output_state']
 
     # Initial zero state

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 /*
  * Loads a text file describing a mapping of labels to strings, one string per
@@ -17,13 +18,18 @@ public:
   Alphabet(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
     unsigned int label = 0;
+    space_label_ = -2;
     for (std::string line; std::getline(in, line);) {
       if (line.size() == 2 && line[0] == '\\' && line[1] == '#') {
         line = '#';
       } else if (line[0] == '#') {
         continue;
       }
-      label_to_str_[label] = line;
+      //TODO: we should probably do something more i18n-aware here
+      if (line == " ") {
+        space_label_ = label;
+      }
+      label_to_str_.push_back(line);
       str_to_label_[line] = label;
       ++label;
     }
@@ -33,13 +39,7 @@ public:
 
   const std::string& StringFromLabel(unsigned int label) const {
     assert(label < size_);
-    auto it = label_to_str_.find(label);
-    if (it != label_to_str_.end()) {
-      return it->second;
-    } else {
-      // unreachable due to assert above
-      abort();
-    }
+    return label_to_str_[label];
   }
 
   unsigned int LabelFromString(const std::string& string) const {
@@ -52,19 +52,31 @@ public:
     }
   }
 
-  size_t GetSize() {
+  size_t GetSize() const {
     return size_;
   }
 
   bool IsSpace(unsigned int label) const {
-    //TODO: we should probably do something more i18n-aware here
-    const std::string& str = StringFromLabel(label);
-    return str.size() == 1 && str[0] == ' ';
+    return label == space_label_;
+  }
+
+  unsigned int GetSpaceLabel() const {
+    return space_label_;
+  }
+
+  template <typename T>
+  std::string LabelsToString(const std::vector<T>& input) const {
+    std::string word;
+    for (auto ind : input) {
+      word += StringFromLabel(ind);
+    }
+    return word;
   }
 
 private:
   size_t size_;
-  std::unordered_map<unsigned int, std::string> label_to_str_;
+  unsigned int space_label_;
+  std::vector<std::string> label_to_str_;
   std::unordered_map<std::string, unsigned int> str_to_label_;
 };
 
