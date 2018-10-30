@@ -38,9 +38,8 @@ binary_path = '/tmp/lm.binary'
 os.remove(lm_path)
 ```
 
-The trie was then generated from the list of unique words in the corpus (data/lm/vocab.txt):
+The trie was then generated from the vocabulary of the language model:
 
 ```bash
-tr -s '[[:space:]]' '\n' < /tmp/lower.txt | sort -u > /tmp/vocab.txt
-./generate_trie ../data/alphabet.txt /tmp/lm.binary /tmp/vocab.txt /tmp/trie
+./generate_trie ../data/alphabet.txt /tmp/lm.binary /tmp/trie
 ```
