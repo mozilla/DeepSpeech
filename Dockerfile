@@ -62,7 +62,7 @@ RUN wget https://bootstrap.pypa.io/get-pip.py && \
 # Clone TensoFlow from Mozilla repo
 RUN git clone https://github.com/mozilla/tensorflow/
 WORKDIR /tensorflow
-RUN git checkout r1.11
+RUN git checkout r1.12
 
 
 # GPU Environment Setup
@@ -190,7 +190,7 @@ RUN cp /tensorflow/bazel-bin/native_client/libctc_decoder_with_kenlm.so /DeepSpe
 
 # Install TensorFlow
 WORKDIR /DeepSpeech/
-RUN pip install tensorflow-gpu==1.11.0
+RUN pip install tensorflow-gpu==1.12.0rc2
 
 
 # Make DeepSpeech and install Python bindings
