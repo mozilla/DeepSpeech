@@ -9,6 +9,7 @@ training_phase() {
     --train_batch_size 24 \
     --dev_batch_size 48 \
     --test_batch_size 48 \
+    --notest \
     --n_hidden 2048 \
     --learning_rate 0.0001 \
     --noearly_stop \
@@ -28,10 +29,12 @@ training_phase \
     --dev_cached_features_path   "${sets}/ds_dev_clean.hdf5" \
     --test_cached_features_path  "${sets}/ds_test.hdf5" \
     --dropout_rate 0.2 \
-    --epoch 8
+    --epoch 12
+
 
 echo "Copying checkpoint files over to next phase..."
-cp -r ../keep/phase1/* ../keep/phase2/
+rm -rf ../keep/phase2
+cp -r ../keep/phase1 ../keep/phase2
 
 echo "Starting training-phase 2 (low noise)..."
 training_phase \
@@ -40,11 +43,13 @@ training_phase \
     --train_cached_features_path "${sets}/ds_train_noise1.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_noise1.hdf5" \
     --test_cached_features_path  "${sets}/ds_test.hdf5" \
-    --dropout_rate 0.1 \
-    --epoch 16
+    --dropout_rate 0.15 \
+    --epoch 24
+
 
 echo "Copying checkpoint files over to next phase..."
-cp -r ../keep/phase2/* ../keep/phase3/
+rm -rf ../keep/phase3
+cp -r ../keep/phase2 ../keep/phase3
 
 echo "Starting training-phase 3 (high noise)..."
 training_phase \
@@ -53,5 +58,5 @@ training_phase \
     --train_cached_features_path "${sets}/ds_train_noise2.hdf5" \
     --dev_cached_features_path   "${sets}/ds_dev_noise2.hdf5" \
     --test_cached_features_path  "${sets}/ds_test.hdf5" \
-    --dropout_rate 0.05 \
+    --dropout_rate 0.15 \
     --epoch 64
