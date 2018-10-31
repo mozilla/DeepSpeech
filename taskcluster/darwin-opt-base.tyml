@@ -39,7 +39,6 @@ payload:
       training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
     in:
       TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
-      SUMMARIZE_GRAPH_BINARY: ${build.summarize_graph}
       DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
 
   # There is no VM yet running tasks on OSX
