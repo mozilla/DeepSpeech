@@ -35,7 +35,6 @@ then:
         linux_arm64_build: { $eval: as_slugid("linux-arm64-cpu-opt") }
         node_package: { $eval: as_slugid("node-package") }
       in:
-        CONVERT_GRAPHDEF_MEMMAPPED: ${build.convert_graphdef}
         DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_arm64_build}/artifacts/public
         DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
@@ -44,7 +43,7 @@ then:
         PIP_DEFAULT_TIMEOUT: "60"
         PIP_EXTRA_INDEX_URL: "https://lissyx.github.io/deepspeech-python-wheels/"
         EXTRA_PYTHON_CONFIGURE_OPTS: "--with-fpectl" # Required by Debian Stretch
-        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.11.0-11-gbee8254"
+        EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.12.0-rc2-5-g1c93ca2"
 
     command:
       - "/bin/bash"
