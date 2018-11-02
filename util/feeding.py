@@ -134,10 +134,7 @@ class _DataSetLoader(object):
         index = -1
         while not coord.should_stop():
             index = self._data_set.next_index(index) % file_count
-            features, _, transcript, transcript_len = self._data_set.data.iloc[index]
-
-            # One stride per time step in the input
-            num_strides = len(features) - (self._model_feeder.numcontext * 2)
+            features, num_strides, transcript, transcript_len = self._data_set.data.iloc[index]
 
             # Create a view into the array with overlapping strides of size
             # numcontext (past) + 1 (present) + numcontext (future)
