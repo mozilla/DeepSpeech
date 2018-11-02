@@ -31,7 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         liblzma-dev \
         locales \
         pkg-config \
-        libsox-dev
+        libsox-dev \
+        dos2unix
 
 # Install NCCL 2.2
 RUN apt-get install -qq -y --allow-downgrades --allow-change-held-packages libnccl2=2.2.13-1+cuda9.0 libnccl-dev=2.2.13-1+cuda9.0
@@ -142,6 +143,9 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64:/usr/loc
 COPY . /DeepSpeech/
 
 WORKDIR /DeepSpeech
+
+# Converting newline encoding to Linux
+find / -type f \( -iname \*.sh -o -iname \*.py \) -exec dos2unix {} \;
 
 RUN pip --no-cache-dir install -r requirements.txt
 
