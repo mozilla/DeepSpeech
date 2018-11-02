@@ -1,0 +1,5 @@
+Decoder sources originally imported from https://github.com/parlance/ctcdecode, commit 140b45860cec6671fb0bf6dbb675073241c0f9b0
+Decoder sources are under the MIT license (LICENSE.parlance).
+
+Binding code adapted from https://github.com/PaddlePaddle/DeepSpeech/tree/develop/decoders/swig, commit 3ea19973c66a6a10320888ba47a8857bebf5abfa
+Binding code are under the Apache License (LICENSE.paddlepaddle).
