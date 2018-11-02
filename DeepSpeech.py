@@ -30,7 +30,7 @@ from util.feeding import DataSet, ModelFeeder
 from util.preprocess import preprocess
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, ndarray_to_text
+from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet
 from xdg import BaseDirectory as xdg
 import numpy as np
 
