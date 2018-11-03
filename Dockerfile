@@ -145,7 +145,7 @@ COPY . /DeepSpeech/
 WORKDIR /DeepSpeech
 
 # Converting newline encoding to Linux
-find / -type f \( -iname \*.sh -o -iname \*.py \) -exec dos2unix {} \;
+RUN find / -type f \( -iname \*.sh -o -iname \*.py \) -exec dos2unix {} \;
 
 RUN pip --no-cache-dir install -r requirements.txt
 
