@@ -56,7 +56,7 @@ std::vector<Output> get_beam_search_result(
     Output output;
     space_prefixes[i]->get_path_vec(output.tokens, output.timesteps);
     output.probability = -space_prefixes[i]->approx_ctc;
-    output_vecs.emplace_back(output);
+    output_vecs.push_back(output);
   }
 
   return output_vecs;

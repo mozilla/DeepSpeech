@@ -13,7 +13,7 @@ class Scorer(swigwrapper.Scorer):
                  count when beta = 0.
     :type beta: float
     :model_path: Path to load language model.
-    :trie_path: Path to trie file (optional).
+    :trie_path: Path to trie file.
     :alphabet: Alphabet
     :type model_path: basestring
     """

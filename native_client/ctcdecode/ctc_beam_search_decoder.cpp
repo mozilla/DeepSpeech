@@ -191,7 +191,7 @@ ctc_beam_search_decoder_batch(
     size_t cutoff_top_n,
     Scorer *ext_scorer) {
   VALID_CHECK_GT(num_processes, 0, "num_processes must be nonnegative!");
-  VALID_CHECK_EQ(batch_size, seq_lengths_size, "must have one sequence length per sequence");
+  VALID_CHECK_EQ(batch_size, seq_lengths_size, "must have one sequence length per batch element");
   // thread pool
   ThreadPool pool(num_processes);
 
