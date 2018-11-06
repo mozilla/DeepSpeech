@@ -2,22 +2,32 @@
 
 source ../tmp/venv/bin/activate
 
-data="${DATA_ROOT}/shared/data"
-fis="${data}/LDC/fisher"
-swb="${data}/LDC/LDC97S62/swb"
-lbs="${data}/OpenSLR/LibriSpeech/librivox"
+# this script splits into train/dev/test and saves to the arg dir
+for lang in 'en' 'de' 'fr' 'cv' 'zh-TW'; 
+do
+    python ./filter_train_dev_test.py "${lang}" "../keep";
+done
+
+for i in ../keep/*.csv;
+do
+    echo `wc -l ${i}`;
+done
+
+
+data="../keep"
+lang='en'
 
 python3 -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
-  --dev_files "${lbs}-dev-clean.csv"\
-  --test_files "${lbs}-test-clean.csv" \
+  --train_files "${data}/cv_${lang}_valid_train.csv"\
+  --dev_files "${data}/cv_${lang}_valid_dev.csv" \
+  --test_files "${data}/cv_${lang}_valid_test.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
   --dropout_rate 0.2 \
-  --epoch 13 \
+  --epoch 2 \
   --display_step 0 \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
