@@ -4,6 +4,7 @@ import codecs
 import numpy as np
 import tensorflow as tf
 import re
+import sys
 
 from six.moves import range
 from functools import reduce
@@ -27,7 +28,20 @@ class Alphabet(object):
         return self._label_to_str[label]
 
     def label_from_string(self, string):
-        return self._str_to_label[string]
+        try:
+            return self._str_to_label[string]
+        except KeyError:
+            print(
+                '''
+                ERROR: You have characters in your transcripts
+                       which do not occur in your data/alphabet.txt
+                       file. Please verify that your alphabet.txt
+                       contains all neccessary characters. Use
+                       util/check_characters.py to see what characters are in
+                       your train / dev / test transcripts.
+                '''
+            )
+            sys.exit()
 
     def size(self):
         return self._size
