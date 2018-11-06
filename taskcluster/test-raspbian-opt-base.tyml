@@ -35,7 +35,6 @@ then:
         linux_rpi3_build: { $eval: as_slugid("linux-rpi3-cpu-opt") }
         node_package: { $eval: as_slugid("node-package") }
       in:
-        CONVERT_GRAPHDEF_MEMMAPPED: ${build.convert_graphdef}
         DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_rpi3_build}/artifacts/public
         DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb

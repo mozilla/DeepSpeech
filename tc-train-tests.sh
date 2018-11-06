@@ -66,7 +66,7 @@ pushd ${HOME}/DeepSpeech/ds/
 popd
 
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
-cp /tmp/train/output_graph.fb ${TASKCLUSTER_ARTIFACTS}
+cp /tmp/train/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}
 
 if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
   convert_graphdef=$(basename "${CONVERT_GRAPHDEF_MEMMAPPED}")
