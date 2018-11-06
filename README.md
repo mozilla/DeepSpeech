@@ -45,6 +45,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Training a model](#training-a-model)
   - [Checkpointing](#checkpointing)
   - [Exporting a model for inference](#exporting-a-model-for-inference)
+  - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
   - [Distributed computing across more than one machine](#distributed-training-across-more-than-one-machine)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
 - [Code documentation](#code-documentation)
@@ -226,7 +227,7 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip3 uninstall tensorflow
-pip3 install 'tensorflow-gpu==1.11.0'
+pip3 install 'tensorflow-gpu==1.12.0rc2'
 ```
 
 ### Common Voice training data
@@ -317,12 +318,16 @@ Be aware however that checkpoints are only valid for the same model geometry the
 If the `--export_dir` parameter is provided, a model will have been exported to this directory during training.
 Refer to the corresponding [README.md](native_client/README.md) for information on building and running a client that can use the exported model.
 
+### Exporting a model for TFLite
+
+If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the `--export_tflite` flag. If you already have a trained model, you can re-export it for TFLite by running `DeepSpeech.py` again and specifying the same `checkpoint_dir` that you used for training, as well as passing `--notrain --notest --export_tflite --export_dir /model/export/destination`.
+
 ### Making a mmap-able model for inference
 
 The `output_graph.pb` model file generated in the above step will be loaded in memory to be dealt with when running inference.
 This will result in extra loading time and memory consumption. One way to avoid this is to directly read data from the disk.
 
-TensorFlow has tooling to achieve this: it requires building the target `//tensorflow/contrib/util:convert_graphdef_memmapped_format` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64), use `util/taskcluster.py` tool to download, specifying `tensorflow` as a source.
+TensorFlow has tooling to achieve this: it requires building the target `//tensorflow/contrib/util:convert_graphdef_memmapped_format` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64), use `util/taskcluster.py` tool to download, specifying `tensorflow` as a source and `convert_graphdef_memmapped_format` as artifact.
 Producing a mmap-able model is as simple as:
 ```
 $ convert_graphdef_memmapped_format --in_graph=output_graph.pb --out_graph=output_graph.pbmm

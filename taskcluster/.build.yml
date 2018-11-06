@@ -21,3 +21,4 @@ build:
   args:
     tests_cmdline: ''
   convert_graphdef: ''
+  benchmark_model_bin: ''

@@ -275,6 +275,16 @@ download_material()
   ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
 }
 
+download_benchmark_model()
+{
+  target_dir=$1
+
+  mkdir -p ${target_dir} || true
+
+  wget -P "${target_dir}" "${model_source}"
+  wget -P "${target_dir}" "${BENCHMARK_MODEL_BIN}" && chmod +x ${target_dir}/*benchmark_model
+}
+
 install_pyenv()
 {
   if [ -z "${PYENV_ROOT}" ]; then
