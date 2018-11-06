@@ -52,7 +52,7 @@ Check the [main README](../README.md) for more details.
 If you'd like to build the binaries yourself, you'll need the following pre-requisites downloaded/installed:
 
 * [TensorFlow requirements](https://www.tensorflow.org/install/install_sources)
-* [TensorFlow `r1.12` sources](https://github.com/mozilla/tensorflow/tree/r1.12)
+* [TensorFlow `master` sources](https://github.com/mozilla/tensorflow/tree/master)
 * [libsox](https://sourceforge.net/projects/sox/)
 
 It is required to use our fork of TensorFlow since it includes fixes for common problems encountered when building the native client files.
