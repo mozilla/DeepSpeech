@@ -1828,7 +1828,7 @@ def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False, tfli
     else:
         logits = tf.identity(logits, name='logits')
         new_state_c = tf.identity(new_state_c, name='new_state_c')
-        new_state_h = tf.identity(new_state_c, name='new_state_h')
+        new_state_h = tf.identity(new_state_h, name='new_state_h')
 
         return (
             {
