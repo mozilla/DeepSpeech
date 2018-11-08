@@ -21,6 +21,7 @@ do_deepspeech_binary_build
 
 do_deepspeech_python_build
 
+do_deepspeech_decoder_build
+
 do_deepspeech_nodejs_build
 
-$(dirname "$0")/decoder-build.sh

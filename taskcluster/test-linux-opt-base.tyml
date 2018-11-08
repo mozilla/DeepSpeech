@@ -40,10 +40,10 @@ then:
         BENCHMARK_MODEL_BIN: ${build.benchmark_model_bin}
         DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_amd64_build}/artifacts/public
         DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package}/artifacts/public
-        DEEPSPEECH_LIBCTC: https://queue.taskcluster.net/v1/task/${linux_amd64_ctc}/artifacts/public/decoder.tar.xz
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
         DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod-ctcdecode/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod-ctcdecode/output_graph.pbmm
+        DECODER_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_amd64_ctc}/artifacts/public
         PIP_DEFAULT_TIMEOUT: "60"
         EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.12.0-rc2-11-gbea86c1"
 

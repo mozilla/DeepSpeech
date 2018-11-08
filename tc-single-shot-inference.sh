@@ -44,7 +44,13 @@ source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
 pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 
-download_ctc_kenlm "/tmp/ds"
+platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
+whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
+decoder_pkg="ds_ctcdecoder-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
+
+decoder_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${decoder_pkg}
+
+LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${decoder_pkg_url} | cat
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1_singleshotinference.sh
