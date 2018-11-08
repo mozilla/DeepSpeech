@@ -30,8 +30,8 @@ class Alphabet(object):
     def label_from_string(self, string):
         try:
             return self._str_to_label[string]
-        except KeyError:
-            print(
+        except KeyError as e:
+            raise KeyError(
                 '''
                 ERROR: You have characters in your transcripts
                        which do not occur in your data/alphabet.txt
@@ -40,7 +40,7 @@ class Alphabet(object):
                        util/check_characters.py to see what characters are in
                        your train / dev / test transcripts.
                 '''
-            )
+            ).with_traceback(e.__traceback__)
             sys.exit()
 
     def size(self):

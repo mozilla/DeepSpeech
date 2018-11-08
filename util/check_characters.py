@@ -1,29 +1,43 @@
 import csv
 import sys
-'''
-
-Usage: $ python3 check_characters.py LOCALE
- e.g.  $ python3 ../DeepSpeech/util/check_characters.py 'fr' 
-
-You need to run this script from the dir in which your csv files for test / train / dev are.
-These files are comma delimited, with the transcript being the third field
+import glob
 
 '''
+Usage: $ python3 check_characters.py "INFILE"
+ e.g.  $ python3 ../DeepSpeech/util/check_characters.py "/home/data/*.csv" 
+ e.g.  $ python3 ../DeepSpeech/util/check_characters.py "/home/data/french.csv" 
+ e.g.  $ python3 ../DeepSpeech/util/check_characters.py "train.csv test.csv" 
 
-LOCALE=sys.argv[1]
+Point this script to your transcripts, and it returns 
+to the terminal the unique set of characters in those 
+files (combined).
 
-allText=''
+These files are assumed to be comma delimited, 
+with the transcript being the third field.
 
-dev = 'cv_{}_valid_dev.csv'.format(LOCALE)
-test = 'cv_{}_valid_test.csv'.format(LOCALE)
-train = 'cv_{}_valid_train.csv'.format(LOCALE)
+The script simply reads all the text from all the files, 
+storing a set of unique characters that were seen 
+along the way.
+'''
 
-for inFile in (dev, test, train):
+inFiles=sys.argv[1]
+if "*" in inFiles:
+    inFiles = glob.glob(inFiles)
+else:
+    inFiles = inFiles.split()
+
+print("### Reading in the following transcript files: ###")
+print(inFiles)
+
+
+allText = set()
+for inFile in (inFiles):
     with open(inFile, 'r') as csvFile:
         reader = csv.reader(csvFile)
         for row in reader:
-            allText = ''.join(set(allText + str(row[2])))
+            allText |= set(str(row[2]))
     csvFile.close()
 
-print("### The following characters were found in your train / test / dev transcripts: ###")
+print("### The following unique characters were found in your transcripts: ###")
 print(list(allText))
+print("### All these characters should be in your data/alphabet.txt file ###")
