@@ -21,5 +21,4 @@ python3 -u DeepSpeech.py \
   --display_step 0 \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
-  --summary_dir "../keep/summaries" \
-  --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
+  --summary_dir "../keep/summaries"

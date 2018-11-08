@@ -12,14 +12,13 @@ class ModelFeeder(object):
     '''
     Feeds data into a model.
     Feeding is parallelized by independent units called tower feeders (usually one per GPU).
-    Each tower feeder provides data from three runtime switchable sources (train, dev, test).
-    These sources are to be provided by three DataSet instances whos references are kept.
+    Each tower feeder provides data from runtime switchable sources (train, dev).
+    These sources are to be provided by the DataSet instances whose references are kept.
     Creates, owns and delegates to tower_feeder_count internal tower feeder objects.
     '''
     def __init__(self,
                  train_set,
                  dev_set,
-                 test_set,
                  numcep,
                  numcontext,
                  alphabet,
@@ -28,8 +27,7 @@ class ModelFeeder(object):
 
         self.train = train_set
         self.dev = dev_set
-        self.test = test_set
-        self.sets = [train_set, dev_set, test_set]
+        self.sets = [train_set, dev_set]
         self.numcep = numcep
         self.numcontext = numcontext
         self.tower_feeder_count = max(len(get_available_gpus()), 1) if tower_feeder_count < 0 else tower_feeder_count

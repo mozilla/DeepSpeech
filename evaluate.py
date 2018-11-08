@@ -15,8 +15,10 @@ import tensorflow as tf
 from attrdict import AttrDict
 from collections import namedtuple
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
-from DeepSpeech import initialize_globals, create_flags, log_debug, log_info, log_warn, log_error, create_inference_graph
-from multiprocessing import Pool
+from util.flags import create_flags
+from util.coordinator import C, initialize_globals
+from util.logging import log_debug, log_info, log_warn, log_error
+from multiprocessing import Pool, cpu_count
 from six.moves import zip, range
 from util.audio import audiofile_to_input_vector
 from util.text import Alphabet, ctc_label_dense_to_sparse, wer, levenshtein
@@ -86,31 +88,11 @@ def calculate_report(labels, decodings, distances, losses):
     return samples_wer, samples
 
 
-def main(_):
-    initialize_globals()
-
-    if not FLAGS.test_files:
-        log_error('You need to specify what files to use for evaluation via '
-                  'the --test_files flag.')
-        exit(1)
-
-    global alphabet
-    alphabet = Alphabet(FLAGS.alphabet_config_path)
-
-    scorer = Scorer(FLAGS.lm_weight, FLAGS.valid_word_count_weight,
+def evaluate(test_data, inference_graph, alphabet):
+    scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                     FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                    alphabet)
+                    C.alphabet)
 
-    # sort examples by length, improves packing of batches and timesteps
-    test_data = preprocess(
-        FLAGS.test_files.split(','),
-        FLAGS.test_batch_size,
-        alphabet=alphabet,
-        numcep=N_FEATURES,
-        numcontext=N_CONTEXT,
-        hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
-        by="features_len",
-        ascending=False)
 
     def create_windows(features):
         num_strides = len(features) - (N_CONTEXT * 2)
@@ -130,7 +112,7 @@ def main(_):
     test_data['features'] = test_data['features'].apply(create_windows)
 
     with tf.Session() as session:
-        inputs, outputs, layers = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
+        inputs, outputs, layers = inference_graph
 
         # Transpose to batch major for decoder
         transposed = tf.transpose(outputs['outputs'], [1, 0, 2])
@@ -192,7 +174,10 @@ def main(_):
                                       widget=progressbar.AdaptiveETA)
 
         # Get number of accessible CPU cores for this process
-        num_processes = len(os.sched_getaffinity(0))
+        try:
+            num_processes = cpu_count()
+        except:
+            num_processes = 1
 
         # Second pass, decode logits and compute WER and edit distance metrics
         for logits, batch in bar(zip(logitses, split_data(test_data, FLAGS.test_batch_size))):
@@ -221,7 +206,38 @@ def main(_):
         print(' - res: "%s"' % sample.res)
         print('-' * 80)
 
+    return samples
+
+
+def main(_):
+    initialize_globals()
+
+    if not FLAGS.test_files:
+        log_error('You need to specify what files to use for evaluation via '
+                  'the --test_files flag.')
+        exit(1)
+
+    global alphabet
+    alphabet = Alphabet(FLAGS.alphabet_config_path)
+
+    # sort examples by length, improves packing of batches and timesteps
+    test_data = preprocess(
+        FLAGS.test_files.split(','),
+        FLAGS.test_batch_size,
+        alphabet=alphabet,
+        numcep=N_FEATURES,
+        numcontext=N_CONTEXT,
+        hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
+        by="features_len",
+        ascending=False)
+
+    from DeepSpeech import create_inference_graph
+    graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
+
+    samples = evaluate(test_data, graph, alphabet)
+
     if FLAGS.test_output_file:
+        # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=lambda x: float(x))
 
 
