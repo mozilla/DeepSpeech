@@ -19,8 +19,6 @@ This will download and extract `native_client.tar.xz` which includes the deepspe
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
 
-If you're looking to train a model, you now have a `libctc_decoder_with_kenlm.so` file that you can pass to the `--decoder_library_path` parameter of `DeepSpeech.py`.
-
 ## Required Dependencies
 
 Running inference might require some runtime dependencies to be already installed on your system. Those should be the same, whatever the bindings you are using:
@@ -77,10 +75,9 @@ Before building the DeepSpeech client libraries, you will need to prepare your e
 Preferably, checkout the version of tensorflow which is currently supported by DeepSpeech (see requirements.txt), and use the bazel version recommended by TensorFlow for that version.
 Then, follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
 
-After that, you can build the Tensorflow and DeepSpeech libraries using the following commands. Please note that the flags for `libctc_decoder_with_kenlm.so` differs a little bit.
+After that, you can build the Tensorflow and DeepSpeech libraries using the following command.
 
 ```
-bazel build -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" //native_client:libctc_decoder_with_kenlm.so
 bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
 ```
 

@@ -12,11 +12,10 @@ genrule(
 
 KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
                       "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
-                     exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]) + glob(["boost_locale/**/*.hpp"])
+                     exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"])
 
 KENLM_INCLUDES = [
     "kenlm",
-    "boost_locale"
 ]
 
 DECODER_SOURCES = glob([
@@ -100,24 +99,6 @@ tf_cc_shared_object(
     ]),
     includes = ["c_speech_features", "kiss_fft130"] + DECODER_INCLUDES,
     defines = ["KENLM_MAX_ORDER=6"],
-)
-
-tf_cc_shared_object(
-    name = "libctc_decoder_with_kenlm.so",
-    srcs = [
-            "beam_search.cc",
-            "beam_search.h",
-            "alphabet.h",
-            "trie_node.h"
-           ] +
-           KENLM_SOURCES,
-    includes = KENLM_INCLUDES,
-    copts = ["-std=c++11"],
-    defines = ["KENLM_MAX_ORDER=6"],
-    deps = ["//tensorflow/core:framework_headers_lib",
-            "//tensorflow/core/util/ctc",
-            "//third_party/eigen3",
-    ],
 )
 
 cc_binary(
