@@ -214,13 +214,12 @@ def main(_):
                                       widget=progressbar.AdaptiveETA)
 
         for logits, batch in bar(zip(logitses, split_data(test_data, FLAGS.test_batch_size))):
-            seq_lengths = batch['features_len'].values
             labels = pad_to_dense(batch['transcript'].values)
             label_lengths = batch['transcript_len'].values
 
             decoded_, loss_, distance_, sparse_labels_ = session.run([decoded, loss, distance, sparse_labels], feed_dict={
                 decode_logits_ph: logits,
-                seq_lengths_ph: seq_lengths,
+                seq_lengths_ph: [len(logits)],
                 labels_ph: labels,
                 label_lengths_ph: label_lengths
             })
