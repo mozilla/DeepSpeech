@@ -84,13 +84,8 @@ FILES = [
         'unittest.cc'))
 ]
 
-LIBS = ['stdc++']
-if platform.system() != 'Darwin':
-    LIBS.append('rt')
-
 ARGS = ['-O3', '-DNDEBUG', '-DKENLM_MAX_ORDER=6', '-std=c++11',
         '-Wno-unused-local-typedef', '-Wno-sign-compare']
-
 
 decoder_module = Extension(
     name='ds_ctcdecoder._swigwrapper',
@@ -104,7 +99,6 @@ decoder_module = Extension(
         'third_party/openfst-1.6.7/src/include',
         'third_party/ThreadPool',
     ],
-    libraries=LIBS,
     extra_compile_args=ARGS
 )
 

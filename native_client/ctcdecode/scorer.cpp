@@ -43,6 +43,16 @@ Scorer::Scorer(double alpha,
   setup(lm_path, trie_path);
 }
 
+Scorer::Scorer(double alpha,
+               double beta,
+               const std::string& lm_path,
+               const std::string& trie_path,
+               const char* alphabet_config_path)
+  : Scorer(alpha, beta, lm_path, trie_path, Alphabet(alphabet_config_path))
+{
+
+}
+
 Scorer::~Scorer() {
 }
 
@@ -114,7 +124,7 @@ void Scorer::save_dictionary(const std::string& path) {
 }
 
 double Scorer::get_log_cond_prob(const std::vector<std::string>& words) {
-  double cond_prob;
+  double cond_prob = OOV_SCORE;
   lm::ngram::State state, tmp_state, out_state;
   // avoid to inserting <s> in begin
   language_model_->NullContextWrite(&state);

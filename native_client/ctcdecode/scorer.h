@@ -46,6 +46,11 @@ public:
          const std::string &lm_path,
          const std::string &trie_path,
          const Alphabet &alphabet);
+  Scorer(double alpha,
+         double beta,
+         const std::string &lm_path,
+         const std::string &trie_path,
+         const char* alphabet_config_path);
   ~Scorer();
 
   double get_log_cond_prob(const std::vector<std::string> &words);

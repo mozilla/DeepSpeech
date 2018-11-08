@@ -6,6 +6,7 @@
 %}
 
 %include "pyabc.i"
+%include "std_string.i"
 %include "std_vector.i"
 %include "numpy.i"
 
@@ -60,6 +61,9 @@ mod_decoder_batch(const double *probs,
                                          ext_scorer);
 }
 %}
+
+
+%ignore Scorer::dictionary;
 
 %include "output.h"
 %include "scorer.h"
