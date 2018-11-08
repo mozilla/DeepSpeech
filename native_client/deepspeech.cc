@@ -325,19 +325,15 @@ ModelState::decode(vector<float>& logits)
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
   const int n_frames = logits.size() / (BATCH_SIZE * num_classes);
 
-  vector<vector<double>> inputs;
-  inputs.resize(n_frames);
-  for (int t = 0; t < n_frames; ++t) {
-    for (int i = 0; i < num_classes; ++i) {
-      inputs[t].push_back(logits[t * num_classes + i]);
-    }
-  }
+  // Convert logits to double
+  vector<double> inputs(logits.begin(), logits.end());
 
-  // Vector of <probability, Output(tokens, timings)> pairs
-  vector<std::pair<double, Output>> out = ctc_beam_search_decoder(
-    inputs, *alphabet, beam_width, cutoff_prob, cutoff_top_n, scorer);
+  // Vector of <probability, Output> pairs
+  vector<Output> out = ctc_beam_search_decoder(
+    inputs.data(), n_frames, num_classes, *alphabet, beam_width,
+    cutoff_prob, cutoff_top_n, scorer);
 
-  return strdup(alphabet->LabelsToString(out[0].second.tokens).c_str());
+  return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
 }
 
 int

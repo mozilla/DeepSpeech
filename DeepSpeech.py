@@ -30,7 +30,7 @@ from util.feeding import DataSet, ModelFeeder
 from util.preprocess import preprocess
 from util.gpu import get_available_gpus
 from util.shared_lib import check_cupti
-from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet, ndarray_to_text
+from util.text import sparse_tensor_value_to_texts, wer, levenshtein, Alphabet
 from xdg import BaseDirectory as xdg
 import numpy as np
 
@@ -489,7 +489,7 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
     # Note, that this differs from the input in that it is time-major.
     layer_6 = tf.reshape(layer_6, [n_steps, batch_size, n_hidden_6], name="raw_logits")
-    layers['logits'] = layer_6
+    layers['raw_logits'] = layer_6
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
     return layer_6, layers
@@ -1823,7 +1823,8 @@ def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False, tfli
             {
                 'outputs': logits,
                 'initialize_state': initialize_state,
-            }
+            },
+            layers
         )
     else:
         logits = tf.identity(logits, name='logits')
@@ -1840,7 +1841,8 @@ def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False, tfli
                 'outputs': logits,
                 'new_state_c': new_state_c,
                 'new_state_h': new_state_h,
-            }
+            },
+            layers
         )
 
 
@@ -1855,7 +1857,7 @@ def export():
         tf.reset_default_graph()
         session = tf.Session(config=session_config)
 
-        inputs, outputs = create_inference_graph(batch_size=1, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
+        inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
         input_names = ",".join(tensor.op.name for tensor in inputs.values())
         output_names_tensors = [ tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor) ]
         output_names_ops = [ tensor.name for tensor in outputs.values() if isinstance(tensor, Operation) ]
@@ -1947,7 +1949,7 @@ def export():
 
 def do_single_file_inference(input_file_path):
     with tf.Session(config=session_config) as session:
-        inputs, outputs = create_inference_graph(batch_size=1, use_new_decoder=True)
+        inputs, outputs, _ = create_inference_graph(batch_size=1, use_new_decoder=True)
 
         # Create a saver using variables from the above newly created graph
         mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}

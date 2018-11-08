@@ -10,6 +10,7 @@ from functools import reduce
 
 class Alphabet(object):
     def __init__(self, config_file):
+        self._config_file = config_file
         self._label_to_str = []
         self._str_to_label = {}
         self._size = 0
@@ -29,8 +30,17 @@ class Alphabet(object):
     def label_from_string(self, string):
         return self._str_to_label[string]
 
+    def decode(self, labels):
+        res = ''
+        for label in labels:
+            res += self.string_from_label(label)
+        return res
+
     def size(self):
         return self._size
+
+    def config_file(self):
+        return self._config_file
 
 def text_to_char_array(original, alphabet):
     r"""
@@ -74,12 +84,6 @@ def sparse_tuple_to_texts(tuple, alphabet):
         index = indices[i][0]
         results[index] += alphabet.string_from_label(values[i])
     # List of strings
-    return results
-
-def ndarray_to_text(value, alphabet):
-    results = ''
-    for i in range(len(value)):
-        results += alphabet.string_from_label(value[i])
     return results
 
 def wer(original, result):

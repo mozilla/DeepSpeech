@@ -19,12 +19,13 @@ def process_single_file(row, numcep, numcontext, alphabet):
     # row = index, Series
     _, file = row
     features = audiofile_to_input_vector(file.wav_filename, numcep, numcontext)
+    features_len = len(features) - 2*numcontext
     transcript = text_to_char_array(file.transcript, alphabet)
 
-    if (2*numcontext + len(features)) < len(transcript):
+    if features_len < len(transcript):
         raise ValueError('Error: Audio file {} is too short for transcription.'.format(file.wav_filename))
 
-    return features, len(features), transcript, len(transcript)
+    return features, features_len, transcript, len(transcript)
 
 
 # load samples from CSV, compute features, optionally cache results on disk
