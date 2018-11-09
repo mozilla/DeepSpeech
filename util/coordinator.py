@@ -1,18 +1,15 @@
 from __future__ import absolute_import, division, print_function
 
-import os
 import pickle
 import tensorflow as tf
 
-from attrdict import AttrDict
 from datetime import datetime
 from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from threading import Thread, Lock
-from util.gpu import get_available_gpus
+from util.config import C
 from util.flags import FLAGS
 from util.logging import *
-from util.text import Alphabet
-from xdg import BaseDirectory as xdg
+
 
 # Execution
 # =========
@@ -104,8 +101,9 @@ class Epoch(object):
     Kwargs:
         set_name (str): the name of the data-set - one of 'train', 'dev'
     '''
-    def __init__(self, index, num_jobs, set_name='train'):
+    def __init__(self, coord, index, num_jobs, set_name='train'):
         self.id = new_id()
+        self.coord = coord
         self.index = index
         self.num_jobs = num_jobs
         self.set_name = set_name
@@ -186,7 +184,7 @@ class Epoch(object):
 
                 # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
                 if (FLAGS.early_stop is True) and (self.set_name == 'dev'):
-                    COORD._dev_losses.append(self.loss)
+                    self.coord_dev_losses.append(self.loss)
 
             return True
         return False
@@ -213,57 +211,61 @@ class TrainingCoordinator(object):
     HTTP-forwarded to the chief worker instance.
     '''
 
-    class TrainingCoordinationHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-        '''Handles HTTP requests from remote workers to the Training Coordinator.
-        '''
-        def _send_answer(self, data=None):
-            self.send_response(200)
-            self.send_header('content-type', 'text/plain')
-            self.end_headers()
-            if data:
-                self.wfile.write(data)
+    def make_handler(coord):
+        class TrainingCoordinationHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+            '''Handles HTTP requests from remote workers to the Training Coordinator.
+            '''
+            def _send_answer(self, data=None):
+                self.send_response(200)
+                self.send_header('content-type', 'text/plain')
+                self.end_headers()
+                if data:
+                    self.wfile.write(data)
 
-        def do_GET(self):
-            if COORD.started:
-                if self.path.startswith(PREFIX_NEXT_INDEX):
-                    index = COORD.get_next_index(self.path[len(PREFIX_NEXT_INDEX):])
-                    if index >= 0:
-                        self._send_answer(str(index).encode("utf-8"))
-                        return
-                elif self.path.startswith(PREFIX_GET_JOB):
-                    job = COORD.get_job(worker=int(self.path[len(PREFIX_GET_JOB):]))
+            def do_GET(self):
+                if coord.started:
+                    if self.path.startswith(PREFIX_NEXT_INDEX):
+                        index = coord.get_next_index(self.path[len(PREFIX_NEXT_INDEX):])
+                        if index >= 0:
+                            self._send_answer(str(index).encode("utf-8"))
+                            return
+                    elif self.path.startswith(PREFIX_GET_JOB):
+                        job = coord.get_job(worker=int(self.path[len(PREFIX_GET_JOB):]))
+                        if job:
+                            self._send_answer(pickle.dumps(job))
+                            return
+                    self.send_response(204) # end of training
+                else:
+                    self.send_response(202) # not ready yet
+                self.end_headers()
+
+            def do_POST(self):
+                if coord.started:
+                    src = self.rfile.read(int(self.headers['content-length']))
+                    job = coord.next_job(pickle.loads(src))
                     if job:
                         self._send_answer(pickle.dumps(job))
                         return
-                self.send_response(204) # end of training
-            else:
-                self.send_response(202) # not ready yet
-            self.end_headers()
+                    self.send_response(204) # end of training
+                else:
+                    self.send_response(202) # not ready yet
+                self.end_headers()
 
-        def do_POST(self):
-            if COORD.started:
-                src = self.rfile.read(int(self.headers['content-length']))
-                job = COORD.next_job(pickle.loads(src))
-                if job:
-                    self._send_answer(pickle.dumps(job))
-                    return
-                self.send_response(204) # end of training
-            else:
-                self.send_response(202) # not ready yet
-            self.end_headers()
+            def log_message(self, format, *args):
+                '''Overriding base method to suppress web handler messages on stdout.
+                '''
+                return
 
-        def log_message(self, format, *args):
-            '''Overriding base method to suppress web handler messages on stdout.
-            '''
-            return
+        return TrainingCoordinationHandler
 
     def __init__(self, is_chief):
         self._init()
         self._lock = Lock()
+        self._thread = None
         self.started = False
         self.is_chief = is_chief
         if is_chief:
-            self._httpd = BaseHTTPServer.HTTPServer((FLAGS.coord_host, FLAGS.coord_port), TrainingCoordinator.TrainingCoordinationHandler)
+            self._httpd = BaseHTTPServer.HTTPServer((FLAGS.coord_host, FLAGS.coord_port), TrainingCoordinator.make_handler(self))
 
     def _reset_counters(self):
         self._index_train = 0
@@ -385,7 +387,7 @@ class TrainingCoordinator(object):
                 self._reset_counters()
 
                 # Append the training epoch
-                self._epochs_running.append(Epoch(self._epoch, num_jobs_train, set_name='train'))
+                self._epochs_running.append(Epoch(self, self._epoch, num_jobs_train, set_name='train'))
 
                 if FLAGS.validation_step > 0 and (FLAGS.validation_step == 1 or self._epoch > 0) and self._epoch % FLAGS.validation_step == 0:
                     # The current epoch should also have a validation part
@@ -415,15 +417,15 @@ class TrainingCoordinator(object):
         if self.is_chief:
             log_debug('Starting coordinator...')
             self._thread = Thread(target=self._httpd.serve_forever)
-            self._thread.daemon = True
+            # self._thread.daemon = True
             self._thread.start()
-            log_debug('Coordinator started.')
+            log_debug('Coordinator started. Thread id {}'.format(self._thread.ident))
 
     def stop(self, wait_for_running_epochs=True):
         '''Stops Training Coordinator. If chief, it waits for all epochs to be
         'done' and then shuts down the web server.
         '''
-        if self.is_chief:
+        if self.is_chief and self._thread:
             if wait_for_running_epochs:
                 while len(self._epochs_running) > 0:
                     log_traffic('Coordinator is waiting for epochs to finish...')
@@ -564,143 +566,3 @@ class TrainingCoordinator(object):
         if result:
             result = pickle.loads(result)
         return result
-
-class GlobalConfig:
-    _config = None
-
-    def __getattr__(self, name):
-        if not GlobalConfig._config:
-            raise RuntimeError("Global configuration not yet initialized.")
-        if not hasattr(GlobalConfig._config, name):
-            raise RuntimeError("Configuration option {} not found in config.".format(name))
-        return GlobalConfig._config[name]
-
-C = GlobalConfig()
-
-def initialize_globals():
-    c = AttrDict()
-
-    # ps and worker hosts required for p2p cluster setup
-    FLAGS.ps_hosts = list(filter(len, FLAGS.ps_hosts.split(',')))
-    FLAGS.worker_hosts = list(filter(len, FLAGS.worker_hosts.split(',')))
-
-    # The absolute number of computing nodes - regardless of cluster or single mode
-    c.num_workers = max(1, len(FLAGS.worker_hosts))
-
-    # Create a cluster from the parameter server and worker hosts.
-    c.cluster = tf.train.ClusterSpec({'ps': FLAGS.ps_hosts, 'worker': FLAGS.worker_hosts})
-
-    # If replica numbers are negative, we multiply their absolute values with the number of workers
-    if FLAGS.replicas < 0:
-        FLAGS.replicas = c.num_workers * -FLAGS.replicas
-    if FLAGS.replicas_to_agg < 0:
-        FLAGS.replicas_to_agg = c.num_workers * -FLAGS.replicas_to_agg
-
-    # The device path base for this node
-    c.worker_device = '/job:%s/task:%d' % (FLAGS.job_name, FLAGS.task_index)
-
-    # This node's CPU device
-    c.cpu_device = c.worker_device + '/cpu:0'
-
-    # This node's available GPU devices
-    c.available_devices = [c.worker_device + gpu for gpu in get_available_gpus()]
-
-    # If there is no GPU available, we fall back to CPU based operation
-    if 0 == len(c.available_devices):
-        c.available_devices = [c.cpu_device]
-
-    # Set default dropout rates
-    if FLAGS.dropout_rate2 < 0:
-        FLAGS.dropout_rate2 = FLAGS.dropout_rate
-    if FLAGS.dropout_rate3 < 0:
-        FLAGS.dropout_rate3 = FLAGS.dropout_rate
-    if FLAGS.dropout_rate6 < 0:
-        FLAGS.dropout_rate6 = FLAGS.dropout_rate
-
-    c.no_dropout = [ 0.0 ] * 6
-
-    # Set default checkpoint dir
-    if len(FLAGS.checkpoint_dir) == 0:
-        FLAGS.checkpoint_dir = xdg.save_data_path(os.path.join('deepspeech','checkpoints'))
-
-    # Set default summary dir
-    if len(FLAGS.summary_dir) == 0:
-        FLAGS.summary_dir = xdg.save_data_path(os.path.join('deepspeech','summaries'))
-
-    # Standard session configuration that'll be used for all new sessions.
-    c.session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement,
-                                      inter_op_parallelism_threads=FLAGS.inter_op_parallelism_threads,
-                                      intra_op_parallelism_threads=FLAGS.intra_op_parallelism_threads)
-
-    c.alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
-
-    # Geometric Constants
-    # ===================
-
-    # For an explanation of the meaning of the geometric constants, please refer to
-    # doc/Geometry.md
-
-    # Number of MFCC features
-    c.n_input = 26 # TODO: Determine this programatically from the sample rate
-
-    # The number of frames in the context
-    c.n_context = 9 # TODO: Determine the optimal value using a validation data set
-
-    # Number of units in hidden layers
-    c.n_hidden = FLAGS.n_hidden
-
-    c.n_hidden_1 = c.n_hidden
-
-    c.n_hidden_2 = c.n_hidden
-
-    c.n_hidden_5 = c.n_hidden
-
-    # LSTM cell state dimension
-    c.n_cell_dim = c.n_hidden
-
-    # The number of units in the third layer, which feeds in to the LSTM
-    c.n_hidden_3 = c.n_cell_dim
-
-    # The number of characters in the target language plus one
-    c.n_character = c.alphabet.size() + 1 # +1 for CTC blank label
-
-    # The number of units in the sixth layer
-    c.n_hidden_6 = c.n_character
-
-    # Queues that are used to gracefully stop parameter servers.
-    # Each queue stands for one ps. A finishing worker sends a token to each queue before joining/quitting.
-    # Each ps will dequeue as many tokens as there are workers before joining/quitting.
-    # This ensures parameter servers won't quit, if still required by at least one worker and
-    # also won't wait forever (like with a standard `server.join()`).
-    c.done_queues = []
-    for i, ps in enumerate(FLAGS.ps_hosts):
-        # Queues are hosted by their respective owners
-        with tf.device('/job:ps/task:%d' % i):
-            c.done_queues.append(tf.FIFOQueue(1, tf.int32, shared_name=('queue%i' % i)))
-
-    # Placeholder to pass in the worker's index as token
-    c.token_placeholder = tf.placeholder(tf.int32)
-
-    # Enqueue operations for each parameter server
-    c.done_enqueues = [queue.enqueue(token_placeholder) for queue in c.done_queues]
-
-    # Dequeue operations for each parameter server
-    c.done_dequeues = [queue.dequeue() for queue in c.done_queues]
-
-    if len(FLAGS.one_shot_infer) > 0:
-        FLAGS.train = False
-        FLAGS.test = False
-        FLAGS.export_dir = ''
-        if not os.path.exists(FLAGS.one_shot_infer):
-            log_error('Path specified in --one_shot_infer is not a valid file.')
-            exit(1)
-
-    # Determine, if we are the chief worker
-    c.is_chief = len(FLAGS.worker_hosts) == 0 or (FLAGS.task_index == 0 and FLAGS.job_name == 'worker')
-
-    # Initializing and starting the training coordinator
-    c.COORD = TrainingCoordinator(c.is_chief)
-    c.COORD.start()
-
-    GlobalConfig._config = c
-

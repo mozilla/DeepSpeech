@@ -15,8 +15,8 @@ import tensorflow as tf
 from attrdict import AttrDict
 from collections import namedtuple
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
+from util.config import C, initialize_globals
 from util.flags import create_flags
-from util.coordinator import C, initialize_globals
 from util.logging import log_debug, log_info, log_warn, log_error
 from multiprocessing import Pool, cpu_count
 from six.moves import zip, range

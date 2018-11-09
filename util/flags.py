@@ -1,8 +1,6 @@
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import tensorflow as tf
-
-from xdg import BaseDirectory as xdg
 
 
 FLAGS = tf.app.flags.FLAGS
