@@ -14,3 +14,4 @@ six
 requests
 tables
 attrdict
+setuptools

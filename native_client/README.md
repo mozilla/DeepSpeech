@@ -55,7 +55,7 @@ If you'd like to build the binaries yourself, you'll need the following pre-requ
 
 It is required to use our fork of TensorFlow since it includes fixes for common problems encountered when building the native client files.
 
-If you'd like to build the language bindings, you'll also need:
+If you'd like to build the language bindings or the decoder package, you'll also need:
 
 * [SWIG](http://www.swig.org/)
 * [node-pre-gyp](https://github.com/mapbox/node-pre-gyp) (for Node.JS bindings only)
@@ -115,7 +115,7 @@ Included are a set of generated Python bindings. After following the above build
 ```
 cd native_client/python
 make bindings
-sudo pip install dist/deepspeech*
+pip install dist/deepspeech*
 ```
 
 The API mirrors the C++ API and is demonstrated in [client.py](python/client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
@@ -131,3 +131,13 @@ make npm-pack
 ```
 
 This will create the package `deepspeech-0.3.0.tgz` in `native_client/javascript`.
+
+## Building the CTC decoder package
+
+To build the `ds_ctcdecoder` package, you'll need the general requirements listed above (in particular SWIG). The command below builds the bindings using 8 processes for compilation. Adjust the parameter accordingly for more or less parallelism.
+
+```
+cd native_client/ctcdecode
+make bindings NUM_PROCESSES=8
+pip install dist/*.whl
+```
