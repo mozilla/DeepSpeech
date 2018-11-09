@@ -48,7 +48,7 @@ platform=$(python -c 'import sys; import platform; plat = platform.system().lowe
 whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
 decoder_pkg="ds_ctcdecoder-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
-decoder_pkg_url=${DEEPSPEECH_ARTIFACTS_ROOT}/${decoder_pkg}
+decoder_pkg_url=${DECODER_ARTIFACTS_ROOT}/${decoder_pkg}
 
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${decoder_pkg_url} | cat
 

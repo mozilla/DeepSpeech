@@ -50,13 +50,14 @@ Scorer::Scorer(double alpha,
                const char* alphabet_config_path)
   : Scorer(alpha, beta, lm_path, trie_path, Alphabet(alphabet_config_path))
 {
-
 }
 
-Scorer::~Scorer() {
+Scorer::~Scorer()
+{
 }
 
-void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
+void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
+{
   // load language model
   const char* filename = lm_path.c_str();
   VALID_CHECK_EQ(access(filename, R_OK), 0, "Invalid language model path");
@@ -114,7 +115,8 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path) {
   max_order_ = language_model_->Order();
 }
 
-void Scorer::save_dictionary(const std::string& path) {
+void Scorer::save_dictionary(const std::string& path)
+{
   std::ofstream fout(path, std::ios::binary);
   fout.write(reinterpret_cast<const char*>(&MAGIC), sizeof(MAGIC));
   fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
@@ -123,7 +125,8 @@ void Scorer::save_dictionary(const std::string& path) {
   dictionary->Write(fout, opt);
 }
 
-double Scorer::get_log_cond_prob(const std::vector<std::string>& words) {
+double Scorer::get_log_cond_prob(const std::vector<std::string>& words)
+{
   double cond_prob = OOV_SCORE;
   lm::ngram::State state, tmp_state, out_state;
   // avoid to inserting <s> in begin
@@ -143,7 +146,8 @@ double Scorer::get_log_cond_prob(const std::vector<std::string>& words) {
   return cond_prob/NUM_FLT_LOGE;
 }
 
-double Scorer::get_sent_log_prob(const std::vector<std::string>& words) {
+double Scorer::get_sent_log_prob(const std::vector<std::string>& words)
+{
   std::vector<std::string> sentence;
   if (words.size() == 0) {
     for (size_t i = 0; i < max_order_; ++i) {
@@ -159,7 +163,8 @@ double Scorer::get_sent_log_prob(const std::vector<std::string>& words) {
   return get_log_prob(sentence);
 }
 
-double Scorer::get_log_prob(const std::vector<std::string>& words) {
+double Scorer::get_log_prob(const std::vector<std::string>& words)
+{
   assert(words.size() > max_order_);
   double score = 0.0;
   for (size_t i = 0; i < words.size() - max_order_ + 1; ++i) {
@@ -170,12 +175,14 @@ double Scorer::get_log_prob(const std::vector<std::string>& words) {
   return score;
 }
 
-void Scorer::reset_params(float alpha, float beta) {
+void Scorer::reset_params(float alpha, float beta)
+{
   this->alpha = alpha;
   this->beta = beta;
 }
 
-std::vector<std::string> Scorer::split_labels(const std::vector<int>& labels) {
+std::vector<std::string> Scorer::split_labels(const std::vector<int>& labels)
+{
   if (labels.empty()) return {};
 
   std::string s = alphabet_.LabelsToString(labels);
@@ -188,7 +195,8 @@ std::vector<std::string> Scorer::split_labels(const std::vector<int>& labels) {
   return words;
 }
 
-std::vector<std::string> Scorer::make_ngram(PathTrie* prefix) {
+std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
+{
   std::vector<std::string> ngram;
   PathTrie* current_node = prefix;
   PathTrie* new_node = nullptr;
@@ -221,7 +229,8 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix) {
   return ngram;
 }
 
-void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary, bool add_space) {
+void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary, bool add_space)
+{
   fst::StdVectorFst dictionary;
   // For each unigram convert to ints and put in trie
   for (const auto& word : vocabulary) {

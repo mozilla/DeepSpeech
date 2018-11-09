@@ -6,7 +6,7 @@ NUM_PROCESSES ?= 1
 
 # ARM64 can't find the proper libm.so without this
 ifeq ($(TARGET),rpi3-armv8)
-LDFLAGS_NEEDED += $(RASPBIAN)/lib/aarch64-linux-gnu/libm-2.24.so
+LDFLAGS_NEEDED += $(RASPBIAN)/lib/aarch64-linux-gnu/libm.so.6
 endif
 
 all: bindings
