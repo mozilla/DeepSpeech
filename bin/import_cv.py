@@ -42,11 +42,11 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
     # If target_dir/extracted_data does not exist, extract archive in target_dir
     extracted_path = path.join(target_dir, extracted_data)
     if not path.exists(extracted_path):
-        print('No directory "%s" - extracting archive...' % archive_path)
+        print('No directory "%s" - extracting archive...' % extracted_path)
         with tarfile.open(archive_path) as tar:
             tar.extractall(target_dir)
     else:
-        print('Found directory "%s" - not extracting it from archive.' % archive_path)
+        print('Found directory "%s" - not extracting it from archive.' % extracted_path)
 
 def _maybe_convert_sets(target_dir, extracted_data):
     extracted_dir = path.join(target_dir, extracted_data)
