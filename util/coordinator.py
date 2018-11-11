@@ -8,7 +8,7 @@ from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from threading import Thread, Lock
 from util.config import C
 from util.flags import FLAGS
-from util.logging import *
+from util.logging import log_info, log_error, log_debug, log_warn, log_traffic
 
 
 # Execution
@@ -184,7 +184,7 @@ class Epoch(object):
 
                 # if the job was for validation dataset then append it to the COORD's _loss for early stop verification
                 if (FLAGS.early_stop is True) and (self.set_name == 'dev'):
-                    self.coord_dev_losses.append(self.loss)
+                    self.coord._dev_losses.append(self.loss)
 
             return True
         return False
@@ -417,7 +417,7 @@ class TrainingCoordinator(object):
         if self.is_chief:
             log_debug('Starting coordinator...')
             self._thread = Thread(target=self._httpd.serve_forever)
-            # self._thread.daemon = True
+            self._thread.daemon = True
             self._thread.start()
             log_debug('Coordinator started. Thread id {}'.format(self._thread.ident))
 

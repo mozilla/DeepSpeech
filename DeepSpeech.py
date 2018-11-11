@@ -8,12 +8,13 @@ import sys
 log_level_index = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[log_level_index] if log_level_index > 0 and log_level_index < len(sys.argv) else '3'
 
+import evaluate
+import numpy as np
 import progressbar
 import shutil
 import tempfile
 import tensorflow as tf
 import traceback
-import evaluate
 
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from six.moves import zip, range
@@ -21,10 +22,10 @@ from tensorflow.contrib.lite.python import tflite_convert
 from tensorflow.python.tools import freeze_graph
 from util.audio import audiofile_to_input_vector
 from util.config import C, initialize_globals
-from util.feeding import DataSet, ModelFeeder
-from util.logging import *
-from util.flags import create_flags, FLAGS
 from util.coordinator import TrainingCoordinator
+from util.feeding import DataSet, ModelFeeder
+from util.flags import create_flags, FLAGS
+from util.logging import log_info, log_error, log_debug, log_warn
 from util.preprocess import preprocess
 from util.text import Alphabet
 
@@ -248,7 +249,7 @@ def get_tower_results(model_feeder, optimizer, dropout_rates):
             if len(FLAGS.ps_hosts) == 0:
                 device = C.available_devices[i]
             else:
-                device = tf.train.replica_device_setter(worker_device=C.available_devices[i], cluster=cluster)
+                device = tf.train.replica_device_setter(worker_device=C.available_devices[i], cluster=C.cluster)
             with tf.device(device):
                 # Create a scope for all operations of tower i
                 with tf.name_scope('tower_%d' % i) as scope:
@@ -657,7 +658,7 @@ def test():
     evaluate.evaluate(test_data, graph, C.alphabet)
 
 
-def create_inference_graph(batch_size=1, n_steps=16, use_new_decoder=False, tflite=False):
+def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
     input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2*C.n_context+1, C.n_input], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
@@ -832,10 +833,8 @@ def export():
             log_error(str(e))
 
 def do_single_file_inference(input_file_path):
-    import numpy as np
-
     with tf.Session(config=C.session_config) as session:
-        inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=-1, use_new_decoder=True)
+        inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=-1)
 
         # Create a saver using variables from the above newly created graph
         mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}

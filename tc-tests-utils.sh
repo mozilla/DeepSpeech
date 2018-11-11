@@ -2,7 +2,7 @@
 
 set -xe
 
-OS=$(uname)
+export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=${HOME}
 fi;

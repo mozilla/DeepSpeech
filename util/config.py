@@ -6,7 +6,7 @@ import tensorflow as tf
 from attrdict import AttrDict
 from six.moves import zip, range, filter
 from util.gpu import get_available_gpus
-from util.logging import *
+from util.logging import log_error
 from util.text import Alphabet
 from xdg import BaseDirectory as xdg
 

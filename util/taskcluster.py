@@ -10,6 +10,9 @@ import errno
 import stat
 import six.moves.urllib as urllib
 
+from pkg_resources import parse_version
+
+
 DEFAULT_SCHEMES = {
     'deepspeech': 'https://index.taskcluster.net/v1/task/project.deepspeech.deepspeech.native_client.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s',
     'tensorflow': 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s'
@@ -110,7 +113,6 @@ if __name__ == '__main__':
         if plat == 'darwin':
             plat = 'macosx_10_10'
 
-        from pkg_resources import parse_version
         ds_version = parse_version(read('../VERSION'))
 
         m_or_mu = 'mu' if is_ucs2 else 'm'
