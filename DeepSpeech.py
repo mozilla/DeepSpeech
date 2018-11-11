@@ -21,7 +21,7 @@ from six.moves import zip, range
 from tensorflow.contrib.lite.python import tflite_convert
 from tensorflow.python.tools import freeze_graph
 from util.audio import audiofile_to_input_vector
-from util.config import C, initialize_globals
+from util.config import Config, initialize_globals
 from util.coordinator import TrainingCoordinator
 from util.feeding import DataSet, ModelFeeder
 from util.flags import create_flags, FLAGS
@@ -41,9 +41,9 @@ def variable_on_worker_level(name, shape, initializer):
     '''
     # Use the /cpu:0 device on worker_device for scoped operations
     if len(FLAGS.ps_hosts) == 0:
-        device = C.worker_device
+        device = Config.worker_device
     else:
-        device = tf.train.replica_device_setter(worker_device=C.worker_device, cluster=C.cluster)
+        device = tf.train.replica_device_setter(worker_device=Config.worker_device, cluster=Config.cluster)
 
     with tf.device(device):
         # Create or get apropos variable
@@ -77,29 +77,29 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     # Permute n_steps and batch_size
     batch_x = tf.transpose(batch_x, [1, 0, 2, 3])
     # Reshape to prepare input for first layer
-    batch_x = tf.reshape(batch_x, [-1, C.n_input + 2*C.n_input*C.n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
+    batch_x = tf.reshape(batch_x, [-1, Config.n_input + 2*Config.n_input*Config.n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
     layers['input_reshaped'] = batch_x
 
     # The next three blocks will pass `batch_x` through three hidden layers with
     # clipped RELU activation and dropout.
 
     # 1st layer
-    b1 = variable_on_worker_level('b1', [C.n_hidden_1], tf.zeros_initializer())
-    h1 = variable_on_worker_level('h1', [C.n_input + 2*C.n_input*C.n_context, C.n_hidden_1], tf.contrib.layers.xavier_initializer())
+    b1 = variable_on_worker_level('b1', [Config.n_hidden_1], tf.zeros_initializer())
+    h1 = variable_on_worker_level('h1', [Config.n_input + 2*Config.n_input*Config.n_context, Config.n_hidden_1], tf.contrib.layers.xavier_initializer())
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
     layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
     layers['layer_1'] = layer_1
 
     # 2nd layer
-    b2 = variable_on_worker_level('b2', [C.n_hidden_2], tf.zeros_initializer())
-    h2 = variable_on_worker_level('h2', [C.n_hidden_1, C.n_hidden_2], tf.contrib.layers.xavier_initializer())
+    b2 = variable_on_worker_level('b2', [Config.n_hidden_2], tf.zeros_initializer())
+    h2 = variable_on_worker_level('h2', [Config.n_hidden_1, Config.n_hidden_2], tf.contrib.layers.xavier_initializer())
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
     layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
     layers['layer_2'] = layer_2
 
     # 3rd layer
-    b3 = variable_on_worker_level('b3', [C.n_hidden_3], tf.zeros_initializer())
-    h3 = variable_on_worker_level('h3', [C.n_hidden_2, C.n_hidden_3], tf.contrib.layers.xavier_initializer())
+    b3 = variable_on_worker_level('b3', [Config.n_hidden_3], tf.zeros_initializer())
+    h3 = variable_on_worker_level('h3', [Config.n_hidden_2, Config.n_hidden_3], tf.contrib.layers.xavier_initializer())
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
     layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
     layers['layer_3'] = layer_3
@@ -109,14 +109,14 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
 
     # Forward direction cell:
     if not tflite:
-        fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(C.n_cell_dim, reuse=reuse)
+        fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim, reuse=reuse)
         layers['fw_cell'] = fw_cell
     else:
-        fw_cell = tf.nn.rnn_cell.LSTMCell(C.n_cell_dim, reuse=reuse)
+        fw_cell = tf.nn.rnn_cell.LSTMCell(Config.n_cell_dim, reuse=reuse)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM RNN expects its input to be of shape `[max_time, batch_size, input_size]`.
-    layer_3 = tf.reshape(layer_3, [n_steps, batch_size, C.n_hidden_3])
+    layer_3 = tf.reshape(layer_3, [n_steps, batch_size, Config.n_hidden_3])
     if tflite:
         # Generated StridedSlice, not supported by NNAPI
         #n_layer_3 = []
@@ -137,28 +137,28 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
 
     # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
     # to a tensor of shape [n_steps*batch_size, n_cell_dim]
-    output = tf.reshape(output, [-1, C.n_cell_dim])
+    output = tf.reshape(output, [-1, Config.n_cell_dim])
     layers['rnn_output'] = output
     layers['rnn_output_state'] = output_state
 
     # Now we feed `output` to the fifth hidden layer with clipped RELU activation and dropout
-    b5 = variable_on_worker_level('b5', [C.n_hidden_5], tf.zeros_initializer())
-    h5 = variable_on_worker_level('h5', [C.n_cell_dim, C.n_hidden_5], tf.contrib.layers.xavier_initializer())
+    b5 = variable_on_worker_level('b5', [Config.n_hidden_5], tf.zeros_initializer())
+    h5 = variable_on_worker_level('h5', [Config.n_cell_dim, Config.n_hidden_5], tf.contrib.layers.xavier_initializer())
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
     layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
     layers['layer_5'] = layer_5
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
-    b6 = variable_on_worker_level('b6', [C.n_hidden_6], tf.zeros_initializer())
-    h6 = variable_on_worker_level('h6', [C.n_hidden_5, C.n_hidden_6], tf.contrib.layers.xavier_initializer())
+    b6 = variable_on_worker_level('b6', [Config.n_hidden_6], tf.zeros_initializer())
+    h6 = variable_on_worker_level('h6', [Config.n_hidden_5, Config.n_hidden_6], tf.contrib.layers.xavier_initializer())
     layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
     layers['layer_6'] = layer_6
 
     # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
     # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
     # Note, that this differs from the input in that it is time-major.
-    layer_6 = tf.reshape(layer_6, [n_steps, batch_size, C.n_hidden_6], name="raw_logits")
+    layer_6 = tf.reshape(layer_6, [n_steps, batch_size, Config.n_hidden_6], name="raw_logits")
     layers['raw_logits'] = layer_6
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
@@ -244,12 +244,12 @@ def get_tower_results(model_feeder, optimizer, dropout_rates):
 
     with tf.variable_scope(tf.get_variable_scope()):
         # Loop over available_devices
-        for i in range(len(C.available_devices)):
+        for i in range(len(Config.available_devices)):
             # Execute operations of tower i on device i
             if len(FLAGS.ps_hosts) == 0:
-                device = C.available_devices[i]
+                device = Config.available_devices[i]
             else:
-                device = tf.train.replica_device_setter(worker_device=C.available_devices[i], cluster=C.cluster)
+                device = tf.train.replica_device_setter(worker_device=Config.available_devices[i], cluster=Config.cluster)
             with tf.device(device):
                 # Create a scope for all operations of tower i
                 with tf.name_scope('tower_%d' % i) as scope:
@@ -288,7 +288,7 @@ def average_gradients(tower_gradients):
     average_grads = []
 
     # Run this on cpu_device to conserve GPU memory
-    with tf.device(C.cpu_device):
+    with tf.device(Config.cpu_device):
         # Loop over gradient/variable pairs from all towers
         for grad_and_vars in zip(*tower_gradients):
             # Introduce grads to store the gradients for the current variable
@@ -357,9 +357,9 @@ def send_token_to_ps(session, kill=False):
     # kill switch tokens are negative and decremented by 1 to deal with task_index 0
     token = -FLAGS.task_index-1 if kill else FLAGS.task_index
     kind = 'kill switch' if kill else 'stop'
-    for index, enqueue in enumerate(C.done_enqueues):
+    for index, enqueue in enumerate(Config.done_enqueues):
         log_debug('Sending %s token to ps %d...' % (kind, index))
-        session.run(enqueue, feed_dict={ token_placeholder: token })
+        session.run(enqueue, feed_dict={ Config.token_placeholder: token })
         log_debug('Sent %s token to ps %d.' % (kind, index))
 
 
@@ -370,7 +370,7 @@ def train(server=None):
     '''
 
     # Initializing and starting the training coordinator
-    coord = TrainingCoordinator(C.is_chief)
+    coord = TrainingCoordinator(Config.is_chief)
     coord.start()
 
     # Create a variable to hold the global_step.
@@ -382,9 +382,9 @@ def train(server=None):
     # Reading training set
     train_data = preprocess(FLAGS.train_files.split(','),
                             FLAGS.train_batch_size,
-                            C.n_input,
-                            C.n_context,
-                            C.alphabet,
+                            Config.n_input,
+                            Config.n_context,
+                            Config.alphabet,
                             hdf5_cache_path=FLAGS.train_cached_features_path)
 
     train_set = DataSet(train_data,
@@ -395,9 +395,9 @@ def train(server=None):
     # Reading validation set
     dev_data = preprocess(FLAGS.dev_files.split(','),
                           FLAGS.dev_batch_size,
-                          C.n_input,
-                          C.n_context,
-                          C.alphabet,
+                          Config.n_input,
+                          Config.n_context,
+                          Config.alphabet,
                           hdf5_cache_path=FLAGS.dev_cached_features_path)
 
     dev_set = DataSet(dev_data,
@@ -408,10 +408,10 @@ def train(server=None):
     # Combining all sets to a multi set model feeder
     model_feeder = ModelFeeder(train_set,
                                dev_set,
-                               C.n_input,
-                               C.n_context,
-                               C.alphabet,
-                               tower_feeder_count=len(C.available_devices))
+                               Config.n_input,
+                               Config.n_context,
+                               Config.alphabet,
+                               tower_feeder_count=len(Config.available_devices))
 
     # Create the optimizer
     optimizer = create_optimizer()
@@ -536,15 +536,15 @@ def train(server=None):
     # or an error occurs.
     try:
         with tf.train.MonitoredTrainingSession(master='' if server is None else server.target,
-                                               is_chief=C.is_chief,
+                                               is_chief=Config.is_chief,
                                                hooks=hooks,
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=None, # already taken care of by a hook
-                                               config=C.session_config) as session:
+                                               config=Config.session_config) as session:
             tf.get_default_graph().finalize()
 
             try:
-                if C.is_chief:
+                if Config.is_chief:
                     # Retrieving global_step from the (potentially restored) model
                     model_feeder.set_data_set(no_dropout_feed_dict, model_feeder.train)
                     step = session.run(global_step, feed_dict=no_dropout_feed_dict)
@@ -626,7 +626,7 @@ def train(server=None):
                 # Only chief has a SyncReplicasOptimizer queue runner that needs to be stopped for unblocking process exit.
                 # A rather graceful way to do this is by stopping the ps.
                 # Only one party can send it w/o failing.
-                if C.is_chief:
+                if Config.is_chief:
                     send_token_to_ps(session, kill=True)
                 sys.exit(1)
 
@@ -648,33 +648,35 @@ def test():
     # Reading test set
     test_data = preprocess(FLAGS.test_files.split(','),
                            FLAGS.test_batch_size,
-                           C.n_input,
-                           C.n_context,
-                           C.alphabet,
+                           Config.n_input,
+                           Config.n_context,
+                           Config.alphabet,
                            hdf5_cache_path=FLAGS.test_cached_features_path)
 
     graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
 
-    evaluate.evaluate(test_data, graph, C.alphabet)
+    evaluate.evaluate(test_data, graph, Config.alphabet)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
-    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2*C.n_context+1, C.n_input], name='input_node')
+    input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2*Config.n_context+1, Config.n_input], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
 
     if not tflite:
-        previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, C.n_cell_dim], initializer=None)
-        previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, C.n_cell_dim], initializer=None)
+        previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
+        previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
     else:
-        previous_state_c = tf.placeholder(tf.float32, [batch_size, C.n_cell_dim], name='previous_state_c')
-        previous_state_h = tf.placeholder(tf.float32, [batch_size, C.n_cell_dim], name='previous_state_h')
+        previous_state_c = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_c')
+        previous_state_h = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_h')
 
     previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
+    no_dropout = [0.0] * 6
+
     logits, layers = BiRNN(batch_x=input_tensor,
                            seq_length=seq_length if FLAGS.use_seq_length else None,
-                           dropout=C.no_dropout,
+                           dropout=no_dropout,
                            batch_size=batch_size,
                            n_steps=n_steps,
                            previous_state=previous_state,
@@ -693,7 +695,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
 
     # Initial zero state
     if not tflite:
-        zero_state = tf.zeros([batch_size, C.n_cell_dim], tf.float32)
+        zero_state = tf.zeros([batch_size, Config.n_cell_dim], tf.float32)
         initialize_c = tf.assign(previous_state_c, zero_state)
         initialize_h = tf.assign(previous_state_h, zero_state)
         initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
@@ -740,7 +742,7 @@ def export():
         from tensorflow.python.framework.ops import Tensor, Operation
 
         tf.reset_default_graph()
-        session = tf.Session(config=C.session_config)
+        session = tf.Session(config=Config.session_config)
 
         inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
         input_names = ",".join(tensor.op.name for tensor in inputs.values())
@@ -833,7 +835,7 @@ def export():
             log_error(str(e))
 
 def do_single_file_inference(input_file_path):
-    with tf.Session(config=C.session_config) as session:
+    with tf.Session(config=Config.session_config) as session:
         inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=-1)
 
         # Create a saver using variables from the above newly created graph
@@ -841,7 +843,7 @@ def do_single_file_inference(input_file_path):
         saver = tf.train.Saver(mapping)
 
         # Restore variables from training checkpoint
-        # TODO: This restores the most recent checkpoint, but if we use validation to counterract
+        # TODO: This restores the most recent checkpoint, but if we use validation to counteract
         #       over-fitting, we may want to restore an earlier checkpoint.
         checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
         if not checkpoint:
@@ -853,15 +855,15 @@ def do_single_file_inference(input_file_path):
 
         session.run(outputs['initialize_state'])
 
-        features = audiofile_to_input_vector(input_file_path, C.n_input, C.n_context)
-        num_strides = len(features) - (C.n_context * 2)
+        features = audiofile_to_input_vector(input_file_path, Config.n_input, Config.n_context)
+        num_strides = len(features) - (Config.n_context * 2)
 
         # Create a view into the array with overlapping strides of size
         # numcontext (past) + 1 (present) + numcontext (future)
-        window_size = 2*C.n_context+1
+        window_size = 2*Config.n_context+1
         features = np.lib.stride_tricks.as_strided(
             features,
-            (num_strides, window_size, C.n_input),
+            (num_strides, window_size, Config.n_input),
             (features.strides[0], features.strides[0], features.strides[1]),
             writeable=False)
 
@@ -874,8 +876,8 @@ def do_single_file_inference(input_file_path):
 
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                        C.alphabet)
-        decoded = ctc_beam_search_decoder(logits, C.alphabet, FLAGS.beam_width, scorer=scorer)
+                        Config.alphabet)
+        decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width, scorer=scorer)
         # Print highest probability result
         print(decoded[0][1])
 
@@ -895,14 +897,14 @@ def main(_):
             log_debug('Done.')
         else:
             # Create and start a server for the local task.
-            server = tf.train.Server(C.cluster, job_name=FLAGS.job_name, task_index=FLAGS.task_index)
+            server = tf.train.Server(Config.cluster, job_name=FLAGS.job_name, task_index=FLAGS.task_index)
             if FLAGS.job_name == 'ps':
                 # We are a parameter server and therefore we just wait for all workers to finish
                 # by waiting for their stop tokens.
                 with tf.Session(server.target) as session:
                     for worker in FLAGS.worker_hosts:
                         log_debug('Waiting for stop token...')
-                        token = session.run(C.done_dequeues[FLAGS.task_index])
+                        token = session.run(Config.done_dequeues[FLAGS.task_index])
                         if token < 0:
                             log_debug('Got a kill switch token from worker %i.' % abs(token + 1))
                             break
@@ -915,8 +917,8 @@ def main(_):
                 # We are a worker and therefore we have to do some work.
                 # Assigns ops to the local worker by default.
                 with tf.device(tf.train.replica_device_setter(
-                               worker_device=C.worker_device,
-                               cluster=C.cluster)):
+                               worker_device=Config.worker_device,
+                               cluster=Config.cluster)):
 
                     # Do the training
                     train(server)
@@ -924,7 +926,7 @@ def main(_):
             log_debug('Server stopped.')
 
     # Are we the main process?
-    if C.is_chief:
+    if Config.is_chief:
         # Doing solo/post-processing work just on the main process...
         # Exporting the model
         if FLAGS.export_dir:

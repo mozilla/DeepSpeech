@@ -6,7 +6,7 @@ import tensorflow as tf
 from datetime import datetime
 from six.moves import zip, range, filter, urllib, BaseHTTPServer
 from threading import Thread, Lock
-from util.config import C
+from util.config import Config
 from util.flags import FLAGS
 from util.logging import log_info, log_error, log_debug, log_warn, log_traffic
 
@@ -297,7 +297,7 @@ class TrainingCoordinator(object):
             self._init()
 
             # Number of GPUs per worker - fixed for now by local reality or cluster setup
-            gpus_per_worker = len(C.available_devices)
+            gpus_per_worker = len(Config.available_devices)
 
             # Number of batches processed per job per worker
             batches_per_job  = gpus_per_worker * max(1, FLAGS.iters_per_worker)
