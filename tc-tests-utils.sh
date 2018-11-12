@@ -562,7 +562,7 @@ do_deepspeech_decoder_build()
 
     cp native_client/ctcdecode/dist/*.whl wheels
 
-    make -C native_client/ctcdecode clean
+    make -C native_client/ctcdecode clean-keep-common
 
     unset NUMPY_BUILD_VERSION
     unset NUMPY_DEP_VERSION

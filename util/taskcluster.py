@@ -73,7 +73,7 @@ if __name__ == '__main__':
     parser.add_argument('--target', required=False,
                         help='Where to put the native client binary files')
     parser.add_argument('--arch', required=False,
-                        help='Which architecture to download binaries for. "arm" for ARM 7 (32-bit), "gpu" for CUDA enabled x86_64 binaries, "cpu" for CPU-only x86_64 binaries, "osx" for CPU-only x86_64 OSX binaries. Optional ("cpu" by default)')
+                        help='Which architecture to download binaries for. "arm" for ARM 7 (32-bit), "arm64" for ARM64, "gpu" for CUDA enabled x86_64 binaries, "cpu" for CPU-only x86_64 binaries, "osx" for CPU-only x86_64 OSX binaries. Optional ("cpu" by default)')
     parser.add_argument('--artifact', required=False,
                         default='native_client.tar.xz',
                         help='Name of the artifact to download. Defaults to "native_client.tar.xz"')
