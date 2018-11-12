@@ -19,8 +19,6 @@ This will download and extract `native_client.tar.xz` which includes the deepspe
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
 
-If you're looking to train a model, you now have a `libctc_decoder_with_kenlm.so` file that you can pass to the `--decoder_library_path` parameter of `DeepSpeech.py`.
-
 ## Required Dependencies
 
 Running inference might require some runtime dependencies to be already installed on your system. Those should be the same, whatever the bindings you are using:
@@ -57,7 +55,7 @@ If you'd like to build the binaries yourself, you'll need the following pre-requ
 
 It is required to use our fork of TensorFlow since it includes fixes for common problems encountered when building the native client files.
 
-If you'd like to build the language bindings, you'll also need:
+If you'd like to build the language bindings or the decoder package, you'll also need:
 
 * [SWIG](http://www.swig.org/)
 * [node-pre-gyp](https://github.com/mapbox/node-pre-gyp) (for Node.JS bindings only)
@@ -77,10 +75,9 @@ Before building the DeepSpeech client libraries, you will need to prepare your e
 Preferably, checkout the version of tensorflow which is currently supported by DeepSpeech (see requirements.txt), and use the bazel version recommended by TensorFlow for that version.
 Then, follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
 
-After that, you can build the Tensorflow and DeepSpeech libraries using the following commands. Please note that the flags for `libctc_decoder_with_kenlm.so` differs a little bit.
+After that, you can build the Tensorflow and DeepSpeech libraries using the following command.
 
 ```
-bazel build -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" //native_client:libctc_decoder_with_kenlm.so
 bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
 ```
 
@@ -118,7 +115,7 @@ Included are a set of generated Python bindings. After following the above build
 ```
 cd native_client/python
 make bindings
-sudo pip install dist/deepspeech*
+pip install dist/deepspeech*
 ```
 
 The API mirrors the C++ API and is demonstrated in [client.py](python/client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
@@ -134,3 +131,13 @@ make npm-pack
 ```
 
 This will create the package `deepspeech-0.3.0.tgz` in `native_client/javascript`.
+
+## Building the CTC decoder package
+
+To build the `ds_ctcdecoder` package, you'll need the general requirements listed above (in particular SWIG). The command below builds the bindings using 8 processes for compilation. Adjust the parameter accordingly for more or less parallelism.
+
+```
+cd native_client/ctcdecode
+make bindings NUM_PROCESSES=8
+pip install dist/*.whl
+```

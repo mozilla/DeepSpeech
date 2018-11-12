@@ -14,7 +14,6 @@ python -u DeepSpeech.py \
   --n_hidden 494 \
   --checkpoint_dir '/tmp/ckpt' \
   --export_dir '/tmp/train' \
-  --decoder_library_path '/tmp/ds/libctc_decoder_with_kenlm.so' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \
   --notrain --notest \

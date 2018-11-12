@@ -5,11 +5,12 @@ from distutils.command.build import build
 from setuptools import setup, Extension, distutils
 
 import argparse
-import glob
 import multiprocessing.pool
 import os
 import platform
 import sys
+
+from build_common import *
 
 try:
     import numpy
@@ -40,72 +41,25 @@ def read(fname):
 
 project_version = read('../../VERSION').strip()
 
-# monkey-patch for parallel compilation
-# See: https://stackoverflow.com/a/13176803
-def parallelCCompile(self,
-                     sources,
-                     output_dir=None,
-                     macros=None,
-                     include_dirs=None,
-                     debug=0,
-                     extra_preargs=None,
-                     extra_postargs=None,
-                     depends=None):
-    # those lines are copied from distutils.ccompiler.CCompiler directly
-    macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
-        output_dir, macros, include_dirs, sources, depends, extra_postargs)
-    cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
+build_dir = 'temp_build/temp_build'
+common_build = 'common.a'
 
-    # parallel code
-    def _single_compile(obj):
-        try:
-            src, ext = build[obj]
-        except KeyError:
-            return
-        self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
+if not os.path.exists(common_build):
+    if not os.path.exists(build_dir):
+        os.makedirs(build_dir)
 
-    # convert to list, imap is evaluated on-demand
-    thread_pool = multiprocessing.pool.ThreadPool(args[0].num_processes)
-    list(thread_pool.imap(_single_compile, objects))
-    return objects
-
-# hack compile to support parallel compiling
-distutils.ccompiler.CCompiler.compile = parallelCCompile
-
-FILES = glob.glob('../kenlm/util/*.cc') \
-        + glob.glob('../kenlm/lm/*.cc') \
-        + glob.glob('../kenlm/util/double-conversion/*.cc')
-
-FILES += glob.glob('third_party/openfst-1.6.7/src/lib/*.cc')
-
-FILES = [
-    fn for fn in FILES
-    if not (fn.endswith('main.cc') or fn.endswith('test.cc') or fn.endswith(
-        'unittest.cc'))
-]
-
-LIBS = ['stdc++']
-if platform.system() != 'Darwin':
-    LIBS.append('rt')
-
-ARGS = ['-O3', '-DNDEBUG', '-DKENLM_MAX_ORDER=6', '-std=c++11',
-        '-Wno-unused-local-typedef', '-Wno-sign-compare']
-
+    build_common(out_name='common.a',
+                 build_dir=build_dir,
+                 num_parallel=args[0].num_processes)
 
 decoder_module = Extension(
     name='ds_ctcdecoder._swigwrapper',
-    sources=['swigwrapper.i'] + FILES + glob.glob('*.cpp'),
+    sources=['swigwrapper.i'],
     swig_opts=['-c++', '-extranative'],
     language='c++',
-    include_dirs=[
-        numpy_include,
-        '..',
-        '../kenlm',
-        'third_party/openfst-1.6.7/src/include',
-        'third_party/ThreadPool',
-    ],
-    libraries=LIBS,
-    extra_compile_args=ARGS
+    include_dirs=INCLUDES + [numpy_include],
+    extra_compile_args=ARGS,
+    extra_link_args=[common_build],
 )
 
 class BuildExtFirst(build):

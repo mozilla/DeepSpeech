@@ -15,18 +15,14 @@ import tensorflow as tf
 from attrdict import AttrDict
 from collections import namedtuple
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
-from DeepSpeech import initialize_globals, create_flags, log_debug, log_info, log_warn, log_error, create_inference_graph
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from six.moves import zip, range
 from util.audio import audiofile_to_input_vector
-from util.text import Alphabet, ctc_label_dense_to_sparse, wer, levenshtein
+from util.config import Config, initialize_globals
+from util.flags import create_flags, FLAGS
+from util.logging import log_error
 from util.preprocess import pmap, preprocess
-
-
-FLAGS = tf.app.flags.FLAGS
-
-N_FEATURES = 26
-N_CONTEXT = 9
+from util.text import Alphabet, ctc_label_dense_to_sparse, wer, levenshtein
 
 
 def split_data(dataset, batch_size):
@@ -86,41 +82,21 @@ def calculate_report(labels, decodings, distances, losses):
     return samples_wer, samples
 
 
-def main(_):
-    initialize_globals()
-
-    if not FLAGS.test_files:
-        log_error('You need to specify what files to use for evaluation via '
-                  'the --test_files flag.')
-        exit(1)
-
-    global alphabet
-    alphabet = Alphabet(FLAGS.alphabet_config_path)
-
-    scorer = Scorer(FLAGS.lm_weight, FLAGS.valid_word_count_weight,
+def evaluate(test_data, inference_graph, alphabet):
+    scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                     FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                    alphabet)
+                    Config.alphabet)
 
-    # sort examples by length, improves packing of batches and timesteps
-    test_data = preprocess(
-        FLAGS.test_files.split(','),
-        FLAGS.test_batch_size,
-        alphabet=alphabet,
-        numcep=N_FEATURES,
-        numcontext=N_CONTEXT,
-        hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
-        by="features_len",
-        ascending=False)
 
     def create_windows(features):
-        num_strides = len(features) - (N_CONTEXT * 2)
+        num_strides = len(features) - (Config.n_context * 2)
 
         # Create a view into the array with overlapping strides of size
         # numcontext (past) + 1 (present) + numcontext (future)
-        window_size = 2*N_CONTEXT+1
+        window_size = 2*Config.n_context+1
         features = np.lib.stride_tricks.as_strided(
             features,
-            (num_strides, window_size, N_FEATURES),
+            (num_strides, window_size, Config.n_input),
             (features.strides[0], features.strides[0], features.strides[1]),
             writeable=False)
 
@@ -129,8 +105,8 @@ def main(_):
     # Create overlapping windows over the features
     test_data['features'] = test_data['features'].apply(create_windows)
 
-    with tf.Session() as session:
-        inputs, outputs, layers = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
+    with tf.Session(config=Config.session_config) as session:
+        inputs, outputs, layers = inference_graph
 
         # Transpose to batch major for decoder
         transposed = tf.transpose(outputs['outputs'], [1, 0, 2])
@@ -183,26 +159,29 @@ def main(_):
             logitses.append(logits)
             losses.extend(loss)
 
-        ground_truths = []
-        predictions = []
-        distances = []
+    ground_truths = []
+    predictions = []
 
-        print('Decoding predictions...')
-        bar = progressbar.ProgressBar(max_value=batch_count,
-                                      widget=progressbar.AdaptiveETA)
+    print('Decoding predictions...')
+    bar = progressbar.ProgressBar(max_value=batch_count,
+                                  widget=progressbar.AdaptiveETA)
 
-        # Get number of accessible CPU cores for this process
-        num_processes = len(os.sched_getaffinity(0))
+    # Get number of accessible CPU cores for this process
+    try:
+        num_processes = cpu_count()
+    except:
+        num_processes = 1
 
-        # Second pass, decode logits and compute WER and edit distance metrics
-        for logits, batch in bar(zip(logitses, split_data(test_data, FLAGS.test_batch_size))):
-            seq_lengths = batch['features_len'].values.astype(np.int32)
-            decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, alphabet, FLAGS.beam_width,
-                                                    num_processes=num_processes, scorer=scorer)
+    # Second pass, decode logits and compute WER and edit distance metrics
+    for logits, batch in bar(zip(logitses, split_data(test_data, FLAGS.test_batch_size))):
+        seq_lengths = batch['features_len'].values.astype(np.int32)
+        decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, alphabet, FLAGS.beam_width,
+                                                num_processes=num_processes, scorer=scorer)
 
-            ground_truths.extend(alphabet.decode(l) for l in batch['transcript'])
-            predictions.extend(d[0][1] for d in decoded)
-            distances.extend(levenshtein(a, b) for a, b in zip(labels, predictions))
+        ground_truths.extend(alphabet.decode(l) for l in batch['transcript'])
+        predictions.extend(d[0][1] for d in decoded)
+
+    distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
 
     wer, samples = calculate_report(ground_truths, predictions, distances, losses)
     mean_edit_distance = np.mean(distances)
@@ -211,17 +190,48 @@ def main(_):
     # Take only the first report_count items
     report_samples = itertools.islice(samples, FLAGS.report_count)
 
-    print('Test - WER: %f, loss: %f, mean edit distance: %f' %
-          (wer, mean_loss, mean_edit_distance))
+    print('Test - WER: %f, CER: %f, loss: %f' %
+          (wer, mean_edit_distance, mean_loss))
     print('-' * 80)
     for sample in report_samples:
-        print('WER: %f, loss: %f, edit distance: %f' %
-              (sample.wer, sample.loss, sample.distance))
+        print('WER: %f, CER: %f, loss: %f' %
+              (sample.wer, sample.distance, sample.loss))
         print(' - src: "%s"' % sample.src)
         print(' - res: "%s"' % sample.res)
         print('-' * 80)
 
+    return samples
+
+
+def main(_):
+    initialize_globals()
+
+    if not FLAGS.test_files:
+        log_error('You need to specify what files to use for evaluation via '
+                  'the --test_files flag.')
+        exit(1)
+
+    global alphabet
+    alphabet = Alphabet(FLAGS.alphabet_config_path)
+
+    # sort examples by length, improves packing of batches and timesteps
+    test_data = preprocess(
+        FLAGS.test_files.split(','),
+        FLAGS.test_batch_size,
+        alphabet=alphabet,
+        numcep=Config.n_input,
+        numcontext=Config.n_context,
+        hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
+        by="features_len",
+        ascending=False)
+
+    from DeepSpeech import create_inference_graph
+    graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
+
+    samples = evaluate(test_data, graph, alphabet)
+
     if FLAGS.test_output_file:
+        # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=lambda x: float(x))
 
 

@@ -24,5 +24,3 @@ do_deepspeech_binary_build
 do_deepspeech_python_build rename_to_gpu
 
 do_deepspeech_nodejs_build rename_to_gpu
-
-$(dirname "$0")/decoder-build.sh

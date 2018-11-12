@@ -213,13 +213,13 @@ cd DeepSpeech
 pip3 install -r requirements.txt
 ```
 
-You'll also need to download `native_client.tar.xz` or build the native client files yourself to get the custom TensorFlow OP needed for decoding the outputs of the neural network. You can use `util/taskcluster.py` to download the files for your architecture:
+You'll also need to install the `ds_ctcdecoder` Python package which is required for decoding the outputs of the acoustic model into text. We have binaries available in our CI infrastructure, you can use `util/taskcluster.py` to get a URL to the decoder package. When you pass the `--decoder` option, the script will print the URL to the appropriate decoder package for your platform and Python version:
 
 ```bash
-python3 util/taskcluster.py --target .
+pip3 install $(python3 util/taskcluster.py --decoder)
 ```
 
-This will download the native client files for the x86_64 architecture without CUDA support, and extract them into the current folder. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). We also have binaries with CUDA enabled ("--arch gpu") and for ARM7 ("--arch arm").
+This command will download and install the `ds_ctcdecoder` package. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). You can override the platform with `--arch` if you want the package for ARM7 (`--arch arm`) or ARM64 (`--arch arm64`).
 
 ### Recommendations
 

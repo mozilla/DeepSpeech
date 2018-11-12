@@ -27,7 +27,7 @@ def ctc_beam_search_decoder(probs_seq,
                             beam_size,
                             cutoff_prob=1.0,
                             cutoff_top_n=40,
-                            ext_scoring_func=None):
+                            scorer=None):
     """Wrapper for the CTC Beam Search Decoder.
 
     :param probs_seq: 2-D list of probability distributions over each time
@@ -45,17 +45,16 @@ def ctc_beam_search_decoder(probs_seq,
                          characters with highest probs in alphabet will be
                          used in beam search, default 40.
     :type cutoff_top_n: int
-    :param ext_scoring_func: External scoring function for
-                             partially decoded sentence, e.g. word count
-                             or language model.
-    :type external_scoring_func: callable
+    :param scorer: External scorer for partially decoded sentence, e.g. word
+                   count or language model.
+    :type scorer: Scorer
     :return: List of tuples of log probability and sentence as decoding
              results, in descending order of the probability.
     :rtype: list
     """
     beam_results = swigwrapper.ctc_beam_search_decoder(
         probs_seq, alphabet.config_file(), beam_size, cutoff_prob, cutoff_top_n,
-        ext_scoring_func)
+        scorer)
     beam_results = [(res.probability, alphabet.decode(res.tokens)) for res in beam_results]
     return beam_results
 
@@ -67,7 +66,7 @@ def ctc_beam_search_decoder_batch(probs_seq,
                                   num_processes,
                                   cutoff_prob=1.0,
                                   cutoff_top_n=40,
-                                  ext_scoring_func=None):
+                                  scorer=None):
     """Wrapper for the batched CTC beam search decoder.
 
     :param probs_seq: 3-D list with each element as an instance of 2-D list
@@ -88,17 +87,16 @@ def ctc_beam_search_decoder_batch(probs_seq,
     :type cutoff_top_n: int
     :param num_processes: Number of parallel processes.
     :type num_processes: int
-    :param ext_scoring_func: External scoring function for
-                             partially decoded sentence, e.g. word count
-                             or language model.
-    :type external_scoring_function: callable
+    :param scorer: External scorer for partially decoded sentence, e.g. word
+                   count or language model.
+    :type scorer: Scorer
     :return: List of tuples of log probability and sentence as decoding
              results, in descending order of the probability.
     :rtype: list
     """
     batch_beam_results = swigwrapper.ctc_beam_search_decoder_batch(
         probs_seq, seq_lengths, alphabet.config_file(), beam_size, num_processes,
-        cutoff_prob, cutoff_top_n, ext_scoring_func)
+        cutoff_prob, cutoff_top_n, scorer)
     batch_beam_results = [
         [(res.probability, alphabet.decode(res.tokens)) for res in beam_results]
         for beam_results in batch_beam_results

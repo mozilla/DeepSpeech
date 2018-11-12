@@ -19,8 +19,12 @@ do_bazel_build
 
 do_deepspeech_binary_build
 
+# Decoder packages for Linux are built a separate task
+if [ "${OS}" = "Darwin" ]; then
+    do_deepspeech_decoder_build
+fi
+
 do_deepspeech_python_build
 
 do_deepspeech_nodejs_build
 
-$(dirname "$0")/decoder-build.sh
