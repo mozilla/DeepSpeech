@@ -149,7 +149,7 @@ def evaluate(test_data, inference_graph, alphabet):
             labels = pad_to_dense(batch['transcript'].values)
             label_lengths = batch['transcript_len'].values
 
-            logits, loss = session.run([transposed, loss], feed_dict={
+            logits, loss_ = session.run([transposed, loss], feed_dict={
                 inputs['input']: features,
                 inputs['input_lengths']: features_len,
                 labels_ph: labels,
@@ -157,7 +157,7 @@ def evaluate(test_data, inference_graph, alphabet):
             })
 
             logitses.append(logits)
-            losses.extend(loss)
+            losses.extend(loss_)
 
     ground_truths = []
     predictions = []
