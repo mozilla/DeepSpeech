@@ -1,9 +1,11 @@
 build:
   template_file: linux-opt-base.tyml
-  allowed:
-    - "pull_request.opened"
-    - "pull_request.synchronize"
-    - "pull_request.reopened"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.cpu-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.cpu-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.cpu-ctc.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_8} && ${nodejs.packages_trusty.apt_pinning}

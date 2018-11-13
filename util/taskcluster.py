@@ -126,7 +126,9 @@ if __name__ == '__main__':
             arch=arch
         )
 
-        print(get_tc_url(args.arch, artifact, args.branch))
+        ctc_arch = args.arch + '-ctc'
+
+        print(get_tc_url(ctc_arch, artifact, args.branch))
         exit(0)
 
     if args.source is not None:
