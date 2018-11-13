@@ -391,7 +391,7 @@ class TrainingCoordinator(object):
 
                 if FLAGS.validation_step > 0 and (FLAGS.validation_step == 1 or self._epoch > 0) and self._epoch % FLAGS.validation_step == 0:
                     # The current epoch should also have a validation part
-                    self._epochs_running.append(Epoch(self._epoch, self._num_jobs_dev, set_name='dev'))
+                    self._epochs_running.append(Epoch(self, self._epoch, self._num_jobs_dev, set_name='dev'))
 
 
                 # Indicating that there were 'new' epoch(s) provided
