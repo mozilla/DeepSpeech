@@ -1,9 +1,11 @@
 build:
   template_file: darwin-opt-base.tyml
-  allowed:
-    - "pull_request.opened"
-    - "pull_request.synchronize"
-    - "pull_request.reopened"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.osx-ctc.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
   tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.bea86c1e884730cf7f8615eb24d31872c198c766.osx/artifacts/public/home.tar.xz"
   maxRunTime: 14400
   scripts:
