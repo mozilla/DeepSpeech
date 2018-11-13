@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import pickle
 import tensorflow as tf
+import numpy as np
 
 from datetime import datetime
 from six.moves import zip, range, filter, urllib, BaseHTTPServer
