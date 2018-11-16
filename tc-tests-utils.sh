@@ -579,15 +579,6 @@ do_deepspeech_nodejs_build()
 
   npm update && npm install node-gyp node-pre-gyp
 
-  #FIXME: Remove when https://github.com/mapbox/node-pre-gyp/issues/421 is fixed
-  node_pre_gyp="$(npm root)/node-pre-gyp/"
-  abi_crosswalk="${node_pre_gyp}lib/util/abi_crosswalk.json"
-  has_node_v11=$(grep -q "11.0.0" "${abi_crosswalk}" ; echo $?)
-
-  if [ "${has_node_v11}" -eq 1 ]; then
-    patch -d "${node_pre_gyp}" -p1 < native_client/javascript/node-pre-gyp_nodejs_v11.patch
-  fi;
-
   export PATH="$(npm root)/.bin/:$PATH"
 
   for node in ${SUPPORTED_NODEJS_VERSIONS}; do
