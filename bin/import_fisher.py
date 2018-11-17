@@ -163,8 +163,7 @@ def _split_wav_and_sentences(data_dir, trans_data, original_data, converted_data
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 
 def _split_audio(origAudio, start_time, stop_time):
-    audioData = origAudio[0]
-    frameRate = origAudio[1]
+    audioData, frameRate = origAudio
     nChannels = len(audioData.shape)
     startIndex = int(start_time * frameRate)
     stopIndex = int(stop_time * frameRate)
