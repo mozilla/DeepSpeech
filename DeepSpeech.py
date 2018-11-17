@@ -473,7 +473,7 @@ def train(server=None):
 
     # Hook to handle initialization and queues for sync replicas.
     if not server is None:
-        hooks.append(optimizer.make_session_run_hook(is_chief))
+        hooks.append(optimizer.make_session_run_hook(Config.is_chief))
 
     # Hook to save TensorBoard summaries
     if FLAGS.summary_secs > 0:
