@@ -540,6 +540,7 @@ def train(server=None):
                                                hooks=hooks,
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=None, # already taken care of by a hook
+                                               log_step_count_steps=0, # disable logging of steps/s to avoid TF warning in validation sets
                                                config=Config.session_config) as session:
             tf.get_default_graph().finalize()
 
