@@ -8,8 +8,8 @@ from multiprocessing.dummy import Pool
 from util.audio import audiofile_to_input_vector
 from util.text import text_to_char_array
 
-def pmap(fun, iterable, threads=8):
-    pool = Pool(threads)
+def pmap(fun, iterable):
+    pool = Pool()
     results = pool.map(fun, iterable)
     pool.close()
     return results
