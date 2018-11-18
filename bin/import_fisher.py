@@ -17,7 +17,7 @@ import pandas
 import subprocess
 import unicodedata
 import librosa
-import resampy
+import soundfile
 
 from util.text import validate_label
 
@@ -142,7 +142,7 @@ def _split_wav_and_sentences(data_dir, trans_data, original_data, converted_data
 
             print("splitting {} according to {}".format(wav_files, trans_file))
 
-            origAudios = [librosa.load(wav_file, sr=None, mono=False) for wav_file in wav_files]
+            origAudios = [librosa.load(wav_file, sr=16000, mono=False) for wav_file in wav_files]
 
             # Loop over segments and split wav_file for each segment
             for segment in segments:
@@ -172,8 +172,7 @@ def _split_audio(origAudio, start_time, stop_time):
 def _split_and_resample_wav(origAudio, start_time, stop_time, new_wav_file):
     frameRate = origAudio[1]
     chunkData = _split_audio(origAudio, start_time, stop_time)
-    chunkData = resampy.resample(chunkData, frameRate, 16000)
-    librosa.output.write_wav(new_wav_file, chunkData, 16000)
+    soundfile.write(new_wav_file, chunkData, frameRate, "PCM_16")
 
 def _split_sets(filelist):
     # We initially split the entire set into 80% train and 20% test, then
