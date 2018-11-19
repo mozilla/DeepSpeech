@@ -28,6 +28,7 @@ source ../tmp/venv/bin/activate
 #     target_lang/
 #         source_model/
 #             run/
+#               RESULTS.json
 #               summaries/
 #               model/
 #               ckpt/
