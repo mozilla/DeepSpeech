@@ -16,4 +16,4 @@ tables
 attrdict
 setuptools
 librosa
-resampy
+soundfile
