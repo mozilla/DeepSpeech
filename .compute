@@ -4,15 +4,38 @@ echo "$0: BEGIN"
 source ../tmp/venv/bin/activate
 
 # Expected file structure from .install:
+#
+# ../keep/
+#      target_lang/
+#          cv_valid_dev.csv
+#          cv_valid_test.csv
+#          cv_valid_train.csv
+#      source_model/
+#          checkpoint
+#          model.meta
+#          model.data
+#          model.index
+#
+# ../tmp/native_client/
+#               *
 
-
+# Created file structure from this script (.compute):
+#
+# ../keep/
+#     target_lang/
+#         source_model/
+#             run/
+#               summaries/
+#               model/
+#               ckpt/
+#
 
 target_lang='tt'
 source_model='en'
 run="1-4"
 
 data="../keep/${target_lang}"
-exp="../keep/${target_lang}/${source_model}_${run}"
+exp="../keep/${target_lang}/${source_model}/${run}"
 
 
 
@@ -23,11 +46,11 @@ python3 ./filter_train_dev_test.py "${target_lang}" "${data}"
 
 python3 -u DeepSpeech.py \
 	--source_model_checkpoint_dir "../keep/${source_model}" \
-	--train_files "${data}/cv_${target_lang}_valid_train.csv"\
-	--dev_files "${data}/cv_${target_lang}_valid_dev.csv" \
-	--test_files "${data}/cv_${target_lang}_valid_test.csv" \
+	--train_files "${data}/cv_valid_train.csv"\
+	--dev_files "${data}/cv_valid_dev.csv" \
+	--test_files "${data}/cv_valid_test.csv" \
 	--checkpoint_dir "${exp}/ckpt/" \
-	--summary_dir "${exp}/summaries" \
+	--summary_dir "${exp}/summaries/" \
 	--export_dir "${exp}/model/" \
 	--n_hidden 2048 \
 	--epoch -500 \
@@ -40,8 +63,6 @@ python3 -u DeepSpeech.py \
 	--validation_step 1 \
 	--decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
 	# --noearly_stop \
-	#--previous_alphabet_checkpoint_dir "../english_ckpt/" \
-	#--checkpoint_dir "../${lang}/${run}/keep/ckpt/" \
 	#--notrain \
 
 
