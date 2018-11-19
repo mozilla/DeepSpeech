@@ -52,6 +52,7 @@ python3 -u DeepSpeech.py \
 	--train_files "${data}/cv_valid_train.csv"\
 	--dev_files "${data}/cv_valid_dev.csv" \
 	--test_files "${data}/cv_valid_test.csv" \
+	--test_output_file "${exp}/RESULTS.json" \
 	--checkpoint_dir "${exp}/ckpt/" \
 	--summary_dir "${exp}/summaries/" \
 	--export_dir "${exp}/model/" \
