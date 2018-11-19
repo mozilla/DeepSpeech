@@ -17,7 +17,7 @@ import pandas
 import subprocess
 import unicodedata
 import librosa
-import soundfile
+import soundfile # <= Has an external dependency on libsndfile
 
 from util.text import validate_label
 
