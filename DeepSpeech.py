@@ -264,7 +264,8 @@ def get_tower_results(model_feeder, optimizer, dropout_rates):
                     tower_avg_losses.append(avg_loss)
 
                     # Compute gradients for model parameters using tower's mini-batch
-                    gradients = optimizer.compute_gradients(avg_loss)
+                    # gradients = optimizer.compute_gradients(avg_loss)  # without transfer learning
+                    gradients = optimizer.compute_gradients(avg_loss, var_list= [v for v in tf.trainable_variables() if any(layer in v.op.name for layer in ['5', '6']) ] )
 
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
@@ -531,6 +532,26 @@ def train(server=None):
     # Initialize update_progressbar()'s child fields to safe values
     update_progressbar.pbar = None
 
+    ### TRANSFER LEARNING ###
+    def init_fn(scaffold, session):
+        if FLAGS.source_model_checkpoint_dir:
+            print('Initializing from', FLAGS.source_model_checkpoint_dir)
+            ckpt = tf.train.load_checkpoint(FLAGS.source_model_checkpoint_dir)
+            variables = list(ckpt.get_variable_to_shape_map().keys())
+            for v in tf.global_variables():
+                if not any(layer in v.op.name for layer in ['5', '6']):
+                    print('Loading', v.op.name)
+                    v.load(ckpt.get_tensor(v.op.name), session=session)
+
+    scaffold = tf.train.Scaffold(
+        init_op=tf.variables_initializer(
+            [ v for v in tf.global_variables() if any(layer in v.op.name for layer in ['5', '6']) ]
+        ),
+        init_fn=init_fn
+    )
+    ### TRANSFER LEARNING ###
+
+    
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
@@ -538,6 +559,7 @@ def train(server=None):
         with tf.train.MonitoredTrainingSession(master='' if server is None else server.target,
                                                is_chief=Config.is_chief,
                                                hooks=hooks,
+                                               scaffold=scaffold, # transfer-learning
                                                checkpoint_dir=FLAGS.checkpoint_dir,
                                                save_checkpoint_secs=None, # already taken care of by a hook
                                                log_step_count_steps=0, # disable logging of steps/s to avoid TF warning in validation sets
