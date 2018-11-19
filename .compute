@@ -33,7 +33,7 @@ source ../tmp/venv/bin/activate
 #               ckpt/
 #
 
-target_lang='tt'
+target_lang='cv'
 source_model='en'
 run="1-4"
 
@@ -48,6 +48,7 @@ python3 ./filter_train_dev_test.py "${target_lang}" "${data}"
 
 
 python3 -u DeepSpeech.py \
+	--drop_source_layers 1 \
 	--source_model_checkpoint_dir "../keep/${source_model}" \
 	--train_files "${data}/cv_valid_train.csv"\
 	--dev_files "${data}/cv_valid_dev.csv" \

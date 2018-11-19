@@ -381,7 +381,7 @@ def train(server=None):
     #    drop_source_layers=['6']
     #
     
-    drop_source_layers=['6'] 
+    drop_source_layers = ['2', '3', 'lstm', '5', '6'][-int(FLAGS.drop_source_layers):]
 
     # Initializing and starting the training coordinator
     coord = TrainingCoordinator(Config.is_chief)
