@@ -38,6 +38,7 @@ target_lang='cv'
 source_model='en'
 
 data="../keep/${target_lang}"
+mkdir $data
 
 python3 filter_train_dev_test.py "${target_lang}" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
