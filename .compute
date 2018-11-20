@@ -44,16 +44,16 @@ python3 filter_train_dev_test.py "${target_lang}" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
 
-for i in 1 2 3 4 5; do
+# for i in 1 2 3 4 5; do
 
-    exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
+    exp="../keep/${target_lang}/${source_model}/1"
     
     python3 -u DeepSpeech.py \
 	    --export_dir "${exp}/model/" \
 	    --summary_dir "${exp}/summaries/" \
 	    --checkpoint_dir "${exp}/ckpt/" \
 	    --test_output_file "${exp}/RESULTS.json" \
-	    --drop_source_layers "${i}" \
+	    --drop_source_layers 1 \
 	    --source_model_checkpoint_dir "../keep/${source_model}" \
 	    --train_files "${data}/cv_valid_train.csv"\
 	    --dev_files "${data}/cv_valid_dev.csv" \
@@ -69,6 +69,6 @@ for i in 1 2 3 4 5; do
 	    --validation_step 1 \
 	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
     
-done
+# done
 
 echo "$0: END"
