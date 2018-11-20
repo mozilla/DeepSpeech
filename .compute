@@ -36,10 +36,11 @@ source ../tmp/venv/bin/activate
 
 target_lang='cv'
 source_model='en'
-run="1-4"
+num_layers_dropped=1
+
 
 data="../keep/${target_lang}"
-exp="../keep/${target_lang}/${source_model}/${run}"
+exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
 
 
 
@@ -48,7 +49,7 @@ python3 filter_train_dev_test.py "${target_lang}" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
 python3 -u DeepSpeech.py \
-	--drop_source_layers 1 \
+	--drop_source_layers "${num_layers_dropped}" \
 	--source_model_checkpoint_dir "../keep/${source_model}" \
 	--train_files "${data}/cv_valid_train.csv"\
 	--dev_files "${data}/cv_valid_dev.csv" \
