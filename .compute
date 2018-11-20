@@ -45,6 +45,11 @@ python3 util/check_characters.py "${data}/*.csv"
 
 
 
+<<<<<<< HEAD
+=======
+for num_layers_dropped in 1 2 3 4 5; do
+
+>>>>>>> bug
     exp="../keep/${target_lang}/${source_model}/1"
     
     python3 -u DeepSpeech.py \
@@ -67,7 +72,7 @@ python3 util/check_characters.py "${data}/*.csv"
 	    --display_step 0 \
 	    --validation_step 1 \
 	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
-    
-# done
+
+done
 
 echo "$0: END"
