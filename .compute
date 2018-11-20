@@ -44,7 +44,7 @@ python3 filter_train_dev_test.py "${target_lang}" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
 
-for numLayersDropped in 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 
     exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
     
@@ -53,7 +53,7 @@ for numLayersDropped in 1 2 3 4 5; do
 	    --summary_dir "${exp}/summaries/" \
 	    --checkpoint_dir "${exp}/ckpt/" \
 	    --test_output_file "${exp}/RESULTS.json" \
-	    --drop_source_layers "${numLayersDropped}" \
+	    --drop_source_layers "${i}" \
 	    --source_model_checkpoint_dir "../keep/${source_model}" \
 	    --train_files "${data}/cv_valid_train.csv"\
 	    --dev_files "${data}/cv_valid_dev.csv" \
