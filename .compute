@@ -34,7 +34,7 @@ source ../tmp/venv/bin/activate
 #               ckpt/
 #
 
-target_lang='cv'
+target_lang='tt'
 source_model='en'
 run="1-4"
 
