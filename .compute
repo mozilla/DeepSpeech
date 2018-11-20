@@ -18,9 +18,9 @@ source ../tmp/venv/bin/activate
 #
 # ../keep/
 #     target_lang/
-#         cv_valid_dev.csv
-#         cv_valid_test.csv
-#         cv_valid_train.csv
+#         valid_dev.csv
+#         valid_test.csv
+#         valid_train.csv
 
 # Created by DeepSpeech.py (this script):
 #
