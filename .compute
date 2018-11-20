@@ -34,7 +34,7 @@ source ../tmp/venv/bin/activate
 #               ckpt/
 #
 
-target_lang='tt'
+target_lang='cv'
 source_model='en'
 run="1-4"
 
@@ -44,9 +44,8 @@ exp="../keep/${target_lang}/${source_model}/${run}"
 
 
 
-python3 ./filter_train_dev_test.py "${target_lang}" "${data}"
-
-
+python3 filter_train_dev_test.py "${target_lang}" "${data}"
+python3 util/check_characters.py "${data}/*.csv"
 
 python3 -u DeepSpeech.py \
 	--drop_source_layers 1 \
