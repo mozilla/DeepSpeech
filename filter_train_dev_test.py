@@ -99,7 +99,10 @@ print("Num validated clips to be used in TEST: ", validated_clips[test_indices][
 print("Num validated clips to be used in TRAIN: ", validated_clips[train_indices]['wav_filename'].count())
 print("###############################################")
 
-validated_clips[dev_indices].to_csv(os.path.join(output_folder, 'cv_valid_dev.csv'), index=False)
-validated_clips[test_indices].to_csv(os.path.join(output_folder, 'cv_valid_test.csv'), index=False)
-validated_clips[train_indices].to_csv(os.path.join(output_folder, 'cv_valid_train.csv'), index=False)
+ABS_PATH_TO_DATA = ABS_PATH + "/" + LOCALE + "/"
+validated_clips['wav_filename'] =  ABS_PATH_TO_DATA + validated_clips['wav_filename'].astype(str)
+
+validated_clips[dev_indices].to_csv(os.path.join(output_folder, 'valid_dev.csv'), index=False)
+validated_clips[test_indices].to_csv(os.path.join(output_folder, 'valid_test.csv'), index=False)
+validated_clips[train_indices].to_csv(os.path.join(output_folder, 'valid_train.csv'), index=False)
 
