@@ -10,7 +10,7 @@ def create_flags():
     # Importer
     # ========
     
-    tf.app.flags.DEFINE_integer ('drop_source_layers',      '',          'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')
+    tf.app.flags.DEFINE_integer ('drop_source_layers',      1,          'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')
     tf.app.flags.DEFINE_string  ('train_files',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')

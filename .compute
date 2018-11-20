@@ -18,9 +18,9 @@ source ../tmp/venv/bin/activate
 #
 # ../keep/
 #     target_lang/
-#         cv_valid_dev.csv
-#         cv_valid_test.csv
-#         cv_valid_train.csv
+#         valid_dev.csv
+#         valid_test.csv
+#         valid_train.csv
 
 # Created by DeepSpeech.py (this script):
 #
@@ -44,7 +44,8 @@ python3 filter_train_dev_test.py "${target_lang}" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
 
-# for i in 1 2 3 4 5; do
+
+for num_layers_dropped in 1 2; do
 
     exp="../keep/${target_lang}/${source_model}/1"
     
@@ -53,11 +54,11 @@ python3 util/check_characters.py "${data}/*.csv"
 	    --summary_dir "${exp}/summaries/" \
 	    --checkpoint_dir "${exp}/ckpt/" \
 	    --test_output_file "${exp}/RESULTS.json" \
-	    --drop_source_layers 1 \
+	    --drop_source_layers "${num_layers_dropped}" \
 	    --source_model_checkpoint_dir "../keep/${source_model}" \
-	    --train_files "${data}/cv_valid_train.csv"\
-	    --dev_files "${data}/cv_valid_dev.csv" \
-	    --test_files "${data}/cv_valid_test.csv" \
+	    --train_files "${data}/valid_train.csv"\
+	    --dev_files "${data}/valid_dev.csv" \
+	    --test_files "${data}/valid_test.csv" \
 	    --n_hidden 2048 \
 	    --epoch -500 \
 	    --train_batch_size 24 \
