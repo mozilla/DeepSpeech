@@ -16,3 +16,4 @@ SOURCE_MODEL='../keep/en'
 mkdir $SOURCE_MODEL
 wget https://github.com/mozilla/DeepSpeech/releases/download/v0.3.0/deepspeech-0.3.0-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
 tar xvzf ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz --directory "${SOURCE_MODEL}"
+rm ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz
