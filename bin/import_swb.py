@@ -3,6 +3,10 @@ from __future__ import absolute_import, division, print_function
 
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
+
+# ensure that you have downloaded the LDC dataset LDC97S62 and tar exists in a folder e.g.
+# ./data/swb/LDC97S62/swb1_LDC97S62.tgz
+
 import sys
 import os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
@@ -13,12 +17,32 @@ import subprocess
 import unicodedata
 import wave
 import codecs
+import tarfile
+from util.downloader import maybe_download, SIMPLE_BAR
 
 from util.text import validate_label
+ARCHIVE_NAME = 'switchboard_word_alignments.tar.gz'
+ARCHIVE_URL = 'http://www.openslr.org/resources/5/'
+ARCHIVE_DIR_NAME = 'LDC97S62'
+LDC_DATASET = 'swb1_LDC97S62.tgz'
 
 def _download_and_preprocess_data(data_dir):
-    data_dir = os.path.join(data_dir, "LDC97S62")
-
+    
+    data_dir = os.path.join(data_dir, ARCHIVE_DIR_NAME)
+    target_dir = path.abspath(data_dir)
+    
+    # Transcripts
+    transcripts_path = maybe_download(ARCHIVE_NAME, target_dir, ARCHIVE_URL)
+    _maybe_extract(target_dir, ARCHIVE_DIR_NAME, transcripts_path)
+    
+    # Extract swb1_LDC97S62.tgz 
+    _maybe_extract(target_dir, ARCHIVE_DIR_NAME, LDC_DATASET)
+    
+    # check swb1_d1/2/3/4/swb_ms98_transcriptions
+    expected_folders = ["swb1_d1","swb1_d2","swb1_d3","swb1_d4","swb_ms98_transcriptions"]
+    assert(all([os.path.isdir(os.path.join(target_dir,e) for e in expected folders])))
+    
+    
     # Conditionally convert swb sph data to wav
     _maybe_convert_wav(data_dir, "swb1_d1", "swb1_d1-wav")
     _maybe_convert_wav(data_dir, "swb1_d2", "swb1_d2-wav")
