@@ -200,6 +200,11 @@ def evaluate(test_data, inference_graph, alphabet):
         print(' - res: "%s"' % sample.res)
         print('-' * 80)
 
+        
+    if FLAGS.test_output_file:
+        # Save decoded tuples as JSON, converting NumPy floats to Python floats
+        json.dump(samples, open(FLAGS.test_output_file, 'w'), default=lambda x: float(x))
+
     return samples
 
 
