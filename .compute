@@ -45,7 +45,7 @@ python3 util/check_characters.py "${data}/*.csv"
 
 
 
-for num_layers_dropped in 1 2; do
+for num_layers_dropped in 1 2 3 4 5; do
 
     exp="../keep/${target_lang}/${source_model}/1"
     
@@ -69,7 +69,7 @@ for num_layers_dropped in 1 2; do
 	    --display_step 0 \
 	    --validation_step 1 \
 	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
-    
-# done
+
+done
 
 echo "$0: END"
