@@ -3,13 +3,14 @@
 ## SETUP VIRETUALENV ##
 virtualenv -p python3 ../tmp/venv
 source ../tmp/venv/bin/activate
-pip install -r <(grep -v tensorflow requirements.txt)
-pip install tensorflow-gpu==1.12.0rc2
+pip3 install -r <(grep -v tensorflow requirements.txt)
+# pip install tensorflow-gpu==1.12.0rc2
+pip3 install tensorflow
 
 ## SETUP TASKCLUSTER ##
 python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
 # Install ds_ctcdecoder package from TaskCluster
-pip install $(python3 util/taskcluster.py --decoder)
+pip3 install $(python3 util/taskcluster.py --decoder)
 
 ## GET SOURCE CHECKPOINT ##
 SOURCE_MODEL='../keep/en'

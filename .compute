@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo "$0: BEGIN"
-source ../tmp/venv/bin/activate
-
 # Expected file structure (from .install):
 #
 # ../tmp/native_client/
@@ -34,23 +31,25 @@ source ../tmp/venv/bin/activate
 #               ckpt/
 #
 
+
+echo "$0: BEGIN"
+source ../tmp/venv/bin/activate
+
 target_lang='cv'
 source_model='en'
 
+# input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
+input_dir="/home/josh/Downloads/CV"
 data="../keep/${target_lang}"
 mkdir $data
 
-python3 filter_train_dev_test.py "${target_lang}" "${data}"
+python3 filter_train_dev_test.py "${target_lang}" "${input_dir}" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
 
 
-<<<<<<< HEAD
-=======
-for num_layers_dropped in 1 2 3 4 5; do
 
->>>>>>> bug
-    exp="../keep/${target_lang}/${source_model}/1"
+    exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
     
     python3 -u DeepSpeech.py \
 	    --export_dir "${exp}/model/" \
@@ -63,7 +62,7 @@ for num_layers_dropped in 1 2 3 4 5; do
 	    --dev_files "${data}/valid_dev.csv" \
 	    --test_files "${data}/valid_test.csv" \
 	    --n_hidden 2048 \
-	    --epoch -500 \
+	    --epoch -1 \
 	    --train_batch_size 24 \
 	    --dev_batch_size 48 \
 	    --test_batch_size 48 \
