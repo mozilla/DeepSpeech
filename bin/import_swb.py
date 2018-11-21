@@ -5,7 +5,8 @@ from __future__ import absolute_import, division, print_function
 # This script needs to be run from the root of the DeepSpeech repository
 
 # ensure that you have downloaded the LDC dataset LDC97S62 and tar exists in a folder e.g.
-# ./data/swb/LDC97S62/swb1_LDC97S62.tgz
+# ./data/swb/swb1_LDC97S62.tgz
+# from the deepspeech directory run with: ./bin/import_swb.py ./data/swb/
 
 import sys
 import os
@@ -18,27 +19,26 @@ import unicodedata
 import wave
 import codecs
 import tarfile
-#from util.downloader import maybe_download, SIMPLE_BAR
-
+import requests
 from util.text import validate_label
+
 ARCHIVE_NAME = 'switchboard_word_alignments.tar.gz'
 ARCHIVE_URL = 'http://www.openslr.org/resources/5/'
 ARCHIVE_DIR_NAME = 'LDC97S62'
 LDC_DATASET = 'swb1_LDC97S62.tgz'
 
-import requests
 
 def download_file(folder, url):
     # https://stackoverflow.com/a/16696317/738515
     local_filename = url.split('/')[-1]
     full_filename = os.path.join(folder, local_filename)
-    print(local_filename, full_filename) 
     r = requests.get(url, stream=True)
     with open(full_filename, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024): 
             if chunk: # filter out keep-alive new chunks
                 f.write(chunk)
     return full_filename
+
 
 def maybe_download(archive_url, target_dir, ldc_dataset):
     # If archive file does not exist, download it...
@@ -94,10 +94,10 @@ def _download_and_preprocess_data(data_dir):
     dev_files.to_csv(os.path.join(target_dir, "swb-dev.csv"), index=False)
     test_files.to_csv(os.path.join(target_dir, "swb-test.csv"), index=False)
 
+    
 def _extract(target_dir, archive_path):
     with tarfile.open(archive_path) as tar:
         tar.extractall(target_dir)
-
 
 
 def _maybe_convert_wav(data_dir, original_data, converted_data):
@@ -122,6 +122,7 @@ def _maybe_convert_wav(data_dir, original_data, converted_data):
                 print("converting {} to {}".format(sph_file, wav_file))
                 subprocess.check_call(["sph2pipe", "-c", channel, "-p", "-f", "rif", sph_file, wav_file])
 
+                
 def _parse_transcriptions(trans_file):
     segments = []
     with codecs.open(trans_file, "r", "utf-8") as fin:
@@ -207,9 +208,11 @@ def _maybe_split_wav_and_sentences(data_dir, trans_data, original_data, converte
 
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 
+
 def _is_wav_too_short(wav_filename):
     short_wav_filenames = ['sw2986A-ms98-a-trans-80.6385-83.358875.wav', 'sw2663A-ms98-a-trans-161.12025-164.213375.wav']
     return wav_filename in short_wav_filenames
+
 
 def _split_wav(origAudio, start_time, stop_time, new_wav_file):
     frameRate = origAudio.getframerate()
@@ -222,6 +225,7 @@ def _split_wav(origAudio, start_time, stop_time, new_wav_file):
     chunkAudio.writeframes(chunkData)
     chunkAudio.close()
 
+    
 def _split_sets(filelist):
     # We initially split the entire set into 80% train and 20% test, then
     # split the train set into 80% train and 20% validation.
@@ -237,6 +241,7 @@ def _split_sets(filelist):
 
     return (filelist[train_beg:train_end], filelist[dev_beg:dev_end], filelist[test_beg:test_end])
 
+
 def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, stride=1, offset=0, next_index=lambda i: i + 1, limit=0):
     # Optionally apply dataset size limit
     if limit > 0:
@@ -246,6 +251,7 @@ def _read_data_set(filelist, thread_count, batch_size, numcep, numcontext, strid
 
     # Return DataSet
     return DataSet(txt_files, thread_count, batch_size, numcep, numcontext, next_index=next_index)
+
 
 if __name__ == "__main__":
     _download_and_preprocess_data(sys.argv[1])
