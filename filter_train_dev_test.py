@@ -23,12 +23,14 @@ the cv_LOCALE_valid.csv file.
 
 ## Expected to exist:
 #
-# ABS_PATH/
-#     clips.tsv
+# input_folder/
 #     LOCALE/
-#        cv_LOCALE_valid.csv
+#         valid/
+#             *.wav
+#         cv_LOCALE_valid.csv (the wav_filename actually includes "valid/")
+#     clips.tsv
 
-# Created by script:
+## Created by script:
 #
 # output_folder/
 #     cv_valid_dev.csv
@@ -39,11 +41,8 @@ the cv_LOCALE_valid.csv file.
 
 
 LOCALE = sys.argv[1]
-output_folder = sys.argv[2]
-
-ABS_PATH='/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0'
-#ABS_PATH='/home/josh/CV'
-
+input_folder =  sys.argv[2]
+output_folder = sys.argv[3]
 
 
 
@@ -56,8 +55,8 @@ ABS_PATH='/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0'
 # whether or not they've been validated (the file is called clips.tsv) 
 # clips.tsv ==  path	sentence    up_votes	down_votes   age     gender	accent	locale	bucket
 
-print("Looking for clips.tsv here: ", '{}/clips.tsv'.format(ABS_PATH))
-clips = pandas.read_csv('{}/clips.tsv'.format(ABS_PATH), sep='\t')
+print("Looking for clips.tsv here: ", '{}/clips.tsv'.format(input_folder))
+clips = pandas.read_csv('{}/clips.tsv'.format(input_folder), sep='\t')
 # pull out data for just one language
 locale = clips[clips['locale'] == LOCALE]
 # format file names
@@ -75,7 +74,7 @@ train_paths = locale[locale['bucket'] == 'train'].loc[:, ['path']]
 
 # cv_LANG_valid.csv == wav_filename,wav_filesize,transcript
 
-validated_clips = pandas.read_csv('{}/{}/cv_{}_valid.csv'.format(ABS_PATH, LOCALE, LOCALE))
+validated_clips = pandas.read_csv('{}/{}/cv_{}_valid.csv'.format(input_folder, LOCALE, LOCALE))
 validated_clips['path'] = validated_clips['wav_filename'].apply(ntpath.basename)
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xa0', ' ') # for ky only?
 
@@ -99,7 +98,7 @@ print("Num validated clips to be used in TEST: ", validated_clips[test_indices][
 print("Num validated clips to be used in TRAIN: ", validated_clips[train_indices]['wav_filename'].count())
 print("###############################################")
 
-ABS_PATH_TO_DATA = ABS_PATH + "/" + LOCALE + "/"
+ABS_PATH_TO_DATA = input_folder + "/" + LOCALE + "/"
 validated_clips['wav_filename'] =  ABS_PATH_TO_DATA + validated_clips['wav_filename'].astype(str)
 
 validated_clips[dev_indices].to_csv(os.path.join(output_folder, 'valid_dev.csv'), index=False)
