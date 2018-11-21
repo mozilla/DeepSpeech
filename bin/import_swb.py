@@ -18,7 +18,7 @@ import unicodedata
 import wave
 import codecs
 import tarfile
-from util.downloader import maybe_download, SIMPLE_BAR
+#from util.downloader import maybe_download, SIMPLE_BAR
 
 from util.text import validate_label
 ARCHIVE_NAME = 'switchboard_word_alignments.tar.gz'
@@ -26,43 +26,79 @@ ARCHIVE_URL = 'http://www.openslr.org/resources/5/'
 ARCHIVE_DIR_NAME = 'LDC97S62'
 LDC_DATASET = 'swb1_LDC97S62.tgz'
 
+import requests
+
+def download_file(folder, url):
+    # https://stackoverflow.com/a/16696317/738515
+    local_filename = url.split('/')[-1]
+    full_filename = os.path.join(folder, local_filename)
+    print(local_filename, full_filename) 
+    r = requests.get(url, stream=True)
+    with open(full_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024): 
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+    return full_filename
+
+def maybe_download(archive_url, target_dir, ldc_dataset):
+    # If archive file does not exist, download it...
+    archive_path = os.path.join(target_dir, ldc_dataset)
+    ldc_path = archive_url+ldc_dataset
+    if not os.path.exists(target_dir):
+        print('No path "%s" - creating ...' % target_dir)
+        makedirs(target_dir)
+
+    if not os.path.exists(archive_path):
+        print('No archive "%s" - downloading...' % archive_path)
+        download_file(target_dir, ldc_path)
+    else:
+        print('Found archive "%s" - not downloading.' % archive_path)
+    return archive_path
+
+
 def _download_and_preprocess_data(data_dir):
-    
-    data_dir = os.path.join(data_dir, ARCHIVE_DIR_NAME)
-    target_dir = path.abspath(data_dir)
+    new_data_dir = os.path.join(data_dir, ARCHIVE_DIR_NAME)
+    target_dir = os.path.abspath(new_data_dir)
+    archive_path = os.path.abspath(os.path.join(data_dir, LDC_DATASET))
+
+    # Check swb1_LDC97S62.tgz then extract
+    assert(os.path.isfile(archive_path))
+    _extract(target_dir, archive_path)
     
     # Transcripts
-    transcripts_path = maybe_download(ARCHIVE_NAME, target_dir, ARCHIVE_URL)
-    _maybe_extract(target_dir, ARCHIVE_DIR_NAME, transcripts_path)
-    
-    # Extract swb1_LDC97S62.tgz 
-    _maybe_extract(target_dir, ARCHIVE_DIR_NAME, LDC_DATASET)
-    
-    # check swb1_d1/2/3/4/swb_ms98_transcriptions
+    transcripts_path = maybe_download(ARCHIVE_URL, target_dir, ARCHIVE_NAME)
+    _extract(target_dir, transcripts_path)
+
+    # Check swb1_d1/2/3/4/swb_ms98_transcriptions
     expected_folders = ["swb1_d1","swb1_d2","swb1_d3","swb1_d4","swb_ms98_transcriptions"]
-    assert(all([os.path.isdir(os.path.join(target_dir,e) for e in expected folders])))
-    
+    assert(all([os.path.isdir(os.path.join(target_dir,e)) for e in expected_folders]))
     
     # Conditionally convert swb sph data to wav
-    _maybe_convert_wav(data_dir, "swb1_d1", "swb1_d1-wav")
-    _maybe_convert_wav(data_dir, "swb1_d2", "swb1_d2-wav")
-    _maybe_convert_wav(data_dir, "swb1_d3", "swb1_d3-wav")
-    _maybe_convert_wav(data_dir, "swb1_d4", "swb1_d4-wav")
+    _maybe_convert_wav(target_dir, "swb1_d1", "swb1_d1-wav")
+    _maybe_convert_wav(target_dir, "swb1_d2", "swb1_d2-wav")
+    _maybe_convert_wav(target_dir, "swb1_d3", "swb1_d3-wav")
+    _maybe_convert_wav(target_dir, "swb1_d4", "swb1_d4-wav")
 
     # Conditionally split wav data
-    d1 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d1-wav", "swb1_d1-split-wav")
-    d2 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d2-wav", "swb1_d2-split-wav")
-    d3 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d3-wav", "swb1_d3-split-wav")
-    d4 = _maybe_split_wav_and_sentences(data_dir, "swb_ms98_transcriptions", "swb1_d4-wav", "swb1_d4-split-wav")
+    d1 = _maybe_split_wav_and_sentences(target_dir, "swb_ms98_transcriptions", "swb1_d1-wav", "swb1_d1-split-wav")
+    d2 = _maybe_split_wav_and_sentences(target_dir, "swb_ms98_transcriptions", "swb1_d2-wav", "swb1_d2-split-wav")
+    d3 = _maybe_split_wav_and_sentences(target_dir, "swb_ms98_transcriptions", "swb1_d3-wav", "swb1_d3-split-wav")
+    d4 = _maybe_split_wav_and_sentences(target_dir, "swb_ms98_transcriptions", "swb1_d4-wav", "swb1_d4-split-wav")
     
     swb_files = d1.append(d2).append(d3).append(d4)
     
     train_files, dev_files, test_files = _split_sets(swb_files)
 
     # Write sets to disk as CSV files
-    train_files.to_csv(os.path.join(data_dir, "swb-train.csv"), index=False)
-    dev_files.to_csv(os.path.join(data_dir, "swb-dev.csv"), index=False)
-    test_files.to_csv(os.path.join(data_dir, "swb-test.csv"), index=False)
+    train_files.to_csv(os.path.join(target_dir, "swb-train.csv"), index=False)
+    dev_files.to_csv(os.path.join(target_dir, "swb-dev.csv"), index=False)
+    test_files.to_csv(os.path.join(target_dir, "swb-test.csv"), index=False)
+
+def _extract(target_dir, archive_path):
+    with tarfile.open(archive_path) as tar:
+        tar.extractall(target_dir)
+
+
 
 def _maybe_convert_wav(data_dir, original_data, converted_data):
     source_dir = os.path.join(data_dir, original_data)
