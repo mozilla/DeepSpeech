@@ -34,6 +34,10 @@ sample_rec.wav                 13.710               20.797               5.593  
 
 ```
 
+**Note:** Only `wav` files with a 16kHz sample rate are supported for now, you can convert your files to the appropriate format with ffmpeg if available on your system.
+
+    ffmpeg -i infile.mp3  -ar 16000 -ac 1  outfile.wav
+
 ### 2. Minimalistic GUI
 
 The GUI tool does the same job as the CLI tool. The VAD is fixed at an aggressiveness of 1.
