@@ -47,6 +47,8 @@ python3 util/check_characters.py "${data}/*.csv"
 
 echo "MIXED UP TRAIN AND dev files!"
 
+exit
+
 for num_layers_dropped in 5; do
 
     exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
