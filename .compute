@@ -42,7 +42,7 @@ input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
 data="../keep/${target_lang}"
 mkdir $data
 
-python3 filter_train_dev_test.py "${target_lang}" "${input_dir}" "${data}"
+python3 util/filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
 echo "MIXED UP TRAIN AND dev files!"
