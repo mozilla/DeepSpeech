@@ -90,9 +90,7 @@ dev_indices = validated_clips['path'].isin(dev_paths['path'])
 test_indices = validated_clips['path'].isin(test_paths['path'])
 train_indices = validated_clips['path'].isin(train_paths['path'])
 validated_clips = validated_clips.drop(columns=['path'])
-
-ABS_PATH_TO_DATA = data_dir + "/" + LOCALE + "/"
-validated_clips['wav_filename'] =  ABS_PATH_TO_DATA + validated_clips['wav_filename'].astype(str)
+validated_clips['wav_filename'] =  data_dir + "/" + LOCALE + "/" + validated_clips['wav_filename'].astype(str)
 
 
 
