@@ -22,6 +22,7 @@ import tarfile
 import requests
 from util.text import validate_label
 
+# ARCHIVE_NAME refers to ISIP alignments from 01/29/03
 ARCHIVE_NAME = 'switchboard_word_alignments.tar.gz'
 ARCHIVE_URL = 'http://www.openslr.org/resources/5/'
 ARCHIVE_DIR_NAME = 'LDC97S62'
