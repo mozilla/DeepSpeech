@@ -21,6 +21,8 @@ import codecs
 import tarfile
 import requests
 from util.text import validate_label
+import librosa
+import soundfile # <= Has an external dependency on libsndfile
 
 # ARCHIVE_NAME refers to ISIP alignments from 01/29/03
 ARCHIVE_NAME = 'switchboard_word_alignments.tar.gz'
@@ -120,8 +122,14 @@ def _maybe_convert_wav(data_dir, original_data, converted_data):
                 sph_file = os.path.join(root, filename)
                 wav_filename = os.path.splitext(os.path.basename(sph_file))[0] + "-" + channel + ".wav"
                 wav_file = os.path.join(target_dir, wav_filename)
-                print("converting {} to {}".format(sph_file, wav_file))
-                subprocess.check_call(["sph2pipe", "-c", channel, "-p", "-f", "rif", sph_file, wav_file])
+                temp_wav_filename = os.path.splitext(os.path.basename(sph_file))[0] + "-" + channel + "-temp.wav"
+                temp_wav_file = os.path.join(target_dir, temp_wav_filename)
+                print("converting {} to {}".format(sph_file, temp_wav_file))
+                subprocess.check_call(["sph2pipe", "-c", channel, "-p", "-f", "rif", sph_file, temp_wav_file])
+                print("upsampling {} to {}".format(temp_wav_file, wav_file))
+                audioData, frameRate = librosa.load(temp_wav_file, sr=16000, mono=True)
+                soundfile.write(wav_file, audioData, frameRate, "PCM_16")
+                os.remove(temp_wav_file)
 
                 
 def _parse_transcriptions(trans_file):
