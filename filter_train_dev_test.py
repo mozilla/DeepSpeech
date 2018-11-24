@@ -91,7 +91,7 @@ train_paths = locale[locale['new_bucket'] == 'train'].loc[:, ['path']]
 
 validated_clips = pandas.read_csv('{}/{}/cv_{}_valid.csv'.format(data_dir, LOCALE, LOCALE))
 validated_clips['path'] = validated_clips['wav_filename'].apply(ntpath.basename)
-# validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xa0', ' ') # for ky only?
+validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xa0', ' ')
 
 
 
