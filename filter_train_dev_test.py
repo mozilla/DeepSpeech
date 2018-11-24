@@ -59,12 +59,27 @@ print("Looking for clips.tsv here: ", clips_tsv)
 clips = pandas.read_csv(clips_tsv, sep='\t')
 # pull out data for just one language
 locale = clips[clips['locale'] == LOCALE]
-# format file names
+
+
+### REASSIGN TEXT / DEV / TRAIN ###
+locale['ID'] = locale['path'].str.split('/', expand = True)[0]
+speaker_counts = locale['ID'].value_counts()
+speaker_counts = speaker_counts.to_frame()
+speaker_counts['ID'] = pandas.Series(speaker_counts.index).values
+num_spks = len(speaker_counts.index)
+train = ['train']*8
+dev = ['dev']*1
+test = ['test']*1
+splits = train + dev + test
+speaker_counts['new_bucket'] = pandas.Series((splits*num_spks)[:num_spks]).values
+locale['new_bucket']=locale['ID'].map(speaker_counts.set_index('ID')['new_bucket'])
+### ONLY WORKS FOR LANGS WITH MORE and MORE EVEN DATA ###
+
 locale['path'] = locale['path'].str.replace('/', '___')
 locale['path'] = locale['path'].str.replace('mp3', 'wav')
-dev_paths = locale[locale['bucket'] == 'dev'].loc[:, ['path']]
-test_paths = locale[locale['bucket'] == 'test'].loc[:, ['path']]
-train_paths = locale[locale['bucket'] == 'train'].loc[:, ['path']]
+dev_paths = locale[locale['new_bucket'] == 'dev'].loc[:, ['path']]
+test_paths = locale[locale['new_bucket'] == 'test'].loc[:, ['path']]
+train_paths = locale[locale['new_bucket'] == 'train'].loc[:, ['path']]
 
 
 
