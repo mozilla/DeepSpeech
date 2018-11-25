@@ -65,6 +65,8 @@ locale = clips[clips['locale'] == LOCALE]
 locale['ID'] = locale['path'].str.split('/', expand = True)[0]
 speaker_counts = locale['ID'].value_counts()
 speaker_counts = speaker_counts.to_frame()
+speaker_counts.to_csv("speaker_count.csv", sep="\t")
+
 speaker_counts['ID'] = pandas.Series(speaker_counts.index).values
 num_spks = len(speaker_counts.index)
 train = ['train']*8

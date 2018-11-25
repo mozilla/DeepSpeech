@@ -45,38 +45,36 @@ mkdir $data
 python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
-for num_layers_dropped in 5; do
+# for num_layers_dropped in 5; do
 
-    exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
+#     exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
     
-    python3 -u DeepSpeech.py \
-	    --export_dir "${exp}/model/" \
-	    --summary_dir "${exp}/summaries/" \
-	    --checkpoint_dir "${exp}/ckpt/" \
-	    --test_output_file "${exp}/RESULTS.json" \
-	    --drop_source_layers "${num_layers_dropped}" \
-	    --source_model_checkpoint_dir "../keep/${source_model}" \
-	    --train_files "${data}/valid_dev.csv"\
-	    --dev_files "${data}/valid_train.csv" \
-	    --test_files "${data}/valid_test.csv" \
-	    --n_hidden 2048 \
-	    --epoch -1000 \
-        --earlystop_nsteps 10 \
-	    --train_batch_size 24 \
-	    --dev_batch_size 48 \
-	    --test_batch_size 48 \
-	    --learning_rate 0.0001 \
-	    --dropout_rate 0.2 \
-	    --display_step 0 \
-	    --validation_step 1 \
-	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
 
-done
+#     python3 -u DeepSpeech.py \
+# 	    --export_dir "${exp}/model/" \
+# 	    --summary_dir "${exp}/summaries/" \
+# 	    --checkpoint_dir "${exp}/ckpt/" \
+# 	    --test_output_file "${exp}/RESULTS.json" \
+# 	    --drop_source_layers "${num_layers_dropped}" \
+# 	    --source_model_checkpoint_dir "../keep/${source_model}" \
+# 	    --train_files "${data}/valid_dev.csv"\
+# 	    --dev_files "${data}/valid_train.csv" \
+# 	    --test_files "${data}/valid_test.csv" \
+# 	    --n_hidden 2048 \
+# 	    --epoch -1000 \
+#         --earlystop_nsteps 10 \
+# 	    --train_batch_size 24 \
+# 	    --dev_batch_size 48 \
+# 	    --test_batch_size 48 \
+# 	    --learning_rate 0.0001 \
+# 	    --dropout_rate 0.2 \
+# 	    --display_step 0 \
+# 	    --validation_step 1 \
+# 	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
+
+# done
 
 
-
-
-exit
 
 
 ###              ###
@@ -87,24 +85,25 @@ if [ 1 ]; then
     exp="../keep/${target_lang}/scratch/"
     
     python3 -u DeepSpeech.py \
-	    --export_dir "${exp}/model/" \
-	    --summary_dir "${exp}/summaries/" \
-	    --checkpoint_dir "${exp}/ckpt/" \
-	    --test_output_file "${exp}/RESULTS.json" \
-	    --train_files "${data}/valid_train.csv"\
-	    --dev_files "${data}/valid_dev.csv" \
-	    --test_files "${data}/valid_test.csv" \
-	    --n_hidden 2048 \
-	    --epoch 1000 \
-        --earlystop_nsteps 10 \
-	    --train_batch_size 24 \
-	    --dev_batch_size 48 \
-	    --test_batch_size 48 \
-	    --learning_rate 0.0001 \
-	    --dropout_rate 0.2 \
-	    --display_step 0 \
-	    --validation_step 1 \
-	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
+            --drop_source_layers 0 \
+	        --export_dir "${exp}/model/" \
+	        --summary_dir "${exp}/summaries/" \
+	        --checkpoint_dir "${exp}/ckpt/" \
+	        --test_output_file "${exp}/RESULTS.json" \
+	        --train_files "${data}/valid_train.csv"\
+	        --dev_files "${data}/valid_dev.csv" \
+	        --test_files "${data}/valid_test.csv" \
+	        --n_hidden 2048 \
+	        --epoch 1000 \
+            --earlystop_nsteps 10 \
+	        --train_batch_size 24 \
+	        --dev_batch_size 48 \
+	        --test_batch_size 48 \
+	        --learning_rate 0.0001 \
+	        --dropout_rate 0.2 \
+	        --display_step 0 \
+	        --validation_step 1 \
+	        --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
 fi
 
 echo "$0: END"

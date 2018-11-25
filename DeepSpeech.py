@@ -267,8 +267,10 @@ def get_tower_results(model_feeder, optimizer, dropout_rates, drop_source_layers
                     tower_avg_losses.append(avg_loss)
 
                     # Compute gradients for model parameters using tower's mini-batch
-                    # gradients = optimizer.compute_gradients(avg_loss)  # without transfer learning
-                    gradients = optimizer.compute_gradients(avg_loss, var_list= [v for v in tf.trainable_variables() if any(layer in v.op.name for layer in drop_source_layers) ] )
+                    if drop_source_layers == 0:
+                        gradients = optimizer.compute_gradients(avg_loss)  # without transfer learning
+                    else:
+                        gradients = optimizer.compute_gradients(avg_loss, var_list= [v for v in tf.trainable_variables() if any(layer in v.op.name for layer in drop_source_layers) ] )
 
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
@@ -383,8 +385,11 @@ def train(server=None):
     #
     #    drop_source_layers=['6']
     #
-    
-    drop_source_layers = ['2', '3', 'lstm', '5', '6'][-int(FLAGS.drop_source_layers):]
+
+    if FLAGS.drop_source_layers == 0:
+        drop_source_layers = 0
+    else:
+        drop_source_layers = ['2', '3', 'lstm', '5', '6'][-int(FLAGS.drop_source_layers):]
 
     # Initializing and starting the training coordinator
     coord = TrainingCoordinator(Config.is_chief)
@@ -555,16 +560,26 @@ def train(server=None):
             ckpt = tf.train.load_checkpoint(FLAGS.source_model_checkpoint_dir)
             variables = list(ckpt.get_variable_to_shape_map().keys())
             for v in tf.global_variables():
-                if not any(layer in v.op.name for layer in drop_source_layers):
+                # TRAIN FROM SCRATCH
+                if drop_source_layers == 0:
                     print('Loading', v.op.name)
                     v.load(ckpt.get_tensor(v.op.name), session=session)
+                else:
+                    # TRAIN FROM SOURCE
+                    if not any(layer in v.op.name for layer in drop_source_layers):
+                        print('Loading', v.op.name)
+                        v.load(ckpt.get_tensor(v.op.name), session=session)
 
-    scaffold = tf.train.Scaffold(
+    if drop_source_layers == 0:
+        init_op=tf.variables_initializer(tf.global_variables())
+    else:
         init_op=tf.variables_initializer(
-            [ v for v in tf.global_variables() if any(layer in v.op.name for layer in drop_source_layers) ]
-        ),
-        init_fn=init_fn
-    )
+            [ v for v in tf.global_variables()
+              if any(layer in v.op.name
+                     for layer in drop_source_layers)
+            ])
+        
+    scaffold = tf.train.Scaffold(init_op, init_fn=init_fn)
     ### TRANSFER LEARNING ###
 
     
