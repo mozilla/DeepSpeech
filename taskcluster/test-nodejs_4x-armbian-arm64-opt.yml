@@ -1,0 +1,13 @@
+build:
+  template_file: test-armbian-opt-base.tyml
+  dependencies:
+    - "node-package"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  system_setup:
+    >
+      ${nodejs.packages_stretch.prep_4} && ${nodejs.packages_stretch.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_stretch.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-node-tests.sh 4.x"
+  metadata:
+    name: "DeepSpeech ARMbian ARM64 Cortex-A53 CPU NodeJS 4.x tests"
+    description: "Testing DeepSpeech forARMbian ARM64 Cortex-A53 on NodeJS v4.x, CPU only, optimized version"

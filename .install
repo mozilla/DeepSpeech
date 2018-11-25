@@ -1,0 +1,20 @@
+#!/bin/bash
+
+## SETUP VIRETUALENV ##
+virtualenv -p python3 ../tmp/venv
+source ../tmp/venv/bin/activate
+pip3 install -r <(grep -v tensorflow requirements.txt)
+pip3 install tensorflow-gpu==1.12.0rc2
+#pip3 install tensorflow
+
+## SETUP TASKCLUSTER ##
+python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
+# Install ds_ctcdecoder package from TaskCluster
+pip3 install $(python3 util/taskcluster.py --decoder)
+
+## GET SOURCE CHECKPOINT ##
+# SOURCE_MODEL='../keep/en'
+# mkdir $SOURCE_MODEL
+# wget https://github.com/mozilla/DeepSpeech/releases/download/v0.3.0/deepspeech-0.3.0-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
+# tar xvzf ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz --directory "${SOURCE_MODEL}"
+# rm ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz

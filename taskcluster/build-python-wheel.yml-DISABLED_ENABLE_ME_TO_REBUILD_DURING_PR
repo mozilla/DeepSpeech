@@ -1,0 +1,5 @@
+build:
+  template_file: build-python-wheel.tyml
+  metadata:
+    name: "Build Python 3.5 wheels on ARM64"
+    description: "Building some Python 3.5 wheels for ARM64 system"

@@ -1,0 +1,17 @@
+taskcluster:
+  schedulerId: taskcluster-github
+  docker:
+    provisionerId: aws-provisioner-v1
+    workerType: deepspeech-worker
+  dockerrpi3:
+    provisionerId: deepspeech-provisioner
+    workerType: ds-rpi3
+  dockerarm64:
+    provisionerId: deepspeech-provisioner
+    workerType: ds-lepotato
+  generic:
+    provisionerId: deepspeech-provisioner
+    workerType: ds-macos-light
+  script:
+    provisionerId: deepspeech-provisioner
+    workerType: ds-scriptworker

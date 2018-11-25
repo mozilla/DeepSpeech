@@ -1,0 +1,13 @@
+build:
+  template_file: test-raspbian-opt-base.tyml
+  dependencies:
+    - "node-package"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  system_setup:
+    >
+      ${nodejs.packages_stretch.prep_5} && ${nodejs.packages_stretch.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_stretch.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-node-tests.sh 5.x"
+  metadata:
+    name: "DeepSpeech Raspbian RPi3/ARMv7 CPU NodeJS 5.x tests"
+    description: "Testing DeepSpeech for Raspbian RPi3/ARMv7 on NodeJS v5.x, CPU only, optimized version"

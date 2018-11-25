@@ -1,0 +1,362 @@
+#!/bin/bash
+
+# ldd drop-in replacement for cross-compilation toolchains.
+
+# This file is a slightly modified version of xldd.in from
+# crosstool-ng 1.22.0
+
+# In order to use it, copy it in same directory than other
+# toolchain binaries and rename it with same tuple. 
+# (i.e. /opt/arm-sysmic-linux-gnueabihf/bin/arm-sysmic-linux-gnueabihf-ldd)
+# Thus, this will automaticaly detect necessary information
+# about your toolchain.
+
+export LC_ALL=C
+version="forked from crosstool-ng 1.22.0"
+# Change it to 64 if necessary
+bits="32"
+sed="${SED:-sed}"
+grep="${GREP:-grep}"
+
+my_name="$( basename "${0}" )"
+prefix="${0%-ldd}"
+gcc="${prefix}-gcc"
+readelf="${prefix}-readelf"
+fake_load_addr_root="$((0xdeadbeef))"
+fake_load_addr_rpath="$((0xdeadc0de))"
+fake_load_addr_sysroot="$((0x8badf00d))"
+ld_library_path="/lib:/usr/lib"
+
+do_error() {
+    printf "%s: %s\n" "${my_name}" "$*" >&2
+}
+
+do_opt_error() {
+    do_error "$@"
+    printf "Try \`%s --help' for more information\n" "${my_name}" >&2
+}
+
+do_trace() {
+    local depth=0
+
+    [ -z "${CT_XLDD_VERBOSE}" ] && return 0
+
+    for((depth=0; "${#FUNCNAME[$((depth+1))]}" != 0; depth++)); do :; done
+    printf "%*s" $((4*(depth-1))) "" >&2
+    printf -- "$@" >&2
+}
+
+show_version() {
+    # Fake a real ldd, just in case some dumb script would check
+    cat <<_EOF_
+ldd (crosstool-NG) ${version}
+Copyright (C) 2010 "Yann E. MORIN" <yann.morin.1998@free.fr>
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+Licensed under the GPLv2, see the file LICENSES in the top-directory of the
+sources for this package.
+_EOF_
+}
+
+show_help() {
+    cat <<_EOF_
+Usage: ${my_name} [OPTION]... --root DIR FILE...
+      --help              print this help and exit
+      --version           print version information and exit
+      --root dir          treat dir as being the root of the target
+  -s, --show-system       mark libs from the sysroot with a trailing '[*]'
+                          and libs found via RPATH with a trailing '[+]'
+
+_EOF_
+    cat <<_EOF_ |fmt
+${my_name} tries to mimick the behavior of a real native ldd, but can be
+used in a cross-development environment. Here is how it differs from a
+real native ldd:
+
+If the CT_XLDD_VERBOSE variable is set and non-empty, then ${my_name} will
+print a lot of debug messages, explaining how it builds the library
+search path, and how each library was found and why.
+
+The LD_LIBRARY_PATH variable is not used, as it can not reliably be
+guessed except at runtime, and we can't run.
+
+${my_name} does not scan /etc/ld.so.cache, but instead uses /etc/ld.so.conf
+(it understands the include directives therein for libces that have that).
+
+${my_name} also interprets (tries to!) the RPATH/RUNPATH records found in
+the dynamic ELF section. Such paths are searched for only relative to
+the specified root, not from the sysroot (see below). Also, those paths
+are searched for not only for the file they appear in, but also for its
+dependencies.
+
+${my_name} will search the directory specified with --root for libraries
+to resolve the NEEDED tags. If --root is not set, then ${my_name} will
+use the value in the environment variable \${CT_XLDD_ROOT}. If neither
+is set, then this is an error.
+
+If NEEDED libraries can't be found in the specified root directory, then
+${my_name} will also look in the sysroot of the toolchain to see if it
+can find them.
+
+For NEEDED libraries that were found, the output will look like:
+        libneeded.so => /path/to/libneeded.so (0xloadaddr)
+
+and for those that were not found, the output will look like:
+        libneeded.so not found
+
+The paths are relative to the specified root directory, or to the sysroot
+(eg. /lib/libneeded.so, /usr/lib/libneeded.so, and so on...).
+
+The expected load address 'loadaddr' is a faked address to match the output
+of the real ldd, but has no actual meaning (set to some constants for now,
+0x8badf00d for libraries from the sysroot, 0xdeadc0de for those found via
+the RPATH/RUNPATH records, and 0xdeadbeef for others).
+_EOF_
+
+# Unimplemeted yet:
+#  -d, --data-relocs       process data relocations
+#  -r, --function-relocs   process data and function relocations
+#  -u, --unused            print unused direct dependencies
+#  -v, --verbose           print all information
+
+# See also this thread:
+#  http://sourceware.org/ml/crossgcc/2008-09/msg00057.html
+}
+
+# Parse command line options
+root="${CT_XLDD_ROOT}"
+show_system=
+while true; do
+    case "${1}" in
+        --help)
+            show_help
+            exit 0
+            ;;
+        --version)
+            show_version
+            exit 0
+            ;;
+        --root)
+            root="$2"
+            shift
+            ;;
+        --root=*)
+            root="${1#--root=}"
+            ;;
+        --show-system|-s)
+            show_system=1
+            ;;
+        -*)
+            do_opt_error "unrecognized option \`${1}'"
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+    shift
+done
+
+# Sanity checks
+sysroot="$( "${gcc}" -print-sysroot 2>/dev/null )"
+if [ -z "${sysroot}" ]; then
+    sysroot="$( "${gcc}" -print-file-name=libc.so 2>/dev/null \
+                |${sed} -r -e 's:/usr/lib/libc.so$::;'        \
+              )"
+fi
+if [ -z "${sysroot}" ]; then
+    do_error "unable to find sysroot for \`${gcc}'"
+fi
+
+if [ -z "${root}" ]; then
+    root=${sysroot}
+fi
+if [ ! -d "${root}" ]; then
+    do_error "\`${root}': no such file or directory"
+    exit 1
+fi
+
+do_report_needed_found() {
+    local needed="${1}"
+    local path="${2}"
+    local origin="${3}"
+    local loadaddr
+    local sys
+
+    case "${origin}" in
+        root)
+            loadaddr="${fake_load_addr_root}"
+            ;;
+        rpath)
+            loadaddr="${fake_load_addr_rpath}"
+            if [ -n "${show_system}" ]; then
+                sys=" [+]"
+            fi
+            ;;
+        sysroot)
+            loadaddr="${fake_load_addr_sysroot}"
+            if [ -n "${show_system}" ]; then
+                sys=" [*]"
+            fi
+            ;;
+    esac
+
+    printf "%8s%s => %s (0x%0*x)%s\n"   \
+           ""                           \
+           "${needed}"                  \
+           "${path}"                    \
+           "$((bits/4))"                \
+           "${loadaddr}"                \
+           "${sys}"
+}
+
+# Search a needed file, scanning ${lib_dir} in the root directory
+do_find_needed() {
+    local needed="${1}"
+    local -a list
+    local -a dirs
+    local found
+    local where
+    local base
+    local d i
+
+    do_trace "Searching for '%s'\n" "${needed}"
+
+    # rpath shall come first!
+    list=(                      \
+        "rpath:${root}"         \
+        "root:${root}"          \
+        "sysroot:${sysroot}"    \
+    )
+
+    for i in "${list[@]}"; do
+        where="${i%%:*}"
+        base="${i#*:}"
+        if [ "${where}" = "rpath" ]; then
+            dirs=( "${search_rpath[@]}" )
+        else
+            dirs=( "${needed_search_path[@]}" )
+        fi
+        for d in "${dirs[@]}"; do
+            do_trace "-> looking in '%s' (%s)\n" "${d}" "${where}"
+            if [ -f "${base}${d}/${needed}" ]; then
+                found="${d}/${needed}"
+                do_trace "---> found\n"
+                break 2
+            fi
+        done
+    done
+
+    if [ -n "${found}" ]; then
+        do_report_needed_found "${needed}" "${found}" "${where}"
+        do_process_file "${base}${found}"
+    else
+        printf "%8s%s not found\n" "" "${needed}"
+    fi
+
+    do_trace "Done searching for '%s'\n" "${needed}"
+}
+
+# Scan a file for all NEEDED tags
+do_process_file() {
+    local file="${1}"
+    local -a save_search_rpath
+    local n m
+    local found
+
+    do_trace "Parsing file '%s'\n" "${file}"
+
+    save_search_rpath=( "${search_rpath[@]}" )
+    for n in $( "${readelf}" -d "${file}"                                           \
+                |"${grep}" -E '\((RPATH|RUNPATH)\)'                                 \
+                |"${sed}" -r -e 's/^.*Library r(|un)path:[[:space:]]+\[(.*)\]$/\2/;'\
+              ); do
+        do_trace "-> adding rpath '%s'\n" "${n}"
+        search_rpath+=( "${n}" )
+    done
+    do_trace ": search path:\n"
+    for n in "${search_rpath[@]}" "${needed_search_path[@]}"; do
+        do_trace ": - '%s'\n" "${n}"
+    done
+    do_trace ": end search path\n"
+
+    for n in $( "${readelf}" -d "${file}"                                               \
+                |"${grep}" -E '\(NEEDED\)'                                              \
+                |"${sed}" -r -e 's/^.*Shared library:[[:space:]]+\[([^]]+)\].*/\1/;'    \
+              ); do
+        found=0
+        for m in "${needed_list[@]}"; do
+            [ "${n}" = "${m}" ] && found=1 && break
+        done
+        if [ ${found} -ne 0 ]; then
+            do_trace "-> skipping already known dependency '%s'\n" "${n}"
+            continue
+        fi
+        do_trace "-> handling new dependency '%s'\n" "${n}"
+        needed_list+=( "${n}" )
+        do_find_needed "${n}"
+        do_trace "-> done handling dependency '%s'\n" "${n}"
+    done
+
+    search_rpath=( "${save_search_rpath[@]}" )
+
+    do_trace "Finished parsing file '%s'\n" "${file}"
+}
+
+# Recursively scan a /etc/ld.so.conf file
+do_scan_etc_ldsoconf() {
+    local ldsoconf="${1}"
+    local g
+    local f
+
+    [ -f "${ldsoconf}" ] || return 0
+    do_trace "Parsing ld.so.conf: '%s'\n" "${ldsoconf}"
+
+    while read line; do
+        case "${line}" in
+            include\ *)
+                g="${root}${line#include }"
+                do_trace "-> handling include directive '%s'\n" "${g}"
+                for f in ${g}; do
+                    do_scan_etc_ldsoconf "${f}"
+                done
+                do_trace "-> finished handling include directive '%s'\n" "${g}"
+                ;;
+            \#*|"")
+                ;;
+            *)
+                do_trace "-> adding search dir '%s'\n" "${line}"
+                needed_search_path+=( "${line}" )
+                ;;
+        esac
+    done <"${ldsoconf}"
+
+    do_trace "Finished parsing ld.so.conf: '%s'\n" "${ldsoconf}"
+}
+
+# Build up the full list of search directories
+declare -a needed_search_path
+do_trace "Adding basic lib dirs\n"
+ld_library_path="${ld_library_path}:"
+while [ -n "${ld_library_path}" ]; do
+    d="${ld_library_path%%:*}"
+    if [ -n "${d}" ]; then
+        do_trace "-> adding search dir '%s'\n" "${d}"
+        needed_search_path+=( "${d}" )
+    fi
+    ld_library_path="${ld_library_path#*:}"
+done
+do_trace "Done adding basic lib dirs\n"
+do_trace "Scanning '/etc/ld.so.conf'\n"
+do_scan_etc_ldsoconf "${root}/etc/ld.so.conf"
+do_trace "Done scanning '/etc/ld.so.conf'\n"
+do_trace "Search path:\n"
+for p in "${needed_search_path[@]}"; do
+    do_trace "-> '%s'\n" "${p}"
+done
+
+declare -a needed_list
+declare -a search_rpath
+do_trace "Scanning file '%s'\n" "${1}"
+do_process_file "${1}"
+do_trace "Done scanning file '%s'\n" "${1}"
