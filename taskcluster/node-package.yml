@@ -1,0 +1,25 @@
+build:
+  template_file: linux-opt-base.tyml
+  dependencies:
+    - "darwin-amd64-cpu-opt"
+    - "linux-amd64-cpu-opt"
+    - "linux-rpi3-cpu-opt"
+    - "linux-arm64-cpu-opt"
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  system_setup:
+    >
+      ${nodejs.packages_trusty.prep_6} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.bea86c1e884730cf7f8615eb24d31872c198c766.cpu/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/node-build.sh"
+    package: "taskcluster/node-package.sh"
+  metadata:
+    name: "DeepSpeech NodeJS package"
+    description: "Packaging DeepSpeech for registry"

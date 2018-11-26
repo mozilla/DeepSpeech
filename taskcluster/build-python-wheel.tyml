@@ -1,0 +1,55 @@
+$if: '(event.event != "push") && (event.event != "tag")'
+then:
+  taskId: ${taskcluster.taskId}
+  provisionerId: ${taskcluster.dockerarm64.provisionerId}
+  workerType: ${taskcluster.dockerarm64.workerType}
+  taskGroupId: ${taskcluster.taskGroupId}
+  schedulerId: ${taskcluster.schedulerId}
+  dependencies:
+    $map: { $eval: build.dependencies }
+    each(b):
+      $eval: as_slugid(b)
+  created: { $fromNow: '0 sec' }
+  deadline: { $fromNow: '1 day' }
+  expires: { $fromNow: '7 days' }
+
+  extra:
+    github:
+      { $eval: taskcluster.github_events.pull_request }
+
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+
+  scopes: [
+    "queue:route:notify.irc-channel.*"
+  ]
+
+  payload:
+    maxRunTime: 14400
+    image: "arm64v8/debian:stretch-20180312"
+
+    command:
+      - "/bin/bash"
+      - "--login"
+      - "-cxe"
+      - >
+        apt-get -qq update && apt-get -qq -y install libopenblas-dev liblapack-dev gnupg pixz sudo wget python3.5-minimal python3-pip python3-wheel python3-setuptools &&
+        mkdir -p /opt/wheels /tmp/artifacts &&
+        cd /opt/wheels &&
+        pip3 wheel --verbose --wheel-dir /tmp/artifacts/ --build $(pwd)/ --no-binary :all: numpy &&
+        pip3 install /tmp/artifacts/numpy*.whl &&
+        pip3 wheel --verbose --wheel-dir /tmp/artifacts/ --build $(pwd)/ --no-binary :all: scipy &&
+        ls -hal
+
+    artifacts:
+      "public":
+        type: "directory"
+        path: "/tmp/artifacts/"
+        expires: { $fromNow: '7 days' }
+
+  metadata:
+    name: ${build.metadata.name}
+    description: ${build.metadata.description}
+    owner: ${event.head.user.email}
+    source: ${event.head.repo.url}

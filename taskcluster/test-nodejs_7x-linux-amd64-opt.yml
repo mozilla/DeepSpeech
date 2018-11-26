@@ -1,0 +1,13 @@
+build:
+  template_file: test-linux-opt-base.tyml
+  dependencies:
+    - "node-package"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  system_setup:
+    >
+      ${nodejs.packages_trusty.prep_7} && ${nodejs.packages_trusty.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_trusty.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-node-tests.sh 7.x"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CPU NodeJS 7.x tests"
+    description: "Testing DeepSpeech for Linux/AMD64 on NodeJS v7.x, CPU only, optimized version"
