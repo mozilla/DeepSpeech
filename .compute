@@ -34,8 +34,8 @@
 
 source ../tmp/venv/bin/activate
 
-scratch=1
-num_layers_dropped=0
+scratch=0
+num_layers_dropped=5
 
 
 target_lang='ky'
