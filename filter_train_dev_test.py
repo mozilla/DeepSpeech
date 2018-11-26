@@ -64,18 +64,35 @@ locale = clips[clips['locale'] == LOCALE]
 ### REASSIGN TEXT / DEV / TRAIN ###
 locale['ID'] = locale['path'].str.split('/', expand = True)[0]
 speaker_counts = locale['ID'].value_counts()
-speaker_counts = speaker_counts.to_frame()
-speaker_counts.to_csv("speaker_count.csv", sep="\t")
+speaker_counts = speaker_counts.to_frame().reset_index()
+speaker_counts.columns= ['ID', 'counts']
+speaker_counts['cum_sum'] = speaker_counts.counts.cumsum()
+speaker_counts['cum_perc'] = 100 * speaker_counts.cum_sum / speaker_counts.counts.sum()
 
-speaker_counts['ID'] = pandas.Series(speaker_counts.index).values
-num_spks = len(speaker_counts.index)
-train = ['train']*8
-dev = ['dev']*1
-test = ['test']*1
-splits = train + dev + test
-speaker_counts['new_bucket'] = pandas.Series((splits*num_spks)[:num_spks]).values
+### BIG LANGS ###
+# num_spks = len(speaker_counts.index)
+# train = ['train']*8
+# dev = ['dev']*1
+# test = ['test']*1
+# splits = train + dev + test
+# speaker_counts['new_bucket'] = pandas.Series((splits*num_spks)[:num_spks]).values
+##^ BIG LANGS ^##
+
+### LIL LANGS ###
+def bucket(row):
+    if (row.cum_perc > 0.0) and( row.cum_perc < 80.0) :
+        return "train"
+    elif (row.cum_perc > 80.0) and( row.cum_perc < 90.0) :
+        return "dev"
+    elif (row.cum_perc > 90.0) and( row.cum_perc <= 100.0) :
+        return "test"
+speaker_counts.loc[:, 'new_bucket'] = speaker_counts.apply(bucket, axis = 1)
+##^ LIL LANGS ^##
+# speaker_counts.to_csv("speaker_count.csv", sep="\t")
+
+
 locale['new_bucket']=locale['ID'].map(speaker_counts.set_index('ID')['new_bucket'])
-### ONLY WORKS FOR LANGS WITH MORE and MORE EVEN DATA ###
+
 
 locale['path'] = locale['path'].str.replace('/', '___')
 locale['path'] = locale['path'].str.replace('mp3', 'wav')

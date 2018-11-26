@@ -34,12 +34,11 @@
 
 source ../tmp/venv/bin/activate
 
-scratch=0
-num_layers_dropped=5
+scratch=1
+num_layers_dropped=0
 
 
-
-target_lang='ca'
+target_lang='ky'
 source_model='en'
 input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
 #input_dir="/home/josh/Downloads/CV"
