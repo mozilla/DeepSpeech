@@ -38,7 +38,7 @@ scratch=0
 num_layers_dropped=5
 
 
-target_lang='ky'
+target_lang='cy'
 source_model='en'
 input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
 #input_dir="/home/josh/Downloads/CV"
