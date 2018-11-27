@@ -112,7 +112,7 @@ validated_clips = pandas.read_csv('{}/{}/cv_{}_valid.csv'.format(data_dir, LOCAL
 validated_clips['path'] = validated_clips['wav_filename'].apply(ntpath.basename)
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xa0', ' ') # kyrgyz
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xad', ' ') # catalan
-
+validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\\', ' ') # welsh
 
 
 

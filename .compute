@@ -37,7 +37,6 @@ source ../tmp/venv/bin/activate
 scratch=0
 num_layers_dropped=5
 
-
 target_lang='cy'
 source_model='en'
 input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
@@ -49,7 +48,6 @@ mkdir $data
 
 python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
-
 
 
 
