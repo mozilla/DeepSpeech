@@ -77,9 +77,12 @@ python3 util/check_characters.py "${data}/*.csv"
 
 
 
+
 ###              ###
 ### FROM SCRATCH ###
 ###              ###
+
+
 
 if [ 1 ]; then
     exp="../keep/${target_lang}/scratch/"
