@@ -34,44 +34,54 @@
 
 source ../tmp/venv/bin/activate
 
-target_lang='fr'
-source_model='en'
+scratch=0
+num_layers_dropped=5
 
+target_lang='cy'
+source_model='en'
 input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
 #input_dir="/home/josh/Downloads/CV"
 data="../keep/${target_lang}"
 mkdir $data
 
+
+
 python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
 
-# for num_layers_dropped in 5; do
 
-#     exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
+
+###                      ###
+### TRANSFER FROM SOURCE ###
+###                      ###
+
+
+if [ $scratch -eq 0 ]; then
     
-#     python3 -u DeepSpeech.py \
-# 	    --export_dir "${exp}/model/" \
-# 	    --summary_dir "${exp}/summaries/" \
-# 	    --checkpoint_dir "${exp}/ckpt/" \
-# 	    --test_output_file "${exp}/RESULTS.json" \
-# 	    --drop_source_layers "${num_layers_dropped}" \
-# 	    --source_model_checkpoint_dir "../keep/${source_model}" \
-# 	    --train_files "${data}/valid_dev.csv"\
-# 	    --dev_files "${data}/valid_train.csv" \
-# 	    --test_files "${data}/valid_test.csv" \
-# 	    --n_hidden 2048 \
-# 	    --epoch -1000 \
-#         --earlystop_nsteps 10 \
-# 	    --train_batch_size 24 \
-# 	    --dev_batch_size 48 \
-# 	    --test_batch_size 48 \
-# 	    --learning_rate 0.0001 \
-# 	    --dropout_rate 0.2 \
-# 	    --display_step 0 \
-# 	    --validation_step 1 \
-# 	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
-
-# done
+    exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
+    
+    python3 -u DeepSpeech.py \
+	    --export_dir "${exp}/model/" \
+	    --summary_dir "${exp}/summaries/" \
+	    --checkpoint_dir "${exp}/ckpt/" \
+	    --test_output_file "${exp}/RESULTS.json" \
+	    --drop_source_layers "${num_layers_dropped}" \
+	    --source_model_checkpoint_dir "../keep/${source_model}" \
+	    --train_files "${data}/valid_dev.csv"\
+	    --dev_files "${data}/valid_train.csv" \
+	    --test_files "${data}/valid_test.csv" \
+	    --n_hidden 2048 \
+	    --epoch -1000 \
+        --earlystop_nsteps 10 \
+	    --train_batch_size 24 \
+	    --dev_batch_size 48 \
+	    --test_batch_size 48 \
+	    --learning_rate 0.0001 \
+	    --dropout_rate 0.2 \
+	    --display_step 0 \
+	    --validation_step 1 \
+	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
+fi
 
 
 
@@ -81,7 +91,9 @@ python3 util/check_characters.py "${data}/*.csv"
 ###              ###
 
 
-if [ 1 ]; then
+
+if [ $scratch -eq 1 ]; then
+    
     exp="../keep/${target_lang}/scratch/"
     
     python3 -u DeepSpeech.py \
