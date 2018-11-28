@@ -37,7 +37,7 @@ source ../tmp/venv/bin/activate
 # if num_layers_dropped=6, then we train from scratch (you dropped all the layers!)
 num_layers_dropped=5
 
-target_lang='fr'
+target_lang='de'
 source_model='en-v030'
 input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
 #input_dir="/home/josh/Downloads/CV"
