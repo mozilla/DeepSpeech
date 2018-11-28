@@ -117,7 +117,8 @@ def evaluate(test_data, inference_graph, alphabet):
         sparse_labels = tf.cast(ctc_label_dense_to_sparse(labels_ph, label_lengths_ph, FLAGS.test_batch_size), tf.int32)
         loss = tf.nn.ctc_loss(labels=sparse_labels,
                               inputs=layers['raw_logits'],
-                              sequence_length=inputs['input_lengths'])
+                              sequence_length=inputs['input_lengths'],
+                              ignore_longer_outputs_than_inputs=True)
 
         # Create a saver using variables from the above newly created graph
         mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
@@ -180,6 +181,8 @@ def evaluate(test_data, inference_graph, alphabet):
 
         ground_truths.extend(alphabet.decode(l) for l in batch['transcript'])
         predictions.extend(d[0][1] for d in decoded)
+        # ## PRINT DECODED OUTPUT TO STDOUT ##
+        # print(decoded)
 
     distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
 
