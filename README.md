@@ -284,7 +284,7 @@ If you are brave enough, you can also include the `other` dataset, which contain
 The central (Python) script is `DeepSpeech.py` in the project's root directory. For its list of command line options, you can call:
 
 ```bash
-./DeepSpeech.py --help
+./DeepSpeech.py --helpfull
 ```
 
 To get the output of this in a slightly better-formatted way, you can also look up the option definitions top of `DeepSpeech.py`.
