@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -20,23 +21,35 @@
 #include "ctcdecode/ctc_beam_search_decoder.h"
 
 //TODO: infer batch size from model/use dynamic batch size
-const unsigned int BATCH_SIZE = 1;
+constexpr unsigned int BATCH_SIZE = 1;
 
 //TODO: use dynamic sample rate
-const unsigned int SAMPLE_RATE = 16000;
+constexpr unsigned int SAMPLE_RATE = 16000;
 
-const float AUDIO_WIN_LEN = 0.025f;
-const float AUDIO_WIN_STEP = 0.01f;
-const unsigned int AUDIO_WIN_LEN_SAMPLES = (unsigned int)(AUDIO_WIN_LEN * SAMPLE_RATE);
-const unsigned int AUDIO_WIN_STEP_SAMPLES = (unsigned int)(AUDIO_WIN_STEP * SAMPLE_RATE);
+constexpr float AUDIO_WIN_LEN = 0.032f;
+constexpr float AUDIO_WIN_STEP = 0.02f;
+constexpr unsigned int AUDIO_WIN_LEN_SAMPLES = (unsigned int)(AUDIO_WIN_LEN * SAMPLE_RATE);
+constexpr unsigned int AUDIO_WIN_STEP_SAMPLES = (unsigned int)(AUDIO_WIN_STEP * SAMPLE_RATE);
 
-const unsigned int MFCC_FEATURES = 26;
+constexpr unsigned int MFCC_FEATURES = 26;
 
-const float PREEMPHASIS_COEFF = 0.97f;
-const unsigned int N_FFT = 512;
-const unsigned int N_FILTERS = 26;
-const unsigned int LOWFREQ = 0;
-const unsigned int CEP_LIFTER = 22;
+constexpr float PREEMPHASIS_COEFF = 0.97f;
+constexpr unsigned int N_FFT = 512;
+constexpr unsigned int N_FILTERS = 26;
+constexpr unsigned int LOWFREQ = 0;
+constexpr unsigned int CEP_LIFTER = 22;
+
+constexpr size_t WINDOW_SIZE = AUDIO_WIN_LEN * SAMPLE_RATE;
+
+std::array<float, WINDOW_SIZE> calc_hamming_window() {
+  std::array<float, WINDOW_SIZE> a{0};
+  for (int i = 0; i < WINDOW_SIZE; ++i) {
+    a[i] = 0.54 - 0.46 * std::cos(2*M_PI*i/(WINDOW_SIZE-1));
+  }
+  return a;
+}
+
+std::array<float, WINDOW_SIZE> hamming_window = calc_hamming_window();
 
 using namespace tensorflow;
 
@@ -77,7 +90,6 @@ struct StreamingState {
   float last_sample; // used for preemphasis
   vector<float> mfcc_buffer;
   vector<float> batch_buffer;
-  bool skip_next_mfcc;
   ModelState* model;
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
@@ -214,16 +226,11 @@ StreamingState::finishStream()
 void
 StreamingState::processAudioWindow(const vector<float>& buf)
 {
-  skip_next_mfcc = !skip_next_mfcc;
-  if (!skip_next_mfcc) { // Was true
-    return;
-  }
-
   // Compute MFCC features
   float* mfcc;
   int n_frames = csf_mfcc(buf.data(), buf.size(), SAMPLE_RATE,
                           AUDIO_WIN_LEN, AUDIO_WIN_STEP, MFCC_FEATURES, N_FILTERS, N_FFT,
-                          LOWFREQ, SAMPLE_RATE/2, 0.f, CEP_LIFTER, 1, nullptr,
+                          LOWFREQ, SAMPLE_RATE/2, 0.f, CEP_LIFTER, 1, hamming_window.data(),
                           &mfcc);
   assert(n_frames == 1);
 
@@ -517,8 +524,6 @@ DS_SetupStream(ModelState* aCtx,
   ctx->mfcc_buffer.reserve(aCtx->mfcc_feats_per_timestep);
   ctx->mfcc_buffer.resize(MFCC_FEATURES*aCtx->n_context, 0.f);
   ctx->batch_buffer.reserve(aCtx->n_steps * aCtx->mfcc_feats_per_timestep);
-
-  ctx->skip_next_mfcc = false;
 
   ctx->model = aCtx;
 

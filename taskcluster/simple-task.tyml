@@ -26,6 +26,7 @@ then:
     { $eval: build.routes }
 
   payload:
+    upload_targets: { $eval: build.upload_targets }
     artifacts_deps:
       python:
         $map: { $eval: build.artifacts_deps.python }
