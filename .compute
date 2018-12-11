@@ -51,7 +51,6 @@ python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/c
 python3 util/check_characters.py "${data}/*.csv"
 
 
-
 ###                      ###
 ### TRANSFER FROM SOURCE ###
 ###                      ###
