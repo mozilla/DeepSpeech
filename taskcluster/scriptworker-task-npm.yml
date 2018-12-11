@@ -1,0 +1,25 @@
+build:
+  template_file: simple-task.tyml
+  dependencies:
+    # Make sure builds are ready
+    - "linux-amd64-gpu-opt"
+    - "node-package"
+  allowed:
+    - "tag"
+  ref_match: "refs/tags/"
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  upload_targets:
+      - "npm"
+  artifacts_deps:
+    python: []
+    cpp: []
+    javascript:
+      # GPU package
+      - "linux-amd64-gpu-opt"
+      # CPU package with all archs
+      - "node-package"
+  metadata:
+    name: "DeepSpeech NPM Packages"
+    description: "Trigger Uploading of DeepSpeech Packages to NPM registry"
