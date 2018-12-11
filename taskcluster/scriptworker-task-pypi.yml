@@ -14,7 +14,7 @@ build:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
   upload_targets:
-      - "pypi"
+    - "pypi"
   artifacts_deps:
     javascript: []
     cpp: []
