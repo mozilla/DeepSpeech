@@ -57,6 +57,11 @@ output_folder = sys.argv[4]
 
 print("Looking for clips.tsv here: ", clips_tsv)
 clips = pandas.read_csv(clips_tsv, sep='\t')
+
+print("### Total valid+invalid clips per lang ###")
+print(clips['locale'].value_counts())
+print("############################")
+
 # pull out data for just one language
 locale = clips[clips['locale'] == LOCALE]
 
