@@ -34,21 +34,21 @@
 
 source ../tmp/venv/bin/activate
 
-scratch=0
-num_layers_dropped=5
+# if num_layers_dropped=6, then we train from scratch (you dropped all the layers!)
+num_layers_dropped=1
 
 target_lang='cy'
-source_model='en'
-input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha1.0"
+source_model='en-v030'
+
+
+input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha2.0"
 #input_dir="/home/josh/Downloads/CV"
 data="../keep/${target_lang}"
 mkdir $data
 
 
-
 python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
 python3 util/check_characters.py "${data}/*.csv"
-
 
 
 ###                      ###
@@ -56,8 +56,8 @@ python3 util/check_characters.py "${data}/*.csv"
 ###                      ###
 
 
-if [ $scratch -eq 0 ]; then
-    
+if [ $num_layers_dropped -lt 6 ]; then
+
     exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
     
     python3 -u DeepSpeech.py \
@@ -67,8 +67,8 @@ if [ $scratch -eq 0 ]; then
 	    --test_output_file "${exp}/RESULTS.json" \
 	    --drop_source_layers "${num_layers_dropped}" \
 	    --source_model_checkpoint_dir "../keep/${source_model}" \
-	    --train_files "${data}/valid_dev.csv"\
-	    --dev_files "${data}/valid_train.csv" \
+	    --train_files "${data}/valid_train.csv"\
+	    --dev_files "${data}/valid_dev.csv" \
 	    --test_files "${data}/valid_test.csv" \
 	    --n_hidden 2048 \
 	    --epoch -1000 \
@@ -92,8 +92,8 @@ fi
 
 
 
-if [ $scratch -eq 1 ]; then
-    
+if [ $num_layers_dropped -eq 6 ]; then
+
     exp="../keep/${target_lang}/scratch/"
     
     python3 -u DeepSpeech.py \
