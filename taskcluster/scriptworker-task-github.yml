@@ -15,7 +15,7 @@ build:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
   upload_targets:
-      - "github"
+    - "github"
   artifacts_deps:
     python:
       - "darwin-amd64-cpu-opt"

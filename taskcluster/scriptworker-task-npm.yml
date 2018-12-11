@@ -11,7 +11,7 @@ build:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
   upload_targets:
-      - "npm"
+    - "npm"
   artifacts_deps:
     python: []
     cpp: []
