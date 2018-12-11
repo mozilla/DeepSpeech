@@ -57,6 +57,11 @@ output_folder = sys.argv[4]
 
 print("Looking for clips.tsv here: ", clips_tsv)
 clips = pandas.read_csv(clips_tsv, sep='\t')
+
+print("### Total valid+invalid clips per lang ###")
+print(clips['locale'].value_counts())
+print("############################")
+
 # pull out data for just one language
 locale = clips[clips['locale'] == LOCALE]
 
@@ -112,7 +117,7 @@ validated_clips = pandas.read_csv('{}/{}/cv_{}_valid.csv'.format(data_dir, LOCAL
 validated_clips['path'] = validated_clips['wav_filename'].apply(ntpath.basename)
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xa0', ' ') # kyrgyz
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xad', ' ') # catalan
-
+validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\\', ' ') # welsh
 
 
 

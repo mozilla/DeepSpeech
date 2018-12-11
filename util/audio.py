@@ -15,10 +15,7 @@ def audiofile_to_input_vector(audio_filename, numcep, numcontext):
     fs, audio = wav.read(audio_filename)
 
     # Get mfcc coefficients
-    features = mfcc(audio, samplerate=fs, numcep=numcep)
-
-    # We only keep every second feature (BiRNN stride = 2)
-    features = features[::2]
+    features = mfcc(audio, samplerate=fs, numcep=numcep, winlen=0.032, winstep=0.02, winfunc=np.hamming)
 
     # Add empty initial and final contexts
     empty_context = np.zeros((numcontext, numcep), dtype=features.dtype)
