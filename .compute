@@ -91,7 +91,6 @@ fi
 ###              ###
 
 
-
 if [ $num_layers_dropped -eq 6 ]; then
 
     exp="../keep/${target_lang}/scratch/"
