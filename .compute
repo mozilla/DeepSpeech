@@ -34,10 +34,10 @@
 
 source ../tmp/venv/bin/activate
 
-# if num_layers_dropped=6, then we train from scratch (you dropped all the layers!)
+# train from scratch with num_layers_dropped=6
 num_layers_dropped=6
 
-target_lang='fr'
+target_lang='LANG'
 source_model='en-v030'
 
 
