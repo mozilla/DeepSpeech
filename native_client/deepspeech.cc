@@ -28,6 +28,16 @@
 
 #include "ctcdecode/ctc_beam_search_decoder.h"
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#define  LOG_TAG    "libdeepspeech"
+#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#else
+#define  LOGD(...)
+#define  LOGE(...)
+#endif // __ANDROID__
+
 //TODO: infer batch size from model/use dynamic batch size
 constexpr unsigned int BATCH_SIZE = 1;
 
@@ -778,7 +788,12 @@ DS_AudioToInputVector(const short* aBuffer,
 
 void
 DS_PrintVersions() {
+#ifndef __ANDROID__
   std::cerr << "TensorFlow: " << tf_git_version() << std::endl;
   std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
+#else
+  LOGE("DeepSpeech: %s", ds_git_version());
+  LOGD("DeepSpeech: %s", ds_git_version());
+#endif
 }
 
