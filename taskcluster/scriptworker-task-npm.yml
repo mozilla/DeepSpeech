@@ -2,7 +2,7 @@ build:
   template_file: simple-task.tyml
   dependencies:
     # Make sure builds are ready
-    - "linux-amd64-gpu-opt"
+    - "linux-amd64-cuda-opt"
     - "node-package"
   allowed:
     - "tag"
@@ -17,7 +17,7 @@ build:
     cpp: []
     javascript:
       # GPU package
-      - "linux-amd64-gpu-opt"
+      - "linux-amd64-cuda-opt"
       # CPU package with all archs
       - "node-package"
   metadata:
