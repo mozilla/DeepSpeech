@@ -7,4 +7,7 @@ pip install tensorflow-gpu==1.12.0rc2
 
 python3 util/taskcluster.py --arch cuda --target ../tmp/native_client
 
+# Install ds_ctcdecoder package from TaskCluster
+pip install $(python3 util/taskcluster.py --decoder)
+
 mkdir -p ../keep/summaries

@@ -1,6 +1,6 @@
 import sys
 import os
-import inspect
+import time
 import logging
 import traceback
 import numpy as np
@@ -8,18 +8,13 @@ import wavTranscriber
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+import shlex
+import subprocess
 
 # Debug helpers
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
-
-def PrintFrame():
-    # 0 represents this line
-    # 1 represents line at caller
-    callerframerecord = inspect.stack()[1]
-    frame = callerframerecord[0]
-    info = inspect.getframeinfo(frame)
-    logging.debug(info.function, info.lineno)
+logging.basicConfig(stream=sys.stderr,
+                    level=logging.DEBUG,
+                    format='%(filename)s - %(funcName)s@%(lineno)d %(name)s:%(levelname)s  %(message)s')
 
 
 class WorkerSignals(QObject):
@@ -102,7 +97,7 @@ class App(QMainWindow):
         self.left = 10
         self.top = 10
         self.width = 480
-        self.height = 320
+        self.height = 400
         self.initUI()
 
     def initUI(self):
@@ -111,36 +106,62 @@ class App(QMainWindow):
         layout = QGridLayout()
         layout.setSpacing(10)
 
-        self.textbox = QLineEdit(self, placeholderText="Wave File, Mono @ 16 kHz, 16bit Little-Endian")
+        self.microphone = QRadioButton("Microphone")
+        self.fileUpload = QRadioButton("File Upload")
+        self.browseBox = QLineEdit(self, placeholderText="Wave File, Mono @ 16 kHz, 16bit Little-Endian")
         self.modelsBox = QLineEdit(self, placeholderText="Directory path for output_graph, alphabet, lm & trie")
         self.textboxTranscript = QPlainTextEdit(self, placeholderText="Transcription")
-        self.button = QPushButton('Browse', self)
-        self.button.setToolTip('Select a wav file')
+        self.browseButton = QPushButton('Browse', self)
+        self.browseButton.setToolTip('Select a wav file')
         self.modelsButton = QPushButton('Browse', self)
         self.modelsButton.setToolTip('Select deepspeech models folder')
-        self.transcribeButton = QPushButton('Transcribe', self)
-        self.transcribeButton.setToolTip('Start Transcription')
+        self.transcribeWav = QPushButton('Transcribe Wav', self)
+        self.transcribeWav.setToolTip('Start Wav Transcription')
+        self.openMicrophone = QPushButton('Start Speaking', self)
+        self.openMicrophone.setToolTip('Open Microphone')
 
-        layout.addWidget(self.textbox, 0, 0)
-        layout.addWidget(self.button, 0, 1)
-        layout.addWidget(self.modelsBox, 1, 0)
-        layout.addWidget(self.modelsButton, 1, 1)
-        layout.addWidget(self.transcribeButton, 2, 0, Qt.AlignHCenter)
-        layout.addWidget(self.textboxTranscript, 3, 0, -1, 0)
+        layout.addWidget(self.microphone, 0, 1, 1, 2)
+        layout.addWidget(self.fileUpload, 0, 3, 1, 2)
+        layout.addWidget(self.browseBox, 1, 0, 1, 4)
+        layout.addWidget(self.browseButton, 1, 4)
+        layout.addWidget(self.modelsBox, 2, 0, 1, 4)
+        layout.addWidget(self.modelsButton, 2, 4)
+        layout.addWidget(self.transcribeWav, 3, 1, 1, 1)
+        layout.addWidget(self.openMicrophone, 3, 3, 1, 1)
+        layout.addWidget(self.textboxTranscript, 5, 0, -1, 0)
 
         w = QWidget()
         w.setLayout(layout)
 
         self.setCentralWidget(w)
 
-        # Connect Button to Function on_click
-        self.button.clicked.connect(self.on_click)
+        # Microphone
+        self.microphone.clicked.connect(self.mic_activate)
+
+        # File Upload
+        self.fileUpload.clicked.connect(self.wav_activate)
+
+        # Connect Browse Button to Function on_click
+        self.browseButton.clicked.connect(self.browse_on_click)
 
         # Connect the Models Button
         self.modelsButton.clicked.connect(self.models_on_click)
 
         # Connect Transcription button to threadpool
-        self.transcribeButton.clicked.connect(self.transcriptionStart_on_click)
+        self.transcribeWav.clicked.connect(self.transcriptionStart_on_click)
+
+        # Connect Microphone button to threadpool
+        self.openMicrophone.clicked.connect(self.openMicrophone_on_click)
+        self.openMicrophone.setCheckable(True)
+        self.openMicrophone.toggle()
+
+        self.browseButton.setEnabled(False)
+        self.browseBox.setEnabled(False)
+        self.modelsBox.setEnabled(False)
+        self.modelsButton.setEnabled(False)
+        self.transcribeWav.setEnabled(False)
+        self.openMicrophone.setEnabled(False)
+
         self.show()
 
         # Setup Threadpool
@@ -148,23 +169,86 @@ class App(QMainWindow):
         logging.debug("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
     @pyqtSlot()
-    def on_click(self):
+    def mic_activate(self):
+        logging.debug("Enable streaming widgets")
+        self.en_mic = True
+        self.browseButton.setEnabled(False)
+        self.browseBox.setEnabled(False)
+        self.modelsBox.setEnabled(True)
+        self.modelsButton.setEnabled(True)
+        self.transcribeWav.setEnabled(False)
+        self.openMicrophone.setStyleSheet('QPushButton {background-color: #70cc7c; color: black;}')
+        self.openMicrophone.setEnabled(True)
+
+    @pyqtSlot()
+    def wav_activate(self):
+        logging.debug("Enable wav transcription widgets")
+        self.en_mic = False
+        self.openMicrophone.setStyleSheet('QPushButton {background-color: #f7f7f7; color: black;}')
+        self.openMicrophone.setEnabled(False)
+        self.browseButton.setEnabled(True)
+        self.browseBox.setEnabled(True)
+        self.modelsBox.setEnabled(True)
+        self.modelsButton.setEnabled(True)
+
+    @pyqtSlot()
+    def browse_on_click(self):
         logging.debug('Browse button clicked')
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        self.fileName, _ = QFileDialog.getOpenFileName(self,"Select wav file to be Transcribed", \
-                            "","All Files (*.wav)", options=options)
+        self.fileName, _ = QFileDialog.getOpenFileName(self, "Select wav file to be Transcribed", "","All Files (*.wav)")
         if self.fileName:
-            self.textbox.setText(self.fileName)
+            self.browseBox.setText(self.fileName)
+            self.transcribeWav.setEnabled(True)
             logging.debug(self.fileName)
 
     @pyqtSlot()
     def models_on_click(self):
         logging.debug('Models Browse Button clicked')
-        self.dirName = QFileDialog.getExistingDirectory(self,"Select deepspeech models directory")
+        self.dirName = QFileDialog.getExistingDirectory(self, "Select deepspeech models directory")
         if self.dirName:
             self.modelsBox.setText(self.dirName)
             logging.debug(self.dirName)
+
+            # Threaded signal passing worker functions
+            worker = Worker(self.modelWorker, self.dirName)
+            worker.signals.result.connect(self.modelResult)
+            worker.signals.finished.connect(self.modelFinish)
+            worker.signals.progress.connect(self.modelProgress)
+
+            # Execute
+            self.threadpool.start(worker)
+        else:
+            logging.critical("*****************************************************")
+            logging.critical("Model path not specified..")
+            logging.critical("*****************************************************")
+            return "Transcription Failed, models path not specified"
+
+    def modelWorker(self, dirName, progress_callback):
+        self.textboxTranscript.setPlainText("Loading Models...")
+        self.openMicrophone.setStyleSheet('QPushButton {background-color: #f7f7f7; color: black;}')
+        self.openMicrophone.setEnabled(False)
+        self.show()
+        time.sleep(1)
+        return dirName
+
+    def modelProgress(self, s):
+        # FixMe: Write code to show progress here
+        pass
+
+    def modelResult(self, dirName):
+        # Fetch and Resolve all the paths of model files
+        output_graph, alphabet, lm, trie = wavTranscriber.resolve_models(dirName)
+        # Load output_graph, alpahbet, lm and trie
+        self.model = wavTranscriber.load_model(output_graph, alphabet, lm, trie)
+
+    def modelFinish(self):
+        # self.timer.stop()
+        self.textboxTranscript.setPlainText("Loaded Models, start transcribing")
+        if self.en_mic is True:
+            self.openMicrophone.setStyleSheet('QPushButton {background-color: #70cc7c; color: black;}')
+            self.openMicrophone.setEnabled(True)
+        self.show()
 
     @pyqtSlot()
     def transcriptionStart_on_click(self):
@@ -175,20 +259,82 @@ class App(QMainWindow):
         self.show()
 
         # Threaded signal passing worker functions
-        worker = Worker(self.runDeepspeech, self.fileName)
-        worker.signals.result.connect(self.transcription)
-        worker.signals.finished.connect(self.threadComplete)
+        worker = Worker(self.wavWorker, self.fileName)
         worker.signals.progress.connect(self.progress)
+        worker.signals.result.connect(self.transcription)
+        worker.signals.finished.connect(self.wavFinish)
 
         # Execute
         self.threadpool.start(worker)
 
+    @pyqtSlot()
+    def openMicrophone_on_click(self):
+        logging.debug('Preparing to open microphone...')
+
+        # Clear out older data
+        self.textboxTranscript.setPlainText("")
+        self.show()
+
+        # Threaded signal passing worker functions
+        # Prepare env for capturing from microphone and offload work to micWorker worker thread
+        if (not self.openMicrophone.isChecked()):
+            self.openMicrophone.setStyleSheet('QPushButton {background-color: #C60000; color: black;}')
+            self.openMicrophone.setText("Stop")
+            logging.debug("Start Recording pressed")
+            logging.debug("Preparing for transcription...")
+
+            sctx = self.model[0].setupStream()
+            subproc = subprocess.Popen(shlex.split('rec -q -V0 -e signed -L -c 1 -b 16 -r 16k -t raw - gain -2'),
+                                       stdout=subprocess.PIPE,
+                                       bufsize=0)
+            self.textboxTranscript.insertPlainText('You can start speaking now\n\n')
+            self.show()
+            logging.debug('You can start speaking now')
+            context = (sctx, subproc, self.model[0])
+
+            # Pass the state to streaming worker
+            worker = Worker(self.micWorker, context)
+            worker.signals.progress.connect(self.progress)
+            worker.signals.result.connect(self.transcription)
+            worker.signals.finished.connect(self.micFinish)
+
+            # Execute
+            self.threadpool.start(worker)
+        else:
+            logging.debug("Stop Recording")
+
+    '''
+    Capture the audio stream from the microphone.
+    The context is prepared by the openMicrophone_on_click()
+    @param Context: Is a tuple containing three objects
+                    1. Speech samples, sctx
+                    2. subprocess handle
+                    3. Deepspeech model object
+    '''
+    def micWorker(self, context, progress_callback):
+        # Deepspeech Streaming will be run from this method
+        logging.debug("Recording from your microphone")
+        while (not self.openMicrophone.isChecked()):
+            data = context[1].stdout.read(512)
+            context[2].feedAudioContent(context[0], np.frombuffer(data, np.int16))
+        else:
+            transcript = context[2].finishStream(context[0])
+            context[1].terminate()
+            context[1].wait()
+            self.show()
+            progress_callback.emit(transcript)
+            return "\n*********************\nTranscription Done..."
+
+    def micFinish(self):
+        self.openMicrophone.setText("Start Speaking")
+        self.openMicrophone.setStyleSheet('QPushButton {background-color: #70cc7c; color: black;}')
+
     def transcription(self, out):
-        logging.debug("Transcribed text: %s" % out)
+        logging.debug("%s" % out)
         self.textboxTranscript.insertPlainText(out)
         self.show()
 
-    def threadComplete(self):
+    def wavFinish(self):
         logging.debug("File processed")
 
     def progress(self, chunk):
@@ -196,24 +342,9 @@ class App(QMainWindow):
         self.textboxTranscript.insertPlainText(chunk)
         self.show()
 
-    def runDeepspeech(self, waveFile, progress_callback):
+    def wavWorker(self, waveFile, progress_callback):
         # Deepspeech will be run from this method
         logging.debug("Preparing for transcription...")
-
-        # Go and fetch the models from the directory specified
-        if self.dirName:
-            # Resolve all the paths of model files
-            output_graph, alphabet, lm, trie = wavTranscriber.resolve_models(self.dirName)
-        else:
-            logging.critical("*****************************************************")
-            logging.critical("Model path not specified..")
-            logging.critical("You sure of what you're doing ?? ")
-            logging.critical("Trying to fetch from present working directory.")
-            logging.critical("*****************************************************")
-            return "Transcription Failed, models path not specified"
-
-        # Load output_graph, alpahbet, lm and trie
-        model_retval = wavTranscriber.load_model(output_graph, alphabet, lm, trie)
         inference_time = 0.0
 
         # Run VAD on the input file
@@ -225,7 +356,7 @@ class App(QMainWindow):
             # Run deepspeech on the chunk that just completed VAD
             logging.debug("Processing chunk %002d" % (i,))
             audio = np.frombuffer(segment, dtype=np.int16)
-            output = wavTranscriber.stt(model_retval[0], audio, sample_rate)
+            output = wavTranscriber.stt(self.model[0], audio, sample_rate)
             inference_time += output[1]
 
             f.write(output[0] + " ")
@@ -239,10 +370,10 @@ class App(QMainWindow):
         title_names = ['Filename', 'Duration(s)', 'Inference Time(s)', 'Model Load Time(s)', 'LM Load Time(s)']
         logging.debug("************************************************************************************************************")
         logging.debug("%-30s %-20s %-20s %-20s %s" % (title_names[0], title_names[1], title_names[2], title_names[3], title_names[4]))
-        logging.debug("%-30s %-20.3f %-20.3f %-20.3f %-0.3f" % (filename + ext, audio_length, inference_time, model_retval[1], model_retval[2]))
+        logging.debug("%-30s %-20.3f %-20.3f %-20.3f %-0.3f" % (filename + ext, audio_length, inference_time, self.model[1], self.model[2]))
         logging.debug("************************************************************************************************************")
         print("\n%-30s %-20s %-20s %-20s %s" % (title_names[0], title_names[1], title_names[2], title_names[3], title_names[4]))
-        print("%-30s %-20.3f %-20.3f %-20.3f %-0.3f" % (filename + ext, audio_length, inference_time, model_retval[1], model_retval[2]))
+        print("%-30s %-20.3f %-20.3f %-20.3f %-0.3f" % (filename + ext, audio_length, inference_time, self.model[1], self.model[2]))
 
         return "\n*********************\nTranscription Done..."
 

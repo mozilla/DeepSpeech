@@ -2,7 +2,6 @@
 #define CTC_BEAM_SEARCH_DECODER_H_
 
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "scorer.h"
@@ -13,8 +12,8 @@
 
  * Parameters:
  *     probs_seq: 2-D vector that each element is a vector of probabilities
- *               over vocabulary of one time step.
- *     vocabulary: A vector of vocabulary.
+ *               over alphabet of one time step.
+ *     alphabet: The alphabet.
  *     beam_size: The width of beam search.
  *     cutoff_prob: Cutoff probability for pruning.
  *     cutoff_top_n: Cutoff number for pruning.
@@ -26,20 +25,22 @@
  *     in desending order.
 */
 
-std::vector<std::pair<double, Output>> ctc_beam_search_decoder(
-    const std::vector<std::vector<double>> &probs_seq,
-    const Alphabet &vocabulary,
+std::vector<Output> ctc_beam_search_decoder(
+    const double* probs,
+    int time_dim,
+    int class_dim,
+    const Alphabet &alphabet,
     size_t beam_size,
-    double cutoff_prob = 1.0,
-    size_t cutoff_top_n = 40,
-    Scorer *ext_scorer = nullptr);
+    double cutoff_prob,
+    size_t cutoff_top_n,
+    Scorer *ext_scorer);
 
 /* CTC Beam Search Decoder for batch data
 
  * Parameters:
  *     probs_seq: 3-D vector that each element is a 2-D vector that can be used
  *                by ctc_beam_search_decoder().
- *     vocabulary: A vector of vocabulary.
+ *     alphabet: The alphabet.
  *     beam_size: The width of beam search.
  *     num_processes: Number of threads for beam search.
  *     cutoff_prob: Cutoff probability for pruning.
@@ -51,14 +52,19 @@ std::vector<std::pair<double, Output>> ctc_beam_search_decoder(
  *     A 2-D vector that each element is a vector of beam search decoding
  *     result for one audio sample.
 */
-std::vector<std::vector<std::pair<double, Output>>>
+std::vector<std::vector<Output>>
 ctc_beam_search_decoder_batch(
-    const std::vector<std::vector<std::vector<double>>> &probs_split,
-    const Alphabet &vocabulary,
+    const double* probs,
+    int batch_size,
+    int time_dim,
+    int class_dim,
+    const int* seq_lengths,
+    int seq_lengths_size,
+    const Alphabet &alphabet,
     size_t beam_size,
     size_t num_processes,
-    double cutoff_prob = 1.0,
-    size_t cutoff_top_n = 40,
-    Scorer *ext_scorer = nullptr);
+    double cutoff_prob,
+    size_t cutoff_top_n,
+    Scorer *ext_scorer);
 
 #endif  // CTC_BEAM_SEARCH_DECODER_H_
