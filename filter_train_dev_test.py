@@ -115,6 +115,9 @@ validated_clips['path'] = validated_clips['wav_filename'].apply(ntpath.basename)
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xa0', ' ') # kyrgyz
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xad', ' ') # catalan
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\\', ' ') # welsh
+validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'„', ' ') # german
+validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'…', ' ') # german
+
 
 print(validated_clips.head())
 
