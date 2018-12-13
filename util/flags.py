@@ -114,7 +114,6 @@ def create_flags():
 
     # Initialization
 
-
     tf.app.flags.DEFINE_integer ('random_seed',      4568,        'default random seed that is used to initialize variables')
 
     # Early Stopping
