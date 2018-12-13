@@ -5,7 +5,6 @@ load("@org_tensorflow//tensorflow:tensorflow.bzl",
 
 load("@org_tensorflow//tensorflow/contrib/lite:build_def.bzl",
      "tflite_copts", "tflite_linkopts")
-
 genrule(
     name = "ds_git_version",
     outs = ["ds_version.h"],

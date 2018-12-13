@@ -43,5 +43,5 @@ for inFile in (inFiles):
             csvFile.close()
 
 print("### The following unique characters were found in your transcripts: ###")
-print(list(allText))
+print(sorted(list(allText)))
 print("### All these characters should be in your data/alphabet.txt file ###")

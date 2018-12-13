@@ -37,7 +37,6 @@
 #define  LOGD(...)
 #define  LOGE(...)
 #endif // __ANDROID__
-
 //TODO: infer batch size from model/use dynamic batch size
 constexpr unsigned int BATCH_SIZE = 1;
 
@@ -148,7 +147,6 @@ struct ModelState {
   std::unique_ptr<float[]> previous_state_c_;
   std::unique_ptr<float[]> previous_state_h_;
 #endif
-
   ModelState();
   ~ModelState();
 
@@ -193,11 +191,6 @@ ModelState::ModelState()
   , n_steps(-1)
   , mfcc_feats_per_timestep(-1)
   , n_context(-1)
-#ifdef USE_TFLITE
-  , previous_state_size(0)
-  , previous_state_c_(nullptr)
-  , previous_state_h_(nullptr)
-#endif
 {
 }
 

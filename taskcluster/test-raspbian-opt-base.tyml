@@ -44,7 +44,6 @@ then:
         PIP_EXTRA_INDEX_URL: "https://www.piwheels.org/simple"
         EXTRA_PYTHON_CONFIGURE_OPTS: "--with-fpectl" # Required by Raspbian Stretch / PiWheels
         EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v1.12.0-10-ge232881"
-
     command:
       - "/bin/bash"
       - "--login"

@@ -428,6 +428,7 @@ do_deepspeech_ndk_build()
     TARGET_ARCH_ABI=${arch_abi}
 }
 
+
 # Hack to extract Ubuntu's 16.04 libssl 1.0.2 packages and use them during the
 # local build of Python.
 #

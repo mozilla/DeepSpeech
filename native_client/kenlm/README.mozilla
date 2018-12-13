@@ -25,4 +25,3 @@ index d53dc0a..b5e36b2 100644
  #if __GLIBC_PREREQ(2,17)
        secure_getenv
  #else // __GLIBC_PREREQ
-

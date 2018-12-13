@@ -4,7 +4,6 @@
 #ifdef __ANDROID__
 #define USE_TFLITE
 #endif
-
 #ifndef SWIG
 #define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
 #else
