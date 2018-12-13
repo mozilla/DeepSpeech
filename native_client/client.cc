@@ -6,7 +6,9 @@
 #include <errno.h>
 #include <math.h>
 #include <string.h>
+#ifndef __ANDROID__
 #include <sox.h>
+#endif // __ANDROID__
 #include <time.h>
 #include <unistd.h>
 
@@ -59,6 +61,7 @@ GetAudioBuffer(const char* path)
 {
   ds_audio_buffer res = {0};
 
+#ifndef __ANDROID__
   sox_format_t* input = sox_open_read(path, NULL, NULL, NULL);
   assert(input);
 
@@ -147,6 +150,51 @@ GetAudioBuffer(const char* path)
   // Close sox handles
   sox_close(output);
   sox_close(input);
+#endif // __ANDROID__
+
+#ifdef __ANDROID__
+  // FIXME: Hack and support only 16kHz mono 16-bits PCM
+  FILE* wave = fopen(path, "r");
+
+  size_t rv;
+
+  unsigned short audio_format;
+  fseek(wave, 20, SEEK_SET); rv = fread(&audio_format, 2, 1, wave);
+  assert(rv == 2);
+
+  unsigned short num_channels;
+  fseek(wave, 22, SEEK_SET); rv = fread(&num_channels, 2, 1, wave);
+  assert(rv == 2);
+
+  unsigned int sample_rate;
+  fseek(wave, 24, SEEK_SET); rv = fread(&sample_rate, 4, 1, wave);
+  assert(rv == 2);
+
+  unsigned short bits_per_sample;
+  fseek(wave, 34, SEEK_SET); rv = fread(&bits_per_sample, 2, 1, wave);
+  assert(rv == 2);
+
+  assert(audio_format == 1); // 1 is PCM
+  assert(num_channels == 1); // MONO
+  assert(sample_rate == 16000); // 16000 Hz
+  assert(bits_per_sample == 16); // 16 bits per sample
+
+  fprintf(stderr, "audio_format=%d\n", audio_format);
+  fprintf(stderr, "num_channels=%d\n", num_channels);
+  fprintf(stderr, "sample_rate=%d\n", sample_rate);
+  fprintf(stderr, "bits_per_sample=%d\n", bits_per_sample);
+
+  fseek(wave, 40, SEEK_SET); rv = fread(&res.buffer_size, 4, 1, wave);
+  assert(rv == 2);
+  fprintf(stderr, "res.buffer_size=%ld\n", res.buffer_size);
+
+  fseek(wave, 44, SEEK_SET);
+  res.buffer = (char*)malloc(sizeof(char) * res.buffer_size);
+  rv = fread(res.buffer, sizeof(char), res.buffer_size, wave);
+  assert(rv == res.buffer_size);
+
+  fclose(wave);
+#endif // __ANDROID__
 
 #ifdef __APPLE__
   res.buffer_size = (size_t)(output->olength * 2);
@@ -255,8 +303,10 @@ main(int argc, char **argv)
       break;
   }
 
+#ifndef __ANDROID__
   // Deinitialise and quit
   sox_quit();
+#endif // __ANDROID__
 
   DS_DestroyModel(ctx);
 
