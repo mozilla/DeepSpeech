@@ -1,0 +1,21 @@
+build:
+  template_file: linux-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-armv7"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-armv7"
+    - "index.project.deepspeech.deepspeech.native_client.android-armv7.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  system_setup:
+    >
+      ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.059c37c22ccf0b326a53acb22b97138e2918459c.android-armv7/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/android-build.sh armeabi-v7a"
+    package: "taskcluster/android-package.sh armeabi-v7a"
+  metadata:
+    name: "DeepSpeech Android ARMv7"
+    description: "Building DeepSpeech for Android ARMv7, optimized version"

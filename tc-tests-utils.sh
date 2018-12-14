@@ -2,7 +2,7 @@
 
 set -xe
 
-OS=$(uname)
+export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=${HOME}
 fi;
@@ -25,8 +25,6 @@ mkdir -p ${TASKCLUSTER_TMP_DIR} || true
 
 export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
-
-export BAZEL_CTC_TARGETS="//native_client:libctc_decoder_with_kenlm.so"
 
 export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
 
@@ -153,12 +151,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had out in greasy wash water all year"
+  assert_correct_inference "$1" "she had a due in greasy wash water year"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had out and greasy wash water all year"
+  assert_correct_inference "$1" "she had a due in greasy wash water year"
 }
 
 assert_correct_warning_upsampling()
@@ -250,11 +248,6 @@ download_native_client_files()
   generic_download_tarxz "$1" "${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz"
 }
 
-download_ctc_kenlm()
-{
-  generic_download_tarxz "$1" "${DEEPSPEECH_LIBCTC}"
-}
-
 download_data()
 {
   wget -P "${TASKCLUSTER_TMP_DIR}" "${model_source}"
@@ -262,7 +255,7 @@ download_data()
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie.ctcdecode ${TASKCLUSTER_TMP_DIR}/trie
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
 }
 
 download_material()
@@ -292,10 +285,13 @@ install_pyenv()
     exit 1;
   fi;
 
-  git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
-  pushd ${PYENV_ROOT}
-    git checkout --quiet 835707da2237b8f69560b2de27ae8ddd3e6cb1a4
-  popd
+  if [ ! -e "${PYENV_ROOT}/bin/pyenv" ]; then
+    git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
+    pushd ${PYENV_ROOT}
+      git checkout --quiet 835707da2237b8f69560b2de27ae8ddd3e6cb1a4
+    popd
+  fi
+
   eval "$(pyenv init -)"
 }
 
@@ -308,10 +304,13 @@ install_pyenv_virtualenv()
     exit 1;
   fi;
 
-  git clone --quiet https://github.com/pyenv/pyenv-virtualenv.git ${PYENV_VENV}
-  pushd ${PYENV_VENV}
-      git checkout --quiet 5419dc732066b035a28680475acd7b661c7c397d
-  popd
+  if [ ! -e "${PYENV_VENV}/bin/pyenv-virtualenv" ]; then
+    git clone --quiet https://github.com/pyenv/pyenv-virtualenv.git ${PYENV_VENV}
+    pushd ${PYENV_VENV}
+        git checkout --quiet 5419dc732066b035a28680475acd7b661c7c397d
+    popd
+  fi;
+
   eval "$(pyenv virtualenv-init -)"
 }
 
@@ -414,6 +413,21 @@ do_deepspeech_binary_build()
     deepspeech
 }
 
+do_deepspeech_ndk_build()
+{
+  arch_abi=$1
+
+  cd ${DS_DSDIR}/native_client/
+
+  ${ANDROID_NDK_HOME}/ndk-build \
+    APP_PLATFORM=android-21 \
+    APP_BUILD_SCRIPT=$(pwd)/Android.mk \
+    NDK_PROJECT_PATH=$(pwd) \
+    APP_STL=c++_shared \
+    TFDIR=${DS_TFDIR} \
+    TARGET_ARCH_ABI=${arch_abi}
+}
+
 # Hack to extract Ubuntu's 16.04 libssl 1.0.2 packages and use them during the
 # local build of Python.
 #
@@ -431,6 +445,11 @@ maybe_ssl102_py37()
         3.7*)
             if [ "${OS}" = "Linux" ]; then
                 PY37_OPENSSL_DIR=${DS_ROOT_TASK}/ssl-xenial
+
+                if [ -d "${PY37_OPENSSL_DIR}" ]; then
+                  rm -rf "${PY37_OPENSSL_DIR}"
+                fi
+
                 mkdir -p ${PY37_OPENSSL_DIR}
                 wget -P ${TASKCLUSTER_TMP_DIR} \
                         http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.0.2g-1ubuntu4.14_amd64.deb \
@@ -459,6 +478,8 @@ maybe_ssl102_py37()
 
 do_deepspeech_python_build()
 {
+  cd ${DS_DSDIR}
+
   rename_to_cuda=$1
 
   unset PYTHON_BIN_PATH
@@ -515,20 +536,63 @@ do_deepspeech_python_build()
   done;
 }
 
+do_deepspeech_decoder_build()
+{
+  cd ${DS_DSDIR}
+
+  unset PYTHON_BIN_PATH
+  unset PYTHONPATH
+  export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
+  export PATH="${PYENV_ROOT}/bin:$PATH"
+
+  install_pyenv "${PYENV_ROOT}"
+  install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
+
+  mkdir -p wheels
+
+  for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do
+    pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
+    pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
+
+    export NUMPY_BUILD_VERSION="==1.7.0"
+    export NUMPY_DEP_VERSION=">=1.7.0"
+
+    maybe_ssl102_py37 ${pyver}
+
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv install ${pyver}
+
+    pyenv virtualenv ${pyver} deepspeech
+    source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
+
+    # Set LD path because python ssl might require it
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
+    EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
+    EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
+    EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
+    make -C native_client/ctcdecode/ \
+        TARGET=${SYSTEM_TARGET} \
+        RASPBIAN=${SYSTEM_RASPBIAN} \
+        TFDIR=${DS_TFDIR} \
+        bindings
+
+    cp native_client/ctcdecode/dist/*.whl wheels
+
+    make -C native_client/ctcdecode clean-keep-common
+
+    unset NUMPY_BUILD_VERSION
+    unset NUMPY_DEP_VERSION
+
+    deactivate
+    pyenv uninstall --force deepspeech
+    pyenv uninstall --force ${pyver}
+  done;
+}
+
 do_deepspeech_nodejs_build()
 {
   rename_to_cuda=$1
 
   npm update && npm install node-gyp node-pre-gyp
-
-  #FIXME: Remove when https://github.com/mapbox/node-pre-gyp/issues/421 is fixed
-  node_pre_gyp="$(npm root)/node-pre-gyp/"
-  abi_crosswalk="${node_pre_gyp}lib/util/abi_crosswalk.json"
-  has_node_v11=$(grep -q "11.0.0" "${abi_crosswalk}" ; echo $?)
-
-  if [ "${has_node_v11}" -eq 1 ]; then
-    patch -d "${node_pre_gyp}" -p1 < native_client/javascript/node-pre-gyp_nodejs_v11.patch
-  fi;
 
   export PATH="$(npm root)/.bin/:$PATH"
 
@@ -587,24 +651,42 @@ package_native_client()
     echo "Please specify artifact name."
   fi;
 
-  if [ -f "${tensorflow_dir}/bazel-bin/native_client/libdeepspeech_model.so" ]; then
-    tar -cf - \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_model.so \
-      -C ${deepspeech_dir}/ LICENSE \
-      -C ${deepspeech_dir}/native_client/ deepspeech \
-      -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
-      | pixz -9 > "${artifacts_dir}/${artifact_name}"
-  else
-    tar -cf - \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
-      -C ${deepspeech_dir}/ LICENSE \
-      -C ${deepspeech_dir}/native_client/ deepspeech \
-      -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
-      | pixz -9 > "${artifacts_dir}/${artifact_name}"
+  tar -cf - \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
+    -C ${deepspeech_dir}/ LICENSE \
+    -C ${deepspeech_dir}/native_client/ deepspeech \
+    -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
+    | pixz -9 > "${artifacts_dir}/${artifact_name}"
+}
+
+package_native_client_ndk()
+{
+  deepspeech_dir=${DS_DSDIR}
+  artifacts_dir=${TASKCLUSTER_ARTIFACTS}
+  artifact_name=$1
+  arch_abi=$2
+
+  if [ ! -d ${deepspeech_dir} -o ! -d ${artifacts_dir} ]; then
+    echo "Missing directory. Please check:"
+    echo "deepspeech_dir=${deepspeech_dir}"
+    echo "artifacts_dir=${artifacts_dir}"
+    exit 1
   fi;
+
+  if [ -z "${artifact_name}" ]; then
+    echo "Please specify artifact name."
+  fi;
+
+  if [ -z "${arch_abi}" ]; then
+    echo "Please specify arch abi."
+  fi;
+
+  tar -cf - \
+    -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ deepspeech \
+    -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libdeepspeech.so \
+    -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libc++_shared.so \
+    -C ${deepspeech_dir}/ LICENSE \
+    -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
+    | pixz -9 > "${artifacts_dir}/${artifact_name}"
 }

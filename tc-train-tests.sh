@@ -45,20 +45,11 @@ pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 
 platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine()));')
 whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
-deepspeech_pkg="deepspeech-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
+decoder_pkg="ds_ctcdecoder-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
-if [ "${ds}" = "deepspeech" ]; then
-    pip install ${DEEPSPEECH_ARTIFACTS_ROOT}/${deepspeech_pkg} | cat
-    python -c "import tensorflow; from deepspeech import audioToInputVector"
+decoder_pkg_url=${DECODER_ARTIFACTS_ROOT}/${decoder_pkg}
 
-    # Since this build depends on the completion of the whole deepspeech package
-    # and we might get into funny situation with --config=monolithic, then let's
-    # be extra-cautious and leverage our dependency against the build to also
-    # test with libctc_decoder_with_kenlm.so that is packaged for release
-    download_native_client_files "/tmp/ds"
-else
-    download_ctc_kenlm "/tmp/ds"
-fi;
+LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${decoder_pkg_url} | cat
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1_new.sh 105

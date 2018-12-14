@@ -1,13 +1,23 @@
 build:
-  allowed:
-    - "pull_request.opened"
-    - "pull_request.synchronize"
-    - "pull_request.reopened"
   template_file: linux-opt-base.tyml
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.662bc0378841fa4e75d562eceb1aacb25918a3b9.cpu/artifacts/public/home.tar.xz"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.cpu-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.cpu-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.cpu-ctc.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  system_setup:
+    >
+      ${nodejs.packages_trusty.prep_8} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.059c37c22ccf0b326a53acb22b97138e2918459c.cpu/artifacts/public/home.tar.xz"
   scripts:
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'
   metadata:
-    name: "DeepSpeech CTC KenLM Decoder Linux AMD64 CPU"
-    description: "Building DeepSpeech CTC KenLM Decoder for Linux/AMD64, CPU only, optimized version"
+    name: "DeepSpeech CTC Decoder Linux AMD64 CPU"
+    description: "Building DeepSpeech CTC Decoder for Linux/AMD64, CPU only, optimized version"

@@ -19,7 +19,6 @@ python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 494 --epoch -1 --random_seed 4567 --default_stddev 0.046875 \
   --max_to_keep 1 --checkpoint_dir '/tmp/ckpt' \
   --learning_rate 0.001 --dropout_rate 0.05 \
-  --decoder_library_path '/tmp/ds/libctc_decoder_with_kenlm.so' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' | tee /tmp/resume.log
 
