@@ -10,6 +10,7 @@ build:
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"
+  nc_asset_name: "native_client.amd64.cpu.osx.tar.xz"
   maxRunTime: 14400
   metadata:
     name: "DeepSpeech OSX AMD64 CPU"

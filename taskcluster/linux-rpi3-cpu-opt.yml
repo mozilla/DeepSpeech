@@ -21,6 +21,7 @@ build:
   scripts:
     build: "taskcluster/rpi3-build.sh"
     package: "taskcluster/package.sh"
+  nc_asset_name: "native_client.rpi3.cpu.linux.tar.xz"
   metadata:
     name: "DeepSpeech Linux RPi3/ARMv7 CPU"
     description: "Building DeepSpeech for Linux RPi3 ARMv7, CPU only, optimized version"
