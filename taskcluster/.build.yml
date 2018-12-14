@@ -18,6 +18,7 @@ build:
   scripts:
     build: ''
     package: ''
+  nc_asset_name: 'native_client.tar.xz'
   args:
     tests_cmdline: ''
   convert_graphdef: ''
