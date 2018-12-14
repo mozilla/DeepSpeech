@@ -30,9 +30,6 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-
-    nc_asset_name: { $eval: build.nc_asset_name }
-
     image: "ubuntu:14.04"
 
     env:

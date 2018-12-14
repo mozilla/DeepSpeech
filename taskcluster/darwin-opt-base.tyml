@@ -35,8 +35,6 @@ scopes:
 payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }
 
-  nc_asset_name: { $eval: build.nc_asset_name }
-
   env:
     $let:
       training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
