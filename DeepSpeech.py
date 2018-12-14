@@ -267,15 +267,12 @@ def get_tower_results(model_feeder, optimizer, dropout_rates, drop_source_layers
                     tower_avg_losses.append(avg_loss)
 
                     # Compute gradients for model parameters using tower's mini-batch
-                    fine_tune=True
-                    if FLAGS.fine_tune:
-                        # transfer learning, but update all layers
-                        gradients = optimizer.compute_gradients(avg_loss) 
-                    elif drop_source_layers == 0:
-                        # without transfer learning
-                        gradients = optimizer.compute_gradients(avg_loss)  
+                    if FLAGS.fine_tune or (drop_source_layers == 0):
+                        # either fine_tuning or train from scratch
+                        # either way, update all layers
+                        gradients = optimizer.compute_gradients(avg_loss)
                     else:
-                        # transfer learning, only update new layers
+                        # only update new layers
                         gradients = optimizer.compute_gradients(
                             avg_loss,
                             var_list = [ v for v in tf.trainable_variables()
