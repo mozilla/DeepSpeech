@@ -17,6 +17,7 @@ then:
     else: { $fromNow: '7 days' }
 
   extra:
+    nc_asset_name: { $eval: build.nc_asset_name }
     github:
       $if: '(event.event == "push") || (event.event == "tag")'
       then: { $eval: taskcluster.github_events.merge }
@@ -29,9 +30,6 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-
-    nc_asset_name: { $eval: build.nc_asset_name }
-
     image: "ubuntu:14.04"
 
     env:
