@@ -35,7 +35,7 @@
 source ../tmp/venv/bin/activate
 
 # train from scratch with num_layers_dropped=6
-num_layers_dropped=5
+num_layers_dropped=6
 fine_tune='False'
 target_lang='ky'
 source_model='en-v030'

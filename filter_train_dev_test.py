@@ -67,7 +67,8 @@ locale = clips[clips['locale'] == LOCALE]
 
 
 ### REASSIGN TEXT / DEV / TRAIN ###
-locale['ID'] = locale['path'].str.split('/', expand = True)[0]
+# locale['ID'] = locale['path'].str.split('/', expand = True)[0]
+locale.loc[:,'ID'] = locale.loc[:,'path'].str.split('/', expand = True)[0]
 speaker_counts = locale['ID'].value_counts()
 speaker_counts = speaker_counts.to_frame().reset_index()
 speaker_counts.columns= ['ID', 'counts']
@@ -83,13 +84,14 @@ def bucket(row):
         return "test"
     
 speaker_counts.loc[:, 'new_bucket'] = speaker_counts.apply(bucket, axis = 1)
-locale['new_bucket']=locale['ID'].map(speaker_counts.set_index('ID')['new_bucket'])
+# locale['new_bucket']=locale['ID'].map(speaker_counts.set_index('ID')['new_bucket'])
+locale.loc[:, 'new_bucket'] = locale['ID'].map(speaker_counts.set_index('ID')['new_bucket'])
 ### REASSIGN TEXT / DEV / TRAIN ###
 print(locale.head())
 
 
-locale['path'] = locale['path'].str.replace('/', '___')
-locale['path'] = locale['path'].str.replace('mp3', 'wav')
+locale.loc[:,'path'] = locale.loc[:,'path'].str.replace('/', '___')
+locale.loc[:,'path'] = locale.loc[:,'path'].str.replace('mp3', 'wav')
 dev_paths = locale[locale['new_bucket'] == 'dev'].loc[:, ['path']]
 test_paths = locale[locale['new_bucket'] == 'test'].loc[:, ['path']]
 train_paths = locale[locale['new_bucket'] == 'train'].loc[:, ['path']]

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-transfer=1
+transfer=0
 
 ## SETUP VIRETUALENV ##
 virtualenv -p python3 ../tmp/venv
