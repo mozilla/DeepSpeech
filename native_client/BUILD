@@ -18,17 +18,25 @@ KENLM_INCLUDES = [
     "kenlm",
 ]
 
+OPENFST_SOURCES_PLATFORM = select({ 
+        "//tensorflow:windows": glob(["ctcdecode/third_party/openfst-1.6.9-win/src/lib/*.cc"]),
+        "//conditions:default": glob(["ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"]),
+})
+
 DECODER_SOURCES = glob([
     "ctcdecode/*.h",
-    "ctcdecode/*.cpp",
-    "ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"
-]) + KENLM_SOURCES
+    "ctcdecode/*.cpp",  
+]) + OPENFST_SOURCES_PLATFORM + KENLM_SOURCES
+
+OPENFST_INCLUDES_PLATFORM = select({ 
+        "//tensorflow:windows": ["ctcdecode/third_party/openfst-1.6.9-win/src/include"],
+        "//conditions:default": ["ctcdecode/third_party/openfst-1.6.7/src/include"],
+})
 
 DECODER_INCLUDES = [
     ".",
-    "ctcdecode/third_party/openfst-1.6.7/src/include",
-    "ctcdecode/third_party/ThreadPool"
-] + KENLM_INCLUDES
+    "ctcdecode/third_party/ThreadPool",   
+] + OPENFST_INCLUDES_PLATFORM + KENLM_INCLUDES
 
 LINUX_LINKOPTS = [
     "-ldl",
@@ -52,15 +60,20 @@ tf_cc_shared_object(
             "kiss_fft130/_kiss_fft_guts.h",
             "kiss_fft130/tools/kiss_fftr.h",
             "ds_version.h"] +
-           DECODER_SOURCES,
-    # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
-    # which makes it harder to see our own warnings
-    copts = ["-Wno-sign-compare", "-fvisibility=hidden"],
+            DECODER_SOURCES,
+    copts = select({ 
+        # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
+        "//tensorflow:windows": ["/w"],
+        # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
+        # which makes it harder to see our own warnings
+        "//conditions:default": ["-Wno-sign-compare", "-fvisibility=hidden"],
+    }),
     linkopts = select({
         "//tensorflow:darwin": [],
         "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
         "//tensorflow:rpi3": LINUX_LINKOPTS + ["-l:libstdc++.a"],
         "//tensorflow:rpi3-armv8": LINUX_LINKOPTS + ["-l:libstdc++.a"],
+        "//tensorflow:windows": [],
     }),
     deps = [
         "//tensorflow/core:core_cpu",
