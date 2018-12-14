@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+        Need ConfigurationType set before importing openfst.props!
+   -->
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DE80EFEC-9ED9-4631-BD96-8568C31ED26D}</ProjectGuid>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <Import Project="../openfst.props" />
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <ItemGroup>
+    <ClCompile Include="compat.cc" />
+    <ClCompile Include="flags.cc" />
+    <ClCompile Include="fst-types.cc" />
+    <ClCompile Include="fst.cc" />
+    <ClCompile Include="mapped-file.cc" />
+    <ClCompile Include="properties.cc" />
+    <ClCompile Include="symbol-table-ops.cc" />
+    <ClCompile Include="symbol-table.cc" />
+    <ClCompile Include="util.cc" />
+    <ClCompile Include="weight.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\fst\accumulator.h" />
+    <ClInclude Include="..\include\fst\add-on.h" />
+    <ClInclude Include="..\include\fst\arc-arena.h" />
+    <ClInclude Include="..\include\fst\arc-map.h" />
+    <ClInclude Include="..\include\fst\arc.h" />
+    <ClInclude Include="..\include\fst\arcfilter.h" />
+    <ClInclude Include="..\include\fst\arcsort.h" />
+    <ClInclude Include="..\include\fst\bi-table.h" />
+    <ClInclude Include="..\include\fst\cache.h" />
+    <ClInclude Include="..\include\fst\closure.h" />
+    <ClInclude Include="..\include\fst\compact-fst.h" />
+    <ClInclude Include="..\include\fst\compat.h" />
+    <ClInclude Include="..\include\fst\complement.h" />
+    <ClInclude Include="..\include\fst\compose-filter.h" />
+    <ClInclude Include="..\include\fst\compose.h" />
+    <ClInclude Include="..\include\fst\concat.h" />
+    <ClInclude Include="..\include\fst\config.h" />
+    <ClInclude Include="..\include\fst\connect.h" />
+    <ClInclude Include="..\include\fst\const-fst.h" />
+    <ClInclude Include="..\include\fst\determinize.h" />
+    <ClInclude Include="..\include\fst\dfs-visit.h" />
+    <ClInclude Include="..\include\fst\difference.h" />
+    <ClInclude Include="..\include\fst\disambiguate.h" />
+    <ClInclude Include="..\include\fst\edit-fst.h" />
+    <ClInclude Include="..\include\fst\encode.h" />
+    <ClInclude Include="..\include\fst\epsnormalize.h" />
+    <ClInclude Include="..\include\fst\equal.h" />
+    <ClInclude Include="..\include\fst\equivalent.h" />
+    <ClInclude Include="..\include\fst\expanded-fst.h" />
+    <ClInclude Include="..\include\fst\expectation-weight.h" />
+    <ClInclude Include="..\include\fst\factor-weight.h" />
+    <ClInclude Include="..\include\fst\filter-state.h" />
+    <ClInclude Include="..\include\fst\flags.h" />
+    <ClInclude Include="..\include\fst\float-weight.h" />
+    <ClInclude Include="..\include\fst\fst-decl.h" />
+    <ClInclude Include="..\include\fst\fst.h" />
+    <ClInclude Include="..\include\fst\fstlib.h" />
+    <ClInclude Include="..\include\fst\generic-register.h" />
+    <ClInclude Include="..\include\fst\heap.h" />
+    <ClInclude Include="..\include\fst\icu.h" />
+    <ClInclude Include="..\include\fst\intersect.h" />
+    <ClInclude Include="..\include\fst\interval-set.h" />
+    <ClInclude Include="..\include\fst\invert.h" />
+    <ClInclude Include="..\include\fst\isomorphic.h" />
+    <ClInclude Include="..\include\fst\label-reachable.h" />
+    <ClInclude Include="..\include\fst\lexicographic-weight.h" />
+    <ClInclude Include="..\include\fst\lock.h" />
+    <ClInclude Include="..\include\fst\log.h" />
+    <ClInclude Include="..\include\fst\lookahead-filter.h" />
+    <ClInclude Include="..\include\fst\lookahead-matcher.h" />
+    <ClInclude Include="..\include\fst\map.h" />
+    <ClInclude Include="..\include\fst\mapped-file.h" />
+    <ClInclude Include="..\include\fst\matcher-fst.h" />
+    <ClInclude Include="..\include\fst\matcher.h" />
+    <ClInclude Include="..\include\fst\memory.h" />
+    <ClInclude Include="..\include\fst\minimize.h" />
+    <ClInclude Include="..\include\fst\mutable-fst.h" />
+    <ClInclude Include="..\include\fst\pair-weight.h" />
+    <ClInclude Include="..\include\fst\partition.h" />
+    <ClInclude Include="..\include\fst\power-weight.h" />
+    <ClInclude Include="..\include\fst\product-weight.h" />
+    <ClInclude Include="..\include\fst\project.h" />
+    <ClInclude Include="..\include\fst\properties.h" />
+    <ClInclude Include="..\include\fst\prune.h" />
+    <ClInclude Include="..\include\fst\push.h" />
+    <ClInclude Include="..\include\fst\queue.h" />
+    <ClInclude Include="..\include\fst\randequivalent.h" />
+    <ClInclude Include="..\include\fst\randgen.h" />
+    <ClInclude Include="..\include\fst\rational.h" />
+    <ClInclude Include="..\include\fst\register.h" />
+    <ClInclude Include="..\include\fst\relabel.h" />
+    <ClInclude Include="..\include\fst\replace-util.h" />
+    <ClInclude Include="..\include\fst\replace.h" />
+    <ClInclude Include="..\include\fst\reverse.h" />
+    <ClInclude Include="..\include\fst\reweight.h" />
+    <ClInclude Include="..\include\fst\rmepsilon.h" />
+    <ClInclude Include="..\include\fst\rmfinalepsilon.h" />
+    <ClInclude Include="..\include\fst\set-weight.h" />
+    <ClInclude Include="..\include\fst\shortest-distance.h" />
+    <ClInclude Include="..\include\fst\shortest-path.h" />
+    <ClInclude Include="..\include\fst\signed-log-weight.h" />
+    <ClInclude Include="..\include\fst\sparse-power-weight.h" />
+    <ClInclude Include="..\include\fst\sparse-tuple-weight.h" />
+    <ClInclude Include="..\include\fst\state-map.h" />
+    <ClInclude Include="..\include\fst\state-reachable.h" />
+    <ClInclude Include="..\include\fst\state-table.h" />
+    <ClInclude Include="..\include\fst\statesort.h" />
+    <ClInclude Include="..\include\fst\string-weight.h" />
+    <ClInclude Include="..\include\fst\string.h" />
+    <ClInclude Include="..\include\fst\symbol-table-ops.h" />
+    <ClInclude Include="..\include\fst\symbol-table.h" />
+    <ClInclude Include="..\include\fst\synchronize.h" />
+    <ClInclude Include="..\include\fst\test-properties.h" />
+    <ClInclude Include="..\include\fst\topsort.h" />
+    <ClInclude Include="..\include\fst\tuple-weight.h" />
+    <ClInclude Include="..\include\fst\types.h" />
+    <ClInclude Include="..\include\fst\union-find.h" />
+    <ClInclude Include="..\include\fst\union-weight.h" />
+    <ClInclude Include="..\include\fst\union.h" />
+    <ClInclude Include="..\include\fst\util.h" />
+    <ClInclude Include="..\include\fst\vector-fst.h" />
+    <ClInclude Include="..\include\fst\verify.h" />
+    <ClInclude Include="..\include\fst\visit.h" />
+    <ClInclude Include="..\include\fst\weight.h" />
+  </ItemGroup>
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <Import Project="../openfst.targets" />
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+</Project>

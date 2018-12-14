@@ -1,0 +1,39 @@
+<!--  This file is imported only in a multi-bin outer project. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Target Name="_SelectSources">
+    <ItemGroup>
+      <!-- Force batching on %(Identity) in this implicit task. -->
+      <ClCompile Condition=" '%(Identity)' != '' ">
+        <!-- Temporarily add '/' (just a character never found in %(Filename)) to the end to strip
+             off only the trailing "-main", not in the middle of the filename. Then trim the added '/'.
+             _ProjectName is the target binary name, set to the same value e.g 'fstinfo' for both
+             sources 'fstinfo.cc' and 'fstinfo-main.cc' -->
+        <_ProjectName>@(ClCompile->'%(Filename)/'->Replace('-main/','')->TrimEnd('/'))</_ProjectName>
+      </ClCompile>
+      <!-- This implicitly batches on %(ClCompile._ProjectName), i.e. per target binary. -->
+      <Subprojects Include="$(MSBuildProjectFullPath)">
+        <AdditionalProperties>ProjectName=%(ClCompile._ProjectName);OnlySources=@(ClCompile)</AdditionalProperties>
+      </Subprojects>
+    </ItemGroup>
+  </Target>
+
+  <!-- ResolveReferences may decide to build referenced lib projects if these are
+       not up to date, and we want it done only once, before building binaries in parallel. -->
+  <Target Name="Build" DependsOnTargets="_SelectSources;ResolveReferences">
+    <MSBuild Projects="@(Subprojects)" Targets="Build" BuildInParallel="$(BuildInParallel)"
+             Properties='Platform=$(Platform);Configuration=$(Configuration)' />
+  </Target>
+
+  <Target Name="Clean" DependsOnTargets="_SelectSources">
+    <MSBuild Projects="@(Subprojects)" Targets="Clean" BuildInParallel="$(BuildInParallel)"
+             Properties='Platform=$(Platform);Configuration=$(Configuration)' />
+  </Target>
+
+  <Target Name="Rebuild" DependsOnTargets="_SelectSources;Clean;Build" />
+
+  <Target Name="LibLinkOnly">
+    <Error Text="Sorry, 'Project Only/Link Only this project' IDE command is unsupported in a multi-binary project." />
+  </Target>
+
+</Project>
