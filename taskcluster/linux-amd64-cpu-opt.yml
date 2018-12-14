@@ -18,6 +18,7 @@ build:
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"
+  nc_asset_name: "native_client.amd64.cpu.linux.tar.xz"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU"
     description: "Building DeepSpeech for Linux/AMD64, CPU only, optimized version"

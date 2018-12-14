@@ -16,6 +16,7 @@ build:
   scripts:
     build: "taskcluster/android-build.sh arm64-v8a"
     package: "taskcluster/android-package.sh arm64-v8a"
+  nc_asset_name: "native_client.arm64.cpu.android.tar.xz"
   metadata:
     name: "DeepSpeech Android ARM64"
     description: "Building DeepSpeech for Android ARM64, optimized version"
