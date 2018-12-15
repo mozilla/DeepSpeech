@@ -5,9 +5,8 @@ transfer=0
 ## SETUP VIRETUALENV ##
 virtualenv -p python3 ../tmp/venv
 source ../tmp/venv/bin/activate
-pip3 install -r <(grep -v tensorflow requirements.txt)
-pip3 install tensorflow-gpu==1.12.0rc2
-#pip3 install tensorflow
+pip install -r <(grep -v tensorflow requirements.txt)
+pip install tensorflow-gpu==1.12.0
 
 ## SETUP TASKCLUSTER ##
 python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
