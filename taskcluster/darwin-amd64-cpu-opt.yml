@@ -6,10 +6,11 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.osx.${event.head.sha}"
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.bea86c1e884730cf7f8615eb24d31872c198c766.osx/artifacts/public/home.tar.xz"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.e232881c5a18204d946d4feba3c5aaa2d2c7dba0.osx/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"
+  nc_asset_name: "native_client.amd64.cpu.osx.tar.xz"
   maxRunTime: 14400
   metadata:
     name: "DeepSpeech OSX AMD64 CPU"
