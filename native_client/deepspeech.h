@@ -1,6 +1,10 @@
 #ifndef DEEPSPEECH_H
 #define DEEPSPEECH_H
 
+#ifdef __ANDROID__
+#define USE_TFLITE
+#endif
+
 #ifndef SWIG
     #if defined _MSC_VER
         #define DEEPSPEECH_EXPORT extern "C" __declspec(dllexport) 

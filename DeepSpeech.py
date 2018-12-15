@@ -890,6 +890,7 @@ def main(_):
         if len(FLAGS.worker_hosts) == 0:
             # Only one local task: this process (default case - no cluster)
             with tf.Graph().as_default():
+                tf.set_random_seed(FLAGS.random_seed)
                 train()
             # Now do a final test epoch
             if FLAGS.test:

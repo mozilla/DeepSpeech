@@ -90,6 +90,62 @@ cd ../DeepSpeech/native_client
 make deepspeech
 ```
 
+### Cross-building for RPi3 ARMv7 / LePotato ARM64
+
+We do support cross-compilation ; please refer to our `mozilla/tensorflow` fork, where we define the following `--config` flags:
+ - `--config=rpi3` and `--config=rpi3_opt` for Raspbian / ARMv7
+ - `--config=rpi3-armv8` and `--config=rpi3-armv8_opt` for ARMBian / ARM64
+
+So your command line for RPi3 / ARMv7 should look like:
+```
+bazel build --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+```
+
+And your command line for LePotato / ARM64 should look like:
+```
+bazel build --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+```
+
+While we test only on RPi3 Raspbian Stretch / LePotato ARMBian stretch, anything compatible with `armv7-a cortex-a53` / `armv8-a cortex-a53` should be fine.
+
+The `deepspeech` binary can also be cross-built, with `TARGET=rpi3` or `TARGET=rpi3-armv8`. This might require you to setup a system tree using the tool `multistrap` and the multitrap configuration files: `native_client/multistrap_armbian64_stretch.conf` and `native_client/multistrap_raspbian_stretch.conf`.
+The path of the system tree can be overridden from the default values defined in `definitions.mk` through `RASPBIAN` make variable.
+
+```
+cd ../DeepSpeech/native_client
+make TARGET=<system> deepspeech
+```
+
+### Android devices
+
+We have preliminary support for Android relying on TensorFlow Lite, with upcoming Java / JNI bindinds. For more details on how to experiment with those, please refer to `native_client/java/README.md`.
+
+Please refer to TensorFlow documentation on how to setup the environment to build for Android (SDK and NDK required).
+
+You can build the `libdeepspeech.so` using (ARMv7):
+
+```
+bazel build --config=monolithic --config=android --config=android_arm --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+```
+
+Or (ARM64):
+```
+bazel build --config=monolithic --config=android --config=android_arm64 --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+```
+
+Building the `deepspeech` binary will happen through `ndk-build` (ARMv7):
+
+```
+cd ../DeepSpeech/native_client
+$ANDROID_NDK_HOME/ndk-build APP_PLATFORM=android-21 APP_BUILD_SCRIPT=$(pwd)/Android.mk NDK_PROJECT_PATH=$(pwd) APP_STL=c++_shared TFDIR=$(pwd)/../../tensorflow/ TARGET_ARCH_ABI=armeabi-v7a
+```
+
+And (ARM64):
+```
+cd ../DeepSpeech/native_client
+$ANDROID_NDK_HOME/ndk-build APP_PLATFORM=android-21 APP_BUILD_SCRIPT=$(pwd)/Android.mk NDK_PROJECT_PATH=$(pwd) APP_STL=c++_shared TFDIR=$(pwd)/../../tensorflowx/ TARGET_ARCH_ABI=arm64-v8a 
+```
+
 ## Installing
 
 After building, the library files and binary can optionally be installed to a system path for ease of development. This is also a required step for bindings generation.
