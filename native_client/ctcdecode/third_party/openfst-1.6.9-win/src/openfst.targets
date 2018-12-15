@@ -1,0 +1,35 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="_SelectOnlySources">
+
+  <PropertyGroup>
+    <!-- Keep separate tlog in each multi-bin subproject
+        (all projects, in fact, it does not hurt). Needs a trailing '\'. -->
+    <TLogLocation>$(IntDir)$(ProjectName).tlog\</TLogLocation>
+    <!-- Intentionally sharing, handled carefully. Quench the warning. -->
+    <IgnoreWarnIntDirSharingDetected Condition=" '$(MultiBin)' == 'true' ">true</IgnoreWarnIntDirSharingDetected>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+  <ItemDefinitionGroup>
+    <ProjectReference>
+      <!-- Do not propagate to dependent projects the properties that
+           we set on recursive invocation. -->
+      <GlobalPropertiesToRemove>ProjectName;OnlySources</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+
+  <!-- In an inner build only, shrink down the ClCompile collection to those
+       passed in the OnlySources property. No harm doing this as early as
+       possible, so register this as InitialTarget. -->
+  <Target Name="_SelectOnlySources" Condition=" '$(MultiBin)' == 'true' and '$(DesignTimeBuild)' != 'true' ">
+    <ItemGroup Condition=" '$(OnlySources)' != '' ">
+      <_OnlySources Include="$(OnlySources)" />
+      <ClCompile Remove="@(ClCompile)" Condition="'%(Identity)' != '@(_OnlySources)'" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Override Build, Clean, Rebuild and certain IDE targets in a multi-bin outer build. -->
+  <Import Project="openfst-multibin.targets"
+          Condition=" '$(MultiBin)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(OnlySources)' == '' "/>
+
+</Project>

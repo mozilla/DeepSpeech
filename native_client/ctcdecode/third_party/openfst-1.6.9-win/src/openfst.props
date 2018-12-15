@@ -1,0 +1,124 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <!-- Guess the solution dir if not set, to enable consistent command-line msbuild of individual projects. -->
+  <PropertyGroup Condition=" '$(SolutionDir)' == '' ">
+    <_SolutionDir>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), openfst.sln))</_SolutionDir>
+    <_SolutionDir Condition=" '$(_SolutionDir)' == '' ">$([System.IO.Path]::GetFullPath("$(MSBuildThisFileDirectory).."))</_SolutionDir>
+    <SolutionDir  Condition=" '$(_SolutionDir)' != '' ">$(_SolutionDir)\</SolutionDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Keyword>Win32Proj</Keyword>
+    <PlatformToolset Condition=" '$(PlatformToolset)' == '' ">v141</PlatformToolset>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup>
+    <UseDebugLibraries Condition=" '$(Configuration)' == 'Debug' ">true</UseDebugLibraries>
+    <WholeProgramOptimization Condition=" '$(Configuration)' == 'Release' ">true</WholeProgramOptimization>
+  </PropertyGroup>
+
+  <!-- Use $(PlatformTarget) which is x86/ and x64/. Win32/ is historic
+       and weird (x64 is also technically Win32, it's the API name). -->
+  <PropertyGroup>
+    <_TargetSubdir Condition=" '$(ConfigurationType)' == 'StaticLibrary' ">lib</_TargetSubdir>
+    <_TargetSubdir Condition=" '$(ConfigurationType)' != 'StaticLibrary' ">bin</_TargetSubdir>
+    <OutDir>$(SolutionDir)build_output\$(PlatformTarget)\$(Configuration)\$(_TargetSubdir)\</OutDir>
+    <IntDir>obj\$(PlatformTarget)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+
+  <Import Project="openfst.user.props" Condition="Exists('openfst.user.props')" />
+
+  <!-- Attempt to use Windows 10 SDK which is called by a specific version, unless selected
+       by the user in the openfst.user.props. The problem is the default version hardcoded
+       into the scripts is 8.1, and this SDK is no longer set up with VS 2017. To save the
+       user from the hassle of finding out the correct version (and since we are not using
+       any specific Windows 10 API, we do not care about the version, as long as any one is
+       available. The fallback is still 8.1 for the latest as of tis writing toolset v141.
+
+       First, we try the environment variable supplying the version, but it's not defined
+       in a build inside VS. In this case, we perform a registry lookup for the installed
+       version. This is not bulletproof, as the version must be installed with desktop
+       development workload (as opposed to the UWP), but this is  likely in any scenario,
+       and if not the case, will require the user to install the SDK anyway. -->
+  <PropertyGroup Condition=" '$(WindowsTargetPlatformVersion)' == '' ">
+    <!-- First try the environment. This is set in command-line build, but not inside VS. -->
+    <_Win10SDKVer>$(WindowsSDKVersion)</_Win10SDKVer>
+    <_Win10SDKVer>$(_Win10SDKVer.TrimEnd('\'))</_Win10SDKVer>
+    <WindowsTargetPlatformVersion Condition=" '$(_Win10SDKVer)' != ''">$(_Win10SDKVer)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(WindowsTargetPlatformVersion)' == '' ">
+    <!-- Next look at the registry. This is what toolset scripts do, for other variables.
+         Note the registry version is 3-component, therefore the need to add a ".0" the
+         end. So far this has always been 3-component, but that may change, thus the call
+         to Split() to count the components in the retrieved version.  -->
+    <_Win10SDKVer Condition=" '$(_Win10SDKVer)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0@ProductVersion)</_Win10SDKVer>
+    <_Win10SDKVer Condition=" '$(_Win10SDKVer)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0@ProductVersion)</_Win10SDKVer>
+    <_Win10SDKVer Condition=" $(_Win10SDKVer.Split('.').Length) == 3">$(_Win10SDKVer).0</_Win10SDKVer>
+    <WindowsTargetPlatformVersion Condition=" '$(_Win10SDKVer)' != ''">$(_Win10SDKVer)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+          Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+
+  <ItemDefinitionGroup>
+    <!-- Most debug/release defaults set by UseDebugLibraries and WholeProgramOptimization are good. -->
+    <ClCompile>
+      <PreprocessorDefinitions Condition=" '$(Configuration)' == 'Debug' "  >_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition=" '$(Configuration)' == 'Release' ">NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DisableSpecificWarnings>4018;4099;4244;4267;4291;4305;4396;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <EnableEnhancedInstructionSet>$(EnableEnhancedInstructionSet)</EnableEnhancedInstructionSet>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <!-- Since 1.6.6, static FST registration was moved to its own file fst-types.cc.
+           Need to include all objects into the build, otherwise the static registration
+           will be unavailable. -->
+      <AdditionalOptions>/WHOLEARCHIVE:libfst %(AdditionalOptions)</AdditionalOptions>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <Link Condition=" '$(Configuration)' == 'Release' ">
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <!-- WholeProgramOptimization = true sets /LTCG:incremental. This is good
+           for development, when rebuild happens often, but not a correct setting
+           when sources are not often modified; use just /LTCG. -->
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+
+</Project>
