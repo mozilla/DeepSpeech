@@ -1,0 +1,10 @@
+openfst-1.6.9-win source downloaded from https://github.com/kkm000/openfst on 2018/12/10
+
+This corresponds to https://github.com/kkm000/openfst/commit/d4dd88e17393454e252d4644b39cf496a8cd9cac
+
+The following procedure was needed to compile with BAZEL 0.17.2:
+
+Used VS CODE to rename the following types:
+    uint64 -> uint64_t
+    uint32 -> uint32_t
+    uint16 -> uint16_t

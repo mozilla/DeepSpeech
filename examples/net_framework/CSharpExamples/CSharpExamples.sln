@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeechClient", "DeepSpeechClient\DeepSpeechClient.csproj", "{56DE4091-BBBE-47E4-852D-7268B33B971F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeech.WPF", "DeepSpeechWPF\DeepSpeech.WPF.csproj", "{54BFD766-4305-4F4C-BA59-AF45505DF3C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeechConsole", "DeepSpeechConsole\DeepSpeechConsole.csproj", "{312965E5-C4F6-4D95-BA64-79906B8BC7AC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Debug|x64.Build.0 = Debug|Any CPU
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|x64.ActiveCfg = Release|x64
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|x64.Build.0 = Release|x64
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Debug|x64.ActiveCfg = Debug|x64
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Debug|x64.Build.0 = Debug|x64
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Release|x64.ActiveCfg = Release|x64
+		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Release|x64.Build.0 = Release|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|x64.ActiveCfg = Debug|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|x64.Build.0 = Debug|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|x64.ActiveCfg = Release|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1725B855-0208-4BB2-995A-0C38CAC1CB83}
+	EndGlobalSection
+EndGlobal

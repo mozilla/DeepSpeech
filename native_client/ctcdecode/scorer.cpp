@@ -1,6 +1,19 @@
-#include "scorer.h"
+#ifdef _MSC_VER
+  #include <stdlib.h>
+  #include <io.h>
+  #include <windows.h> 
 
-#include <unistd.h>
+  #define R_OK    4       /* Read permission.  */
+  #define W_OK    2       /* Write permission.  */ 
+  #define F_OK    0       /* Existence.  */
+
+  #define access _access
+
+#else          /* _MSC_VER  */
+  #include <unistd.h>
+#endif
+
+#include "scorer.h"
 #include <iostream>
 #include <fstream>
 
