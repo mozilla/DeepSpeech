@@ -25,6 +25,8 @@ pip3 install deepspeech-gpu
 deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
+
 See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
 
 **Table of Contents**
@@ -32,6 +34,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
 - [Getting the pre-trained model](#getting-the-pre-trained-model)
+- [CUDA dependency](#cuda-dependency)
 - [Using the model](#using-the-model)
   - [Using the Python package](#using-the-python-package)
   - [Using the command line client](#using-the-command-line-client)
@@ -81,6 +84,10 @@ There are three ways to use DeepSpeech inference:
 - [The command-line client](#using-the-command-line-client)
 - [The Node.JS package](#using-the-nodejs-package)
 
+
+### CUDA dependency
+
+The GPU capable builds (Python, NodeJS, C++ etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow r1.12 it depends on CUDA 9.0 and CuDNN v7.2.
 
 ### Using the Python package
 
@@ -132,6 +139,8 @@ $ pip3 install --upgrade deepspeech-gpu
 ```
 
 In both cases, it should take care of installing all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
+
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
@@ -189,6 +198,8 @@ npm install deepspeech-gpu
 
 See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.
 
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
+
 ### Installing bindings from source
 
 If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow [these instructions](native_client/README.md).
@@ -229,6 +240,8 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 pip3 uninstall tensorflow
 pip3 install 'tensorflow-gpu==1.12.0'
 ```
+
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
 ### Common Voice training data
 
