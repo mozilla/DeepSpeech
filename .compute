@@ -117,7 +117,7 @@ if [ $num_layers_dropped -eq 6 ]; then
 	        --dev_files "${data}/valid_dev.csv" \
 	        --test_files "${data}/valid_test.csv" \
 	        --n_hidden 2048 \
-	        --epoch 100 \
+	        --epoch 1 \
             --earlystop_nsteps 5 \
 	        --train_batch_size 24 \
 	        --dev_batch_size 48 \
