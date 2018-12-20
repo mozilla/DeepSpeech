@@ -1,0 +1,60 @@
+# Each line in this file represents the Unicode codepoint (UTF-8 encoded)
+# associated with a numeric label.
+# A line that starts with # is a comment. You can escape it with \# if you wish
+# to use '#' as a label.
+p
+f
+4
+w
+;
+e
+%
+2
+$
+1
+!
+:
++
+ 
+x
+m
+/
+<
+z
+5
+y
+v
+n
+7
+=
+d
+0
+&
+s
+q
+[
+g
+j
+`
+]
+6
+c
+b
+"
+o
+a
+r
+u
+9
+>
+3
+k
+l
+8
+(
+'
+t
+h
+)
+i
+# The last (non-comment) line needs to end with a newline.
