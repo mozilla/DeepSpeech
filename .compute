@@ -36,7 +36,7 @@ source ../tmp/venv/bin/activate
 
 # train from scratch with num_layers_dropped=6
 num_layers_dropped=6
-target_lang='LANG'
+target_lang='tt'
 source_model='en-v030'
 
 
@@ -57,8 +57,14 @@ python3 util/check_characters.py "${data}/*.csv"
 
 if [ $num_layers_dropped -lt 6 ]; then
 
-    exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
+    echo "##########################"
+    echo "STARTING TRANSFER LEARNING"
+    echo " num_layers_dropped=${num_layers_dropped}"
+    echo "##########################"
     
+    exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
+
+                # --fine_tune \
     python3 -u DeepSpeech.py \
 	        --export_dir "${exp}/model/" \
 	        --summary_dir "${exp}/summaries/" \
@@ -70,8 +76,8 @@ if [ $num_layers_dropped -lt 6 ]; then
 	        --dev_files "${data}/valid_dev.csv" \
 	        --test_files "${data}/valid_test.csv" \
 	        --n_hidden 2048 \
-	        --epoch -1 \
-            --earlystop_nsteps 10 \
+	        --epoch -100 \
+            --earlystop_nsteps 5 \
 	        --train_batch_size 24 \
 	        --dev_batch_size 48 \
 	        --test_batch_size 48 \
@@ -79,6 +85,7 @@ if [ $num_layers_dropped -lt 6 ]; then
 	        --dropout_rate 0.2 \
 	        --display_step 0 \
 	        --validation_step 1 \
+            --summary_secs 60 \
 	        --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
 fi
 
@@ -95,10 +102,13 @@ fi
 
 if [ $num_layers_dropped -eq 6 ]; then
 
+    echo "##############################"
+    echo "STARTING TRAINING FROM SCRATCH"
+    echo "##############################"
+    
     exp="../keep/${target_lang}/scratch/"
     
     python3 -u DeepSpeech.py \
-            --summary_secs 1 \
 	        --export_dir "${exp}/model/" \
 	        --summary_dir "${exp}/summaries/" \
 	        --checkpoint_dir "${exp}/ckpt/" \
@@ -108,7 +118,7 @@ if [ $num_layers_dropped -eq 6 ]; then
 	        --test_files "${data}/valid_test.csv" \
 	        --n_hidden 2048 \
 	        --epoch 1 \
-            --earlystop_nsteps 10 \
+            --earlystop_nsteps 5 \
 	        --train_batch_size 24 \
 	        --dev_batch_size 48 \
 	        --test_batch_size 48 \
@@ -116,6 +126,7 @@ if [ $num_layers_dropped -eq 6 ]; then
 	        --dropout_rate 0.2 \
 	        --display_step 0 \
 	        --validation_step 1 \
+            --summary_secs 60 \
 	        --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
 fi
 
