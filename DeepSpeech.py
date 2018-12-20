@@ -84,84 +84,90 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     # clipped RELU activation and dropout.
 
     # 1st layer
-    b1 = variable_on_worker_level('b1', [Config.n_hidden_1], tf.zeros_initializer())
-    h1 = variable_on_worker_level('h1', [Config.n_input + 2*Config.n_input*Config.n_context, Config.n_hidden_1], tf.contrib.layers.xavier_initializer())
-    layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
-    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
-    layers['layer_1'] = layer_1
+    with tf.name_scope("LAYER_1"):
+        b1 = variable_on_worker_level('b1', [Config.n_hidden_1], tf.zeros_initializer())
+        h1 = variable_on_worker_level('h1', [Config.n_input + 2*Config.n_input*Config.n_context, Config.n_hidden_1], tf.contrib.layers.xavier_initializer())
+        layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
+        layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+        layers['layer_1'] = layer_1
 
     # 2nd layer
-    b2 = variable_on_worker_level('b2', [Config.n_hidden_2], tf.zeros_initializer())
-    h2 = variable_on_worker_level('h2', [Config.n_hidden_1, Config.n_hidden_2], tf.contrib.layers.xavier_initializer())
-    layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
-    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
-    layers['layer_2'] = layer_2
+    with tf.name_scope("LAYER_2"):
+        b2 = variable_on_worker_level('b2', [Config.n_hidden_2], tf.zeros_initializer())
+        h2 = variable_on_worker_level('h2', [Config.n_hidden_1, Config.n_hidden_2], tf.contrib.layers.xavier_initializer())
+        layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
+        layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+        layers['layer_2'] = layer_2
 
     # 3rd layer
-    b3 = variable_on_worker_level('b3', [Config.n_hidden_3], tf.zeros_initializer())
-    h3 = variable_on_worker_level('h3', [Config.n_hidden_2, Config.n_hidden_3], tf.contrib.layers.xavier_initializer())
-    layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
-    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
-    layers['layer_3'] = layer_3
+    with tf.name_scope("LAYER_3"):
+        b3 = variable_on_worker_level('b3', [Config.n_hidden_3], tf.zeros_initializer())
+        h3 = variable_on_worker_level('h3', [Config.n_hidden_2, Config.n_hidden_3], tf.contrib.layers.xavier_initializer())
+        layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
+        layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+        layers['layer_3'] = layer_3
 
     # Now we create the forward and backward LSTM units.
     # Both of which have inputs of length `n_cell_dim` and bias `1.0` for the forget gate of the LSTM.
 
-    # Forward direction cell:
-    if not tflite:
-        fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim, reuse=reuse)
-        layers['fw_cell'] = fw_cell
-    else:
-        fw_cell = tf.nn.rnn_cell.LSTMCell(Config.n_cell_dim, reuse=reuse)
+    with tf.name_scope("LAYER_LSTM"):
+        # Forward direction cell:
+        if not tflite:
+            fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim, reuse=reuse)
+            layers['fw_cell'] = fw_cell
+        else:
+            fw_cell = tf.nn.rnn_cell.LSTMCell(Config.n_cell_dim, reuse=reuse)
 
-    # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
-    # as the LSTM RNN expects its input to be of shape `[max_time, batch_size, input_size]`.
-    layer_3 = tf.reshape(layer_3, [n_steps, batch_size, Config.n_hidden_3])
-    if tflite:
-        # Generated StridedSlice, not supported by NNAPI
-        #n_layer_3 = []
-        #for l in range(layer_3.shape[0]):
-        #    n_layer_3.append(layer_3[l])
-        #layer_3 = n_layer_3
+        # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
+        # as the LSTM RNN expects its input to be of shape `[max_time, batch_size, input_size]`.
+        layer_3 = tf.reshape(layer_3, [n_steps, batch_size, Config.n_hidden_3])
+        if tflite:
+            # Generated StridedSlice, not supported by NNAPI
+            #n_layer_3 = []
+            #for l in range(layer_3.shape[0]):
+            #    n_layer_3.append(layer_3[l])
+            #layer_3 = n_layer_3
+            
+            # Unstack/Unpack is not supported by NNAPI
+            layer_3 = tf.unstack(layer_3, n_steps)
 
-        # Unstack/Unpack is not supported by NNAPI
-        layer_3 = tf.unstack(layer_3, n_steps)
+        # We parametrize the RNN implementation as the training and inference graph
+        # need to do different things here.
+        if not tflite:
+            output, output_state = fw_cell(inputs=layer_3, dtype=tf.float32, sequence_length=seq_length, initial_state=previous_state)
+        else:
+            output, output_state = tf.nn.static_rnn(fw_cell, layer_3, previous_state, tf.float32)
+            output = tf.concat(output, 0)
 
-    # We parametrize the RNN implementation as the training and inference graph
-    # need to do different things here.
-    if not tflite:
-        output, output_state = fw_cell(inputs=layer_3, dtype=tf.float32, sequence_length=seq_length, initial_state=previous_state)
-    else:
-        output, output_state = tf.nn.static_rnn(fw_cell, layer_3, previous_state, tf.float32)
-        output = tf.concat(output, 0)
-
-    # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
-    # to a tensor of shape [n_steps*batch_size, n_cell_dim]
-    output = tf.reshape(output, [-1, Config.n_cell_dim])
-    layers['rnn_output'] = output
-    layers['rnn_output_state'] = output_state
+        # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
+        # to a tensor of shape [n_steps*batch_size, n_cell_dim]
+        output = tf.reshape(output, [-1, Config.n_cell_dim])
+        layers['rnn_output'] = output
+        layers['rnn_output_state'] = output_state
 
     # Now we feed `output` to the fifth hidden layer with clipped RELU activation and dropout
-    b5 = variable_on_worker_level('b5', [Config.n_hidden_5], tf.zeros_initializer())
-    h5 = variable_on_worker_level('h5', [Config.n_cell_dim, Config.n_hidden_5], tf.contrib.layers.xavier_initializer())
-    layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
-    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
-    layers['layer_5'] = layer_5
+    with tf.name_scope("LAYER_5"):
+        b5 = variable_on_worker_level('b5', [Config.n_hidden_5], tf.zeros_initializer())
+        h5 = variable_on_worker_level('h5', [Config.n_cell_dim, Config.n_hidden_5], tf.contrib.layers.xavier_initializer())
+        layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
+        layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+        layers['layer_5'] = layer_5
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
-    b6 = variable_on_worker_level('b6', [Config.n_hidden_6], tf.zeros_initializer())
-    h6 = variable_on_worker_level('h6', [Config.n_hidden_5, Config.n_hidden_6], tf.contrib.layers.xavier_initializer())
-    layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
-    layers['layer_6'] = layer_6
+    with tf.name_scope("LAYER_6"):
+        b6 = variable_on_worker_level('b6', [Config.n_hidden_6], tf.zeros_initializer())
+        h6 = variable_on_worker_level('h6', [Config.n_hidden_5, Config.n_hidden_6], tf.contrib.layers.xavier_initializer())
+        layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
+        layers['layer_6'] = layer_6
 
-    # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
-    # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
-    # Note, that this differs from the input in that it is time-major.
-    layer_6 = tf.reshape(layer_6, [n_steps, batch_size, Config.n_hidden_6], name="raw_logits")
-    layers['raw_logits'] = layer_6
+        # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
+        # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
+        # Note, that this differs from the input in that it is time-major.
+        layer_6 = tf.reshape(layer_6, [n_steps, batch_size, Config.n_hidden_6], name="raw_logits")
+        layers['raw_logits'] = layer_6
 
-    # Output shape: [n_steps, batch_size, n_hidden_6]
+        # Output shape: [n_steps, batch_size, n_hidden_6]
     return layer_6, layers
 
 
@@ -266,13 +272,17 @@ def get_tower_results(model_feeder, optimizer, dropout_rates, drop_source_layers
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
-                    # Compute gradients for model parameters using tower's mini-batch
-                    if FLAGS.fine_tune or (drop_source_layers == 0):
-                        # either fine_tuning or train from scratch
-                        # either way, update all layers
+                    # # Compute gradients for model parameters using tower's mini-batch
+                    if drop_source_layers == 0:
+                        # train from scratch and update all layers
+                        gradients = optimizer.compute_gradients(avg_loss)
+                    elif FLAGS.fine_tune:
+                        # train from source model and fine-tine
+                        # aka - update all layers
                         gradients = optimizer.compute_gradients(avg_loss)
                     else:
-                        # only update new layers
+                        # train from source model and freeze old layers
+                        # aka - only update new layers
                         gradients = optimizer.compute_gradients(
                             avg_loss,
                             var_list = [ v for v in tf.trainable_variables()
@@ -606,6 +616,10 @@ def train(server=None):
                                                log_step_count_steps=0, # disable logging of steps/s to avoid TF warning in validation sets
                                                config=Config.session_config) as session:
             tf.get_default_graph().finalize()
+
+            # add the graph to the "each" summary
+            step_summary_writers.get('train').add_graph(session.graph)
+            step_summary_writers.get('dev').add_graph(session.graph)
 
             try:
                 if Config.is_chief:

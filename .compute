@@ -36,7 +36,6 @@ source ../tmp/venv/bin/activate
 
 # train from scratch with num_layers_dropped=6
 num_layers_dropped=6
-fine_tune='False'
 target_lang='LANG'
 source_model='en-v030'
 
@@ -59,9 +58,8 @@ python3 util/check_characters.py "${data}/*.csv"
 if [ $num_layers_dropped -lt 6 ]; then
 
     exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
-
+    
     python3 -u DeepSpeech.py \
-            --fine_tune "${fine_tune}" \
 	        --export_dir "${exp}/model/" \
 	        --summary_dir "${exp}/summaries/" \
 	        --checkpoint_dir "${exp}/ckpt/" \
@@ -72,7 +70,7 @@ if [ $num_layers_dropped -lt 6 ]; then
 	        --dev_files "${data}/valid_dev.csv" \
 	        --test_files "${data}/valid_test.csv" \
 	        --n_hidden 2048 \
-	        --epoch -1000 \
+	        --epoch -1 \
             --earlystop_nsteps 10 \
 	        --train_batch_size 24 \
 	        --dev_batch_size 48 \
@@ -100,6 +98,7 @@ if [ $num_layers_dropped -eq 6 ]; then
     exp="../keep/${target_lang}/scratch/"
     
     python3 -u DeepSpeech.py \
+            --summary_secs 1 \
 	        --export_dir "${exp}/model/" \
 	        --summary_dir "${exp}/summaries/" \
 	        --checkpoint_dir "${exp}/ckpt/" \
@@ -108,7 +107,7 @@ if [ $num_layers_dropped -eq 6 ]; then
 	        --dev_files "${data}/valid_dev.csv" \
 	        --test_files "${data}/valid_test.csv" \
 	        --n_hidden 2048 \
-	        --epoch 1000 \
+	        --epoch 1 \
             --earlystop_nsteps 10 \
 	        --train_batch_size 24 \
 	        --dev_batch_size 48 \
