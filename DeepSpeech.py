@@ -655,8 +655,7 @@ def test():
                            hdf5_cache_path=FLAGS.test_cached_features_path)
 
     graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
-
-    evaluate.evaluate(test_data, graph, Config.alphabet)
+    evaluate.evaluate(test_data, graph)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
