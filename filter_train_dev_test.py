@@ -119,7 +119,8 @@ validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\xa
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\\', ' ') # welsh
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'„', ' ') # german
 validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'…', ' ') # german
-validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\u202f', ' ') # french
+validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'\x19', ' ') # turkish
+validated_clips['transcript'] =  validated_clips['transcript'].str.replace(u'�', ' ') # turkish
 
 print(validated_clips.head())
 
