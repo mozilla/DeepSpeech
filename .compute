@@ -35,8 +35,8 @@
 source ../tmp/venv/bin/activate
 
 # train from scratch with num_layers_dropped=6
-num_layers_dropped=1
-target_lang='br'
+num_layers_dropped=5
+target_lang='LANG'
 source_model='en-v030'
 
 
@@ -64,6 +64,7 @@ if [ $num_layers_dropped -lt 6 ]; then
     
     exp="../keep/${target_lang}/${source_model}/${num_layers_dropped}"
 
+                # --fine_tune \
     python3 -u DeepSpeech.py \
 	        --export_dir "${exp}/model/" \
 	        --summary_dir "${exp}/summaries/" \
