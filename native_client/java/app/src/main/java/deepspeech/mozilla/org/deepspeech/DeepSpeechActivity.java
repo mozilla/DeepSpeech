@@ -38,8 +38,8 @@ public class DeepSpeechActivity extends AppCompatActivity {
     final int N_CEP = 26;
     final int N_CONTEXT = 9;
     final int BEAM_WIDTH = 50;
-    final float LM_WEIGHT = 1.50f;
-    final float VALID_WORD_COUNT_WEIGHT = 2.10f;
+    final float LM_ALPHA = 0.75f;
+    final float LM_BETA = 1.85f;
 
     private char readLEChar(RandomAccessFile f) throws IOException {
         byte b1 = f.readByte();

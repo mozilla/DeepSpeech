@@ -26,7 +26,7 @@ brew install portaudio
 usage: mic_vad_streaming.py [-h] [-v VAD_AGGRESSIVENESS] [--nospinner]
                             [-w SAVEWAV] -m MODEL [-a ALPHABET] [-l LM]
                             [-t TRIE] [-nf N_FEATURES] [-nc N_CONTEXT]
-                            [-lw LM_WEIGHT] [-vwcw VALID_WORD_COUNT_WEIGHT]
+                            [-la LM_ALPHA] [-lb LM_BETA]
                             [-bw BEAM_WIDTH]
 
 Stream from microphone to DeepSpeech using VAD
@@ -56,13 +56,12 @@ optional arguments:
   -nc N_CONTEXT, --n_context N_CONTEXT
                         Size of the context window used for producing
                         timesteps in the input vector. Default: 9
-  -lw LM_WEIGHT, --lm_weight LM_WEIGHT
+  -la LM_ALPHA, --lm_alpha LM_ALPHA
                         The alpha hyperparameter of the CTC decoder. Language
-                        Model weight. Default: 1.5
-  -vwcw VALID_WORD_COUNT_WEIGHT, --valid_word_count_weight VALID_WORD_COUNT_WEIGHT
-                        Valid word insertion weight. This is used to lessen
-                        the word insertion penalty when the inserted word is
-                        part of the vocabulary. Default: 2.1
+                        Model weight. Default: 0.75
+  -lb LM_BETA, --lm_beta LM_BETA
+                        The beta hyperparameter of the CTC decoder. Word insertion
+                        bonus. Default: 1.85
   -bw BEAM_WIDTH, --beam_width BEAM_WIDTH
                         Beam width used in the CTC decoder when building
                         candidate transcriptions. Default: 500

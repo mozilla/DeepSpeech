@@ -131,8 +131,8 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('lm_binary_path',       'data/lm/lm.binary', 'path to the language model binary file created with KenLM')
     tf.app.flags.DEFINE_string  ('lm_trie_path',         'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
     tf.app.flags.DEFINE_integer ('beam_width',       1024,        'beam width used in the CTC decoder when building candidate transcriptions')
-    tf.app.flags.DEFINE_float   ('lm_alpha',         1.50,        'the alpha hyperparameter of the CTC decoder. Language Model weight.')
-    tf.app.flags.DEFINE_float   ('lm_beta',          2.10,        'the beta hyperparameter of the CTC decoder. Word insertion weight.')
+    tf.app.flags.DEFINE_float   ('lm_alpha',         0.75,        'the alpha hyperparameter of the CTC decoder. Language Model weight.')
+    tf.app.flags.DEFINE_float   ('lm_beta',          1.85,        'the beta hyperparameter of the CTC decoder. Word insertion weight.')
 
     # Inference mode
 
