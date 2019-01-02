@@ -24,8 +24,8 @@ namespace DeepSpeechWPF
         private const uint N_CEP = 26;
         private const uint N_CONTEXT = 9;
         private const uint BEAM_WIDTH = 500;
-        private const float LM_WEIGHT = 1.50f;
-        private const float VALID_WORD_COUNT_WEIGHT = 2.10f;
+        private const float LM_ALPHA = 0.75f;
+        private const float LM_BETA = 1.85f;
 
 
 
@@ -160,7 +160,7 @@ namespace DeepSpeechWPF
             {
                 try
                 {
-                    if (_sttClient.EnableDecoderWithLM("alphabet.txt", "lm.binary", "trie", LM_WEIGHT, VALID_WORD_COUNT_WEIGHT) != 0)
+                    if (_sttClient.EnableDecoderWithLM("alphabet.txt", "lm.binary", "trie", LM_ALPHA, LM_BETA) != 0)
                     {
                         MessageBox.Show("Error loading LM.");
                         Dispatcher.Invoke(() => btnEnableLM.IsEnabled = true);
