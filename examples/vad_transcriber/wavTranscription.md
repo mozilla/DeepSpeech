@@ -26,7 +26,7 @@ Set the aggressiveness mode, to an integer between 0 and 3.
 
 ```
 (venv) ~/Deepspeech/examples/vad_transcriber
-$ python3 audioTranscript_cmd.py --aggressive 1 --audio ./audio/guido-van-rossum.wav --model ./models/0.3.0/
+$ python3 audioTranscript_cmd.py --aggressive 1 --audio ./audio/guido-van-rossum.wav --model ./models/0.4.0/
 
 
 Filename                       Duration(s)          Inference Time(s)    Model Load Time(s)   LM Load Time(s)
