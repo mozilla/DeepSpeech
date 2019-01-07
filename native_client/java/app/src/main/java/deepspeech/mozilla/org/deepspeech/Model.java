@@ -16,8 +16,8 @@ public class Model {
         impl.DestroyModel(this._msp);
     }
 
-    public void enableDecoderWihLM(String alphabet, String lm, String trie, float lm_weight, float valid_word_count_weight) {
-        impl.EnableDecoderWithLM(this._msp, alphabet, lm, trie, lm_weight, valid_word_count_weight);
+    public void enableDecoderWihLM(String alphabet, String lm, String trie, float lm_alpha, float lm_beta) {
+        impl.EnableDecoderWithLM(this._msp, alphabet, lm, trie, lm_alpha, lm_beta);
     }
 
     public String stt(short[] buffer, int buffer_size, int sample_rate) {

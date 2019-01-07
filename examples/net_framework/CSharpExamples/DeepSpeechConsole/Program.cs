@@ -38,8 +38,8 @@ namespace CSharpExamples
             const uint N_CEP = 26;
             const uint N_CONTEXT = 9;
             const uint BEAM_WIDTH = 200;
-            const float LM_WEIGHT = 1.50f;
-            const float VALID_WORD_COUNT_WEIGHT = 2.10f;
+            const float LM_ALPHA = 0.75f;
+            const float LM_BETA = 1.85f;
 
             Stopwatch stopwatch = new Stopwatch();
 
@@ -76,7 +76,7 @@ namespace CSharpExamples
                                 alphabet ?? "alphabet.txt",
                                 lm ?? "lm.binary",
                                 trie ?? "trie",
-                                LM_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+                                LM_ALPHA, LM_BETA);
                         }
                         catch (IOException ex)
                         {

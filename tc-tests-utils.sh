@@ -151,12 +151,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had a due in greasy wash water year"
+  assert_correct_inference "$1" "she had a due and greasy wash water year"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had a due in greasy wash water year"
+  assert_correct_inference "$1" "she had a due and greasy wash water year"
 }
 
 assert_correct_warning_upsampling()
