@@ -78,10 +78,10 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, bool reset) {
         auto final_weight = dictionary_->Final(matcher_->Value().nextstate);
         bool is_final = (final_weight != FSTZERO);
         if (is_final && reset) {
-	  // restart spell checker at the start state
+          // restart spell checker at the start state
           new_path->dictionary_state_ = dictionary_->Start();
         } else {
-	  // go to next state
+          // go to next state
           new_path->dictionary_state_ = matcher_->Value().nextstate;
         }
 
