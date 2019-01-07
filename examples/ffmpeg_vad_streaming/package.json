@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "argparse": "^1.0.10",
-    "deepspeech": "^0.3.0",
+    "deepspeech": "^0.4.0",
     "node-vad": "^1.1.1",
     "util": "^0.11.1"
   },

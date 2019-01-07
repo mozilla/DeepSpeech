@@ -73,7 +73,8 @@ git clone https://github.com/mozilla/DeepSpeech
 If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the [DeepSpeech releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the files in your current directory:
 
 ```bash
-wget -O - https://github.com/mozilla/DeepSpeech/releases/download/v0.3.0/deepspeech-0.3.0-models.tar.gz | tar xvfz -
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.0/deepspeech-0.4.0-models.tar.gz
+tar xvfz deepspeech-0.4.0-models.tar.gz
 ```
 
 ## Using the model
@@ -168,7 +169,7 @@ python3 util/taskcluster.py --arch osx --target .
 
 also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
 ```bash
-python3 util/taskcluster.py --branch "v0.2.0-alpha.6 --target ."
+python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
 ```
 
 This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Proper DeepSpeech or TensorFlow's branch can be specified as well.

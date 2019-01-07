@@ -186,7 +186,7 @@ make package
 make npm-pack
 ```
 
-This will create the package `deepspeech-0.3.0.tgz` in `native_client/javascript`.
+This will create the package `deepspeech-VERSION.tgz` in `native_client/javascript`.
 
 ## Building the CTC decoder package
 
