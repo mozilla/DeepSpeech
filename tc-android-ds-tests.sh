@@ -3,6 +3,7 @@
 set -xe
 
 arm_flavor=$1
+api_level=$2
 
 source $(dirname "$0")/tc-tests-utils.sh
 
@@ -19,7 +20,9 @@ fi
 
 download_material "${TASKCLUSTER_TMP_DIR}/ds"
 
-android_setup_emulator "${arm_flavor}"
+android_setup_emulator "${arm_flavor}" "${api_level}"
+
+android_setup_ndk_data
 
 check_deepspeech_version_android
 

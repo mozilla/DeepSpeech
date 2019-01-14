@@ -26,6 +26,7 @@ tasks:
 
     scopes: [
       "queue:create-task:lowest:{{ taskcluster.docker.provisionerId }}/deepspeech-worker",
+      "queue:create-task:lowest:{{ taskcluster.docker.provisionerId }}/deepspeech-kvm-worker",
       "queue:create-task:lowest:deepspeech-provisioner/ds-macos-light",
       "queue:create-task:lowest:deepspeech-provisioner/ds-scriptworker",
       "queue:create-task:lowest:deepspeech-provisioner/ds-rpi3",
