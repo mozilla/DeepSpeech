@@ -21,12 +21,16 @@ fi;
 export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
 export TASKCLUSTER_TMP_DIR=${TASKCLUSTER_TMP_DIR:-/tmp}
 
+export ANDROID_TMP_DIR=/data/local/tmp
+
 mkdir -p ${TASKCLUSTER_TMP_DIR} || true
 
 export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 
 export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
+
+export ANDROID_SDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/SDK/
 
 model_source="${DEEPSPEECH_TEST_MODEL}"
 model_name="$(basename "${model_source}")"
@@ -172,10 +176,26 @@ assert_tensorflow_version()
 check_tensorflow_version()
 {
   set +e
-  ds_help=$(deepspeech 2>&1 1>/dev/null)
+  ds_help=$(${DS_BINARY_PREFIX}deepspeech 2>&1 1>/dev/null)
   set -e
 
   assert_tensorflow_version "${ds_help}"
+}
+
+# TF Lite does not allows us to get TensorFlow version.
+check_deepspeech_version_android()
+{
+  set +e
+  ds_help=$(${DS_BINARY_PREFIX}deepspeech 2>&1 1>/dev/null)
+  set -e
+
+  assert_shows_something "${ds_help}" "DeepSpeech:"
+}
+
+run_tflite_basic_inference_tests()
+{
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${ANDROID_TMP_DIR}/ds/${model_name} --alphabet ${ANDROID_TMP_DIR}/ds/alphabet.txt --audio ${ANDROID_TMP_DIR}/ds/LDC93S1.wav)
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 }
 
 run_all_inference_tests()
@@ -711,4 +731,82 @@ package_native_client_ndk()
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
     | pixz -9 > "${artifacts_dir}/${artifact_name}"
+}
+
+android_install_sdk()
+{
+  if [ -z "${ANDROID_SDK_HOME}" ]; then
+    echo "No Android SDK home available, aborting."
+    exit 1
+  fi;
+
+  mkdir -p "${ANDROID_SDK_HOME}" || true
+  wget -P "${TASKCLUSTER_TMP_DIR}" https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
+
+  pushd "${ANDROID_SDK_HOME}"
+    unzip "${TASKCLUSTER_TMP_DIR}/sdk-tools-linux-4333796.zip"
+    yes | ./tools/bin/sdkmanager --licenses
+  popd
+}
+
+android_setup_emulator()
+{
+  android_install_sdk
+
+  if [ -z "${ANDROID_SDK_HOME}" ]; then
+    echo "No Android SDK home available, aborting."
+    exit 1
+  fi;
+
+  if [ -z "$1" ]; then
+    echo "No ARM flavor, please give one."
+    exit 1
+  fi;
+
+  flavor=$1
+
+  export PATH=${ANDROID_SDK_HOME}/tools/bin/:${ANDROID_SDK_HOME}/platform-tools/:$PATH
+  export DS_BINARY_PREFIX="adb shell LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
+
+  sdkmanager --verbose --update
+  sdkmanager --verbose --install "platform-tools"
+  sdkmanager --verbose --install "emulator"
+  sdkmanager --verbose --install "platforms;android-25"
+  sdkmanager --verbose --install "system-images;android-25;google_apis;${flavor}"
+  avdmanager create avd --name "ds-pixel" --device 17 --package "system-images;android-25;google_apis;${flavor}"
+
+  pushd ${ANDROID_SDK_HOME}
+    ./tools/emulator -verbose -avd ds-pixel -no-skin -no-audio -no-window &
+    emulator_rc=$?
+    export ANDROID_DEVICE_EMULATOR=$!
+  popd
+
+  if [ "${emulator_rc}" -ne 0 ]; then
+    echo "Error starting Android emulator, aborting."
+    exit 1
+  fi;
+
+  adb wait-for-device
+
+  adb shell id
+  adb shell cat /proc/cpuinfo
+
+  adb shell mkdir ${ANDROID_TMP_DIR}/ds/
+  adb push ${TASKCLUSTER_TMP_DIR}/ds/* ${ANDROID_TMP_DIR}/ds/
+
+  adb push \
+    ${TASKCLUSTER_TMP_DIR}/${model_name} \
+    ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav \
+    ${TASKCLUSTER_TMP_DIR}/alphabet.txt \
+    ${ANDROID_TMP_DIR}/ds/
+}
+
+android_stop_emulator()
+{
+  if [ -z "${ANDROID_DEVICE_EMULATOR}" ]; then
+    echo "No ANDROID_DEVICE_EMULATOR"
+    exit 1
+  fi;
+
+  kill -9 ${ANDROID_DEVICE_EMULATOR}
 }

@@ -795,6 +795,7 @@ DS_PrintVersions() {
   std::cerr << "TensorFlow: " << tf_git_version() << std::endl;
   std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
 #else
+  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
   LOGE("DeepSpeech: %s", ds_git_version());
   LOGD("DeepSpeech: %s", ds_git_version());
 #endif
