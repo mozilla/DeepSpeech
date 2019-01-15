@@ -25,8 +25,8 @@ namespace DeepSpeechClient
                   string aAlphabetConfigPath,
                   string aLMPath,
                   string aTriePath,
-                  float aLMWeight,
-                  float aValidWordCountWeight);
+                  float aLMAlpha,
+                  float aLMBeta);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]

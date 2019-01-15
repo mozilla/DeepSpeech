@@ -12,8 +12,8 @@
         unsafe int EnableDecoderWithLM(string aAlphabetConfigPath,
                   string aLMPath,
                   string aTriePath,
-                  float aLMWeight,
-                  float aValidWordCountWeight);
+                  float aLMAlpha,
+                  float aLMBeta);
 
         unsafe string SpeechToText(short[] aBuffer,
                 uint aBufferSize,

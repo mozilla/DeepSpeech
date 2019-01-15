@@ -609,11 +609,11 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
                        const char* aAlphabetConfigPath,
                        const char* aLMPath,
                        const char* aTriePath,
-                       float aLMWeight,
-                       float aValidWordCountWeight)
+                       float aLMAlpha,
+                       float aLMBeta)
 {
   try {
-    aCtx->scorer = new Scorer(aLMWeight, aValidWordCountWeight,
+    aCtx->scorer = new Scorer(aLMAlpha, aLMBeta,
                               aLMPath ? aLMPath : "",
                               aTriePath ? aTriePath : "",
                               *aCtx->alphabet);

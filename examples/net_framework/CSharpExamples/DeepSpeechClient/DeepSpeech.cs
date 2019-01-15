@@ -84,12 +84,12 @@ namespace DeepSpeechClient
         /// <param name="aAlphabetConfigPath">The path to the configuration file specifying the alphabet used by the network.</param>
         /// <param name="aLMPath">The path to the language model binary file.</param>
         /// <param name="aTriePath">The path to the trie file build from the same vocabulary as the language model binary.</param>
-        /// <param name="aLMWeight">The weight to give to the language model results when scoring.</param>
-        /// <param name="aValidWordCountWeight">The weight (bonus) to give to beams when adding a new valid word to the decoding.</param>
+        /// <param name="aLMAlpha">The alpha hyperparameter of the CTC decoder. Language Model weight.</param>
+        /// <param name="aLMBeta">The beta hyperparameter of the CTC decoder. Word insertion weight.</param>
         /// <returns>Zero on success, non-zero on failure (invalid arguments).</returns>
         public unsafe int EnableDecoderWithLM(string aAlphabetConfigPath,
             string aLMPath, string aTriePath,
-            float aLMWeight, float aValidWordCountWeight)
+            float aLMAlpha, float aLMBeta)
         {
             string exceptionMessage = null;
             if (string.IsNullOrWhiteSpace(aTriePath))
@@ -110,8 +110,8 @@ namespace DeepSpeechClient
                             aAlphabetConfigPath,
                             aLMPath,
                             aTriePath,
-                            aLMWeight,
-                            aValidWordCountWeight);
+                            aLMAlpha,
+                            aLMBeta);
         }
 
         /// <summary>
