@@ -56,10 +56,10 @@ void DS_DestroyModel(ModelState* ctx);
  * @param aLMPath The path to the language model binary file.
  * @param aTriePath The path to the trie file build from the same vocabu-
  *                  lary as the language model binary.
- * @param aLMWeight The weight to give to language model results when sco-
- *                  ring.
- * @param aValidWordCountWeight The weight (bonus) to give to beams when
- *                              adding a new valid word to the decoding.
+ * @param aLMAlpha The alpha hyperparameter of the CTC decoder. Language Model
+                   weight.
+ * @param aLMBeta The beta hyperparameter of the CTC decoder. Word insertion
+                  weight.
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
@@ -68,8 +68,8 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
                            const char* aAlphabetConfigPath,
                            const char* aLMPath,
                            const char* aTriePath,
-                           float aLMWeight,
-                           float aValidWordCountWeight);
+                           float aLMAlpha,
+                           float aLMBeta);
 
 /**
  * @brief Use the DeepSpeech model to perform Speech-To-Text.

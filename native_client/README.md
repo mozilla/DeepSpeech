@@ -81,7 +81,7 @@ After that, you can build the Tensorflow and DeepSpeech libraries using the foll
 bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
 ```
 
-If your build target requires extra flags, add them, like, for example --config=cuda if you do a CUDA build.
+If your build target requires extra flags, add them, like, for example --config=cuda if you do a CUDA build. Note that the generated binaries will show up under `bazel-bin/native_client/` (e.g., including `generate_trie` in case the `//native_client:generate_trie` option was present).
 
 Finally, you can change to the `native_client` directory and use the `Makefile`. By default, the `Makefile` will assume there is a TensorFlow checkout in a directory above the DeepSpeech checkout. If that is not the case, set the environment variable `TFDIR` to point to the right directory.
 
@@ -186,7 +186,7 @@ make package
 make npm-pack
 ```
 
-This will create the package `deepspeech-0.3.0.tgz` in `native_client/javascript`.
+This will create the package `deepspeech-VERSION.tgz` in `native_client/javascript`.
 
 ## Building the CTC decoder package
 

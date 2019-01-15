@@ -1,0 +1,10 @@
+build:
+  template_file: test-android-opt-base.tyml
+  dependencies:
+    - "android-armv7-cpu-opt"
+    - "test-training_upstream-linux-amd64-py27mu-opt"
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-android-ds-tests.sh armeabi-v7a"
+  metadata:
+    name: "DeepSpeech Android ARMv7 Google Pixel C++ tests"
+    description: "Testing DeepSpeech C++ for Android ARMv7 Google Pixel, optimized version"
