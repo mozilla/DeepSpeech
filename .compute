@@ -35,7 +35,7 @@
 source ../tmp/venv/bin/activate
 
 # train from scratch with num_layers_dropped=6
-target_lang='br'
+target_lang='en'
 source_model='en-v030'
 
 
