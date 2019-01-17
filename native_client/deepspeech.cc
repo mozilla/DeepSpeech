@@ -150,6 +150,14 @@ struct ModelState {
   size_t previous_state_size;
   std::unique_ptr<float[]> previous_state_c_;
   std::unique_ptr<float[]> previous_state_h_;
+
+  int input_node_idx;
+  int previous_state_c_idx;
+  int previous_state_h_idx;
+
+  int logits_idx;
+  int new_state_c_idx;
+  int new_state_h_idx;
 #endif
 
   ModelState();
@@ -374,7 +382,7 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
   }
 #else // USE_TFLITE
   // Feeding input_node
-  float* input_node = interpreter->typed_tensor<float>(interpreter->inputs()[0]);
+  float* input_node = interpreter->typed_tensor<float>(interpreter->inputs()[input_node_idx]);
   {
     int i;
     for (i = 0; i < n_frames*mfcc_feats_per_timestep; ++i) {
@@ -388,8 +396,8 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
   assert(previous_state_size > 0);
 
   // Feeding previous_state_c, previous_state_h
-  memcpy(interpreter->typed_tensor<float>(interpreter->inputs()[1]), previous_state_c_.get(), sizeof(float) * previous_state_size);
-  memcpy(interpreter->typed_tensor<float>(interpreter->inputs()[2]), previous_state_h_.get(), sizeof(float) * previous_state_size);
+  memcpy(interpreter->typed_tensor<float>(interpreter->inputs()[previous_state_c_idx]), previous_state_c_.get(), sizeof(float) * previous_state_size);
+  memcpy(interpreter->typed_tensor<float>(interpreter->inputs()[previous_state_h_idx]), previous_state_h_.get(), sizeof(float) * previous_state_size);
 
   TfLiteStatus status = interpreter->Invoke();
   if (status != kTfLiteOk) {
@@ -397,15 +405,15 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
     return;
   }
 
-  float* outputs = interpreter->typed_tensor<float>(interpreter->outputs()[0]);
+  float* outputs = interpreter->typed_tensor<float>(interpreter->outputs()[logits_idx]);
 
   // The CTCDecoder works with log-probs.
   for (int t = 0; t < n_frames * BATCH_SIZE * num_classes; ++t) {
     logits_output.push_back(outputs[t]);
   }
 
-  memcpy(previous_state_c_.get(), interpreter->typed_tensor<float>(interpreter->outputs()[1]), sizeof(float) * previous_state_size);
-  memcpy(previous_state_h_.get(), interpreter->typed_tensor<float>(interpreter->outputs()[2]), sizeof(float) * previous_state_size);
+  memcpy(previous_state_c_.get(), interpreter->typed_tensor<float>(interpreter->outputs()[new_state_c_idx]), sizeof(float) * previous_state_size);
+  memcpy(previous_state_h_.get(), interpreter->typed_tensor<float>(interpreter->outputs()[new_state_h_idx]), sizeof(float) * previous_state_size);
 #endif // USE_TFLITE
 }
 
@@ -427,6 +435,33 @@ ModelState::decode(vector<float>& logits)
 
   return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
 }
+
+#ifdef USE_TFLITE
+int tflite_get_tensor_by_name(const ModelState* ctx, const vector<int>& list, const char* name)
+{
+  int rv = -1;
+
+  for (int i = 0; i < list.size(); ++i) {
+    const string& node_name = ctx->interpreter->tensor(list[i])->name;
+    if (node_name.compare(string(name)) == 0) {
+      rv = i;
+    }
+  }
+
+  assert(rv >= 0);
+  return rv;
+}
+
+int tflite_get_input_tensor_by_name(const ModelState* ctx, const char* name)
+{
+  return tflite_get_tensor_by_name(ctx, ctx->interpreter->inputs(), name);
+}
+
+int tflite_get_output_tensor_by_name(const ModelState* ctx, const char* name)
+{
+  return tflite_get_tensor_by_name(ctx, ctx->interpreter->outputs(), name);
+}
+#endif
 
 int
 DS_CreateModel(const char* aModelPath,
@@ -560,13 +595,21 @@ DS_CreateModel(const char* aModelPath,
   model->interpreter->AllocateTensors();
   model->interpreter->SetNumThreads(4);
 
-  TfLiteIntArray* dims_input_node = model->interpreter->tensor(model->interpreter->inputs()[0])->dims;
+  // Query all the index once
+  model->input_node_idx       = tflite_get_input_tensor_by_name(model.get(), "input_node");
+  model->previous_state_c_idx = tflite_get_input_tensor_by_name(model.get(), "previous_state_c");
+  model->previous_state_h_idx = tflite_get_input_tensor_by_name(model.get(), "previous_state_h");
+  model->logits_idx           = tflite_get_output_tensor_by_name(model.get(), "logits");
+  model->new_state_c_idx      = tflite_get_output_tensor_by_name(model.get(), "new_state_c");
+  model->new_state_h_idx      = tflite_get_output_tensor_by_name(model.get(), "new_state_h");
+
+  TfLiteIntArray* dims_input_node = model->interpreter->tensor(model->interpreter->inputs()[model->input_node_idx])->dims;
 
   model->n_steps = dims_input_node->data[1];
   model->n_context = (dims_input_node->data[2] - 1 ) / 2;
   model->mfcc_feats_per_timestep = dims_input_node->data[2] * dims_input_node->data[3];
 
-  TfLiteIntArray* dims_logits = model->interpreter->tensor(model->interpreter->outputs()[0])->dims;
+  TfLiteIntArray* dims_logits = model->interpreter->tensor(model->interpreter->outputs()[model->logits_idx])->dims;
   const int final_dim_size = dims_logits->data[1] - 1;
   if (final_dim_size != model->alphabet->GetSize()) {
     std::cerr << "Error: Alphabet size does not match loaded model: alphabet "
@@ -578,8 +621,8 @@ DS_CreateModel(const char* aModelPath,
     return EINVAL;
   }
 
-  const int previous_state_c_id = model->interpreter->inputs()[1];
-  const int previous_state_h_id = model->interpreter->inputs()[2];
+  const int previous_state_c_id = model->interpreter->inputs()[model->previous_state_c_idx];
+  const int previous_state_h_id = model->interpreter->inputs()[model->previous_state_c_idx];
 
   TfLiteIntArray* dims_c = model->interpreter->tensor(previous_state_c_id)->dims;
   TfLiteIntArray* dims_h = model->interpreter->tensor(previous_state_h_id)->dims;
