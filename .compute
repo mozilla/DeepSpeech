@@ -36,7 +36,7 @@ source ../tmp/venv/bin/activate
 
 # train from scratch with num_layers_dropped=6
 target_lang='cy'
-source_model='en-v030'
+source_model='cy/scratch/ckpt'
 
 
 input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha2.0"
@@ -45,8 +45,8 @@ data="../keep/${target_lang}"
 mkdir $data
 
 
-python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
-python3 util/check_characters.py "${data}/*.csv"
+# python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
+# python3 util/check_characters.py "${data}/*.csv"
 
 
 
@@ -56,38 +56,38 @@ python3 util/check_characters.py "${data}/*.csv"
 ###              ###
 
 
-echo "##############################"
-echo "STARTING TRAINING FROM SCRATCH"
-echo "##############################"
+# echo "##############################"
+# echo "STARTING TRAINING FROM SCRATCH"
+# echo "##############################"
 
-exp="../keep/${target_lang}/scratch/"
+# exp="../keep/${target_lang}/scratch/"
 
-python3 -u DeepSpeech.py \
-	    --export_dir "${exp}/model/" \
-	    --summary_dir "${exp}/summaries/" \
-	    --checkpoint_dir "${exp}/ckpt/" \
-	    --test_output_file "${exp}/RESULTS.json" \
-	    --train_files "${data}/valid_train.csv"\
-	    --dev_files "${data}/valid_dev.csv" \
-	    --test_files "${data}/valid_test.csv" \
-	    --n_hidden 2048 \
-	    --epoch 1000 \
-        --earlystop_nsteps 5 \
-	    --train_batch_size 24 \
-	    --dev_batch_size 48 \
-	    --test_batch_size 48 \
-	    --learning_rate 0.0001 \
-	    --dropout_rate 0.2 \
-	    --display_step 0 \
-	    --validation_step 1 \
-        --summary_secs 60 \
-	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
+# python3 -u DeepSpeech.py \
+# 	    --export_dir "${exp}/model/" \
+# 	    --summary_dir "${exp}/summaries/" \
+# 	    --checkpoint_dir "${exp}/ckpt/" \
+# 	    --test_output_file "${exp}/RESULTS.json" \
+# 	    --train_files "${data}/valid_train.csv"\
+# 	    --dev_files "${data}/valid_dev.csv" \
+# 	    --test_files "${data}/valid_test.csv" \
+# 	    --n_hidden 2048 \
+# 	    --epoch 1000 \
+#         --earlystop_nsteps 5 \
+# 	    --train_batch_size 24 \
+# 	    --dev_batch_size 48 \
+# 	    --test_batch_size 48 \
+# 	    --learning_rate 0.0001 \
+# 	    --dropout_rate 0.2 \
+# 	    --display_step 0 \
+# 	    --validation_step 1 \
+#         --summary_secs 60 \
+# 	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
 
 
 
-###                   ###
-### TRANSFER LEARNING ###
-###                   ###
+# ###                   ###
+# ### TRANSFER LEARNING ###
+# ###                   ###
 
 
 # if [ $num_layers_dropped -lt 6 ]; then
@@ -98,7 +98,7 @@ for num_layers_dropped in 1 2 3 4 5; do
     echo " num_layers_dropped=${num_layers_dropped}"
     echo "##########################"
     
-    exp="../keep/${target_lang}/fine_tune/${num_layers_dropped}"
+    exp="../keep/${target_lang}/source_is_scratch/norm_alphabet/fine-tuned/${num_layers_dropped}"
 
     python3 -u DeepSpeech.py \
             --fine_tune \
@@ -129,7 +129,7 @@ for num_layers_dropped in 1 2 3 4 5; do
     echo " num_layers_dropped=${num_layers_dropped}"
     echo "##########################"
     
-    exp="../keep/${target_lang}/frozen/${num_layers_dropped}"
+    exp="../keep/${target_lang}/source_is_scratch/norm_alphabet/frozen/${num_layers_dropped}"
 
     python3 -u DeepSpeech.py \
 	        --export_dir "${exp}/model/" \
