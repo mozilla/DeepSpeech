@@ -486,11 +486,7 @@ DS_CreateModel(const char* aModelPath,
 
   if (!aModelPath || strlen(aModelPath) < 1) {
     std::cerr << "No model specified, cannot continue." << std::endl;
-#ifndef USE_TFLITE
-    return error::INVALID_ARGUMENT;
-#else // USE_TFLITE
-    return EINVAL;
-#endif // USE_TFLITE
+    return DS_ERR_NO_MODEL;
   }
 
 #ifndef USE_TFLITE
@@ -504,7 +500,7 @@ DS_CreateModel(const char* aModelPath,
     status = model->mmap_env->InitializeFromFile(aModelPath);
     if (!status.ok()) {
       std::cerr << status << std::endl;
-      return status.code();
+      return DS_ERR_FAIL_INIT_MMAP;
     }
 
     options.config.mutable_graph_options()
@@ -516,7 +512,7 @@ DS_CreateModel(const char* aModelPath,
   status = NewSession(options, &model->session);
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    return status.code();
+    return DS_ERR_FAIL_INIT_SESS;
   }
 
   if (is_mmap) {
@@ -528,13 +524,13 @@ DS_CreateModel(const char* aModelPath,
   }
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    return status.code();
+    return DS_ERR_FAIL_READ_PROTOBUF;
   }
 
   status = model->session->Create(model->graph_def);
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    return status.code();
+    return DS_ERR_FAIL_CREATE_SESS;
   }
 
   for (int i = 0; i < model->graph_def.node_size(); ++i) {
@@ -558,7 +554,7 @@ DS_CreateModel(const char* aModelPath,
                   << " classes in its output. Make sure you're passing an alphabet "
                   << "file with the same size as the one used for training."
                   << std::endl;
-        return error::INVALID_ARGUMENT;
+        return DS_ERR_INVALID_ALPHABET;
       }
     }
   }
@@ -570,18 +566,18 @@ DS_CreateModel(const char* aModelPath,
               << "changed the number of features in the input, adjust the "
               << "MFCC_FEATURES constant in " __FILE__
               << std::endl;
-    return error::INVALID_ARGUMENT;
+    return DS_ERR_INVALID_SHAPE;
   }
 
   *retval = model.release();
-  return tensorflow::error::OK;
+  return DS_ERR_OK;
 #else // USE_TFLITE
   TfLiteStatus status;
 
   model->fbmodel = tflite::FlatBufferModel::BuildFromFile(aModelPath);
   if (!model->fbmodel) {
     std::cerr << "Error at reading model file " << aModelPath << std::endl;
-    return kTfLiteError;
+    return DS_ERR_FAIL_INIT_MMAP;
   }
 
 
@@ -589,7 +585,7 @@ DS_CreateModel(const char* aModelPath,
   tflite::InterpreterBuilder(*model->fbmodel, resolver)(&model->interpreter);
   if (!model->interpreter) {
     std::cerr << "Error at InterpreterBuilder for model file " << aModelPath << std::endl;
-    return kTfLiteError;
+    return DS_ERR_FAIL_INTERPRETER;
   }
 
   model->interpreter->AllocateTensors();
@@ -618,7 +614,7 @@ DS_CreateModel(const char* aModelPath,
               << " classes in its output. Make sure you're passing an alphabet "
               << "file with the same size as the one used for training."
               << std::endl;
-    return EINVAL;
+    return DS_ERR_INVALID_ALPHABET;
   }
 
   TfLiteIntArray* dims_c = model->interpreter->tensor(model->previous_state_c_idx)->dims;
@@ -634,7 +630,7 @@ DS_CreateModel(const char* aModelPath,
   memset(model->previous_state_h_.get(), 0, sizeof(float) * model->previous_state_size);
 
   *retval = model.release();
-  return kTfLiteOk;
+  return DS_ERR_OK;
 #endif // USE_TFLITE
 }
 
@@ -657,9 +653,9 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
                               aLMPath ? aLMPath : "",
                               aTriePath ? aTriePath : "",
                               *aCtx->alphabet);
-    return 0;
+    return DS_ERR_OK;
   } catch (...) {
-    return 1;
+    return DS_ERR_INVALID_LM;
   }
 }
 
@@ -671,11 +667,7 @@ DS_SpeechToText(ModelState* aCtx,
 {
   StreamingState* ctx;
   int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
-#ifndef USE_TFLITE
-  if (status != tensorflow::error::OK) {
-#else // USE_TFLITE
-  if (status != kTfLiteOk) {
-#endif // USE_TFLITE
+  if (status != DS_ERR_OK) {
     return nullptr;
   }
   DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
@@ -694,18 +686,14 @@ DS_SetupStream(ModelState* aCtx,
   Status status = aCtx->session->Run({}, {}, {"initialize_state"}, nullptr);
   if (!status.ok()) {
     std::cerr << "Error running session: " << status << std::endl;
-    return status.code();
+    return DS_ERR_FAIL_RUN_SESS;
   }
 #endif // USE_TFLITE
 
   std::unique_ptr<StreamingState> ctx(new StreamingState());
   if (!ctx) {
     std::cerr << "Could not allocate streaming state." << std::endl;
-#ifndef USE_TFLITE
-    return status.code();
-#else // USE_TFLITE
-    return ENOMEM;
-#endif // USE_TFLITE
+    return DS_ERR_FAIL_CREATE_STREAM;
   }
 
   const size_t num_classes = aCtx->alphabet->GetSize() + 1; // +1 for blank
@@ -726,11 +714,7 @@ DS_SetupStream(ModelState* aCtx,
   ctx->model = aCtx;
 
   *retval = ctx.release();
-#ifndef USE_TFLITE
-  return tensorflow::error::OK;
-#else // USE_TFLITE
-  return kTfLiteOk;
-#endif // USE_TFLITE
+  return DS_ERR_OK;
 }
 
 void
