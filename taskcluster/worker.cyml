@@ -3,6 +3,7 @@ taskcluster:
   docker:
     provisionerId: aws-provisioner-v1
     workerType: deepspeech-worker
+    workerTypeKvm: deepspeech-kvm-worker
   dockerrpi3:
     provisionerId: deepspeech-provisioner
     workerType: ds-rpi3

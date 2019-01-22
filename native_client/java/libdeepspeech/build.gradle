@@ -1,16 +1,29 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
 
 android {
     compileSdkVersion 27
 
     defaultConfig {
-        applicationId "org.mozilla.deepspeech"
         minSdkVersion 21
         targetSdkVersion 27
         versionName androidGitVersion.name()
         versionCode androidGitVersion.code()
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
         setProperty("archivesBaseName", "${archivesBaseName}-${dsVersionString}")
+
+        ndk {
+            abiFilters = []
+            abiFilters.addAll(ABI_FILTERS.split(';').collect{it as String})
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
     }
 
     buildTypes {
@@ -20,18 +33,37 @@ android {
         }
     }
 
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
     adbOptions {
-        timeOutInMs 30 * 60 * 1000  // 10 minutes
+        timeOutInMs 15 * 60 * 1000  // 10 minutes
         installOptions "-d","-t"
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':libdeepspeech')
+
     implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     testImplementation 'junit:junit:4.12'
+
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+task printABIs {
+    print ABI_FILTERS.split(';').join(" ")
+}
+
+group   = 'org.mozilla.deepspeech'
+version = androidGitVersion.name()
+task writeNewPom << {
+    pom {
+        project {
+        }
+    }.writeTo("${buildDir}/pom-${dsVersionString}.xml")
 }

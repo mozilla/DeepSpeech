@@ -118,7 +118,7 @@ make TARGET=<system> deepspeech
 
 ### Android devices
 
-We have preliminary support for Android relying on TensorFlow Lite, with upcoming Java / JNI bindinds. For more details on how to experiment with those, please refer to `native_client/java/README.md`.
+We have preliminary support for Android relying on TensorFlow Lite, with Java / JNI bindinds. For more details on how to experiment with those, please refer to `native_client/java/README.md`.
 
 Please refer to TensorFlow documentation on how to setup the environment to build for Android (SDK and NDK required).
 
