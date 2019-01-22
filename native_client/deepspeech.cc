@@ -579,17 +579,17 @@ DS_CreateModel(const char* aModelPath,
   TfLiteStatus status;
 
   model->fbmodel = tflite::FlatBufferModel::BuildFromFile(aModelPath);
-  if (status != kTfLiteOk) {
-    std::cerr << status << std::endl;
-    return status;
+  if (!model->fbmodel) {
+    std::cerr << "Error at reading model file " << aModelPath << std::endl;
+    return kTfLiteError;
   }
 
 
   tflite::ops::builtin::BuiltinOpResolver resolver;
-  status = tflite::InterpreterBuilder(*model->fbmodel, resolver)(&model->interpreter);
-  if (status != kTfLiteOk) {
-    std::cerr << status << std::endl;
-    return status;
+  tflite::InterpreterBuilder(*model->fbmodel, resolver)(&model->interpreter);
+  if (!model->interpreter) {
+    std::cerr << "Error at InterpreterBuilder for model file " << aModelPath << std::endl;
+    return kTfLiteError;
   }
 
   model->interpreter->AllocateTensors();
