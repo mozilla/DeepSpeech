@@ -36,6 +36,10 @@ then:
         $map: { $eval: build.artifacts_deps.javascript }
         each(b):
           $eval: as_slugid(b)
+      java_aar:
+        $map: { $eval: build.artifacts_deps.java_aar }
+        each(b):
+          $eval: as_slugid(b)
       cpp:
         $map: { $eval: build.artifacts_deps.cpp }
         each(b):
