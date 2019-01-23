@@ -10,7 +10,8 @@ genrule(
     name = "ds_git_version",
     outs = ["ds_version.h"],
     cmd = "$(location :ds_git_version.sh) >$@",
-    tools = [":ds_git_version.sh"]
+    tools = [":ds_git_version.sh"],
+    local = 1,
 )
 
 KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
