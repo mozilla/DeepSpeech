@@ -136,6 +136,37 @@ assert_shows_something()
   esac
 }
 
+assert_not_present()
+{
+  stderr=$1
+  not_expected=$2
+
+  if [ -z "${stderr}" -o -z "${not_expected}" ]; then
+      echo "One or more empty strings:"
+      echo "stderr: <${stderr}>"
+      echo "not_expected: <${not_expected}>"
+      return 1
+  fi;
+
+  case "${stderr}" in
+      *${not_expected}*)
+          echo "!! Not expected was present !!"
+          echo "got: <${stderr}>"
+          echo "xxd:"; echo "${stderr}" | xxd
+          echo "-------------------"
+          echo "not_expected: <${not_expected}>"
+          echo "xxd:"; echo "${not_expected}" | xxd
+          return 1
+      ;;
+
+      *)
+          echo "Proper not expected output has not been produced:"
+          echo "${stderr}"
+          return 0
+      ;;
+  esac
+}
+
 assert_correct_ldc93s1()
 {
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
@@ -174,6 +205,11 @@ assert_tensorflow_version()
   assert_shows_something "$1" "${EXPECTED_TENSORFLOW_VERSION}"
 }
 
+assert_deepspeech_version()
+{
+  assert_not_present "$1" "DeepSpeech: unknown"
+}
+
 check_tensorflow_version()
 {
   set +e
@@ -181,16 +217,7 @@ check_tensorflow_version()
   set -e
 
   assert_tensorflow_version "${ds_help}"
-}
-
-# TF Lite does not allows us to get TensorFlow version.
-check_deepspeech_version_android()
-{
-  set +e
-  ds_help=$(${DS_BINARY_PREFIX}deepspeech 2>&1 1>/dev/null)
-  set -e
-
-  assert_shows_something "${ds_help}" "DeepSpeech:"
+  assert_deepspeech_version "${ds_help}"
 }
 
 run_tflite_basic_inference_tests()

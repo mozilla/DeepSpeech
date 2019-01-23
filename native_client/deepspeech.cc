@@ -12,10 +12,6 @@
 #include "deepspeech.h"
 #include "alphabet.h"
 
-#ifndef USE_TFLITE
-#include "tensorflow/core/public/version.h"
-#endif // USE_TFLITE
-
 #include "native_client/ds_version.h"
 
 #ifndef USE_TFLITE
@@ -815,11 +811,11 @@ DS_AudioToInputVector(const short* aBuffer,
 
 void
 DS_PrintVersions() {
-#ifndef __ANDROID__
-  std::cerr << "TensorFlow: " << tf_git_version() << std::endl;
+  std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
   std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
-#else
-  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
+#ifdef __ANDROID__
+  LOGE("TensorFlow: %s", tf_local_git_version());
+  LOGD("TensorFlow: %s", tf_local_git_version());
   LOGE("DeepSpeech: %s", ds_git_version());
   LOGD("DeepSpeech: %s", ds_git_version());
 #endif
