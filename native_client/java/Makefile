@@ -21,7 +21,10 @@ libdeepspeech/libs/%/libdeepspeech.so:
 
 apk: apk-clean bindings $(patsubst %,libdeepspeech/libs/%/libdeepspeech.so,$(ARCHS))
 	./gradlew build
-	./gradlew writeNewPom
+
+maven-bundle: apk
+	./gradlew uploadArchives
+	./gradlew zipMavenArtifacts
 
 bindings: clean
 	swig -c++ -java -package org.mozilla.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/mozilla/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i
