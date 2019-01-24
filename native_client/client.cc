@@ -24,8 +24,8 @@
 #define N_CEP 26
 #define N_CONTEXT 9
 #define BEAM_WIDTH 500
-#define LM_WEIGHT 1.50f
-#define VALID_WORD_COUNT_WEIGHT 2.10f
+#define LM_ALPHA 0.75f
+#define LM_BETA 1.85f
 
 typedef struct {
   const char* string;
@@ -253,8 +253,8 @@ main(int argc, char **argv)
                                         alphabet,
                                         lm,
                                         trie,
-                                        LM_WEIGHT,
-                                        VALID_WORD_COUNT_WEIGHT);
+                                        LM_ALPHA,
+                                        LM_BETA);
     if (status != 0) {
       fprintf(stderr, "Could not enable CTC decoder with LM.\n");
       return 1;

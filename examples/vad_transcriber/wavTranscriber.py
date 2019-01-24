@@ -19,8 +19,8 @@ def load_model(models, alphabet, lm, trie):
     N_FEATURES = 26
     N_CONTEXT = 9
     BEAM_WIDTH = 500
-    LM_WEIGHT = 1.50
-    VALID_WORD_COUNT_WEIGHT = 2.10
+    LM_ALPHA = 0.75
+    LM_BETA = 1.85
 
     model_load_start = timer()
     ds = Model(models, N_FEATURES, N_CONTEXT, alphabet, BEAM_WIDTH)
@@ -28,7 +28,7 @@ def load_model(models, alphabet, lm, trie):
     logging.debug("Loaded model in %0.3fs." % (model_load_end))
 
     lm_load_start = timer()
-    ds.enableDecoderWithLM(alphabet, lm, trie, LM_WEIGHT, VALID_WORD_COUNT_WEIGHT)
+    ds.enableDecoderWithLM(alphabet, lm, trie, LM_ALPHA, LM_BETA)
     lm_load_end = timer() - lm_load_start
     logging.debug('Loaded language model in %0.3fs.' % (lm_load_end))
 

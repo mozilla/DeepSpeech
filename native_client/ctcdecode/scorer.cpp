@@ -121,8 +121,10 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
 
     fin.read(reinterpret_cast<char*>(&is_character_based_), sizeof(is_character_based_));
 
-    fst::FstReadOptions opt;
-    dictionary.reset(fst::StdVectorFst::Read(fin, opt));
+    if (!is_character_based_) {
+      fst::FstReadOptions opt;
+      dictionary.reset(fst::StdVectorFst::Read(fin, opt));
+    }
   }
 
   max_order_ = language_model_->Order();
@@ -134,8 +136,10 @@ void Scorer::save_dictionary(const std::string& path)
   fout.write(reinterpret_cast<const char*>(&MAGIC), sizeof(MAGIC));
   fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
   fout.write(reinterpret_cast<const char*>(&is_character_based_), sizeof(is_character_based_));
-  fst::FstWriteOptions opt;
-  dictionary->Write(fout, opt);
+  if (!is_character_based_) {
+    fst::FstWriteOptions opt;
+    dictionary->Write(fout, opt);
+  }
 }
 
 double Scorer::get_log_cond_prob(const std::vector<std::string>& words)
