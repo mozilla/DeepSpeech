@@ -257,7 +257,7 @@ To start the import process, you can call:
 bin/import_cv.py path/to/target/directory
 ```
 
-Please be aware that this requires at least 70GB of free disk space and quite some time to conclude.
+Please be aware that training with the Common Voice corpus archive requires at least 70GB of free disk space and quite some time to conclude.
 As this process creates a huge number of small files, using an SSD drive is highly recommended.
 If the import script gets interrupted, it will try to continue from where it stopped the next time you run it.
 Unfortunately, there are some cases where it will need to start over.
