@@ -65,7 +65,7 @@ def create_dataset(csvs, batch_size, cache_path):
     df.sort_values(by='wav_filesize', inplace=True)
 
     # Convert to character index arrays
-    df['transcript'] = df['transcript'].apply(partial(text_to_char_array, alphabet=Config.alphabet))
+    df['transcript'] = df['transcript'].apply(text_to_char_array)
 
     def generate_values():
         for _, row in df.iterrows():

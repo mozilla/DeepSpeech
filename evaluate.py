@@ -16,26 +16,24 @@ from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
 from util.logging import log_error
-from util.text import levenshtein
 
 
-def sparse_tensor_value_to_texts(value, alphabet):
+def sparse_tensor_value_to_texts(value):
     r"""
     Given a :class:`tf.SparseTensor` ``value``, return an array of Python strings
-    representing its values, converting tokens to strings using ``alphabet``.
+    representing its values, converting tokens to strings.
     """
-    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape), alphabet)
+    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape))
 
 
-def sparse_tuple_to_texts(tuple, alphabet):
-    indices = tuple[0]
-    values = tuple[1]
-    results = [''] * tuple[2][0]
+def sparse_tuple_to_texts(tuple):
+    indices, values, shape = tuple
+    results = [bytearray() for _ in range(shape[0])]
     for i in range(len(indices)):
         index = indices[i][0]
-        results[index] += alphabet.string_from_label(values[i])
+        results[index].append(values[i])
     # List of strings
-    return results
+    return [res.decode('utf-8', 'replace') for res in results]
 
 
 def evaluate(test_csvs, create_model, try_loading):
@@ -100,7 +98,7 @@ def evaluate(test_csvs, create_model, try_loading):
             logitses.append(logits)
             losses.extend(loss_)
             seq_lengths.append(lengths)
-            ground_truths.extend(sparse_tensor_value_to_texts(transcripts, Config.alphabet))
+            ground_truths.extend(sparse_tensor_value_to_texts(transcripts))
 
     bar.finish()
 
@@ -122,9 +120,7 @@ def evaluate(test_csvs, create_model, try_loading):
                                                 num_processes=num_processes, scorer=scorer)
         predictions.extend(d[0][1] for d in decoded)
 
-    distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
-
-    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
+    wer, cer, samples = calculate_report(ground_truths, predictions, losses)
     mean_loss = np.mean(losses)
 
     # Take only the first report_count items
@@ -135,7 +131,7 @@ def evaluate(test_csvs, create_model, try_loading):
     print('-' * 80)
     for sample in report_samples:
         print('WER: %f, CER: %f, loss: %f' %
-              (sample.wer, sample.distance, sample.loss))
+              (sample.wer, sample.cer, sample.loss))
         print(' - src: "%s"' % sample.src)
         print(' - res: "%s"' % sample.res)
         print('-' * 80)
