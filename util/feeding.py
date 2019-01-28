@@ -4,8 +4,8 @@ import tensorflow as tf
 from math import ceil
 from six.moves import range
 from threading import Thread
+from util.ctc import ctc_label_dense_to_sparse
 from util.gpu import get_available_gpus
-from util.text import ctc_label_dense_to_sparse
 
 
 class ModelFeeder(object):

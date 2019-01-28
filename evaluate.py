@@ -19,10 +19,11 @@ from multiprocessing import Pool, cpu_count
 from six.moves import zip, range
 from util.audio import audiofile_to_input_vector
 from util.config import Config, initialize_globals
+from util.ctc import ctc_label_dense_to_sparse
 from util.flags import create_flags, FLAGS
 from util.logging import log_error
 from util.preprocess import pmap, preprocess
-from util.text import Alphabet, ctc_label_dense_to_sparse, wer, levenshtein
+from util.text import Alphabet, wer_cer_batch, levenshtein
 
 
 def split_data(dataset, batch_size):
@@ -47,15 +48,14 @@ def pad_to_dense(jagged):
 
 def process_decode_result(item):
     label, decoding, distance, loss = item
-    sample_wer = wer(label, decoding)
+    word_distance = levenshtein(label.split(), decoding.split())
+    word_length = float(len(label.split()))
     return AttrDict({
         'src': label,
         'res': decoding,
         'loss': loss,
         'distance': distance,
-        'wer': sample_wer,
-        'levenshtein': levenshtein(label.split(), decoding.split()),
-        'label_length': float(len(label.split())),
+        'wer': word_distance / word_length,
     })
 
 
@@ -67,11 +67,8 @@ def calculate_report(labels, decodings, distances, losses):
     '''
     samples = pmap(process_decode_result, zip(labels, decodings, distances, losses))
 
-    total_levenshtein = sum(s.levenshtein for s in samples)
-    total_label_length = sum(s.label_length for s in samples)
-
-    # Getting the WER from the accumulated levenshteins and lengths
-    samples_wer = total_levenshtein / total_label_length
+    # Getting the WER and CER from the accumulated edit distances and lengths
+    samples_wer, samples_cer = wer_cer_batch(labels, decodings)
 
     # Order the remaining items by their loss (lowest loss on top)
     samples.sort(key=lambda s: s.loss)
@@ -79,7 +76,7 @@ def calculate_report(labels, decodings, distances, losses):
     # Then order by WER (highest WER on top)
     samples.sort(key=lambda s: s.wer, reverse=True)
 
-    return samples_wer, samples
+    return samples_wer, samples_cer, samples
 
 
 def evaluate(test_data, inference_graph):
@@ -183,15 +180,14 @@ def evaluate(test_data, inference_graph):
 
     distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
 
-    wer, samples = calculate_report(ground_truths, predictions, distances, losses)
-    mean_edit_distance = np.mean(distances)
+    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
     mean_loss = np.mean(losses)
 
     # Take only the first report_count items
     report_samples = itertools.islice(samples, FLAGS.report_count)
 
     print('Test - WER: %f, CER: %f, loss: %f' %
-          (wer, mean_edit_distance, mean_loss))
+          (wer, cer, mean_loss))
     print('-' * 80)
     for sample in report_samples:
         print('WER: %f, CER: %f, loss: %f' %
