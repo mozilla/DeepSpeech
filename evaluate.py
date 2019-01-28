@@ -19,23 +19,23 @@ from util.logging import log_error
 from util.text import levenshtein
 
 
-def sparse_tensor_value_to_texts(value, alphabet):
+def sparse_tensor_value_to_texts(value):
     r"""
     Given a :class:`tf.SparseTensor` ``value``, return an array of Python strings
-    representing its values, converting tokens to strings using ``alphabet``.
+    representing its values, converting tokens to strings.
     """
-    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape), alphabet)
+    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape))
 
 
-def sparse_tuple_to_texts(tuple, alphabet):
+def sparse_tuple_to_texts(tuple):
     indices = tuple[0]
     values = tuple[1]
-    results = [''] * tuple[2][0]
+    results = [bytearray()] * tuple[2][0]
     for i in range(len(indices)):
         index = indices[i][0]
-        results[index] += alphabet.string_from_label(values[i])
+        results[index].append(values[i])
     # List of strings
-    return results
+    return [res.decode('utf-8', 'replace') for res in results]
 
 
 def evaluate(test_csvs, create_model):
@@ -92,7 +92,7 @@ def evaluate(test_csvs, create_model):
             logitses.append(logits)
             losses.extend(loss_)
             seq_lengths.append(lengths)
-            ground_truths.extend(sparse_tensor_value_to_texts(transcripts, Config.alphabet))
+            ground_truths.extend(sparse_tensor_value_to_texts(transcripts))
 
     predictions = []
 

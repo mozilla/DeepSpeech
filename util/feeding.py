@@ -67,7 +67,7 @@ def create_dataset(csvs, batch_size, cache_path):
     num_batches = len(df) // batch_size
 
     # Convert to character index arrays
-    df['transcript'] = df['transcript'].apply(partial(text_to_char_array, alphabet=Config.alphabet))
+    df['transcript'] = df['transcript'].apply(text_to_char_array)
 
     def generate_values():
         for _, row in df.iterrows():

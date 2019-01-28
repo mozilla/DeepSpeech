@@ -72,20 +72,10 @@ size_t get_utf8_str_len(const std::string &str) {
 
 std::vector<std::string> split_utf8_str(const std::string &str) {
   std::vector<std::string> result;
-  std::string out_str;
-
   for (char c : str) {
-    if ((c & 0xc0) != 0x80)  // new UTF-8 character
-    {
-      if (!out_str.empty()) {
-        result.push_back(out_str);
-        out_str.clear();
-      }
-    }
-
-    out_str.append(1, c);
+    std::string ch(1, c);
+    result.push_back(ch);
   }
-  result.push_back(out_str);
   return result;
 }
 
