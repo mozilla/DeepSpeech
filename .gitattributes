@@ -1,3 +1,4 @@
 *.binary filter=lfs diff=lfs merge=lfs -crlf
 data/lm/trie filter=lfs diff=lfs merge=lfs -crlf
 data/lm/vocab.txt filter=lfs diff=lfs merge=lfs -text
+data/lm/trie_utf8 filter=lfs diff=lfs merge=lfs -text

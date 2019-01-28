@@ -8,6 +8,12 @@ pip install tensorflow-gpu==1.12.0
 python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
 
 # Install ds_ctcdecoder package from TaskCluster
-pip install $(python3 util/taskcluster.py --decoder)
+# pip install $(python3 util/taskcluster.py --decoder)
+
+pushd ../src/native_client/ctcdecode
+make clean
+make NUM_PROCESSES=16
+pip install dist/*.whl
+popd
 
 mkdir -p ../keep/summaries
