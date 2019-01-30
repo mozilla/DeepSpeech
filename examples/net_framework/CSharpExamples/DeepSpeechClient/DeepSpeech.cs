@@ -185,13 +185,12 @@ namespace DeepSpeechClient
         public unsafe string SpeechToText(short[] aBuffer, uint aBufferSize, uint aSampleRate)
         {
             var res = NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize, aSampleRate);
-
+            
             int len = 0;
             while (Marshal.ReadByte(res, len) != 0) ++len;
             byte[] buffer = new byte[len];
             Marshal.Copy(res, buffer, 0, buffer.Length);
             return Encoding.UTF8.GetString(buffer);
-            //return NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize, aSampleRate);
         }
 
         #endregion
