@@ -1,4 +1,5 @@
-﻿using DeepSpeechClient.Structs;
+﻿using System;
+using DeepSpeechClient.Structs;
 using System.Runtime.InteropServices;
 
 namespace DeepSpeechClient
@@ -30,7 +31,7 @@ namespace DeepSpeechClient
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]
-        internal static unsafe extern string DS_SpeechToText(ModelState** aCtx,
+        internal static unsafe extern IntPtr DS_SpeechToText(ModelState** aCtx,
                  short[] aBuffer,
                 uint aBufferSize,
                 uint aSampleRate);
