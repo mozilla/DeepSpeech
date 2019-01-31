@@ -2,8 +2,7 @@ build:
   template_file: simple-task.tyml
   dependencies:
     # Make sure builds are ready
-    - "linux-amd64-gpu-opt"
-    - "node-package"
+    - "android-java-opt"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -11,16 +10,13 @@ build:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
   upload_targets:
-    - "npm"
+    - "jcenter"
   artifacts_deps:
     python: []
     cpp: []
-    java_aar: []
-    javascript:
-      # GPU package
-      - "linux-amd64-gpu-opt"
-      # CPU package with all archs
-      - "node-package"
+    javascript: []
+    java_aar:
+      - "android-java-opt"
   metadata:
-    name: "DeepSpeech NPM Packages"
-    description: "Trigger Uploading of DeepSpeech Packages to NPM registry"
+    name: "DeepSpeech Android lib Packages"
+    description: "Trigger Uploading of DeepSpeech Android lib to JCenter registry"

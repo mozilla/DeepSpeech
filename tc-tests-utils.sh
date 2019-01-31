@@ -756,6 +756,8 @@ do_deepspeech_java_apk_build()
   done;
 
   make -C native_client/java/
+
+  make -C native_client/java/ maven-bundle
 }
 
 package_native_client()
