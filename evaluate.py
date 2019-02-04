@@ -19,7 +19,6 @@ from multiprocessing import Pool, cpu_count
 from six.moves import zip, range
 from util.audio import audiofile_to_input_vector
 from util.config import Config, initialize_globals
-from util.ctc import ctc_label_dense_to_sparse
 from util.flags import create_flags, FLAGS
 from util.logging import log_error
 from util.preprocess import pmap, preprocess
@@ -111,7 +110,14 @@ def evaluate(test_data, inference_graph):
         labels_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size, None], name="labels")
         label_lengths_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size], name="label_lengths")
 
-        sparse_labels = tf.cast(ctc_label_dense_to_sparse(labels_ph, label_lengths_ph, FLAGS.test_batch_size), tf.int32)
+        # We add 1 to all elements of the transcript to avoid any zero values
+        # since we use that as an end-of-sequence token for converting the batch
+        # into a SparseTensor. So here we convert the placeholder back into a
+        # SparseTensor and subtract ones to get the real labels.
+        sparse_labels = tf.contrib.layers.dense_to_sparse(labels_ph)
+        neg_ones = tf.SparseTensor(sparse_labels.indices, -1 * tf.ones_like(sparse_labels.values), sparse_labels.dense_shape)
+        sparse_labels = tf.sparse_add(sparse_labels, neg_ones)
+
         loss = tf.nn.ctc_loss(labels=sparse_labels,
                               inputs=layers['raw_logits'],
                               sequence_length=inputs['input_lengths'])
@@ -143,7 +149,7 @@ def evaluate(test_data, inference_graph):
 
             features = pad_to_dense(batch['features'].values)
             features_len = batch['features_len'].values
-            labels = pad_to_dense(batch['transcript'].values)
+            labels = pad_to_dense(batch['transcript'].values + 1)
             label_lengths = batch['transcript_len'].values
 
             logits, loss_ = session.run([transposed, loss], feed_dict={

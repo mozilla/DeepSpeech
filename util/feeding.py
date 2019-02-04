@@ -4,7 +4,6 @@ import tensorflow as tf
 from math import ceil
 from six.moves import range
 from threading import Thread
-from util.ctc import ctc_label_dense_to_sparse
 from util.gpu import get_available_gpus
 
 
@@ -143,11 +142,14 @@ class _DataSetLoader(object):
                 (features.strides[0], features.strides[0], features.strides[1]),
                 writeable=False)
 
+            # We add 1 to all elements of the transcript here to avoid any zero
+            # values since we use that as an end-of-sequence token for converting
+            # the batch into a SparseTensor.
             try:
                 session.run(self._enqueue_op, feed_dict={
                     self._model_feeder.ph_x: features,
                     self._model_feeder.ph_x_length: num_strides,
-                    self._model_feeder.ph_y: transcript,
+                    self._model_feeder.ph_y: transcript + 1,
                     self._model_feeder.ph_y_length: transcript_len
                 })
             except tf.errors.CancelledError:
@@ -173,8 +175,10 @@ class _TowerFeeder(object):
         Draw the next batch from from the combined switchable queue.
         '''
         source, source_lengths, target, target_lengths = self._queue.dequeue_many(self._model_feeder.ph_batch_size)
-        sparse_labels = ctc_label_dense_to_sparse(target, target_lengths, self._model_feeder.ph_batch_size)
-        return source, source_lengths, sparse_labels
+        # Back to sparse, then subtract one to get the real labels
+        sparse_labels = tf.contrib.layers.dense_to_sparse(target)
+        neg_ones = tf.SparseTensor(sparse_labels.indices, -1 * tf.ones_like(sparse_labels.values), sparse_labels.dense_shape)
+        return source, source_lengths, tf.sparse_add(sparse_labels, neg_ones)
 
     def start_queue_threads(self, session, coord):
         '''
