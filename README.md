@@ -50,7 +50,6 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
   - [Distributed computing across more than one machine](#distributed-training-across-more-than-one-machine)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
-- [Code documentation](#code-documentation)
 - [Contact/Getting Help](#contactgetting-help)
 
 ## Prerequisites
@@ -383,10 +382,6 @@ python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder
 ```
 
 Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models. Note as well the use of a negative epoch count -3 (meaning 3 more epochs) since the checkpoint you're loading from was already trained for several epochs.
-
-## Code documentation
-
-Documentation (incomplete) for the code can be found here: http://deepspeech.readthedocs.io/en/latest/
 
 ## Contact/Getting Help
 
