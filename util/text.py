@@ -76,17 +76,20 @@ def wer_cer_batch(originals, results):
     assert len(originals) == len(results)
 
     total_cer = 0.0
+    total_char_length = 0.0
 
     total_wer = 0.0
     total_word_length = 0.0
 
     for original, result in zip(originals, results):
         total_cer += levenshtein(original, result)
+        total_char_length += len(original)
 
         total_wer += levenshtein(original.split(), result.split())
         total_word_length += len(original.split())
 
-    return total_wer / total_word_length, total_cer / len(originals)
+    return total_wer / total_word_length, total_cer / total_char_length
+
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
 
