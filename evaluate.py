@@ -22,7 +22,7 @@ from util.config import Config, initialize_globals
 from util.flags import create_flags, FLAGS
 from util.logging import log_error
 from util.preprocess import pmap, preprocess
-from util.text import Alphabet, ctc_label_dense_to_sparse, wer, levenshtein
+from util.text import Alphabet, wer_cer_batch, levenshtein
 
 
 def split_data(dataset, batch_size):
@@ -47,15 +47,14 @@ def pad_to_dense(jagged):
 
 def process_decode_result(item):
     label, decoding, distance, loss = item
-    sample_wer = wer(label, decoding)
+    word_distance = levenshtein(label.split(), decoding.split())
+    word_length = float(len(label.split()))
     return AttrDict({
         'src': label,
         'res': decoding,
         'loss': loss,
         'distance': distance,
-        'wer': sample_wer,
-        'levenshtein': levenshtein(label.split(), decoding.split()),
-        'label_length': float(len(label.split())),
+        'wer': word_distance / word_length,
     })
 
 
@@ -67,11 +66,8 @@ def calculate_report(labels, decodings, distances, losses):
     '''
     samples = pmap(process_decode_result, zip(labels, decodings, distances, losses))
 
-    total_levenshtein = sum(s.levenshtein for s in samples)
-    total_label_length = sum(s.label_length for s in samples)
-
-    # Getting the WER from the accumulated levenshteins and lengths
-    samples_wer = total_levenshtein / total_label_length
+    # Getting the WER and CER from the accumulated edit distances and lengths
+    samples_wer, samples_cer = wer_cer_batch(labels, decodings)
 
     # Order the remaining items by their loss (lowest loss on top)
     samples.sort(key=lambda s: s.loss)
@@ -79,7 +75,7 @@ def calculate_report(labels, decodings, distances, losses):
     # Then order by WER (highest WER on top)
     samples.sort(key=lambda s: s.wer, reverse=True)
 
-    return samples_wer, samples
+    return samples_wer, samples_cer, samples
 
 
 def evaluate(test_data, inference_graph):
@@ -114,7 +110,14 @@ def evaluate(test_data, inference_graph):
         labels_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size, None], name="labels")
         label_lengths_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size], name="label_lengths")
 
-        sparse_labels = tf.cast(ctc_label_dense_to_sparse(labels_ph, label_lengths_ph, FLAGS.test_batch_size), tf.int32)
+        # We add 1 to all elements of the transcript to avoid any zero values
+        # since we use that as an end-of-sequence token for converting the batch
+        # into a SparseTensor. So here we convert the placeholder back into a
+        # SparseTensor and subtract ones to get the real labels.
+        sparse_labels = tf.contrib.layers.dense_to_sparse(labels_ph)
+        neg_ones = tf.SparseTensor(sparse_labels.indices, -1 * tf.ones_like(sparse_labels.values), sparse_labels.dense_shape)
+        sparse_labels = tf.sparse_add(sparse_labels, neg_ones)
+
         loss = tf.nn.ctc_loss(labels=sparse_labels,
                               inputs=layers['raw_logits'],
                               sequence_length=inputs['input_lengths'])
@@ -146,7 +149,7 @@ def evaluate(test_data, inference_graph):
 
             features = pad_to_dense(batch['features'].values)
             features_len = batch['features_len'].values
-            labels = pad_to_dense(batch['transcript'].values)
+            labels = pad_to_dense(batch['transcript'].values + 1)
             label_lengths = batch['transcript_len'].values
 
             logits, loss_ = session.run([transposed, loss], feed_dict={
@@ -183,15 +186,14 @@ def evaluate(test_data, inference_graph):
 
     distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
 
-    wer, samples = calculate_report(ground_truths, predictions, distances, losses)
-    mean_edit_distance = np.mean(distances)
+    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
     mean_loss = np.mean(losses)
 
     # Take only the first report_count items
     report_samples = itertools.islice(samples, FLAGS.report_count)
 
     print('Test - WER: %f, CER: %f, loss: %f' %
-          (wer, mean_edit_distance, mean_loss))
+          (wer, cer, mean_loss))
     print('-' * 80)
     for sample in report_samples:
         print('WER: %f, CER: %f, loss: %f' %
