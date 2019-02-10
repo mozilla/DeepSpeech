@@ -240,6 +240,8 @@ main(int argc, char **argv)
     return 1;
   }
 
+  if (!quiet_mode) DS_PrintVersions();
+
   // Initialise DeepSpeech
   ModelState* ctx;
   int status = DS_CreateModel(model, N_CEP, N_CONTEXT, alphabet, BEAM_WIDTH, &ctx);

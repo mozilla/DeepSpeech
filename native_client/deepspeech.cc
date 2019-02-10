@@ -478,8 +478,6 @@ DS_CreateModel(const char* aModelPath,
 
   *retval = nullptr;
 
-  DS_PrintVersions();
-
   if (!aModelPath || strlen(aModelPath) < 1) {
     std::cerr << "No model specified, cannot continue." << std::endl;
     return DS_ERR_NO_MODEL;

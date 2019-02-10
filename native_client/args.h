@@ -22,10 +22,12 @@ bool show_times = false;
 
 bool has_versions = false;
 
+bool quiet_mode = false;
+
 void PrintHelp(const char* bin)
 {
     std::cout <<
-    "Usage: " << bin << " --model MODEL --alphabet ALPHABET [--lm LM --trie TRIE] --audio AUDIO [-t]\n"
+    "Usage: " << bin << " --model MODEL --alphabet ALPHABET [--lm LM --trie TRIE] --audio AUDIO [-t] [-q]\n"
     "\n"
     "Running DeepSpeech inference.\n"
     "\n"
@@ -35,6 +37,7 @@ void PrintHelp(const char* bin)
     "	--trie TRIE		Path to the language model trie file created with native_client/generate_trie\n"
     "	--audio AUDIO		Path to the audio file to run (WAV format)\n"
     "	-t			Run in benchmark mode, output mfcc & inference time\n"
+    "	-q			Quiet mode, suppress version numbers\n"
     "	--help			Show help\n"
     "	--version		Print version and exits\n";
     DS_PrintVersions();
@@ -43,7 +46,7 @@ void PrintHelp(const char* bin)
 
 bool ProcessArgs(int argc, char** argv)
 {
-    const char* const short_opts = "m:a:l:r:w:thv";
+    const char* const short_opts = "m:a:l:r:w:tqhv";
     const option long_opts[] = {
             {"model", required_argument, nullptr, 'm'},
             {"alphabet", required_argument, nullptr, 'a'},
@@ -52,6 +55,7 @@ bool ProcessArgs(int argc, char** argv)
             {"audio", required_argument, nullptr, 'w'},
             {"run_very_slowly_without_trie_I_really_know_what_Im_doing", no_argument, nullptr, 999},
             {"t", no_argument, nullptr, 't'},
+            {"q", no_argument, nullptr, 'q'},
             {"help", no_argument, nullptr, 'h'},
             {"version", no_argument, nullptr, 'v'},
             {nullptr, no_argument, nullptr, 0}
@@ -96,6 +100,10 @@ bool ProcessArgs(int argc, char** argv)
 
         case 'v':
             has_versions = true;
+            break;
+
+        case 'q':
+            quiet_mode = true;
             break;
 
         case 'h': // -h or --help
