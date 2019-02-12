@@ -3,14 +3,14 @@
 virtualenv -p python3 ../tmp/venv
 source ../tmp/venv/bin/activate
 pip install -r <(grep -v tensorflow requirements.txt)
-pip install tensorflow-gpu==1.12.0
+pip install tensorflow
 
-python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
+python3 util/taskcluster.py --arch cpu --target ../tmp/native_client
 
 # Install ds_ctcdecoder package from TaskCluster
 # pip install $(python3 util/taskcluster.py --decoder)
 
-pushd ../src/native_client/ctcdecode
+pushd native_client/ctcdecode
 make clean
 make NUM_PROCESSES=16
 pip install dist/*.whl

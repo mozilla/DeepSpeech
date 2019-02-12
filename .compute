@@ -9,9 +9,9 @@ lbs="${data}/OpenSLR/LibriSpeech/librivox"
 cv="${data}/mozilla/CommonVoice/v2.0-alpha2.0/en/cv_en_valid"
 
 python3 -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv","${cv}_train.csv" \
-  --dev_files "${lbs}-dev-clean.csv","${lbs}-dev-other.csv","${cv}_dev.csv"\
-  --test_files "${lbs}-test-clean.csv" \
+  --train_files '/home/josh/Downloads/sl/train.csv' \
+  --dev_files '/home/josh/Downloads/sl/dev.csv' \
+  --test_files '/home/josh/Downloads/sl/test.csv' \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
