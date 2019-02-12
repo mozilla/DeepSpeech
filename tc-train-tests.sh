@@ -56,6 +56,8 @@ decoder_pkg_url=${DECODER_ARTIFACTS_ROOT}/${decoder_pkg}
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${decoder_pkg_url} | cat
 
 pushd ${HOME}/DeepSpeech/ds/
+    # Run twice to test preprocessed features
+    time ./bin/run-tc-ldc93s1_new.sh 104
     time ./bin/run-tc-ldc93s1_new.sh 105
     time ./bin/run-tc-ldc93s1_tflite.sh
 popd
