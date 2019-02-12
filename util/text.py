@@ -31,14 +31,7 @@ class Alphabet(object):
             return self._str_to_label[string]
         except KeyError as e:
             raise KeyError(
-                '''
-                ERROR: You have characters in your transcripts
-                       which do not occur in your data/alphabet.txt
-                       file. Please verify that your alphabet.txt
-                       contains all neccessary characters. Use
-                       util/check_characters.py to see what characters are in
-                       your train / dev / test transcripts.
-                '''
+                '''ERROR: Your transcripts contain characters which do not occur in data/alphabet.txt! Use util/check_characters.py to see what characters are in your {train,dev,test}.csv transcripts, and then add all these to data/alphabet.txt.'''
             ).with_traceback(e.__traceback__)
             sys.exit()
 
