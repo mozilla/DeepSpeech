@@ -1,0 +1,7 @@
+attrdict==2.0.0
+deepspeech
+numpy==1.16.0
+pkg-resources==0.0.0
+progressbar2==3.39.2
+python-utils==2.3.0
+six==1.12.0

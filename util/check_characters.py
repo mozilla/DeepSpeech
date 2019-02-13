@@ -2,36 +2,39 @@ import csv
 import sys
 import glob
 
-'''
+"""
 Usage: $ python3 check_characters.py "INFILE"
- e.g.  $ python3 ../DeepSpeech/util/check_characters.py "/home/data/*.csv" 
- e.g.  $ python3 ../DeepSpeech/util/check_characters.py "/home/data/french.csv" 
- e.g.  $ python3 ../DeepSpeech/util/check_characters.py "train.csv test.csv" 
+ e.g.  $ python3 check_characters.py -csv /home/data/french.csv
+ e.g.  $ python3 check_characters.py -csv ../train.csv,../test.csv 
+ e.g.  $ python3 check_characters.py -alpha -csv ../train.csv 
 
 Point this script to your transcripts, and it returns 
 to the terminal the unique set of characters in those 
 files (combined).
 
-These files are assumed to be comma delimited, 
-with the transcript being the third field.
+These files are assumed to be csv, with the transcript being the third field.
 
 The script simply reads all the text from all the files, 
 storing a set of unique characters that were seen 
 along the way.
-'''
+"""
+import argparse
+import os
 
-inFiles=sys.argv[1]
-if "*" in inFiles:
-    inFiles = glob.glob(inFiles)
-else:
-    inFiles = inFiles.split()
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-csv", "--csv-files", help="Str. Filenames as a comma separated list", required=True)
+parser.add_argument("-alpha", "--alphabet-format",help="Bool. Print in format for alphabet.txt",action="store_true")
+parser.set_defaults(alphabet_format=False)
+args = parser.parse_args()
+inFiles = [os.path.abspath(i) for i in args.csv_files.split(",")]
 
 print("### Reading in the following transcript files: ###")
 print(inFiles)
 
 allText = set()
 for inFile in (inFiles):
-    with open(inFile, 'r') as csvFile:
+    with open(inFile, "r") as csvFile:
         reader = csv.reader(csvFile)
         try:
             for row in reader:
@@ -43,5 +46,9 @@ for inFile in (inFiles):
             csvFile.close()
 
 print("### The following unique characters were found in your transcripts: ###")
-print(sorted(list(allText)))
-print("### All these characters should be in your data/alphabet.txt file ###")
+if args.alphabet_format:
+    for char in list(allText):
+        print(char)
+    print("### ^^^ You can copy-paste these into data/alphabet.txt ###")
+else:
+    print(list(allText))

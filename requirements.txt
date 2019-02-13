@@ -2,7 +2,7 @@ pandas
 progressbar2
 python-utils
 tensorflow == 1.12.0
-numpy
+numpy == 1.15.4
 matplotlib
 scipy
 sox

@@ -12,7 +12,6 @@ import sys
 import tables
 import tensorflow as tf
 
-from attrdict import AttrDict
 from collections import namedtuple
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from multiprocessing import Pool, cpu_count
@@ -21,9 +20,9 @@ from util.audio import audiofile_to_input_vector
 from util.config import Config, initialize_globals
 from util.flags import create_flags, FLAGS
 from util.logging import log_error
-from util.preprocess import pmap, preprocess
-from util.text import Alphabet, wer_cer_batch, levenshtein
-
+from util.preprocess import preprocess
+from util.text import Alphabet, levenshtein
+from util.evaluate_tools import process_decode_result, calculate_report
 
 def split_data(dataset, batch_size):
     remainder = len(dataset) % batch_size
@@ -43,39 +42,6 @@ def pad_to_dense(jagged):
     for i, row in enumerate(jagged):
         padded[i, :len(row)] = row
     return padded
-
-
-def process_decode_result(item):
-    label, decoding, distance, loss = item
-    word_distance = levenshtein(label.split(), decoding.split())
-    word_length = float(len(label.split()))
-    return AttrDict({
-        'src': label,
-        'res': decoding,
-        'loss': loss,
-        'distance': distance,
-        'wer': word_distance / word_length,
-    })
-
-
-def calculate_report(labels, decodings, distances, losses):
-    r'''
-    This routine will calculate a WER report.
-    It'll compute the `mean` WER and create ``Sample`` objects of the ``report_count`` top lowest
-    loss items from the provided WER results tuple (only items with WER!=0 and ordered by their WER).
-    '''
-    samples = pmap(process_decode_result, zip(labels, decodings, distances, losses))
-
-    # Getting the WER and CER from the accumulated edit distances and lengths
-    samples_wer, samples_cer = wer_cer_batch(labels, decodings)
-
-    # Order the remaining items by their loss (lowest loss on top)
-    samples.sort(key=lambda s: s.loss)
-
-    # Then order by WER (highest WER on top)
-    samples.sort(key=lambda s: s.wer, reverse=True)
-
-    return samples_wer, samples_cer, samples
 
 
 def evaluate(test_data, inference_graph):
