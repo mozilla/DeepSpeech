@@ -2,24 +2,33 @@
 
 set -xe
 
-pip3 install -r <(grep -v tensorflow requirements.txt)
-pip3 install tensorflow-gpu==1.13.0-rc2
+apt-get install -y python3-venv swig3.0
+ln -s /usr/bin/swig3.0 /usr/bin/swig
+
+python3 -m venv /tmp/venv
+source /tmp/venv/bin/activate
+
+pip install -r <(grep -v tensorflow requirements.txt)
+pip install tensorflow-gpu==1.13.0-rc2
+
+pushd native_client/ctcdecode
+make clean
+make NUM_PROCESSES=16
+pip install dist/*.whl
+popd
 
 # Install ds_ctcdecoder package from TaskCluster
-pip3 install $(python3 util/taskcluster.py --decoder)
+# pip install $(python3 util/taskcluster.py --decoder)
 
 mkdir -p ../keep/summaries
 
-data="${SHARED_DIR}/data"
-fis="${data}/LDC/fisher"
-swb="${data}/LDC/LDC97S62/swb"
-lbs="${data}/OpenSLR/LibriSpeech/librivox"
-cv="${data}/mozilla/CommonVoice/v2.0-alpha2.0/en/cv_en_valid"
+LANG="sl"
+cv="$SHARED_DIR/data/mozilla/CommonVoice/v2.0-alpha2.0/$LANG"
 
-python3 -u DeepSpeech.py \
-  --train_files '/home/josh/Downloads/sl/train.csv' \
-  --dev_files '/home/josh/Downloads/sl/dev.csv' \
-  --test_files '/home/josh/Downloads/sl/test.csv' \
+python -u DeepSpeech.py \
+  --train_files '$CV/cv_${LANG}_valid_train.csv' \
+  --dev_files '$CV/cv_${LANG}_valid_dev.csv' \
+  --test_files '$CV/cv_${LANG}_valid_test.csv' \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
@@ -27,7 +36,7 @@ python3 -u DeepSpeech.py \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
   --dropout_rate 0.15 \
-  --epoch 30 \
+  --epoch 1 \
   --display_step 0 \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
