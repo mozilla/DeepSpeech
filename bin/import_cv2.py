@@ -102,7 +102,7 @@ def _maybe_convert_set(audio_dir, input_tsv):
         writer.writeheader()
         bar = progressbar.ProgressBar(max_value=len(rows), widgets=SIMPLE_BAR)
         for filename, file_size, transcript in bar(rows):
-            writer.writerow({ 'wav_filename': filename, 'wav_filesize': file_size, 'transcript': transcript })
+            writer.writerow({ 'wav_filename': os.path.abspath(filename), 'wav_filesize': file_size, 'transcript': transcript })
             
     print('Imported %d samples.' % (counter['all'] - counter['too_short'] - counter['too_long']))
     if counter['too_short'] > 0:
