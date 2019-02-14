@@ -808,6 +808,7 @@ def export():
                         self.output_arrays  = output_names
                         self.output_file    = output_tflite_path
                         self.output_format  = 'TFLITE'
+                        self.post_training_quantize = True
 
                         default_empty = [
                             'inference_input_type',
@@ -818,7 +819,6 @@ def export():
                             'change_concat_input_ranges',
                             'allow_custom_ops',
                             'converter_mode',
-                            'post_training_quantize',
                             'dump_graphviz_dir',
                             'dump_graphviz_video'
                         ]
