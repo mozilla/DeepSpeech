@@ -19,8 +19,7 @@ from util.evaluate_tools import process_decode_result, calculate_report
 r'''
 This module should be self-contained:
   - build libdeepspeech.so with TFLite:
-    - add a dep in native_client/BUILD against TFlite: '//tensorflow:linux_x86_64': [ "//tensorflow/contrib/lite/kernels:builtin_ops" ]
-    - bazel build [...] --copt=-DUSE_TFLITE [...] //native_client:libdeepspeech.so
+    - bazel build [...] --define=runtime=tflite [...] //native_client:libdeepspeech.so
   - make -C native_client/python/ TFDIR=... bindings
   - setup a virtualenv
   - pip install native_client/python/dist/deepspeech*.whl
