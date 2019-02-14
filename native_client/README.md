@@ -125,12 +125,12 @@ Please refer to TensorFlow documentation on how to setup the environment to buil
 You can build the `libdeepspeech.so` using (ARMv7):
 
 ```
-bazel build --config=monolithic --config=android --config=android_arm --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+bazel build --config=monolithic --config=android --config=android_arm --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
 ```
 
 Or (ARM64):
 ```
-bazel build --config=monolithic --config=android --config=android_arm64 --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+bazel build --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
 ```
 
 Building the `deepspeech` binary will happen through `ndk-build` (ARMv7):
