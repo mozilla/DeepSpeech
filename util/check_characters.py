@@ -30,7 +30,7 @@ args = parser.parse_args()
 inFiles = [os.path.abspath(i) for i in args.csv_files.split(",")]
 
 print("### Reading in the following transcript files: ###")
-print(inFiles)
+print("### {} ###".format(inFiles))
 
 allText = set()
 for inFile in (inFiles):
