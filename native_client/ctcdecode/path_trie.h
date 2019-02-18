@@ -18,7 +18,7 @@ public:
   ~PathTrie();
 
   // get new prefix after appending new char
-  PathTrie* get_path_trie(int new_char, int new_timestep, bool reset = true);
+  PathTrie* get_path_trie(int new_char, int new_timestep, float log_prob_c, bool reset = true);
 
   // get the prefix in index from root to current node
   PathTrie* get_path_vec(std::vector<int>& output, std::vector<int>& timesteps);
@@ -46,6 +46,7 @@ public:
   float log_prob_nb_prev;
   float log_prob_b_cur;
   float log_prob_nb_cur;
+  float log_prob_c;
   float score;
   float approx_ctc;
   int character;
