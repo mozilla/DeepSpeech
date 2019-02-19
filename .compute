@@ -1,8 +1,16 @@
 #!/bin/bash
 
-source ../tmp/venv/bin/activate
+set -xe
 
-data="${DATA_ROOT}/shared/data"
+pip3 install -r <(grep -v tensorflow requirements.txt)
+pip3 install tensorflow-gpu==1.13.0-rc2
+
+# Install ds_ctcdecoder package from TaskCluster
+pip3 install $(python3 util/taskcluster.py --decoder)
+
+mkdir -p ../keep/summaries
+
+data="${SHARED_DIR}/data"
 fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"

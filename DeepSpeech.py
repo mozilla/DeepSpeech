@@ -18,7 +18,6 @@ import traceback
 
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from six.moves import zip, range
-from tensorflow.contrib.lite.python import tflite_convert
 from tensorflow.python.tools import freeze_graph
 from util.audio import audiofile_to_input_vector
 from util.config import Config, initialize_globals
@@ -28,6 +27,12 @@ from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_warn
 from util.preprocess import preprocess
 from util.text import Alphabet
+
+#TODO: remove once fully switched to 1.13
+try:
+    from tensorflow.contrib.lite.python import tflite_convert # 1.12
+except ImportError:
+    from tensorflow.lite.python import tflite_convert # 1.13
 
 
 # Graph Creation
