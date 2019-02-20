@@ -1,6 +1,7 @@
 import time, logging
 from datetime import datetime
 import threading, collections, queue, os, os.path
+import audioop
 import wave
 import pyaudio
 import webrtcvad
@@ -10,35 +11,64 @@ import numpy as np
 
 logging.basicConfig(level=20)
 
+
 class Audio(object):
     """Streams raw audio from microphone. Data is received in a separate thread, and stored in a buffer, to be read from."""
 
     FORMAT = pyaudio.paInt16
-    RATE = 16000
+    # Network/VAD rate-space
+    RATE_PROCESS = 16000
     CHANNELS = 1
     BLOCKS_PER_SECOND = 50
-    BLOCK_SIZE = int(RATE / float(BLOCKS_PER_SECOND))
 
-    def __init__(self, callback=None):
+    def __init__(self, callback=None, device=None, input_rate=RATE_PROCESS):
         def proxy_callback(in_data, frame_count, time_info, status):
             callback(in_data)
             return (None, pyaudio.paContinue)
-        if callback is None: callback = lambda in_data: self.buffer_queue.put(in_data)
+        if callback is None: 
+            callback = lambda in_data: self.buffer_queue.put(in_data)
         self.buffer_queue = queue.Queue()
-        self.sample_rate = self.RATE
-        self.block_size = self.BLOCK_SIZE
+        self.device = device
+        self.input_rate = input_rate
+        self.sample_rate = self.RATE_PROCESS
+        self.block_size = int(self.RATE_PROCESS / float(self.BLOCKS_PER_SECOND))
+        self.block_size_input = int(self.input_rate / float(self.BLOCKS_PER_SECOND))
         self.pa = pyaudio.PyAudio()
-        self.stream = self.pa.open(format=self.FORMAT,
-                                   channels=self.CHANNELS,
-                                   rate=self.sample_rate,
-                                   input=True,
-                                   frames_per_buffer=self.block_size,
-                                   stream_callback=proxy_callback)
+
+        kwargs = {
+            'format': self.FORMAT,
+            'channels': self.CHANNELS,
+            'rate': self.input_rate,
+            'input': True,
+            'frames_per_buffer': self.block_size_input,
+            'stream_callback': proxy_callback,
+        }
+
+        # if not default device
+        if self.device:
+            kwargs['input_device_index'] = self.device
+
+        self.stream = self.pa.open(**kwargs)
         self.stream.start_stream()
 
+    def resample(self, data, input_rate):
+        """
+        Microphone may not support our native processing sampling rate, so
+        resample from input_rate to RATE_PROCESS here for webrtcvad and
+        deepspeech
+
+        Args:
+            data : Input audio stream
+            input_rate (int): Input audio rate to resample from
+        """
+        newfragment, state = audioop.ratecv(data, 2, 1, input_rate,
+                                            self.sample_rate, None)
+        return newfragment
+    
     def read(self):
         """Return a block of audio data, blocking if necessary."""
-        return self.buffer_queue.get()
+        buffer = self.buffer_queue.get()
+        return self.resample(buffer, self.input_rate)
 
     def destroy(self):
         self.stream.stop_stream()
@@ -58,11 +88,12 @@ class Audio(object):
         wf.writeframes(data)
         wf.close()
 
+
 class VADAudio(Audio):
     """Filter & segment audio with voice activity detection."""
 
-    def __init__(self, aggressiveness=3):
-        super().__init__()
+    def __init__(self, aggressiveness=3, device=None, input_rate=None):
+        super().__init__(device=device, input_rate=input_rate)
         self.vad = webrtcvad.Vad(aggressiveness)
 
     def frame_generator(self):
@@ -121,7 +152,9 @@ def main(ARGS):
         model.enableDecoderWithLM(ARGS.alphabet, ARGS.lm, ARGS.trie, ARGS.lm_alpha, ARGS.lm_beta)
 
     # Start audio with VAD
-    vad_audio = VADAudio(aggressiveness=ARGS.vad_aggressiveness)
+    vad_audio = VADAudio(aggressiveness=ARGS.vad_aggressiveness,
+                         device=ARGS.device,
+                         input_rate=ARGS.rate)
     print("Listening (ctrl-C to exit)...")
     frames = vad_audio.vad_collector()
 
@@ -146,8 +179,10 @@ def main(ARGS):
             print("Recognized: %s" % text)
             stream_context = model.setupStream()
 
+
 if __name__ == '__main__':
     BEAM_WIDTH = 500
+    DEFAULT_SAMPLE_RATE = 16000
     LM_ALPHA = 0.75
     LM_BETA = 1.85
     N_FEATURES = 26
@@ -171,6 +206,10 @@ if __name__ == '__main__':
                         help="Path to the language model binary file. Default: lm.binary")
     parser.add_argument('-t', '--trie', default='trie',
                         help="Path to the language model trie file created with native_client/generate_trie. Default: trie")
+    parser.add_argument('-d', '--device', type=int, default=None,
+                        help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index()")
+    parser.add_argument('-r', '--rate', type=int, default=DEFAULT_SAMPLE_RATE,
+                        help=f"Input device sample rate. Default: {DEFAULT_SAMPLE_RATE}. Your device may require 44100.")
     parser.add_argument('-nf', '--n_features', type=int, default=N_FEATURES,
                         help=f"Number of MFCC features to use. Default: {N_FEATURES}")
     parser.add_argument('-nc', '--n_context', type=int, default=N_CONTEXT,
