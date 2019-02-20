@@ -22,7 +22,7 @@ from util.text import validate_label
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 MAX_SECS = 10
-ARCHIVE_NAME = '2018-11-24_fr_FR'
+ARCHIVE_NAME = '2019-02-08_fr_FR'
 ARCHIVE_DIR_NAME = 'ts_' + ARCHIVE_NAME
 ARCHIVE_URL = 'https://s3.eu-west-3.amazonaws.com/audiocorp/releases/' + ARCHIVE_NAME + '.zip'
 
