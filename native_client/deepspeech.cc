@@ -68,6 +68,8 @@ std::array<float, WINDOW_SIZE> calc_hamming_window() {
 
 std::array<float, WINDOW_SIZE> hamming_window = calc_hamming_window();
 
+typedef std::map<std::string, std::string> META_DICT;
+
 #ifndef USE_TFLITE
   using namespace tensorflow;
 #else
@@ -112,6 +114,7 @@ struct StreamingState {
   vector<float> mfcc_buffer;
   vector<float> batch_buffer;
   ModelState* model;
+  bool extended_output; // Flag to show timings
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
   char* intermediateDecode();
@@ -122,6 +125,8 @@ struct StreamingState {
   void pushMfccBuffer(const float* buf, unsigned int len);
   void addZeroMfccWindow();
   void processBatch(const vector<float>& buf, unsigned int n_steps);
+  
+  void set_extended_output(bool val);
 };
 
 struct ModelState {
@@ -141,6 +146,7 @@ struct ModelState {
   unsigned int n_steps;
   unsigned int mfcc_feats_per_timestep;
   unsigned int n_context;
+  float duration_secs;
 
 #ifdef USE_TFLITE
   size_t previous_state_size;
@@ -170,6 +176,38 @@ struct ModelState {
    */
   char* decode(vector<float>& logits);
 
+  /**
+   * @brief Perform decoding of the logits, using basic CTC decoder or
+   *        CTC decoder with KenLM enabled
+   *
+   * @param logits         Flat matrix of logits, of size:
+   *                       n_frames * batch_size * num_classes
+   *
+   * @return Vector of Output structs directly from the CTC decoder for additional processing.
+   */
+  vector<Output> decode_raw(vector<float>& logits);
+
+  /**
+   * @brief Process the output from decode_raw and generate timing information
+   *
+   * @param out         	Output struct from CTC decoder
+   * @param logit_count		Number of logits sent to the CTC decoder
+   *
+   * @return A vector of mapped strings (key, value) showing timing information for each word.
+   */
+  std::vector<META_DICT> metadata_from_output(Output out,int logit_count);
+
+  /**
+   * @brief Output metadata as a JSON string
+   *
+   * @param word_list         	The list of word data computed by metadata_from_output 
+   								(a vector of mapped strings with keys and values) 
+   *
+   * @return JSON string (pretty-printed) showing timing information for each word.
+   */
+  
+  char* json_output_from_metadata(std::vector<META_DICT> word_list);
+  
   /**
    * @brief Do a single inference step in the acoustic model, with:
    *          input=mfcc
@@ -273,7 +311,13 @@ StreamingState::finishStream()
     processBatch(batch_buffer, batch_buffer.size()/model->mfcc_feats_per_timestep);
   }
 
-  return model->decode(accumulated_logits);
+  if (extended_output) {
+    vector<Output> out = model->decode_raw(accumulated_logits);
+    std::vector<META_DICT> word_list = model->metadata_from_output(out[0],accumulated_logits.size());    
+    return model->json_output_from_metadata(word_list);
+  } else {
+    return model->decode(accumulated_logits);
+  }
 }
 
 void
@@ -340,6 +384,13 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 {
   model->infer(buf.data(), n_steps, accumulated_logits);
 }
+
+void 
+StreamingState::set_extended_output(bool val)
+{
+  extended_output = val;
+}
+
 
 void
 ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logits_output)
@@ -416,6 +467,14 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
 char*
 ModelState::decode(vector<float>& logits)
 {
+  vector<Output> out = ModelState::decode_raw(logits);
+
+  return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
+}
+
+vector<Output>
+ModelState::decode_raw(vector<float>& logits)
+{
   const int cutoff_top_n = 40;
   const double cutoff_prob = 1.0;
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
@@ -428,8 +487,82 @@ ModelState::decode(vector<float>& logits)
   vector<Output> out = ctc_beam_search_decoder(
     inputs.data(), n_frames, num_classes, *alphabet, beam_width,
     cutoff_prob, cutoff_top_n, scorer);
+	
+  return out;
+}
 
-  return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
+std::vector<META_DICT>
+ModelState::metadata_from_output(Output out,int logit_count)
+{
+  std::vector<META_DICT> word_list;
+
+  const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
+  const int n_frames = logit_count / (BATCH_SIZE * num_classes);
+
+  std::string word = "";
+  int word_start_timestep = 0;
+
+  // Loop through each character
+  for (int t=0; t<out.tokens.size(); t++) {
+    const char * character = alphabet->StringFromLabel(out.tokens[t]).c_str();
+
+	if (strcmp(character," ") != 0) word.append(character);
+				
+	// Figure out word boundaries by looking for spaces
+	if (strcmp(character," ") == 0 || t == out.tokens.size()-1) {
+	  float time_position = (duration_secs/n_frames)*word_start_timestep;
+
+	  META_DICT word_info;
+	  word_info["word"] = word;
+	  word_info["time"] = std::to_string(time_position);
+	  
+	  word_list.push_back(word_info);
+												
+	  // Reset
+	  word = "";		
+	  word_start_timestep = 0;
+			
+	} else {
+	  // Append character
+	  if (word_start_timestep == 0) word_start_timestep = out.timesteps[t];
+	}
+  }
+	
+  return word_list;	
+}
+
+char* 
+ModelState::json_output_from_metadata(std::vector<META_DICT> word_list)
+{
+  std::ostringstream out_string;
+
+  out_string << "{" << std::endl << "\t\"file\": {\"duration\":\"" << duration_secs << "\"},";
+  out_string << std::endl << "\t\"words\": [";
+
+  // Loop through each word object
+  for (int i=0; i<word_list.size(); i++) {
+    META_DICT word = word_list[i];
+
+    out_string << std::endl << "\t\t{";
+		
+    META_DICT::iterator it = word.begin();
+
+    // Output each key and value
+    while(it != word.end()) {
+	  out_string << "\"" << it->first << "\":\"" << it->second << "\"";
+      it++;
+
+      if (it != word.end()) out_string << ", ";
+    }
+		
+    out_string << "}";
+	  
+    if (i < word_list.size()-1) out_string << ",";
+  }
+
+  out_string << std::endl << "\t]" << std::endl << "}" << std::endl;
+
+  return strdup(out_string.str().c_str());
 }
 
 #ifdef USE_TFLITE
@@ -659,13 +792,20 @@ char*
 DS_SpeechToText(ModelState* aCtx,
                 const short* aBuffer,
                 unsigned int aBufferSize,
-                unsigned int aSampleRate)
+                unsigned int aSampleRate,
+                bool extendedOutput)
 {
   StreamingState* ctx;
   int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
   if (status != DS_ERR_OK) {
     return nullptr;
   }
+  
+  ctx->set_extended_output(extendedOutput);
+
+  // Store audio duration in seconds to generate timing info later
+  aCtx->duration_secs = aBufferSize / SAMPLE_RATE;
+    
   DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
   return DS_FinishStream(ctx);
 }

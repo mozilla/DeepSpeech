@@ -99,6 +99,8 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
  *                sample rate.
  * @param aBufferSize The number of samples in the audio signal.
  * @param aSampleRate The sample-rate of the audio signal.
+ * @param extendedOutput Whether to output timing information for each 
+ * 				         word or just the entire text.
  *
  * @return The STT result. The user is responsible for freeing the string.
  *         Returns NULL on error.
@@ -107,7 +109,8 @@ DEEPSPEECH_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
                       const short* aBuffer,
                       unsigned int aBufferSize,
-                      unsigned int aSampleRate);
+                      unsigned int aSampleRate,
+                      bool extendedOutput);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
