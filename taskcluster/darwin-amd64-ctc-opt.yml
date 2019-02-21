@@ -6,7 +6,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.osx-ctc.${event.head.sha}"
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.e232881c5a18204d946d4feba3c5aaa2d2c7dba0.osx/artifacts/public/home.tar.xz"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.943a6c332331c0ceeba981b51c24abfed2cd6ffa.osx/artifacts/public/home.tar.xz"
   maxRunTime: 14400
   scripts:
     build: 'taskcluster/decoder-build.sh'
