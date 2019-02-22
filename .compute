@@ -13,8 +13,11 @@ pip install $(python3 util/taskcluster.py --decoder)
 
 mkdir -p ../keep/summaries
 
-LANG="sl"
+LANG="zh-TW"
 CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${LANG}"
+
+# kenlm needs sudo?
+sudo util/create_alpha_lm_trie.sh "${LANG}" "${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 
 # the *.csv on cluster have old paths
 cp ${CV}/*.csv .
