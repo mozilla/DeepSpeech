@@ -20,7 +20,7 @@ def process_single_file(row, numcep, numcontext, alphabet):
     _, file = row
     features = audiofile_to_input_vector(file.wav_filename, numcep, numcontext)
     features_len = len(features) - 2*numcontext
-    transcript = text_to_char_array(file.transcript, alphabet)
+    transcript = np.frombuffer(file.transcript.encode('utf-8'), np.uint8).astype(np.int32)
 
     if features_len < len(transcript):
         raise ValueError('Error: Audio file {} is too short for transcription.'.format(file.wav_filename))
