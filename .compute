@@ -1,7 +1,7 @@
 #!/bin/bash
 
 pip3 install -r <(grep -v tensorflow requirements.txt)
-pip3 install tensorflow-gpu=1.12.0
+pip3 install tensorflow-gpu==1.12.0
 
 python3 util/taskcluster.py --arch gpu --target ../tmp/native_client
 
