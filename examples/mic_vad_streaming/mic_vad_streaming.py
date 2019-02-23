@@ -1,13 +1,13 @@
 import time, logging
 from datetime import datetime
 import threading, collections, queue, os, os.path
-import audioop
-import wave
-import pyaudio
-import webrtcvad
-from halo import Halo
 import deepspeech
 import numpy as np
+import pyaudio
+import wave
+import webrtcvad
+from halo import Halo
+from scipy import signal
 
 logging.basicConfig(level=20)
 
@@ -58,17 +58,23 @@ class Audio(object):
         deepspeech
 
         Args:
-            data : Input audio stream
+            data (binary): Input audio stream
             input_rate (int): Input audio rate to resample from
         """
-        newfragment, state = audioop.ratecv(data, 2, 1, input_rate,
-                                            self.sample_rate, None)
-        return newfragment
-    
+        data16 = np.fromstring(string=data, dtype=np.int16)
+        resample_size = int(len(data16) / self.input_rate * self.RATE_PROCESS)
+        resample = signal.resample(data16, resample_size)
+        resample16 = np.array(resample, dtype=np.int16)
+        return resample16.tostring()
+
+    def read_resampled(self):
+        """Return a block of audio data resampled to 16000hz, blocking if necessary."""
+        return self.resample(data=self.buffer_queue.get(),
+                             input_rate=self.input_rate)
+
     def read(self):
         """Return a block of audio data, blocking if necessary."""
-        buffer = self.buffer_queue.get()
-        return self.resample(buffer, self.input_rate)
+        return self.buffer_queue.get()
 
     def destroy(self):
         self.stream.stop_stream()
@@ -98,8 +104,12 @@ class VADAudio(Audio):
 
     def frame_generator(self):
         """Generator that yields all audio frames from microphone."""
-        while True:
-            yield self.read()
+        if self.input_rate == self.RATE_PROCESS:
+            while True:
+                yield self.read()
+        else:
+            while True:
+                yield self.read_resampled()
 
     def vad_collector(self, padding_ms=300, ratio=0.75, frames=None):
         """Generator that yields series of consecutive audio frames comprising each utterence, separated by yielding a single None.
@@ -107,7 +117,8 @@ class VADAudio(Audio):
             Example: (frame, ..., frame, None, frame, ..., frame, None, ...)
                       |---utterence---|        |---utterence---|
         """
-        if frames is None: frames = self.frame_generator()
+        if frames is None:
+            frames = self.frame_generator()
         num_padding_frames = padding_ms // self.frame_duration_ms
         ring_buffer = collections.deque(maxlen=num_padding_frames)
         triggered = False
