@@ -11,17 +11,55 @@ pip install tensorflow-gpu==1.13.0-rc2
 # Install ds_ctcdecoder package from TaskCluster
 pip install $(python3 util/taskcluster.py --decoder)
 
+# kenlm Dependencies
+apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
+
+# Install Kenlm #
+wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz --no-same-owner
+mkdir kenlm/build
+cd kenlm/build
+cmake ..
+make -j `nproc`
+cd ../..
+
+#################
+### CREATE LM ###
+#################
+TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
+
+# Make alphabet.txt #
+
+python util/check_characters.py \
+        -csv "cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv" \
+        -alpha \
+    | ${SRC_DIR}/data/alphabet.txt
+
+# Make lm.arpa #
+
+kenlm/build/bin/lmplz \
+    --order 2 \
+    --text ${TEXT} \
+    --arpa lm.arpa
+
+# Make lm.binary #
+
+kenlm/build/bin/build_binary \
+    -a 255 \
+    -q 8 trie \
+    lm.arpa \
+    data/lm/lm.binary
+
+# Make trie #
+
+native_client/generate_trie \
+    data/alphabet.txt \
+    data/lm/lm.binary \
+    data/lm/trie
+
+rm lm.arpa
+
+
 mkdir -p ../keep/summaries
-
-LANG="zh-TW"
-CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${LANG}"
-
-# kenlm needs sudo?
-sudo util/create_alpha_lm_trie.sh "${LANG}" "${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
-
-# the *.csv on cluster have old paths
-cp ${CV}/*.csv .
-sed -Ei 's/snakepit/data\/ro/g' cv_${LANG}_valid_*.csv
 
 
 python -u DeepSpeech.py \
