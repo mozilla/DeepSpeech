@@ -7,11 +7,12 @@ echo "$0: Looking for CSV transcripts at cv_${LANG}_valid_{train/dev/test}.csv"
 echo "$0: Looking for text training corpus at ${TEXT}"
 
 # kenlm Dependencies
-apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
+# apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
 
 # Install Kenlm #
 
-wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz
+## running wget in .compute
+# wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz
 mkdir kenlm/build
 cd kenlm/build
 cmake ..
