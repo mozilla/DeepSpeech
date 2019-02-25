@@ -2,12 +2,12 @@
 
 set -xe
 
-LANG="zh-TW"
-CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${LANG}"
+_LANG="zh-TW"
+CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
 
 # the *.csv on cluster have old paths
 cp ${CV}/*.csv .
-sed -Ei 's/snakepit/data\/ro/g' cv_${LANG}_valid_*.csv
+sed -Ei 's/snakepit/data\/ro/g' cv_${_LANG}_valid_*.csv
 
 apt-get install -y python3-venv swig3.0
 ln -s /usr/bin/swig3.0 /usr/bin/swig
@@ -18,12 +18,16 @@ source /tmp/venv/bin/activate
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
 
+
+###############################
+### INSTALL KENLM + DECODER ###
+###############################
+
 pushd native_client/ctcdecode
 make clean
 make NUM_PROCESSES=16
 pip install dist/*.whl
 popd
-
 
 # kenlm Dependencies
 apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
@@ -36,52 +40,50 @@ cmake ..
 make -j `nproc`
 cd ../..
 
-#################
-### CREATE LM ###
-#################
-TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 
-# Make alphabet.txt #
+###################################
+### CREATE ALPHABET / LM / TRIE ###
+###################################
 
-head "cv_${LANG}_valid_train.csv"
-
+# alphabet.txt
 python util/check_characters.py \
-        -csv "cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv" \
+        -csv "cv_${_LANG}_valid_train.csv","cv_${_LANG}_valid_train.csv","cv_${_LANG}_valid_train.csv" \
         -alpha \
     > ${SRC_DIR}/data/alphabet.txt
 
-# Make lm.arpa #
-
+# lm.arpa
+TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 kenlm/build/bin/lmplz \
     --order 2 \
     --text ${TEXT} \
     --arpa lm.arpa
 
-# Make lm.binary #
-
+# lm.binary
 kenlm/build/bin/build_binary \
     -a 255 \
     -q 8 trie \
     lm.arpa \
     data/lm/lm.binary
 
-# Make trie #
-
+# trie 
 native_client/generate_trie \
     data/alphabet.txt \
     data/lm/lm.binary \
-    data/lm/trie
+    data/lm/trie_utf8
 
 rm lm.arpa
 
 
+########################
+### TRAIN DEEPSPEECH ###
+########################
+
 mkdir -p ../keep/summaries
 
-
 python -u DeepSpeech.py \
-  --train_files "cv_${LANG}_valid_train.csv" \
-  --dev_files "cv_${LANG}_valid_dev.csv" \
-  --test_files "cv_${LANG}_valid_test.csv" \
+  --train_files "cv_${_LANG}_valid_train.csv" \
+  --dev_files "cv_${_LANG}_valid_dev.csv" \
+  --test_files "cv_${_LANG}_valid_test.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
