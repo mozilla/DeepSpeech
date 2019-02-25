@@ -3,6 +3,7 @@
 set -xe
 
 apt-get install -y python3-venv
+
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 
@@ -22,52 +23,50 @@ cmake ..
 make -j `nproc`
 cd ../..
 
-#################
-### CREATE LM ###
-#################
-TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 
-# Make alphabet.txt #
+###################################
+### CREATE ALPHABET / LM / TRIE ###
+###################################
 
-head "cv_${LANG}_valid_train.csv"
-
+# alphabet.txt
 python util/check_characters.py \
-        -csv "cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv" \
+        -csv "cv_${_LANG}_valid_train.csv","cv_${_LANG}_valid_train.csv","cv_${_LANG}_valid_train.csv" \
         -alpha \
     > ${SRC_DIR}/data/alphabet.txt
 
-# Make lm.arpa #
-
+# lm.arpa
+TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 kenlm/build/bin/lmplz \
     --order 2 \
     --text ${TEXT} \
     --arpa lm.arpa
 
-# Make lm.binary #
-
+# lm.binary
 kenlm/build/bin/build_binary \
     -a 255 \
     -q 8 trie \
     lm.arpa \
     data/lm/lm.binary
 
-# Make trie #
-
+# trie 
 native_client/generate_trie \
     data/alphabet.txt \
     data/lm/lm.binary \
-    data/lm/trie
+    data/lm/trie_utf8
 
 rm lm.arpa
 
 
+########################
+### TRAIN DEEPSPEECH ###
+########################
+
 mkdir -p ../keep/summaries
 
-
 python -u DeepSpeech.py \
-  --train_files "cv_${LANG}_valid_train.csv" \
-  --dev_files "cv_${LANG}_valid_dev.csv" \
-  --test_files "cv_${LANG}_valid_test.csv" \
+  --train_files "cv_${_LANG}_valid_train.csv" \
+  --dev_files "cv_${_LANG}_valid_dev.csv" \
+  --test_files "cv_${_LANG}_valid_test.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
