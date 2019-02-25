@@ -29,10 +29,12 @@ TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 
 # Make alphabet.txt #
 
+head "cv_${LANG}_valid_train.csv"
+
 python util/check_characters.py \
         -csv "cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv" \
         -alpha \
-    | ${SRC_DIR}/data/alphabet.txt
+    > ${SRC_DIR}/data/alphabet.txt
 
 # Make lm.arpa #
 
