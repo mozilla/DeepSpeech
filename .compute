@@ -9,7 +9,6 @@ CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${LANG}"
 cp ${CV}/*.csv .
 sed -Ei 's/snakepit/data\/ro/g' cv_${LANG}_valid_*.csv
 
-
 apt-get install -y python3-venv swig3.0
 ln -s /usr/bin/swig3.0 /usr/bin/swig
 
@@ -44,10 +43,12 @@ TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 
 # Make alphabet.txt #
 
+head "cv_${LANG}_valid_train.csv"
+
 python util/check_characters.py \
         -csv "cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv","cv_${LANG}_valid_train.csv" \
         -alpha \
-    | ${SRC_DIR}/data/alphabet.txt
+    > ${SRC_DIR}/data/alphabet.txt
 
 # Make lm.arpa #
 
