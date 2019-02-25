@@ -4,8 +4,13 @@ set -xe
 
 apt-get install -y python3-venv
 
+# venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
+# check HTTP_PROXY
+if ! (( $( env | grep -iq "^http_proxy=" ) )); then
+    source /etc/profile
+fi
 
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
@@ -36,9 +41,10 @@ python util/check_characters.py \
 
 # lm.arpa
 TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
+sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS
 kenlm/build/bin/lmplz \
     --order 2 \
-    --text ${TEXT} \
+    --text CHAR_GRAMS \
     --arpa lm.arpa
 
 # lm.binary
@@ -55,6 +61,7 @@ native_client/generate_trie \
     data/lm/trie_utf8
 
 rm lm.arpa
+rm CHAR_GRAMS
 
 
 ########################
