@@ -1,4 +1,4 @@
-# DeepSpeech native client, language bindings and custom decoder
+# DeepSpeech native client, language bindings, and custom decoder
 
 This folder contains the following:
 
@@ -22,7 +22,7 @@ If you need binaries which are different than current master (e.g. `v0.2.0-alpha
 python3 util/taskcluster.py --branch "v0.2.0-alpha.6"
 ```
 
-'util/taskcluster.py' will download and extract `native_client.tar.xz`.  `native_client.tar.xz` includes (1) the `deepspeech` binary, (2) associated libraries, and (3) the custom decoder TensorFlow OP. `taskcluster.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See `python util/taskcluster.py -h` for more details.
+`util/taskcluster.py` will download and extract `native_client.tar.xz`.  `native_client.tar.xz` includes (1) the `deepspeech` binary, (2) associated libraries, and (3) the custom decoder TensorFlow OP. `taskcluster.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See `python util/taskcluster.py -h` for more details.
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
 
@@ -37,6 +37,8 @@ Running inference might require some runtime dependencies to be already installe
 Please refer to your system's documentation on how to install those dependencies.
 
 ## Installing the language bindings
+
+### Python bindings
 
 For the Python bindings, you can use `pip`:
 
@@ -54,7 +56,7 @@ Check the [main README](../README.md) for more details.
 
 ## Build Requirements
 
-If you'd like to build the binaries yourself, you'll need the following pre-requisites downloaded/installed:
+If you'd like to build the binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
 * [TensorFlow requirements](https://www.tensorflow.org/install/install_sources)
 * [TensorFlow `r1.12` sources](https://github.com/mozilla/tensorflow/tree/r1.12)
@@ -81,7 +83,7 @@ ln -s ../DeepSpeech/native_client ./
 Before building the DeepSpeech client libraries, you will need to prepare your environment to configure and build TensorFlow.
 
 Preferably, checkout the version of `tensorflow` which is currently supported by DeepSpeech (see requirements.txt), and use the `bazel` version recommended by TensorFlow for that version.
-Then, follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of 'Configure the installation'.
+Then, follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of ["Configure the Build"](https://www.tensorflow.org/install/source#configure_the_build).
 
 After that, you can build the Tensorflow and DeepSpeech libraries using the following command.
 
@@ -98,7 +100,7 @@ cd ../DeepSpeech/native_client
 make deepspeech
 ```
 
-### Cross-building for RPi3 ARMv7 / LePotato ARM64
+### Cross-building for RPi3 ARMv7 and LePotato ARM64
 
 We do support cross-compilation. Please refer to our `mozilla/tensorflow` fork, where we define the following `--config` flags:
 
@@ -120,7 +122,7 @@ bazel build --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c o
 While we test only on RPi3 Raspbian Stretch and LePotato ARMBian stretch, anything compatible with `armv7-a cortex-a53` or `armv8-a cortex-a53` should be fine.
 
 The `deepspeech` binary can also be cross-built, with `TARGET=rpi3` or `TARGET=rpi3-armv8`. This might require you to setup a system tree using the tool `multistrap` and the multitrap configuration files: `native_client/multistrap_armbian64_stretch.conf` and `native_client/multistrap_raspbian_stretch.conf`.
-The path of the system tree can be overridden from the default values defined in `definitions.mk` through `RASPBIAN` make variable.
+The path of the system tree can be overridden from the default values defined in `definitions.mk` through the `RASPBIAN` `make` variable.
 
 ```
 cd ../DeepSpeech/native_client
