@@ -10,9 +10,9 @@ DeepSpeech is an open source Speech-To-Text engine, using a model trained by mac
 
 Pre-built binaries for performing inference with a trained model can be installed with `pip3`. Proper setup using a virtual environment is recommended, and you can find that documention [below](#using-the-python-package).
 
-A pre-trained English model is available for use and can be downloaded using [the instructions below](#getting-the-pre-trained-model).
+A pre-trained English model is available for use and can be downloaded using [the instructions below](#getting-the-pre-trained-model). Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client.
 
-Once everything is installed, you can then use the `deepspeech` binary to do speech-to-text on short (approximately 5 second) audio files (currently only WAVE files with 16-bit, 16 kHz, mono are supported in the Python client):
+Once everything is installed, you can then use the `deepspeech` binary to do speech-to-text on short (approximately 5 second) audio files as such:
 
 ```bash
 pip3 install deepspeech
