@@ -1,3 +1,5 @@
-# taskcluster
+# Taskcluster
 
-A task execution framework for Mozilla's CI system. Please consult the [existing taskcluster documentation](https://docs.taskcluster.net/docs).
+This directory contains files associated with Taskcluster -- a task execution framework for Mozilla's Continuous Integration system. 
+
+Please consult the [existing Taskcluster documentation](https://docs.taskcluster.net/docs).
