@@ -3,6 +3,9 @@
 set -xe
 
 apt-get install -y python3-venv
+_LANG="zh-TW"
+CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
+
 
 # venv
 python3 -m venv /tmp/venv
@@ -18,15 +21,15 @@ pip install tensorflow-gpu==1.13.0-rc2
 pip install $(python3 util/taskcluster.py --decoder)
 
 # kenlm Dependencies
-apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
+# apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
 
 # Install Kenlm #
-wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz --no-same-owner
-mkdir kenlm/build
-cd kenlm/build
-cmake ..
-make -j `nproc`
-cd ../..
+# wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz --no-same-owner
+# mkdir kenlm/build
+# cd kenlm/build
+# cmake ..
+# make -j `nproc`
+# cd ../..
 
 
 ###################################
@@ -40,11 +43,11 @@ python util/check_characters.py \
     > ${SRC_DIR}/data/alphabet.txt
 
 # lm.arpa
-TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
-sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS
+# TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
+# sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS
 kenlm/build/bin/lmplz \
     --order 2 \
-    --text CHAR_GRAMS \
+    --text "${USER_DIR}/CHAR_GRAMS_ZH_TW" \
     --arpa lm.arpa
 
 # lm.binary
@@ -55,7 +58,7 @@ kenlm/build/bin/build_binary \
     data/lm/lm.binary
 
 # trie 
-native_client/generate_trie \
+../tmp/native_client/generate_trie \
     data/alphabet.txt \
     data/lm/lm.binary \
     data/lm/trie_utf8
