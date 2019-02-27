@@ -22,7 +22,7 @@ If you need binaries which are different than current master (e.g. `v0.2.0-alpha
 python3 util/taskcluster.py --branch "v0.2.0-alpha.6"
 ```
 
-`util/taskcluster.py` will download and extract `native_client.tar.xz`.  `native_client.tar.xz` includes (1) the `deepspeech` binary, (2) associated libraries, and (3) the custom decoder TensorFlow OP. `taskcluster.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See `python util/taskcluster.py -h` for more details.
+`util/taskcluster.py` will download and extract `native_client.tar.xz`.  `native_client.tar.xz` includes (1) the `deepspeech` binary and (2) associated libraries. `taskcluster.py` will download binaries for the architecture of the host by default, but you can override that behavior with the `--arch` parameter. See `python util/taskcluster.py -h` for more details.
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
 
@@ -171,15 +171,7 @@ PREFIX=/usr/local sudo make install
 
 It is assumed that `$PREFIX/lib` is a valid library path, otherwise you may need to alter your environment.
 
-## Running
-
-The client can be run via the `Makefile`. The client will accept audio of any format your installation of SoX supports.
-
-```
-ARGS="--model /path/to/output_graph.pbmm --alphabet /path/to/alphabet.txt --audio /path/to/audio/file.wav" make run
-```
-
-## Python bindings
+### Python bindings
 
 Included are a set of generated Python bindings. After following the above build and installation instructions, these can be installed by executing the following commands (or equivalent on your system):
 
@@ -191,7 +183,7 @@ pip install dist/deepspeech*
 
 The API mirrors the C++ API and is demonstrated in [client.py](python/client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
 
-## Node.JS bindings
+### Node.JS bindings
 
 After following the above build and installation instructions, the Node.JS bindings can be built:
 
@@ -203,7 +195,7 @@ make npm-pack
 
 This will create the package `deepspeech-VERSION.tgz` in `native_client/javascript`.
 
-## Building the CTC decoder package
+### Building the CTC decoder package
 
 To build the `ds_ctcdecoder` package, you'll need the general requirements listed above (in particular SWIG). The command below builds the bindings using 8 processes for compilation. Adjust the parameter accordingly for more or less parallelism.
 
@@ -211,4 +203,13 @@ To build the `ds_ctcdecoder` package, you'll need the general requirements liste
 cd native_client/ctcdecode
 make bindings NUM_PROCESSES=8
 pip install dist/*.whl
+```
+
+
+## Running
+
+The client can be run via the `Makefile`. The client will accept audio of any format your installation of SoX supports.
+
+```
+ARGS="--model /path/to/output_graph.pbmm --alphabet /path/to/alphabet.txt --audio /path/to/audio/file.wav" make run
 ```
