@@ -5,12 +5,8 @@ set -xe
 _LANG="zh-TW"
 CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
 
-# the *.csv on cluster have old paths
-cp ${CV}/*.csv .
-sed -Ei 's/snakepit/data\/ro/g' cv_${_LANG}_valid_*.csv
-
-apt-get install -y python3-venv swig3.0
-ln -s /usr/bin/swig3.0 /usr/bin/swig
+# apt-get install -y python3-venv swig3.0
+# ln -s /usr/bin/swig3.0 /usr/bin/swig
 
 # venv
 python3 -m venv /tmp/venv
@@ -28,24 +24,25 @@ pip install tensorflow-gpu==1.13.0-rc2
 ### INSTALL KENLM + DECODER ###
 ###############################
 
+pip3 install $(python3 util/taskcluster.py --decoder)
 python util/taskcluster.py --arch gpu --target ../tmp/native_client
 
-pushd native_client/ctcdecode
-make clean
-make NUM_PROCESSES=16
-pip install dist/*.whl
-popd
+# pushd native_client/ctcdecode
+# make clean
+# make NUM_PROCESSES=16
+# pip install dist/*.whl
+# popd
 
 # kenlm Dependencies
-apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
+# apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
 
 # Install Kenlm #
-wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz --no-same-owner
-mkdir kenlm/build
-cd kenlm/build
-cmake ..
-make -j `nproc`
-cd ../..
+# wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz --no-same-owner
+# mkdir kenlm/build
+# cd kenlm/build
+# cmake ..
+# make -j `nproc`
+# cd ../..
 
 
 ###################################
@@ -59,11 +56,11 @@ python util/check_characters.py \
     > ${SRC_DIR}/data/alphabet.txt
 
 # lm.arpa
-TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
-sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS
+# TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
+# sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS
 kenlm/build/bin/lmplz \
     --order 2 \
-    --text CHAR_GRAMS \
+    --text "${USER_DIR}/CHAR_GRAMS_ZH_TW" \
     --arpa lm.arpa
 
 # lm.binary
@@ -74,7 +71,7 @@ kenlm/build/bin/build_binary \
     data/lm/lm.binary
 
 # trie 
-native_client/generate_trie \
+../tmp/native_client/generate_trie \
     data/alphabet.txt \
     data/lm/lm.binary \
     data/lm/trie_utf8
