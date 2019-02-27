@@ -6,8 +6,8 @@ apt-get install -y python3-venv
 _LANG="zh-TW"
 CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
 
-
 # venv
+apt-get install -y python3-venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 # check HTTP_PROXY
@@ -21,7 +21,7 @@ pip install tensorflow-gpu==1.13.0-rc2
 pip install $(python3 util/taskcluster.py --decoder)
 
 # kenlm Dependencies
-# apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
+apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
 
 # Install Kenlm #
 # wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz --no-same-owner
@@ -38,20 +38,20 @@ pip install $(python3 util/taskcluster.py --decoder)
 
 # alphabet.txt
 python util/check_characters.py \
-        -csv "cv_${_LANG}_valid_train.csv","cv_${_LANG}_valid_train.csv","cv_${_LANG}_valid_train.csv" \
+        -csv "${CV}/cv_${_LANG}_valid_train.csv","${CV}/cv_${_LANG}_valid_train.csv","${CV}/cv_${_LANG}_valid_train.csv" \
         -alpha \
-    > ${SRC_DIR}/data/alphabet.txt
+    > data/alphabet.txt
 
 # lm.arpa
 # TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
 # sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS
-kenlm/build/bin/lmplz \
+/data/rw/home/kenlm/build/bin/lmplz \
     --order 2 \
-    --text "${USER_DIR}/CHAR_GRAMS_ZH_TW" \
+    --text "/data/rw/home/CHAR_GRAMS_ZH_TW" \
     --arpa lm.arpa
 
 # lm.binary
-kenlm/build/bin/build_binary \
+/data/rw/home/kenlm/build/bin/build_binary \
     -a 255 \
     -q 8 trie \
     lm.arpa \
@@ -64,7 +64,6 @@ kenlm/build/bin/build_binary \
     data/lm/trie_utf8
 
 rm lm.arpa
-rm CHAR_GRAMS
 
 
 ########################
@@ -74,9 +73,9 @@ rm CHAR_GRAMS
 mkdir -p ../keep/summaries
 
 python -u DeepSpeech.py \
-  --train_files "cv_${_LANG}_valid_train.csv" \
-  --dev_files "cv_${_LANG}_valid_dev.csv" \
-  --test_files "cv_${_LANG}_valid_test.csv" \
+  --train_files "${CV}/cv_${_LANG}_valid_train.csv" \
+  --dev_files "${CV}/cv_${_LANG}_valid_dev.csv" \
+  --test_files "${CV}/cv_${_LANG}_valid_test.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
