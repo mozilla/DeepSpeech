@@ -109,7 +109,6 @@ namespace CSharpExamples
                     Console.WriteLine("Error loding the model.");
                 }
             }
-            Console.ReadKey();
         }
     }
 }
