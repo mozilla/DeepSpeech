@@ -8,7 +8,17 @@ This folder contains the following:
 
 We provide pre-built binaries for Linux and macOS.
 
-## Installation
+## Required Dependencies
+
+Running inference might require some runtime dependencies to be already installed on your system. Those should be the same, whatever the bindings you are using:
+* libsox2
+* libstdc++6
+* libgomp1
+* libpthread
+
+Please refer to your system's documentation on how to install those dependencies.
+
+## Installing our Pre-built Binaries
 
 To download the pre-built binaries, use `util/taskcluster.py`:
 
@@ -26,17 +36,8 @@ python3 util/taskcluster.py --branch "v0.2.0-alpha.6"
 
 If you want the CUDA capable version of the binaries, use `--arch gpu`. Note that for now we don't publish CUDA-capable macOS binaries.
 
-## Required Dependencies
 
-Running inference might require some runtime dependencies to be already installed on your system. Those should be the same, whatever the bindings you are using:
-* libsox2
-* libstdc++6
-* libgomp1
-* libpthread
-
-Please refer to your system's documentation on how to install those dependencies.
-
-## Installing the language bindings
+## Installing our Pre-built language bindings
 
 ### Python bindings
 
@@ -54,7 +55,8 @@ For Node.JS bindings, use `npm install deepspeech` to install it. Please note th
 
 Check the [main README](../README.md) for more details.
 
-## Build Requirements
+
+## Building & Installing your own Binaries
 
 If you'd like to build the binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
@@ -69,21 +71,18 @@ If you'd like to build the language bindings or the decoder package, you'll also
 * [SWIG](http://www.swig.org/)
 * [node-pre-gyp](https://github.com/mapbox/node-pre-gyp) (for Node.JS bindings only)
 
-## Preparation
 
-Create a symbolic link in your TensorFlow checkout to the DeepSpeech `native_client` directory. If your DeepSpeech and TensorFlow checkouts are side by side in the same directory, do:
+### Building your own Binaries
+
+
+Firstly, you should create a symbolic link in your TensorFlow checkout to the DeepSpeech `native_client` directory. If your DeepSpeech and TensorFlow checkouts are side by side in the same directory, do:
 
 ```
 cd tensorflow
 ln -s ../DeepSpeech/native_client ./
 ```
 
-## Building
-
-Before building the DeepSpeech client libraries, you will need to prepare your environment to configure and build TensorFlow.
-
-Preferably, checkout the version of `tensorflow` which is currently supported by DeepSpeech (see requirements.txt), and use the `bazel` version recommended by TensorFlow for that version.
-Then, follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of ["Configure the Build"](https://www.tensorflow.org/install/source#configure_the_build).
+Next, you will need to prepare your environment to configure and build TensorFlow. Preferably, checkout the version of `tensorflow` which is currently supported by DeepSpeech (see requirements.txt), and use the `bazel` version recommended by TensorFlow for that version. Follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of ["Configure the Build"](https://www.tensorflow.org/install/source#configure_the_build).
 
 After that, you can build the Tensorflow and DeepSpeech libraries using the following command.
 
@@ -161,7 +160,7 @@ cd ../DeepSpeech/native_client
 $ANDROID_NDK_HOME/ndk-build APP_PLATFORM=android-21 APP_BUILD_SCRIPT=$(pwd)/Android.mk NDK_PROJECT_PATH=$(pwd) APP_STL=c++_shared TFDIR=$(pwd)/../../tensorflowx/ TARGET_ARCH_ABI=arm64-v8a 
 ```
 
-## Installing
+### Installing your own Binaries
 
 After building, the library files and binary can optionally be installed to a system path for ease of development. This is also a required step for bindings generation.
 
@@ -171,7 +170,7 @@ PREFIX=/usr/local sudo make install
 
 It is assumed that `$PREFIX/lib` is a valid library path, otherwise you may need to alter your environment.
 
-### Python bindings
+#### Python bindings
 
 Included are a set of generated Python bindings. After following the above build and installation instructions, these can be installed by executing the following commands (or equivalent on your system):
 
@@ -183,7 +182,7 @@ pip install dist/deepspeech*
 
 The API mirrors the C++ API and is demonstrated in [client.py](python/client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
 
-### Node.JS bindings
+#### Node.JS bindings
 
 After following the above build and installation instructions, the Node.JS bindings can be built:
 
@@ -195,7 +194,7 @@ make npm-pack
 
 This will create the package `deepspeech-VERSION.tgz` in `native_client/javascript`.
 
-### Building the CTC decoder package
+#### Building the CTC decoder package
 
 To build the `ds_ctcdecoder` package, you'll need the general requirements listed above (in particular SWIG). The command below builds the bindings using 8 processes for compilation. Adjust the parameter accordingly for more or less parallelism.
 
