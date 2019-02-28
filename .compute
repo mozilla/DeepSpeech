@@ -58,7 +58,7 @@ python util/check_characters.py \
     data/lm/lm.binary
 
 # trie 
-../tmp/native_client/generate_trie \
+/data/rw/home/generate_trie \
     data/alphabet.txt \
     data/lm/lm.binary \
     data/lm/trie_utf8
