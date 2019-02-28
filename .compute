@@ -83,7 +83,7 @@ python -u DeepSpeech.py \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
   --dropout_rate 0.2 \
-  --epoch 30 \
+  --epoch 2 \
   --display_step 0 \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
