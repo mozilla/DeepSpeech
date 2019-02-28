@@ -17,19 +17,12 @@ fi
 
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
+<<<<<<< HEAD
 # Install ds_ctcdecoder package from TaskCluster
 pip install $(python3 util/taskcluster.py --decoder)
 
 # kenlm Dependencies
 apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
-
-# Install Kenlm #
-# wget -O - https://kheafield.com/code/kenlm.tar.gz | tar xz --no-same-owner
-# mkdir kenlm/build
-# cd kenlm/build
-# cmake ..
-# make -j `nproc`
-# cd ../..
 
 
 ###################################
@@ -43,11 +36,15 @@ python util/check_characters.py \
     > data/alphabet.txt
 
 # lm.arpa
-# TEXT="${SHARED_DIR}/data/wikipedia/zh-tw/wiki.txt"
-# sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS
+# TEXT="${SHARED_DIR}/data/wikipedia/${_LANG}/wiki.txt"
+# sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS_ZH_TW
+TEXT="/data/rw/home/CHAR_GRAMS_ZH_TW"
+
+
 /data/rw/home/kenlm/build/bin/lmplz \
+    --skip_symbols \
     --order 2 \
-    --text "/data/rw/home/CHAR_GRAMS_ZH_TW" \
+    --text "${TEXT}" \
     --arpa lm.arpa
 
 # lm.binary
@@ -57,7 +54,8 @@ python util/check_characters.py \
     lm.arpa \
     data/lm/lm.binary
 
-# trie 
+    # trie
+# ../tmp/native_client/generate_trie \
 /data/rw/home/generate_trie \
     data/alphabet.txt \
     data/lm/lm.binary \
@@ -73,17 +71,17 @@ rm lm.arpa
 mkdir -p ../keep/summaries
 
 python -u DeepSpeech.py \
-  --train_files "${CV}/cv_${_LANG}_valid_train.csv" \
-  --dev_files "${CV}/cv_${_LANG}_valid_dev.csv" \
-  --test_files "${CV}/cv_${_LANG}_valid_test.csv" \
+  --train_files "${CV}/cv_${_LANG}_valid_dev.csv" \
+  --dev_files "${CV}/cv_${_LANG}_valid_test.csv" \
+  --test_files "${CV}/cv_${_LANG}_valid_train.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
-  --noearly_stop \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
   --dropout_rate 0.2 \
-  --epoch 2 \
+  --epoch 1000 \
+  --earlystop_nsteps 5 \
   --display_step 0 \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
