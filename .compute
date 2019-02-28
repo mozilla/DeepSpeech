@@ -19,13 +19,14 @@ fi
 
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
+pip install wheel
 
 
 ###############################
 ### INSTALL KENLM + DECODER ###
 ###############################
 
-pip3 install $( "/data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.whl" )
+pip3 install "/data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.whl"
 # python util/taskcluster.py --arch gpu --target ../tmp/native_client
 
 # pushd native_client/ctcdecode
@@ -97,7 +98,7 @@ python -u DeepSpeech.py \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
   --dropout_rate 0.2 \
-  --epoch 30 \
+  --epoch 2 \
   --display_step 0 \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
