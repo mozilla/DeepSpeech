@@ -26,33 +26,6 @@ using namespace node;
 %apply (short* IN_ARRAY1, int DIM1) {(const short* aBuffer, unsigned int aBufferSize)};
 
 
-// convert DS_AudioToInputVector return values to a Node Buffer
-%typemap(in,numinputs=0)
-  (float** ARGOUTVIEWM_ARRAY2, unsigned int* DIM1, unsigned int* DIM2)
-  (float* data_temp, unsigned int dim1_temp, unsigned int dim2_temp)
-{
-  $1 = &data_temp;
-  $2 = &dim1_temp;
-  $3 = &dim2_temp;
-}
-%typemap(argout)
-  (float** ARGOUTVIEWM_ARRAY2, unsigned int* DIM1, unsigned int* DIM2)
-{
-  Handle<Array> array = Array::New(Isolate::GetCurrent(), *$2);
-  for (unsigned int i = 0, idx = 0; i < *$2; i++) {
-    Handle<ArrayBuffer> buffer =
-      ArrayBuffer::New(Isolate::GetCurrent(), *$1, *$3 * sizeof(float));
-    memcpy(buffer->GetContents().Data(),
-           (*$1) + (idx += *$3), *$3 * sizeof(float));
-    Handle<Float32Array> inner = Float32Array::New(buffer, 0, *$3);
-    array->Set(i, inner);
-  }
-  free(*$1);
-  $result = array;
-}
-
-%apply (float** ARGOUTVIEWM_ARRAY2, unsigned int* DIM1, unsigned int* DIM2) {(float** aMfcc, unsigned int* aNFrames, unsigned int* aFrameLen)};
-
 // make sure the string returned by SpeechToText is freed
 %typemap(newfree) char* "free($1);";
 %newobject DS_SpeechToText;

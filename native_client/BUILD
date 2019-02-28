@@ -62,14 +62,6 @@ tf_cc_shared_object(
     srcs = ["deepspeech.cc",
             "deepspeech.h",
             "alphabet.h",
-            "c_speech_features/c_speech_features.cpp",
-            "kiss_fft130/kiss_fft.c",
-            "kiss_fft130/tools/kiss_fftr.c",
-            "c_speech_features/c_speech_features.h",
-            "c_speech_features/c_speech_features_config.h",
-            "kiss_fft130/kiss_fft.h",
-            "kiss_fft130/_kiss_fft_guts.h",
-            "kiss_fft130/tools/kiss_fftr.h",
             "ds_version.h"] +
             DECODER_SOURCES,
     copts = select({ 
@@ -134,7 +126,7 @@ tf_cc_shared_object(
     }) + if_cuda([
             "//tensorflow/core:core",
     ]),
-    includes = ["c_speech_features", "kiss_fft130"] + DECODER_INCLUDES,
+    includes = DECODER_INCLUDES,
     defines = ["KENLM_MAX_ORDER=6"],
 )
 

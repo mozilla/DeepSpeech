@@ -23,8 +23,6 @@
   #include "tensorflow/lite/kernels/register.h"
 #endif // USE_TFLITE
 
-#include "c_speech_features.h"
-
 #include "ctcdecode/ctc_beam_search_decoder.h"
 
 #ifdef __ANDROID__
@@ -49,12 +47,6 @@ constexpr unsigned int AUDIO_WIN_LEN_SAMPLES = (unsigned int)(AUDIO_WIN_LEN * SA
 constexpr unsigned int AUDIO_WIN_STEP_SAMPLES = (unsigned int)(AUDIO_WIN_STEP * SAMPLE_RATE);
 
 constexpr unsigned int MFCC_FEATURES = 26;
-
-constexpr float PREEMPHASIS_COEFF = 0.97f;
-constexpr unsigned int N_FFT = 512;
-constexpr unsigned int N_FILTERS = 26;
-constexpr unsigned int LOWFREQ = 0;
-constexpr unsigned int CEP_LIFTER = 22;
 
 constexpr size_t WINDOW_SIZE = AUDIO_WIN_LEN * SAMPLE_RATE;
 
@@ -890,76 +882,8 @@ DS_DiscardStream(StreamingState* aSctx)
 }
 
 void
-DS_AudioToInputVector(const short* aBuffer,
-                      unsigned int aBufferSize,
-                      unsigned int aSampleRate,
-                      unsigned int aNCep,
-                      unsigned int aNContext,
-                      float** aMfcc,
-                      int* aNFrames,
-                      int* aFrameLen)
+DS_FreeMetadata(Metadata* m)
 {
-  const int contextSize = aNCep * aNContext;
-  const int frameSize = aNCep + (2 * aNCep * aNContext);
-
-  // Compute MFCC features
-  float* mfcc;
-  int n_frames = csf_mfcc(aBuffer, aBufferSize, aSampleRate,
-                          AUDIO_WIN_LEN, AUDIO_WIN_STEP, aNCep, N_FILTERS, N_FFT,
-                          LOWFREQ, aSampleRate/2, PREEMPHASIS_COEFF, CEP_LIFTER,
-                          1, NULL, &mfcc);
-
-  // Take every other frame (BiRNN stride of 2) and add past/future context
-  int ds_input_length = (n_frames + 1) / 2;
-  // TODO: Use MFCC of silence instead of zero
-  float* ds_input = (float*)calloc(ds_input_length * frameSize, sizeof(float));
-  for (int i = 0, idx = 0, mfcc_idx = 0; i < ds_input_length;
-       i++, idx += frameSize, mfcc_idx += aNCep * 2) {
-    // Past context
-    for (int j = aNContext; j > 0; j--) {
-      int frame_index = (i - j) * 2;
-      if (frame_index < 0) { continue; }
-      int mfcc_base = frame_index * aNCep;
-      int base = (aNContext - j) * aNCep;
-      for (int k = 0; k < aNCep; k++) {
-        ds_input[idx + base + k] = mfcc[mfcc_base + k];
-      }
-    }
-
-    // Present context
-    for (int j = 0; j < aNCep; j++) {
-      ds_input[idx + j + contextSize] = mfcc[mfcc_idx + j];
-    }
-
-    // Future context
-    for (int j = 1; j <= aNContext; j++) {
-      int frame_index = (i + j) * 2;
-      if (frame_index >= n_frames) { break; }
-      int mfcc_base = frame_index * aNCep;
-      int base = contextSize + aNCep + ((j - 1) * aNCep);
-      for (int k = 0; k < aNCep; k++) {
-        ds_input[idx + base + k] = mfcc[mfcc_base + k];
-      }
-    }
-  }
-
-  // Free mfcc array
-  free(mfcc);
-
-  if (aMfcc) {
-    *aMfcc = ds_input;
-  }
-  if (aNFrames) {
-    *aNFrames = ds_input_length;
-  }
-  if (aFrameLen) {
-    *aFrameLen = frameSize;
-  }
-}
-
-void 
-DS_FreeMetadata(Metadata* m) 
-{  
   if (m) {
     delete(m->items);
     delete(m);
