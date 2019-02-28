@@ -5,8 +5,8 @@ set -xe
 _LANG="zh-TW"
 CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
 
-apt-get install -y swig3.0
-ln -s /usr/bin/swig3.0 /usr/bin/swig
+# apt-get install -y swig3.0
+# ln -s /usr/bin/swig3.0 /usr/bin/swig
 
 # venv
 apt-get install -y python3-venv
@@ -25,14 +25,14 @@ pip install tensorflow-gpu==1.13.0-rc2
 ### INSTALL KENLM + DECODER ###
 ###############################
 
-# pip3 install $(python3 util/taskcluster.py --decoder)
-python util/taskcluster.py --arch gpu --target ../tmp/native_client
+pip3 install $( "/data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.whl" )
+# python util/taskcluster.py --arch gpu --target ../tmp/native_client
 
-pushd native_client/ctcdecode
-make clean
-make NUM_PROCESSES=16
-pip install dist/*.whl
-popd
+# pushd native_client/ctcdecode
+# make clean
+# make NUM_PROCESSES=16
+# pip install dist/*.whl
+# popd
 
 # kenlm Dependencies
 apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
@@ -72,7 +72,7 @@ python util/check_characters.py \
     data/lm/lm.binary
 
 # trie 
-../tmp/native_client/generate_trie \
+/data/rw/home/generate_trie \
     data/alphabet.txt \
     data/lm/lm.binary \
     data/lm/trie_utf8
