@@ -50,7 +50,8 @@ TEXT="/data/rw/home/CHAR_GRAMS_ZH_TW"
 # lm.binary
 /data/rw/home/kenlm/build/bin/build_binary \
     -a 255 \
-    -q 8 trie \
+    -q 8 \
+    trie \
     lm.arpa \
     data/lm/lm.binary
 
