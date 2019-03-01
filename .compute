@@ -6,7 +6,7 @@ set -xe
 #  WARNING - DEV / TEST / TRAIN mixed bcuz zh-TW on server
 #
 
-_LANG="cy"
+_LANG="zh-TW"
 CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
 
 # venv
@@ -61,7 +61,8 @@ TEXT="/data/rw/home/CHAR_GRAMS_ZH_TW"
 # lm.binary
 /data/rw/home/kenlm/build/bin/build_binary \
     -a 255 \
-    -q 8 trie \
+    -q 8 \
+    trie \
     lm.arpa \
     data/lm/lm.binary
 
