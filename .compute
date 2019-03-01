@@ -97,4 +97,5 @@ python -u DeepSpeech.py \
   --display_step 0 \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
-  --summary_dir "../keep/summaries"
+  --summary_dir "../keep/summaries" \
+  --test_output_file "../keep/RESULTS.json"
