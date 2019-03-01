@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>DeepSpeech</id>
-    <version>0.4.1</version>
+    <id>$NUPKG_ID</id>
+    <version>$NUPKG_VERSION</version>
     <title>DeepSpeech</title>
     <authors>Mozilla</authors>
     <owners>Mozilla</owners>
