@@ -195,7 +195,7 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU (See the re
 npm install deepspeech-gpu
 ```
 
-See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.
+See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.  Or download the [wav example](examples/nodejs_wav).
 
 Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
