@@ -3,10 +3,10 @@
 set -xe
 
 #
-#  WARNING - DEV / TEST / TRAIN mixed bcuz zh-TW on server
+#  WARNING - DEV / TEST / TRAIN mixed maybe
 #
 
-_LANG="zh-TW"
+_LANG="ky"
 CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
 
 # venv
@@ -22,7 +22,6 @@ pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
 pip install wheel
 
-
 ###############################
 ### INSTALL KENLM + DECODER ###
 ###############################
@@ -33,47 +32,55 @@ pip install "/data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.wh
 
 
 # kenlm Dependencies
-apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
+# apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
 
 
 ###################################
 ### CREATE ALPHABET / LM / TRIE ###
 ###################################
 
-# alphabet.txt
-python util/check_characters.py \
-        -csv "${CV}/cv_${_LANG}_valid_train.csv","${CV}/cv_${_LANG}_valid_train.csv","${CV}/cv_${_LANG}_valid_train.csv" \
-        -alpha \
-    > data/alphabet.txt
+# # alphabet.txt
+# python util/check_characters.py \
+#         -csv "${CV}/cv_${_LANG}_valid_train.csv","${CV}/cv_${_LANG}_valid_train.csv","${CV}/cv_${_LANG}_valid_train.csv" \
+#         -alpha \
+#     > /data/rw/home/zh-TW/alphabet.txt
+
+# python util/check_characters.py \
+#         -csv "/data/rw/home/ky/clips/train.csv","/data/rw/home/ky/clips/test.csv","/data/rw/home/ky/clips/dev.csv" \
+#         -alpha \
+#     > /data/rw/home/ky/alphabet.txt
+
 
 # lm.arpa
+#TEXT="${SHARED_DIR}/data/wikipedia/${_LANG}/wiki.txt"
+# cut -d',' -f3 /data/rw/home/ky/clips/train.csv > /data/rw/home/ky/text.txt
+# TEXT="/data/rw/home/ky/text.txt"
 # TEXT="${SHARED_DIR}/data/wikipedia/${_LANG}/wiki.txt"
-# sed -e 's/\(.\)/\1 /g' <$TEXT >CHAR_GRAMS_ZH_TW
-TEXT="/data/rw/home/CHAR_GRAMS_ZH_TW"
+# TEXT="/data/rw/home/CHAR_GRAMS_ZH_TW"
 
 
-/data/rw/home/kenlm/build/bin/lmplz \
-    --skip_symbols \
-    --order 2 \
-    --text "${TEXT}" \
-    --arpa lm.arpa
+# /data/rw/home/kenlm/build/bin/lmplz \
+#     --skip_symbols \
+#     --order 2 \
+#     --text "${TEXT}" \
+#     --arpa lm.arpa
 
-# lm.binary
-/data/rw/home/kenlm/build/bin/build_binary \
-    -a 255 \
-    -q 8 \
-    trie \
-    lm.arpa \
-    data/lm/lm.binary
+# # # lm.binary
+# /data/rw/home/kenlm/build/bin/build_binary \
+#     -a 255 \
+#     -q 8 \
+#     trie \
+#     lm.arpa \
+#     /data/rw/home/ky/lm.binary
 
-    # trie
-# ../tmp/native_client/generate_trie \
-/data/rw/home/generate_trie \
-    data/alphabet.txt \
-    data/lm/lm.binary \
-    data/lm/trie_utf8
+# # # trie
+# # ../tmp/native_client/generate_trie \
+# /data/rw/home/generate_trie \
+#     /data/rw/home/ky/alphabet.txt \
+#     /data/rw/home/ky/lm.binary \
+#     /data/rw/home/ky/trie_utf8
 
-rm lm.arpa
+# rm lm.arpa
 
 
 ########################
@@ -82,10 +89,14 @@ rm lm.arpa
 
 mkdir -p ../keep/summaries
 
+  # --train_files "${CV}/cv_${_LANG}_valid_dev.csv" \
+  # --dev_files "${CV}/cv_${_LANG}_valid_test.csv" \
+  # --test_files "${CV}/cv_${_LANG}_valid_train.csv" \
+  
 python -u DeepSpeech.py \
-  --train_files "${CV}/cv_${_LANG}_valid_dev.csv" \
-  --dev_files "${CV}/cv_${_LANG}_valid_test.csv" \
-  --test_files "${CV}/cv_${_LANG}_valid_train.csv" \
+  --train_files "/data/rw/home/ky/clips/train.csv" \
+  --dev_files "/data/rw/home/ky/clips/dev.csv" \
+  --test_files "/data/rw/home/ky/clips/test.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
@@ -98,4 +109,8 @@ python -u DeepSpeech.py \
   --validation_step 1 \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries" \
-  --test_output_file "../keep/RESULTS.json"
+  --report_count 100 \
+  --test_output_file "../keep/RESULTS.json" \
+  --lm-binary-path "/data/rw/home/ky/lm.binary" \
+  --lm-trie-path "/data/rw/home/ky/trie_utf8" \
+  --alphabet-config-path "/data/rw/home/ky/alphabet.txt"

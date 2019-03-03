@@ -70,6 +70,19 @@ size_t get_utf8_str_len(const std::string &str) {
   return str_len;
 }
 
+std::vector<std::string> split_byte_str(const std::string &str) {
+  std::vector<std::string> result;
+  std::string out_str;
+
+  for (char c : str) {
+        out_str.append(1, c);
+        result.push_back(out_str);
+        out_str.clear();
+  }
+
+  return result;
+}
+
 std::vector<std::string> split_utf8_str(const std::string &str) {
   std::vector<std::string> result;
   std::string out_str;
@@ -144,7 +157,7 @@ bool add_word_to_dictionary(
     bool add_space,
     int SPACE_ID,
     fst::StdVectorFst *dictionary) {
-  auto characters = split_utf8_str(word);
+  auto characters = split_byte_str(word);
 
   std::vector<int> int_word;
 

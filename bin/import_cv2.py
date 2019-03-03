@@ -69,7 +69,7 @@ def _maybe_convert_set(audio_dir, input_tsv):
     
     def one_sample(sample):
         """ Take a audio file, and optionally convert it to 16kHz WAV """
-        mp3_filename = path.join(audio_dir, sample[0])
+        mp3_filename = path.join(audio_dir, sample[0] + ".mp3")
         # Storing wav files next to the mp3 ones - just with a different suffix
         wav_filename = path.splitext(mp3_filename)[0] + ".wav"
         _maybe_convert_wav(mp3_filename, wav_filename)
