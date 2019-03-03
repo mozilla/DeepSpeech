@@ -144,10 +144,11 @@ def evaluate(test_data, inference_graph):
     # Second pass, decode logits and compute WER and edit distance metrics
     for logits, batch in bar(zip(logitses, split_data(test_data, FLAGS.test_batch_size))):
         seq_lengths = batch['features_len'].values.astype(np.int32)
-        decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, Config.alphabet, FLAGS.beam_width,
-                                                num_processes=num_processes, scorer=scorer)
         # decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, Config.alphabet, FLAGS.beam_width,
-        #                                         num_processes=num_processes)
+        #                                         num_processes=num_processes, scorer=scorer)
+        decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, Config.alphabet, FLAGS.beam_width,
+                                                num_processes=num_processes,
+                                                scorer=None)
 
         ground_truths.extend(Config.alphabet.decode(l.astype(np.uint8)) for l in batch['transcript'])
         predictions.extend(d[0][1] for d in decoded)
