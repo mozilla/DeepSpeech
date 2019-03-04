@@ -40,7 +40,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
 
   clock_t ds_start_time = clock();
 
-  res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
+  res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate, extended_metadata);
 
   clock_t ds_end_infer = clock();
 
