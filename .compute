@@ -23,6 +23,10 @@ pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
 pip install $(python util/taskcluster.py --decoder)
 
+python util/check_characters.py \
+        -csv "/data/rw/home/ky/clips/clean-train.csv","/data/rw/home/ky/clips/clean-test.csv","/data/rw/home/ky/clips/clean-dev.csv" \
+        -alpha \
+    > /data/rw/home/ky/clean-alphabet.txt
 
 echo "##############################"
 echo "STARTING TRAINING FROM SCRATCH"
@@ -46,10 +50,10 @@ python -u DeepSpeech.py \
 	    --display_step 0 \
 	    --validation_step 1 \
         --summary_secs 60 \
-        --train_files "/data/rw/home/ky/clips/train.csv" \
-        --dev_files "/data/rw/home/ky/clips/dev.csv" \
-        --test_files "/data/rw/home/ky/clips/test.csv" \
-        --alphabet_config_path "/data/rw/home/ky/alphabet.txt" \
+        --train_files "/data/rw/home/ky/clips/clean-train.csv" \
+        --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
+        --test_files "/data/rw/home/ky/clips/clean-test.csv" \
+        --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
         --lm_binary_path "/data/rw/home/ky/lm.binary" \
         --lm_trie_path "/data/rw/home/ky/trie";
 
@@ -80,10 +84,10 @@ python -u DeepSpeech.py \
 	    --display_step 0 \
 	    --validation_step 1 \
         --summary_secs 60 \
-        --train_files "/data/rw/home/ky/clips/train.csv" \
-        --dev_files "/data/rw/home/ky/clips/dev.csv" \
-        --test_files "/data/rw/home/ky/clips/test.csv" \
-        --alphabet_config_path "/data/rw/home/ky/alphabet.txt" \
+        --train_files "/data/rw/home/ky/clips/clean-train.csv" \
+        --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
+        --test_files "/data/rw/home/ky/clips/clean-test.csv" \
+        --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
         --lm_binary_path "/data/rw/home/ky/lm.binary" \
         --lm_trie_path "/data/rw/home/ky/trie";
 
