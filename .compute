@@ -7,7 +7,8 @@ _LANG="zh-TW"
 CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0-alpha2.0/${_LANG}"
 
 # venv
-apt-get install -y python3-venv
+apt-get update -y
+apt-get install -y python3-venv swig
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 # check HTTP_PROXY
@@ -19,11 +20,18 @@ pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
 pip install wheel
 
+pushd ../src/native_client/ctcdecode
+make clean
+make NUM_PROCESSES=16
+pip install dist/*.whl
+popd
+
+
 ###############################
 ### INSTALL KENLM + DECODER ###
 ###############################
 
-pip install "/data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.whl"
+# pip install "/data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.whl"
 # pip install $(python util/taskcluster.py --decoder)
 # python util/taskcluster.py --arch gpu --target ../tmp/native_client
 
