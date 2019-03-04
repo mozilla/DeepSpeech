@@ -150,4 +150,4 @@ if __name__ == '__main__':
     maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(args.arch, args.artifact, args.branch))
 
     if '.tar.' in args.artifact:
-        subprocess.check_call(['tar', 'xvf', os.path.join(args.target, args.artifact), '-C', args.target])
+        subprocess.check_call(['tar', 'xvf', os.path.join(args.target, args.artifact), '--no-same-owner' , '-C', args.target])

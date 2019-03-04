@@ -15,11 +15,22 @@ source /tmp/venv/bin/activate
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
 pip install $(python util/taskcluster.py --decoder)
+python util/taskcluster.py --target ../tmp/native_client
 
 
 ########################
 ### TRAIN DEEPSPEECH ###
 ########################
+
+# python util/check_characters.py \
+#        -csv "/data/rw/home/ky/clips/train.csv","/data/rw/home/ky/clips/test.csv","/data/rw/home/ky/clips/dev.csv" \
+#        -alpha \
+#        > /data/rw/home/ky/alphabet.txt
+
+# ../tmp/native_client/generate_trie \
+#     /data/rw/home/ky/alphabet.txt \
+#     /data/rw/home/ky/lm.binary \
+#     /data/rw/home/ky/trie
 
 mkdir -p ../keep/summaries
   
@@ -42,5 +53,5 @@ python -u DeepSpeech.py \
   --report_count 100 \
   --test_output_file "../keep/RESULTS.json" \
   --lm-binary-path "/data/rw/home/ky/lm.binary" \
-  --lm-trie-path "/data/rw/home/ky/trie_utf8" \
+  --lm-trie-path "/data/rw/home/ky/trie" \
   --alphabet-config-path "/data/rw/home/ky/alphabet.txt"
