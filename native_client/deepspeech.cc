@@ -511,10 +511,12 @@ ModelState::metadata_from_output(Output out,int logit_count)
 	// Figure out word boundaries by looking for spaces
 	if (strcmp(character," ") == 0 || t == out.tokens.size()-1) {
 	  float time_position = (duration_secs/n_frames)*word_start_timestep;
+	  float word_duration = (duration_secs/n_frames)*(out.timesteps[t] - word_start_timestep - 3); // 3ms offset
 
 	  META_DICT word_info;
 	  word_info["word"] = word;
 	  word_info["time"] = std::to_string(time_position);
+	  word_info["duration"] = std::to_string(word_duration);
 	  
 	  word_list.push_back(word_info);
 												
