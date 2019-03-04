@@ -22,36 +22,24 @@ python util/taskcluster.py --target ../tmp/native_client
 ### TRAIN DEEPSPEECH ###
 ########################
 
-# python util/check_characters.py \
-#        -csv "/data/rw/home/ky/clips/train.csv","/data/rw/home/ky/clips/test.csv","/data/rw/home/ky/clips/dev.csv" \
-#        -alpha \
-#        > /data/rw/home/ky/alphabet.txt
-
-# ../tmp/native_client/generate_trie \
-#     /data/rw/home/ky/alphabet.txt \
-#     /data/rw/home/ky/lm.binary \
-#     /data/rw/home/ky/trie
-
 mkdir -p ../keep/summaries
   
 python -u DeepSpeech.py \
-  --train_files "/data/rw/home/ky/clips/train.csv" \
-  --dev_files "/data/rw/home/ky/clips/dev.csv" \
-  --test_files "/data/rw/home/ky/clips/test.csv" \
-  --train_batch_size 24 \
-  --dev_batch_size 48 \
-  --test_batch_size 48 \
-  --n_hidden 2048 \
-  --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
-  --epoch 1000 \
-  --earlystop_nsteps 5 \
-  --display_step 0 \
-  --validation_step 1 \
-  --checkpoint_dir "../keep" \
-  --summary_dir "../keep/summaries" \
-  --report_count 100 \
-  --test_output_file "../keep/RESULTS.json" \
-  --lm-binary-path "/data/rw/home/ky/lm.binary" \
-  --lm-trie-path "/data/rw/home/ky/trie" \
-  --alphabet-config-path "/data/rw/home/ky/alphabet.txt"
+       --train_files "/data/rw/home/ky/clips/train.csv" \
+       --dev_files "/data/rw/home/ky/clips/dev.csv" \
+       --test_files "/data/rw/home/ky/clips/test.csv" \
+       --train_batch_size 24 \
+       --dev_batch_size 48 \
+       --test_batch_size 48 \
+       --n_hidden 1024 \
+       --learning_rate 0.0001 \
+       --dropout_rate 0.2 \
+       --epoch 1000 \
+       --earlystop_nsteps 5 \
+       --display_step 0 \
+       --validation_step 1 \
+       --checkpoint_dir "../keep" \
+       --summary_dir "../keep/summaries" \
+       --alphabet_config_path "/data/rw/home/ky/alphabet.txt" \
+       --lm_binary_path "/data/rw/home/ky/lm.binary" \
+       --lm_trie_path "/data/rw/home/ky/trie";
