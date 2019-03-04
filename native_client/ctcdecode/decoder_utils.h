@@ -84,6 +84,11 @@ std::vector<std::string> split_str(const std::string &s,
  */
 std::vector<std::string> split_utf8_str(const std::string &str);
 
+/* Splits string into vector of strings representing
+ * UTF-8 bytes (not same as chars)
+ */
+std::vector<std::string> split_byte_str(const std::string &str);
+
 // Add a word in index to the dicionary of fst
 void add_word_to_fst(const std::vector<int> &word,
                      fst::StdVectorFst *dictionary);

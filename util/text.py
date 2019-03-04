@@ -19,10 +19,11 @@ class Alphabet(object):
         assert False
 
     def decode(self, labels):
-        try:
-            out=bytes(labels).decode('utf-8')
-        except UnicodeDecodeError:
-            out=bytes(labels)
+        out=bytes(labels).decode('utf-8')
+        # try:
+        #     out=bytes(labels).decode('utf-8')
+        # except UnicodeDecodeError:
+        #     out=bytes(labels)
         return out
 
     def size(self):
