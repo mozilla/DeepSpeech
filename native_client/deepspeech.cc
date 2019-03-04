@@ -523,8 +523,9 @@ ModelState::metadata_from_output(Output out,int logit_count)
 	  word_start_timestep = 0;
 			
 	} else {
-	  // Append character
-	  if (word_start_timestep == 0) word_start_timestep = out.timesteps[t];
+	  // Timesteps are from the position of the highest letter probability so we 
+	  // offset them back by 3ms to account for this
+	  if (word_start_timestep == 0) word_start_timestep = out.timesteps[t] - 3;
 	}
   }
 	
