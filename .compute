@@ -1,75 +1,40 @@
 #!/bin/bash
 
-# Expected file structure (from .install):
-#
-# ../tmp/native_client/
-#      *
-# ../keep/
-#      source_model/
-#          checkpoint
-#          model.meta
-#          model.data
-#          model.index
-#
-# Created by filter_train_dev_test.py (this script)
-#
-# ../keep/
-#     target_lang/
-#         valid_dev.csv
-#         valid_test.csv
-#         valid_train.csv
-#
-# Created by DeepSpeech.py (this script):
-#
-# ../keep/
-#     target_lang/
-#         source_model/
-#             run/
-#               RESULTS.json
-#               summaries/
-#               model/
-#               ckpt/
-#
+set -xe
 
+# check HTTP_PROXY
+if ! (( $( env | grep -iq "^http_proxy=" ) )); then
+    source /etc/profile
+fi
 
-source ../tmp/venv/bin/activate
+SOURCE_MODEL='../keep/en'
+mkdir $SOURCE_MODEL
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.3.0/deepspeech-0.3.0-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
+tar xvzf ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
+rm ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz
 
-# train from scratch with num_layers_dropped=6
-target_lang='LANG'
-source_model='en-v030'
+# venv
+apt-get update -y
+apt-get install -y python3-venv
+python3 -m venv /tmp/venv
+source /tmp/venv/bin/activate
 
-
-input_dir="/snakepit/shared/data/mozilla/CommonVoice/v2.0-alpha2.0"
-#input_dir="/home/josh/Downloads/CV"
-data="../keep/${target_lang}"
-mkdir $data
-
-
-python3 filter_train_dev_test.py "${input_dir}" "${target_lang}" "${input_dir}/clips.tsv" "${data}"
-python3 util/check_characters.py "${data}/*.csv"
-
-
-
-
-###              ###
-### FROM SCRATCH ###
-###              ###
+pip install -r <(grep -v tensorflow requirements.txt)
+pip install tensorflow-gpu==1.13.0-rc2
+pip install $(python util/taskcluster.py --decoder)
 
 
 echo "##############################"
 echo "STARTING TRAINING FROM SCRATCH"
 echo "##############################"
 
-exp="../keep/${target_lang}/scratch/"
+exp="../keep/scratch/"
 
-python3 -u DeepSpeech.py \
+python -u DeepSpeech.py \
 	    --export_dir "${exp}/model/" \
 	    --summary_dir "${exp}/summaries/" \
 	    --checkpoint_dir "${exp}/ckpt/" \
 	    --test_output_file "${exp}/RESULTS.json" \
-	    --train_files "${data}/valid_train.csv"\
-	    --dev_files "${data}/valid_dev.csv" \
-	    --test_files "${data}/valid_test.csv" \
 	    --n_hidden 2048 \
 	    --epoch 1000 \
         --earlystop_nsteps 5 \
@@ -81,82 +46,45 @@ python3 -u DeepSpeech.py \
 	    --display_step 0 \
 	    --validation_step 1 \
         --summary_secs 60 \
-	    --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
+        --train_files "/data/rw/home/ky/clips/train.csv" \
+        --dev_files "/data/rw/home/ky/clips/dev.csv" \
+        --test_files "/data/rw/home/ky/clips/test.csv" \
+        --alphabet_config_path "/data/rw/home/ky/alphabet.txt" \
+        --lm_binary_path "/data/rw/home/ky/lm.binary" \
+        --lm_trie_path "/data/rw/home/ky/trie";
 
 
 
-###                   ###
-### TRANSFER LEARNING ###
-###                   ###
+echo "##############################"
+echo " STARTING TRANSFER LEARNING "
+echo "##############################"
 
+exp="../keep/fine_tune"
 
-# if [ $num_layers_dropped -lt 6 ]; then
-for num_layers_dropped in 1 2 3 4 5; do
-
-    echo "##########################"
-    echo "STARTING TRANSFER LEARNING W/ FINE_TUNE"
-    echo " num_layers_dropped=${num_layers_dropped}"
-    echo "##########################"
-    
-    exp="../keep/${target_lang}/fine_tune/${num_layers_dropped}"
-
-    python3 -u DeepSpeech.py \
-            --fine_tune \
-	        --export_dir "${exp}/model/" \
-	        --summary_dir "${exp}/summaries/" \
-	        --checkpoint_dir "${exp}/ckpt/" \
-	        --test_output_file "${exp}/RESULTS.json" \
-	        --drop_source_layers "${num_layers_dropped}" \
-	        --source_model_checkpoint_dir "../keep/${source_model}" \
-	        --train_files "${data}/valid_train.csv"\
-	        --dev_files "${data}/valid_dev.csv" \
-	        --test_files "${data}/valid_test.csv" \
-	        --n_hidden 2048 \
-	        --epoch -1000 \
-            --earlystop_nsteps 5 \
-	        --train_batch_size 24 \
-	        --dev_batch_size 48 \
-	        --test_batch_size 48 \
-	        --learning_rate 0.0001 \
-	        --dropout_rate 0.2 \
-	        --display_step 0 \
-	        --validation_step 1 \
-            --summary_secs 60 \
-	        --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
-
-    echo "##########################"
-    echo "STARTING TRANSFER LEARNING W/ FROZEN"
-    echo " num_layers_dropped=${num_layers_dropped}"
-    echo "##########################"
-    
-    exp="../keep/${target_lang}/frozen/${num_layers_dropped}"
-
-    python3 -u DeepSpeech.py \
-	        --export_dir "${exp}/model/" \
-	        --summary_dir "${exp}/summaries/" \
-	        --checkpoint_dir "${exp}/ckpt/" \
-	        --test_output_file "${exp}/RESULTS.json" \
-	        --drop_source_layers "${num_layers_dropped}" \
-	        --source_model_checkpoint_dir "../keep/${source_model}" \
-	        --train_files "${data}/valid_train.csv"\
-	        --dev_files "${data}/valid_dev.csv" \
-	        --test_files "${data}/valid_test.csv" \
-	        --n_hidden 2048 \
-	        --epoch -1000 \
-            --earlystop_nsteps 5 \
-	        --train_batch_size 24 \
-	        --dev_batch_size 48 \
-	        --test_batch_size 48 \
-	        --learning_rate 0.0001 \
-	        --dropout_rate 0.2 \
-	        --display_step 0 \
-	        --validation_step 1 \
-            --summary_secs 60 \
-	        --decoder_library_path "../tmp/native_client/libctc_decoder_with_kenlm.so"
-done
-
-
-
-
+python -u DeepSpeech.py \
+        --fine_tune \
+	    --export_dir "${exp}/model/" \
+	    --summary_dir "${exp}/summaries/" \
+	    --checkpoint_dir "${exp}/ckpt/" \
+	    --test_output_file "${exp}/RESULTS.json" \
+	    --drop_source_layers 2 \
+	    --source_model_checkpoint_dir "${SOURCE_MODEL}" \
+	    --n_hidden 2048 \
+	    --epoch -1000 \
+        --earlystop_nsteps 5 \
+	    --train_batch_size 24 \
+	    --dev_batch_size 48 \
+	    --test_batch_size 48 \
+	    --learning_rate 0.0001 \
+	    --dropout_rate 0.2 \
+	    --display_step 0 \
+	    --validation_step 1 \
+        --summary_secs 60 \
+        --train_files "/data/rw/home/ky/clips/train.csv" \
+        --dev_files "/data/rw/home/ky/clips/dev.csv" \
+        --test_files "/data/rw/home/ky/clips/test.csv" \
+        --alphabet_config_path "/data/rw/home/ky/alphabet.txt" \
+        --lm_binary_path "/data/rw/home/ky/lm.binary" \
+        --lm_trie_path "/data/rw/home/ky/trie";
 
 echo "$0: END"
