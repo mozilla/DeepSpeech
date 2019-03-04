@@ -11,7 +11,6 @@ from scipy import signal
 
 logging.basicConfig(level=20)
 
-
 class Audio(object):
     """Streams raw audio from microphone. Data is received in a separate thread, and stored in a buffer, to be read from."""
 
@@ -25,8 +24,7 @@ class Audio(object):
         def proxy_callback(in_data, frame_count, time_info, status):
             callback(in_data)
             return (None, pyaudio.paContinue)
-        if callback is None: 
-            callback = lambda in_data: self.buffer_queue.put(in_data)
+        if callback is None: callback = lambda in_data: self.buffer_queue.put(in_data)
         self.buffer_queue = queue.Queue()
         self.device = device
         self.input_rate = input_rate
@@ -117,8 +115,7 @@ class VADAudio(Audio):
             Example: (frame, ..., frame, None, frame, ..., frame, None, ...)
                       |---utterence---|        |---utterence---|
         """
-        if frames is None:
-            frames = self.frame_generator()
+        if frames is None: frames = self.frame_generator()
         num_padding_frames = padding_ms // self.frame_duration_ms
         ring_buffer = collections.deque(maxlen=num_padding_frames)
         triggered = False
@@ -190,7 +187,6 @@ def main(ARGS):
             print("Recognized: %s" % text)
             stream_context = model.setupStream()
 
-
 if __name__ == '__main__':
     BEAM_WIDTH = 500
     DEFAULT_SAMPLE_RATE = 16000
@@ -218,7 +214,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--trie', default='trie',
                         help="Path to the language model trie file created with native_client/generate_trie. Default: trie")
     parser.add_argument('-d', '--device', type=int, default=None,
-                        help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index()")
+                        help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index(). If not provided, falls back to PyAudio.get_default_device()")
     parser.add_argument('-r', '--rate', type=int, default=DEFAULT_SAMPLE_RATE,
                         help=f"Input device sample rate. Default: {DEFAULT_SAMPLE_RATE}. Your device may require 44100.")
     parser.add_argument('-nf', '--n_features', type=int, default=N_FEATURES,
