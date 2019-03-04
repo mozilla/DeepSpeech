@@ -9,6 +9,7 @@ target_dir="${ML_GROUP_DIR}/ds/training/augmented"
 mkdir -p "${target_dir}"
 
 git clone https://github.com/mozilla/voice-corpus-tool.git /tmp/vocoto
+apt-get install -y libsndfile1
 pip3 install -r /tmp/vocoto/requirements.txt
 vocoto () {
     python3 /tmp/vocoto/voice.py "$@"
