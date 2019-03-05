@@ -10,7 +10,7 @@ namespace DeepSpeechClient
     /// <summary>
     /// Client of the Mozilla's deepspeech implementation.
     /// </summary>
-    public class DeepSpeech : IDeepSpeech, IDisposable
+    public class DeepSpeech : IDeepSpeech
     {
         private unsafe ModelState** _modelStatePP;
         private unsafe ModelState* _modelStateP;
