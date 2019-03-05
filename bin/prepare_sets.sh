@@ -5,7 +5,11 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
-target_dir="${ML_GROUP_DIR}/ds/training/augmented"
+sets_dir="${ML_GROUP_DIR}/ds/training"
+target_dir="${sets_dir}/augmented"
+if [ -d "${target_dir}" ] ; then
+    mv "${target_dir}" "${sets_dir}/augmented_$(date +"%Y%m%dT%H%M")"
+fi
 mkdir -p "${target_dir}"
 
 git clone https://github.com/mozilla/voice-corpus-tool.git /tmp/vocoto
