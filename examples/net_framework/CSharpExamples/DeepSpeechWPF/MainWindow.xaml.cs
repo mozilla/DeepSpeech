@@ -2,6 +2,7 @@
 using CSCore.CoreAudioAPI;
 using CSCore.SoundIn;
 using CSCore.Streams;
+using DeepSpeechClient.Interfaces;
 using Microsoft.Win32; 
 using System;
 using System.Collections.Concurrent;
@@ -19,7 +20,7 @@ namespace DeepSpeechWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly DeepSpeechClient.DeepSpeech _sttClient;
+        private readonly IDeepSpeech _sttClient;
          
         private const uint N_CEP = 26;
         private const uint N_CONTEXT = 9;
