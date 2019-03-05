@@ -23,72 +23,43 @@ pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
 pip install $(python util/taskcluster.py --decoder)
 
-python util/check_characters.py \
-        -csv "/data/rw/home/ky/clips/clean-train.csv","/data/rw/home/ky/clips/clean-test.csv","/data/rw/home/ky/clips/clean-dev.csv" \
-        -alpha \
-    > /data/rw/home/ky/clean-alphabet.txt
-
-echo "##############################"
-echo "STARTING TRAINING FROM SCRATCH"
-echo "##############################"
-
-exp="../keep/scratch/"
-
-python -u DeepSpeech.py \
-	    --export_dir "${exp}/model/" \
-	    --summary_dir "${exp}/summaries/" \
-	    --checkpoint_dir "${exp}/ckpt/" \
-	    --test_output_file "${exp}/RESULTS.json" \
-	    --n_hidden 2048 \
-	    --epoch 1000 \
-        --earlystop_nsteps 5 \
-	    --train_batch_size 24 \
-	    --dev_batch_size 48 \
-	    --test_batch_size 48 \
-	    --learning_rate 0.0001 \
-	    --dropout_rate 0.2 \
-	    --display_step 0 \
-	    --validation_step 1 \
-        --summary_secs 60 \
-        --train_files "/data/rw/home/ky/clips/clean-train.csv" \
-        --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
-        --test_files "/data/rw/home/ky/clips/clean-test.csv" \
-        --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
-        --lm_binary_path "/data/rw/home/ky/lm.binary" \
-        --lm_trie_path "/data/rw/home/ky/trie";
-
-
 
 echo "##############################"
 echo " STARTING TRANSFER LEARNING "
 echo "##############################"
 
-exp="../keep/fine_tune"
+for input in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9; do 
+    for hidden in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9; do
+        for lrate in 0.01 0.001 0.0001; do
+            exp="../keep/scratch/input-${input}/hidden-${hidden}/lrate-${lrate}"
 
-python -u DeepSpeech.py \
-        --fine_tune \
-	    --export_dir "${exp}/model/" \
-	    --summary_dir "${exp}/summaries/" \
-	    --checkpoint_dir "${exp}/ckpt/" \
-	    --test_output_file "${exp}/RESULTS.json" \
-	    --drop_source_layers 2 \
-	    --source_model_checkpoint_dir "${SOURCE_MODEL}" \
-	    --n_hidden 2048 \
-	    --epoch -1000 \
-        --earlystop_nsteps 5 \
-	    --train_batch_size 24 \
-	    --dev_batch_size 48 \
-	    --test_batch_size 48 \
-	    --learning_rate 0.0001 \
-	    --dropout_rate 0.2 \
-	    --display_step 0 \
-	    --validation_step 1 \
-        --summary_secs 60 \
-        --train_files "/data/rw/home/ky/clips/clean-train.csv" \
-        --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
-        --test_files "/data/rw/home/ky/clips/clean-test.csv" \
-        --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
-        --lm_binary_path "/data/rw/home/ky/lm.binary" \
-        --lm_trie_path "/data/rw/home/ky/trie";
+            python -u DeepSpeech.py \
+                   --fine_tune \
+	               --export_dir "${exp}/model/" \
+	               --summary_dir "${exp}/summaries/" \
+	               --checkpoint_dir "${exp}/ckpt/" \
+	               --drop_source_layers 2 \
+	               --source_model_checkpoint_dir "${SOURCE_MODEL}" \
+	               --n_hidden 2048 \
+	               --epoch -1000 \
+                   --earlystop_nsteps 5 \
+	               --train_batch_size 24 \
+	               --dev_batch_size 48 \
+	               --test_batch_size 48 \
+	               --learning_rate "${lrate}" \
+	               --dropout_rate "${hidden}" \
+	               --dropout_rate2 "${input}" \
+	               --display_step 0 \
+	               --validation_step 1 \
+                   --summary_secs 60 \
+                   --train_files "/data/rw/home/ky/clips/clean-train.csv" \
+                   --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
+                   --test_files "/data/rw/home/ky/clips/clean-test.csv" \
+                   --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
+                   --lm_binary_path "/data/rw/home/ky/clean-lm.binary" \
+                   --lm_trie_path "/data/rw/home/ky/clean-trie";
+        done
+    done
+done
 
 echo "$0: END"
