@@ -5,12 +5,15 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
+alphabet="${SRC_DIR}/data/alphabet.txt"
+
 sets_dir="${ML_GROUP_DIR}/ds/training"
 target_dir="${sets_dir}/augmented"
 if [ -d "${target_dir}" ] ; then
     mv "${target_dir}" "${sets_dir}/augmented_$(date +"%Y%m%dT%H%M")"
 fi
 mkdir -p "${target_dir}"
+cd "${target_dir}"
 
 git clone https://github.com/mozilla/voice-corpus-tool.git /tmp/vocoto
 apt-get install -y libsndfile1 ffmpeg
@@ -82,13 +85,13 @@ process_set() {
         write "${target_dir}/ds_${target_set}_noise2"
 
     vocoto add "${target_dir}/ds_${target_set}_clean.csv" \
-           hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_clean.hdf5"
+           hdf5 "${alphabet}" "${target_dir}/ds_${target_set}_clean.hdf5"
 
     vocoto add "${target_dir}/ds_${target_set}_noise1.csv" \
-           hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_noise1.hdf5"
+           hdf5 "${alphabet}" "${target_dir}/ds_${target_set}_noise1.hdf5"
 
     vocoto add "${target_dir}/ds_${target_set}_noise2.csv" \
-           hdf5 data/alphabet.txt "${target_dir}/ds_${target_set}_noise2.hdf5"
+           hdf5 "${alphabet}" "${target_dir}/ds_${target_set}_noise2.hdf5"
 }
 
 process_set train \
@@ -108,4 +111,4 @@ vocoto \
     write "${target_dir}/ds_test"
 
 vocoto add "${target_dir}/ds_test.csv" \
-    hdf5 data/alphabet.txt "${target_dir}/ds_test.hdf5"
+    hdf5 "${alphabet}" "${target_dir}/ds_test.hdf5"
