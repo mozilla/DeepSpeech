@@ -1,0 +1,30 @@
+# Ignore extensionless files
+!*.*
+!*/
+
+# Other patterns
+/config.h
+/config.log
+/config.status
+.deps/
+.libs/
+.dirstamp
+*.la
+*.lo
+*.o
+
+# Windows-specific files
+.vs/
+*.VC.db
+Win32/
+x64/
+Debug/
+Release/
+obj/
+/bin/
+*.binlog
+*proj.user
+/cmake
+/cmake64
+/CMakeSettings.json
+/*.zip

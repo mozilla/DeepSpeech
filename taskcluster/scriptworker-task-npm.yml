@@ -15,6 +15,7 @@ build:
   artifacts_deps:
     python: []
     cpp: []
+    java_aar: []
     javascript:
       # GPU package
       - "linux-amd64-cuda-opt"

@@ -1,0 +1,23 @@
+build:
+  template_file: linux-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-apk"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-apk"
+    - "index.project.deepspeech.deepspeech.native_client.android-apk.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  dependencies:
+     - "android-arm64-cpu-opt"
+     - "android-armv7-cpu-opt"
+     - "android-x86_64-cpu-opt"
+  system_setup:
+    >
+      apt-get -qq -y install curl && ${swig.packages.install_script}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.943a6c332331c0ceeba981b51c24abfed2cd6ffa.android-armv7/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/android-apk-build.sh"
+    package: "taskcluster/android-apk-package.sh"
+  nc_asset_name: "native_client.apk.cpu.android.tar.xz"
+  metadata:
+    name: "DeepSpeech Android APK (ARM64+ARMv7+x86_64)"
+    description: "Building DeepSpeech for Android APK (ARM64+ARMv7+x86_64), optimized version"

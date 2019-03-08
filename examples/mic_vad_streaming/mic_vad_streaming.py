@@ -118,7 +118,7 @@ def main(ARGS):
     if ARGS.lm and ARGS.trie:
         logging.info("ARGS.lm: %s", ARGS.lm)
         logging.info("ARGS.trie: %s", ARGS.trie)
-        model.enableDecoderWithLM(ARGS.alphabet, ARGS.lm, ARGS.trie, ARGS.lm_weight, ARGS.valid_word_count_weight)
+        model.enableDecoderWithLM(ARGS.alphabet, ARGS.lm, ARGS.trie, ARGS.lm_alpha, ARGS.lm_beta)
 
     # Start audio with VAD
     vad_audio = VADAudio(aggressiveness=ARGS.vad_aggressiveness)
@@ -148,8 +148,8 @@ def main(ARGS):
 
 if __name__ == '__main__':
     BEAM_WIDTH = 500
-    LM_WEIGHT = 1.50
-    VALID_WORD_COUNT_WEIGHT = 2.10
+    LM_ALPHA = 0.75
+    LM_BETA = 1.85
     N_FEATURES = 26
     N_CONTEXT = 9
 
@@ -175,10 +175,10 @@ if __name__ == '__main__':
                         help=f"Number of MFCC features to use. Default: {N_FEATURES}")
     parser.add_argument('-nc', '--n_context', type=int, default=N_CONTEXT,
                         help=f"Size of the context window used for producing timesteps in the input vector. Default: {N_CONTEXT}")
-    parser.add_argument('-lw', '--lm_weight', type=float, default=LM_WEIGHT,
-                        help=f"The alpha hyperparameter of the CTC decoder. Language Model weight. Default: {LM_WEIGHT}")
-    parser.add_argument('-vwcw', '--valid_word_count_weight', type=float, default=VALID_WORD_COUNT_WEIGHT,
-                        help=f"Valid word insertion weight. This is used to lessen the word insertion penalty when the inserted word is part of the vocabulary. Default: {VALID_WORD_COUNT_WEIGHT}")
+    parser.add_argument('-la', '--lm_alpha', type=float, default=LM_ALPHA,
+                        help=f"The alpha hyperparameter of the CTC decoder. Language Model weight. Default: {LM_ALPHA}")
+    parser.add_argument('-lb', '--lm_beta', type=float, default=LM_BETA,
+                        help=f"The beta hyperparameter of the CTC decoder. Word insertion bonus. Default: {LM_BETA}")
     parser.add_argument('-bw', '--beam_width', type=int, default=BEAM_WIDTH,
                         help=f"Beam width used in the CTC decoder when building candidate transcriptions. Default: {BEAM_WIDTH}")
 

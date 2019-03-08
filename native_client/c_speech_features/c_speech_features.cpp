@@ -1,4 +1,11 @@
-#include <math.h>
+#ifdef _MSC_VER
+  #define _USE_MATH_DEFINES
+  #include <cmath>
+#else         /*_MSC_VER*/
+  #include <math.h>
+#endif
+
+
 #include "c_speech_features.h"
 #include "tools/kiss_fftr.h"
 

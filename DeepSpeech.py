@@ -18,7 +18,6 @@ import traceback
 
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from six.moves import zip, range
-from tensorflow.contrib.lite.python import tflite_convert
 from tensorflow.python.tools import freeze_graph
 from util.audio import audiofile_to_input_vector
 from util.config import Config, initialize_globals
@@ -28,6 +27,12 @@ from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_warn
 from util.preprocess import preprocess
 from util.text import Alphabet
+
+#TODO: remove once fully switched to 1.13
+try:
+    from tensorflow.contrib.lite.python import tflite_convert # 1.12
+except ImportError:
+    from tensorflow.lite.python import tflite_convert # 1.13
 
 
 # Graph Creation
@@ -655,8 +660,7 @@ def test():
                            hdf5_cache_path=FLAGS.test_cached_features_path)
 
     graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
-
-    evaluate.evaluate(test_data, graph, Config.alphabet)
+    evaluate.evaluate(test_data, graph)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
@@ -745,7 +749,7 @@ def export():
         tf.reset_default_graph()
         session = tf.Session(config=Config.session_config)
 
-        inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
+        inputs, outputs, _ = create_inference_graph(batch_size=FLAGS.export_batch_size, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
         input_names = ",".join(tensor.op.name for tensor in inputs.values())
         output_names_tensors = [ tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor) ]
         output_names_ops = [ tensor.name for tensor in outputs.values() if isinstance(tensor, Operation) ]
@@ -809,6 +813,7 @@ def export():
                         self.output_arrays  = output_names
                         self.output_file    = output_tflite_path
                         self.output_format  = 'TFLITE'
+                        self.post_training_quantize = True
 
                         default_empty = [
                             'inference_input_type',
@@ -819,7 +824,6 @@ def export():
                             'change_concat_input_ranges',
                             'allow_custom_ops',
                             'converter_mode',
-                            'post_training_quantize',
                             'dump_graphviz_dir',
                             'dump_graphviz_video'
                         ]

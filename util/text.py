@@ -2,12 +2,10 @@ from __future__ import absolute_import, division, print_function
 
 import codecs
 import numpy as np
-import tensorflow as tf
 import re
 import sys
 
 from six.moves import range
-from functools import reduce
 
 class Alphabet(object):
     def __init__(self, config_file):
@@ -33,14 +31,7 @@ class Alphabet(object):
             return self._str_to_label[string]
         except KeyError as e:
             raise KeyError(
-                '''
-                ERROR: You have characters in your transcripts
-                       which do not occur in your data/alphabet.txt
-                       file. Please verify that your alphabet.txt
-                       contains all neccessary characters. Use
-                       util/check_characters.py to see what characters are in
-                       your train / dev / test transcripts.
-                '''
+                '''ERROR: Your transcripts contain characters which do not occur in data/alphabet.txt! Use util/check_characters.py to see what characters are in your {train,dev,test}.csv transcripts, and then add all these to data/alphabet.txt.'''
             ).with_traceback(e.__traceback__)
             sys.exit()
 
@@ -56,6 +47,7 @@ class Alphabet(object):
     def config_file(self):
         return self._config_file
 
+
 def text_to_char_array(original, alphabet):
     r"""
     Given a Python string ``original``, remove unsupported characters, map characters
@@ -63,44 +55,8 @@ def text_to_char_array(original, alphabet):
     """
     return np.asarray([alphabet.label_from_string(c) for c in original])
 
-def sparse_tuple_from(sequences, dtype=np.int32):
-    r"""Creates a sparse representention of ``sequences``.
-    Args:
-        * sequences: a list of lists of type dtype where each element is a sequence
 
-    Returns a tuple with (indices, values, shape)
-    """
-    indices = []
-    values = []
-
-    for n, seq in enumerate(sequences):
-        indices.extend(zip([n]*len(seq), range(len(seq))))
-        values.extend(seq)
-
-    indices = np.asarray(indices, dtype=np.int64)
-    values = np.asarray(values, dtype=dtype)
-    shape = np.asarray([len(sequences), indices.max(0)[1]+1], dtype=np.int64)
-
-    return tf.SparseTensor(indices=indices, values=values, shape=shape)
-
-def sparse_tensor_value_to_texts(value, alphabet):
-    r"""
-    Given a :class:`tf.SparseTensor` ``value``, return an array of Python strings
-    representing its values.
-    """
-    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape), alphabet)
-
-def sparse_tuple_to_texts(tuple, alphabet):
-    indices = tuple[0]
-    values = tuple[1]
-    results = [''] * tuple[2][0]
-    for i in range(len(indices)):
-        index = indices[i][0]
-        results[index] += alphabet.string_from_label(values[i])
-    # List of strings
-    return results
-
-def wer(original, result):
+def wer_cer_batch(originals, results):
     r"""
     The WER is defined as the editing/Levenshtein distance on word level
     divided by the amount of words in the original text.
@@ -108,22 +64,25 @@ def wer(original, result):
     being totally different (all N words resulting in 1 edit operation each),
     the WER will always be 1 (N / N = 1).
     """
-    # The WER ist calculated on word (and NOT on character) level.
-    # Therefore we split the strings into words first:
-    original = original.split()
-    result = result.split()
-    return levenshtein(original, result) / float(len(original))
+    # The WER is calculated on word (and NOT on character) level.
+    # Therefore we split the strings into words first
+    assert len(originals) == len(results)
 
-def wers(originals, results):
-    count = len(originals)
-    rates = []
-    mean = 0.0
-    assert count == len(results)
-    for i in range(count):
-        rate = wer(originals[i], results[i])
-        mean = mean + rate
-        rates.append(rate)
-    return rates, mean / float(count)
+    total_cer = 0.0
+    total_char_length = 0.0
+
+    total_wer = 0.0
+    total_word_length = 0.0
+
+    for original, result in zip(originals, results):
+        total_cer += levenshtein(original, result)
+        total_char_length += len(original)
+
+        total_wer += levenshtein(original.split(), result.split())
+        total_word_length += len(original.split())
+
+    return total_wer / total_word_length, total_cer / total_char_length
+
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
 
@@ -154,55 +113,6 @@ def levenshtein(a,b):
             current[j] = min(add, delete, change)
 
     return current[n]
-
-# gather_nd is taken from https://github.com/tensorflow/tensorflow/issues/206#issuecomment-229678962
-# 
-# Unfortunately we can't just use tf.gather_nd because it does not have gradients
-# implemented yet, so we need this workaround.
-#
-def gather_nd(params, indices, shape):
-    rank = len(shape)
-    flat_params = tf.reshape(params, [-1])
-    multipliers = [reduce(lambda x, y: x*y, shape[i+1:], 1) for i in range(0, rank)]
-    indices_unpacked = tf.unstack(tf.transpose(indices, [rank - 1] + list(range(0, rank - 1))))
-    flat_indices = sum([a*b for a,b in zip(multipliers, indices_unpacked)])
-    return tf.gather(flat_params, flat_indices)
-
-# ctc_label_dense_to_sparse is taken from https://github.com/tensorflow/tensorflow/issues/1742#issuecomment-205291527
-#
-# The CTC implementation in TensorFlow needs labels in a sparse representation,
-# but sparse data and queues don't mix well, so we store padded tensors in the
-# queue and convert to a sparse representation after dequeuing a batch.
-#
-def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
-    # The second dimension of labels must be equal to the longest label length in the batch
-    correct_shape_assert = tf.assert_equal(tf.shape(labels)[1], tf.reduce_max(label_lengths))
-    with tf.control_dependencies([correct_shape_assert]):
-        labels = tf.identity(labels)
-
-    label_shape = tf.shape(labels)
-    num_batches_tns = tf.stack([label_shape[0]])
-    max_num_labels_tns = tf.stack([label_shape[1]])
-    def range_less_than(previous_state, current_input):
-        return tf.expand_dims(tf.range(label_shape[1]), 0) < current_input
-
-    init = tf.cast(tf.fill(max_num_labels_tns, 0), tf.bool)
-    init = tf.expand_dims(init, 0)
-    dense_mask = tf.scan(range_less_than, label_lengths, initializer=init, parallel_iterations=1)
-    dense_mask = dense_mask[:, 0, :]
-
-    label_array = tf.reshape(tf.tile(tf.range(0, label_shape[1]), num_batches_tns),
-          label_shape)
-    label_ind = tf.boolean_mask(label_array, dense_mask)
-
-    batch_array = tf.transpose(tf.reshape(tf.tile(tf.range(0, label_shape[0]), max_num_labels_tns), tf.reverse(label_shape, [0])))
-    batch_ind = tf.boolean_mask(batch_array, dense_mask)
-
-    indices = tf.transpose(tf.reshape(tf.concat([batch_ind, label_ind], 0), [2, -1]))
-    shape = [batch_size, tf.reduce_max(label_lengths)]
-    vals_sparse = gather_nd(labels, indices, shape)
-
-    return tf.SparseTensor(tf.to_int64(indices), vals_sparse, tf.to_int64(label_shape))
 
 # Validate and normalize transcriptions. Returns a cleaned version of the label
 # or None if it's invalid.

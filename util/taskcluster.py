@@ -79,7 +79,7 @@ if __name__ == '__main__':
                         help='Name of the artifact to download. Defaults to "native_client.tar.xz"')
     parser.add_argument('--source', required=False, default=None,
                         help='Name of the TaskCluster scheme to use.')
-    parser.add_argument('--branch', required=False, default='master',
+    parser.add_argument('--branch', required=False,
                         help='Branch name to use. Defaulting to "master".')
     parser.add_argument('--decoder', action='store_true',
                         help='Get URL to ds_ctcdecoder Python package.')
@@ -103,6 +103,11 @@ if __name__ == '__main__':
         else:
             args.arch = 'cpu'
 
+    has_branch_set = True
+    if not args.branch:
+        has_branch_set = False
+        args.branch = 'master'
+
     if args.decoder:
         plat = platform.system().lower()
         arch = platform.machine()
@@ -113,7 +118,11 @@ if __name__ == '__main__':
         if plat == 'darwin':
             plat = 'macosx_10_10'
 
-        ds_version = parse_version(read('../VERSION'))
+        version_string = read('../VERSION').strip()
+        ds_version = parse_version(version_string)
+
+        if not has_branch_set:
+            args.branch = "v{}".format(version_string)
 
         m_or_mu = 'mu' if is_ucs2 else 'm'
         pyver = ''.join(map(str, sys.version_info[0:2]))

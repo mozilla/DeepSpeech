@@ -1,0 +1,252 @@
+OpenFst: Release 1.6
+    * Optimized label lookup in SymbolTable (1.6.9)
+    * Fixed PROGRAM_FLAGS documentation string in binaries (1.6.8)
+    * Fixed handling of symbol tables in EpsNormalize (1.6.8)
+    * Fixed HashMatcher issues with SetState() and Find() consistency (1.6.8)
+    * Fixed error reporting when FST arc type unknown (1.6.8)
+    * The `first_path` option to ShortestPath is now optimal for A* (1.6.7)
+    * Renames SymbolTable::kNoSymbol to kNoSymbol (1.6.7)
+    * Exposes PowerMapper to the scripting API (1.6.7)
+    * Fixes linking of the special SOs (1.6.7)
+    * Fixes error handling in HashMatcher (1.6.6)
+    * Adds kShortestDelta for operations dependent on shortest-distance (1.6.6)
+    * Adds Python methods for (un)pickling and (de)serializing FSTs (1.6.6)
+    * Adds constructive variants of Invert and Project (1.6.6)
+    * Increases code sharing in MemoryPool/MemoryArena (1.6.6)
+    * Improves consistency of matcher FST ownership (1.6.6)
+    * Adds non-trivial A* estimator class (1.6.6)
+    * Prevents unreachable code generation in libfstscript (1.6.5)
+    * Adds move constructors for non-trivial weight types (1.6.5)
+    * Standardizes method names for tuple weight types (1.6.5)
+    * Eliminates undefined behavior in weight hashing (1.6.5)
+    * Optimizes binary search in SortedMatcher (1.6.5)
+    * Adds SetWeight (1.6.5)
+    * Fixes typing error in Python FAR reader (1.6.4)
+    * Removes restriction that Prune argument have commutative weights (1.6.3)
+    * Improves configuration of CompositeWeight readers and writers (1.6.3)
+    * Improves accuracy of ShortestDistance summation (1.6.3)
+    * SetFinal now "moves" its weight argument (1.6.3)
+    * Exposes ArcIterator and EncodeMapper flags in Python (1.6.3)
+    * Properly sets return codes in FST binaries (1.6.3)
+    * Eliminates StringWeight macros (1.6.3)
+    * Finalizes most virtual method overrides (1.6.2)
+    * Fixes missing includes of <fst/log.h> (1.6.1)
+    * Adds float format support to FST drawing (1.6.1)
+    * Extensive modernization for C++11 style (1.6.0)
+    * Many classes and constants moved into an internal namespace (1.6.0)
+    * Adds HashMatcher (1.6.0)
+    * Adds Member method to SymbolTable (1.6.0)
+    * Adds the "special" extension and the fstspecial binary; this is similar to
+      fstconvert but accepts arguments for specifying special labels (phi, rho,
+      and sigma) of FSTs (1.6.0)
+    * Exposes allow_negative_label option for Python symbol tables (1.6.0)
+
+OpenFst: Release 1.5
+    * Added p-subsequential determinization (1.5.0)
+    * Generalized epsilon normalization to non-functional case (1.5.0)
+    * Added general gallic (plus is union) semiring (1.5.0)
+    * Added FST compression extension (1.5.0)
+    * Added Python extension (1.5.0)
+    * Added multiple pushdown transducer (MPDT) support (1.5.0)
+    * Fixed Isomorphic function (1.5.0)
+    * Added final method to matchers (1.5.0)
+    * Fixed various compiler issues (1.5.0)
+    * Fixed missing Isomorphic components (1.5.0)
+    * Added UnionWeight (1.5.0)
+    * Added InputEpsilonMapper and OutputEpsilonMapper arc mappers (1.5.1)
+    * Added TrivialComposeFilter for more efficient composition when one
+      of the arguments is epsilon-free (1.5.1)
+    * Added properties bits kUnweightedCycles and kWeightedCycles (1.5.1)
+    * Added missing const qualification to (1.5.1):
+      - SymbolTableIterator access
+      - EncodeMapper writing to file
+      - EncodeMapper SymbolTable access
+    * Replaced internal custom reference-counting (RefCounter) with
+      C++11 smart pointers where possible, and fixed associated
+      reference-counting bugs (1.5.1)
+    * When calling DeleteStates on a MutableFst with a shared impl, the impl
+      is set to a new empty impl rather than copying and deleting (1.5.1)
+    * Prepended `Pdt` to the Expand libraries and classes in the PDT
+      extension, and prepended `MPdt` to the Expand libraries and classes
+      in the MPDT extension, so that both can be used in the same compilation
+      unit (1.5.1)
+    * Added option to PDT Replace for compiling a strongly-regular RTN into a
+      bounded-stack PDT (1.5.1)
+    * Improved symbol table support for PDT Replace, including automatic
+      generation of parentheses symbols (1.5.1)
+    * Improvements to scripting API (1.5.1):
+      - Added methods for FST access and mutation
+      - Added additional checks for arc/weight compatibility
+      - WeightClass::One and WeightClass::Zero now require a specified weight
+        type at time of construction
+      - Improved VectorFstClass constructors
+      - Added linear-time check for cyclic dependencies in Replace
+      - Added EncodeMapperClass, a template-free box for an EncodeMapper
+    * Improvements to the binaries (1.5.1):
+      - Fixed no-op --precision flag to fstdraw (1.5.1)
+      - Fixed no-op --file_list_input flag to farcreate (1.5.1)
+    * Improvements to the Python extension (1.5.1):
+      - Added methods for creating an empty mutable FST
+      - Added methods for FST access via state and arc iteration
+      - Added FST compilation from arclists (cf. fstcompile)
+      - Added FST printing and drawing
+      - Added FarReader and FarWriter classes.
+    * FarReader's GetFst method now returns a pointer (1.5.2)
+    * Fixed FSTERROR macro (1.5.2)
+    * Fixed build flags for dlopen (1.5.2)
+    * Consolidated Python extension into single module (1.5.2)
+    * Python add_arc now takes an Arc object (1.5.2)
+    * Adds optional minimization of non-deterministic FSTs (1.5.3)
+    * Mutation methods of the Python Fst object now support chaining (1.5.3)
+    * Scripting API and Python weight objects now support semiring arithmetic
+      (1.5.3)
+    * Adds RemoveSymbol method to SymbolTable (1.5.4)
+    * Prevents underflow when using LogProbArcSelector in random generation
+      (1.5.4)
+    * Makes random weight generators a single template class (1.5.4)
+    * Makes weight Properties constexpr where possible (1.5.4)
+    * Adds check for error when opening files when compiling strings into FARs
+      (1.5.4)
+    * Adds routines for parsing string flags to the scripting API (1.5.4)
+
+OpenFst: Release 1.4
+    * Port to C++11 (1.4.0)
+    * Disambiguate function added (1.4.0)
+    * Isomorphic function added (1.4.0)
+    * Matcher interface augmented with Priority method.
+    * Special matchers (rho/sigma/phi) can match special symbols
+      on both input FSTs in composition/intersection provided at each
+      state pair they only match one side (1.4.0)
+    * Added ExplicitMatcher to suppress implicit matches (e.g. epsilon
+      self-loops) (1.4.0)
+    * Linear{Tagger,Classifier}Fst extensions added (1.4.0).
+    * Generalized state-reachable to work when input is cyclic (so long as no
+      final state is in a cycle). This ensures label-reachable (and hence label
+      lookahead) works with cyclic input (1.4.0)
+    * Added Condense to build the condensation graph (SCCs condensed to single
+      states) of an FST (1.4.0).
+    * Added an option to Reverse to specify whether a super-initial state
+      should always be created (1.4.0).
+    * Fixed bugs in FirstCacheStore, PowerWeight, and StringCompiler (1.4.0).
+    * Changed SymbolTable to use faster data structure (1.4.0).
+    * Added 'min' disambiguation in determinizaton to keep only the minimum
+      output in a non-functional transducer when plus=min/max
+      (flag --disambiguate_output) (1.4.1)
+    * Compiler issues in linear-fst fixed (1.4.1)
+
+OpenFst: Release 1.3
+    * Support for non-fatal exits on errors: (1.3.1)
+      - Added FLAGS_fst_error_fatal: FST errors are
+        fatal if true (default); o.w. return objects flagged as bad:
+        e.g., FSTs - kError
+        prop. true, FST weights - not a Member().
+      - Added kError property bit signifying bad FST
+      - Added  NoWeight() method to FST weight requirements that returns
+        weight that is not a Member().
+    * Various improvements to the FAR extensions (1.3.1)
+      - a single FST is now a FAR type
+      - FLAGS_initial_symbols: Uses the symbol table from the
+        first FST in the archive for all entries"
+      - Input/output to standard input/output for some FAR and arc types
+    * --with-icu configuration option no longer needed (1.3.1)
+    * Improved flags usage esp. if use SET_FLAGS not SetFlags/InitFst (1.3.2)
+    * Added 'fst' as possible far writer type (1.3.2)
+    * phi matcher can now accept 0 as the phi label (1.3.2)
+    * Added ngram-fst extension (1.3.2)
+    * Improved performance of PDT composition (1.3.3)
+    * Memory-map support (1.3.3)
+    * Fixed cross-FST serialization issues (1.3.3)
+    * Fixed NGramFst off-by-one issue (1.3.3)
+    * farextract now allows one to specify a list of comma-separated keys,
+      including key ranges (1.3.3)
+    * Fixed bug in PDT replace that could cause close paren IDs to collide
+      with open paren IDs (1.3.4)
+
+OpenFst: Release 1.2
+    * Added lookahead matching and filtering for faster composition
+    * Added EditFst for mutation of o.w. immutable FSTs
+    * Added script sub-namespace defining type FstClass, a non-templated
+      Fst<Arc> to hold the arc template type internally. This and FST
+      operations on it allow easier I/O and scripting at the cost of some
+      runtime dispatching.
+    * Added per-arc-iterator control of Fst caching.
+    * Added PowerWeight and Power Arc.
+    * Added SparsePowerWeight and SparsePowerArc (1.2.4)
+    * Added SignedLogWeight and SignedLogArc (1.2.4)
+    * Added ExpectationWeight and ExpectationArc (1.2.4)
+    * Added AStarQueue, PruneQueue and NaturalPruneQueue disciplines (1.2.6)
+    * Added Log64Weight and Log64Arc to FST library throughout, including 
+      support throughout scripts/bins/dsos (1.2.8)
+    * Added delayed RandGenFst that outputs tree of paths weighted
+      by count (1.2.8)
+    * Added fstsymbols shell-level command
+    * Added total weight removal option to pushing
+    * Changed methods for symbol table mutation:
+      use MutableInputSymbols()/MutableOutputSymbols().
+    * Numerous efficiency improvements esp in composition, replace, and caching
+    * Made "fstmap" handle semiring conversion by adding "to_std", "to_log"
+      and "to_log64" as supported 'map_type' arguments (1.2.8).
+    * Made the destructive implementation of RmEpsilon skip over states
+      admitting no non-epsilon incoming transition (1.2.8).
+    * Fixed numerous bugs (1.2 through 1.2.9) including:
+      - improper types of some approximation deltas
+      - sub-optimal hashing functions
+      - issues in internal reuse of shortest distance
+      - hashing bug in FloatWeight
+      - bug in shortest path queue
+      - symbol table checksumming issues
+      - various C++ standards issues
+      - Visit() behavior when visitation aborted
+      - Decode() hash performance bug (1.2.1)
+      - EditFst::Copy(bool) method when the boolean parameter is true (1.2.7)
+      - SymbolTable memory leak in Invert() (1.2.8)
+      - Added escaping of " and \ in labels in fstdraw, needed for dot to
+        function properly (1.2.8)
+      - Fixed handling of final weight of start state in fstpush (1.2.8)
+      - Added FST_LL_FORMAT to fix 64-bit integer printf issues (1.2.9)
+      - Fixed missing <functional> includes (1.2.9)
+      - Fixed reused local variable names (1.2.9)
+      - Fixed passing string by reference in FstDraw args (1.2.9)
+    * Added extensions directories including:
+      - finite-state archive (FAR) utilities,
+        added stlist format supporting writing/reading to/from standard out/in
+        at the library-level (1.2.8)
+      - compact fsts
+      - lookahead fsts
+      - pushdown transducers (improved in 1.2.1 through 1.2.7).
+    * Added StateMap/StateMapFst; renamed Map/MapFst to ArcMap/ArcMapFst;
+      map/MapFst retained (but deprecated) (1.2.9)
+    * Deleted ArcSum() and ArcMerge; use StateMap w/ ArcSumMapper and
+      ArcUniqueMapper (1.2.9).
+    * Incremented version of ConstFst/CompactFsts to stop memory alignment
+      that fails on pipes. Made old version raises errors when read on
+      pipes (1.2.9).
+    * Improved determinize hash (1.2.9)
+    * Removed stdio uses (1.2.10)
+    * Fixed library ordering issues esp. with newer GNU build tools (1.2.10)
+
+OpenFst: Release 1.1
+    * Added compat.h to src/include/fst to fix missing defines
+    * Fixed bug in acyclic minimization that led to non-minimal
+      (but equivalent) results
+    * Fixed missing FST typedef in various matchers in matcher.h
+      so that they can be cascaded
+    * Opened file streams binary where appropriate
+
+OpenFst: Release 1.0 (Additions to beta version):
+    * Matcher class added for matching labels at FST states. Includes
+      special matchers for sigma (any), rho ('rest'), and phi ('fail')
+      labels.
+    * Composition generalized with arbitrary filters, matchers, and state
+      tables.
+    * Sequence and matching composition filters provided. (see compose.h,
+      compose-filter.h, matcher.h, state-table.h)
+    * Unique n-best (see shortest-path.h)
+    * Pruning in determinization and epsilon removal (see determinize.h,
+      rmepsilon.h)
+    * New Fst class:
+       * Compact Fsts for space-efficient representation (see compact-fst.h)
+    * New Weight classes:
+       * MinMax
+       * Lexicographic
+    * Miscellaneous bug fixes
