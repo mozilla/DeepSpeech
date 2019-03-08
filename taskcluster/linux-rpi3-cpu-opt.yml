@@ -4,7 +4,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.arm"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.arm"
     - "index.project.deepspeech.deepspeech.native_client.arm.${event.head.sha}"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.059c37c22ccf0b326a53acb22b97138e2918459c.arm/artifacts/public/home.tar.xz"
+  tensorflow: "https://queue.taskcluster.net/v1/task/OEPMKWU3QEO216F1PJPuWQ/artifacts/public/home.tar.xz"
   ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
   system_setup:
     >

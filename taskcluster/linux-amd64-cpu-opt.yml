@@ -14,7 +14,7 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.059c37c22ccf0b326a53acb22b97138e2918459c.cpu/artifacts/public/home.tar.xz"
+  tensorflow: "https://queue.taskcluster.net/v1/task/QCE2t-O2Q32uSsd3mJAl7A/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"

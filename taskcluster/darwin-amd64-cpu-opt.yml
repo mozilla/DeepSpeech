@@ -6,7 +6,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.osx.${event.head.sha}"
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.059c37c22ccf0b326a53acb22b97138e2918459c.osx/artifacts/public/home.tar.xz"
+  tensorflow: "https://queue.taskcluster.net/v1/task/eq_6oMf8QHitLMak1m3bnw/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/host-build.sh"
     package: "taskcluster/package.sh"
