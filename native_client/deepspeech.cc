@@ -193,7 +193,7 @@ struct ModelState {
    *
    * @return A vector of mapped strings (key, value) showing timing information for each word.
    */
-  std::vector<META_DICT> metadata_from_output(Output out,int logit_count);
+  vector<META_DICT> metadata_from_output(Output out,int logit_count);
 
   /**
    * @brief Output metadata as a JSON string
@@ -204,7 +204,7 @@ struct ModelState {
    * @return JSON string (pretty-printed) showing timing information for each word.
    */
   
-  char* json_output_from_metadata(std::vector<META_DICT> word_list);
+  char* json_output_from_metadata(vector<META_DICT> word_list);
   
   /**
    * @brief Do a single inference step in the acoustic model, with:
@@ -498,10 +498,10 @@ ModelState::decode_raw(vector<float>& logits)
   return out;
 }
 
-std::vector<META_DICT>
+vector<META_DICT>
 ModelState::metadata_from_output(Output out,int logit_count)
 {
-  std::vector<META_DICT> word_list;
+  vector<META_DICT> word_list;
 
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
   const int n_frames = logit_count / (BATCH_SIZE * num_classes);
@@ -542,7 +542,7 @@ ModelState::metadata_from_output(Output out,int logit_count)
 }
 
 char* 
-ModelState::json_output_from_metadata(std::vector<META_DICT> word_list)
+ModelState::json_output_from_metadata(vector<META_DICT> word_list)
 {
   std::ostringstream out_string;
 
