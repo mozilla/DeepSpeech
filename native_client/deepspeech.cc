@@ -519,6 +519,7 @@ ModelState::metadata_from_output(Output out,int logit_count)
 	if (strcmp(character," ") == 0 || t == out.tokens.size()-1) {
 	  float time_position = (duration_secs/n_frames)*word_start_timestep;
 	  float word_duration = (duration_secs/n_frames)*(out.timesteps[t] - word_start_timestep - 3); // 3ms offset
+	  if (word_duration < 0) word_duration = 0;
 
 	  META_DICT word_info;
 	  word_info["word"] = word;
@@ -534,7 +535,8 @@ ModelState::metadata_from_output(Output out,int logit_count)
 	} else {
 	  // Timesteps are from the position of the highest letter probability so we 
 	  // offset them back by 3ms to account for this
-	  if (word_start_timestep == 0) word_start_timestep = out.timesteps[t] - 3;
+	  if (word.length() == 1) word_start_timestep = out.timesteps[t] - 3;
+	  if (word_start_timestep < 0) word_start_timestep = 0;
 	}
   }
 	
