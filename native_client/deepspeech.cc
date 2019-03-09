@@ -114,19 +114,17 @@ struct StreamingState {
   vector<float> mfcc_buffer;
   vector<float> batch_buffer;
   ModelState* model;
-  bool extended_output; // Flag to show timings
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
   char* intermediateDecode();
   char* finishStream();
+  vector<META_DICT> finishStreamExtended();
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
   void pushMfccBuffer(const float* buf, unsigned int len);
   void addZeroMfccWindow();
-  void processBatch(const vector<float>& buf, unsigned int n_steps);
-  
-  void set_extended_output(bool val);
+  void processBatch(const vector<float>& buf, unsigned int n_steps);  
 };
 
 struct ModelState {
@@ -311,13 +309,28 @@ StreamingState::finishStream()
     processBatch(batch_buffer, batch_buffer.size()/model->mfcc_feats_per_timestep);
   }
 
-  if (extended_output) {
-    vector<Output> out = model->decode_raw(accumulated_logits);
-    std::vector<META_DICT> word_list = model->metadata_from_output(out[0],accumulated_logits.size());    
-    return model->json_output_from_metadata(word_list);
-  } else {
-    return model->decode(accumulated_logits);
+  return model->decode(accumulated_logits);
+}
+
+vector<META_DICT>
+StreamingState::finishStreamExtended()
+{
+  // Flush audio buffer
+  processAudioWindow(audio_buffer);
+
+  // Add empty mfcc vectors at end of sample
+  for (int i = 0; i < model->n_context; ++i) {
+    addZeroMfccWindow();
   }
+
+  // Process final batch
+  if (batch_buffer.size() > 0) {
+    processBatch(batch_buffer, batch_buffer.size()/model->mfcc_feats_per_timestep);
+  }
+
+    vector<Output> out = model->decode_raw(accumulated_logits);
+    vector<META_DICT> word_list = model->metadata_from_output(out[0],accumulated_logits.size());    
+    return word_list;
 }
 
 void
@@ -383,12 +396,6 @@ void
 StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 {
   model->infer(buf.data(), n_steps, accumulated_logits);
-}
-
-void 
-StreamingState::set_extended_output(bool val)
-{
-  extended_output = val;
 }
 
 
@@ -795,8 +802,23 @@ char*
 DS_SpeechToText(ModelState* aCtx,
                 const short* aBuffer,
                 unsigned int aBufferSize,
-                unsigned int aSampleRate,
-                bool extendedOutput)
+                unsigned int aSampleRate)
+{
+  StreamingState* ctx;
+  int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
+  if (status != DS_ERR_OK) {
+    return nullptr;
+  }
+      
+  DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
+  return DS_FinishStream(ctx);
+}
+
+char*
+DS_SpeechToTextExtended(ModelState* aCtx,
+                const short* aBuffer,
+                unsigned int aBufferSize,
+                unsigned int aSampleRate)
 {
   StreamingState* ctx;
   int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
@@ -804,13 +826,12 @@ DS_SpeechToText(ModelState* aCtx,
     return nullptr;
   }
   
-  ctx->set_extended_output(extendedOutput);
-
-  // Store audio duration in seconds to generate timing info later
+  // Store total audio duration in seconds to generate timing info later
   aCtx->duration_secs = aBufferSize / SAMPLE_RATE;
     
   DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
-  return DS_FinishStream(ctx);
+  
+  return DS_FinishStreamExtended(ctx);
 }
 
 int
@@ -874,6 +895,15 @@ char*
 DS_FinishStream(StreamingState* aSctx)
 {
   char* str = aSctx->finishStream();
+  DS_DiscardStream(aSctx);
+  return str;
+}
+
+char*
+DS_FinishStreamExtended(StreamingState* aSctx)
+{
+  vector<META_DICT> metadata = aSctx->finishStreamExtended();
+  char* str = aSctx->model->json_output_from_metadata(metadata);
   DS_DiscardStream(aSctx);
   return str;
 }

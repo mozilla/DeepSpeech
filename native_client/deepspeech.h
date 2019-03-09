@@ -99,8 +99,6 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
  *                sample rate.
  * @param aBufferSize The number of samples in the audio signal.
  * @param aSampleRate The sample-rate of the audio signal.
- * @param extendedOutput Whether to output timing information for each 
- * 				         word or just the entire text.
  *
  * @return The STT result. The user is responsible for freeing the string.
  *         Returns NULL on error.
@@ -109,8 +107,26 @@ DEEPSPEECH_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
                       const short* aBuffer,
                       unsigned int aBufferSize,
-                      unsigned int aSampleRate,
-                      bool extendedOutput);
+                      unsigned int aSampleRate);
+
+/**
+ * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata 
+ * about the results.
+ *
+ * @param aCtx The ModelState pointer for the model to use.
+ * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
+ *                sample rate.
+ * @param aBufferSize The number of samples in the audio signal.
+ * @param aSampleRate The sample-rate of the audio signal.
+ *
+ * @return The STT result plus metadata showing word timings as a JSON string. 
+ * 		   The user is responsible for freeing the string. Returns NULL on error.
+ */
+DEEPSPEECH_EXPORT
+char* DS_SpeechToTextExtended(ModelState* aCtx,
+                      const short* aBuffer,
+                      unsigned int aBufferSize,
+                      unsigned int aSampleRate);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -172,6 +188,20 @@ char* DS_IntermediateDecode(StreamingState* aSctx);
  */
 DEEPSPEECH_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
+
+/**
+ * @brief Signal the end of an audio signal to an ongoing streaming
+ *        inference, returns the STT result over the whole audio signal plus metadata.
+ *
+ * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ *
+ * @return The STT result plus metadata on word timings as a JSON string. 
+ *		   The user is responsible for freeing the string.
+ *
+ * @note This method will free the state pointer (@p aSctx).
+ */
+DEEPSPEECH_EXPORT
+char* DS_FinishStreamExtended(StreamingState* aSctx);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This
