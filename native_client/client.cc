@@ -34,13 +34,17 @@ typedef struct {
 
 ds_result
 LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
-           int aSampleRate)
+           int aSampleRate, bool extended_output)
 {
   ds_result res = {0};
 
   clock_t ds_start_time = clock();
 
-  res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate, extended_metadata);
+  if (extended_output) {
+	  res.string = DS_SpeechToTextExtended(aCtx, aBuffer, aBufferSize, aSampleRate);
+  } else {
+	  res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
+  }  
 
   clock_t ds_end_infer = clock();
 
@@ -219,7 +223,8 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
   ds_result result = LocalDsSTT(context,
                                 (const short*)audio.buffer,
                                 audio.buffer_size / 2,
-                                audio.sample_rate);
+                                audio.sample_rate,
+                                extended_metadata);
   free(audio.buffer);
 
   if (result.string) {
