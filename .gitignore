@@ -19,3 +19,6 @@
 /native_client/python/utils_wrap.cpp
 /native_client/javascript/build
 /native_client/javascript/deepspeech_wrap.cxx
+/project_data/final_corpora
+/project_data/final_test_data
+/project_data/intermediate_results
