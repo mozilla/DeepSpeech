@@ -9,6 +9,7 @@ noise_set="${data}/UPF/freesound-cc0/ds.csv"
 target_dir="${ML_GROUP_DIR}/ds/training/augmented"
 
 mkdir -p "${target_dir}"
+cd "${target_dir}"
 
 print_head() {
     printf "\n$1\n===========================================\n\n"
@@ -35,7 +36,7 @@ process_set() {
     clean_set="${target_dir}/ds_${target_set}_clean.csv"
     print_head "Processing ${target_set} set..."
 
-    process_lot clean "$@" $LIMIT | sed "s/^/\t/"
+    process_lot clean "$@" $LIMIT 2>&1 | sed "s/^/\t/"
 
     shift
     process_lot noise1 \
@@ -63,7 +64,7 @@ process_set() {
             rate 16000 \
         push result \
         clear \
-        add result | sed "s/^/\t/"
+        add result 2>&1 | sed "s/^/\t/"
 
     process_lot noise2 \
         "${target_set}" \
@@ -90,7 +91,7 @@ process_set() {
             rate 16000 \
         push result \
         clear \
-        add result | sed "s/^/\t/"
+        add result 2>&1 | sed "s/^/\t/"
 }
 
 process_set train \
