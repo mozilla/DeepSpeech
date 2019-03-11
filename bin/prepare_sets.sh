@@ -25,8 +25,13 @@ process_lot() {
         print_head "Skipping ${target_lot} version of ${target_set} set (${target_prefix}.csv already exists)."
     else
         print_head "Generating ${target_lot} version of ${target_set} set..."
-        # rm -rf "${target_prefix}" "${target_prefix}.hdf5"
         vocoto "$@" write "${target_prefix}"
+        rm -f "${target_prefix}.hdf5"
+    fi
+    if [ -f "${target_prefix}.hdf5" ]; then
+        print_head "Skipping MFCC DB generation for ${target_lot} version of ${target_set} set (${target_prefix}.hdf5 already exists)."
+    else
+        print_head "Generating MFCC DB for ${target_lot} version of ${target_set} set..."
         vocoto add "${target_prefix}.csv" hdf5 "${alphabet}" "${target_prefix}.hdf5"
     fi
 }
