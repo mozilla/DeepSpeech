@@ -41,8 +41,8 @@ process_set() {
     shift
     process_lot noise1 \
         "${target_set}" \
-        add "${noise_set}" stash noise \
-        add "${clean_set}" shuffle stash crosstalk \
+        add "${noise_set}" $LIMIT stash noise \
+        add "${clean_set}" shuffle $LIMIT stash crosstalk \
         "$@" $LIMIT \
         shuffle \
         stash remaining \
@@ -68,8 +68,8 @@ process_set() {
 
     process_lot noise2 \
         "${target_set}" \
-        add "${noise_set}" stash noise \
-        add "${clean_set}" shuffle stash crosstalk \
+        add "${noise_set}" $LIMIT stash noise \
+        add "${clean_set}" shuffle $LIMIT stash crosstalk \
         "$@" $LIMIT \
         shuffle \
         stash remaining \
