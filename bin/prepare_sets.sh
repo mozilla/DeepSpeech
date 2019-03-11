@@ -6,6 +6,7 @@ swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
 alphabet="${SRC_DIR}/data/alphabet.txt"
+noise_set="${data}/UPF/freesound-cc0/ds.csv"
 
 sets_dir="${ML_GROUP_DIR}/ds/training"
 target_dir="${sets_dir}/augmented"
@@ -18,23 +19,44 @@ cd "${target_dir}"
 git clone https://github.com/mozilla/voice-corpus-tool.git /tmp/vocoto
 apt-get install -y libsndfile1 ffmpeg
 pip3 install -r /tmp/vocoto/requirements.txt
-vocoto () {
+
+print_head() {
+    printf "\n$1\n===========================================\n\n"
+}
+
+vocoto() {
     python3 /tmp/vocoto/voice.py "$@"
+}
+
+process_lot() {
+    target_lot=$1
+    shift
+    target_set=$1
+    shift
+    target_prefix="${target_dir}/ds_${target_set}_${target_lot}"
+    if [ -f "${target_prefix}.csv" ]; then
+        print_head "Skipping ${target_lot} version of ${target_set} set (${target_prefix}.csv already exists)."
+    else
+        print_head "Generating ${target_lot} version of ${target_set} set..."
+        # rm -rf "${target_prefix}" "${target_prefix}.hdf5"
+        vocoto "$@" write "${target_prefix}"
+        vocoto add "${target_prefix}.csv" hdf5 "${alphabet}" "${target_prefix}.hdf5"
+    fi
 }
 
 process_set() {
     target_set=$1
+    clean_set="${target_dir}/ds_${target_set}_clean.csv"
+    print_head "Processing ${target_set} set..."
+
+    process_lot clean "$@" | sed "s/^/\t/"
+
     shift
-    vocoto \
-        add "${data}/UPF/freesound-cc0/ds.csv" \
-        stash noise \
+    process_lot noise1 \
+        "${target_set}" \
+        add "${noise_set}" stash noise \
+        add "${clean_set}" shuffle stash crosstalk \
         "$@" \
-        shuffle \
-        set original \
-        write "${target_dir}/ds_${target_set}_clean" \
-        shuffle \
-        set crosstalk \
-        \
         shuffle \
         stash remaining \
         slice remaining 80 \
@@ -55,12 +77,13 @@ process_set() {
             rate 16000 \
         push result \
         clear \
-        add result \
-        write "${target_dir}/ds_${target_set}_noise1" \
-        \
-        clear \
-        drop result \
-        add original \
+        add result | sed "s/^/\t/"
+
+    process_lot noise2 \
+        "${target_set}" \
+        add "${noise_set}" stash noise \
+        add "${clean_set}" shuffle stash crosstalk \
+        "$@" \
         shuffle \
         stash remaining \
         slice remaining 80 \
@@ -81,17 +104,7 @@ process_set() {
             rate 16000 \
         push result \
         clear \
-        add result \
-        write "${target_dir}/ds_${target_set}_noise2"
-
-    vocoto add "${target_dir}/ds_${target_set}_clean.csv" \
-           hdf5 "${alphabet}" "${target_dir}/ds_${target_set}_clean.hdf5"
-
-    vocoto add "${target_dir}/ds_${target_set}_noise1.csv" \
-           hdf5 "${alphabet}" "${target_dir}/ds_${target_set}_noise1.hdf5"
-
-    vocoto add "${target_dir}/ds_${target_set}_noise2.csv" \
-           hdf5 "${alphabet}" "${target_dir}/ds_${target_set}_noise2.hdf5"
+        add result | sed "s/^/\t/"
 }
 
 process_set train \
@@ -105,10 +118,6 @@ process_set dev \
     add "${lbs}-dev-clean.csv" \
     add "${lbs}-dev-other.csv"
 
-vocoto \
+process_set test \
     add "${lbs}-test-clean.csv" \
-    add "${lbs}-test-other.csv" \
-    write "${target_dir}/ds_test"
-
-vocoto add "${target_dir}/ds_test.csv" \
-    hdf5 "${alphabet}" "${target_dir}/ds_test.hdf5"
+    add "${lbs}-test-other.csv"
