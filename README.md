@@ -1,3 +1,9 @@
+# Embedding Extraction
+Create a checkpoint folder, download the checkpoint.
+Run the following command for evaluation
+./evaluate.py --test\_files testing/test.csv --checkpoint\_dir checkpoint/ --test\_batch\_size 3
+Batch Size functionality still under construction
+
 # Project DeepSpeech
 
 [![Task Status](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/badge.svg)](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/latest)

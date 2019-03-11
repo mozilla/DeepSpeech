@@ -78,13 +78,15 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
 
     # Reshaping `batch_x` to a tensor with shape `[n_steps*batch_size, n_input + 2*n_input*n_context]`.
     # This is done to prepare the batch for input into the first layer which expects a tensor of rank `2`.
-
+    print('Batch Shape: ', batch_x.shape)
+    print('Batch Shape: ', tf.shape(batch_x))
     # Permute n_steps and batch_size
     batch_x = tf.transpose(batch_x, [1, 0, 2, 3])
     # Reshape to prepare input for first layer
     batch_x = tf.reshape(batch_x, [-1, Config.n_input + 2*Config.n_input*Config.n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
     layers['input_reshaped'] = batch_x
 
+    print('Batch Shape: ', tf.shape(batch_x))
     # The next three blocks will pass `batch_x` through three hidden layers with
     # clipped RELU activation and dropout.
 
@@ -667,7 +669,9 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
     input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2*Config.n_context+1, Config.n_input], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
-
+    print('use_seq_length: ', FLAGS.use_seq_length)
+    print('Config.n_cell_dim: ', Config.n_cell_dim) 
+    print('Seq Length: ', seq_length.shape)
     if not tflite:
         previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
         previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
@@ -889,7 +893,15 @@ def do_single_file_inference(input_file_path):
 
 def main(_):
     initialize_globals()
-
+    print('n-Context ', Config.n_context);
+    print('alphabet ', Config.alphabet._size); 
+    print(Config.n_input);
+    print(Config.n_hidden_1);
+    print(Config.n_hidden_2);
+    print(Config.n_hidden_3);
+    print(Config.n_hidden_5);
+    print(Config.n_hidden_6);
+    print('Layer 4 Dimensions: ', str(Config.n_cell_dim));
     if FLAGS.train or FLAGS.test:
         if len(FLAGS.worker_hosts) == 0:
             # Only one local task: this process (default case - no cluster)

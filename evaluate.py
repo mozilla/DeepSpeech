@@ -43,6 +43,12 @@ def pad_to_dense(jagged):
         padded[i, :len(row)] = row
     return padded
 
+def save_np_array(arr, filename):
+    assert(type(filename) == str)
+    np.save(filename, arr)
+
+def load_np_array(filename):
+    return np.load(filename)
 
 def evaluate(test_data, inference_graph):
     scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
@@ -69,7 +75,9 @@ def evaluate(test_data, inference_graph):
 
     with tf.Session(config=Config.session_config) as session:
         inputs, outputs, layers = inference_graph
-
+        layer_4 = layers['rnn_output']
+        layer_5 = layers['layer_5']
+        layer_6 = layers['layer_6']
         # Transpose to batch major for decoder
         transposed = tf.transpose(outputs['outputs'], [1, 0, 2])
 
@@ -103,6 +111,10 @@ def evaluate(test_data, inference_graph):
 
         logitses = []
         losses = []
+        ## To Print the embeddings
+        layer_4s = []
+        layer_5s = []
+        layer_6s = []
 
         print('Computing acoustic model predictions...')
         batch_count = len(test_data) // FLAGS.test_batch_size
@@ -118,7 +130,7 @@ def evaluate(test_data, inference_graph):
             labels = pad_to_dense(batch['transcript'].values + 1)
             label_lengths = batch['transcript_len'].values
 
-            logits, loss_ = session.run([transposed, loss], feed_dict={
+            logits, loss_, lay4, lay5, lay6 = session.run([transposed, loss, layer_4, layer_5, layer_6], feed_dict={
                 inputs['input']: features,
                 inputs['input_lengths']: features_len,
                 labels_ph: labels,
@@ -127,6 +139,19 @@ def evaluate(test_data, inference_graph):
 
             logitses.append(logits)
             losses.extend(loss_)
+            layer_4s.append(lay4)
+            layer_5s.append(lay5)
+            layer_6s.append(lay6)
+            print('Saving to Files: ')
+            lay4.tofile('embeddings/lay4.txt')
+            lay5.tofile('embeddings/lay5.txt')
+            lay6.tofile('embeddings/lay6.txt')
+#            np.save('embeddings/lay41.npy', lay4)
+            save_np_array(lay4, 'embeddings/lay41.npy')
+            print('\nLayer 4 Shape: ', load_np_array('embeddings/lay41.npy').shape)
+#            print('\nLayer 4 Shape: ', np.load('embeddings/lay41.npy').shape)
+            print('Layer 5 Shape: ', lay5.shape)
+            print('Layer 6 Shape: ', lay6.shape)
 
     ground_truths = []
     predictions = []
@@ -189,7 +214,7 @@ def main(_):
         hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
         by="features_len",
         ascending=False)
-
+    print('Batch Size: ', FLAGS.test_batch_size)
     from DeepSpeech import create_inference_graph
     graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
 
