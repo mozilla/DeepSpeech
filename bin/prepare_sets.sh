@@ -4,28 +4,14 @@ data="${SHARED_DIR}/data"
 fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
-
 alphabet="${SRC_DIR}/data/alphabet.txt"
 noise_set="${data}/UPF/freesound-cc0/ds.csv"
+target_dir="${ML_GROUP_DIR}/ds/training/augmented"
 
-sets_dir="${ML_GROUP_DIR}/ds/training"
-target_dir="${sets_dir}/augmented"
-if [ -d "${target_dir}" ] ; then
-    mv "${target_dir}" "${sets_dir}/augmented_$(date +"%Y%m%dT%H%M")"
-fi
 mkdir -p "${target_dir}"
-cd "${target_dir}"
-
-git clone https://github.com/mozilla/voice-corpus-tool.git /tmp/vocoto
-apt-get install -y libsndfile1 ffmpeg
-pip3 install -r /tmp/vocoto/requirements.txt
 
 print_head() {
     printf "\n$1\n===========================================\n\n"
-}
-
-vocoto() {
-    python3 /tmp/vocoto/voice.py "$@"
 }
 
 process_lot() {
@@ -49,14 +35,14 @@ process_set() {
     clean_set="${target_dir}/ds_${target_set}_clean.csv"
     print_head "Processing ${target_set} set..."
 
-    process_lot clean "$@" | sed "s/^/\t/"
+    process_lot clean "$@" $LIMIT | sed "s/^/\t/"
 
     shift
     process_lot noise1 \
         "${target_set}" \
         add "${noise_set}" stash noise \
         add "${clean_set}" shuffle stash crosstalk \
-        "$@" \
+        "$@" $LIMIT \
         shuffle \
         stash remaining \
         slice remaining 80 \
@@ -83,7 +69,7 @@ process_set() {
         "${target_set}" \
         add "${noise_set}" stash noise \
         add "${clean_set}" shuffle stash crosstalk \
-        "$@" \
+        "$@" $LIMIT \
         shuffle \
         stash remaining \
         slice remaining 80 \
