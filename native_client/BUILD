@@ -96,6 +96,7 @@ tf_cc_shared_object(
         ],
         "//conditions:default": [
             "//tensorflow/core:core_cpu",
+            "//tensorflow/core:ops",
             "//tensorflow/core:direct_session",
             "//third_party/eigen3",
             #"//tensorflow/core:all_kernels",
