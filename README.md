@@ -4,6 +4,17 @@ Run the following command for evaluation
 ./evaluate.py --test\_files testing/test.csv --checkpoint\_dir checkpoint/ --test\_batch\_size 3
 Batch Size functionality still under construction
 
+
+Use the following script rather than running the above command, need to pass in various arguments:
+Data Directory Location
+Output Directory Location
+Scripts Location(For running the initialization script
+DeepSpeech Folder Location(For running the main ./evaluate.pt)
+
+./git\_repo/DeepSpeech/extraction/scripts/prepare\_and\_run.sh ~/data/final\_corpora/ ~/output/ ~/git\_repo/DeepSpeech/extraction/scripts/ ~/git\_repo/DeepSpeech/
+
+NOTE: Directories arguments should end with /
+
 # Project DeepSpeech
 
 [![Task Status](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/badge.svg)](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/latest)

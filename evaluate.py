@@ -29,6 +29,7 @@ LAYER4 = EMBEDDINGS + 'layer4/'
 LAYER5 = EMBEDDINGS + 'layer5/'
 LAYER6 = EMBEDDINGS + 'layer6/'
 TEXT = EMBEDDINGS + 'text/'
+print('Here!!!!!')
 
 def split_data(dataset, batch_size):
     remainder = len(dataset) % batch_size
@@ -124,6 +125,7 @@ def evaluate(test_data, inference_graph):
 
         print('Computing acoustic model predictions...')
         batch_count = len(test_data) // FLAGS.test_batch_size
+        print('Batch Count: ', batch_count)
         bar = progressbar.ProgressBar(max_value=batch_count,
                                       widget=progressbar.AdaptiveETA)
 
@@ -131,7 +133,7 @@ def evaluate(test_data, inference_graph):
         for batch in bar(split_data(test_data, FLAGS.test_batch_size)):
             session.run(outputs['initialize_state'])
             #TODO: Need to remove it to generalize for greater batch size!
-            assert(FLAGS.test_batch_size == 1)
+            assert FLAGS.test_batch_size == 1, 'Embedding Extraction will only work for Batch Size = 1 for now!'
 
             features = pad_to_dense(batch['features'].values)
             features_len = batch['features_len'].values
@@ -156,14 +158,14 @@ def evaluate(test_data, inference_graph):
             #lay6.tofile('embeddings/lay6.txt')
 #            np.save('embeddings/lay41.npy', lay4)
             filename = batch.fname.iloc[0]
-            save_np_array(lay4, LAYER4 + filename + '.npy')
-            save_np_array(lay5, LAYER5 + filename + '.npy')
-            save_np_array(lay6, LAYER6 + filename + '.npy')
+            save_np_array(lay4, Config.LAYER4 + filename + '.npy')
+            save_np_array(lay5, Config.LAYER5 + filename + '.npy')
+            save_np_array(lay6, Config.LAYER6 + filename + '.npy')
 #            print('\nLayer 4 Shape: ', load_np_array('embeddings/lay41.npy').shape)
 #            print('\nLayer 4 Shape: ', np.load('embeddings/lay41.npy').shape)
             print('Layer 5 Shape: ', lay5.shape)
             print('Layer 6 Shape: ', lay6.shape)
-
+    print('LAYER4: ', Config.LAYER4)
     ground_truths = []
     predictions = []
     fnames = []
@@ -193,7 +195,7 @@ def evaluate(test_data, inference_graph):
     distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
 
     wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses, fnames)
-    print(samples) 
+    print('Sample Lengths: ', len(samples))
     mean_loss = np.mean(losses)
 
     # Take only the first report_count items
@@ -202,8 +204,10 @@ def evaluate(test_data, inference_graph):
     print('Test - WER: %f, CER: %f, loss: %f' %
           (wer, cer, mean_loss))
     print('-' * 80)
+    count = 0
     for sample in report_samples:
-        with open(TEXT + sample.fname + '.txt', 'w') as f:
+        count += 1
+        with open(Config.TEXT + sample.fname + '.txt', 'w') as f:
             f.write(sample.res)
         print("File Name: ", sample.fname)
         print('WER: %f, CER: %f, loss: %f' %
@@ -211,7 +215,7 @@ def evaluate(test_data, inference_graph):
         print(' - src: "%s"' % sample.src)
         print(' - res: "%s"' % sample.res)
         print('-' * 80)
-
+    print('Total Count: ', count)
     return samples
 
 
@@ -222,7 +226,16 @@ def main(_):
         log_error('You need to specify what files to use for evaluation via '
                   'the --test_files flag.')
         exit(1)
-
+    #if FLAGS.embeddings_output_dir:
+    #    prefix = FLAGS.embeddings_output_dir
+    #    print('Prefix :', prefix)
+    #    #print('LAYER4 :', LAYER4) 
+    #    EMBEDDINGS = prefix + 'embeddings/'
+    #    LAYER4 = EMBEDDINGS + 'layer4/'
+    #    LAYER5 = EMBEDDINGS + 'layer5/'
+    #    LAYER6 = EMBEDDINGS + 'layer6/'
+    #    c.TEXT = EMBEDDINGS + 'text/'
+    #    print('LAYER4 :', LAYER4)
     # sort examples by length, improves packing of batches and timesteps
     test_data = preprocess(
         FLAGS.test_files.split(','),

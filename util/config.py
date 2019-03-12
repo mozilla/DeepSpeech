@@ -129,6 +129,23 @@ def initialize_globals():
     # Dequeue operations for each parameter server
     c.done_dequeues = [queue.dequeue() for queue in done_queues]
 
+    c.EMBEDDINGS = 'embeddings/'
+    c.LAYER4 = c.EMBEDDINGS + 'layer4/'
+    c.LAYER5 = c.EMBEDDINGS + 'layer5/'
+    c.LAYER6 = c.EMBEDDINGS + 'layer6/'
+    c.TEXT = c.EMBEDDINGS + 'text/'
+    print('LAYER4 :', c.LAYER4)
+    if FLAGS.embeddings_output_dir:
+        prefix = FLAGS.embeddings_output_dir
+        print('Prefix :', prefix)
+        #print('LAYER4 :', LAYER4)
+        c.EMBEDDINGS = prefix + 'embeddings/'
+        c.LAYER4 = c.EMBEDDINGS + 'layer4/'
+        c.LAYER5 = c.EMBEDDINGS + 'layer5/'
+        c.LAYER6 = c.EMBEDDINGS + 'layer6/'
+        c.TEXT = c.EMBEDDINGS + 'text/'
+        print('LAYER4 :', c.LAYER4)
+
     if len(FLAGS.one_shot_infer) > 0:
         FLAGS.train = False
         FLAGS.test = False
