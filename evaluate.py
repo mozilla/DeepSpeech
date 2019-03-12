@@ -24,6 +24,12 @@ from util.preprocess import preprocess
 from util.text import Alphabet, levenshtein
 from util.evaluate_tools import process_decode_result, calculate_report
 
+EMBEDDINGS = 'embeddings/'
+LAYER4 = EMBEDDINGS + 'layer4/'
+LAYER5 = EMBEDDINGS + 'layer5/'
+LAYER6 = EMBEDDINGS + 'layer6/'
+TEXT = EMBEDDINGS + 'text/'
+
 def split_data(dataset, batch_size):
     remainder = len(dataset) % batch_size
     if remainder != 0:
@@ -124,6 +130,8 @@ def evaluate(test_data, inference_graph):
         # First pass, compute losses and transposed logits for decoding
         for batch in bar(split_data(test_data, FLAGS.test_batch_size)):
             session.run(outputs['initialize_state'])
+            #TODO: Need to remove it to generalize for greater batch size!
+            assert(FLAGS.test_batch_size == 1)
 
             features = pad_to_dense(batch['features'].values)
             features_len = batch['features_len'].values
@@ -143,18 +151,22 @@ def evaluate(test_data, inference_graph):
             layer_5s.append(lay5)
             layer_6s.append(lay6)
             print('Saving to Files: ')
-            lay4.tofile('embeddings/lay4.txt')
-            lay5.tofile('embeddings/lay5.txt')
-            lay6.tofile('embeddings/lay6.txt')
+            #lay4.tofile('embeddings/lay4.txt')
+            #lay5.tofile('embeddings/lay5.txt')
+            #lay6.tofile('embeddings/lay6.txt')
 #            np.save('embeddings/lay41.npy', lay4)
-            save_np_array(lay4, 'embeddings/lay41.npy')
-            print('\nLayer 4 Shape: ', load_np_array('embeddings/lay41.npy').shape)
+            filename = batch.fname.iloc[0]
+            save_np_array(lay4, LAYER4 + filename + '.npy')
+            save_np_array(lay5, LAYER5 + filename + '.npy')
+            save_np_array(lay6, LAYER6 + filename + '.npy')
+#            print('\nLayer 4 Shape: ', load_np_array('embeddings/lay41.npy').shape)
 #            print('\nLayer 4 Shape: ', np.load('embeddings/lay41.npy').shape)
             print('Layer 5 Shape: ', lay5.shape)
             print('Layer 6 Shape: ', lay6.shape)
 
     ground_truths = []
     predictions = []
+    fnames = []
 
     print('Decoding predictions...')
     bar = progressbar.ProgressBar(max_value=batch_count,
@@ -171,22 +183,29 @@ def evaluate(test_data, inference_graph):
         seq_lengths = batch['features_len'].values.astype(np.int32)
         decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, Config.alphabet, FLAGS.beam_width,
                                                 num_processes=num_processes, scorer=scorer)
-
+        #print('Batch\n', batch)
         ground_truths.extend(Config.alphabet.decode(l) for l in batch['transcript'])
+        fnames.extend([l for l in batch['fname']])
+        #fnames.append(batch['fname'])
+        #print(fnames)
         predictions.extend(d[0][1] for d in decoded)
 
     distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
 
-    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
+    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses, fnames)
+    print(samples) 
     mean_loss = np.mean(losses)
 
     # Take only the first report_count items
     report_samples = itertools.islice(samples, FLAGS.report_count)
-
+    print(report_samples)
     print('Test - WER: %f, CER: %f, loss: %f' %
           (wer, cer, mean_loss))
     print('-' * 80)
     for sample in report_samples:
+        with open(TEXT + sample.fname + '.txt', 'w') as f:
+            f.write(sample.res)
+        print("File Name: ", sample.fname)
         print('WER: %f, CER: %f, loss: %f' %
               (sample.wer, sample.distance, sample.loss))
         print(' - src: "%s"' % sample.src)
@@ -214,6 +233,10 @@ def main(_):
         hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
         by="features_len",
         ascending=False)
+    #print('test_data', test_data)
+    #print(test_data.fname[1])
+    #return 1
+    #print(test_data[0].fname)
     print('Batch Size: ', FLAGS.test_batch_size)
     from DeepSpeech import create_inference_graph
     graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)

@@ -13,7 +13,7 @@ def pmap(fun, iterable):
     return results
 
 def process_decode_result(item):
-    label, decoding, distance, loss = item
+    label, decoding, distance, loss, fname = item
     word_distance = levenshtein(label.split(), decoding.split())
     word_length = float(len(label.split()))
     return AttrDict({
@@ -21,17 +21,18 @@ def process_decode_result(item):
         'res': decoding,
         'loss': loss,
         'distance': distance,
-        'wer': word_distance / word_length,
+        'wer': word_distance / word_length, 
+        'fname': fname, 
     })
 
 
-def calculate_report(labels, decodings, distances, losses):
+def calculate_report(labels, decodings, distances, losses, fname):
     r'''
     This routine will calculate a WER report.
     It'll compute the `mean` WER and create ``Sample`` objects of the ``report_count`` top lowest
     loss items from the provided WER results tuple (only items with WER!=0 and ordered by their WER).
     '''
-    samples = pmap(process_decode_result, zip(labels, decodings, distances, losses))
+    samples = pmap(process_decode_result, zip(labels, decodings, distances, losses, fname))
 
     # Getting the WER and CER from the accumulated edit distances and lengths
     samples_wer, samples_cer = wer_cer_batch(labels, decodings)

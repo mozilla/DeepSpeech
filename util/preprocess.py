@@ -14,6 +14,8 @@ def pmap(fun, iterable):
     pool.close()
     return results
 
+def extract_filename(filename):
+    return filename.split('/')[-1].split('\\')[-1].split('.wav')[0]
 
 def process_single_file(row, numcep, numcontext, alphabet):
     # row = index, Series
@@ -25,12 +27,12 @@ def process_single_file(row, numcep, numcontext, alphabet):
     if features_len < len(transcript):
         raise ValueError('Error: Audio file {} is too short for transcription.'.format(file.wav_filename))
 
-    return features, features_len, transcript, len(transcript)
+    return features, features_len, transcript, len(transcript), extract_filename(file.wav_filename)
 
 
 # load samples from CSV, compute features, optionally cache results on disk
 def preprocess(csv_files, batch_size, numcep, numcontext, alphabet, hdf5_cache_path=None):
-    COLUMNS = ('features', 'features_len', 'transcript', 'transcript_len')
+    COLUMNS = ('features', 'features_len', 'transcript', 'transcript_len', 'fname')
 
     print('Preprocessing', csv_files)
 
@@ -71,7 +73,7 @@ def preprocess(csv_files, batch_size, numcep, numcontext, alphabet, hdf5_cache_p
         print('Saving to', hdf5_cache_path)
 
         # list of tuples -> tuple of lists
-        features, features_len, transcript, transcript_len = zip(*out_data)
+        features, features_len, transcript, transcript_len, fname = zip(*out_data)
 
         with tables.open_file(hdf5_cache_path, 'w') as file:
             features_dset = file.create_vlarray(file.root,
