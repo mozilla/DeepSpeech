@@ -822,6 +822,7 @@ def export():
                 output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
                 converter = lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
+                converter.post_training_quantize = True
                 tflite_model = converter.convert()
 
                 with open(output_tflite_path, 'wb') as fout:
