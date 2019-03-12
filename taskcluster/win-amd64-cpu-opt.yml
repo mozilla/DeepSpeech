@@ -6,7 +6,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.win.${event.head.sha}"
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.943a6c332331c0ceeba981b51c24abfed2cd6ffa.win/artifacts/public/home.tar.xz"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.e76355516a0c417cfd3fa8a122405477fcd1af0d.win/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/win-build.sh"
     package: "taskcluster/win-package.sh"

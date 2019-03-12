@@ -13,7 +13,7 @@ build:
   system_setup:
     >
       apt-get -qq -y install curl && ${swig.packages.install_script}
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.943a6c332331c0ceeba981b51c24abfed2cd6ffa.android-armv7/artifacts/public/home.tar.xz"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.e76355516a0c417cfd3fa8a122405477fcd1af0d.android-armv7/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/android-apk-build.sh"
     package: "taskcluster/android-apk-package.sh"
