@@ -12,7 +12,7 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://queue.taskcluster.net/v1/task/a5xo5uhZQNequUYART3oCQ/artifacts/public/home.tar.xz"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.21304d99555c7566d021ed8488f037308730968c.android-arm64/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/android-build.sh arm64-v8a"
     package: "taskcluster/android-package.sh arm64-v8a"

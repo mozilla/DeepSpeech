@@ -60,7 +60,7 @@ RUN wget https://bootstrap.pypa.io/get-pip.py && \
 # >> START Configure Tensorflow Build
 
 # Clone TensoFlow from Mozilla repo
-RUN git clone https://github.com/reuben/tensorflow/
+RUN git clone https://github.com/mozilla/tensorflow/
 WORKDIR /tensorflow
 RUN git checkout master
 
