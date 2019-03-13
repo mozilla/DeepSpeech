@@ -3,7 +3,7 @@
 load("@org_tensorflow//tensorflow:tensorflow.bzl",
      "tf_cc_shared_object", "if_cuda")
 
-load("@org_tensorflow//tensorflow/contrib/lite:build_def.bzl",
+load("@org_tensorflow//tensorflow/lite:build_def.bzl",
      "tflite_copts", "tflite_linkopts")
 
 config_setting(
@@ -92,7 +92,7 @@ tf_cc_shared_object(
     }) + tflite_linkopts(),
     deps = select({
         "//native_client:tflite": [
-            "//tensorflow/contrib/lite/kernels:builtin_ops",
+            "//tensorflow/lite/kernels:builtin_ops",
         ],
         "//conditions:default": [
             "//tensorflow/core:core_cpu",
