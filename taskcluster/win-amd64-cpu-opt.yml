@@ -1,0 +1,17 @@
+build:
+  template_file: win-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win"
+    - "index.project.deepspeech.deepspeech.native_client.win.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.e76355516a0c417cfd3fa8a122405477fcd1af0d.win/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/win-build.sh"
+    package: "taskcluster/win-package.sh"
+  nc_asset_name: "native_client.amd64.cpu.win.tar.xz"
+  maxRunTime: 14400
+  metadata:
+    name: "DeepSpeech Windows AMD64 CPU"
+    description: "Building DeepSpeech for Windows AMD64, CPU only, optimized version"

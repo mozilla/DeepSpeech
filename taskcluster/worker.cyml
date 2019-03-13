@@ -4,6 +4,7 @@ taskcluster:
     provisionerId: aws-provisioner-v1
     workerType: deepspeech-worker
     workerTypeKvm: deepspeech-kvm-worker
+    workerTypeWin: deepspeech-win
   dockerrpi3:
     provisionerId: deepspeech-provisioner
     workerType: ds-rpi3
