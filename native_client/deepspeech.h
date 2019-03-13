@@ -1,19 +1,42 @@
 #ifndef DEEPSPEECH_H
 #define DEEPSPEECH_H
 
-#ifdef __ANDROID__
-#define USE_TFLITE
-#endif
-
 #ifndef SWIG
-#define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
+    #if defined _MSC_VER
+        #define DEEPSPEECH_EXPORT extern "C" __declspec(dllexport) 
+    #else                                                                   /*End of _MSC_VER*/  
+        #define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
+#endif                                                                      /*End of SWIG*/  
 #else
-#define DEEPSPEECH_EXPORT
+    #define DEEPSPEECH_EXPORT
 #endif
 
 struct ModelState;
 
 struct StreamingState;
+
+enum DeepSpeech_Error_Codes
+{
+    // OK
+    DS_ERR_OK                 = 0x0000,
+
+    // Missing invormations
+    DS_ERR_NO_MODEL           = 0x1000,
+
+    // Invalid parameters
+    DS_ERR_INVALID_ALPHABET   = 0x2000,
+    DS_ERR_INVALID_SHAPE      = 0x2001,
+    DS_ERR_INVALID_LM         = 0x2002,
+
+    // Runtime failures
+    DS_ERR_FAIL_INIT_MMAP     = 0x3000,
+    DS_ERR_FAIL_INIT_SESS     = 0x3001,
+    DS_ERR_FAIL_INTERPRETER   = 0x3002,
+    DS_ERR_FAIL_RUN_SESS      = 0x3003,
+    DS_ERR_FAIL_CREATE_STREAM = 0x3004,
+    DS_ERR_FAIL_READ_PROTOBUF = 0x3005,
+    DS_ERR_FAIL_CREATE_SESS   = 0x3006,
+};
 
 /**
  * @brief An object providing an interface to a trained DeepSpeech model.
@@ -53,10 +76,10 @@ void DS_DestroyModel(ModelState* ctx);
  * @param aLMPath The path to the language model binary file.
  * @param aTriePath The path to the trie file build from the same vocabu-
  *                  lary as the language model binary.
- * @param aLMWeight The weight to give to language model results when sco-
- *                  ring.
- * @param aValidWordCountWeight The weight (bonus) to give to beams when
- *                              adding a new valid word to the decoding.
+ * @param aLMAlpha The alpha hyperparameter of the CTC decoder. Language Model
+                   weight.
+ * @param aLMBeta The beta hyperparameter of the CTC decoder. Word insertion
+                  weight.
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
@@ -65,8 +88,8 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
                            const char* aAlphabetConfigPath,
                            const char* aLMPath,
                            const char* aTriePath,
-                           float aLMWeight,
-                           float aValidWordCountWeight);
+                           float aLMAlpha,
+                           float aLMBeta);
 
 /**
  * @brief Use the DeepSpeech model to perform Speech-To-Text.

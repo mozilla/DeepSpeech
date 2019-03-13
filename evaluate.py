@@ -12,7 +12,6 @@ import sys
 import tables
 import tensorflow as tf
 
-from attrdict import AttrDict
 from collections import namedtuple
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from multiprocessing import Pool, cpu_count
@@ -21,9 +20,9 @@ from util.audio import audiofile_to_input_vector
 from util.config import Config, initialize_globals
 from util.flags import create_flags, FLAGS
 from util.logging import log_error
-from util.preprocess import pmap, preprocess
-from util.text import Alphabet, ctc_label_dense_to_sparse, wer, levenshtein
-
+from util.preprocess import preprocess
+from util.text import Alphabet, levenshtein
+from util.evaluate_tools import process_decode_result, calculate_report
 
 def split_data(dataset, batch_size):
     remainder = len(dataset) % batch_size
@@ -45,44 +44,7 @@ def pad_to_dense(jagged):
     return padded
 
 
-def process_decode_result(item):
-    label, decoding, distance, loss = item
-    sample_wer = wer(label, decoding)
-    return AttrDict({
-        'src': label,
-        'res': decoding,
-        'loss': loss,
-        'distance': distance,
-        'wer': sample_wer,
-        'levenshtein': levenshtein(label.split(), decoding.split()),
-        'label_length': float(len(label.split())),
-    })
-
-
-def calculate_report(labels, decodings, distances, losses):
-    r'''
-    This routine will calculate a WER report.
-    It'll compute the `mean` WER and create ``Sample`` objects of the ``report_count`` top lowest
-    loss items from the provided WER results tuple (only items with WER!=0 and ordered by their WER).
-    '''
-    samples = pmap(process_decode_result, zip(labels, decodings, distances, losses))
-
-    total_levenshtein = sum(s.levenshtein for s in samples)
-    total_label_length = sum(s.label_length for s in samples)
-
-    # Getting the WER from the accumulated levenshteins and lengths
-    samples_wer = total_levenshtein / total_label_length
-
-    # Order the remaining items by their loss (lowest loss on top)
-    samples.sort(key=lambda s: s.loss)
-
-    # Then order by WER (highest WER on top)
-    samples.sort(key=lambda s: s.wer, reverse=True)
-
-    return samples_wer, samples
-
-
-def evaluate(test_data, inference_graph, alphabet):
+def evaluate(test_data, inference_graph):
     scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                     FLAGS.lm_binary_path, FLAGS.lm_trie_path,
                     Config.alphabet)
@@ -114,7 +76,14 @@ def evaluate(test_data, inference_graph, alphabet):
         labels_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size, None], name="labels")
         label_lengths_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size], name="label_lengths")
 
-        sparse_labels = tf.cast(ctc_label_dense_to_sparse(labels_ph, label_lengths_ph, FLAGS.test_batch_size), tf.int32)
+        # We add 1 to all elements of the transcript to avoid any zero values
+        # since we use that as an end-of-sequence token for converting the batch
+        # into a SparseTensor. So here we convert the placeholder back into a
+        # SparseTensor and subtract ones to get the real labels.
+        sparse_labels = tf.contrib.layers.dense_to_sparse(labels_ph)
+        neg_ones = tf.SparseTensor(sparse_labels.indices, -1 * tf.ones_like(sparse_labels.values), sparse_labels.dense_shape)
+        sparse_labels = tf.sparse_add(sparse_labels, neg_ones)
+
         loss = tf.nn.ctc_loss(labels=sparse_labels,
                               inputs=layers['raw_logits'],
                               sequence_length=inputs['input_lengths'])
@@ -146,7 +115,7 @@ def evaluate(test_data, inference_graph, alphabet):
 
             features = pad_to_dense(batch['features'].values)
             features_len = batch['features_len'].values
-            labels = pad_to_dense(batch['transcript'].values)
+            labels = pad_to_dense(batch['transcript'].values + 1)
             label_lengths = batch['transcript_len'].values
 
             logits, loss_ = session.run([transposed, loss], feed_dict={
@@ -175,23 +144,22 @@ def evaluate(test_data, inference_graph, alphabet):
     # Second pass, decode logits and compute WER and edit distance metrics
     for logits, batch in bar(zip(logitses, split_data(test_data, FLAGS.test_batch_size))):
         seq_lengths = batch['features_len'].values.astype(np.int32)
-        decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, alphabet, FLAGS.beam_width,
+        decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, Config.alphabet, FLAGS.beam_width,
                                                 num_processes=num_processes, scorer=scorer)
 
-        ground_truths.extend(alphabet.decode(l) for l in batch['transcript'])
+        ground_truths.extend(Config.alphabet.decode(l) for l in batch['transcript'])
         predictions.extend(d[0][1] for d in decoded)
 
     distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
 
-    wer, samples = calculate_report(ground_truths, predictions, distances, losses)
-    mean_edit_distance = np.mean(distances)
+    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
     mean_loss = np.mean(losses)
 
     # Take only the first report_count items
     report_samples = itertools.islice(samples, FLAGS.report_count)
 
     print('Test - WER: %f, CER: %f, loss: %f' %
-          (wer, mean_edit_distance, mean_loss))
+          (wer, cer, mean_loss))
     print('-' * 80)
     for sample in report_samples:
         print('WER: %f, CER: %f, loss: %f' %
@@ -211,14 +179,11 @@ def main(_):
                   'the --test_files flag.')
         exit(1)
 
-    global alphabet
-    alphabet = Alphabet(FLAGS.alphabet_config_path)
-
     # sort examples by length, improves packing of batches and timesteps
     test_data = preprocess(
         FLAGS.test_files.split(','),
         FLAGS.test_batch_size,
-        alphabet=alphabet,
+        alphabet=Config.alphabet,
         numcep=Config.n_input,
         numcontext=Config.n_context,
         hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
@@ -228,7 +193,7 @@ def main(_):
     from DeepSpeech import create_inference_graph
     graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
 
-    samples = evaluate(test_data, graph, alphabet)
+    samples = evaluate(test_data, graph)
 
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats

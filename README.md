@@ -1,6 +1,5 @@
 # Project DeepSpeech
 
-[![Documentation Status](https://readthedocs.org/projects/deepspeech/badge/?version=tf-master)](http://deepspeech.readthedocs.io/?badge=tf-master)
 [![Task Status](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/tf-master/badge.svg)](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/tf-master/latest)
 
 Project DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques, based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) project to make the implementation easier.
@@ -25,6 +24,8 @@ pip3 install deepspeech-gpu
 deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
+
 See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
 
 **Table of Contents**
@@ -32,6 +33,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
 - [Getting the pre-trained model](#getting-the-pre-trained-model)
+- [CUDA dependency](#cuda-dependency)
 - [Using the model](#using-the-model)
   - [Using the Python package](#using-the-python-package)
   - [Using the command line client](#using-the-command-line-client)
@@ -48,7 +50,6 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
   - [Distributed computing across more than one machine](#distributed-training-across-more-than-one-machine)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
-- [Code documentation](#code-documentation)
 - [Contact/Getting Help](#contactgetting-help)
 
 ## Prerequisites
@@ -56,6 +57,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 * [Python 3.6](https://www.python.org/)
 * [Git Large File Storage](https://git-lfs.github.com/)
 * Mac or Linux environment
+* Go to [build README](examples/net_framework/README.md) to start building DeepSpeech for Windows from source.
 
 ## Getting the code
 
@@ -70,7 +72,8 @@ git clone https://github.com/mozilla/DeepSpeech
 If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the [DeepSpeech releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the files in your current directory:
 
 ```bash
-wget -O - https://github.com/mozilla/DeepSpeech/releases/download/v0.3.0/deepspeech-0.3.0-models.tar.gz | tar xvfz -
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-models.tar.gz
+tar xvfz deepspeech-0.4.1-models.tar.gz
 ```
 
 ## Using the model
@@ -81,6 +84,10 @@ There are three ways to use DeepSpeech inference:
 - [The command-line client](#using-the-command-line-client)
 - [The Node.JS package](#using-the-nodejs-package)
 
+
+### CUDA dependency
+
+The GPU capable builds (Python, NodeJS, C++ etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow r1.12 it depends on CUDA 9.0 and CuDNN v7.2.
 
 ### Using the Python package
 
@@ -133,6 +140,8 @@ $ pip3 install --upgrade deepspeech-gpu
 
 In both cases, it should take care of installing all the required dependencies. Once it is done, you should be able to call the sample binary using `deepspeech` on your command-line.
 
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
+
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
 ```bash
@@ -159,7 +168,7 @@ python3 util/taskcluster.py --arch osx --target .
 
 also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
 ```bash
-python3 util/taskcluster.py --branch "v0.2.0-alpha.6 --target ."
+python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
 ```
 
 This will download `native_client.tar.xz` which includes the deepspeech binary and associated libraries, and extract it into the current folder. `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Proper DeepSpeech or TensorFlow's branch can be specified as well.
@@ -187,7 +196,9 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU (See the re
 npm install deepspeech-gpu
 ```
 
-See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.
+See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.  Or download the [wav example](examples/nodejs_wav).
+
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
 ### Installing bindings from source
 
@@ -227,8 +238,10 @@ If you have a capable (Nvidia, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip3 uninstall tensorflow
-pip3 install 'tensorflow-gpu==1.12.0rc2'
+pip3 install 'tensorflow-gpu==1.12.0'
 ```
+
+Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
 ### Common Voice training data
 
@@ -243,7 +256,7 @@ To start the import process, you can call:
 bin/import_cv.py path/to/target/directory
 ```
 
-Please be aware that this requires at least 70GB of free disk space and quite some time to conclude.
+Please be aware that training with the Common Voice corpus archive requires at least 70GB of free disk space and quite some time to conclude.
 As this process creates a huge number of small files, using an SSD drive is highly recommended.
 If the import script gets interrupted, it will try to continue from where it stopped the next time you run it.
 Unfortunately, there are some cases where it will need to start over.
@@ -370,10 +383,6 @@ python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder
 ```
 
 Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models. Note as well the use of a negative epoch count -3 (meaning 3 more epochs) since the checkpoint you're loading from was already trained for several epochs.
-
-## Code documentation
-
-Documentation (incomplete) for the code can be found here: http://deepspeech.readthedocs.io/en/latest/
 
 ## Contact/Getting Help
 

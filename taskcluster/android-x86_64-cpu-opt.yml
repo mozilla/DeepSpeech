@@ -1,0 +1,22 @@
+build:
+  template_file: linux-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-x86_64"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-x86_64"
+    - "index.project.deepspeech.deepspeech.native_client.android-x86_64.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  system_setup:
+    >
+      ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.master.21304d99555c7566d021ed8488f037308730968c.android-arm64/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/android-build.sh x86_64"
+    package: "taskcluster/android-package.sh x86_64"
+  nc_asset_name: "native_client.x86_64.cpu.android.tar.xz"
+  metadata:
+    name: "DeepSpeech Android x86_64"
+    description: "Building DeepSpeech for Android x86_64, optimized version"

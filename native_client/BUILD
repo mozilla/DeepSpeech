@@ -3,14 +3,22 @@
 load("@org_tensorflow//tensorflow:tensorflow.bzl",
      "tf_cc_shared_object", "if_cuda")
 
-load("@org_tensorflow//tensorflow/contrib/lite:build_def.bzl",
+load("@org_tensorflow//tensorflow/lite:build_def.bzl",
      "tflite_copts", "tflite_linkopts")
+
+config_setting(
+    name = "tflite",
+    define_values = {
+        "runtime": "tflite"
+    },
+)
 
 genrule(
     name = "ds_git_version",
     outs = ["ds_version.h"],
     cmd = "$(location :ds_git_version.sh) >$@",
-    tools = [":ds_git_version.sh"]
+    tools = [":ds_git_version.sh"],
+    local = 1,
 )
 
 KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
@@ -21,17 +29,25 @@ KENLM_INCLUDES = [
     "kenlm",
 ]
 
+OPENFST_SOURCES_PLATFORM = select({ 
+        "//tensorflow:windows": glob(["ctcdecode/third_party/openfst-1.6.9-win/src/lib/*.cc"]),
+        "//conditions:default": glob(["ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"]),
+})
+
 DECODER_SOURCES = glob([
     "ctcdecode/*.h",
-    "ctcdecode/*.cpp",
-    "ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"
-]) + KENLM_SOURCES
+    "ctcdecode/*.cpp",  
+]) + OPENFST_SOURCES_PLATFORM + KENLM_SOURCES
+
+OPENFST_INCLUDES_PLATFORM = select({ 
+        "//tensorflow:windows": ["ctcdecode/third_party/openfst-1.6.9-win/src/include"],
+        "//conditions:default": ["ctcdecode/third_party/openfst-1.6.7/src/include"],
+})
 
 DECODER_INCLUDES = [
     ".",
-    "ctcdecode/third_party/openfst-1.6.7/src/include",
-    "ctcdecode/third_party/ThreadPool"
-] + KENLM_INCLUDES
+    "ctcdecode/third_party/ThreadPool",   
+] + OPENFST_INCLUDES_PLATFORM + KENLM_INCLUDES
 
 LINUX_LINKOPTS = [
     "-ldl",
@@ -55,23 +71,32 @@ tf_cc_shared_object(
             "kiss_fft130/_kiss_fft_guts.h",
             "kiss_fft130/tools/kiss_fftr.h",
             "ds_version.h"] +
-           DECODER_SOURCES,
-    # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
-    # which makes it harder to see our own warnings
-    copts = ["-Wno-sign-compare", "-fvisibility=hidden"] + tflite_copts(),
+            DECODER_SOURCES,
+    copts = select({ 
+        # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
+        "//tensorflow:windows": ["/w"],
+        # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
+        # which makes it harder to see our own warnings
+        "//conditions:default": ["-Wno-sign-compare", "-fvisibility=hidden"],
+    }) + select({
+        "//native_client:tflite": [ "-DUSE_TFLITE" ],
+        "//conditions:default": [ "-UUSE_TFLITE" ]
+    }) + tflite_copts(),
     linkopts = select({
         "//tensorflow:darwin": [],
         "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
         "//tensorflow:rpi3": LINUX_LINKOPTS + ["-l:libstdc++.a"],
         "//tensorflow:rpi3-armv8": LINUX_LINKOPTS + ["-l:libstdc++.a"],
+        "//tensorflow:windows": [],
         "//conditions:default": []
     }) + tflite_linkopts(),
     deps = select({
-        "//tensorflow:android": [
-            "//tensorflow/contrib/lite/kernels:builtin_ops",
+        "//native_client:tflite": [
+            "//tensorflow/lite/kernels:builtin_ops",
         ],
         "//conditions:default": [
             "//tensorflow/core:core_cpu",
+            "//tensorflow/core:ops",
             "//tensorflow/core:direct_session",
             "//third_party/eigen3",
             #"//tensorflow/core:all_kernels",

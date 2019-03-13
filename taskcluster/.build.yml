@@ -18,7 +18,9 @@ build:
   scripts:
     build: ''
     package: ''
+  nc_asset_name: 'native_client.tar.xz'
   args:
     tests_cmdline: ''
   convert_graphdef: ''
   benchmark_model_bin: ''
+  tensorflow_git_desc: 'TensorFlow: v1.12.0-9556-g21304d9'

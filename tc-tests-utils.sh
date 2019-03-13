@@ -21,12 +21,17 @@ fi;
 export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
 export TASKCLUSTER_TMP_DIR=${TASKCLUSTER_TMP_DIR:-/tmp}
 
+export ANDROID_TMP_DIR=/data/local/tmp
+
 mkdir -p ${TASKCLUSTER_TMP_DIR} || true
 
 export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 
 export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
+
+export ANDROID_SDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/SDK/
+export ANDROID_NDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/android-ndk-r18b/
 
 model_source="${DEEPSPEECH_TEST_MODEL}"
 model_name="$(basename "${model_source}")"
@@ -131,6 +136,37 @@ assert_shows_something()
   esac
 }
 
+assert_not_present()
+{
+  stderr=$1
+  not_expected=$2
+
+  if [ -z "${stderr}" -o -z "${not_expected}" ]; then
+      echo "One or more empty strings:"
+      echo "stderr: <${stderr}>"
+      echo "not_expected: <${not_expected}>"
+      return 1
+  fi;
+
+  case "${stderr}" in
+      *${not_expected}*)
+          echo "!! Not expected was present !!"
+          echo "got: <${stderr}>"
+          echo "xxd:"; echo "${stderr}" | xxd
+          echo "-------------------"
+          echo "not_expected: <${not_expected}>"
+          echo "xxd:"; echo "${not_expected}" | xxd
+          return 1
+      ;;
+
+      *)
+          echo "Proper not expected output has not been produced:"
+          echo "${stderr}"
+          return 0
+      ;;
+  esac
+}
+
 assert_correct_ldc93s1()
 {
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
@@ -151,12 +187,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had a due in greasy wash water year"
+  assert_correct_inference "$1" "she had a due and greasy wash water year"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had a due in greasy wash water year"
+  assert_correct_inference "$1" "she had a due and greasy wash water year"
 }
 
 assert_correct_warning_upsampling()
@@ -169,13 +205,25 @@ assert_tensorflow_version()
   assert_shows_something "$1" "${EXPECTED_TENSORFLOW_VERSION}"
 }
 
+assert_deepspeech_version()
+{
+  assert_not_present "$1" "DeepSpeech: unknown"
+}
+
 check_tensorflow_version()
 {
   set +e
-  ds_help=$(deepspeech 2>&1 1>/dev/null)
+  ds_help=$(${DS_BINARY_PREFIX}deepspeech 2>&1 1>/dev/null)
   set -e
 
   assert_tensorflow_version "${ds_help}"
+  assert_deepspeech_version "${ds_help}"
+}
+
+run_tflite_basic_inference_tests()
+{
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${ANDROID_TMP_DIR}/ds/${model_name} --alphabet ${ANDROID_TMP_DIR}/ds/alphabet.txt --audio ${ANDROID_TMP_DIR}/ds/LDC93S1.wav)
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 }
 
 run_all_inference_tests()
@@ -224,6 +272,17 @@ run_multi_inference_tests()
 
   multi_phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/ | tr '\n' '%')
   assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}"
+}
+
+android_run_tests()
+{
+  cd ${DS_DSDIR}/native_client/java/
+
+  adb shell service list
+
+  adb shell ls -hal /data/local/tmp/test/
+
+  ./gradlew --console=plain libdeepspeech:connectedAndroidTest
 }
 
 generic_download_tarxz()
@@ -373,6 +432,28 @@ verify_bazel_rebuild()
   fi;
 }
 
+# Should be called from context where Python virtualenv is set
+verify_ctcdecoder_url()
+{
+  default_url=$(python util/taskcluster.py --decoder)
+  echo "${default_url}" | grep -F "deepspeech.native_client.v${DS_VERSION}"
+  rc_default_url=$?
+
+  tag_url=$(python util/taskcluster.py --decoder --branch 'v1.2.3')
+  echo "${tag_url}" | grep -F "deepspeech.native_client.v1.2.3"
+  rc_tag_url=$?
+
+  master_url=$(python util/taskcluster.py --decoder --branch 'master')
+  echo "${master_url}" | grep -F "deepspeech.native_client.master"
+  rc_master_url=$?
+
+  if [ ${rc_default_url} -eq 0 -a ${rc_tag_url} -eq 0 -a ${rc_master_url} -eq 0 ]; then
+    return 0
+  else
+    return 1
+  fi;
+}
+
 do_bazel_build()
 {
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
@@ -452,8 +533,8 @@ maybe_ssl102_py37()
 
                 mkdir -p ${PY37_OPENSSL_DIR}
                 wget -P ${TASKCLUSTER_TMP_DIR} \
-                        http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.0.2g-1ubuntu4.14_amd64.deb \
-                        http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.0.0_1.0.2g-1ubuntu4.14_amd64.deb
+                        http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.0.2g-1ubuntu4.15_amd64.deb \
+                        http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.0.0_1.0.2g-1ubuntu4.15_amd64.deb
 
                 for deb in ${TASKCLUSTER_TMP_DIR}/libssl*.deb; do
                     dpkg -x ${deb} ${PY37_OPENSSL_DIR}
@@ -632,6 +713,52 @@ do_deepspeech_npm_package()
   make -C native_client/javascript clean npm-pack
 }
 
+force_java_apk_x86_64()
+{
+  cd ${DS_DSDIR}/native_client/java/
+  cat <<EOF > libdeepspeech/gradle.properties
+ABI_FILTERS = x86_64
+EOF
+}
+
+do_deepspeech_java_apk_build()
+{
+  cd ${DS_DSDIR}
+
+  export ANDROID_HOME=${ANDROID_SDK_HOME}
+
+  all_tasks="$(curl -s https://queue.taskcluster.net/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+
+  for dep in ${all_tasks}; do
+    nc_arch="$(curl -s https://queue.taskcluster.net/v1/task/${dep} | python -c 'import json; import sys; print(json.loads(sys.stdin.read())["extra"]["nc_asset_name"])' | cut -d'.' -f2)"
+    nc_dir=""
+
+    # if a dep is included that has no "nc_asset_name" then it will be empty, just skip
+    # this is required for running test-apk-android-x86_64-opt because of the training dep
+    if [ ! -z "${nc_arch}" ]; then
+      if [ "${nc_arch}" = "arm64" ]; then
+        nc_dir="arm64-v8a"
+      fi;
+
+      if [ "${nc_arch}" = "armv7" ]; then
+        nc_dir="armeabi-v7a"
+      fi;
+
+      if [ "${nc_arch}" = "x86_64" ]; then
+        nc_dir="x86_64"
+      fi;
+
+      mkdir native_client/java/libdeepspeech/libs/${nc_dir}
+
+      curl -L https://queue.taskcluster.net/v1/task/${dep}/artifacts/public/native_client.tar.xz | tar -C native_client/java/libdeepspeech/libs/${nc_dir}/ -Jxvf - libdeepspeech.so
+    fi;
+  done;
+
+  make -C native_client/java/
+
+  make -C native_client/java/ maven-bundle
+}
+
 package_native_client()
 {
   tensorflow_dir=${DS_TFDIR}
@@ -689,4 +816,166 @@ package_native_client_ndk()
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
     | pixz -9 > "${artifacts_dir}/${artifact_name}"
+}
+
+android_sdk_accept_licenses()
+{
+  pushd "${ANDROID_SDK_HOME}"
+    yes | ./tools/bin/sdkmanager --licenses
+  popd
+}
+
+android_install_sdk()
+{
+  if [ -z "${ANDROID_SDK_HOME}" ]; then
+    echo "No Android SDK home available, aborting."
+    exit 1
+  fi;
+
+  mkdir -p "${ANDROID_SDK_HOME}" || true
+  wget -P "${TASKCLUSTER_TMP_DIR}" https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
+
+  pushd "${ANDROID_SDK_HOME}"
+    unzip -qq "${TASKCLUSTER_TMP_DIR}/sdk-tools-linux-4333796.zip"
+  popd
+
+  android_sdk_accept_licenses
+}
+
+android_install_ndk()
+{
+  if [ -z "${ANDROID_NDK_HOME}" ]; then
+    echo "No Android NDK home available, aborting."
+    exit 1
+  fi;
+
+  wget -P "${TASKCLUSTER_TMP_DIR}" https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip
+
+  mkdir -p ${DS_ROOT_TASK}/DeepSpeech/Android/
+  pushd ${DS_ROOT_TASK}/DeepSpeech/Android/
+    unzip -qq "${TASKCLUSTER_TMP_DIR}/android-ndk-r18b-linux-x86_64.zip"
+  popd
+}
+
+android_setup_emulator()
+{
+  android_install_sdk
+
+  if [ -z "${ANDROID_SDK_HOME}" ]; then
+    echo "No Android SDK home available, aborting."
+    exit 1
+  fi;
+
+  if [ -z "$1" ]; then
+    echo "No ARM flavor, please give one."
+    exit 1
+  fi;
+
+  flavor=$1
+  api_level=${2:-android-25}
+
+  export PATH=${ANDROID_SDK_HOME}/tools/bin/:${ANDROID_SDK_HOME}/platform-tools/:$PATH
+  export DS_BINARY_PREFIX="adb shell LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
+
+  # minutes (2 minutes by default)
+  export ADB_INSTALL_TIMEOUT=8
+
+  # Pipe yes in case of license being shown
+  yes | sdkmanager --update
+  yes | sdkmanager --install "emulator"
+
+  android_install_sdk_platform "${api_level}"
+
+  # Same, yes in case of license
+  yes | sdkmanager --install "system-images;${api_level};google_apis;${flavor}"
+
+  android_sdk_accept_licenses
+
+  avdmanager create avd --name "ds-pixel" --device 17 --package "system-images;${api_level};google_apis;${flavor}"
+
+  # -accel on is needed otherwise it is too slow, but it will require KVM support exposed
+  pushd ${ANDROID_SDK_HOME}
+    ./tools/emulator -verbose -avd ds-pixel -no-skin -no-audio -no-window -no-boot-anim -accel off &
+    emulator_rc=$?
+    export ANDROID_DEVICE_EMULATOR=$!
+  popd
+
+  if [ "${emulator_rc}" -ne 0 ]; then
+    echo "Error starting Android emulator, aborting."
+    exit 1
+  fi;
+
+  adb wait-for-device
+
+  adb shell id
+  adb shell cat /proc/cpuinfo
+
+  adb shell service list
+}
+
+android_install_sdk_platform()
+{
+  api_level=${1:-android-27}
+
+  if [ -z "${ANDROID_SDK_HOME}" ]; then
+    echo "No Android SDK home available, aborting."
+    exit 1
+  fi;
+
+  export PATH=${ANDROID_SDK_HOME}/tools/bin/:${ANDROID_SDK_HOME}/platform-tools/:$PATH
+
+  # Pipe yes in case of license being shown
+  yes | sdkmanager --update
+  yes | sdkmanager --install "platform-tools"
+  yes | sdkmanager --install "platforms;${api_level}"
+
+  android_sdk_accept_licenses
+}
+
+android_wait_for_emulator()
+{
+  while [ "${boot_completed}" != "1" ]; do
+    sleep 15
+    boot_completed=$(adb shell getprop sys.boot_completed | tr -d '\r')
+  done
+}
+
+android_setup_ndk_data()
+{
+  adb shell mkdir ${ANDROID_TMP_DIR}/ds/
+  adb push ${TASKCLUSTER_TMP_DIR}/ds/* ${ANDROID_TMP_DIR}/ds/
+
+  adb push \
+    ${TASKCLUSTER_TMP_DIR}/${model_name} \
+    ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav \
+    ${TASKCLUSTER_TMP_DIR}/alphabet.txt \
+    ${ANDROID_TMP_DIR}/ds/
+}
+
+android_setup_apk_data()
+{
+  adb shell mkdir ${ANDROID_TMP_DIR}/test/
+
+  adb push \
+    ${TASKCLUSTER_TMP_DIR}/${model_name} \
+    ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav \
+    ${TASKCLUSTER_TMP_DIR}/alphabet.txt \
+    ${TASKCLUSTER_TMP_DIR}/lm.binary \
+    ${TASKCLUSTER_TMP_DIR}/trie \
+    ${ANDROID_TMP_DIR}/test/
+}
+
+android_stop_emulator()
+{
+  if [ -z "${ANDROID_DEVICE_EMULATOR}" ]; then
+    echo "No ANDROID_DEVICE_EMULATOR"
+    exit 1
+  fi;
+
+  # Gracefully stop
+  adb shell reboot -p &
+
+  # Just in case, let it 30 seconds before force-killing
+  sleep 30
+  kill -9 ${ANDROID_DEVICE_EMULATOR} || true
 }

@@ -186,7 +186,7 @@ RUN cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_clie
 
 # Install TensorFlow
 WORKDIR /DeepSpeech/
-RUN pip install tensorflow-gpu==1.12.0rc2
+RUN pip install tensorflow-gpu==1.12.0
 
 
 # Make DeepSpeech and install Python bindings

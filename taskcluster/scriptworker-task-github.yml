@@ -8,6 +8,9 @@ build:
     - "linux-amd64-cuda-opt"
     - "linux-rpi3-cpu-opt"
     - "node-package"
+    - "android-arm64-cpu-opt"
+    - "android-armv7-cpu-opt"
+    - "android-java-opt"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -34,6 +37,10 @@ build:
       - "linux-amd64-cuda-opt"
       - "linux-rpi3-cpu-opt"
       - "linux-arm64-cpu-opt"
+      - "android-arm64-cpu-opt"
+      - "android-armv7-cpu-opt"
+    java_aar:
+      - "android-java-opt"
   metadata:
     name: "DeepSpeech GitHub Packages"
     description: "Trigger Uploading of DeepSpeech Packages to GitHub release page"

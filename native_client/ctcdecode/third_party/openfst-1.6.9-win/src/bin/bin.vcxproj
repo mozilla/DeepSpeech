@@ -1,0 +1,27 @@
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+        Need ConfigurationType set before importing openfst.props!
+   -->
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{84657A19-CAF2-49E8-8DB3-A428C19F460D}</ProjectGuid>
+    <ConfigurationType>Application</ConfigurationType>
+    <MultiBin>true</MultiBin>
+  </PropertyGroup>
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <Import Project="../openfst.props" />
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <ItemGroup>
+    <ClCompile Include="*.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lib\libfst.vcxproj">
+      <Project>{de80efec-9ed9-4631-bd96-8568c31ed26d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\script\libfstscript.vcxproj">
+      <Project>{111f46ed-da1f-469b-b912-ba2acc2ff8e6}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <Import Project="../openfst.targets" />
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+</Project>

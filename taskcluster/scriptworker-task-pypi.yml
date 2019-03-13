@@ -18,6 +18,7 @@ build:
   artifacts_deps:
     javascript: []
     cpp: []
+    java_aar: []
     python:
       - "darwin-amd64-cpu-opt"
       - "linux-amd64-cpu-opt"

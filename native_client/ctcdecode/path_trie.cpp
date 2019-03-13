@@ -13,6 +13,7 @@ PathTrie::PathTrie() {
   log_prob_nb_prev = -NUM_FLT_INF;
   log_prob_b_cur = -NUM_FLT_INF;
   log_prob_nb_cur = -NUM_FLT_INF;
+  log_prob_c = -NUM_FLT_INF;
   score = -NUM_FLT_INF;
 
   ROOT_ = -1;
@@ -34,10 +35,14 @@ PathTrie::~PathTrie() {
   }
 }
 
-PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, bool reset) {
+PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, float cur_log_prob_c, bool reset) {
   auto child = children_.begin();
   for (child = children_.begin(); child != children_.end(); ++child) {
     if (child->first == new_char) {
+      if (child->second->log_prob_c < cur_log_prob_c) {
+        child->second->log_prob_c = cur_log_prob_c;
+        child->second->timestep = new_timestep;
+      }
       break;
     }
   }
@@ -71,6 +76,7 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, bool reset) {
         new_path->dictionary_ = dictionary_;
         new_path->has_dictionary_ = true;
         new_path->matcher_ = matcher_;
+        new_path->log_prob_c = cur_log_prob_c;
 
         // set spell checker state
         // check to see if next state is final
@@ -78,10 +84,10 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, bool reset) {
         auto final_weight = dictionary_->Final(matcher_->Value().nextstate);
         bool is_final = (final_weight != FSTZERO);
         if (is_final && reset) {
-	  // restart spell checker at the start state
+          // restart spell checker at the start state
           new_path->dictionary_state_ = dictionary_->Start();
         } else {
-	  // go to next state
+          // go to next state
           new_path->dictionary_state_ = matcher_->Value().nextstate;
         }
 
@@ -93,6 +99,7 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, bool reset) {
       new_path->character = new_char;
       new_path->timestep = new_timestep;
       new_path->parent = this;
+      new_path->log_prob_c = cur_log_prob_c;
       children_.push_back(std::make_pair(new_char, new_path));
       return new_path;
     }
