@@ -8,11 +8,11 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import csv
+import sox
 import subprocess
 import progressbar
 
 from os import path
-from sox import Transformer
 from threading import RLock
 from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
@@ -62,7 +62,7 @@ def _maybe_convert_set(audio_dir, input_tsv):
             samples.append((row['path'], row['sentence']))
 
     # Keep track of how many samples are good vs. problematic
-    counter = { 'all': 0, 'too_short': 0, 'too_long': 0 }
+    counter = { 'all': 0, 'failed': 0, 'too_short': 0, 'too_long': 0 }
     lock = RLock()
     num_samples = len(samples)
     rows = []
@@ -75,10 +75,15 @@ def _maybe_convert_set(audio_dir, input_tsv):
         # Storing wav files next to the mp3 ones - just with a different suffix
         wav_filename = path.splitext(mp3_filename)[0] + ".wav"
         _maybe_convert_wav(mp3_filename, wav_filename)
-        frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
-        file_size = path.getsize(wav_filename)
+        file_size = -1
+        if path.exists(wav_filename):
+            file_size = path.getsize(wav_filename)
+            frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
         with lock:
-            if int(frames/SAMPLE_RATE*1000/10/2) < len(str(sample[1])):
+            if file_size == -1:
+                # Excluding samples that failed upon conversion
+                counter['failed'] += 1
+            elif int(frames/SAMPLE_RATE*1000/10/2) < len(str(sample[1])):
                 # Excluding samples that are too short to fit the transcript
                 counter['too_short'] += 1
             elif frames/SAMPLE_RATE > MAX_SECS:
@@ -106,7 +111,9 @@ def _maybe_convert_set(audio_dir, input_tsv):
         for filename, file_size, transcript in bar(rows):
             writer.writerow({ 'wav_filename': filename, 'wav_filesize': file_size, 'transcript': transcript })
 
-    print('Imported %d samples.' % (counter['all'] - counter['too_short'] - counter['too_long']))
+    print('Imported %d samples.' % (counter['all'] - counter['failed'] - counter['too_short'] - counter['too_long']))
+    if counter['failed'] > 0:
+        print('Skipped %d samples that failed upon conversion.' % counter['failed'])
     if counter['too_short'] > 0:
         print('Skipped %d samples that were too short to match the transcript.' % counter['too_short'])
     if counter['too_long'] > 0:
@@ -114,9 +121,13 @@ def _maybe_convert_set(audio_dir, input_tsv):
 
 def _maybe_convert_wav(mp3_filename, wav_filename):
     if not path.exists(wav_filename):
-        transformer = Transformer()
+        transformer = sox.Transformer()
         transformer.convert(samplerate=SAMPLE_RATE)
-        transformer.build(mp3_filename, wav_filename)
+        try:
+            transformer.build(mp3_filename, wav_filename)
+        except sox.core.SoxError:
+            pass
+
 
 if __name__ == "__main__":
     audio_dir = sys.argv[1]
