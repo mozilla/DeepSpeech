@@ -2,8 +2,8 @@ build:
   template_file: simple-task.tyml
   dependencies:
     # Make sure builds are ready
-    - "linux-amd64-cuda-opt"
-    - "node-package"
+    - "win-amd64-cpu-opt"
+    - "win-amd64-gpu-opt"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -11,17 +11,15 @@ build:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
   upload_targets:
-    - "npm"
+    - "nuget"
   artifacts_deps:
     python: []
     cpp: []
+    javascript: []
     java_aar: []
-    javascript:
-      # GPU package
-      - "linux-amd64-cuda-opt"
-      # CPU package with all archs
-      - "node-package"
-    nuget: []
+    nuget:
+      - "win-amd64-cpu-opt"
+      - "win-amd64-gpu-opt"
   metadata:
-    name: "DeepSpeech NPM Packages"
-    description: "Trigger Uploading of DeepSpeech Packages to NPM registry"
+    name: "DeepSpeech NuGet Packages"
+    description: "Trigger Uploading of DeepSpeech .Net Framework bindings to NuGet"

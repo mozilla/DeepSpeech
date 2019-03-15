@@ -7,6 +7,11 @@ if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=${HOME}
 fi;
 
+if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
+    export PLATFORM_EXE_SUFFIX=.exe
+fi;
+
 if [ "${OS}" = "Darwin" ]; then
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export SWIG_LIB="$(find ${DS_ROOT_TASK}/homebrew/Cellar/swig/ -type f -name "swig.swg" | xargs dirname)"
@@ -32,6 +37,16 @@ export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
 
 export ANDROID_SDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/SDK/
 export ANDROID_NDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/android-ndk-r18b/
+
+TAR=${TAR:-"tar"}
+XZ=${XZ:-"pixz -9"}
+UNXZ=${UNXZ:-"pixz -d"}
+
+if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+  TAR=/usr/bin/tar.exe
+  XZ="xz -9 -T0 -c -"
+  UNXZ="xz -9 -T0 -d"
+fi
 
 model_source="${DEEPSPEECH_TEST_MODEL}"
 model_name="$(basename "${model_source}")"
@@ -172,9 +187,19 @@ assert_correct_ldc93s1()
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
 }
 
+assert_working_ldc93s1()
+{
+  assert_working_inference "$1" "she had your dark suit in greasy wash water all year"
+}
+
 assert_correct_ldc93s1_lm()
 {
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
+}
+
+assert_working_ldc93s1_lm()
+{
+  assert_working_inference "$1" "she had your dark suit in greasy wash water all year"
 }
 
 assert_correct_multi_ldc93s1()
@@ -226,7 +251,19 @@ run_tflite_basic_inference_tests()
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 }
 
-run_all_inference_tests()
+run_netframework_inference_tests()
+{
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}"
+
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}"
+
+  phrase_pbmodel_withlm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
+  assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}"
+}
+
+run_basic_inference_tests()
 {
   phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
@@ -236,6 +273,11 @@ run_all_inference_tests()
 
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}"
+}
+
+run_all_inference_tests()
+{
+  run_basic_inference_tests
 
   phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}"
@@ -299,12 +341,51 @@ generic_download_tarxz()
 
   mkdir -p ${target_dir} || true
 
-  wget ${url} -O - | pixz -d | tar -C ${target_dir} -xf -
+  wget ${url} -O - | ${UNXZ} | ${TAR} -C ${target_dir} -xf -
 }
 
 download_native_client_files()
 {
   generic_download_tarxz "$1" "${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz"
+}
+
+install_nuget()
+{
+  PROJECT_NAME=$1
+  if [ -z "${PROJECT_NAME}" ]; then
+    exit "Please call with a valid PROJECT_NAME"
+    exit 1
+  fi;
+
+  nuget="${PROJECT_NAME}.${DS_VERSION}.nupkg"
+
+  export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin
+
+  mkdir -p "${TASKCLUSTER_TMP_DIR}/repo/"
+  mkdir -p "${TASKCLUSTER_TMP_DIR}/ds/"
+
+  wget -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/${nuget}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
+  wget -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/DeepSpeechConsole.exe" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
+
+  nuget sources add -Name repo -Source $(cygpath -w "${TASKCLUSTER_TMP_DIR}/repo/")
+
+  cd "${TASKCLUSTER_TMP_DIR}"
+  nuget add $(cygpath -w "${TASKCLUSTER_TMP_DIR}/${nuget}") -source repo
+
+  cd "${TASKCLUSTER_TMP_DIR}/ds/"
+  nuget list -Source repo -Prerelease
+  nuget install ${PROJECT_NAME} -Source repo -Prerelease
+
+  ls -halR "${PROJECT_NAME}.${DS_VERSION}"
+
+  nuget install NAudio
+  cp NAudio*/lib/net35/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
+  cp ${PROJECT_NAME}.${DS_VERSION}/build/libdeepspeech.so ${TASKCLUSTER_TMP_DIR}/ds/
+  cp ${PROJECT_NAME}.${DS_VERSION}/lib/net462/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
+
+  ls -hal ${TASKCLUSTER_TMP_DIR}/ds/
+
+  export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 }
 
 download_data()
@@ -390,6 +471,8 @@ is_patched_bazel()
 {
   bazel_version=$(bazel version | grep 'Build label:' | cut -d':' -f2)
 
+  bazel shutdown
+
   if [ -z "${bazel_version}" ]; then
     return 0;
   else
@@ -473,6 +556,12 @@ do_bazel_build()
   verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/tf/bazel_monolithic.log"
 }
 
+shutdown_bazel()
+{
+  cd ${DS_ROOT_TASK}/DeepSpeech/tf
+  bazel ${BAZEL_OUTPUT_USER_ROOT} shutdown
+}
+
 do_bazel_shared_build()
 {
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
@@ -491,7 +580,7 @@ do_deepspeech_binary_build()
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
     EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
     EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
-    deepspeech
+    deepspeech${PLATFORM_EXE_SUFFIX}
 }
 
 do_deepspeech_ndk_build()
@@ -507,6 +596,83 @@ do_deepspeech_ndk_build()
     APP_STL=c++_shared \
     TFDIR=${DS_TFDIR} \
     TARGET_ARCH_ABI=${arch_abi}
+}
+
+do_deepspeech_netframework_build()
+{
+  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+
+  # Setup dependencies
+  nuget install DeepSpeechConsole/packages.config -OutputDirectory packages/
+  nuget install DeepSpeechWPF/packages.config -OutputDirectory packages/
+
+  MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
+
+  # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
+  # We build the .NET Client for .NET Framework v4.5,v4.6,v4.7
+  
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64 \
+    /p:TargetFrameworkVersion="v4.5" \
+    /p:OutputPath=bin/x64/Release/v4.5
+	
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64 \
+    /p:TargetFrameworkVersion="v4.6" \
+    /p:OutputPath=bin/x64/Release/v4.6
+	
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64 \
+    /p:TargetFrameworkVersion="v4.7" \
+    /p:OutputPath=bin/x64/Release/v4.7
+
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechConsole/DeepSpeechConsole.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64
+
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechWPF/DeepSpeech.WPF.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64
+}
+
+do_nuget_build()
+{
+  PROJECT_NAME=$1
+  if [ -z "${PROJECT_NAME}" ]; then
+    exit "Please call with a valid PROJECT_NAME"
+    exit 1
+  fi;
+
+  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+
+  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/build
+
+  # We copy the generated clients for .NET into the Nuget framework dirs
+  
+  mkdir -p nupkg/lib/net45/
+  cp DeepSpeechClient/bin/x64/Release/v4.5/DeepSpeechClient.dll nupkg/lib/net45/
+  
+  mkdir -p nupkg/lib/net46/
+  cp DeepSpeechClient/bin/x64/Release/v4.6/DeepSpeechClient.dll nupkg/lib/net46/
+  
+  mkdir -p nupkg/lib/net47/
+  cp DeepSpeechClient/bin/x64/Release/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
+
+  PROJECT_VERSION=$(shell cat ../../../VERSION | tr -d '\n' | tr -d '\r')
+  sed \
+    -e "s/\$NUPKG_ID/${PROJECT_NAME}/" \
+    -e "s/\$NUPKG_VERSION/${PROJECT_VERSION}/" \
+    nupkg/deepspeech.nuspec.in > nupkg/deepspeech.nuspec && cat nupkg/deepspeech.nuspec
+
+  nuget pack nupkg/deepspeech.nuspec
 }
 
 # Hack to extract Ubuntu's 16.04 libssl 1.0.2 packages and use them during the
@@ -778,13 +944,13 @@ package_native_client()
     echo "Please specify artifact name."
   fi;
 
-  tar -cf - \
-    -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
+  ${TAR} -cf - \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie${PLATFORM_EXE_SUFFIX} \
     -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
     -C ${deepspeech_dir}/ LICENSE \
-    -C ${deepspeech_dir}/native_client/ deepspeech \
+    -C ${deepspeech_dir}/native_client/ deepspeech${PLATFORM_EXE_SUFFIX} \
     -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
-    | pixz -9 > "${artifacts_dir}/${artifact_name}"
+    | ${XZ} > "${artifacts_dir}/${artifact_name}"
 }
 
 package_native_client_ndk()
