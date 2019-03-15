@@ -609,11 +609,28 @@ do_deepspeech_netframework_build()
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
 
   # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
-
+  # We build the .NET Client for .NET Framework v4.5,v4.6,v4.7
+  
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
-    /p:Platform=x64
+    /p:Platform=x64 \
+    /p:TargetFrameworkVersion="v4.5" \
+    /p:OutputPath=bin/x64/Release/v4.5
+	
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64 \
+    /p:TargetFrameworkVersion="v4.6" \
+    /p:OutputPath=bin/x64/Release/v4.6
+	
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64 \
+    /p:TargetFrameworkVersion="v4.7" \
+    /p:OutputPath=bin/x64/Release/v4.7
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
@@ -638,8 +655,16 @@ do_nuget_build()
 
   cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/build
 
-  mkdir -p nupkg/lib/net462/
-  cp DeepSpeechClient/bin/x64/Release/DeepSpeechClient.dll nupkg/lib/net462/
+  # We copy the generated clients for .NET into the Nuget framework dirs
+  
+  mkdir -p nupkg/lib/net45/
+  cp DeepSpeechClient/bin/x64/Release/v4.5/DeepSpeechClient.dll nupkg/lib/net45/
+  
+  mkdir -p nupkg/lib/net46/
+  cp DeepSpeechClient/bin/x64/Release/v4.6/DeepSpeechClient.dll nupkg/lib/net46/
+  
+  mkdir -p nupkg/lib/net47/
+  cp DeepSpeechClient/bin/x64/Release/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
 
   PROJECT_VERSION=$(shell cat ../../../VERSION | tr -d '\n' | tr -d '\r')
   sed \
