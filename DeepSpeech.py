@@ -319,7 +319,7 @@ def log_variable(variable, gradient=None):
     It logs scalar values for the mean, standard deviation, minimum and maximum.
     Furthermore it logs a histogram of its state and (if given) of an optimization gradient.
     '''
-    name = variable.name
+    name = variable.name.replace(':', '_')
     mean = tf.reduce_mean(variable)
     tf.summary.scalar(name='%s/mean'   % name, tensor=mean)
     tf.summary.scalar(name='%s/sttdev' % name, tensor=tf.sqrt(tf.reduce_mean(tf.square(variable - mean))))
