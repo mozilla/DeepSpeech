@@ -381,7 +381,7 @@ install_nuget()
   nuget install NAudio
   cp NAudio*/lib/net35/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
   cp ${PROJECT_NAME}.${DS_VERSION}/build/libdeepspeech.so ${TASKCLUSTER_TMP_DIR}/ds/
-  cp ${PROJECT_NAME}.${DS_VERSION}/lib/net462/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
+  cp ${PROJECT_NAME}.${DS_VERSION}/lib/net46/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/ds/
 
@@ -616,21 +616,21 @@ do_deepspeech_netframework_build()
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.5" \
-    /p:OutputPath=bin/x64/Release/v4.5
+    /p:OutputPath=bin/nuget/x64/v4.5
 	
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.6" \
-    /p:OutputPath=bin/x64/Release/v4.6
+    /p:OutputPath=bin/nuget/x64/v4.6
 	
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.7" \
-    /p:OutputPath=bin/x64/Release/v4.7
+    /p:OutputPath=bin/nuget/x64/v4.7
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
@@ -658,13 +658,13 @@ do_nuget_build()
   # We copy the generated clients for .NET into the Nuget framework dirs
   
   mkdir -p nupkg/lib/net45/
-  cp DeepSpeechClient/bin/x64/Release/v4.5/DeepSpeechClient.dll nupkg/lib/net45/
+  cp DeepSpeechClient/bin/nuget/x64/v4.5/DeepSpeechClient.dll nupkg/lib/net45/
   
   mkdir -p nupkg/lib/net46/
-  cp DeepSpeechClient/bin/x64/Release/v4.6/DeepSpeechClient.dll nupkg/lib/net46/
+  cp DeepSpeechClient/bin/nuget/x64/v4.6/DeepSpeechClient.dll nupkg/lib/net46/
   
   mkdir -p nupkg/lib/net47/
-  cp DeepSpeechClient/bin/x64/Release/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
+  cp DeepSpeechClient/bin/nuget/x64/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
 
   PROJECT_VERSION=$(shell cat ../../../VERSION | tr -d '\n' | tr -d '\r')
   sed \
