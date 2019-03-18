@@ -133,6 +133,7 @@ def validate_label(label):
     label = label.replace(".", "")
     label = label.replace(",", "")
     label = label.replace("?", "")
+    label = label.replace("\"", "")
     label = label.strip()
 
     return label.lower()
