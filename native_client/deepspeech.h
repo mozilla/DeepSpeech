@@ -15,6 +15,9 @@ struct ModelState;
 
 struct StreamingState;
 
+struct Metadata;
+struct MetadataItem;
+
 enum DeepSpeech_Error_Codes
 {
     // OK
@@ -119,11 +122,11 @@ char* DS_SpeechToText(ModelState* aCtx,
  * @param aBufferSize The number of samples in the audio signal.
  * @param aSampleRate The sample-rate of the audio signal.
  *
- * @return The STT result plus metadata showing word timings as a JSON string. 
- * 		   The user is responsible for freeing the string. Returns NULL on error.
+ * @return Outputs a struct of individual letters along with their timing information. 
+ * 		   The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
-char* DS_SpeechToTextExtended(ModelState* aCtx,
+Metadata* DS_SpeechToTextExtended(ModelState* aCtx,
                       const short* aBuffer,
                       unsigned int aBufferSize,
                       unsigned int aSampleRate);
@@ -191,17 +194,17 @@ char* DS_FinishStream(StreamingState* aSctx);
 
 /**
  * @brief Signal the end of an audio signal to an ongoing streaming
- *        inference, returns the STT result over the whole audio signal plus metadata.
+ *        inference, returns per-letter metadata.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
- * @return The STT result plus metadata on word timings as a JSON string. 
- *		   The user is responsible for freeing the string.
+ * @return Outputs a struct of individual letters along with their timing information. 
+ * 		   The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
-char* DS_FinishStreamExtended(StreamingState* aSctx);
+Metadata* DS_FinishStreamExtended(StreamingState* aSctx);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This
