@@ -94,7 +94,7 @@ popd
 
 mkdir -p ../keep/summaries
 
-  # --train_files "${CV}/cv_${_LANG}_valid_dev.csv" \
+# --train_files "${CV}/cv_${_LANG}_valid_dev.csv" \
   # --dev_files "${CV}/cv_${_LANG}_valid_test.csv" \
   # --test_files "${CV}/cv_${_LANG}_valid_train.csv" \
   
