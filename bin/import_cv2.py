@@ -17,6 +17,7 @@ from threading import RLock
 from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
 from util.downloader import SIMPLE_BAR
+from util.text import validate_label
 
 '''
 Broadly speaking, this script takes the audio downloaded from Common Voice
@@ -62,7 +63,7 @@ def _maybe_convert_set(audio_dir, input_tsv):
             samples.append((row['path'], row['sentence']))
 
     # Keep track of how many samples are good vs. problematic
-    counter = { 'all': 0, 'failed': 0, 'too_short': 0, 'too_long': 0 }
+    counter = { 'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0 }
     lock = RLock()
     num_samples = len(samples)
     rows = []
@@ -79,11 +80,15 @@ def _maybe_convert_set(audio_dir, input_tsv):
         if path.exists(wav_filename):
             file_size = path.getsize(wav_filename)
             frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
+        label = validate_label(sample[1])
         with lock:
             if file_size == -1:
                 # Excluding samples that failed upon conversion
                 counter['failed'] += 1
-            elif int(frames/SAMPLE_RATE*1000/10/2) < len(str(sample[1])):
+            elif label is None:
+                # Excluding samples that failed on label validation
+                counter['invalid_label'] += 1
+            elif int(frames/SAMPLE_RATE*1000/10/2) < len(str(label)):
                 # Excluding samples that are too short to fit the transcript
                 counter['too_short'] += 1
             elif frames/SAMPLE_RATE > MAX_SECS:
@@ -91,7 +96,7 @@ def _maybe_convert_set(audio_dir, input_tsv):
                 counter['too_long'] += 1
             else:
                 # This one is good - keep it for the target CSV
-                rows.append((wav_filename, file_size, sample[1]))
+                rows.append((wav_filename, file_size, label))
             counter['all'] += 1
 
     print("Importing mp3 files...")
@@ -114,6 +119,8 @@ def _maybe_convert_set(audio_dir, input_tsv):
     print('Imported %d samples.' % (counter['all'] - counter['failed'] - counter['too_short'] - counter['too_long']))
     if counter['failed'] > 0:
         print('Skipped %d samples that failed upon conversion.' % counter['failed'])
+    if counter['invalid_label'] > 0:
+        print('Skipped %d samples that failed on transcript validation.' % counter['invalid_label'])
     if counter['too_short'] > 0:
         print('Skipped %d samples that were too short to match the transcript.' % counter['too_short'])
     if counter['too_long'] > 0:
