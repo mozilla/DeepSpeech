@@ -479,14 +479,14 @@ ModelState::decode_raw(vector<float>& logits)
   vector<Output> out = ctc_beam_search_decoder(
     inputs.data(), n_frames, num_classes, *alphabet, beam_width,
     cutoff_prob, cutoff_top_n, scorer);
-	
+
   return out;
 }
 
 Metadata* ModelState::decode_metadata(vector<float>& logits) 
 {
   vector<Output> out = decode_raw(logits);
-	
+
   Metadata* metadata = (Metadata*)malloc(sizeof (Metadata));
   metadata->num_items = out[0].tokens.size();
   metadata->items = (MetadataItem*)malloc(sizeof(MetadataItem) * metadata->num_items);
@@ -500,7 +500,7 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
     // offset them back by 3ms to account for this
     float start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP - 0.003);
 
-	MetadataItem item;
+    MetadataItem item;
     item.character = character; 
     item.timestep = out[0].timesteps[i]; 
     item.start_time = start_time;
@@ -509,7 +509,7 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
     
     metadata->items[i] = item;
   }
-	
+
   return metadata;
 }
 

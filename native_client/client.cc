@@ -35,9 +35,9 @@ typedef struct {
 } ds_result;
 
 struct meta_word {
-	std::string word;
-	float start_time;
-	float duration;
+  std::string word;
+  float start_time;
+  float duration;
 };
 
 std::vector<meta_word> WordsFromMetadata(Metadata* metadata);
@@ -52,12 +52,11 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
   clock_t ds_start_time = clock();
 
   if (extended_output) {
-  	  Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
-	  res.string = CSVOutput(WordsFromMetadata(metadata));
-	  
-	  DS_FreeMetadata(metadata);
+    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
+    res.string = CSVOutput(WordsFromMetadata(metadata));
+    DS_FreeMetadata(metadata);
   } else {
-	  res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
+    res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
   }  
 
   clock_t ds_end_infer = clock();
@@ -262,33 +261,31 @@ WordsFromMetadata(Metadata* metadata)
 
   // Loop through each character
   for (int i=0; i<metadata->num_items; i++) {
-	MetadataItem item = metadata->items[i];
-	
-	// This is ugly but std::isspace is very particular about what characters it will accept.
-	// Not sure what the best solution is to support multiple languages. 
-	unsigned char character = static_cast<unsigned char>(*item.character); 
-	
-	if (std::isspace(character) == 0) word.append(item.character);
+    MetadataItem item = metadata->items[i];
 
-	// Figure out word boundaries by looking for spaces
-	if (std::isspace(character) != 0 || i == metadata->num_items-1) {
-	  float word_duration = item.start_time - word_start_time;
-	  if (word_duration < 0) word_duration = 0;
+    unsigned char character = static_cast<unsigned char>(*item.character); 
 
-	  meta_word w;
-	  w.word = word;
-	  w.start_time = word_start_time;
-	  w.duration = word_duration;
-	  
-	  word_list.push_back(w);
-												
-	  // Reset
-	  word = "";		
-	  word_start_time = 0;
-			
-	} else {
-	  if (word.length() == 1) word_start_time = item.start_time; // Log the start time of the new word
-	}
+    if (std::isspace(character) == 0) word.append(item.character);
+
+    // Figure out word boundaries by looking for spaces
+    if (std::isspace(character) != 0 || i == metadata->num_items-1) {
+      float word_duration = item.start_time - word_start_time;
+      if (word_duration < 0) word_duration = 0;
+
+      meta_word w;
+      w.word = word;
+      w.start_time = word_start_time;
+      w.duration = word_duration;
+
+      word_list.push_back(w);
+
+      // Reset
+      word = "";		
+      word_start_time = 0;
+
+    } else {
+      if (word.length() == 1) word_start_time = item.start_time; // Log the start time of the new word
+    }
   }
 
   return word_list;
@@ -300,7 +297,7 @@ CSVOutput(std::vector<meta_word> words)
   std::ostringstream out_string;
 
   for (int i=0; i<words.size(); i++) {
-	meta_word w = words[i];  
+    meta_word w = words[i];  
     out_string << w.word << "," << std::to_string(w.start_time) << "," << std::to_string(w.duration) << "\n";
   }
   

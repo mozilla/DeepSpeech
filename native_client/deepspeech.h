@@ -17,15 +17,15 @@ struct StreamingState;
 
 // Stores each individual character, along with its timing information
 struct MetadataItem {
-	char* character;
-	int timestep; // Position of the character in units of 20ms
-	float start_time; // Position of the character in seconds
+  char* character;
+  int timestep; // Position of the character in units of 20ms
+  float start_time; // Position of the character in seconds
 };
 
 // Stores the entire CTC output as an array of character metadata objects
 struct Metadata {
-	MetadataItem* items;
-	int num_items;
+  MetadataItem* items;
+  int num_items;
 };
 
 enum DeepSpeech_Error_Codes
@@ -133,7 +133,7 @@ char* DS_SpeechToText(ModelState* aCtx,
  * @param aSampleRate The sample-rate of the audio signal.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
- * 		   The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
+ *         The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
@@ -141,25 +141,6 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                       unsigned int aBufferSize,
                       unsigned int aSampleRate);
 
-/**
- * @brief Sets up the streaming state and feeds audio samples to it. {@link DS_FinishStream()} or 
- * {@link DS_FinishStreamWithMetadata()} can then be called on the StreamingState object to 
- * get inference results.
- *
- * @param aCtx The ModelState pointer for the model to use.
- * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
- *                sample rate.
- * @param aBufferSize The number of samples in the audio signal.
- * @param aSampleRate The sample-rate of the audio signal.
- *
- * @return Outputs a StreamingState object to pass to {@link DS_FinishStream()} or 
- * {@link DS_FinishStreamWithMetadata()}. Returns NULL on error.
- */
-DEEPSPEECH_EXPORT
-StreamingState* DS_SetupStreamAndFeedAudioContent(ModelState* aCtx,
-                      const short* aBuffer,
-                      unsigned int aBufferSize,
-                      unsigned int aSampleRate);
 /**
  * @brief Create a new streaming inference state. The streaming state returned
  *        by this function can then be passed to {@link DS_FeedAudioContent()}
@@ -285,13 +266,11 @@ void DS_AudioToInputVector(const short* aBuffer,
 DEEPSPEECH_EXPORT
 void DS_FreeMetadata(Metadata* m); 
 
-
 /**
  * @brief Print version of this library and of the linked TensorFlow library.
  */
 DEEPSPEECH_EXPORT
 void DS_PrintVersions();
-
 
 #undef DEEPSPEECH_EXPORT
 
