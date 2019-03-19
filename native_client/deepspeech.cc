@@ -912,6 +912,13 @@ DS_AudioToInputVector(const short* aBuffer,
   }
 }
 
+void 
+DS_FreeMetadata(Metadata* m) 
+{  
+  free(m->items);
+  free(m);
+}
+
 void
 DS_PrintVersions() {
   std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;

@@ -260,10 +260,19 @@ void DS_AudioToInputVector(const short* aBuffer,
                            int* aFrameLen = NULL);
 
 /**
+ * @brief Free memory allocated for metadata information.
+ */
+
+DEEPSPEECH_EXPORT
+void DS_FreeMetadata(Metadata* m); 
+
+
+/**
  * @brief Print version of this library and of the linked TensorFlow library.
  */
 DEEPSPEECH_EXPORT
 void DS_PrintVersions();
+
 
 #undef DEEPSPEECH_EXPORT
 
