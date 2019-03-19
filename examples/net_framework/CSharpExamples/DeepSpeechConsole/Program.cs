@@ -1,4 +1,5 @@
 ﻿using DeepSpeechClient;
+using DeepSpeechClient.Interfaces;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
@@ -43,7 +44,7 @@ namespace CSharpExamples
 
             Stopwatch stopwatch = new Stopwatch();
 
-            using (DeepSpeech sttClient = new DeepSpeech())
+            using (IDeepSpeech sttClient = new DeepSpeech())
             {
                 var result = 1;
                 Console.WriteLine("Loading model...");
@@ -109,7 +110,6 @@ namespace CSharpExamples
                     Console.WriteLine("Error loding the model.");
                 }
             }
-            Console.ReadKey();
         }
     }
 }

@@ -57,6 +57,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 * [Python 3.6](https://www.python.org/)
 * [Git Large File Storage](https://git-lfs.github.com/)
 * Mac or Linux environment
+* Go to [build README](examples/net_framework/README.md) to start building DeepSpeech for Windows from source.
 
 ## Getting the code
 
@@ -203,7 +204,7 @@ npm install deepspeech-gpu
 
 See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
-See [nodejs_wav](examples/nodejs_wav) for an example of how to use the bindings.
+See [client.js](native_client/javascript/client.js) for an example of how to use the bindings. Or download the [wav example](examples/nodejs_wav).
 
 ### Installing bindings from source
 

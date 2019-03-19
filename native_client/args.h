@@ -1,7 +1,11 @@
 #ifndef __ARGS_H__
 #define __ARGS_H__
 
+#if defined(_MSC_VER)
+#include "getopt_win.h"
+#else
 #include <getopt.h>
+#endif
 #include <iostream>
 
 #include "deepspeech.h"
