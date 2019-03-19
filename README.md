@@ -244,7 +244,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip3 uninstall tensorflow
-pip3 install 'tensorflow-gpu==1.12.0'
+pip3 install 'tensorflow-gpu==1.13.1'
 ```
 
 Please ensure you have the required [CUDA dependency](#cuda-dependency).

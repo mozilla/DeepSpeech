@@ -27,12 +27,6 @@ from util.logging import log_info, log_error, log_debug, log_warn
 from util.preprocess import preprocess
 from util.text import Alphabet
 
-#TODO: remove once fully switched to 1.13
-try:
-    import tensorflow.lite as lite # 1.13
-except ImportError:
-    import tensorflow.contrib.lite as lite # 1.12
-
 
 # Graph Creation
 # ==============
@@ -91,21 +85,21 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     b1 = variable_on_worker_level('b1', [Config.n_hidden_1], tf.zeros_initializer())
     h1 = variable_on_worker_level('h1', [Config.n_input + 2*Config.n_input*Config.n_context, Config.n_hidden_1], tf.contrib.layers.xavier_initializer())
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
-    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+    layer_1 = tf.nn.dropout(layer_1, rate=dropout[0])
     layers['layer_1'] = layer_1
 
     # 2nd layer
     b2 = variable_on_worker_level('b2', [Config.n_hidden_2], tf.zeros_initializer())
     h2 = variable_on_worker_level('h2', [Config.n_hidden_1, Config.n_hidden_2], tf.contrib.layers.xavier_initializer())
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
-    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+    layer_2 = tf.nn.dropout(layer_2, rate=dropout[1])
     layers['layer_2'] = layer_2
 
     # 3rd layer
     b3 = variable_on_worker_level('b3', [Config.n_hidden_3], tf.zeros_initializer())
     h3 = variable_on_worker_level('h3', [Config.n_hidden_2, Config.n_hidden_3], tf.contrib.layers.xavier_initializer())
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
-    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+    layer_3 = tf.nn.dropout(layer_3, rate=dropout[2])
     layers['layer_3'] = layer_3
 
     # Now we create the forward and backward LSTM units.
@@ -149,7 +143,7 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     b5 = variable_on_worker_level('b5', [Config.n_hidden_5], tf.zeros_initializer())
     h5 = variable_on_worker_level('h5', [Config.n_cell_dim, Config.n_hidden_5], tf.contrib.layers.xavier_initializer())
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
-    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+    layer_5 = tf.nn.dropout(layer_5, rate=dropout[5])
     layers['layer_5'] = layer_5
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
@@ -821,7 +815,7 @@ def export():
                 frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='')
                 output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
-                converter = lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
+                converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
                 converter.post_training_quantize = True
                 tflite_model = converter.convert()
 
