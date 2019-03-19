@@ -497,7 +497,7 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
     // offset them back by 3ms to account for this
     float start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP - 0.003);
 
-	MetadataItem item = (MetadataItem) {};
+	MetadataItem item;
     item.character = character; 
     item.timestep = out[0].timesteps[i]; 
     item.start_time = start_time;
