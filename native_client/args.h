@@ -37,7 +37,7 @@ void PrintHelp(const char* bin)
     "	--trie TRIE		Path to the language model trie file created with native_client/generate_trie\n"
     "	--audio AUDIO		Path to the audio file to run (WAV format)\n"
     "	-t			Run in benchmark mode, output mfcc & inference time\n"
-    "	-e			Extended output, shows word timings\n"
+    "	-e			Extended output, shows word timings as CSV (word, start time, duration)\n"
     "	--help			Show help\n"
     "	--version		Print version and exits\n";
     DS_PrintVersions();
