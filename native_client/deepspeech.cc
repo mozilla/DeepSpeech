@@ -117,7 +117,7 @@ struct StreamingState {
   char* intermediateDecode();
   void finalizeStream();
   char* finishStream();
-  Metadata* finishStreamExtended();
+  Metadata* finishStreamWithMetadata();
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
@@ -291,7 +291,7 @@ StreamingState::finishStream()
 }
 
 Metadata*
-StreamingState::finishStreamExtended()
+StreamingState::finishStreamWithMetadata()
 {
   finalizeStream();
 
@@ -739,18 +739,22 @@ DS_SpeechToText(ModelState* aCtx,
                 unsigned int aBufferSize,
                 unsigned int aSampleRate)
 {
-  StreamingState* ctx;
-  int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
-  if (status != DS_ERR_OK) {
-    return nullptr;
-  }
-      
-  DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
+  StreamingState* ctx = DS_SetupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
   return DS_FinishStream(ctx);
 }
 
 Metadata*
-DS_SpeechToTextExtended(ModelState* aCtx,
+DS_SpeechToTextWithMetadata(ModelState* aCtx,
+                const short* aBuffer,
+                unsigned int aBufferSize,
+                unsigned int aSampleRate)
+{
+  StreamingState* ctx = DS_SetupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  return DS_FinishStreamWithMetadata(ctx);
+}
+
+StreamingState* 
+DS_SetupStreamAndFeedAudioContent(ModelState* aCtx,
                 const short* aBuffer,
                 unsigned int aBufferSize,
                 unsigned int aSampleRate)
@@ -762,8 +766,8 @@ DS_SpeechToTextExtended(ModelState* aCtx,
   }
       
   DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
-  
-  return DS_FinishStreamExtended(ctx);
+
+  return ctx;
 }
 
 int
@@ -832,9 +836,9 @@ DS_FinishStream(StreamingState* aSctx)
 }
 
 Metadata*
-DS_FinishStreamExtended(StreamingState* aSctx)
+DS_FinishStreamWithMetadata(StreamingState* aSctx)
 {
-  Metadata* metadata = aSctx->finishStreamExtended();
+  Metadata* metadata = aSctx->finishStreamWithMetadata();
   DS_DiscardStream(aSctx);
   return metadata;
 }
