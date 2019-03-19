@@ -208,6 +208,9 @@ struct ModelState {
   void infer(const float* mfcc, unsigned int n_frames, vector<float>& output_logits);
 };
 
+StreamingState* setupStreamAndFeedAudioContent(ModelState* aCtx,const short* aBuffer,
+                                               unsigned int aBufferSize,unsigned int aSampleRate);
+
 ModelState::ModelState()
   :
 #ifndef USE_TFLITE
@@ -739,25 +742,25 @@ DS_SpeechToText(ModelState* aCtx,
                 unsigned int aBufferSize,
                 unsigned int aSampleRate)
 {
-  StreamingState* ctx = DS_SetupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  StreamingState* ctx = setupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
   return DS_FinishStream(ctx);
 }
 
 Metadata*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
-                const short* aBuffer,
-                unsigned int aBufferSize,
-                unsigned int aSampleRate)
+                            const short* aBuffer,
+                            unsigned int aBufferSize,
+                            unsigned int aSampleRate)
 {
-  StreamingState* ctx = DS_SetupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  StreamingState* ctx = setupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
   return DS_FinishStreamWithMetadata(ctx);
 }
 
 StreamingState* 
-DS_SetupStreamAndFeedAudioContent(ModelState* aCtx,
-                const short* aBuffer,
-                unsigned int aBufferSize,
-                unsigned int aSampleRate)
+setupStreamAndFeedAudioContent(ModelState* aCtx,
+                                  const short* aBuffer,
+                                  unsigned int aBufferSize,
+                                  unsigned int aSampleRate)
 {
   StreamingState* ctx;
   int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
