@@ -13,25 +13,25 @@
 
 include definitions.mk
 
-default: deepspeech
+default: $(DEEPSPEECH_BIN)
 
-clean:
+clean: bindings-clean
 	rm -f deepspeech
 
-deepspeech: client.cc
-	$(CXX) -std=c++11 -o deepspeech $(CFLAGS) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS)
+$(DEEPSPEECH_BIN): client.cc
+	$(CXX) $(CFLAGS) $(CFLAGS_DEEPSPEECH) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS)
 ifeq ($(OS),Darwin)
 	install_name_tool -change $$TASKCLUSTER_TASK_DIR/homebrew/opt/sox/lib/libsox.3.dylib @rpath/libsox.3.dylib deepspeech
 	install_name_tool -change bazel-out/local-opt/bin/native_client/libdeepspeech.so @rpath/libdeepspeech.so deepspeech
 endif
 
-run: deepspeech
+run: $(DEEPSPEECH_BIN)
 	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} ./deepspeech ${ARGS}
 
-debug: deepspeech
+debug: $(DEEPSPEECH_BIN)
 	${META_LD_LIBRARY_PATH}=${TFDIR}/bazel-bin/native_client:${${META_LD_LIBRARY_PATH}} gdb --args ./deepspeech ${ARGS}
 
-install: deepspeech
+install: $(DEEPSPEECH_BIN)
 	install -d ${PREFIX}/lib
 	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
 	install -d ${PREFIX}/bin
