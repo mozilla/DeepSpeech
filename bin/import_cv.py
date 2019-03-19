@@ -18,7 +18,7 @@ from os import path
 from threading import RLock
 from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
-
+from util.text import validate_label
 from util.downloader import maybe_download, SIMPLE_BAR
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
