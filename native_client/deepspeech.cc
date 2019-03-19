@@ -493,17 +493,18 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
     char* character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str();
 
     // Note: 1 timestep = 20ms
-	// Timesteps are from the position of the highest letter probability so we 
-	// offset them back by 3ms to account for this
-    float start_time = static_cast<float>(out[0].timesteps[i] * 0.02 - 0.03);
+    // Timesteps are from the position of the highest letter probability so we 
+    // offset them back by 3ms to account for this
+    float start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP - 0.003);
 
-    metadata->items[i] = (MetadataItem) { 
-      .character = character, 
-      .timestep = out[0].timesteps[i], 
-      .start_time = start_time
-    };
+	MetadataItem item = (MetadataItem) {};
+    item.character = character; 
+    item.timestep = out[0].timesteps[i]; 
+    item.start_time = start_time;
     
-    if (metadata->items[i].start_time < 0) metadata->items[i].start_time = 0;
+    if (item.start_time < 0) item.start_time = 0;
+    
+    metadata->items[i] = item;
   }
 	
   return metadata;
