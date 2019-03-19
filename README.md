@@ -2,24 +2,22 @@
 
 [![Task Status](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/badge.svg)](https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/latest)
 
-## Overview
-
 DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) to make the implementation easier.
 
 ![Usage](images/usage.gif)
 
-Pre-built binaries for performing inference with a trained model can be installed with `pip3`. Proper setup using a virtual environment is recommended, and you can find that documention [below](#using-the-python-package).
+Pre-built binaries for performing inference with a trained model can be installed with `pip3`. Proper setup using a virtual environment is recommended, and you can find that documentation [below](#using-the-python-package).
 
 A pre-trained English model is available for use and can be downloaded using [the instructions below](#getting-the-pre-trained-model). Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client.
 
-Once everything is installed, you can then use the `deepspeech` binary to do speech-to-text on short (approximately 5 second) audio files as such:
+Once everything is installed, you can then use the `deepspeech` binary to do speech-to-text on short (approximately 5-second long) audio files as such:
 
 ```bash
 pip3 install deepspeech
 deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
-Alternatively, quicker inference (e.g. realtime factor on a GeForce GTX 1070 is ~0.44) can be performed using a supported NVIDIA GPU on Linux. See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. To run `deepspeech` on a GPU, install the GPU specific package:
+Alternatively, quicker inference can be performed using a supported NVIDIA GPU on Linux. See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. To run `deepspeech` on a GPU, install the GPU specific package:
 
 ```bash
 pip3 install deepspeech-gpu
@@ -205,7 +203,7 @@ npm install deepspeech-gpu
 
 See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
-See [client.js](native_client/javascript/client.js) for an example of how to use the bindings.
+See [nodejs_wav](examples/nodejs_wav) for an example of how to use the bindings.
 
 ### Installing bindings from source
 
