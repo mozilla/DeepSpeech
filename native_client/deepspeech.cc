@@ -11,7 +11,6 @@
 
 #include "deepspeech.h"
 #include "alphabet.h"
-#include "metadata.h"
 
 #include "native_client/ds_version.h"
 

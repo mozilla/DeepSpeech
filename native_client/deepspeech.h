@@ -15,8 +15,18 @@ struct ModelState;
 
 struct StreamingState;
 
-struct Metadata;
-struct MetadataItem;
+// Stores each individual character, along with its timing information
+struct MetadataItem {
+	char* character;
+	int timestep; // Position of the character in units of 20ms
+	float start_time; // Position of the character in seconds
+};
+
+// Stores the entire CTC output as an array of character metadata objects
+struct Metadata {
+	MetadataItem* items;
+	int num_items;
+};
 
 enum DeepSpeech_Error_Codes
 {
