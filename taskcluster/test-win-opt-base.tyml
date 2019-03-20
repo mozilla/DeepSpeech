@@ -55,23 +55,26 @@ then:
         "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
       - .\msys64\usr\bin\bash.exe --login -cx "exit"
       - .\msys64\usr\bin\bash.exe --login -cx "pacman --noconfirm -Syu"
-      - .\msys64\usr\bin\bash.exe --login -cxe "
-        export LC_ALL=C &&
-        export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
-        export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
-        export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
-        export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
-        export PIP_DEFAULT_TIMEOUT=60 &&
-        (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
-        env &&
-        ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
-        git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
-        cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
-        cd $TASKCLUSTER_TASK_DIR &&
-        pacman --noconfirm -R bsdtar &&
-        pacman --noconfirm -S tar vim &&
-        /bin/bash ${build.args.tests_cmdline} ;
-        cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE"
+      - $let:
+          extraSystemSetup: { $eval: strip(str(build.system_setup)) }
+        in: >
+          .\msys64\usr\bin\bash.exe --login -cxe "export LC_ALL=C &&
+          export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
+          export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
+          export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
+          export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
+          export PIP_DEFAULT_TIMEOUT=60 &&
+          (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
+          env &&
+          ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
+          git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
+          cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
+          cd $TASKCLUSTER_TASK_DIR &&
+          pacman --noconfirm -R bsdtar &&
+          pacman --noconfirm -S tar vim &&
+          ${extraSystemSetup} &&
+          /bin/bash ${build.args.tests_cmdline} ;
+          cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE"
 
   metadata:
     name: ${build.metadata.name}

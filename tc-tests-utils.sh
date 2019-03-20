@@ -38,11 +38,13 @@ export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
 export ANDROID_SDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/SDK/
 export ANDROID_NDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/android-ndk-r18b/
 
+WGET=${WGET:-"wget"}
 TAR=${TAR:-"tar"}
 XZ=${XZ:-"pixz -9"}
 UNXZ=${UNXZ:-"pixz -d"}
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+  WGET=/usr/bin/wget.exe
   TAR=/usr/bin/tar.exe
   XZ="xz -9 -T0 -c -"
   UNXZ="xz -9 -T0 -d"
@@ -341,7 +343,7 @@ generic_download_tarxz()
 
   mkdir -p ${target_dir} || true
 
-  wget ${url} -O - | ${UNXZ} | ${TAR} -C ${target_dir} -xf -
+  ${WGET} ${url} -O - | ${UNXZ} | ${TAR} -C ${target_dir} -xf -
 }
 
 download_native_client_files()
@@ -364,8 +366,8 @@ install_nuget()
   mkdir -p "${TASKCLUSTER_TMP_DIR}/repo/"
   mkdir -p "${TASKCLUSTER_TMP_DIR}/ds/"
 
-  wget -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/${nuget}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
-  wget -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/DeepSpeechConsole.exe" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
+  ${WGET} -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/${nuget}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
+  ${WGET} -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/DeepSpeechConsole.exe" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
 
   nuget sources add -Name repo -Source $(cygpath -w "${TASKCLUSTER_TMP_DIR}/repo/")
 
@@ -390,8 +392,8 @@ install_nuget()
 
 download_data()
 {
-  wget -P "${TASKCLUSTER_TMP_DIR}" "${model_source}"
-  wget -P "${TASKCLUSTER_TMP_DIR}" "${model_source_mmap}"
+  ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source}"
+  ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source_mmap}"
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
@@ -414,8 +416,8 @@ download_benchmark_model()
 
   mkdir -p ${target_dir} || true
 
-  wget -P "${target_dir}" "${model_source}"
-  wget -P "${target_dir}" "${BENCHMARK_MODEL_BIN}" && chmod +x ${target_dir}/*benchmark_model
+  ${WGET} -P "${target_dir}" "${model_source}"
+  ${WGET} -P "${target_dir}" "${BENCHMARK_MODEL_BIN}" && chmod +x ${target_dir}/*benchmark_model
 }
 
 install_pyenv()
@@ -698,7 +700,7 @@ maybe_ssl102_py37()
                 fi
 
                 mkdir -p ${PY37_OPENSSL_DIR}
-                wget -P ${TASKCLUSTER_TMP_DIR} \
+                ${WGET} -P ${TASKCLUSTER_TMP_DIR} \
                         http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.0.2g-1ubuntu4.15_amd64.deb \
                         http://${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.0.0_1.0.2g-1ubuntu4.15_amd64.deb
 
@@ -1023,7 +1025,7 @@ android_install_sdk()
   fi;
 
   mkdir -p "${ANDROID_SDK_HOME}" || true
-  wget -P "${TASKCLUSTER_TMP_DIR}" https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
+  ${WGET} -P "${TASKCLUSTER_TMP_DIR}" https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
 
   pushd "${ANDROID_SDK_HOME}"
     unzip -qq "${TASKCLUSTER_TMP_DIR}/sdk-tools-linux-4333796.zip"
@@ -1039,7 +1041,7 @@ android_install_ndk()
     exit 1
   fi;
 
-  wget -P "${TASKCLUSTER_TMP_DIR}" https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip
+  ${WGET} -P "${TASKCLUSTER_TMP_DIR}" https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip
 
   mkdir -p ${DS_ROOT_TASK}/DeepSpeech/Android/
   pushd ${DS_ROOT_TASK}/DeepSpeech/Android/
