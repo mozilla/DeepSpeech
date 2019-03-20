@@ -3,7 +3,7 @@ build:
   dependencies:
     # Make sure builds are ready
     - "linux-amd64-gpu-opt"
-    - "node-package"
+    - "node-package-cpu"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -20,7 +20,7 @@ build:
       # GPU package
       - "linux-amd64-gpu-opt"
       # CPU package with all archs
-      - "node-package"
+      - "node-package-cpu"
     nuget: []
   metadata:
     name: "DeepSpeech NPM Packages"
