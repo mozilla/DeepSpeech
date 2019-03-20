@@ -5,6 +5,7 @@ build:
     - "linux-amd64-cpu-opt"
     - "linux-rpi3-cpu-opt"
     - "linux-arm64-cpu-opt"
+    - "win-amd64-cpu-opt"
   routes:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
@@ -21,5 +22,5 @@ build:
     build: "taskcluster/node-build.sh"
     package: "taskcluster/node-package.sh"
   metadata:
-    name: "DeepSpeech NodeJS package"
-    description: "Packaging DeepSpeech for registry"
+    name: "DeepSpeech NodeJS CPU package"
+    description: "Packaging DeepSpeech CPU for registry"

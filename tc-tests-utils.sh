@@ -841,7 +841,16 @@ do_deepspeech_nodejs_build()
 
   npm update && npm install node-gyp node-pre-gyp
 
-  export PATH="$(npm root)/.bin/:$PATH"
+  # Python 2.7 is required for node-pre-gyp, it is only required to force it on
+  # Windows
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    NPM_ROOT=$(cygpath -u "$(npm root)")
+    PYTHON27=":/c/Python27"
+  else
+    NPM_ROOT="$(npm root)"
+  fi
+
+  export PATH="$NPM_ROOT/.bin/${PYTHON27}:$PATH"
 
   for node in ${SUPPORTED_NODEJS_VERSIONS}; do
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
@@ -868,7 +877,16 @@ do_deepspeech_npm_package()
 
   npm update && npm install node-gyp node-pre-gyp
 
-  export PATH="$(npm root)/.bin/:$PATH"
+  # Python 2.7 is required for node-pre-gyp, it is only required to force it on
+  # Windows
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    NPM_ROOT=$(cygpath -u "$(npm root)")
+    PYTHON27=":/c/Python27"
+  else
+    NPM_ROOT="$(npm root)"
+  fi
+
+  export PATH="$NPM_ROOT/.bin/$PYTHON27:$PATH"
 
   all_tasks="$(curl -s https://queue.taskcluster.net/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
 
