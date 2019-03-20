@@ -7,6 +7,7 @@ build:
     - "linux-amd64-cpu-opt"
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
+    - "node-package-gpu"
     - "node-package-cpu"
     - "android-arm64-cpu-opt"
     - "android-armv7-cpu-opt"
@@ -30,7 +31,7 @@ build:
       - "linux-arm64-cpu-opt"
     javascript:
       # GPU package
-      - "linux-amd64-gpu-opt"
+      - "node-package-gpu"
       # CPU package with all archs
       - "node-package-cpu"
     cpp:

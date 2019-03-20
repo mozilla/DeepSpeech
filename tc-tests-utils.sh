@@ -873,6 +873,8 @@ do_deepspeech_nodejs_build()
 
 do_deepspeech_npm_package()
 {
+  rename_to_gpu=$1
+
   cd ${DS_DSDIR}
 
   npm update && npm install node-gyp node-pre-gyp
@@ -894,7 +896,11 @@ do_deepspeech_npm_package()
     curl -L https://queue.taskcluster.net/v1/task/${dep}/artifacts/public/wrapper.tar.gz | tar -C native_client/javascript -xzvf -
   done;
 
-  make -C native_client/javascript clean npm-pack
+  if [ "${rename_to_gpu}" ]; then
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
+  else
+    make -C native_client/javascript clean npm-pack
+  fi
 }
 
 force_java_apk_x86_64()
