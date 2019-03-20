@@ -31,9 +31,11 @@ if [ "${cuda}" = "--cuda" ]; then
     cp ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/native_client/liblibdeepspeech.so.ifso ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/native_client/libdeepspeech.so.if.lib
 fi
 
-export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin
+export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin:'/c/Program Files/nodejs/'
 
 do_deepspeech_binary_build
+
+do_deepspeech_nodejs_build "${cuda}"
 
 do_deepspeech_netframework_build
 

@@ -1,7 +1,7 @@
 build:
   template_file: test-armbian-opt-base.tyml
   dependencies:
-    - "node-package"
+    - "node-package-cpu"
     - "test-training_upstream-linux-amd64-py27mu-opt"
   system_setup:
     >

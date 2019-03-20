@@ -2,8 +2,8 @@ build:
   template_file: simple-task.tyml
   dependencies:
     # Make sure builds are ready
-    - "linux-amd64-gpu-opt"
-    - "node-package"
+    - "node-package-gpu"
+    - "node-package-cpu"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -18,9 +18,9 @@ build:
     java_aar: []
     javascript:
       # GPU package
-      - "linux-amd64-gpu-opt"
+      - "node-package-gpu"
       # CPU package with all archs
-      - "node-package"
+      - "node-package-cpu"
     nuget: []
   metadata:
     name: "DeepSpeech NPM Packages"
