@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import os
 import sys
 
@@ -871,8 +873,20 @@ def do_single_file_inference(input_file_path):
             inputs['input_lengths']: [num_strides],
         })
 
+        # np.set_printoptions(threshold=np.nan)
+        # print(logits.size)
+        # print(logits[0].size)
+        # print(logits[5])
         logits = np.squeeze(logits)
-
+        print(logits.shape)
+        print(logits.T.shape)
+        plt.pcolor(logits.T, norm=LogNorm(vmin=logits.min(),vmax=logits.max()))
+        plt.title('Log Normalized Logits from German Model for clip: "das ist ganz schön"', fontsize=20)
+        plt.xlabel('Length of Audio Clip', fontsize=18)
+        plt.ylabel('Index of UTF-8 Byte', fontsize=16)
+        plt.colorbar()
+        plt.show()
+        
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.lm_binary_path, FLAGS.lm_trie_path,
                         Config.alphabet)
