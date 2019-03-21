@@ -264,15 +264,17 @@ WordsFromMetadata(Metadata* metadata)
   float word_start_time = 0;
 
   // Loop through each character
-  for (int i=0; i < metadata->num_items; i++) {
+  for (int i = 0; i < metadata->num_items; i++) {
     MetadataItem item = metadata->items[i];
 
-    if (strcmp(item.character," ") != 0) {
+    if (strcmp(item.character, " ") != 0) {
       word.append(item.character);
     }
 
     // Word boundary is either a space or the last character in the array
-    if (strcmp(item.character," ") == 0 || i == metadata->num_items-1) {
+    if (strcmp(item.character, " ") == 0 || 
+        i == metadata->num_items-1) {
+        
       float word_duration = item.start_time - word_start_time;
       
       if (word_duration < 0) {
@@ -305,7 +307,7 @@ CSVOutput(std::vector<meta_word> words)
 {
   std::ostringstream out_string;
 
-  for (int i=0; i < words.size(); i++) {
+  for (int i = 0; i < words.size(); i++) {
     meta_word w = words[i];  
     out_string << w.word << "," << std::to_string(w.start_time) << "," << std::to_string(w.duration) << "\n";
   }
