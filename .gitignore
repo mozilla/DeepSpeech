@@ -8,6 +8,11 @@
 /runs
 /logs
 /exports
+/native_client/ctcdecode/common.a
+/native_client/ctcdecode/dist/
+/native_client/ctcdecode/ds_ctcdecoder.egg-info/
+/native_client/ctcdecode/swigwrapper.py
+/native_client/ctcdecode/swigwrapper_wrap.cpp    
 /native_client/setup.cfg
 /native_client/build
 /native_client/*.egg-info
