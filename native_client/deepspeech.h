@@ -209,7 +209,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
- * 		   The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
+ *         The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
