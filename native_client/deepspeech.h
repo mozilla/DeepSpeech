@@ -133,7 +133,7 @@ char* DS_SpeechToText(ModelState* aCtx,
  * @param aSampleRate The sample-rate of the audio signal.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
+ *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
@@ -209,7 +209,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata and Metadata.items. Returns NULL on error.
+ *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
  *
  * @note This method will free the state pointer (@p aSctx).
  */

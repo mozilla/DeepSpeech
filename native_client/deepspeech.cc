@@ -181,7 +181,7 @@ struct ModelState {
    *
    * @return Vector of Output structs directly from the CTC decoder for additional processing.
    */
-  vector<Output> decode_raw(vector<float>& logits);
+  vector<Output> decode_raw(const vector<float>& logits);
 
   /**
    * @brief Return character-level metadata including letter timings.
@@ -190,7 +190,7 @@ struct ModelState {
    *                        n_frames * batch_size * num_classes
    *
    * @return Metadata struct containing MetadataItem structs for each character.
-   * The user is responsible for freeing Metadata and Metadata.items.
+   * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
    */
   Metadata* decode_metadata(vector<float>& logits); 
 
@@ -463,7 +463,7 @@ ModelState::decode(vector<float>& logits)
 }
 
 vector<Output>
-ModelState::decode_raw(vector<float>& logits)
+ModelState::decode_raw(const vector<float>& logits)
 {
   const int cutoff_top_n = 40;
   const double cutoff_prob = 1.0;
