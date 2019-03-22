@@ -491,15 +491,10 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
 
   // Loop through each character
   for (int i = 0; i < out[0].tokens.size(); ++i) {
-    char* character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str();
-
-    // Note: 1 timestep = 20ms
-    float start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
-
     MetadataItem item;
-    item.character = character; 
+    item.character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
     item.timestep = out[0].timesteps[i]; 
-    item.start_time = start_time;
+    item.start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
     
     if (item.start_time < 0) {
       item.start_time = 0;
