@@ -267,12 +267,14 @@ WordsFromMetadata(Metadata* metadata)
   for (int i = 0; i < metadata->num_items; i++) {
     MetadataItem item = metadata->items[i];
 
-    if (strcmp(item.character, " ") != 0) {
+    // Append character to word if it's not a space
+    if (strcmp(item.character, " ") != 0 || strcmp(item.character, u8"　") != 0) {
       word.append(item.character);
     }
 
     // Word boundary is either a space or the last character in the array
     if (strcmp(item.character, " ") == 0 
+        || strcmp(item.character, u8" ") == 0 
         || i == metadata->num_items-1) {
         
       float word_duration = item.start_time - word_start_time;
