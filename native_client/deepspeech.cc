@@ -485,22 +485,23 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
 {
   vector<Output> out = decode_raw(logits);
 
-  Metadata* metadata = (Metadata*)malloc(sizeof (Metadata));
+  Metadata* metadata = new Metadata;
   metadata->num_items = out[0].tokens.size();
-  metadata->items = (MetadataItem*)malloc(sizeof(MetadataItem) * metadata->num_items);
+  metadata->items = new MetadataItem[metadata->num_items];
 
   // Loop through each character
   for (int i = 0; i < out[0].tokens.size(); ++i) {
-    MetadataItem item;
-    item.character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
-    item.timestep = out[0].timesteps[i]; 
-    item.start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
+    MetadataItem *item = new MetadataItem;
+    item->character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
+    item->timestep = out[0].timesteps[i]; 
+    item->start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
     
-    if (item.start_time < 0) {
-      item.start_time = 0;
+    if (item->start_time < 0) {
+      item->start_time = 0;
     }
     
-    metadata->items[i] = item;
+    metadata->items[i] = *item;
+    delete(item);
   }
 
   return metadata;
@@ -916,8 +917,8 @@ DS_AudioToInputVector(const short* aBuffer,
 void 
 DS_FreeMetadata(Metadata* m) 
 {  
-  free(m->items);
-  free(m);
+  delete(m->items);
+  delete(m);
 }
 
 void
