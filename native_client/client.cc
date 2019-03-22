@@ -272,8 +272,8 @@ WordsFromMetadata(Metadata* metadata)
     }
 
     // Word boundary is either a space or the last character in the array
-    if (strcmp(item.character, " ") == 0 || 
-        i == metadata->num_items-1) {
+    if (strcmp(item.character, " ") == 0 
+        || i == metadata->num_items-1) {
         
       float word_duration = item.start_time - word_start_time;
       
@@ -291,7 +291,6 @@ WordsFromMetadata(Metadata* metadata)
       // Reset
       word = "";
       word_start_time = 0;
-
     } else {
       if (word.length() == 1) {
         word_start_time = item.start_time; // Log the start time of the new word
