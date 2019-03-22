@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
+NUM_LANGS=2
+
 import os
 import sys
 
@@ -148,15 +150,15 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
     # creating `n_classes` dimensional vectors, the logits.
-    b6 = variable_on_worker_level('b6', [Config.n_hidden_6], tf.zeros_initializer())
-    h6 = variable_on_worker_level('h6', [Config.n_hidden_5, Config.n_hidden_6], tf.contrib.layers.xavier_initializer())
+    b6 = variable_on_worker_level('b6', [NUM_LANGS], tf.zeros_initializer())
+    h6 = variable_on_worker_level('h6', [Config.n_hidden_5, NUM_LANGS], tf.contrib.layers.xavier_initializer())
     layer_6 = tf.add(tf.matmul(layer_5, h6), b6)
     layers['layer_6'] = layer_6
 
     # Finally we reshape layer_6 from a tensor of shape [n_steps*batch_size, n_hidden_6]
     # to the slightly more useful shape [n_steps, batch_size, n_hidden_6].
     # Note, that this differs from the input in that it is time-major.
-    layer_6 = tf.reshape(layer_6, [n_steps, batch_size, Config.n_hidden_6], name="raw_logits")
+    layer_6 = tf.reshape(layer_6, [n_steps, batch_size, NUM_LANGS], name="raw_logits")
     layers['raw_logits'] = layer_6
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
@@ -186,13 +188,23 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout, reuse):
     logits, _ = BiRNN(batch_x, batch_seq_len, dropout, reuse)
 
     # Compute the CTC loss using TensorFlow's `ctc_loss`
-    total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+    #total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+    total_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+        labels=tf.cast(batch_y, tf.float32), logits
+    )
 
+    output_probs = tf.sigmoid(output)
+    prediction = tf.cast(output_probs > 0.5, tf.int32)
+    eq = tf.cast(tf.equal(prediction, batch_y), tf.int32)
+    sum1 = tf.reduce_sum(eq)
+    sum2 = tf.reduce_sum(tf.ones_like(prediction))
+    accuracy = sum1 / sum2
+    
     # Calculate the average loss across the batch
     avg_loss = tf.reduce_mean(total_loss)
 
     # Finally we return the average loss
-    return avg_loss
+    return avg_loss, accuracy
 
 
 # Adam Optimization
@@ -236,6 +248,7 @@ def get_tower_results(model_feeder, optimizer, dropout_rates):
     '''
     # To calculate the mean of the losses
     tower_avg_losses = []
+    tower_avg_acc = []
 
     # Tower gradients to return
     tower_gradients = []
@@ -253,14 +266,15 @@ def get_tower_results(model_feeder, optimizer, dropout_rates):
                 with tf.name_scope('tower_%d' % i) as scope:
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
-                    avg_loss = calculate_mean_edit_distance_and_loss(model_feeder, i, dropout_rates, reuse=i>0)
+                    avg_loss, acc  = calculate_mean_edit_distance_and_loss(model_feeder, i, dropout_rates, reuse=i>0)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
 
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
-
+                    tower_avg_acc.append(acc)
+                    
                     # Compute gradients for model parameters using tower's mini-batch
                     gradients = optimizer.compute_gradients(avg_loss)
 
@@ -269,11 +283,12 @@ def get_tower_results(model_feeder, optimizer, dropout_rates):
 
 
     avg_loss_across_towers = tf.reduce_mean(tower_avg_losses, 0)
-
+    avg_acc_across_towers = tf.reduce_mean(tower_avg_acc, 0)
+    
     tf.summary.scalar(name='step_loss', tensor=avg_loss_across_towers, collections=['step_summaries'])
 
     # Return gradients and the average loss
-    return tower_gradients, avg_loss_across_towers
+    return tower_gradients, avg_loss_across_towers, avg_acc_accross_towers
 
 
 def average_gradients(tower_gradients):
@@ -378,30 +393,52 @@ def train(server=None):
     dropout_rates = [tf.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
 
     # Reading training set
-    train_data = preprocess(FLAGS.train_files.split(','),
+    train_welsh = preprocess(FLAGS.train_welsh.split(','),
                             FLAGS.train_batch_size,
                             Config.n_input,
                             Config.n_context,
                             Config.alphabet,
-                            hdf5_cache_path=FLAGS.train_cached_features_path)
+                            hdf5_cache_path=FLAGS.train_cached_features_path,
+                            file_type='welsh')
 
-    train_set = DataSet(train_data,
+    train_kyrgyz = preprocess(FLAGS.train_kyrgyz.split(','),
+                                 FLAGS.train_batch_size,
+                                 Config.n_input,
+                                 Config.n_context,
+                                 Config.alphabet,
+                                 file_type='kyrgyz')
+    
+    # train_set = DataSet(train_data,
+    train_set = DataSet(pandas.concat((train_welsh, train_kyrgyz)),
                         FLAGS.train_batch_size,
                         limit=FLAGS.limit_train,
                         next_index=lambda i: coord.get_next_index('train'))
 
-    # Reading validation set
-    dev_data = preprocess(FLAGS.dev_files.split(','),
-                          FLAGS.dev_batch_size,
-                          Config.n_input,
-                          Config.n_context,
-                          Config.alphabet,
-                          hdf5_cache_path=FLAGS.dev_cached_features_path)
+    
 
-    dev_set = DataSet(dev_data,
-                      FLAGS.dev_batch_size,
-                      limit=FLAGS.limit_dev,
-                      next_index=lambda i: coord.get_next_index('dev'))
+    # Reading deving set
+    dev_welsh = preprocess(FLAGS.dev_welsh.split(','),
+                            FLAGS.dev_batch_size,
+                            Config.n_input,
+                            Config.n_context,
+                            Config.alphabet,
+                            hdf5_cache_path=FLAGS.dev_cached_features_path,
+                            file_type='welsh')
+
+    dev_kyrgyz = preprocess(FLAGS.dev_kyrgyz.split(','),
+                                 FLAGS.dev_batch_size,
+                                 Config.n_input,
+                                 Config.n_context,
+                                 Config.alphabet,
+                                 file_type='kyrgyz')
+    
+    # dev_set = DataSet(dev_data,
+    dev_set = DataSet(pandas.concat((dev_welsh, dev_kyrgyz)),
+                        FLAGS.dev_batch_size,
+                        limit=FLAGS.limit_dev,
+                        next_index=lambda i: coord.get_next_index('dev'))
+
+    
 
     # Combining all sets to a multi set model feeder
     model_feeder = ModelFeeder(train_set,
@@ -421,7 +458,7 @@ def train(server=None):
                                                    total_num_replicas=FLAGS.replicas)
 
     # Get the data_set specific graph end-points
-    gradients, loss = get_tower_results(model_feeder, optimizer, dropout_rates)
+    gradients, loss, acc = get_tower_results(model_feeder, optimizer, dropout_rates)
 
     # Average tower gradients across GPUs
     avg_tower_gradients = average_gradients(gradients)
@@ -575,6 +612,7 @@ def train(server=None):
 
                     # Initialize loss aggregator
                     total_loss = 0.0
+                    total_acc = 0.0
 
                     # Setting the training operation in case of training requested
                     train_op = apply_gradient_op if is_train else []
@@ -591,7 +629,7 @@ def train(server=None):
 
                         log_debug('Starting batch...')
                         # Compute the batch
-                        _, current_step, batch_loss, step_summary = session.run([train_op, global_step, loss, step_summaries_op], **extra_params)
+                        _, current_step, batch_loss, batch_acc, step_summary = session.run([train_op, global_step, loss, step_summaries_op], **extra_params)
 
                         # Log step summaries
                         step_summary_writer.add_summary(step_summary, current_step)
@@ -601,9 +639,11 @@ def train(server=None):
 
                         # Add batch to loss
                         total_loss += batch_loss
+                        total_acc += batch_acc
 
                     # Gathering job results
                     job.loss = total_loss / job.steps
+                    job.acc = total_acc / job.steps
 
                     # Display progressbar
                     if FLAGS.show_progressbar:

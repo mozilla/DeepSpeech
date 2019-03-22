@@ -175,10 +175,10 @@ class _TowerFeeder(object):
         Draw the next batch from from the combined switchable queue.
         '''
         source, source_lengths, target, target_lengths = self._queue.dequeue_many(self._model_feeder.ph_batch_size)
-        # Back to sparse, then subtract one to get the real labels
-        sparse_labels = tf.contrib.layers.dense_to_sparse(target)
-        neg_ones = tf.SparseTensor(sparse_labels.indices, -1 * tf.ones_like(sparse_labels.values), sparse_labels.dense_shape)
-        return source, source_lengths, tf.sparse_add(sparse_labels, neg_ones)
+        ## Back to sparse, then subtract one to get the real labels
+        # sparse_labels = tf.contrib.layers.dense_to_sparse(target)
+        # neg_ones = tf.SparseTensor(sparse_labels.indices, -1 * tf.ones_like(sparse_labels.values), sparse_labels.dense_shape)
+        return source, source_lengths, target #tf.sparse_add(sparse_labels, neg_ones)
 
     def start_queue_threads(self, session, coord):
         '''

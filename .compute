@@ -20,9 +20,11 @@ swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
 python -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
-  --dev_files "${lbs}-dev-clean.csv"\
-  --test_files "${lbs}-test-clean.csv" \
+       --notest\
+  --train_welsh\
+  --dev_welsh \
+  --train_kyrgyz\
+  --dev_kyrgyz \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
