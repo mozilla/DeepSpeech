@@ -485,26 +485,23 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
 {
   vector<Output> out = decode_raw(logits);
 
-  Metadata* metadata = new Metadata;
+  std::unique_ptr<Metadata> metadata(new Metadata);
   metadata->num_items = out[0].tokens.size();
-  metadata->items = new MetadataItem[metadata->num_items];
+  std::unique_ptr<MetadataItem> items(new MetadataItem[metadata->num_items]);
+  metadata->items = items.release();
 
   // Loop through each character
   for (int i = 0; i < out[0].tokens.size(); ++i) {
-    MetadataItem *item = new MetadataItem;
-    item->character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
-    item->timestep = out[0].timesteps[i]; 
-    item->start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
+    metadata->items[i].character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
+    metadata->items[i].timestep = out[0].timesteps[i]; 
+    metadata->items[i].start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
     
-    if (item->start_time < 0) {
-      item->start_time = 0;
+    if (metadata->items[i].start_time < 0) {
+      metadata->items[i].start_time = 0;
     }
-    
-    metadata->items[i] = *item;
-    delete(item);
   }
 
-  return metadata;
+  return metadata.release();
 }
 
 #ifdef USE_TFLITE
