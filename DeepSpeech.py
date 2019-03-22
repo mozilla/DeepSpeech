@@ -16,7 +16,7 @@ import progressbar
 import shutil
 import tensorflow as tf
 import traceback
-
+import pandas
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph
@@ -187,11 +187,24 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout, reuse):
     # Calculate the logits of the batch using BiRNN
     logits, _ = BiRNN(batch_x, batch_seq_len, dropout, reuse)
 
+    # SPECIAL FOR LANG-ID
+    
+    batch_shape = tf.shape(batch_x)
+    batch_size = batch_shape[0]
+    n_steps = batch_shape[1]
+    output = logits
+    # permute time and batch
+    output = tf.reshape(output, [n_steps, batch_size, -1])
+    output = tf.transpose(output, [1, 0, 2])
+    output = tf.reshape(output, [batch_size, n_steps, -1])
+    # mean over time steps
+    output = tf.reduce_sum(output, axis=1) / tf.cast(batch_seq_len, tf.float32)
+    total_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+        labels=tf.cast(batch_y, tf.float32), logits=output
+    )
+
     # Compute the CTC loss using TensorFlow's `ctc_loss`
     #total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
-    total_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-        labels=tf.cast(batch_y, tf.float32), logits
-    )
 
     output_probs = tf.sigmoid(output)
     prediction = tf.cast(output_probs > 0.5, tf.int32)

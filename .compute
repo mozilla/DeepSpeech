@@ -2,6 +2,11 @@
 
 set -xe
 
+# check HTTP_PROXY
+if ! (( $( env | grep -iq "^http_proxy=" ) )); then
+    source /etc/profile
+fi
+
 apt-get install -y python3-venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
@@ -11,28 +16,26 @@ pip install tensorflow-gpu==1.13.0-rc2
 
 # Install ds_ctcdecoder package from TaskCluster
 pip install $(python3 util/taskcluster.py --decoder)
+pip install pandas
 
 mkdir -p ../keep/summaries
 
-data="${SHARED_DIR}/data"
-fis="${data}/LDC/fisher"
-swb="${data}/LDC/LDC97S62/swb"
-lbs="${data}/OpenSLR/LibriSpeech/librivox"
+CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0"
 
 python -u DeepSpeech.py \
        --notest\
-  --train_welsh\
-  --dev_welsh \
-  --train_kyrgyz\
-  --dev_kyrgyz \
-  --train_batch_size 24 \
-  --dev_batch_size 48 \
-  --test_batch_size 48 \
-  --n_hidden 2048 \
-  --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
-  --epoch 13 \
-  --display_step 0 \
-  --validation_step 1 \
-  --checkpoint_dir "../keep" \
-  --summary_dir "../keep/summaries"
+       --train_welsh "${CV}/cy/clips/train.csv"\
+       --dev_welsh "${CV}/cy/clips/dev.csv"\
+       --train_kyrgyz "${CV}/ky/clips/train.csv"\
+       --dev_kyrgyz "${CV}/ky/clips/dev.csv"\
+       --train_batch_size 24 \
+       --dev_batch_size 48 \
+       --test_batch_size 48 \
+       --n_hidden 2048 \
+       --learning_rate 0.0001 \
+       --dropout_rate 0.2 \
+       --epoch 13 \
+       --display_step 0 \
+       --validation_step 1 \
+       --checkpoint_dir "../keep" \
+       --summary_dir "../keep/summaries"

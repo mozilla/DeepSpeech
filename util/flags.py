@@ -10,6 +10,10 @@ def create_flags():
     # Importer
     # ========
 
+    tf.app.flags.DEFINE_string  ('train_welsh',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
+    tf.app.flags.DEFINE_string  ('dev_welsh',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
+    tf.app.flags.DEFINE_string  ('train_kyrgyz',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
+    tf.app.flags.DEFINE_string  ('dev_kyrgyz',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('train_files',      '',          'comma separated list of files specifying the dataset used for training. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('dev_files',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('test_files',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
