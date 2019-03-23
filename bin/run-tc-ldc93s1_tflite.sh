@@ -17,4 +17,4 @@ python -u DeepSpeech.py --noshow_progressbar \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \
   --notrain --notest \
-  --export_tflite \
+  --export_tflite --nouse_seq_length \

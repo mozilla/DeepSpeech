@@ -119,6 +119,10 @@ tf_cc_shared_object(
             "//tensorflow/core/kernels:control_flow_ops",   # Enter
             "//tensorflow/core/kernels:tile_ops",           # Tile
             "//tensorflow/core/kernels:gather_op",          # Gather
+            "//tensorflow/core/kernels:mfcc_op",            # Mfcc
+            "//tensorflow/core/kernels:spectrogram_op",     # AudioSpectrogram
+            "//tensorflow/core/kernels:strided_slice_op",   # StridedSlice
+            "//tensorflow/core/kernels:slice_op",           # Slice, needed by StridedSlice
             "//tensorflow/contrib/rnn:lstm_ops_kernels",    # BlockLSTM
             "//tensorflow/core/kernels:random_ops",         # RandomGammaGrad
             "//tensorflow/core/kernels:pack_op",            # Pack

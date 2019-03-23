@@ -108,7 +108,6 @@ using std::vector;
 struct StreamingState {
   vector<float> accumulated_logits;
   vector<float> audio_buffer;
-  float last_sample; // used for preemphasis
   vector<float> mfcc_buffer;
   vector<float> batch_buffer;
   ModelState* model;
@@ -152,10 +151,13 @@ struct ModelState {
   int input_node_idx;
   int previous_state_c_idx;
   int previous_state_h_idx;
+  int input_samples_idx;
 
   int logits_idx;
   int new_state_c_idx;
   int new_state_h_idx;
+  int mfccs_idx;
+  int mfccs_len_idx;
 #endif
 
   ModelState();
@@ -204,7 +206,9 @@ struct ModelState {
    *
    * @param[out] output_logits Where to store computed logits.
    */
-  void infer(const float* mfcc, unsigned int n_frames, vector<float>& output_logits);
+  void infer(const float* mfcc, unsigned int n_frames, vector<float>& logits_output);
+
+  void compute_mfcc(const vector<float> audio_buffer, vector<float>& mfcc_output);
 };
 
 StreamingState* setupStreamAndFeedAudioContent(ModelState* aCtx, const short* aBuffer,
@@ -258,10 +262,9 @@ StreamingState::feedAudioContent(const short* buffer,
   // Consume all the data that was passed in, processing full buffers if needed
   while (buffer_size > 0) {
     while (buffer_size > 0 && audio_buffer.size() < AUDIO_WIN_LEN_SAMPLES) {
-      // Apply preemphasis to input sample and buffer it
-      float sample = (float)(*buffer) - (PREEMPHASIS_COEFF * last_sample);
-      audio_buffer.push_back(sample);
-      last_sample = *buffer;
+      // Convert i16 sample into f32
+      float multiplier = 1.0f / (1 << 15);
+      audio_buffer.push_back((float)(*buffer) * multiplier);
       ++buffer;
       --buffer_size;
     }
@@ -304,15 +307,11 @@ void
 StreamingState::processAudioWindow(const vector<float>& buf)
 {
   // Compute MFCC features
-  float* mfcc;
-  int n_frames = csf_mfcc(buf.data(), buf.size(), SAMPLE_RATE,
-                          AUDIO_WIN_LEN, AUDIO_WIN_STEP, MFCC_FEATURES, N_FILTERS, N_FFT,
-                          LOWFREQ, SAMPLE_RATE/2, 0.f, CEP_LIFTER, 1, hamming_window.data(),
-                          &mfcc);
-  assert(n_frames == 1);
+  vector<float> mfcc;
+  mfcc.reserve(MFCC_FEATURES);
+  model->compute_mfcc(buf, mfcc);
 
-  pushMfccBuffer(mfcc, n_frames * MFCC_FEATURES);
-  free(mfcc);
+  pushMfccBuffer(mfcc.data(), MFCC_FEATURES);
 }
 
 void
@@ -396,7 +395,7 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
     input_mapped(i) = aMfcc[i];
   }
   for (; i < n_steps*mfcc_feats_per_timestep; ++i) {
-    input_mapped(i) = 0;
+    input_mapped(i) = 0.;
   }
 
   Tensor input_lengths(DT_INT32, TensorShape({1}));
@@ -452,6 +451,53 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
   memcpy(previous_state_c_.get(), interpreter->typed_tensor<float>(new_state_c_idx), sizeof(float) * previous_state_size);
   memcpy(previous_state_h_.get(), interpreter->typed_tensor<float>(new_state_h_idx), sizeof(float) * previous_state_size);
 #endif // USE_TFLITE
+}
+
+void
+ModelState::compute_mfcc(const vector<float> samples, vector<float>& mfcc_output)
+{
+#ifndef USE_TFLITE
+  Tensor input(DT_FLOAT, TensorShape({static_cast<long long>(samples.size())}));
+  auto input_mapped = input.flat<float>();
+  for (int i = 0; i < samples.size(); ++i) {
+    input_mapped(i) = samples[i];
+  }
+
+  vector<Tensor> outputs;
+  Status status = session->Run({{"input_samples", input}}, {"mfccs", "mfccs_len"}, {}, &outputs);
+
+  if (!status.ok()) {
+    std::cerr << "Error running session: " << status << "\n";
+    return;
+  }
+
+  auto mfcc_len_mapped = outputs[1].flat<int32>();
+  int n_windows = mfcc_len_mapped(0);
+
+  auto mfcc_mapped = outputs[0].flat<float>();
+  for (int i = 0; i < n_windows * MFCC_FEATURES; ++i) {
+    mfcc_output.push_back(mfcc_mapped(i));
+  }
+#else
+  // Feeding input_node
+  float* input_samples = interpreter->typed_tensor<float>(input_samples_idx);
+  for (int i = 0; i < samples.size(); ++i) {
+    input_samples[i] = samples[i];
+  }
+
+  TfLiteStatus status = interpreter->Invoke();
+  if (status != kTfLiteOk) {
+    std::cerr << "Error running session: " << status << "\n";
+    return;
+  }
+
+  int n_windows = *interpreter->typed_tensor<float>(mfccs_len_idx);
+
+  float* outputs = interpreter->typed_tensor<float>(mfccs_idx);
+  for (int i = 0; i < n_windows * MFCC_FEATURES; ++i) {
+    mfcc_output.push_back(outputs[i]);
+  }
+#endif
 }
 
 char*
@@ -640,8 +686,6 @@ DS_CreateModel(const char* aModelPath,
   *retval = model.release();
   return DS_ERR_OK;
 #else // USE_TFLITE
-  TfLiteStatus status;
-
   model->fbmodel = tflite::FlatBufferModel::BuildFromFile(aModelPath);
   if (!model->fbmodel) {
     std::cerr << "Error at reading model file " << aModelPath << std::endl;
@@ -663,9 +707,12 @@ DS_CreateModel(const char* aModelPath,
   model->input_node_idx       = tflite_get_input_tensor_by_name(model.get(), "input_node");
   model->previous_state_c_idx = tflite_get_input_tensor_by_name(model.get(), "previous_state_c");
   model->previous_state_h_idx = tflite_get_input_tensor_by_name(model.get(), "previous_state_h");
+  model->input_samples_idx    = tflite_get_input_tensor_by_name(model.get(), "input_samples");
   model->logits_idx           = tflite_get_output_tensor_by_name(model.get(), "logits");
   model->new_state_c_idx      = tflite_get_output_tensor_by_name(model.get(), "new_state_c");
   model->new_state_h_idx      = tflite_get_output_tensor_by_name(model.get(), "new_state_h");
+  model->mfccs_idx            = tflite_get_output_tensor_by_name(model.get(), "mfccs");
+  model->mfccs_len_idx        = tflite_get_output_tensor_by_name(model.get(), "mfccs_len");
 
   TfLiteIntArray* dims_input_node = model->interpreter->tensor(model->input_node_idx)->dims;
 
@@ -796,7 +843,6 @@ DS_SetupStream(ModelState* aCtx,
   ctx->accumulated_logits.reserve(aPreAllocFrames * BATCH_SIZE * num_classes);
 
   ctx->audio_buffer.reserve(AUDIO_WIN_LEN_SAMPLES);
-  ctx->last_sample = 0;
   ctx->mfcc_buffer.reserve(aCtx->mfcc_feats_per_timestep);
   ctx->mfcc_buffer.resize(MFCC_FEATURES*aCtx->n_context, 0.f);
   ctx->batch_buffer.reserve(aCtx->n_steps * aCtx->mfcc_feats_per_timestep);

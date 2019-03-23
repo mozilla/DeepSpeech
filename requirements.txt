@@ -1,19 +1,23 @@
-pandas
-progressbar2
-python-utils
+# Main training requirements
 tensorflow == 1.13.1
 numpy == 1.15.4
-matplotlib
-scipy
-sox
-paramiko >= 2.1
-python_speech_features
-pyxdg
-bs4
+progressbar2
+pandas
 six
-requests
-tables
+pyxdg
 attrdict
+
+# Requirements for building native_client files
 setuptools
+
+# Requirements for importers
+sox
+bs4
+requests
 librosa
 soundfile
+
+# Miscellaneous scripts
+paramiko >= 2.1
+scipy
+matplotlib

@@ -16,7 +16,7 @@ else
     checkpoint_dir=$(python -c 'from xdg import BaseDirectory as xdg; print(xdg.save_data_path("deepspeech/ldc93s1"))')
 fi
 
-python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
+python -u DeepSpeech.py --noshow_progressbar --nodev \
   --train_files data/ldc93s1/ldc93s1.csv \
   --dev_files data/ldc93s1/ldc93s1.csv \
   --test_files data/ldc93s1/ldc93s1.csv \

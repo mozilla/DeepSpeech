@@ -23,6 +23,7 @@ def create_flags():
     # ================
 
     tf.app.flags.DEFINE_boolean ('train',            True,        'whether to train the network')
+    tf.app.flags.DEFINE_boolean ('dev',              True,        'whether to run validation epochs')
     tf.app.flags.DEFINE_boolean ('test',             True,        'whether to test the network')
     tf.app.flags.DEFINE_integer ('epoch',            75,          'target epoch to train - if negative, the absolute number of additional epochs will be trained')
 
