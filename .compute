@@ -28,38 +28,34 @@ echo "##############################"
 echo " STARTING TRANSFER LEARNING "
 echo "##############################"
 
-for input in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9; do 
-    for hidden in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9; do
-        for lrate in 0.01 0.001 0.0001; do
-            exp="../keep/scratch/input-${input}/hidden-${hidden}/lrate-${lrate}"
+input=0.2 
+hidden=0.4
+lrate=0.0001
+exp="../keep/scratch/input-${input}/hidden-${hidden}/lrate-${lrate}"
 
-            python -u DeepSpeech.py \
-                   --fine_tune \
-	               --export_dir "${exp}/model/" \
-	               --summary_dir "${exp}/summaries/" \
-	               --checkpoint_dir "${exp}/ckpt/" \
-	               --drop_source_layers 2 \
-	               --source_model_checkpoint_dir "${SOURCE_MODEL}" \
-	               --n_hidden 2048 \
-	               --epoch -1000 \
-                   --earlystop_nsteps 5 \
-	               --train_batch_size 24 \
-	               --dev_batch_size 48 \
-	               --test_batch_size 48 \
-	               --learning_rate "${lrate}" \
-	               --dropout_rate "${hidden}" \
-	               --dropout_rate2 "${input}" \
-	               --display_step 0 \
-	               --validation_step 1 \
-                   --summary_secs 60 \
-                   --train_files "/data/rw/home/ky/clips/clean-train.csv" \
-                   --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
-                   --test_files "/data/rw/home/ky/clips/clean-test.csv" \
-                   --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
-                   --lm_binary_path "/data/rw/home/ky/clean-lm.binary" \
-                   --lm_trie_path "/data/rw/home/ky/clean-trie";
-        done
-    done
-done
-
+python -u DeepSpeech.py \
+       --fine_tune \
+	   --export_dir "${exp}/model/" \
+	   --summary_dir "${exp}/summaries/" \
+	   --checkpoint_dir "${exp}/ckpt/" \
+	   --drop_source_layers 2 \
+	   --source_model_checkpoint_dir "${SOURCE_MODEL}" \
+	   --n_hidden 2048 \
+	   --epoch -1000 \
+       --earlystop_nsteps 5 \
+	   --train_batch_size 24 \
+	   --dev_batch_size 48 \
+	   --test_batch_size 48 \
+	   --learning_rate "${lrate}" \
+	   --dropout_rate "${hidden}" \
+	   --dropout_rate2 "${input}" \
+	   --display_step 0 \
+	   --validation_step 1 \
+       --summary_secs 60 \
+       --train_files "/data/rw/home/ky/clips/clean-train.csv" \
+       --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
+       --test_files "/data/rw/home/ky/clips/clean-test.csv" \
+       --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
+       --lm_binary_path "/data/rw/home/ky/clean-lm.binary" \
+       --lm_trie_path "/data/rw/home/ky/clean-trie";
 echo "$0: END"
