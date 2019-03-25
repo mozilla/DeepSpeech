@@ -44,6 +44,10 @@ then:
         $map: { $eval: build.artifacts_deps.cpp }
         each(b):
           $eval: as_slugid(b)
+      nuget:
+        $map: { $eval: build.artifacts_deps.nuget }
+        each(b):
+          $eval: as_slugid(b)
 
   metadata:
     name: ${build.metadata.name}

@@ -4,7 +4,7 @@
       "target_name": "deepspeech",
       "sources": [ "deepspeech_wrap.cxx" ],
       "libraries": [
-        "${LIBS}"
+        "$(LIBS)"
       ],
       "include_dirs": [
         "../"

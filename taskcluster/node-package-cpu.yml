@@ -5,6 +5,7 @@ build:
     - "linux-amd64-cpu-opt"
     - "linux-rpi3-cpu-opt"
     - "linux-arm64-cpu-opt"
+    - "win-amd64-cpu-opt"
   routes:
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
@@ -16,10 +17,10 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.12.e232881c5a18204d946d4feba3c5aaa2d2c7dba0.cpu/artifacts/public/home.tar.xz"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.13.17f818896d063427d38ba2ec6662902ea4ae79eb.cpu/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/node-build.sh"
     package: "taskcluster/node-package.sh"
   metadata:
-    name: "DeepSpeech NodeJS package"
-    description: "Packaging DeepSpeech for registry"
+    name: "DeepSpeech NodeJS CPU package"
+    description: "Packaging DeepSpeech CPU for registry"

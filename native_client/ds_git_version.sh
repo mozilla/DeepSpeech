@@ -4,6 +4,10 @@ if [ `uname` = "Darwin" ]; then
    export PATH="/Users/build-user/TaskCluster/Workdir/tasks/tc-workdir/homebrew/opt/coreutils/libexec/gnubin:${PATH}"
 fi
 
+if [ `uname -o` = "Msys" ]; then
+   export PATH="/c/Program Files/Git/bin/:${PATH}"
+fi
+
 DS_GIT_DIR="$(realpath "$(dirname "$(realpath "$0")")/../.git/")"
 if [ ! -d "${DS_GIT_DIR}" ]; then
    return 1

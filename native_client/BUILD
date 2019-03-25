@@ -3,8 +3,16 @@
 load("@org_tensorflow//tensorflow:tensorflow.bzl",
      "tf_cc_shared_object", "if_cuda")
 
-load("@org_tensorflow//tensorflow/contrib/lite:build_def.bzl",
+load("@org_tensorflow//tensorflow/lite:build_def.bzl",
      "tflite_copts", "tflite_linkopts")
+
+config_setting(
+    name = "tflite",
+    define_values = {
+        "runtime": "tflite"
+    },
+)
+
 genrule(
     name = "ds_git_version",
     outs = ["ds_version.h"],
@@ -70,6 +78,9 @@ tf_cc_shared_object(
         # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
         # which makes it harder to see our own warnings
         "//conditions:default": ["-Wno-sign-compare", "-fvisibility=hidden"],
+    }) + select({
+        "//native_client:tflite": [ "-DUSE_TFLITE" ],
+        "//conditions:default": [ "-UUSE_TFLITE" ]
     }) + tflite_copts(),
     linkopts = select({
         "//tensorflow:darwin": [],
@@ -80,8 +91,8 @@ tf_cc_shared_object(
         "//conditions:default": []
     }) + tflite_linkopts(),
     deps = select({
-        "//tensorflow:android": [
-            "//tensorflow/contrib/lite/kernels:builtin_ops",
+        "//native_client:tflite": [
+            "//tensorflow/lite/kernels:builtin_ops",
         ],
         "//conditions:default": [
             "//tensorflow/core:core_cpu",

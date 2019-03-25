@@ -2,7 +2,7 @@ build:
   template_file: test-linux-opt-base.tyml
   docker_image: "ubuntu:16.04"
   dependencies:
-    - "node-package"
+    - "node-package-cpu"
     - "test-training_upstream-linux-amd64-py27mu-opt"
   system_setup:
     >

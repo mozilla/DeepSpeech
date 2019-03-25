@@ -18,7 +18,6 @@ apt-get update -y
 apt-get install -y python3-venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
-
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
 pip install $(python util/taskcluster.py --decoder)
@@ -58,4 +57,3 @@ python -u DeepSpeech.py \
        --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
        --lm_binary_path "/data/rw/home/ky/clean-lm.binary" \
        --lm_trie_path "/data/rw/home/ky/clean-trie";
-echo "$0: END"

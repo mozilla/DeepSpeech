@@ -39,11 +39,27 @@ class BuildExtFirst(build):
                     ('build_clib', build.has_c_libraries),
                     ('build_scripts', build.has_scripts)]
 
+# Properly pass arguments for linking, setuptools will perform some checks
+def lib_dirs_split(a):
+    if os.name == 'posix':
+        return a.split('-L')[1:]
+
+    if os.name == 'nt':
+        return []
+
+def libs_split(a):
+    if os.name == 'posix':
+        return a.split('-l')[1:]
+
+    if os.name == 'nt':
+        return a.split('.lib')[0:1]
+
 ds_ext = Extension('deepspeech._impl',
          ['impl.i'],
          include_dirs = [ numpy_include, '../' ],
-         library_dirs = list(map(lambda x: x.strip(), os.getenv('MODEL_LDFLAGS', '').split('-L')[1:])),
-         libraries = list(map(lambda x: x.strip(), os.getenv('MODEL_LIBS', '').split('-l')[1:])))
+         library_dirs = list(map(lambda x: x.strip(), lib_dirs_split(os.getenv('MODEL_LDFLAGS', '')))),
+         libraries = list(map(lambda x: x.strip(), libs_split(os.getenv('MODEL_LIBS', ''))))
+         )
 
 setup(name = project_name,
       description = 'A library for running inference on a DeepSpeech model',

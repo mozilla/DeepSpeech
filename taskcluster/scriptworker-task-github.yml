@@ -7,10 +7,13 @@ build:
     - "linux-amd64-cpu-opt"
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
-    - "node-package"
+    - "node-package-gpu"
+    - "node-package-cpu"
     - "android-arm64-cpu-opt"
     - "android-armv7-cpu-opt"
     - "android-java-opt"
+    - "win-amd64-cpu-opt"
+    - "win-amd64-gpu-opt"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -28,9 +31,9 @@ build:
       - "linux-arm64-cpu-opt"
     javascript:
       # GPU package
-      - "linux-amd64-gpu-opt"
+      - "node-package-gpu"
       # CPU package with all archs
-      - "node-package"
+      - "node-package-cpu"
     cpp:
       - "darwin-amd64-cpu-opt"
       - "linux-amd64-cpu-opt"
@@ -39,8 +42,13 @@ build:
       - "linux-arm64-cpu-opt"
       - "android-arm64-cpu-opt"
       - "android-armv7-cpu-opt"
+      - "win-amd64-cpu-opt"
+      - "win-amd64-gpu-opt"
     java_aar:
       - "android-java-opt"
+    nuget:
+      - "win-amd64-cpu-opt"
+      - "win-amd64-gpu-opt"
   metadata:
     name: "DeepSpeech GitHub Packages"
     description: "Trigger Uploading of DeepSpeech Packages to GitHub release page"

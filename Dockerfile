@@ -1,6 +1,6 @@
 # Need devel version cause we need /usr/include/cudnn.h 
 # for compiling libctc_decoder_with_kenlm.so
-FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
 
 # >> START Install base software
@@ -31,21 +31,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         liblzma-dev \
         locales \
         pkg-config \
-        libsox-dev
+        libsox-dev \
+        openjdk-8-jdk \
+        bash-completion \
+        g++ \
+        unzip
 
 # Install NCCL 2.2
-RUN apt-get install -qq -y --allow-downgrades --allow-change-held-packages libnccl2=2.2.13-1+cuda9.0 libnccl-dev=2.2.13-1+cuda9.0
-
+RUN apt-get install -qq -y --allow-downgrades --allow-change-held-packages libnccl2=2.3.7-1+cuda10.0 libnccl-dev=2.3.7-1+cuda10.0
 
 # Install Bazel
-RUN apt-get install -y openjdk-8-jdk
-# Use bazel 0.11.1 cause newer bazel fails to compile TensorFlow (https://github.com/tensorflow/tensorflow/issues/18450#issuecomment-381380000)
-RUN apt-get install -y --no-install-recommends bash-completion g++ zlib1g-dev
-RUN curl -LO "https://github.com/bazelbuild/bazel/releases/download/0.15.2/bazel_0.15.2-linux-x86_64.deb"
+RUN curl -LO "https://github.com/bazelbuild/bazel/releases/download/0.19.2/bazel_0.19.2-linux-x86_64.deb"
 RUN dpkg -i bazel_*.deb
 
 # Install CUDA CLI Tools
-RUN apt-get install -qq -y cuda-command-line-tools-9-0
+RUN apt-get install -qq -y cuda-command-line-tools-10-0
 
 # Install pip
 RUN wget https://bootstrap.pypa.io/get-pip.py && \
@@ -62,19 +62,17 @@ RUN wget https://bootstrap.pypa.io/get-pip.py && \
 # Clone TensoFlow from Mozilla repo
 RUN git clone https://github.com/mozilla/tensorflow/
 WORKDIR /tensorflow
-RUN git checkout r1.12
+RUN git checkout r1.13
 
 
 # GPU Environment Setup
 ENV TF_NEED_CUDA 1
 ENV CUDA_TOOLKIT_PATH /usr/local/cuda
-ENV CUDA_PKG_VERSION 9-0=9.0.176-1
-ENV CUDA_VERSION 9.0.176
-ENV TF_CUDA_VERSION 9.0
-ENV TF_CUDNN_VERSION 7.3.0
+ENV TF_CUDA_VERSION 10.0
+ENV TF_CUDNN_VERSION 7
 ENV CUDNN_INSTALL_PATH /usr/lib/x86_64-linux-gnu/
 ENV TF_CUDA_COMPUTE_CAPABILITIES 6.0
-ENV TF_NCCL_VERSION 2.2.13
+ENV TF_NCCL_VERSION 2.3
 # ENV NCCL_INSTALL_PATH /usr/lib/x86_64-linux-gnu/
 
 # Common Environment Setup
@@ -186,7 +184,7 @@ RUN cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_clie
 
 # Install TensorFlow
 WORKDIR /DeepSpeech/
-RUN pip install tensorflow-gpu==1.12.0
+RUN pip install tensorflow-gpu==1.13.1
 
 
 # Make DeepSpeech and install Python bindings
@@ -212,7 +210,7 @@ ENV PYTHONIOENCODING UTF-8
 # Build KenLM in /DeepSpeech/native_client/kenlm folder
 WORKDIR /DeepSpeech/native_client
 RUN rm -rf kenlm \
-    && git clone https://github.com/kpu/kenlm && cd kenlm \    
+    && git clone --depth 1 https://github.com/kpu/kenlm && cd kenlm \
     && mkdir -p build \
     && cd build \
     && cmake .. \

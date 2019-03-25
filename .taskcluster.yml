@@ -26,6 +26,7 @@ tasks:
 
     scopes: [
       "queue:create-task:lowest:{{ taskcluster.docker.provisionerId }}/deepspeech-worker",
+      "queue:create-task:lowest:{{ taskcluster.docker.provisionerId }}/deepspeech-win",
       "queue:create-task:lowest:{{ taskcluster.docker.provisionerId }}/deepspeech-kvm-worker",
       "queue:create-task:lowest:deepspeech-provisioner/ds-macos-light",
       "queue:create-task:lowest:deepspeech-provisioner/ds-scriptworker",
@@ -46,7 +47,7 @@ tasks:
         taskclusterProxy: true
 
       env:
-        TC_DECISION_SHA: d5e8b7cf5b88efb7b1c890a903a350316ad7e932
+        TC_DECISION_SHA: ef67832e6657f43e139a10f37eb326a7d9d96dad
 
       command:
         - "/bin/bash"

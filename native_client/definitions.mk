@@ -5,6 +5,17 @@ TFDIR     ?= $(abspath $(NC_DIR)/../../tensorflow)
 PREFIX    ?= /usr/local
 SO_SEARCH ?= $(TFDIR)/bazel-bin/
 
+TOOL_AS   := as
+TOOL_CC   := gcc
+TOOL_CXX  := c++
+TOOL_LD   := ld
+TOOL_LDD  := ldd
+
+DEEPSPEECH_BIN       := deepspeech
+CFLAGS_DEEPSPEECH    := -std=c++11 -o $(DEEPSPEECH_BIN)
+LINK_DEEPSPEECH      := -ldeepspeech
+LINK_PATH_DEEPSPEECH := -L${TFDIR}/bazel-bin/native_client
+
 ifeq ($(TARGET),host)
 TOOLCHAIN       :=
 CFLAGS          :=
@@ -16,6 +27,19 @@ PYTHON_PACKAGES := numpy${NUMPY_BUILD_VERSION}
 ifeq ($(OS),Linux)
 PYTHON_PLATFORM_NAME := --plat-name manylinux1_x86_64
 endif
+endif
+
+ifeq ($(TARGET),host-win)
+DEEPSPEECH_BIN  := deepspeech.exe
+TOOLCHAIN := '$(VCINSTALLDIR)\bin\amd64\'
+TOOL_CC   := cl.exe
+TOOL_CXX  := cl.exe
+TOOL_LD   := link.exe
+LINK_DEEPSPEECH      := $(TFDIR)\bazel-bin\native_client\libdeepspeech.so.if.lib
+LINK_PATH_DEEPSPEECH :=
+CFLAGS_DEEPSPEECH    := -nologo -Fe$(DEEPSPEECH_BIN)
+SOX_CFLAGS      :=
+SOX_LDFLAGS     :=
 endif
 
 ifeq ($(TARGET),rpi3)
@@ -72,15 +96,15 @@ endif
 
 CFLAGS   += $(EXTRA_CFLAGS)
 CXXFLAGS += $(EXTRA_CXXFLAGS)
-LIBS     := -ldeepspeech $(EXTRA_LIBS)
-LDFLAGS_DIRS := -L${TFDIR}/bazel-bin/native_client $(EXTRA_LDFLAGS)
+LIBS     := $(LINK_DEEPSPEECH) $(EXTRA_LIBS)
+LDFLAGS_DIRS := $(LINK_PATH_DEEPSPEECH) $(EXTRA_LDFLAGS)
 LDFLAGS  += $(LDFLAGS_NEEDED) $(LDFLAGS_RPATH) $(LDFLAGS_DIRS) $(LIBS)
 
-AS      := $(TOOLCHAIN)as
-CC      := $(TOOLCHAIN)gcc
-CXX     := $(TOOLCHAIN)c++
-LD      := $(TOOLCHAIN)ld
-LDD     := $(TOOLCHAIN)ldd $(TOOLCHAIN_LDD_OPTS)
+AS      := $(TOOLCHAIN)$(TOOL_AS)
+CC      := $(TOOLCHAIN)$(TOOL_CC)
+CXX     := $(TOOLCHAIN)$(TOOL_CXX)
+LD      := $(TOOLCHAIN)$(TOOL_LD)
+LDD     := $(TOOLCHAIN)$(TOOL_LDD) $(TOOLCHAIN_LDD_OPTS)
 
 RPATH_PYTHON         := '-Wl,-rpath,\$$ORIGIN/lib/' $(LDFLAGS_RPATH)
 RPATH_NODEJS         := '-Wl,-rpath,$$\$$ORIGIN/../'
@@ -111,6 +135,8 @@ define copy_missing_libs
         if [ "$(OS)" = "Darwin" ]; then \
             new_missing="$$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 | xargs basename -a)"; \
             missing_libs="$$missing_libs $$new_missing"; \
+	elif [ "$(OS)" = "${TC_MSYS_VERSION}" ]; then \
+            missing_libs="libdeepspeech.so"; \
         else \
             missing_libs="$$missing_libs $$($(LDD) $$lib | grep 'not found' | awk '{ print $$1 }')"; \
         fi; \

@@ -1,0 +1,23 @@
+build:
+  template_file: linux-opt-base.tyml
+  dependencies:
+    - "linux-amd64-gpu-opt"
+    - "win-amd64-gpu-opt"
+  routes:
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  system_setup:
+    >
+      ${nodejs.packages_trusty.prep_6} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.13.17f818896d063427d38ba2ec6662902ea4ae79eb.cpu/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/node-build.sh --cuda"
+    package: "taskcluster/node-package.sh"
+  metadata:
+    name: "DeepSpeech NodeJS GPU package"
+    description: "Packaging DeepSpeech GPU for registry"

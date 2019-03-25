@@ -1,7 +1,7 @@
 build:
   template_file: test-linux-opt-base.tyml
   dependencies:
-    - "node-package"
+    - "node-package-cpu"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_6} && ${nodejs.packages_trusty.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_trusty.apt}

@@ -4,11 +4,12 @@ const VAD = require("node-vad");
 const Ds = require('deepspeech');
 const argparse = require('argparse');
 const util = require('util');
+const { spawn } = require('child_process');
 
 // These constants control the beam search decoder
 
 // Beam width used in the CTC decoder when building candidate transcriptions
-const BEAM_WIDTH = 1024;
+const BEAM_WIDTH = 500;
 
 // The alpha hyperparameter of the CTC decoder. Language Model weight
 const LM_ALPHA = 0.75;
@@ -44,7 +45,7 @@ parser.addArgument(['--model'], {required: true, help: 'Path to the model (proto
 parser.addArgument(['--alphabet'], {required: true, help: 'Path to the configuration file specifying the alphabet used by the network'});
 parser.addArgument(['--lm'], {help: 'Path to the language model binary file', nargs: '?'});
 parser.addArgument(['--trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
-parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});
+parser.addArgument(['--audio'], {required: true, help: 'Path to the audio source to run (ffmpeg supported formats)'});
 parser.addArgument(['--version'], {action: VersionAction, help: 'Print version and exits'});
 let args = parser.parseArgs();
 
@@ -67,51 +68,71 @@ if (args['lm'] && args['trie']) {
 	console.error('Loaded language model in %ds.', totalTime(lm_load_end));
 }
 
-const vad = new VAD(VAD.Mode.NORMAL);
-const voice = {START: true, STOP: false};
-let sctx = model.setupStream(150, 16000);
-let state = voice.STOP;
+// Default initial allocation = 3 seconds := 150
+const PRE_ALLOC_FRAMES = 150;
+
+// Default is 16kHz
+const AUDIO_SAMPLE_RATE = 16000;
+
+// Defines different thresholds for voice detection
+// NORMAL: Suitable for high bitrate, low-noise data. May classify noise as voice, too.
+// LOW_BITRATE: Detection mode optimised for low-bitrate audio.
+// AGGRESSIVE: Detection mode best suited for somewhat noisy, lower quality audio.
+// VERY_AGGRESSIVE: Detection mode with lowest miss-rate. Works well for most inputs.
+const VAD_MODE = VAD.Mode.NORMAL;
+// const VAD_MODE = VAD.Mode.LOW_BITRATE;
+// const VAD_MODE = VAD.Mode.AGGRESSIVE;
+// const VAD_MODE = VAD.Mode.VERY_AGGRESSIVE;
+
+// Time in milliseconds for debouncing speech active state
+const DEBOUNCE_TIME = 20;
+
+// Create voice activity stream
+const VAD_STREAM = VAD.createStream({
+	mode: VAD_MODE,
+	audioFrequency: AUDIO_SAMPLE_RATE,
+	debounceTime: DEBOUNCE_TIME
+});
+
+// Spawn ffmpeg process
+const ffmpeg = spawn('ffmpeg', [
+	'-hide_banner',
+	'-nostats',
+	'-loglevel', 'fatal',
+	'-i', args['audio'],
+	'-vn',
+	'-acodec', 'pcm_s16le',
+	'-ac', 1,
+	'-ar', AUDIO_SAMPLE_RATE,
+	'-f', 's16le',
+	'pipe:'
+]);
+
+let audioLength = 0;
+let sctx = model.setupStream(PRE_ALLOC_FRAMES, AUDIO_SAMPLE_RATE);
 
 function finishStream() {
 	const model_load_start = process.hrtime();
 	console.error('Running inference.');
 	console.log('Transcription: ', model.finishStream(sctx));
 	const model_load_end = process.hrtime(model_load_start);
-	console.error('Inference took %ds.', totalTime(model_load_end));
+	console.error('Inference took %ds for %ds audio file.', totalTime(model_load_end), audioLength.toPrecision(4));
+	audioLength = 0;
 }
 
-let ffmpeg = require('child_process').spawn('ffmpeg', [
-	'-hide_banner',
-	'-nostats',
-	'-loglevel', 'fatal',
-	'-i', args['audio'],
-	'-af', 'highpass=f=200,lowpass=f=3000',
-	'-vn',
-	'-acodec', 'pcm_s16le',
-	'-ac', 1,
-	'-ar', 16000,
-	'-f', 's16le',
-	'pipe:'
-]);
-
-ffmpeg.stdout.on('data', chunk => {
-	vad.processAudio(chunk, 16000).then(res => {
-		switch (res) {
-			case VAD.Event.SILENCE:
-				if (state === voice.START) {
-					state = voice.STOP;
-					finishStream();
-					sctx = model.setupStream(150,16000);
-				}
-				break;
-			case VAD.Event.VOICE:
-				state = voice.START;
-				model.feedAudioContent(sctx, chunk.slice(0, chunk.length / 2));
-				break;
-		}
-	});
-});
-
-ffmpeg.stdout.on('close', code => {
+function intermediateDecode() {
 	finishStream();
-});
+	sctx = model.setupStream(PRE_ALLOC_FRAMES, AUDIO_SAMPLE_RATE);
+}
+
+function feedAudioContent(chunk) {
+	audioLength += (chunk.length / 2) * ( 1 / AUDIO_SAMPLE_RATE);
+	model.feedAudioContent(sctx, chunk.slice(0, chunk.length / 2));
+}
+
+function processVad(data) {
+	if (data.speech.start||data.speech.state) feedAudioContent(data.audioData)
+	else if (data.speech.end) { feedAudioContent(data.audioData); intermediateDecode() }
+}
+
+ffmpeg.stdout.pipe(VAD_STREAM).on('data', processVad);

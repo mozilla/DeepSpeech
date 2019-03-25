@@ -30,13 +30,14 @@ args = parser.parse_args()
 inFiles = [os.path.abspath(i) for i in args.csv_files.split(",")]
 
 print("### Reading in the following transcript files: ###")
-print(inFiles)
+print("### {} ###".format(inFiles))
 
 allText = set()
 for inFile in (inFiles):
     with open(inFile, "r") as csvFile:
         reader = csv.reader(csvFile)
         try:
+            next(reader, None)  # skip the file header (i.e. "transcript")
             for row in reader:
                 allText |= set(str(row[2]))
         except IndexError as ie:

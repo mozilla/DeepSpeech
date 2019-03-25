@@ -12,7 +12,6 @@ import evaluate
 import numpy as np
 import progressbar
 import shutil
-import tempfile
 import tensorflow as tf
 import traceback
 
@@ -92,21 +91,21 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     b1 = variable_on_worker_level('b1', [Config.n_hidden_1], tf.zeros_initializer())
     h1 = variable_on_worker_level('h1', [Config.n_input + 2*Config.n_input*Config.n_context, Config.n_hidden_1], tf.contrib.layers.xavier_initializer())
     layer_1 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(batch_x, h1), b1)), FLAGS.relu_clip)
-    layer_1 = tf.nn.dropout(layer_1, (1.0 - dropout[0]))
+    layer_1 = tf.nn.dropout(layer_1, rate=dropout[0])
     layers['layer_1'] = layer_1
 
     # 2nd layer
     b2 = variable_on_worker_level('b2', [Config.n_hidden_2], tf.zeros_initializer())
     h2 = variable_on_worker_level('h2', [Config.n_hidden_1, Config.n_hidden_2], tf.contrib.layers.xavier_initializer())
     layer_2 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_1, h2), b2)), FLAGS.relu_clip)
-    layer_2 = tf.nn.dropout(layer_2, (1.0 - dropout[1]))
+    layer_2 = tf.nn.dropout(layer_2, rate=dropout[1])
     layers['layer_2'] = layer_2
 
     # 3rd layer
     b3 = variable_on_worker_level('b3', [Config.n_hidden_3], tf.zeros_initializer())
     h3 = variable_on_worker_level('h3', [Config.n_hidden_2, Config.n_hidden_3], tf.contrib.layers.xavier_initializer())
     layer_3 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(layer_2, h3), b3)), FLAGS.relu_clip)
-    layer_3 = tf.nn.dropout(layer_3, (1.0 - dropout[2]))
+    layer_3 = tf.nn.dropout(layer_3, rate=dropout[2])
     layers['layer_3'] = layer_3
 
     # Now we create the forward and backward LSTM units.
@@ -150,7 +149,7 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     b5 = variable_on_worker_level('b5', [Config.n_hidden_5], tf.zeros_initializer())
     h5 = variable_on_worker_level('h5', [Config.n_cell_dim, Config.n_hidden_5], tf.contrib.layers.xavier_initializer())
     layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
-    layer_5 = tf.nn.dropout(layer_5, (1.0 - dropout[5]))
+    layer_5 = tf.nn.dropout(layer_5, rate=dropout[5])
     layers['layer_5'] = layer_5
 
     # Now we apply the weight matrix `h6` and bias `b6` to the output of `layer_5`
@@ -664,18 +663,23 @@ def test():
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
+    batch_size = batch_size if batch_size > 0 else None
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
     input_tensor = tf.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2*Config.n_context+1, Config.n_input], name='input_node')
     seq_length = tf.placeholder(tf.int32, [batch_size], name='input_lengths')
 
-    if not tflite:
-        previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
-        previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
+    if batch_size <= 0:
+        # no state management since n_step is expected to be dynamic too (see below)
+        previous_state = previous_state_c = previous_state_h = None
     else:
-        previous_state_c = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_c')
-        previous_state_h = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_h')
+        if not tflite:
+            previous_state_c = variable_on_worker_level('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
+            previous_state_h = variable_on_worker_level('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
+        else:
+            previous_state_c = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_c')
+            previous_state_h = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_h')
 
-    previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
+        previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
     no_dropout = [0.0] * 6
 
@@ -696,9 +700,23 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Apply softmax for CTC decoder
     logits = tf.nn.softmax(logits)
 
-    new_state_c, new_state_h = layers['rnn_output_state']
+    if batch_size <= 0:
+        if tflite:
+            raise NotImplementedError('dynamic batch_size does not support tflite nor streaming')
+        if n_steps > 0:
+            raise NotImplementedError('dynamic batch_size expect n_steps to be dynamic too')
+        return (
+            {
+                'input': input_tensor,
+                'input_lengths': seq_length,
+            },
+            {
+                'outputs': tf.identity(logits, name='logits'),
+            },
+            layers
+        )
 
-    # Initial zero state
+    new_state_c, new_state_h = layers['rnn_output_state']
     if not tflite:
         zero_state = tf.zeros([batch_size, Config.n_cell_dim], tf.float32)
         initialize_c = tf.assign(previous_state_c, zero_state)
@@ -785,7 +803,7 @@ def export():
                 os.makedirs(FLAGS.export_dir)
 
             def do_graph_freeze(output_file=None, output_node_names=None, variables_blacklist=None):
-                freeze_graph.freeze_graph_with_def_protos(
+                return freeze_graph.freeze_graph_with_def_protos(
                     input_graph_def=session.graph_def,
                     input_saver_def=saver.as_saver_def(),
                     input_checkpoint=checkpoint_path,
@@ -800,39 +818,15 @@ def export():
             if not FLAGS.export_tflite:
                 do_graph_freeze(output_file=output_graph_path, output_node_names=output_names, variables_blacklist='previous_state_c,previous_state_h')
             else:
-                temp_fd, temp_freeze = tempfile.mkstemp(dir=FLAGS.export_dir)
-                os.close(temp_fd)
-                do_graph_freeze(output_file=temp_freeze, output_node_names=output_names, variables_blacklist='')
+                frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='')
                 output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
-                class TFLiteFlags():
-                    def __init__(self):
-                        self.graph_def_file = temp_freeze
-                        self.inference_type = 'FLOAT'
-                        self.input_arrays   = input_names
-                        self.input_shapes   = input_shapes
-                        self.output_arrays  = output_names
-                        self.output_file    = output_tflite_path
-                        self.output_format  = 'TFLITE'
-                        self.post_training_quantize = True
+                converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
+                converter.post_training_quantize = True
+                tflite_model = converter.convert()
 
-                        default_empty = [
-                            'inference_input_type',
-                            'mean_values',
-                            'default_ranges_min', 'default_ranges_max',
-                            'drop_control_dependency',
-                            'reorder_across_fake_quant',
-                            'change_concat_input_ranges',
-                            'allow_custom_ops',
-                            'converter_mode',
-                            'dump_graphviz_dir',
-                            'dump_graphviz_video'
-                        ]
-                        for e in default_empty:
-                            self.__dict__[e] = None
+                with open(output_tflite_path, 'wb') as fout:
+                    fout.write(tflite_model)
 
-                flags = TFLiteFlags()
-                tflite_convert._convert_model(flags)
-                os.unlink(temp_freeze)
                 log_info('Exported model for TF Lite engine as {}'.format(os.path.basename(output_tflite_path)))
 
             log_info('Models exported at %s' % (FLAGS.export_dir))
@@ -857,7 +851,6 @@ def do_single_file_inference(input_file_path):
 
         checkpoint_path = checkpoint.model_checkpoint_path
         saver.restore(session, checkpoint_path)
-
         session.run(outputs['initialize_state'])
 
         features = audiofile_to_input_vector(input_file_path, Config.n_input, Config.n_context)
