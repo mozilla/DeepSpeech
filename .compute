@@ -2,9 +2,6 @@
 
 set -xe
 
-_LANG="de"
-CV="${SHARED_DIR}/data/mozilla/CommonVoice/v2.0"
-
 # check HTTP_PROXY
 if ! (( $( env | grep -iq "^http_proxy=" ) )); then
     source /etc/profile
@@ -12,7 +9,7 @@ fi
 
 # venv
 apt-get update -y
-apt-get install -y python3-venv #swig
+apt-get install -y python3-venv swig
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 pip install wheel
@@ -28,7 +25,7 @@ python util/taskcluster.py --arch gpu --target ../tmp/native_client
 
 
 ## kenlm Dependencies
-#apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
+# apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev libeigen3-dev
 
 
 
@@ -41,62 +38,77 @@ python util/taskcluster.py --arch gpu --target ../tmp/native_client
 #         -csv "${CV}/${_LANG}/clips/train.csv","${CV}/${_LANG}/clips/dev.csv","${CV}/${_LANG}/clips/test.csv" \
 #         -alpha \
 #     > /data/rw/home/${_LANG}/alphabet.txt
-#
-# lm.arpa
+
 # #TEXT="${SHARED_DIR}/data/wikipedia/${_LANG}/wiki.txt"
 # cut -d',' -f3 "${CV}/${_LANG}/clips/train.csv" > /data/rw/home/${_LANG}/text.txt
-# TEXT="/data/rw/home/${_LANG}/text.txt"
 
-# /data/rw/home/kenlm/build/bin/lmplz \
-#     --skip_symbols \
-#     --order 2 \
-#     --text "${TEXT}" \
-#     --arpa /tmp/lm.arpa
+# for i in 2 3 4; do
+#     bytes="${i}-bytes"
+#     _LANG=en
+#     TEXT="/data/rw/home/${_LANG}/text-${bytes}.txt"
+#     grep -o "." ${TEXT} | sort | uniq >/data/rw/home/${_LANG}/alphabet-${bytes}.txt
+    
+#     /data/rw/home/kenlm/build/bin/lmplz \
+#         -S 50%\
+#         --skip_symbols \
+#         --order 2 \
+#         --text "${TEXT}" \
+#         --arpa /tmp/lm.arpa
+    
+#     # # lm.binary
+#     /data/rw/home/kenlm/build/bin/build_binary \
+#         -a 255 \
+#         -q 8 \
+#         trie \
+#         /tmp/lm.arpa \
+#         /data/rw/home/${_LANG}/lm-${bytes}.binary
+    
+#     # # trie
+#     /data/rw/home/generate_trie \
+#         /data/rw/home/${_LANG}/alphabet.txt \
+#         /data/rw/home/${_LANG}/lm-${bytes}.binary \
+#         /data/rw/home/${_LANG}/trie_utf8-${bytes}
+    
+#     rm /tmp/lm.arpa
+# done
 
-# # # lm.binary
-# /data/rw/home/kenlm/build/bin/build_binary \
-#     -a 255 \
-#     -q 8 \
-#     trie \
-#     /tmp/lm.arpa \
-#     /data/rw/home/${_LANG}/lm.binary
-
-# # # trie
-# /data/rw/home/generate_trie \
-#     /data/rw/home/${_LANG}/alphabet.txt \
-#     /data/rw/home/${_LANG}/lm.binary \
-#     /data/rw/home/${_LANG}/trie_utf8
-
-# rm /tmp/lm.arpa
-
+# ls /data/rw/home/${_LANG}/
 
 ########################
 ### TRAIN DEEPSPEECH ###
 ########################
 
-mkdir -p ../keep/summaries
+data="${SHARED_DIR}/data"
 
-  # --noearly_stop \
+CV="${data}/mozilla/CommonVoice/v2.0/en/clips"
+fis="${data}/LDC/fisher"
+swb="${data}/LDC/LDC97S62/swb"
+lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
+num_bytes=4
+    
+    bytes="${num_bytes}-bytes"
+    
+    mkdir -p ../keep/summaries
+    
     python -u DeepSpeech.py \
-  --train_files "${CV}/${_LANG}/clips/train.csv" \
-  --dev_files "${CV}/${_LANG}/clips/dev.csv" \
-  --test_files "${CV}/${_LANG}/clips/test.csv" \
-  --train_batch_size 24 \
-  --dev_batch_size 48 \
-  --test_batch_size 48 \
-  --n_hidden 2048 \
-  --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
-  --earlystop_nsteps 10 \
-  --epoch 1000 \
-  --display_step 0 \
-  --validation_step 1 \
-  --checkpoint_dir "../keep" \
-  --summary_dir "../keep/summaries" \
-  --export_dir "../keep/model" \
-  --report_count 100 \
-  --test_output_file "../keep/RESULTS.json" \
-  --lm_binary_path "/data/rw/home/${_LANG}/lm.binary" \
-  --lm_trie_path "/data/rw/home/${_LANG}/trie_utf8" \
-  --alphabet_config_path "/data/rw/home/${_LANG}/alphabet.txt"
+           --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${CV}/train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+           --dev_files "${CV}/dev-${bytes}.csv","${lbs}-dev-clean-${bytes}.csv"\
+           --test_files "${CV}/test-${bytes}.csv","${lbs}-test-clean-${bytes}.csv" \
+           --train_batch_size 24 \
+           --dev_batch_size 48 \
+           --test_batch_size 48 \
+           --n_hidden 2048 \
+           --learning_rate 0.0001 \
+           --dropout_rate 0.2 \
+           --earlystop_nsteps 10 \
+           --epoch 1000 \
+           --display_step 0 \
+           --validation_step 1 \
+           --checkpoint_dir "../keep" \
+           --summary_dir "../keep/summaries" \
+           --export_dir "../keep/model" \
+           --report_count 100 \
+           --lm_binary_path "/data/rw/home/en/lm-${bytes}.binary" \
+           --lm_trie_path "/data/rw/home/en/trie_utf8-${bytes}" \
+           --alphabet_config_path "/data/rw/home/en/alphabet-${bytes}.txt"
