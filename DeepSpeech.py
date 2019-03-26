@@ -301,7 +301,7 @@ def get_tower_results(model_feeder, optimizer, dropout_rates):
     tf.summary.scalar(name='step_loss', tensor=avg_loss_across_towers, collections=['step_summaries'])
 
     # Return gradients and the average loss
-    return tower_gradients, avg_loss_across_towers, avg_acc_accross_towers
+    return tower_gradients, avg_loss_across_towers, avg_acc_across_towers
 
 
 def average_gradients(tower_gradients):
