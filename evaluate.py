@@ -86,7 +86,8 @@ def evaluate(test_data, inference_graph):
 
         loss = tf.nn.ctc_loss(labels=sparse_labels,
                               inputs=layers['raw_logits'],
-                              sequence_length=inputs['input_lengths'])
+                              sequence_length=inputs['input_lengths'],
+                              ignore_longer_outputs_than_inputs=True)
 
         # Create a saver using variables from the above newly created graph
         mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
