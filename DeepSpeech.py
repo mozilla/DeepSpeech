@@ -186,7 +186,7 @@ def calculate_mean_edit_distance_and_loss(model_feeder, tower, dropout, reuse):
     logits, _ = BiRNN(batch_x, batch_seq_len, dropout, reuse)
 
     # Compute the CTC loss using TensorFlow's `ctc_loss`
-    total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+    total_loss = tf.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len, ignore_longer_outputs_than_inputs=True)
 
     # Calculate the average loss across the batch
     avg_loss = tf.reduce_mean(total_loss)
