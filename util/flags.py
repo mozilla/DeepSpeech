@@ -19,6 +19,8 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('dev_cached_features_path',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('test_cached_features_path',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
 
+    tf.app.flags.DEFINE_boolean ('filter_misfits',   False,       'if samples having out-of-alphabet characters or audio that\'s too short for their transcript should just be skipped')
+
     # Cluster configuration
     # =====================
 

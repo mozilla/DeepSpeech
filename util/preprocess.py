@@ -15,21 +15,32 @@ def pmap(fun, iterable):
     return results
 
 
-def process_single_file(row, numcep, numcontext, alphabet):
+def process_single_file(row, numcep, numcontext, alphabet, filter_misfits=False):
     # row = index, Series
     _, file = row
     features = audiofile_to_input_vector(file.wav_filename, numcep, numcontext)
     features_len = len(features) - 2*numcontext
-    transcript = text_to_char_array(file.transcript, alphabet)
+    problem = None
 
-    if features_len < len(transcript):
-        raise ValueError('Error: Audio file {} is too short for transcription.'.format(file.wav_filename))
+    try:
+        transcript = text_to_char_array(file.transcript, alphabet)
+    except KeyError:
+        problem = 'Transcript of file {} contains out of alphabet characters'.format(file.wav_filename)
 
+    if not problem and features_len < len(transcript):
+        problem = 'Audio file {} is too short for transcription'.format(file.wav_filename)
+
+    if problem:
+        if filter_misfits:
+            print('Warning: %s - ignoring' % problem)
+            return None
+        else:
+            raise ValueError(problem)
     return features, features_len, transcript, len(transcript)
 
 
 # load samples from CSV, compute features, optionally cache results on disk
-def preprocess(csv_files, batch_size, numcep, numcontext, alphabet, hdf5_cache_path=None):
+def preprocess(csv_files, batch_size, numcep, numcontext, alphabet, filter_misfits=False, hdf5_cache_path=None):
     COLUMNS = ('features', 'features_len', 'transcript', 'transcript_len')
 
     print('Preprocessing', csv_files)
@@ -64,8 +75,10 @@ def preprocess(csv_files, batch_size, numcep, numcontext, alphabet, hdf5_cache_p
     step_fn = partial(process_single_file,
                       numcep=numcep,
                       numcontext=numcontext,
-                      alphabet=alphabet)
+                      alphabet=alphabet,
+                      filter_misfits=filter_misfits)
     out_data = pmap(step_fn, source_data.iterrows())
+    out_data = [x for x in out_data if x is not None]
 
     if hdf5_cache_path:
         print('Saving to', hdf5_cache_path)

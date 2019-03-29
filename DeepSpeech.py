@@ -383,6 +383,7 @@ def train(server=None):
                             Config.n_input,
                             Config.n_context,
                             Config.alphabet,
+                            filter_misfits=FLAGS.filter_misfits,
                             hdf5_cache_path=FLAGS.train_cached_features_path)
 
     train_set = DataSet(train_data,
@@ -396,6 +397,7 @@ def train(server=None):
                           Config.n_input,
                           Config.n_context,
                           Config.alphabet,
+                          filter_misfits=FLAGS.filter_misfits,
                           hdf5_cache_path=FLAGS.dev_cached_features_path)
 
     dev_set = DataSet(dev_data,
