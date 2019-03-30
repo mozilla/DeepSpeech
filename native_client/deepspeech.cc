@@ -914,8 +914,10 @@ DS_AudioToInputVector(const short* aBuffer,
 void 
 DS_FreeMetadata(Metadata* m) 
 {  
-  delete(m->items);
-  delete(m);
+  if (m) {
+    delete(m->items);
+    delete(m);
+  }
 }
 
 void
