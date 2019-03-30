@@ -268,7 +268,8 @@ WordsFromMetadata(Metadata* metadata)
     MetadataItem item = metadata->items[i];
 
     // Append character to word if it's not a space
-    if (strcmp(item.character, " ") != 0 || strcmp(item.character, u8"　") != 0) {
+    if (strcmp(item.character, " ") != 0 
+        || strcmp(item.character, u8"　") != 0) {
       word.append(item.character);
     }
 
