@@ -115,7 +115,9 @@ struct StreamingState {
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
   char* intermediateDecode();
+  void finalizeStream();
   char* finishStream();
+  Metadata* finishStreamWithMetadata();
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
@@ -171,6 +173,28 @@ struct ModelState {
   char* decode(vector<float>& logits);
 
   /**
+   * @brief Perform decoding of the logits, using basic CTC decoder or
+   *        CTC decoder with KenLM enabled
+   *
+   * @param logits         Flat matrix of logits, of size:
+   *                       n_frames * batch_size * num_classes
+   *
+   * @return Vector of Output structs directly from the CTC decoder for additional processing.
+   */
+  vector<Output> decode_raw(const vector<float>& logits);
+
+  /**
+   * @brief Return character-level metadata including letter timings.
+   *
+   * @param logits          Flat matrix of logits, of size:
+   *                        n_frames * batch_size * num_classes
+   *
+   * @return Metadata struct containing MetadataItem structs for each character.
+   * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
+   */
+  Metadata* decode_metadata(vector<float>& logits); 
+
+  /**
    * @brief Do a single inference step in the acoustic model, with:
    *          input=mfcc
    *          input_lengths=[n_frames]
@@ -182,6 +206,9 @@ struct ModelState {
    */
   void infer(const float* mfcc, unsigned int n_frames, vector<float>& output_logits);
 };
+
+StreamingState* setupStreamAndFeedAudioContent(ModelState* aCtx, const short* aBuffer,
+                                               unsigned int aBufferSize, unsigned int aSampleRate);
 
 ModelState::ModelState()
   :
@@ -260,20 +287,17 @@ StreamingState::intermediateDecode()
 char*
 StreamingState::finishStream()
 {
-  // Flush audio buffer
-  processAudioWindow(audio_buffer);
-
-  // Add empty mfcc vectors at end of sample
-  for (int i = 0; i < model->n_context; ++i) {
-    addZeroMfccWindow();
-  }
-
-  // Process final batch
-  if (batch_buffer.size() > 0) {
-    processBatch(batch_buffer, batch_buffer.size()/model->mfcc_feats_per_timestep);
-  }
+  finalizeStream();
 
   return model->decode(accumulated_logits);
+}
+
+Metadata*
+StreamingState::finishStreamWithMetadata()
+{
+  finalizeStream();
+
+  return model->decode_metadata(accumulated_logits);
 }
 
 void
@@ -289,6 +313,23 @@ StreamingState::processAudioWindow(const vector<float>& buf)
 
   pushMfccBuffer(mfcc, n_frames * MFCC_FEATURES);
   free(mfcc);
+}
+
+void
+StreamingState::finalizeStream()
+{
+  // Flush audio buffer
+  processAudioWindow(audio_buffer);
+
+  // Add empty mfcc vectors at end of sample
+  for (int i = 0; i < model->n_context; ++i) {
+    addZeroMfccWindow();
+  }
+
+  // Process final batch
+  if (batch_buffer.size() > 0) {
+    processBatch(batch_buffer, batch_buffer.size()/model->mfcc_feats_per_timestep);
+  }
 }
 
 void
@@ -416,6 +457,14 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
 char*
 ModelState::decode(vector<float>& logits)
 {
+  vector<Output> out = ModelState::decode_raw(logits);
+
+  return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
+}
+
+vector<Output>
+ModelState::decode_raw(const vector<float>& logits)
+{
   const int cutoff_top_n = 40;
   const double cutoff_prob = 1.0;
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
@@ -429,7 +478,30 @@ ModelState::decode(vector<float>& logits)
     inputs.data(), n_frames, num_classes, *alphabet, beam_width,
     cutoff_prob, cutoff_top_n, scorer);
 
-  return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
+  return out;
+}
+
+Metadata* ModelState::decode_metadata(vector<float>& logits) 
+{
+  vector<Output> out = decode_raw(logits);
+
+  std::unique_ptr<Metadata> metadata(new Metadata);
+  metadata->num_items = out[0].tokens.size();
+  std::unique_ptr<MetadataItem> items(new MetadataItem[metadata->num_items]);
+  metadata->items = items.release();
+
+  // Loop through each character
+  for (int i = 0; i < out[0].tokens.size(); ++i) {
+    metadata->items[i].character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
+    metadata->items[i].timestep = out[0].timesteps[i]; 
+    metadata->items[i].start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
+    
+    if (metadata->items[i].start_time < 0) {
+      metadata->items[i].start_time = 0;
+    }
+  }
+
+  return metadata.release();
 }
 
 #ifdef USE_TFLITE
@@ -661,13 +733,35 @@ DS_SpeechToText(ModelState* aCtx,
                 unsigned int aBufferSize,
                 unsigned int aSampleRate)
 {
+  StreamingState* ctx = setupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  return DS_FinishStream(ctx);
+}
+
+Metadata*
+DS_SpeechToTextWithMetadata(ModelState* aCtx,
+                            const short* aBuffer,
+                            unsigned int aBufferSize,
+                            unsigned int aSampleRate)
+{
+  StreamingState* ctx = setupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  return DS_FinishStreamWithMetadata(ctx);
+}
+
+StreamingState* 
+setupStreamAndFeedAudioContent(ModelState* aCtx,
+                                  const short* aBuffer,
+                                  unsigned int aBufferSize,
+                                  unsigned int aSampleRate)
+{
   StreamingState* ctx;
   int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
   if (status != DS_ERR_OK) {
     return nullptr;
   }
+      
   DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
-  return DS_FinishStream(ctx);
+
+  return ctx;
 }
 
 int
@@ -733,6 +827,14 @@ DS_FinishStream(StreamingState* aSctx)
   char* str = aSctx->finishStream();
   DS_DiscardStream(aSctx);
   return str;
+}
+
+Metadata*
+DS_FinishStreamWithMetadata(StreamingState* aSctx)
+{
+  Metadata* metadata = aSctx->finishStreamWithMetadata();
+  DS_DiscardStream(aSctx);
+  return metadata;
 }
 
 void
@@ -806,6 +908,15 @@ DS_AudioToInputVector(const short* aBuffer,
   }
   if (aFrameLen) {
     *aFrameLen = frameSize;
+  }
+}
+
+void 
+DS_FreeMetadata(Metadata* m) 
+{  
+  if (m) {
+    delete(m->items);
+    delete(m);
   }
 }
 

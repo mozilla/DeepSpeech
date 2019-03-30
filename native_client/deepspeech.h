@@ -15,6 +15,19 @@ struct ModelState;
 
 struct StreamingState;
 
+// Stores each individual character, along with its timing information
+struct MetadataItem {
+  char* character;
+  int timestep; // Position of the character in units of 20ms
+  float start_time; // Position of the character in seconds
+};
+
+// Stores the entire CTC output as an array of character metadata objects
+struct Metadata {
+  MetadataItem* items;
+  int num_items;
+};
+
 enum DeepSpeech_Error_Codes
 {
     // OK
@@ -110,6 +123,25 @@ char* DS_SpeechToText(ModelState* aCtx,
                       unsigned int aSampleRate);
 
 /**
+ * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata 
+ * about the results.
+ *
+ * @param aCtx The ModelState pointer for the model to use.
+ * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
+ *                sample rate.
+ * @param aBufferSize The number of samples in the audio signal.
+ * @param aSampleRate The sample-rate of the audio signal.
+ *
+ * @return Outputs a struct of individual letters along with their timing information. 
+ *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ */
+DEEPSPEECH_EXPORT
+Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
+                      const short* aBuffer,
+                      unsigned int aBufferSize,
+                      unsigned int aSampleRate);
+
+/**
  * @brief Create a new streaming inference state. The streaming state returned
  *        by this function can then be passed to {@link DS_FeedAudioContent()}
  *        and {@link DS_FinishStream()}.
@@ -171,6 +203,20 @@ DEEPSPEECH_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
 
 /**
+ * @brief Signal the end of an audio signal to an ongoing streaming
+ *        inference, returns per-letter metadata.
+ *
+ * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ *
+ * @return Outputs a struct of individual letters along with their timing information. 
+ *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ *
+ * @note This method will free the state pointer (@p aSctx).
+ */
+DEEPSPEECH_EXPORT
+Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx);
+
+/**
  * @brief Destroy a streaming state without decoding the computed logits. This
  *        can be used if you no longer need the result of an ongoing streaming
  *        inference and don't want to perform a costly decode operation.
@@ -212,6 +258,13 @@ void DS_AudioToInputVector(const short* aBuffer,
                            float** aMfcc,
                            int* aNFrames = NULL,
                            int* aFrameLen = NULL);
+
+/**
+ * @brief Free memory allocated for metadata information.
+ */
+
+DEEPSPEECH_EXPORT
+void DS_FreeMetadata(Metadata* m); 
 
 /**
  * @brief Print version of this library and of the linked TensorFlow library.
