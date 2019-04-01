@@ -85,30 +85,29 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
-num_bytes=4
+num_bytes=2
     
     bytes="${num_bytes}-bytes"
     
     mkdir -p ../keep/summaries
     
     python -u DeepSpeech.py \
-           --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${CV}/train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
-           --dev_files "${CV}/dev-${bytes}.csv","${lbs}-dev-clean-${bytes}.csv"\
-           --test_files "${CV}/test-${bytes}.csv","${lbs}-test-clean-${bytes}.csv" \
+           --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+           --dev_files "${lbs}-dev-clean-${bytes}.csv"\
+           --test_files "${lbs}-test-clean-${bytes}.csv" \
            --train_batch_size 24 \
            --dev_batch_size 48 \
            --test_batch_size 48 \
            --n_hidden 2048 \
            --learning_rate 0.0001 \
            --dropout_rate 0.2 \
-           --earlystop_nsteps 10 \
+           --earlystop_nsteps 5 \
            --epoch 1000 \
            --display_step 0 \
            --validation_step 1 \
            --checkpoint_dir "../keep" \
            --summary_dir "../keep/summaries" \
            --export_dir "../keep/model" \
-           --report_count 100 \
            --lm_binary_path "/data/rw/home/en/lm-${bytes}.binary" \
            --lm_trie_path "/data/rw/home/en/trie_utf8-${bytes}" \
            --alphabet_config_path "/data/rw/home/en/alphabet-${bytes}.txt"
