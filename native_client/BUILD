@@ -54,7 +54,7 @@ LINUX_LINKOPTS = [
     "-pthread",
     "-Wl,-Bsymbolic",
     "-Wl,-Bsymbolic-functions",
-    "-Wl,-export-dynamic"
+    "-Wl,-export-dynamic",
 ]
 
 tf_cc_shared_object(
@@ -95,40 +95,47 @@ tf_cc_shared_object(
             "//tensorflow/lite/kernels:builtin_ops",
         ],
         "//conditions:default": [
-            "//tensorflow/core:core_cpu",
+            "//tensorflow/core:lib",
+            "//tensorflow/core:ops",
             "//tensorflow/core:direct_session",
-            "//third_party/eigen3",
-            #"//tensorflow/core:all_kernels",
+
+            "//tensorflow/core:core_cpu",
             ### => Trying to be more fine-grained
             ### Use bin/ops_in_graph.py to list all the ops used by a frozen graph.
             ### CPU only build, libdeepspeech.so file size reduced by ~50%
+
             "//tensorflow/core/kernels:dense_update_ops",   # Assign
-            "//tensorflow/core/kernels:constant_op",        # Const
             "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst
-            "//tensorflow/core/kernels:identity_op",        # Identity
-            "//tensorflow/core/kernels:softmax_op",         # Softmax
-            "//tensorflow/core/kernels:transpose_op",       # Transpose
-            "//tensorflow/core/kernels:reshape_op",         # Reshape
-            "//tensorflow/core/kernels:shape_ops",          # Shape
-            "//tensorflow/core/kernels:concat_op",          # ConcatV2
-            "//tensorflow/core/kernels:split_op",           # Split
+            "//tensorflow/core/kernels:constant_op",        # Const
             "//tensorflow/core/kernels:variable_ops",       # VariableV2
-            "//tensorflow/core/kernels:relu_op",            # Relu
-            "//tensorflow/core/kernels:bias_op",            # BiasAdd
+            "//tensorflow/core/kernels:identity_op",        # Identity
+            "//tensorflow/core/kernels:transpose_op",       # Transpose
+            "//tensorflow/core/kernels:shape_ops",          # Shape
+            "//tensorflow/core/kernels:reshape_op",         # Reshape
+            "//tensorflow/core/kernels:concat_op",          # ConcatV2
             "//tensorflow/core/kernels:math",               # Range, MatMul
             "//tensorflow/core/kernels:control_flow_ops",   # Enter
-            "//tensorflow/core/kernels:tile_ops",           # Tile
             "//tensorflow/core/kernels:gather_op",          # Gather
-            "//tensorflow/contrib/rnn:lstm_ops_kernels",    # BlockLSTM
-            "//tensorflow/core/kernels:random_ops",         # RandomGammaGrad
             "//tensorflow/core/kernels:pack_op",            # Pack
+            "//tensorflow/core/kernels:random_ops",         # RandomGammaGrad
+            "//tensorflow/core/kernels:relu_op",            # Relu
+            "//tensorflow/contrib/rnn:lstm_ops_kernels",    # BlockLSTM
+            "//tensorflow/core/kernels:tile_ops",           # Tile
             "//tensorflow/core/kernels:gather_nd_op",       # GatherNd
+
             #### Needed by production model produced without "--use_seq_length False"
             #"//tensorflow/core/kernels:logging_ops",         # Assert
             #"//tensorflow/core/kernels:reverse_sequence_op", # ReverseSequence
-        ],
+	],
     }) + if_cuda([
             "//tensorflow/core:core",
+            "//tensorflow/core/kernels:softmax_op_gpu",         # Softmax
+            "//tensorflow/core/kernels:split_op_gpu",           # Split
+            "//tensorflow/core/kernels:bias_op_gpu",            # BiasAdd
+    ], [
+            "//tensorflow/core/kernels:softmax_op",         # Softmax
+            "//tensorflow/core/kernels:split_op",           # Split
+            "//tensorflow/core/kernels:bias_op",            # BiasAdd
     ]),
     includes = ["c_speech_features", "kiss_fft130"] + DECODER_INCLUDES,
     defines = ["KENLM_MAX_ORDER=6"],

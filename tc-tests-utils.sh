@@ -548,14 +548,24 @@ do_bazel_build()
     find ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar -T -
   fi;
 
+  if [ "${TF_NEED_CUDA}" -eq "1" ]; then
+    ops_to_register="ops_to_register_gpu.h"
+  else
+    ops_to_register="ops_to_register_cpu.h"
+  fi;
+
+  cp "native_client/${ops_to_register}" "${DS_TFDIR}/tensorflow/core/framework/ops_to_register.h"
+
+  find ${DS_TFDIR} -type f -name 'ops_to_register.h'
+
   bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} --copt=-DSELECTIVE_REGISTRATION --copt=-DSUPPORT_SELECTIVE_REGISTRATION ${BAZEL_TARGETS}
 
   if is_patched_bazel; then
     find ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar -T -
   fi;
 
-  verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/tf/bazel_monolithic.log"
+  #verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/tf/bazel_monolithic.log"
 }
 
 shutdown_bazel()
