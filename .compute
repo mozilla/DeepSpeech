@@ -9,9 +9,9 @@ fi
 
 SOURCE_MODEL='../keep/en'
 mkdir $SOURCE_MODEL
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.3.0/deepspeech-0.3.0-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
-tar xvzf ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
-rm ${SOURCE_MODEL}/deepspeech-0.3.0-checkpoint.tar.gz
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
+tar xvzf ${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
+rm ${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint.tar.gz
 
 # venv
 apt-get update -y
@@ -27,10 +27,7 @@ echo "##############################"
 echo " STARTING TRANSFER LEARNING "
 echo "##############################"
 
-input=0.2 
-hidden=0.4
-lrate=0.0001
-exp="../keep/scratch/input-${input}/hidden-${hidden}/lrate-${lrate}"
+exp="../keep/fine-tuned"
 
 python -u DeepSpeech.py \
        --fine_tune \
@@ -45,9 +42,8 @@ python -u DeepSpeech.py \
 	   --train_batch_size 24 \
 	   --dev_batch_size 48 \
 	   --test_batch_size 48 \
-	   --learning_rate "${lrate}" \
-	   --dropout_rate "${hidden}" \
-	   --dropout_rate2 "${input}" \
+	   --learning_rate 0.0001 \
+	   --dropout_rate 0.2 \
 	   --display_step 0 \
 	   --validation_step 1 \
        --summary_secs 60 \
