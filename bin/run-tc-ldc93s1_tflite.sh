@@ -10,7 +10,7 @@ if [ ! -f "${ldc93s1_dir}/ldc93s1.csv" ]; then
     python -u bin/import_ldc93s1.py ${ldc93s1_dir}
 fi;
 
-python -u DeepSpeech.py \
+python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 494 \
   --checkpoint_dir '/tmp/ckpt' \
   --export_dir '/tmp/train' \
