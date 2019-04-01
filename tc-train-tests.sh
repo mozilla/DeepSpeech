@@ -58,8 +58,8 @@ LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-bin
 
 pushd ${HOME}/DeepSpeech/ds/
     # Run twice to test preprocessed features
-    time ./bin/run-tc-ldc93s1_new.sh 104
-    time ./bin/run-tc-ldc93s1_new.sh 105
+    time ./bin/run-tc-ldc93s1_new.sh 199
+    time ./bin/run-tc-ldc93s1_new.sh 200
     time ./bin/run-tc-ldc93s1_tflite.sh
 popd
 
@@ -75,7 +75,7 @@ if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
 fi;
 
 pushd ${HOME}/DeepSpeech/ds/
-    time ./bin/run-tc-ldc93s1_checkpoint.sh 105
+    time ./bin/run-tc-ldc93s1_checkpoint.sh 200
 popd
 
 deactivate

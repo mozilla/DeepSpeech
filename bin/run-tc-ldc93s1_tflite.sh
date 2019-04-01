@@ -11,10 +11,10 @@ if [ ! -f "${ldc93s1_dir}/ldc93s1.csv" ]; then
 fi;
 
 python -u DeepSpeech.py --noshow_progressbar \
-  --n_hidden 494 \
+  --n_hidden 100 \
   --checkpoint_dir '/tmp/ckpt' \
   --export_dir '/tmp/train_tflite' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \
   --notrain --notest \
-  --export_tflite --nouse_seq_length \
+  --export_tflite --nouse_seq_length
