@@ -10,7 +10,7 @@ if [ ! -f "${ldc93s1_dir}/ldc93s1.csv" ]; then
     python -u bin/import_ldc93s1.py ${ldc93s1_dir}
 fi;
 
-python -u DeepSpeech.py \
+python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --train_files ${ldc93s1_csv} --train_batch_size 1 \
   --dev_files ${ldc93s1_csv} --dev_batch_size 1 \
   --test_files ${ldc93s1_csv} --test_batch_size 1 \
@@ -20,7 +20,7 @@ python -u DeepSpeech.py \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie'
 
-python -u DeepSpeech.py \
+python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --train_files ${ldc93s1_csv} --train_batch_size 1 \
   --dev_files ${ldc93s1_csv} --dev_batch_size 1 \
   --test_files ${ldc93s1_csv} --test_batch_size 1 \

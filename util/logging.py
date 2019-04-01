@@ -15,11 +15,6 @@ def log_debug(message):
         prefix_print('D ', message)
 
 
-def log_traffic(message):
-    if FLAGS.log_traffic:
-        log_debug(message)
-
-
 def log_info(message):
     if FLAGS.log_level <= 1:
         prefix_print('I ', message)

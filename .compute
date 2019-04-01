@@ -7,7 +7,7 @@ python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 
 pip install -r <(grep -v tensorflow requirements.txt)
-pip install tensorflow-gpu==1.13.0-rc2
+pip install tensorflow-gpu==1.13.1
 
 # Install ds_ctcdecoder package from TaskCluster
 pip install $(python3 util/taskcluster.py --decoder)
@@ -30,7 +30,5 @@ python -u DeepSpeech.py \
   --learning_rate 0.0001 \
   --dropout_rate 0.2 \
   --epoch 13 \
-  --display_step 0 \
-  --validation_step 1 \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries"

@@ -48,7 +48,6 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Checkpointing](#checkpointing)
   - [Exporting a model for inference](#exporting-a-model-for-inference)
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
-  - [Distributed computing across more than one machine](#distributed-training-across-more-than-one-machine)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
 - [Contact/Getting Help](#contactgetting-help)
 
@@ -351,30 +350,6 @@ $ convert_graphdef_memmapped_format --in_graph=output_graph.pb --out_graph=outpu
 ```
 
 Upon sucessfull run, it should report about conversion of a non-zero number of nodes. If it reports converting `0` nodes, something is wrong: make sure your model is a frozen one, and that you have not applied any incompatible changes (this includes `quantize_weights`).
-
-### Distributed training across more than one machine
-
-DeepSpeech has built-in support for [distributed TensorFlow](https://www.tensorflow.org/deploy/distributed). To get an idea on how this works, you can use the script `bin/run-cluster.sh` for running a cluster with workers just on the local machine.
-
-```bash
-$ bin/run-cluster.sh --help
-Usage: run-cluster.sh [--help] [--script script] [p:w:g] <arg>*
-
---help      print this help message
---script    run the provided script instead of DeepSpeech.py
-p           number of local parameter servers
-w           number of local workers
-g           number of local GPUs per worker
-<arg>*      remaining parameters will be forwarded to DeepSpeech.py or a provided script
-
-Example usage - The following example will create a local DeepSpeech.py cluster
-with 1 parameter server, and 2 workers with 1 GPU each:
-$ run-cluster.sh 1:2:1 --epoch 10
-```
-
-Be aware that for the help example to be able to run, you need at least two `CUDA` capable GPUs (2 workers x 1 GPU). The script utilizes environment variable `CUDA_VISIBLE_DEVICES` for `DeepSpeech.py` to see only the provided number of GPUs per worker.
-
-The script is meant to be a template for your own distributed computing instrumentation. Just modify the startup code for the different servers (workers and parameter servers) accordingly. You could use SSH or something similar for running them on your remote hosts.
 
 ### Continuing training from a release model
 
