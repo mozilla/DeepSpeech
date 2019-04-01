@@ -33,6 +33,7 @@ export PATH="${PYENV_ROOT}/bin:${HOME}/bin:$PATH"
 mkdir -p ${PYENV_ROOT} || true
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 mkdir -p /tmp/train || true
+mkdir -p /tmp/train_tflite || true
 
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"

@@ -13,7 +13,7 @@ fi;
 python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 494 \
   --checkpoint_dir '/tmp/ckpt' \
-  --export_dir '/tmp/train' \
+  --export_dir '/tmp/train_tflite' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \
   --notrain --notest \

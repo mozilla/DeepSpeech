@@ -32,6 +32,7 @@ export PATH="${PYENV_ROOT}/bin:${HOME}/bin:$PATH"
 mkdir -p ${PYENV_ROOT} || true
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 mkdir -p /tmp/train || true
+mkdir -p /tmp/train_tflite || true
 
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
@@ -63,7 +64,7 @@ pushd ${HOME}/DeepSpeech/ds/
 popd
 
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
-cp /tmp/train/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}
+cp /tmp/train_tflite/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}
 
 if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
   convert_graphdef=$(basename "${CONVERT_GRAPHDEF_MEMMAPPED}")
