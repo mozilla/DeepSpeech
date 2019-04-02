@@ -252,15 +252,15 @@ Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
 The Common Voice corpus consists of voice samples that were donated through Mozilla's [Common Voice](https://voice.mozilla.org/) Initiative.
 
-We provide an importer (`bin/import_cv.py`) which automates downloading and preparing the Common Voice corpus as such:
+We provide an importer (`bin/import_cv2.py`) which automates preparation of the Common Voice (v2.0) corpus as such:
 
 ```bash
-bin/import_cv.py path/to/target/directory
+bin/import_cv2.py /path/to/audio/data_dir /path/to/tsv_dir
 ```
 
-If you already downloaded Common Voice from [here](https://voice.mozilla.org/data), simply run `bin/import_cv.py` on the directory where the corpus is located. The importer will detect that you've already downloaded the data and immediately proceed to unpackaging and importing. If you haven't downloaded the data already, `bin/import_cv.py` will download it for you and save to the path you've specified.
+You should have already downloaded the Common Voice v2.0 data from [here](https://voice.mozilla.org/data). The `import_cv2.py` script assumes as input (1) the audio downloaded from Common Voice v2.0 for a certain language, in addition to (2) the `*.tsv` files output by CorporaCreator (included in Common Voice v2.0 download). As output, the script returns the data and transcripts in a state usable by `DeepSpeech.py` (i.e. `*.csv` and `.WAV` data).
 
-Please be aware that training with the Common Voice corpus archive requires at least 70GB of free disk space and quite some time to conclude. As this process creates a huge number of small files, using an SSD drive is highly recommended. If the import script gets interrupted, it will try to continue from where it stopped the next time you run it. Unfortunately, there are some cases where it will need to start over. Once the import is done, the directory will contain a bunch of CSV files.
+Please be aware that training with the Common Voice corpus archive requires a lot of free disk space and quite some time to conclude. As this process creates a huge number of small files, using an SSD drive is highly recommended. If the import script gets interrupted, it will try to continue from where it stopped the next time you run it. Unfortunately, there are some cases where it will need to start over. Once the import is done, the directory will contain a bunch of CSV files.
 
 The following files are official user-validated sets for training, validating and testing:
 
