@@ -55,7 +55,7 @@ cd tensorflow
 
 ## Compile DeepSpeech
 
-## Compile `libdeepspeech.so` & `generate_trie`
+### Compile `libdeepspeech.so` & `generate_trie`
 
 Within your TensorFlow checkout, create a symbolic link to the DeepSpeech `native_client` directory. Assuming DeepSpeech and TensorFlow checkouts are in the same directory, do:
 
@@ -72,9 +72,9 @@ bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_A
 
 The generated binaries will be saved to `bazel-bin/native_client/`.
 
-## Compile `libdeepspeech.so` & `generate_trie`
+### Compile `ds_ctcdecoder` and language bindings
 
-Now, `cd` into the `DeepSpeech/native_client` directory and use the `Makefile` to build everything else (client, Python package, Nodejs package, `ctc_decoder`). Set the environment variable `TFDIR` to point to your TensorFlow checkout.
+Now, `cd` into the `DeepSpeech/native_client` directory and use the `Makefile` to build everything else (client, Python package, Nodejs package, `ds_ctcdecoder`). Set the environment variable `TFDIR` to point to your TensorFlow checkout.
 
 ```
 TFDIR=~/tensorflow
@@ -82,10 +82,7 @@ cd ../DeepSpeech/native_client
 make deepspeech
 ```
 
-
-
-
-## Installing your own Binaries
+## Installing your Binaries
 
 After building, the library files and binary can optionally be installed to a system path for ease of development. This is also a required step for bindings generation.
 
@@ -137,8 +134,6 @@ The client can be run via the `Makefile`. The client will accept audio of any fo
 ```
 ARGS="--model /path/to/output_graph.pbmm --alphabet /path/to/alphabet.txt --audio /path/to/audio/file.wav" make run
 ```
-
-
 
 
 
