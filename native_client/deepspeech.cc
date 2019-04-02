@@ -13,6 +13,7 @@
 #include "alphabet.h"
 
 #include "native_client/ds_version.h"
+#include "native_client/ds_graph_version.h"
 
 #ifndef USE_TFLITE
   #include "tensorflow/core/public/session.h"
@@ -652,6 +653,16 @@ DS_CreateModel(const char* aModelPath,
   if (!status.ok()) {
     std::cerr << status << std::endl;
     return DS_ERR_FAIL_CREATE_SESS;
+  }
+
+  int graph_version = model->graph_def.version();
+  if (graph_version < DS_GRAPH_VERSION) {
+    std::cerr << "Specified model file version (" << graph_version << ") is "
+              << "incompatible with minimum version supported by this client ("
+              << DS_GRAPH_VERSION << "). See "
+              << "https://github.com/mozilla/DeepSpeech/#model-compatibility "
+              << "for more information" << std::endl;
+    return DS_ERR_MODEL_INCOMPATIBLE;
   }
 
   for (int i = 0; i < model->graph_def.node_size(); ++i) {

@@ -40,6 +40,7 @@ enum DeepSpeech_Error_Codes
     DS_ERR_INVALID_ALPHABET   = 0x2000,
     DS_ERR_INVALID_SHAPE      = 0x2001,
     DS_ERR_INVALID_LM         = 0x2002,
+    DS_ERR_MODEL_INCOMPATIBLE = 0x2003,
 
     // Runtime failures
     DS_ERR_FAIL_INIT_MMAP     = 0x3000,

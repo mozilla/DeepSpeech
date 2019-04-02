@@ -21,6 +21,14 @@ genrule(
     local = 1,
 )
 
+genrule(
+    name = "ds_graph_version",
+    outs = ["ds_graph_version.h"],
+    cmd = "$(location :ds_graph_version.sh) >$@",
+    tools = [":ds_graph_version.sh"],
+    local = 1,
+)
+
 KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
                       "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
                      exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"])
@@ -62,7 +70,8 @@ tf_cc_shared_object(
     srcs = ["deepspeech.cc",
             "deepspeech.h",
             "alphabet.h",
-            "ds_version.h"] +
+            "ds_version.h",
+            "ds_graph_version.h"] +
             DECODER_SOURCES,
     copts = select({ 
         # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default

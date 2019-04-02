@@ -665,85 +665,88 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         )
 
 
+def file_relative_read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 def export():
     r'''
     Restores the trained variables into a simpler graph that will be exported for serving.
     '''
     log_info('Exporting the model...')
-    with tf.device('/cpu:0'):
-        from tensorflow.python.framework.ops import Tensor, Operation
+    from tensorflow.python.framework.ops import Tensor, Operation
 
-        tf.reset_default_graph()
-        session = tf.Session(config=Config.session_config)
+    inputs, outputs, _ = create_inference_graph(batch_size=FLAGS.export_batch_size, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
+    input_names = ",".join(tensor.op.name for tensor in inputs.values())
+    output_names_tensors = [ tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
+    output_names_ops = [ tensor.name for tensor in outputs.values() if isinstance(tensor, Operation)]
+    output_names = ",".join(output_names_tensors + output_names_ops)
+    input_shapes = ":".join(",".join(map(str, tensor.shape)) for tensor in inputs.values())
 
-        inputs, outputs, _ = create_inference_graph(batch_size=FLAGS.export_batch_size, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
-        input_names = ",".join(tensor.op.name for tensor in inputs.values())
-        output_names_tensors = [ tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor) ]
-        output_names_ops = [ tensor.name for tensor in outputs.values() if isinstance(tensor, Operation) ]
-        output_names = ",".join(output_names_tensors + output_names_ops)
-        input_shapes = ":".join(",".join(map(str, tensor.shape)) for tensor in inputs.values())
+    if not FLAGS.export_tflite:
+        mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
+    else:
+        # Create a saver using variables from the above newly created graph
+        def fixup(name):
+            if name.startswith('rnn/lstm_cell/'):
+                return name.replace('rnn/lstm_cell/', 'lstm_fused_cell/')
+            return name
+
+        mapping = {fixup(v.op.name): v for v in tf.global_variables()}
+
+    saver = tf.train.Saver(mapping)
+
+    # Restore variables from training checkpoint
+    checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+    checkpoint_path = checkpoint.model_checkpoint_path
+
+    output_filename = 'output_graph.pb'
+    if FLAGS.remove_export:
+        if os.path.isdir(FLAGS.export_dir):
+            log_info('Removing old export')
+            shutil.rmtree(FLAGS.export_dir)
+    try:
+        output_graph_path = os.path.join(FLAGS.export_dir, output_filename)
+
+        if not os.path.isdir(FLAGS.export_dir):
+            os.makedirs(FLAGS.export_dir)
+
+        def do_graph_freeze(output_file=None, output_node_names=None, variables_blacklist=None):
+            return freeze_graph.freeze_graph_with_def_protos(
+                input_graph_def=tf.get_default_graph().as_graph_def(),
+                input_saver_def=saver.as_saver_def(),
+                input_checkpoint=checkpoint_path,
+                output_node_names=output_node_names,
+                restore_op_name=None,
+                filename_tensor_name=None,
+                output_graph=output_file,
+                clear_devices=False,
+                variable_names_blacklist=variables_blacklist,
+                initializer_nodes='')
 
         if not FLAGS.export_tflite:
-            mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
+            frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='previous_state_c,previous_state_h')
+            frozen_graph.version = int(file_relative_read('GRAPH_VERSION').strip())
+            with open(output_graph_path, 'wb') as fout:
+                fout.write(frozen_graph.SerializeToString())
         else:
-            # Create a saver using variables from the above newly created graph
-            def fixup(name):
-                if name.startswith('rnn/lstm_cell/'):
-                    return name.replace('rnn/lstm_cell/', 'lstm_fused_cell/')
-                return name
+            frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='')
+            output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
-            mapping = {fixup(v.op.name): v for v in tf.global_variables()}
+            converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
+            converter.post_training_quantize = True
+            # AudioSpectrogram and Mfcc ops are custom but have built-in kernels in TFLite
+            converter.allow_custom_ops = True
+            tflite_model = converter.convert()
 
-        saver = tf.train.Saver(mapping)
+            with open(output_tflite_path, 'wb') as fout:
+                fout.write(tflite_model)
 
-        # Restore variables from training checkpoint
-        checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
-        checkpoint_path = checkpoint.model_checkpoint_path
+            log_info('Exported model for TF Lite engine as {}'.format(os.path.basename(output_tflite_path)))
 
-        output_filename = 'output_graph.pb'
-        if FLAGS.remove_export:
-            if os.path.isdir(FLAGS.export_dir):
-                log_info('Removing old export')
-                shutil.rmtree(FLAGS.export_dir)
-        try:
-            output_graph_path = os.path.join(FLAGS.export_dir, output_filename)
-
-            if not os.path.isdir(FLAGS.export_dir):
-                os.makedirs(FLAGS.export_dir)
-
-            def do_graph_freeze(output_file=None, output_node_names=None, variables_blacklist=None):
-                return freeze_graph.freeze_graph_with_def_protos(
-                    input_graph_def=session.graph_def,
-                    input_saver_def=saver.as_saver_def(),
-                    input_checkpoint=checkpoint_path,
-                    output_node_names=output_node_names,
-                    restore_op_name=None,
-                    filename_tensor_name=None,
-                    output_graph=output_file,
-                    clear_devices=False,
-                    variable_names_blacklist=variables_blacklist,
-                    initializer_nodes='')
-
-            if not FLAGS.export_tflite:
-                do_graph_freeze(output_file=output_graph_path, output_node_names=output_names, variables_blacklist='previous_state_c,previous_state_h')
-            else:
-                frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='')
-                output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
-
-                converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
-                converter.post_training_quantize = True
-                # AudioSpectrogram and Mfcc ops are custom but have built-in kernels in TFLite
-                converter.allow_custom_ops = True
-                tflite_model = converter.convert()
-
-                with open(output_tflite_path, 'wb') as fout:
-                    fout.write(tflite_model)
-
-                log_info('Exported model for TF Lite engine as {}'.format(os.path.basename(output_tflite_path)))
-
-            log_info('Models exported at %s' % (FLAGS.export_dir))
-        except RuntimeError as e:
-            log_error(str(e))
+        log_info('Models exported at %s' % (FLAGS.export_dir))
+    except RuntimeError as e:
+        log_error(str(e))
 
 
 def do_single_file_inference(input_file_path):
@@ -795,18 +798,20 @@ def main(_):
     initialize_globals()
 
     if FLAGS.train:
-        with tf.Graph().as_default():
-            tf.set_random_seed(FLAGS.random_seed)
-            train()
+        tf.reset_default_graph()
+        tf.set_random_seed(FLAGS.random_seed)
+        train()
 
     if FLAGS.test:
-        with tf.Graph().as_default():
-            test()
+        tf.reset_default_graph()
+        test()
 
     if FLAGS.export_dir:
+        tf.reset_default_graph()
         export()
 
     if len(FLAGS.one_shot_infer):
+        tf.reset_default_graph()
         do_single_file_inference(FLAGS.one_shot_infer)
 
 if __name__ == '__main__' :
