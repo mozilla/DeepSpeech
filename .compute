@@ -7,6 +7,11 @@ if ! (( $( env | grep -iq "^http_proxy=" ) )); then
     source /etc/profile
 fi
 
+cp /data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.whl ../keep
+
+exit
+
+
 SOURCE_MODEL='../keep/en'
 mkdir $SOURCE_MODEL
 wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
@@ -44,9 +49,11 @@ mkdir -p ../keep/summaries
 
 exp="../keep/fine-tuned"
 
+  #  --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+
 python -u DeepSpeech.py \
        --nofine_tune \
-       --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+       --train_files "${lbs}-train-clean-100-${bytes}.csv"\
        --dev_files "${lbs}-dev-clean-${bytes}.csv"\
        --test_files "${lbs}-test-clean-${bytes}.csv" \
 	   --export_dir "${exp}/model/" \

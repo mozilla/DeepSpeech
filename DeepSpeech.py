@@ -101,7 +101,9 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     # Forward direction cell:
     if not tflite:
         fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim, reuse=reuse)
+        fw_cell2 = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim, reuse=reuse)
         layers['fw_cell'] = fw_cell
+        layers['fw_cell2'] = fw_cell2
     else:
         fw_cell = tf.nn.rnn_cell.LSTMCell(Config.n_cell_dim, reuse=reuse)
 
@@ -121,21 +123,22 @@ def BiRNN(batch_x, seq_length, dropout, reuse=False, batch_size=None, n_steps=-1
     # We parametrize the RNN implementation as the training and inference graph
     # need to do different things here.
     if not tflite:
-        output, output_state = fw_cell(inputs=layer_3, dtype=tf.float32, sequence_length=seq_length, initial_state=previous_state)
+        output1, output_state1 = fw_cell(inputs=layer_3, dtype=tf.float32, sequence_length=seq_length, initial_state=previous_state)
+        output2, output_state2 = fw_cell2(inputs=output1, dtype=tf.float32, sequence_length=seq_length, initial_state=previous_state)
     else:
         output, output_state = tf.nn.static_rnn(fw_cell, layer_3, previous_state, tf.float32)
         output = tf.concat(output, 0)
 
     # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
     # to a tensor of shape [n_steps*batch_size, n_cell_dim]
-    output = tf.reshape(output, [-1, Config.n_cell_dim])
-    layers['rnn_output'] = output
-    layers['rnn_output_state'] = output_state
+    output2 = tf.reshape(output2, [-1, Config.n_cell_dim])
+    layers['rnn_output'] = output2
+    layers['rnn_output_state'] = output_state2
 
     # Now we feed `output` to the fifth hidden layer with clipped RELU activation and dropout
     b5 = variable_on_cpu('b5', [Config.n_hidden_5], tf.zeros_initializer())
     h5 = variable_on_cpu('h5', [Config.n_cell_dim, Config.n_hidden_5], tf.contrib.layers.xavier_initializer())
-    layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output, h5), b5)), FLAGS.relu_clip)
+    layer_5 = tf.minimum(tf.nn.relu(tf.add(tf.matmul(output2, h5), b5)), FLAGS.relu_clip)
     layer_5 = tf.nn.dropout(layer_5, rate=dropout[5])
     layers['layer_5'] = layer_5
 
