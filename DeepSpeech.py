@@ -492,7 +492,6 @@ def train():
 
     with tf.Session(config=Config.session_config) as session:
         log_debug('Session opened.')
-        tf.get_default_graph().finalize()
 
         # TRANSFER LEARNING #
         if FLAGS.source_model_checkpoint_dir:
@@ -513,6 +512,8 @@ def train():
                          for layer in drop_source_layers)
                 ])
             session.run(init_op)
+        
+        tf.get_default_graph().finalize()
         # TRANSFER LEARNING #
         
         # # Loading or initializing

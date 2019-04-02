@@ -2,33 +2,54 @@
 
 set -xe
 
+# check HTTP_PROXY
+if ! (( $( env | grep -iq "^http_proxy=" ) )); then
+    source /etc/profile
+fi
+
+SOURCE_MODEL='../keep/en'
+mkdir $SOURCE_MODEL
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
+tar xvzf ${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
+rm ${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint.tar.gz
+
+# venv
+apt-get update -y
 apt-get install -y python3-venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
-
 pip install -r <(grep -v tensorflow requirements.txt)
-pip install tensorflow-gpu==1.13.1
+pip install tensorflow-gpu==1.13.0-rc2
+pip install $(python util/taskcluster.py --decoder)
 
-# Install ds_ctcdecoder package from TaskCluster
-pip install $(python3 util/taskcluster.py --decoder)
 
-mkdir -p ../keep/summaries
+echo "##############################"
+echo " STARTING TRANSFER LEARNING "
+echo "##############################"
 
-data="${SHARED_DIR}/data"
-fis="${data}/LDC/fisher"
-swb="${data}/LDC/LDC97S62/swb"
-lbs="${data}/OpenSLR/LibriSpeech/librivox"
+exp="../keep/fine-tuned"
 
 python -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
-  --dev_files "${lbs}-dev-clean.csv"\
-  --test_files "${lbs}-test-clean.csv" \
-  --train_batch_size 24 \
-  --dev_batch_size 48 \
-  --test_batch_size 48 \
-  --n_hidden 2048 \
-  --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
-  --epoch 13 \
-  --checkpoint_dir "../keep" \
-  --summary_dir "../keep/summaries"
+       --nofine_tune \
+	   --export_dir "${exp}/model/" \
+	   --summary_dir "${exp}/summaries/" \
+	   --checkpoint_dir "${exp}/ckpt/" \
+	   --drop_source_layers 1 \
+	   --source_model_checkpoint_dir "${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint" \
+	   --n_hidden 2048 \
+	   --epoch -1000 \
+       --earlystop_nsteps 5 \
+	   --train_batch_size 24 \
+	   --dev_batch_size 48 \
+	   --test_batch_size 48 \
+	   --learning_rate 0.0001 \
+	   --dropout_rate 0.2 \
+	   --display_step 0 \
+	   --validation_step 1 \
+       --summary_secs 60 \
+       --train_files "/data/rw/home/ky/clips/clean-train.csv" \
+       --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
+       --test_files "/data/rw/home/ky/clips/clean-test.csv" \
+       --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
+       --lm_binary_path "/data/rw/home/ky/clean-lm.binary" \
+       --lm_trie_path "/data/rw/home/ky/clean-trie";
