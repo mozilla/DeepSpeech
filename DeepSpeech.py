@@ -587,7 +587,45 @@ def train():
                 ])
             session.run(init_op)
 
-        def run_set(set_name, epoch, init_op, dataset=None):
+        tf.get_default_graph().finalize()
+
+        # TRANSFER LEARNING #
+        
+        # # Loading or initializing
+        # loaded = False
+        # if FLAGS.load in ['auto', 'last']:
+        #     loaded = try_loading(session, checkpoint_saver, checkpoint_filename, 'most recent epoch')
+        # if not loaded and FLAGS.load in ['auto', 'best']:
+        #     loaded = try_loading(session, best_dev_saver, best_dev_filename, 'best validation')
+        # if not loaded:
+        #     if FLAGS.load in ['auto', 'init']:
+        #         log_info('Initializing...')
+        #         session.run(initializer)
+        #     else:
+        #         log_error('Unable to load %s model from specified checkpoint dir'
+        #                   ' - consider using load option "auto" or "init".' % FLAGS.load)
+        #         sys.exit(1)
+
+        # Retrieving global_step from restored model and setting training parameters accordingly
+        model_feeder.set_data_set(no_dropout_feed_dict, train_set)
+        step = session.run(global_step, feed_dict=no_dropout_feed_dict)
+        num_gpus = len(Config.available_devices)
+        steps_per_epoch = max(1, train_set.total_batches // num_gpus)
+        steps_trained = step % steps_per_epoch
+        current_epoch = step // steps_per_epoch
+        target_epoch = current_epoch + abs(FLAGS.epoch) if FLAGS.epoch < 0 else FLAGS.epoch
+        train_index.index = steps_trained * num_gpus
+
+        log_debug('step: %d' % step)
+        log_debug('epoch: %d' % current_epoch)
+        log_debug('target epoch: %d' % target_epoch)
+        log_debug('steps per epoch: %d' % steps_per_epoch)
+        log_debug('batches per step (GPUs): %d' % num_gpus)
+        log_debug('number of batches in train set: %d' % train_set.total_batches)
+        log_debug('number of batches already trained in epoch: %d' % train_index.index)
+
+        def run_set(set_name):
+            data_set = getattr(model_feeder, set_name)
             is_train = set_name == 'train'
             train_op = apply_gradient_op if is_train else []
             feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
