@@ -45,7 +45,7 @@ def _preprocess_data(tsv_dir, audio_dir, label_filter):
 
 
 def _maybe_convert_set(input_tsv, audio_dir, label_filter):
-    output_csv =  path.join(audio_dir,os.path.split(input_tsv)[-1].replace('tsv', 'csv'))
+    output_csv = path.join(audio_dir, os.path.split(input_tsv)[-1].replace('tsv', 'csv'))
     print("Saving new DeepSpeech-formatted CSV file to: ", output_csv)
 
     # Get audiofile path and transcript for each sentence in tsv
@@ -56,7 +56,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter):
             samples.append((row['path'], row['sentence']))
 
     # Keep track of how many samples are good vs. problematic
-    counter = { 'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0 }
+    counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0}
     lock = RLock()
     num_samples = len(samples)
     rows = []
