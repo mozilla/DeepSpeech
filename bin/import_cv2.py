@@ -135,8 +135,7 @@ if __name__ == "__main__":
     parser.add_argument('tsv_dir', help='Directory containing tsv files')
     parser.add_argument('--audio_dir', help='Directory containing the audio clips - defaults to "<tsv_dir>/clips"')
     parser.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
-    parser.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')
-    parser.set_defaults(normalize=False)
+    parser.add_argument('--normalize', default=False, action='store_true', help='Converts diacritic characters to their base ones')
     params = parser.parse_args()
 
     audio_dir = params.audio_dir if params.audio_dir else os.path.join(params.tsv_dir, 'clips')
@@ -152,7 +151,7 @@ if __name__ == "__main__":
             try:
                 [alphabet.label_from_string(c) for c in label]
             except KeyError:
-                return None
+                label = None
         return label
 
     _preprocess_data(params.tsv_dir, audio_dir, label_filter)
