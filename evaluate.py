@@ -147,7 +147,8 @@ def evaluate(test_data, inference_graph):
         decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, Config.alphabet, FLAGS.beam_width,
                                                 num_processes=num_processes, scorer=scorer)
 
-        ground_truths.extend(Config.alphabet.decode(l) for l in batch['transcript'])
+        # ground_truths.extend(Config.alphabet.decode(l) for l in batch['transcript'])
+        ground_truths.extend(Config.alphabet.decode(l.astype(np.uint8)) for l in batch['transcript'])
         predictions.extend(d[0][1] for d in decoded)
 
     distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]

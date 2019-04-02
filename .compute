@@ -18,19 +18,37 @@ apt-get update -y
 apt-get install -y python3-venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
+pip install wheel
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.0-rc2
-pip install $(python util/taskcluster.py --decoder)
-
+# pip install $(python util/taskcluster.py --decoder)
+pip install "/data/rw/home/ds_ctcdecoder-0.5.0a1-cp36-cp36m-manylinux1_x86_64.whl"
+# python util/taskcluster.py --arch gpu --target ../tmp/native_client
 
 echo "##############################"
 echo " STARTING TRANSFER LEARNING "
 echo "##############################"
 
+data="${SHARED_DIR}/data"
+
+CV="${data}/mozilla/CommonVoice/v2.0/en/clips"
+fis="${data}/LDC/fisher"
+swb="${data}/LDC/LDC97S62/swb"
+lbs="${data}/OpenSLR/LibriSpeech/librivox"
+
+num_bytes=2
+    
+bytes="${num_bytes}-bytes"
+
+mkdir -p ../keep/summaries
+
 exp="../keep/fine-tuned"
 
 python -u DeepSpeech.py \
        --nofine_tune \
+       --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+       --dev_files "${lbs}-dev-clean-${bytes}.csv"\
+       --test_files "${lbs}-test-clean-${bytes}.csv" \
 	   --export_dir "${exp}/model/" \
 	   --summary_dir "${exp}/summaries/" \
 	   --checkpoint_dir "${exp}/ckpt/" \
@@ -47,9 +65,6 @@ python -u DeepSpeech.py \
 	   --display_step 0 \
 	   --validation_step 1 \
        --summary_secs 60 \
-       --train_files "/data/rw/home/ky/clips/clean-train.csv" \
-       --dev_files "/data/rw/home/ky/clips/clean-dev.csv" \
-       --test_files "/data/rw/home/ky/clips/clean-test.csv" \
-       --alphabet_config_path "/data/rw/home/ky/clean-alphabet.txt" \
-       --lm_binary_path "/data/rw/home/ky/clean-lm.binary" \
-       --lm_trie_path "/data/rw/home/ky/clean-trie";
+       --lm_binary_path "/data/rw/home/en/lm-${bytes}.binary" \
+       --lm_trie_path "/data/rw/home/en/trie_utf8-${bytes}" \
+       --alphabet_config_path "/data/rw/home/en/alphabet-${bytes}.txt"
