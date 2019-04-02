@@ -49,7 +49,6 @@ def create_flags():
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_max_pitch', 1.2, 'max value of pitch scaling')
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_max_tempo', 1.2, 'max vlaue of tempo scaling')
 
-
     # Global Constants
     # ================
 
@@ -101,6 +100,11 @@ def create_flags():
     f.DEFINE_integer('checkpoint_secs', 600, 'checkpoint saving interval in seconds')
     f.DEFINE_integer('max_to_keep', 5, 'number of checkpoint files to keep - default value is 5')
     f.DEFINE_string('load', 'auto', '"last" for loading most recent epoch checkpoint, "best" for loading best validated checkpoint, "init" for initializing a fresh model, "auto" for trying the other options in order last > best > init')
+
+    # Transfer Learning
+
+    f.DEFINE_boolean ('fine_tune', False, 'fine-tune the transfered layers from source model or not')
+    f.DEFINE_integer ('drop_source_layers', 1, 'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')
 
     # Exporting
 
