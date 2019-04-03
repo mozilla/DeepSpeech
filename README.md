@@ -31,8 +31,8 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 **Table of Contents**
 
 - [Prerequisites](#prerequisites)
-  - [CUDA dependency](#cuda-dependency)
 - [Using a Pre-trained model](#using-the-model)
+  - [CUDA dependency](#cuda-dependency)
   - [Getting the pre-trained model](#getting-the-pre-trained-model)
   - [Using the Command Line (C++) client](#using-the-command-line-client)
   - [Using the Python package](#using-the-python-package)
