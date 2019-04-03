@@ -31,17 +31,17 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 **Table of Contents**
 
 - [Prerequisites](#prerequisites)
-- [Getting the code](#getting-the-code)
-- [Getting the pre-trained model](#getting-the-pre-trained-model)
-- [CUDA dependency](#cuda-dependency)
-- [Using the model](#using-the-model)
+  - [CUDA dependency](#cuda-dependency)
+- [Using a Pre-trained model](#using-the-model)
+  - [Getting the pre-trained model](#getting-the-pre-trained-model)
+  - [Using the Command Line (C++) client](#using-the-command-line-client)
   - [Using the Python package](#using-the-python-package)
-  - [Using the command line client](#using-the-command-line-client)
   - [Using the Node.JS package](#using-the-nodejs-package)
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
-- [Training](#training)
-  - [Installing prerequisites for training](#installing-prerequisites-for-training)
+- [Training your own Model](#training)
+  - [Getting the code](#getting-the-code)
+  - [Installing training prerequisites](#installing-prerequisites-for-training)
   - [Recommendations](#recommendations)
   - [Common Voice training data](#common-voice-training-data)
   - [Training a model](#training-a-model)
@@ -84,9 +84,50 @@ There are three ways to use DeepSpeech inference:
 - [The Node.JS package](#using-the-nodejs-package)
 
 
+Running `deepspeech` might require some runtime dependencies to be already installed on your system. Regardless of which bindings you are using, you will need the following:
+
+* libsox2
+* libstdc++6
+* libgomp1
+* libpthread
+
+Please refer to your system's documentation on how to install these dependencies.
+
+
 ### CUDA dependency
 
-The GPU capable builds (Python, NodeJS, C++ etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow r1.12 it depends on CUDA 9.0 and CuDNN v7.2.
+The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Make sure you've installed the correct version of CUDA
+
+### Using the Command-Line client
+
+To download the pre-built binaries for the `deepspeech` command-line client, use `util/taskcluster.py`:
+
+```bash
+python3 util/taskcluster.py --target .
+```
+
+or if you're on macOS:
+
+```bash
+python3 util/taskcluster.py --arch osx --target .
+```
+
+also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
+
+```bash
+python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
+```
+
+The script `taskcluster.py` will download `native_client.tar.xz` (which includes the `deepspeech` binary and associated libraries) and extract it into the current folder. Also, `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
+
+Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
+
+```bash
+./deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio audio_input.wav
+```
+
+See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
+
 
 ### Using the Python package
 
@@ -157,36 +198,6 @@ The arguments `--lm` and `--trie` are optional, and represent a language model.
 
 See [client.py](native_client/python/client.py) for an example of how to use the package programatically.
 
-### Using the command-line client
-
-To download the pre-built binaries for the `deepspeech` command-line client, use `util/taskcluster.py`:
-
-```bash
-python3 util/taskcluster.py --target .
-```
-
-or if you're on macOS:
-
-```bash
-python3 util/taskcluster.py --arch osx --target .
-```
-
-also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
-
-```bash
-python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
-```
-
-The script `taskcluster.py` will download `native_client.tar.xz` (which includes the `deepspeech` binary and associated libraries) and extract it into the current folder. Also, `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
-
-Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
-
-```bash
-./deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio audio_input.wav
-```
-
-See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
-
 ### Using the Node.JS package
 
 You can download the Node.JS bindings using `npm`:
@@ -194,6 +205,8 @@ You can download the Node.JS bindings using `npm`:
 ```bash
 npm install deepspeech
 ```
+
+Please note that as of now, we only support Node.JS versions 4, 5 and 6. Once [SWIG has support](https://github.com/swig/swig/pull/968) we can build for newer versions.
 
 Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can install the GPU specific package as follows:
 
