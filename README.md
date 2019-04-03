@@ -72,8 +72,8 @@ git clone https://github.com/mozilla/DeepSpeech
 There are three ways to use DeepSpeech inference:
 
 - [The Python package](#using-the-python-package)
-- [The command-line client](#using-the-command-line-client)
 - [The Node.JS package](#using-the-nodejs-package)
+- [The Command-Line client](#using-the-command-line-(c++)-client)
 
 Running `deepspeech` might require some runtime dependencies to be already installed on your system. Regardless of which bindings you are using, you will need the following:
 
@@ -97,37 +97,6 @@ If you want to use the pre-trained English model for performing speech-to-text, 
 wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-models.tar.gz
 tar xvfz deepspeech-0.4.1-models.tar.gz
 ```
-
-### Using the Command-Line client
-
-To download the pre-built binaries for the `deepspeech` command-line client, use `util/taskcluster.py`:
-
-```bash
-python3 util/taskcluster.py --target .
-```
-
-or if you're on macOS:
-
-```bash
-python3 util/taskcluster.py --arch osx --target .
-```
-
-also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
-
-```bash
-python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
-```
-
-The script `taskcluster.py` will download `native_client.tar.xz` (which includes the `deepspeech` binary and associated libraries) and extract it into the current folder. Also, `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
-
-Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
-
-```bash
-./deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio audio_input.wav
-```
-
-See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
-
 
 ### Using the Python package
 
@@ -217,6 +186,37 @@ npm install deepspeech-gpu
 See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
 See [client.js](native_client/javascript/client.js) for an example of how to use the bindings. Or download the [wav example](examples/nodejs_wav).
+
+
+### Using the Command-Line (C++) client
+
+To download the pre-built binaries for the `deepspeech` command-line client, use `util/taskcluster.py`:
+
+```bash
+python3 util/taskcluster.py --target .
+```
+
+or if you're on macOS:
+
+```bash
+python3 util/taskcluster.py --arch osx --target .
+```
+
+also, if you need some binaries different than current master, like `v0.2.0-alpha.6`, you can use `--branch`:
+
+```bash
+python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
+```
+
+The script `taskcluster.py` will download `native_client.tar.xz` (which includes the `deepspeech` binary and associated libraries) and extract it into the current folder. Also, `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
+
+Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
+
+```bash
+./deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio audio_input.wav
+```
+
+See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
 
 ### Installing bindings from source
 
