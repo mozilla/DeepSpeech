@@ -40,6 +40,7 @@ LINK_PATH_DEEPSPEECH :=
 CFLAGS_DEEPSPEECH    := -nologo -Fe$(DEEPSPEECH_BIN)
 SOX_CFLAGS      :=
 SOX_LDFLAGS     :=
+PYTHON_PACKAGES := numpy${NUMPY_BUILD_VERSION}
 endif
 
 ifeq ($(TARGET),rpi3)
@@ -144,6 +145,7 @@ define copy_missing_libs
     \
     for missing in $$missing_libs; do \
         find $(SO_SEARCH) -type f -name "$$missing" -exec cp {} $$TARGET_LIB_DIR \; ; \
+        chmod +w $$TARGET_LIB_DIR/*.so ; \
         if [ ! -z "$$MANIFEST_IN" ]; then \
             echo "include $$TARGET_LIB_DIR/$$missing" >> $$MANIFEST_IN; \
         fi; \
