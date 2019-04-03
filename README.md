@@ -32,9 +32,9 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
-- [Using a Pre-trained model](#using-the-model)
+- [Using a Pre-trained Model](#using-a-pre-trained-model)
   - [CUDA dependency](#cuda-dependency)
-  - [Getting the pre-trained model](#getting-the-pre-trained-model)
+  - [Getting the pre-trained model](#downloading-the-pre-trained-model)
   - [Using the Command Line (C++) client](#using-the-command-line-client)
   - [Using the Python package](#using-the-python-package)
   - [Using the Node.JS package](#using-the-nodejs-package)
@@ -66,23 +66,14 @@ Install [Git Large File Storage](https://git-lfs.github.com/) either manually or
 git clone https://github.com/mozilla/DeepSpeech
 ```
 
-## Getting the pre-trained model
 
-If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the DeepSpeech [releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the model files in your current directory:
-
-```bash
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-models.tar.gz
-tar xvfz deepspeech-0.4.1-models.tar.gz
-```
-
-## Using the model
+## Using a Pre-trained Model
 
 There are three ways to use DeepSpeech inference:
 
 - [The Python package](#using-the-python-package)
 - [The command-line client](#using-the-command-line-client)
 - [The Node.JS package](#using-the-nodejs-package)
-
 
 Running `deepspeech` might require some runtime dependencies to be already installed on your system. Regardless of which bindings you are using, you will need the following:
 
@@ -97,6 +88,15 @@ Please refer to your system's documentation on how to install these dependencies
 ### CUDA dependency
 
 The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Make sure you've installed the correct version of CUDA
+
+### Downloading the pre-trained model
+
+If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the DeepSpeech [releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the model files in your current directory:
+
+```bash
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-models.tar.gz
+tar xvfz deepspeech-0.4.1-models.tar.gz
+```
 
 ### Using the Command-Line client
 
