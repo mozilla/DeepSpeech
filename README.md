@@ -251,8 +251,8 @@ Please ensure you have the required [CUDA dependency](#cuda-dependency).
 ### Common Voice training data
 
 The Common Voice corpus consists of voice samples that were donated through Mozilla's [Common Voice](https://voice.mozilla.org/) Initiative.
-You can download individual CommonVoice v2.0 language packs from [here](https://voice.mozilla.org/data).
-After extraction of such a pack, you'll find the following contents:
+You can download individual CommonVoice v2.0 language data sets from [here](https://voice.mozilla.org/data).
+After extraction of such a data set, you'll find the following contents:
  - the `*.tsv` files output by CorporaCreator for the downloaded language
  - the mp3 audio files they reference in a `clips` sub-directory.
 
