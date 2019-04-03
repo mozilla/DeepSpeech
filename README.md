@@ -31,6 +31,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 **Table of Contents**
 
 - [Prerequisites](#prerequisites)
+- [Getting the code](#getting-the-code)
 - [Using a Pre-trained model](#using-the-model)
   - [CUDA dependency](#cuda-dependency)
   - [Getting the pre-trained model](#getting-the-pre-trained-model)
@@ -40,7 +41,6 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
 - [Training your own Model](#training)
-  - [Getting the code](#getting-the-code)
   - [Installing training prerequisites](#installing-prerequisites-for-training)
   - [Recommendations](#recommendations)
   - [Common Voice training data](#common-voice-training-data)
