@@ -27,7 +27,10 @@ def read_csvs(csv_files):
 
 
 def samples_to_mfccs(samples, sample_rate):
-    spectrogram = contrib_audio.audio_spectrogram(samples, window_size=512, stride=320, magnitude_squared=True)
+    spectrogram = contrib_audio.audio_spectrogram(samples,
+                                                  window_size=Config.audio_window_samples,
+                                                  stride=Config.audio_step_samples,
+                                                  magnitude_squared=True)
     mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
 

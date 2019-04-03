@@ -19,6 +19,10 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('dev_cached_features_path',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('test_cached_features_path',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
 
+    tf.app.flags.DEFINE_integer ('feature_win_len',  32,          'feature extraction audio window length in milliseconds')
+    tf.app.flags.DEFINE_integer ('feature_win_step', 20,          'feature extraction window step length in milliseconds')
+    tf.app.flags.DEFINE_integer ('audio_sample_rate',16000,       'sample rate value expected by model')
+
     # Global Constants
     # ================
 
@@ -73,6 +77,7 @@ def create_flags():
     tf.app.flags.DEFINE_boolean ('export_tflite',    False,       'export a graph ready for TF Lite engine')
     tf.app.flags.DEFINE_boolean ('use_seq_length',   True,        'have sequence_length in the exported graph (will make tfcompile unhappy)')
     tf.app.flags.DEFINE_integer ('n_steps',          16,          'how many timesteps to process at once by the export graph, higher values mean more latency')
+    tf.app.flags.DEFINE_string  ('export_model_language', '',     'language the model was trained on. Gets embedded into exported model.')
 
     # Reporting
 
