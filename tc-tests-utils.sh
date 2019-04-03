@@ -167,6 +167,11 @@ assert_shows_something()
   fi;
 
   case "${stderr}" in
+      *"incompatible with minimum version"*)
+          echo "Prod model too old for client, skipping test."
+          return 0
+      ;;
+
       *${expected}*)
           echo "Proper output has been produced:"
           echo "${stderr}"
@@ -342,10 +347,14 @@ run_all_inference_tests()
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 
+  set +e
   phrase_pbmodel_nolm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
 
+  set +e
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
 
@@ -369,7 +378,9 @@ run_prod_inference_tests()
   set -e
   assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 
+  set +e
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
 

@@ -548,11 +548,10 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     batch_size = batch_size if batch_size > 0 else None
 
     # Create feature computation graph
-    input_samples = tf.placeholder(tf.float32, [None], 'input_samples')
+    input_samples = tf.placeholder(tf.float32, [512], 'input_samples')
     samples = tf.expand_dims(input_samples, -1)
-    mfccs, mfccs_len = samples_to_mfccs(samples, 16000)
+    mfccs, _ = samples_to_mfccs(samples, 16000)
     mfccs = tf.identity(mfccs, name='mfccs')
-    mfccs_len = tf.identity(mfccs_len, name='mfccs_len')
 
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
     # This shape is read by the native_client in DS_CreateModel to know the
@@ -633,7 +632,6 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
                 'outputs': logits,
                 'initialize_state': initialize_state,
                 'mfccs': mfccs,
-                'mfccs_len': mfccs_len,
             },
             layers
         )
@@ -659,7 +657,6 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
                 'new_state_c': new_state_c,
                 'new_state_h': new_state_h,
                 'mfccs': mfccs,
-                'mfccs_len': mfccs_len,
             },
             layers
         )
