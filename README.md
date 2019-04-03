@@ -35,9 +35,9 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 - [Using a Pre-trained Model](#using-a-pre-trained-model)
   - [CUDA dependency](#cuda-dependency)
   - [Getting the pre-trained model](#downloading-the-pre-trained-model)
-  - [Using the Command Line (C++) client](#using-the-command-line-client)
   - [Using the Python package](#using-the-python-package)
   - [Using the Node.JS package](#using-the-nodejs-package)
+  - [Using the Command Line client](#using-the-command-line-client)
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
 - [Training your own Model](#training)
@@ -73,7 +73,7 @@ There are three ways to use DeepSpeech inference:
 
 - [The Python package](#using-the-python-package)
 - [The Node.JS package](#using-the-nodejs-package)
-- [The Command-Line client](#using-the-command-line-(c++)-client)
+- [The Command-Line client](#using-the-command-line-client)
 
 Running `deepspeech` might require some runtime dependencies to be already installed on your system. Regardless of which bindings you are using, you will need the following:
 
@@ -188,9 +188,9 @@ See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find 
 See [client.js](native_client/javascript/client.js) for an example of how to use the bindings. Or download the [wav example](examples/nodejs_wav).
 
 
-### Using the Command-Line (C++) client
+### Using the Command-Line client
 
-To download the pre-built binaries for the `deepspeech` command-line client, use `util/taskcluster.py`:
+To download the pre-built binaries for the `deepspeech` command-line (compiled C++) client, use `util/taskcluster.py`:
 
 ```bash
 python3 util/taskcluster.py --target .
