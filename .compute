@@ -2,6 +2,7 @@
 
 set -xe
 
+sleep 60
 apt-get install -y python3-venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
@@ -15,20 +16,18 @@ pip install $(python3 util/taskcluster.py --decoder)
 mkdir -p ../keep/summaries
 
 data="${SHARED_DIR}/data"
-fis="${data}/LDC/fisher"
-swb="${data}/LDC/LDC97S62/swb"
-lbs="${data}/OpenSLR/LibriSpeech/librivox"
+grv="${data}/gramvaani/hindi"
 
 python -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
-  --dev_files "${lbs}-dev-clean.csv"\
-  --test_files "${lbs}-test-clean.csv" \
+  --train_files "${grv}/train.csv" \
+  --dev_files "${grv}/dev.csv" \
+  --test_files "${grv}/test.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
+  --dropout_rate 0.1 \
   --epoch 13 \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries"
