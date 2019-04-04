@@ -20,13 +20,9 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie'
 
-python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
-  --train_files ${ldc93s1_csv} --train_batch_size 1 \
-  --dev_files ${ldc93s1_csv} --dev_batch_size 1 \
-  --test_files ${ldc93s1_csv} --test_batch_size 1 \
-  --n_hidden 100 --epoch 1 \
-  --max_to_keep 1 --checkpoint_dir '/tmp/ckpt' --checkpoint_secs 0 \
-  --learning_rate 0.001 --dropout_rate 0.05 \
+python -u DeepSpeech.py \
+  --n_hidden 100 \
+  --checkpoint_dir '/tmp/ckpt' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \
   --one_shot_infer 'data/smoke_test/LDC93S1.wav'

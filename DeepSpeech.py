@@ -376,7 +376,7 @@ def train():
     # Make initialization ops for switching between the two sets
     train_init_op = iterator.make_initializer(train_set)
 
-    if FLAGS.dev:
+    if FLAGS.dev_files:
         dev_set, dev_batches = create_dataset(FLAGS.dev_files.split(','),
                                               batch_size=FLAGS.dev_batch_size,
                                               cache_path=FLAGS.dev_cached_features_path)
@@ -508,7 +508,7 @@ def train():
                     log_info('Finished training epoch %d - loss: %f' % (current_epoch, train_loss))
                     checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
 
-                    if FLAGS.dev:
+                    if FLAGS.dev_files:
                         # Validation
                         log_info('Validating epoch %d ...' % current_epoch)
                         dev_loss = run_set('dev', dev_init_op, dev_batches)
@@ -794,12 +794,12 @@ def do_single_file_inference(input_file_path):
 def main(_):
     initialize_globals()
 
-    if FLAGS.train:
+    if FLAGS.train_files:
         tf.reset_default_graph()
         tf.set_random_seed(FLAGS.random_seed)
         train()
 
-    if FLAGS.test:
+    if FLAGS.test_files:
         tf.reset_default_graph()
         test()
 
@@ -807,7 +807,7 @@ def main(_):
         tf.reset_default_graph()
         export()
 
-    if len(FLAGS.one_shot_infer):
+    if FLAGS.one_shot_infer:
         tf.reset_default_graph()
         do_single_file_inference(FLAGS.one_shot_infer)
 
