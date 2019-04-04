@@ -1,4 +1,5 @@
 import os
+import re
 import csv
 import sys
 import math
@@ -203,6 +204,7 @@ class GramVaaniDataSets:
         self.target_dir = target_dir
         self.wav_directory = wav_directory
         self.csv_data = gram_vaani_csv.data
+        self.regex = re.compile(r"[^a-z ']")
         self.raw = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
         self.valid = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
         self.train = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
@@ -234,6 +236,9 @@ class GramVaaniDataSets:
         transcript = validate_label(transcript)
         if None == transcript:
             transcript = ""
+        transcript = transcript.replace("\n", "")
+        transcript = self.regex.sub("", transcript)
+        transcript = transcript.strip()
         return pd.Series([wav_relative_filename, wav_filesize, transcript]) 
 
     def _is_valid_raw_rows(self):
