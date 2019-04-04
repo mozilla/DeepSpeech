@@ -19,6 +19,7 @@ data="${SHARED_DIR}/data"
 grv="${data}/gramvaani/hindi"
 
 python -u DeepSpeech.py \
+  --noearly_stop \
   --train_files "${grv}/train.csv" \
   --dev_files "${grv}/dev.csv" \
   --test_files "${grv}/test.csv" \
@@ -27,7 +28,7 @@ python -u DeepSpeech.py \
   --test_batch_size 48 \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
-  --dropout_rate 0.05 \
+  --dropout_rate 0.1 \
   --epoch 13 \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries"
