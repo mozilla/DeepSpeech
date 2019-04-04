@@ -94,7 +94,7 @@ def create_flags():
 
     # Early Stopping
 
-    tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset')
+    tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset. If validation is not being run, early stopping is disabled.')
     tf.app.flags.DEFINE_integer ('es_steps',         4,           'number of validations to consider for early stopping. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
     tf.app.flags.DEFINE_float   ('es_mean_th',       0.5,         'mean threshold for loss to determine the condition if early stopping is required')
     tf.app.flags.DEFINE_float   ('es_std_th',        0.5,         'standard deviation threshold for loss to determine the condition if early stopping is required')
