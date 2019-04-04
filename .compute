@@ -28,7 +28,7 @@ python -u DeepSpeech.py \
   --test_batch_size 48 \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
-  --dropout_rate 0.15 \
+  --dropout_rate 0.05 \
   --epoch 13 \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries"
