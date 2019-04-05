@@ -17,7 +17,7 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --train_cached_features_path '/tmp/ldc93s1_cache' \
   --dev_files ${ldc93s1_csv} --dev_batch_size 1 \
   --test_files ${ldc93s1_csv} --test_batch_size 1 \
-  --n_hidden 100 --epoch $epoch_count \
+  --n_hidden 100 --epochs $epoch_count \
   --max_to_keep 1 --checkpoint_dir '/tmp/ckpt' \
   --learning_rate 0.001 --dropout_rate 0.05  --export_dir '/tmp/train' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \

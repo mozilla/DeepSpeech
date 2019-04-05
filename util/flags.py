@@ -22,7 +22,7 @@ def create_flags():
     # Global Constants
     # ================
 
-    tf.app.flags.DEFINE_integer ('epoch',            75,          'target epoch to train - if negative, the absolute number of additional epochs will be trained')
+    tf.app.flags.DEFINE_integer ('epochs',           75,          'how many epochs (complete runs through the train files) to train for')
 
     tf.app.flags.DEFINE_float   ('dropout_rate',     0.05,        'dropout rate for feedforward layers')
     tf.app.flags.DEFINE_float   ('dropout_rate2',    -1.0,        'dropout rate for layer 2 - defaults to dropout_rate')
