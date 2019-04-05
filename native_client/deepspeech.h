@@ -26,6 +26,8 @@ struct MetadataItem {
 struct Metadata {
   MetadataItem* items;
   int num_items;
+  // Approximated probability (confidence value) for this transcription.
+  double probability;
 };
 
 enum DeepSpeech_Error_Codes

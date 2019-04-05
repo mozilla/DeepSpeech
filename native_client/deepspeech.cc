@@ -537,22 +537,24 @@ ModelState::decode_metadata(const vector<float>& logits)
 {
   vector<Output> out = decode_raw(logits);
 
-  std::unique_ptr<Metadata> metadata(new Metadata);
+  std::unique_ptr<Metadata> metadata(new Metadata());
   metadata->num_items = out[0].tokens.size();
-  std::unique_ptr<MetadataItem> items(new MetadataItem[metadata->num_items]);
-  metadata->items = items.release();
+  metadata->probability = out[0].probability;
+
+  std::unique_ptr<MetadataItem[]> items(new MetadataItem[metadata->num_items]());
 
   // Loop through each character
   for (int i = 0; i < out[0].tokens.size(); ++i) {
-    metadata->items[i].character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
-    metadata->items[i].timestep = out[0].timesteps[i]; 
-    metadata->items[i].start_time = out[0].timesteps[i] * ((float)audio_win_step / sample_rate);
+    items[i].character = strdup(alphabet->StringFromLabel(out[0].tokens[i]).c_str());
+    items[i].timestep = out[0].timesteps[i];
+    items[i].start_time = out[0].timesteps[i] * ((float)audio_win_step / sample_rate);
 
-    if (metadata->items[i].start_time < 0) {
-      metadata->items[i].start_time = 0;
+    if (items[i].start_time < 0) {
+      items[i].start_time = 0;
     }
   }
 
+  metadata->items = items.release();
   return metadata.release();
 }
 
@@ -916,8 +918,11 @@ void
 DS_FreeMetadata(Metadata* m)
 {
   if (m) {
-    delete(m->items);
-    delete(m);
+    for (int i = 0; i < m->num_items; ++i) {
+      free(m->items[i].character);
+    }
+    delete[] m->items;
+    delete m;
   }
 }
 
