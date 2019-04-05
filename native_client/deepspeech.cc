@@ -13,6 +13,7 @@
 #include "alphabet.h"
 
 #include "native_client/ds_version.h"
+#include "native_client/ds_graph_version.h"
 
 #ifndef USE_TFLITE
   #include "tensorflow/core/public/session.h"
@@ -22,8 +23,6 @@
   #include "tensorflow/lite/model.h"
   #include "tensorflow/lite/kernels/register.h"
 #endif // USE_TFLITE
-
-#include "c_speech_features.h"
 
 #include "ctcdecode/ctc_beam_search_decoder.h"
 
@@ -47,14 +46,6 @@ constexpr float AUDIO_WIN_LEN = 0.032f;
 constexpr float AUDIO_WIN_STEP = 0.02f;
 constexpr unsigned int AUDIO_WIN_LEN_SAMPLES = (unsigned int)(AUDIO_WIN_LEN * SAMPLE_RATE);
 constexpr unsigned int AUDIO_WIN_STEP_SAMPLES = (unsigned int)(AUDIO_WIN_STEP * SAMPLE_RATE);
-
-constexpr unsigned int MFCC_FEATURES = 26;
-
-constexpr float PREEMPHASIS_COEFF = 0.97f;
-constexpr unsigned int N_FFT = 512;
-constexpr unsigned int N_FILTERS = 26;
-constexpr unsigned int LOWFREQ = 0;
-constexpr unsigned int CEP_LIFTER = 22;
 
 constexpr size_t WINDOW_SIZE = AUDIO_WIN_LEN * SAMPLE_RATE;
 
@@ -108,7 +99,6 @@ using std::vector;
 struct StreamingState {
   vector<float> accumulated_logits;
   vector<float> audio_buffer;
-  float last_sample; // used for preemphasis
   vector<float> mfcc_buffer;
   vector<float> batch_buffer;
   ModelState* model;
@@ -121,7 +111,7 @@ struct StreamingState {
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
-  void pushMfccBuffer(const float* buf, unsigned int len);
+  void pushMfccBuffer(const vector<float>& buf);
   void addZeroMfccWindow();
   void processBatch(const vector<float>& buf, unsigned int n_steps);
 };
@@ -141,8 +131,9 @@ struct ModelState {
   Scorer* scorer;
   unsigned int beam_width;
   unsigned int n_steps;
-  unsigned int mfcc_feats_per_timestep;
   unsigned int n_context;
+  unsigned int n_features;
+  unsigned int mfcc_feats_per_timestep;
 
 #ifdef USE_TFLITE
   size_t previous_state_size;
@@ -152,10 +143,12 @@ struct ModelState {
   int input_node_idx;
   int previous_state_c_idx;
   int previous_state_h_idx;
+  int input_samples_idx;
 
   int logits_idx;
   int new_state_c_idx;
   int new_state_h_idx;
+  int mfccs_idx;
 #endif
 
   ModelState();
@@ -170,7 +163,7 @@ struct ModelState {
    *
    * @return String representing the decoded text.
    */
-  char* decode(vector<float>& logits);
+  char* decode(const vector<float>& logits);
 
   /**
    * @brief Perform decoding of the logits, using basic CTC decoder or
@@ -192,7 +185,7 @@ struct ModelState {
    * @return Metadata struct containing MetadataItem structs for each character.
    * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
    */
-  Metadata* decode_metadata(vector<float>& logits); 
+  Metadata* decode_metadata(const vector<float>& logits);
 
   /**
    * @brief Do a single inference step in the acoustic model, with:
@@ -204,11 +197,10 @@ struct ModelState {
    *
    * @param[out] output_logits Where to store computed logits.
    */
-  void infer(const float* mfcc, unsigned int n_frames, vector<float>& output_logits);
-};
+  void infer(const float* mfcc, unsigned int n_frames, vector<float>& logits_output);
 
-StreamingState* setupStreamAndFeedAudioContent(ModelState* aCtx, const short* aBuffer,
-                                               unsigned int aBufferSize, unsigned int aSampleRate);
+  void compute_mfcc(const vector<float>& audio_buffer, vector<float>& mfcc_output);
+};
 
 ModelState::ModelState()
   :
@@ -225,8 +217,9 @@ ModelState::ModelState()
   , scorer(nullptr)
   , beam_width(0)
   , n_steps(-1)
-  , mfcc_feats_per_timestep(-1)
   , n_context(-1)
+  , n_features(-1)
+  , mfcc_feats_per_timestep(-1)
 #ifdef USE_TFLITE
   , previous_state_size(0)
   , previous_state_c_(nullptr)
@@ -251,6 +244,14 @@ ModelState::~ModelState()
   delete alphabet;
 }
 
+template<typename T>
+void
+shift_buffer_left(vector<T>& buf, int shift_amount)
+{
+  std::rotate(buf.begin(), buf.begin() + shift_amount, buf.end());
+  buf.resize(buf.size() - shift_amount);
+}
+
 void
 StreamingState::feedAudioContent(const short* buffer,
                                  unsigned int buffer_size)
@@ -258,10 +259,9 @@ StreamingState::feedAudioContent(const short* buffer,
   // Consume all the data that was passed in, processing full buffers if needed
   while (buffer_size > 0) {
     while (buffer_size > 0 && audio_buffer.size() < AUDIO_WIN_LEN_SAMPLES) {
-      // Apply preemphasis to input sample and buffer it
-      float sample = (float)(*buffer) - (PREEMPHASIS_COEFF * last_sample);
-      audio_buffer.push_back(sample);
-      last_sample = *buffer;
+      // Convert i16 sample into f32
+      float multiplier = 1.0f / (1 << 15);
+      audio_buffer.push_back((float)(*buffer) * multiplier);
       ++buffer;
       --buffer_size;
     }
@@ -270,8 +270,7 @@ StreamingState::feedAudioContent(const short* buffer,
     if (audio_buffer.size() == AUDIO_WIN_LEN_SAMPLES) {
       processAudioWindow(audio_buffer);
       // Shift data by one step
-      std::rotate(audio_buffer.begin(), audio_buffer.begin() + AUDIO_WIN_STEP_SAMPLES, audio_buffer.end());
-      audio_buffer.resize(audio_buffer.size() - AUDIO_WIN_STEP_SAMPLES);
+      shift_buffer_left(audio_buffer, AUDIO_WIN_STEP_SAMPLES);
     }
 
     // Repeat until buffer empty
@@ -288,7 +287,6 @@ char*
 StreamingState::finishStream()
 {
   finalizeStream();
-
   return model->decode(accumulated_logits);
 }
 
@@ -296,7 +294,6 @@ Metadata*
 StreamingState::finishStreamWithMetadata()
 {
   finalizeStream();
-
   return model->decode_metadata(accumulated_logits);
 }
 
@@ -304,15 +301,10 @@ void
 StreamingState::processAudioWindow(const vector<float>& buf)
 {
   // Compute MFCC features
-  float* mfcc;
-  int n_frames = csf_mfcc(buf.data(), buf.size(), SAMPLE_RATE,
-                          AUDIO_WIN_LEN, AUDIO_WIN_STEP, MFCC_FEATURES, N_FILTERS, N_FFT,
-                          LOWFREQ, SAMPLE_RATE/2, 0.f, CEP_LIFTER, 1, hamming_window.data(),
-                          &mfcc);
-  assert(n_frames == 1);
-
-  pushMfccBuffer(mfcc, n_frames * MFCC_FEATURES);
-  free(mfcc);
+  vector<float> mfcc;
+  mfcc.reserve(model->n_features);
+  model->compute_mfcc(buf, mfcc);
+  pushMfccBuffer(mfcc);
 }
 
 void
@@ -335,25 +327,35 @@ StreamingState::finalizeStream()
 void
 StreamingState::addZeroMfccWindow()
 {
-  static const float zero_buffer[MFCC_FEATURES] = {0.f};
-  pushMfccBuffer(zero_buffer, MFCC_FEATURES);
+  vector<float> zero_buffer(model->n_features, 0.f);
+  pushMfccBuffer(zero_buffer);
+}
+
+template<typename InputIt, typename OutputIt>
+InputIt
+copy_up_to_n(InputIt from_begin, InputIt from_end, OutputIt to_begin, int max_elems)
+{
+  int next_copy_amount = std::min<int>(std::distance(from_begin, from_end), max_elems);
+  std::copy_n(from_begin, next_copy_amount, to_begin);
+  return from_begin + next_copy_amount;
 }
 
 void
-StreamingState::pushMfccBuffer(const float* buf, unsigned int len)
+StreamingState::pushMfccBuffer(const vector<float>& buf)
 {
-  while (len > 0) {
-    unsigned int next_copy_amount = std::min(len, (unsigned int)(model->mfcc_feats_per_timestep - mfcc_buffer.size()));
-    mfcc_buffer.insert(mfcc_buffer.end(), buf, buf + next_copy_amount);
-    buf += next_copy_amount;
-    len -= next_copy_amount;
+  auto start = buf.begin();
+  auto end = buf.end();
+  while (start != end) {
+    // Copy from input buffer to mfcc_buffer, stopping if we have a full context window
+    start = copy_up_to_n(start, end, std::back_inserter(mfcc_buffer),
+                         model->mfcc_feats_per_timestep - mfcc_buffer.size());
     assert(mfcc_buffer.size() <= model->mfcc_feats_per_timestep);
 
+    // If we have a full context window
     if (mfcc_buffer.size() == model->mfcc_feats_per_timestep) {
       processMfccWindow(mfcc_buffer);
       // Shift data by one step of one mfcc feature vector
-      std::rotate(mfcc_buffer.begin(), mfcc_buffer.begin() + MFCC_FEATURES, mfcc_buffer.end());
-      mfcc_buffer.resize(mfcc_buffer.size() - MFCC_FEATURES);
+      shift_buffer_left(mfcc_buffer, model->n_features);
     }
   }
 }
@@ -364,11 +366,12 @@ StreamingState::processMfccWindow(const vector<float>& buf)
   auto start = buf.begin();
   auto end = buf.end();
   while (start != end) {
-    unsigned int next_copy_amount = std::min<unsigned int>(std::distance(start, end), (unsigned int)(model->n_steps * model->mfcc_feats_per_timestep - batch_buffer.size()));
-    batch_buffer.insert(batch_buffer.end(), start, start + next_copy_amount);
-    start += next_copy_amount;
+    // Copy from input buffer to batch_buffer, stopping if we have a full batch
+    start = copy_up_to_n(start, end, std::back_inserter(batch_buffer),
+                         model->n_steps * model->mfcc_feats_per_timestep - batch_buffer.size());
     assert(batch_buffer.size() <= model->n_steps * model->mfcc_feats_per_timestep);
 
+    // If we have a full batch
     if (batch_buffer.size() == model->n_steps * model->mfcc_feats_per_timestep) {
       processBatch(batch_buffer, model->n_steps);
       batch_buffer.resize(0);
@@ -388,7 +391,7 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
   const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
 
 #ifndef USE_TFLITE
-  Tensor input(DT_FLOAT, TensorShape({BATCH_SIZE, n_steps, 2*n_context+1, MFCC_FEATURES}));
+  Tensor input(DT_FLOAT, TensorShape({BATCH_SIZE, n_steps, 2*n_context+1, n_features}));
 
   auto input_mapped = input.flat<float>();
   int i;
@@ -396,7 +399,7 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
     input_mapped(i) = aMfcc[i];
   }
   for (; i < n_steps*mfcc_feats_per_timestep; ++i) {
-    input_mapped(i) = 0;
+    input_mapped(i) = 0.;
   }
 
   Tensor input_lengths(DT_INT32, TensorShape({1}));
@@ -454,11 +457,69 @@ ModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logi
 #endif // USE_TFLITE
 }
 
+void
+ModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc_output)
+{
+#ifndef USE_TFLITE
+  Tensor input(DT_FLOAT, TensorShape({AUDIO_WIN_LEN_SAMPLES}));
+  auto input_mapped = input.flat<float>();
+  int i;
+  for (i = 0; i < samples.size(); ++i) {
+    input_mapped(i) = samples[i];
+  }
+  for (; i < AUDIO_WIN_LEN_SAMPLES; ++i) {
+    input_mapped(i) = 0.f;
+  }
+
+  vector<Tensor> outputs;
+  Status status = session->Run({{"input_samples", input}}, {"mfccs"}, {}, &outputs);
+
+  if (!status.ok()) {
+    std::cerr << "Error running session: " << status << "\n";
+    return;
+  }
+
+  // The feature computation graph is hardcoded to one audio length for now
+  const int n_windows = 1;
+  assert(outputs[0].shape().num_elemements() / n_features == n_windows);
+
+  auto mfcc_mapped = outputs[0].flat<float>();
+  for (int i = 0; i < n_windows * n_features; ++i) {
+    mfcc_output.push_back(mfcc_mapped(i));
+  }
+#else
+  // Feeding input_node
+  float* input_samples = interpreter->typed_tensor<float>(input_samples_idx);
+  for (int i = 0; i < samples.size(); ++i) {
+    input_samples[i] = samples[i];
+  }
+
+  TfLiteStatus status = interpreter->Invoke();
+  if (status != kTfLiteOk) {
+    std::cerr << "Error running session: " << status << "\n";
+    return;
+  }
+
+  // The feature computation graph is hardcoded to one audio length for now
+  int n_windows = 1;
+  TfLiteIntArray* out_dims = interpreter->tensor(mfccs_idx)->dims;
+  int num_elements = 1;
+  for (int i = 0; i < out_dims->size; ++i) {
+    num_elements *= out_dims->data[i];
+  }
+  assert(num_elements / n_features == n_windows);
+
+  float* outputs = interpreter->typed_tensor<float>(mfccs_idx);
+  for (int i = 0; i < n_windows * n_features; ++i) {
+    mfcc_output.push_back(outputs[i]);
+  }
+#endif
+}
+
 char*
-ModelState::decode(vector<float>& logits)
+ModelState::decode(const vector<float>& logits)
 {
   vector<Output> out = ModelState::decode_raw(logits);
-
   return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
 }
 
@@ -481,7 +542,8 @@ ModelState::decode_raw(const vector<float>& logits)
   return out;
 }
 
-Metadata* ModelState::decode_metadata(vector<float>& logits) 
+Metadata*
+ModelState::decode_metadata(const vector<float>& logits)
 {
   vector<Output> out = decode_raw(logits);
 
@@ -505,7 +567,8 @@ Metadata* ModelState::decode_metadata(vector<float>& logits)
 }
 
 #ifdef USE_TFLITE
-int tflite_get_tensor_by_name(const ModelState* ctx, const vector<int>& list, const char* name)
+int
+tflite_get_tensor_by_name(const ModelState* ctx, const vector<int>& list, const char* name)
 {
   int rv = -1;
 
@@ -520,12 +583,14 @@ int tflite_get_tensor_by_name(const ModelState* ctx, const vector<int>& list, co
   return rv;
 }
 
-int tflite_get_input_tensor_by_name(const ModelState* ctx, const char* name)
+int
+tflite_get_input_tensor_by_name(const ModelState* ctx, const char* name)
 {
   return ctx->interpreter->inputs()[tflite_get_tensor_by_name(ctx, ctx->interpreter->inputs(), name)];
 }
 
-int tflite_get_output_tensor_by_name(const ModelState* ctx, const char* name)
+int
+tflite_get_output_tensor_by_name(const ModelState* ctx, const char* name)
 {
   return ctx->interpreter->outputs()[tflite_get_tensor_by_name(ctx, ctx->interpreter->outputs(), name)];
 }
@@ -601,12 +666,23 @@ DS_CreateModel(const char* aModelPath,
     return DS_ERR_FAIL_CREATE_SESS;
   }
 
+  int graph_version = model->graph_def.version();
+  if (graph_version < DS_GRAPH_VERSION) {
+    std::cerr << "Specified model file version (" << graph_version << ") is "
+              << "incompatible with minimum version supported by this client ("
+              << DS_GRAPH_VERSION << "). See "
+              << "https://github.com/mozilla/DeepSpeech/#model-compatibility "
+              << "for more information" << std::endl;
+    return DS_ERR_MODEL_INCOMPATIBLE;
+  }
+
   for (int i = 0; i < model->graph_def.node_size(); ++i) {
     NodeDef node = model->graph_def.node(i);
     if (node.name() == "input_node") {
       const auto& shape = node.attr().at("shape").shape();
       model->n_steps = shape.dim(1).size();
       model->n_context = (shape.dim(2).size()-1)/2;
+      model->n_features = shape.dim(3).size();
       model->mfcc_feats_per_timestep = shape.dim(2).size() * shape.dim(3).size();
     } else if (node.name() == "logits_shape") {
       Tensor logits_shape = Tensor(DT_INT32, TensorShape({3}));
@@ -627,12 +703,10 @@ DS_CreateModel(const char* aModelPath,
     }
   }
 
-  if (model->n_context == -1) {
-    std::cerr << "Error: Could not infer context window size from model file. "
-              << "Make sure input_node is a 3D tensor with the last dimension "
-              << "of size MFCC_FEATURES * ((2 * context window) + 1). If you "
-              << "changed the number of features in the input, adjust the "
-              << "MFCC_FEATURES constant in " __FILE__
+  if (model->n_context == -1 || model->n_features == -1) {
+    std::cerr << "Error: Could not infer input shape from model file. "
+              << "Make sure input_node is a 4D tensor with shape "
+              << "[batch_size=1, time, window_size, n_features]."
               << std::endl;
     return DS_ERR_INVALID_SHAPE;
   }
@@ -640,8 +714,6 @@ DS_CreateModel(const char* aModelPath,
   *retval = model.release();
   return DS_ERR_OK;
 #else // USE_TFLITE
-  TfLiteStatus status;
-
   model->fbmodel = tflite::FlatBufferModel::BuildFromFile(aModelPath);
   if (!model->fbmodel) {
     std::cerr << "Error at reading model file " << aModelPath << std::endl;
@@ -663,14 +735,17 @@ DS_CreateModel(const char* aModelPath,
   model->input_node_idx       = tflite_get_input_tensor_by_name(model.get(), "input_node");
   model->previous_state_c_idx = tflite_get_input_tensor_by_name(model.get(), "previous_state_c");
   model->previous_state_h_idx = tflite_get_input_tensor_by_name(model.get(), "previous_state_h");
+  model->input_samples_idx    = tflite_get_input_tensor_by_name(model.get(), "input_samples");
   model->logits_idx           = tflite_get_output_tensor_by_name(model.get(), "logits");
   model->new_state_c_idx      = tflite_get_output_tensor_by_name(model.get(), "new_state_c");
   model->new_state_h_idx      = tflite_get_output_tensor_by_name(model.get(), "new_state_h");
+  model->mfccs_idx            = tflite_get_output_tensor_by_name(model.get(), "mfccs");
 
   TfLiteIntArray* dims_input_node = model->interpreter->tensor(model->input_node_idx)->dims;
 
   model->n_steps = dims_input_node->data[1];
   model->n_context = (dims_input_node->data[2] - 1 ) / 2;
+  model->n_features = dims_input_node->data[3];
   model->mfcc_feats_per_timestep = dims_input_node->data[2] * dims_input_node->data[3];
 
   TfLiteIntArray* dims_logits = model->interpreter->tensor(model->logits_idx)->dims;
@@ -727,43 +802,6 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
   }
 }
 
-char*
-DS_SpeechToText(ModelState* aCtx,
-                const short* aBuffer,
-                unsigned int aBufferSize,
-                unsigned int aSampleRate)
-{
-  StreamingState* ctx = setupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
-  return DS_FinishStream(ctx);
-}
-
-Metadata*
-DS_SpeechToTextWithMetadata(ModelState* aCtx,
-                            const short* aBuffer,
-                            unsigned int aBufferSize,
-                            unsigned int aSampleRate)
-{
-  StreamingState* ctx = setupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
-  return DS_FinishStreamWithMetadata(ctx);
-}
-
-StreamingState* 
-setupStreamAndFeedAudioContent(ModelState* aCtx,
-                                  const short* aBuffer,
-                                  unsigned int aBufferSize,
-                                  unsigned int aSampleRate)
-{
-  StreamingState* ctx;
-  int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
-  if (status != DS_ERR_OK) {
-    return nullptr;
-  }
-      
-  DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
-
-  return ctx;
-}
-
 int
 DS_SetupStream(ModelState* aCtx,
                unsigned int aPreAllocFrames,
@@ -796,9 +834,8 @@ DS_SetupStream(ModelState* aCtx,
   ctx->accumulated_logits.reserve(aPreAllocFrames * BATCH_SIZE * num_classes);
 
   ctx->audio_buffer.reserve(AUDIO_WIN_LEN_SAMPLES);
-  ctx->last_sample = 0;
   ctx->mfcc_buffer.reserve(aCtx->mfcc_feats_per_timestep);
-  ctx->mfcc_buffer.resize(MFCC_FEATURES*aCtx->n_context, 0.f);
+  ctx->mfcc_buffer.resize(aCtx->n_features*aCtx->n_context, 0.f);
   ctx->batch_buffer.reserve(aCtx->n_steps * aCtx->mfcc_feats_per_timestep);
 
   ctx->model = aCtx;
@@ -837,6 +874,41 @@ DS_FinishStreamWithMetadata(StreamingState* aSctx)
   return metadata;
 }
 
+StreamingState*
+SetupStreamAndFeedAudioContent(ModelState* aCtx,
+                               const short* aBuffer,
+                               unsigned int aBufferSize,
+                               unsigned int aSampleRate)
+{
+  StreamingState* ctx;
+  int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
+  if (status != DS_ERR_OK) {
+    return nullptr;
+  }
+  DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
+  return ctx;
+}
+
+char*
+DS_SpeechToText(ModelState* aCtx,
+                const short* aBuffer,
+                unsigned int aBufferSize,
+                unsigned int aSampleRate)
+{
+  StreamingState* ctx = SetupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  return DS_FinishStream(ctx);
+}
+
+Metadata*
+DS_SpeechToTextWithMetadata(ModelState* aCtx,
+                            const short* aBuffer,
+                            unsigned int aBufferSize,
+                            unsigned int aSampleRate)
+{
+  StreamingState* ctx = SetupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  return DS_FinishStreamWithMetadata(ctx);
+}
+
 void
 DS_DiscardStream(StreamingState* aSctx)
 {
@@ -844,76 +916,8 @@ DS_DiscardStream(StreamingState* aSctx)
 }
 
 void
-DS_AudioToInputVector(const short* aBuffer,
-                      unsigned int aBufferSize,
-                      unsigned int aSampleRate,
-                      unsigned int aNCep,
-                      unsigned int aNContext,
-                      float** aMfcc,
-                      int* aNFrames,
-                      int* aFrameLen)
+DS_FreeMetadata(Metadata* m)
 {
-  const int contextSize = aNCep * aNContext;
-  const int frameSize = aNCep + (2 * aNCep * aNContext);
-
-  // Compute MFCC features
-  float* mfcc;
-  int n_frames = csf_mfcc(aBuffer, aBufferSize, aSampleRate,
-                          AUDIO_WIN_LEN, AUDIO_WIN_STEP, aNCep, N_FILTERS, N_FFT,
-                          LOWFREQ, aSampleRate/2, PREEMPHASIS_COEFF, CEP_LIFTER,
-                          1, NULL, &mfcc);
-
-  // Take every other frame (BiRNN stride of 2) and add past/future context
-  int ds_input_length = (n_frames + 1) / 2;
-  // TODO: Use MFCC of silence instead of zero
-  float* ds_input = (float*)calloc(ds_input_length * frameSize, sizeof(float));
-  for (int i = 0, idx = 0, mfcc_idx = 0; i < ds_input_length;
-       i++, idx += frameSize, mfcc_idx += aNCep * 2) {
-    // Past context
-    for (int j = aNContext; j > 0; j--) {
-      int frame_index = (i - j) * 2;
-      if (frame_index < 0) { continue; }
-      int mfcc_base = frame_index * aNCep;
-      int base = (aNContext - j) * aNCep;
-      for (int k = 0; k < aNCep; k++) {
-        ds_input[idx + base + k] = mfcc[mfcc_base + k];
-      }
-    }
-
-    // Present context
-    for (int j = 0; j < aNCep; j++) {
-      ds_input[idx + j + contextSize] = mfcc[mfcc_idx + j];
-    }
-
-    // Future context
-    for (int j = 1; j <= aNContext; j++) {
-      int frame_index = (i + j) * 2;
-      if (frame_index >= n_frames) { break; }
-      int mfcc_base = frame_index * aNCep;
-      int base = contextSize + aNCep + ((j - 1) * aNCep);
-      for (int k = 0; k < aNCep; k++) {
-        ds_input[idx + base + k] = mfcc[mfcc_base + k];
-      }
-    }
-  }
-
-  // Free mfcc array
-  free(mfcc);
-
-  if (aMfcc) {
-    *aMfcc = ds_input;
-  }
-  if (aNFrames) {
-    *aNFrames = ds_input_length;
-  }
-  if (aFrameLen) {
-    *aFrameLen = frameSize;
-  }
-}
-
-void 
-DS_FreeMetadata(Metadata* m) 
-{  
   if (m) {
     delete(m->items);
     delete(m);

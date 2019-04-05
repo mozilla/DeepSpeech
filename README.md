@@ -33,10 +33,11 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
 - [Getting the pre-trained model](#getting-the-pre-trained-model)
-- [CUDA dependency](#cuda-dependency)
 - [Using the model](#using-the-model)
+  - [CUDA dependency](#cuda-dependency)
+  - [Model compatibility](#model-compatibility)
   - [Using the Python package](#using-the-python-package)
-  - [Using the command line client](#using-the-command-line-client)
+  - [Using the command-line client](#using-the-command-line-client)
   - [Using the Node.JS package](#using-the-nodejs-package)
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
@@ -48,6 +49,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Checkpointing](#checkpointing)
   - [Exporting a model for inference](#exporting-a-model-for-inference)
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
+  - [Making a mmap-able model for inference](#making-a-mmap-able-model-for-inference)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
 - [Contact/Getting Help](#contactgetting-help)
 
@@ -87,6 +89,10 @@ There are three ways to use DeepSpeech inference:
 ### CUDA dependency
 
 The GPU capable builds (Python, NodeJS, C++ etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow r1.12 it depends on CUDA 9.0 and CuDNN v7.2.
+
+### Model compatibility
+
+DeepSpeech models are versioned to keep you from trying to use an incompatible graph with a newer client after a breaking change was made to the code. If you get an error saying your model file version is too old for the client, you should either upgrade to a newer model release, re-export your model from the checkpoint using a newer version of the code, or downgrade your client if you need to use the old model and can't re-export it.
 
 ### Using the Python package
 
@@ -323,7 +329,7 @@ Refer to the corresponding [README.md](native_client/README.md) for information 
 
 ### Exporting a model for TFLite
 
-If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the `--export_tflite` flag. If you already have a trained model, you can re-export it for TFLite by running `DeepSpeech.py` again and specifying the same `checkpoint_dir` that you used for training, as well as passing `--notrain --notest --export_tflite --export_dir /model/export/destination`.
+If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the `--nouse_seq_length --export_tflite` flags. If you already have a trained model, you can re-export it for TFLite by running `DeepSpeech.py` again and specifying the same `checkpoint_dir` that you used for training, as well as passing `--nouse_seq_length --export_tflite --export_dir /model/export/destination`.
 
 ### Making a mmap-able model for inference
 

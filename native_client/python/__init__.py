@@ -1,7 +1,6 @@
 import deepspeech
 
 # rename for backwards compatibility
-from deepspeech.impl import AudioToInputVector as audioToInputVector
 from deepspeech.impl import PrintVersions as printVersions
 
 class Model(object):
