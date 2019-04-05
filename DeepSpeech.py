@@ -486,7 +486,7 @@ def train():
         dev_losses = []
         coord = tf.train.Coordinator()
         with coord.stop_on_exception():
-            for epoch in range(FLAGS.epoch):
+            for epoch in range(FLAGS.epochs):
                 if coord.should_stop():
                     break
 

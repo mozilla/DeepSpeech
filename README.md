@@ -354,10 +354,10 @@ For example, if you want to fine tune the entire graph using your own data in `m
 
 ```bash
 mkdir fine_tuning_checkpoints
-python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder --epoch 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
+python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder --epochs 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
 ```
 
-Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models. Note as well the use of a negative epoch count -3 (meaning 3 more epochs) since the checkpoint you're loading from was already trained for several epochs.
+Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
 
 ## Contact/Getting Help
 
