@@ -4,24 +4,27 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import sys
-
-log_level_index = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[log_level_index] if log_level_index > 0 and log_level_index < len(sys.argv) else '3'
-
 import time
-import evaluate
+import shutil
+
+LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
+
+#pylint: disable=wrong-import-position,ungrouped-imports
 import numpy as np
 import progressbar
-import shutil
 import tensorflow as tf
 
-from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph
+
+from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
+from evaluate import evaluate
 from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug
+#pylint: enable=wrong-import-position,ungrouped-imports
 
 
 # Graph Creation
@@ -49,7 +52,7 @@ def create_overlapping_windows(batch_x):
     # convolution returns patches of the input tensor as is, and we can create
     # overlapping windows over the MFCCs.
     eye_filter = tf.constant(np.eye(window_width * num_channels)
-                               .reshape(window_width, num_channels, window_width * num_channels), tf.float32)
+                               .reshape(window_width, num_channels, window_width * num_channels), tf.float32) # pylint: disable=bad-continuation
 
     # Create overlapping windows
     batch_x = tf.nn.conv1d(batch_x, eye_filter, stride=1, padding='SAME')
@@ -172,7 +175,7 @@ def create_model(batch_x, seq_length, dropout, reuse=False, previous_state=None,
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_mean_edit_distance_and_loss(iterator, tower, dropout, reuse):
+def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     r'''
     This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
     Next to total and average loss it returns the mean edit distance,
@@ -246,10 +249,10 @@ def get_tower_results(iterator, optimizer, dropout_rates):
             device = Config.available_devices[i]
             with tf.device(device):
                 # Create a scope for all operations of tower i
-                with tf.name_scope('tower_%d' % i) as scope:
+                with tf.name_scope('tower_%d' % i):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
-                    avg_loss = calculate_mean_edit_distance_and_loss(iterator, i, dropout_rates, reuse=i>0)
+                    avg_loss = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=i > 0)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
@@ -360,8 +363,6 @@ def try_loading(session, saver, checkpoint_filename, caption):
                   ' between train runs using the same checkpoint dir? Try moving'
                   ' or removing the contents of {0}.'.format(checkpoint_path))
         sys.exit(1)
-    except:
-        return False
 
 
 def train():
@@ -465,7 +466,7 @@ def train():
             session.run(init_op)
 
             # Batch loop
-            for step_index in pbar(range(num_steps)):
+            for _ in pbar(range(num_steps)):
                 if coord.should_stop():
                     break
 
@@ -527,7 +528,7 @@ def train():
 
 
 def test():
-    evaluate.evaluate(FLAGS.test_files.split(','), create_model)
+    evaluate(FLAGS.test_files.split(','), create_model)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
@@ -550,12 +551,12 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         # no state management since n_step is expected to be dynamic too (see below)
         previous_state = previous_state_c = previous_state_h = None
     else:
-        if not tflite:
-            previous_state_c = variable_on_cpu('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
-            previous_state_h = variable_on_cpu('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
-        else:
+        if tflite:
             previous_state_c = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_c')
             previous_state_h = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_h')
+        else:
+            previous_state_c = variable_on_cpu('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
+            previous_state_h = variable_on_cpu('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
 
         previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
@@ -600,28 +601,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         )
 
     new_state_c, new_state_h = layers['rnn_output_state']
-    if not tflite:
-        zero_state = tf.zeros([batch_size, Config.n_cell_dim], tf.float32)
-        initialize_c = tf.assign(previous_state_c, zero_state)
-        initialize_h = tf.assign(previous_state_h, zero_state)
-        initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
-        with tf.control_dependencies([tf.assign(previous_state_c, new_state_c), tf.assign(previous_state_h, new_state_h)]):
-            logits = tf.identity(logits, name='logits')
-
-        return (
-            {
-                'input': input_tensor,
-                'input_lengths': seq_length,
-                'input_samples': input_samples,
-            },
-            {
-                'outputs': logits,
-                'initialize_state': initialize_state,
-                'mfccs': mfccs,
-            },
-            layers
-        )
-    else:
+    if tflite:
         logits = tf.identity(logits, name='logits')
         new_state_c = tf.identity(new_state_c, name='new_state_c')
         new_state_h = tf.identity(new_state_h, name='new_state_h')
@@ -636,17 +616,32 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         if FLAGS.use_seq_length:
             inputs.update({'input_lengths': seq_length})
 
-        return (
-            inputs,
-            {
-                'outputs': logits,
-                'new_state_c': new_state_c,
-                'new_state_h': new_state_h,
-                'mfccs': mfccs,
-            },
-            layers
-        )
+        outputs = {
+            'outputs': logits,
+            'new_state_c': new_state_c,
+            'new_state_h': new_state_h,
+            'mfccs': mfccs,
+        }
+    else:
+        zero_state = tf.zeros([batch_size, Config.n_cell_dim], tf.float32)
+        initialize_c = tf.assign(previous_state_c, zero_state)
+        initialize_h = tf.assign(previous_state_h, zero_state)
+        initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
+        with tf.control_dependencies([tf.assign(previous_state_c, new_state_c), tf.assign(previous_state_h, new_state_h)]):
+            logits = tf.identity(logits, name='logits')
 
+        inputs = {
+            'input': input_tensor,
+            'input_lengths': seq_length,
+            'input_samples': input_samples,
+        }
+        outputs = {
+            'outputs': logits,
+            'initialize_state': initialize_state,
+            'mfccs': mfccs,
+        }
+
+    return inputs, outputs, layers
 
 def file_relative_read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -660,11 +655,9 @@ def export():
     from tensorflow.python.framework.ops import Tensor, Operation
 
     inputs, outputs, _ = create_inference_graph(batch_size=FLAGS.export_batch_size, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
-    input_names = ",".join(tensor.op.name for tensor in inputs.values())
-    output_names_tensors = [ tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
-    output_names_ops = [ tensor.name for tensor in outputs.values() if isinstance(tensor, Operation)]
+    output_names_tensors = [tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
+    output_names_ops = [op.name for op in outputs.values() if isinstance(op, Operation)]
     output_names = ",".join(output_names_tensors + output_names_ops)
-    input_shapes = ":".join(",".join(map(str, tensor.shape)) for tensor in inputs.values())
 
     if not FLAGS.export_tflite:
         mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
@@ -808,6 +801,6 @@ def main(_):
         tf.reset_default_graph()
         do_single_file_inference(FLAGS.one_shot_infer)
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     create_flags()
     tf.app.run(main)

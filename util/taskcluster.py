@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import, division
 
+import argparse
 import platform
 import subprocess
 import sys
 import os
 import errno
 import stat
+
 import six.moves.urllib as urllib
 
 from pkg_resources import parse_version
@@ -18,16 +20,14 @@ DEFAULT_SCHEMES = {
     'tensorflow': 'https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s'
 }
 
-TASKCLUSTER_SCHEME = os.getenv('TASKCLUSTER_SCHEME', DEFAULT_SCHEMES['deepspeech'])
-
-def get_tc_url(arch_string, artifact_name='native_client.tar.xz', branch_name='master'):
+def get_tc_url(tc_scheme, arch_string, artifact_name='native_client.tar.xz', branch_name='master'):
     assert arch_string is not None
     assert artifact_name is not None
-    assert len(artifact_name) > 0
+    assert artifact_name
     assert branch_name is not None
-    assert len(branch_name) > 0
+    assert branch_name
 
-    return TASKCLUSTER_SCHEME % { 'arch_string': arch_string, 'artifact_name': artifact_name, 'branch_name': branch_name}
+    return tc_scheme % {'arch_string': arch_string, 'artifact_name': artifact_name, 'branch_name': branch_name}
 
 def maybe_download_tc(target_dir, tc_url, progress=True):
     def report_progress(count, block_size, total_size):
@@ -66,9 +66,7 @@ def maybe_download_tc_bin(**kwargs):
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-if __name__ == '__main__':
-    import argparse
-
+def main():
     parser = argparse.ArgumentParser(description='Tooling to ease downloading of components from TaskCluster.')
     parser.add_argument('--target', required=False,
                         help='Where to put the native client binary files')
@@ -89,6 +87,8 @@ if __name__ == '__main__':
     if not args.target and not args.decoder:
         print('Pass either --target or --decoder.')
         exit(1)
+
+    tc_scheme = os.getenv('TASKCLUSTER_SCHEME', DEFAULT_SCHEMES['deepspeech'])
 
     is_arm = 'arm' in platform.machine()
     is_mac = 'darwin' in sys.platform
@@ -137,17 +137,20 @@ if __name__ == '__main__':
 
         ctc_arch = args.arch + '-ctc'
 
-        print(get_tc_url(ctc_arch, artifact, args.branch))
+        print(get_tc_url(tc_scheme, ctc_arch, artifact, args.branch))
         exit(0)
 
     if args.source is not None:
         if args.source in DEFAULT_SCHEMES:
-            TASKCLUSTER_SCHEME = DEFAULT_SCHEMES[args.source]
+            tc_scheme = DEFAULT_SCHEMES[args.source]
         else:
             print('No such scheme: %s' % args.source)
             exit(1)
 
-    maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(args.arch, args.artifact, args.branch))
+    maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(tc_scheme, args.arch, args.artifact, args.branch))
 
     if '.tar.' in args.artifact:
         subprocess.check_call(['tar', 'xvf', os.path.join(args.target, args.artifact), '-C', args.target])
+
+if __name__ == '__main__':
+    main()

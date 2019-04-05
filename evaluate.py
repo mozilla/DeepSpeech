@@ -4,13 +4,16 @@ from __future__ import absolute_import, division, print_function
 
 import itertools
 import json
+
+from multiprocessing import cpu_count
+
 import numpy as np
 import progressbar
 import tensorflow as tf
 
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
-from multiprocessing import cpu_count
 from six.moves import zip, range
+
 from util.config import Config, initialize_globals
 from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
@@ -27,13 +30,12 @@ def sparse_tensor_value_to_texts(value, alphabet):
     return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape), alphabet)
 
 
-def sparse_tuple_to_texts(tuple, alphabet):
-    indices = tuple[0]
-    values = tuple[1]
-    results = [''] * tuple[2][0]
-    for i in range(len(indices)):
-        index = indices[i][0]
-        results[index] += alphabet.string_from_label(values[i])
+def sparse_tuple_to_texts(sp_tuple, alphabet):
+    indices = sp_tuple[0]
+    values = sp_tuple[1]
+    results = [''] * sp_tuple[2][0]
+    for i, index in enumerate(indices):
+        results[index[0]] += alphabet.string_from_label(values[i])
     # List of strings
     return results
 
@@ -86,7 +88,7 @@ def evaluate(test_csvs, create_model):
                                       widget=progressbar.AdaptiveETA)
 
         # First pass, compute losses and transposed logits for decoding
-        for batch in bar(range(test_batches)):
+        for _ in bar(range(test_batches)):
             logits, loss_, lengths, transcripts = session.run([transposed, loss, batch_x_len, batch_y])
 
             logitses.append(logits)
@@ -99,7 +101,7 @@ def evaluate(test_csvs, create_model):
     # Get number of accessible CPU cores for this process
     try:
         num_processes = cpu_count()
-    except:
+    except NotImplementedError:
         num_processes = 1
 
     print('Decoding predictions...')
@@ -141,12 +143,12 @@ def main(_):
                   'the --test_files flag.')
         exit(1)
 
-    from DeepSpeech import create_model
+    from DeepSpeech import create_model # pylint: disable=cyclic-import
     samples = evaluate(FLAGS.test_files.split(','), create_model)
 
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
-        json.dump(samples, open(FLAGS.test_output_file, 'w'), default=lambda x: float(x))
+        json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
 
 
 if __name__ == '__main__':
