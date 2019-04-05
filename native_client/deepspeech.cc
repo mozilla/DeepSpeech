@@ -39,25 +39,9 @@
 //TODO: infer batch size from model/use dynamic batch size
 constexpr unsigned int BATCH_SIZE = 1;
 
-//TODO: use dynamic sample rate
-constexpr unsigned int SAMPLE_RATE = 16000;
-
-constexpr float AUDIO_WIN_LEN = 0.032f;
-constexpr float AUDIO_WIN_STEP = 0.02f;
-constexpr unsigned int AUDIO_WIN_LEN_SAMPLES = (unsigned int)(AUDIO_WIN_LEN * SAMPLE_RATE);
-constexpr unsigned int AUDIO_WIN_STEP_SAMPLES = (unsigned int)(AUDIO_WIN_STEP * SAMPLE_RATE);
-
-constexpr size_t WINDOW_SIZE = AUDIO_WIN_LEN * SAMPLE_RATE;
-
-std::array<float, WINDOW_SIZE> calc_hamming_window() {
-  std::array<float, WINDOW_SIZE> a{0};
-  for (int i = 0; i < WINDOW_SIZE; ++i) {
-    a[i] = 0.54 - 0.46 * std::cos(2*M_PI*i/(WINDOW_SIZE-1));
-  }
-  return a;
-}
-
-std::array<float, WINDOW_SIZE> hamming_window = calc_hamming_window();
+constexpr unsigned int DEFAULT_SAMPLE_RATE = 16000;
+constexpr unsigned int DEFAULT_WINDOW_LENGTH = DEFAULT_SAMPLE_RATE * 0.032;
+constexpr unsigned int DEFAULT_WINDOW_STEP = DEFAULT_SAMPLE_RATE * 0.02;
 
 #ifndef USE_TFLITE
   using namespace tensorflow;
@@ -134,6 +118,9 @@ struct ModelState {
   unsigned int n_context;
   unsigned int n_features;
   unsigned int mfcc_feats_per_timestep;
+  unsigned int sample_rate;
+  unsigned int audio_win_len;
+  unsigned int audio_win_step;
 
 #ifdef USE_TFLITE
   size_t previous_state_size;
@@ -220,6 +207,9 @@ ModelState::ModelState()
   , n_context(-1)
   , n_features(-1)
   , mfcc_feats_per_timestep(-1)
+  , sample_rate(DEFAULT_SAMPLE_RATE)
+  , audio_win_len(DEFAULT_WINDOW_LENGTH)
+  , audio_win_step(DEFAULT_WINDOW_STEP)
 #ifdef USE_TFLITE
   , previous_state_size(0)
   , previous_state_c_(nullptr)
@@ -258,7 +248,7 @@ StreamingState::feedAudioContent(const short* buffer,
 {
   // Consume all the data that was passed in, processing full buffers if needed
   while (buffer_size > 0) {
-    while (buffer_size > 0 && audio_buffer.size() < AUDIO_WIN_LEN_SAMPLES) {
+    while (buffer_size > 0 && audio_buffer.size() < model->audio_win_len) {
       // Convert i16 sample into f32
       float multiplier = 1.0f / (1 << 15);
       audio_buffer.push_back((float)(*buffer) * multiplier);
@@ -267,10 +257,10 @@ StreamingState::feedAudioContent(const short* buffer,
     }
 
     // If the buffer is full, process and shift it
-    if (audio_buffer.size() == AUDIO_WIN_LEN_SAMPLES) {
+    if (audio_buffer.size() == model->audio_win_len) {
       processAudioWindow(audio_buffer);
       // Shift data by one step
-      shift_buffer_left(audio_buffer, AUDIO_WIN_STEP_SAMPLES);
+      shift_buffer_left(audio_buffer, model->audio_win_step);
     }
 
     // Repeat until buffer empty
@@ -461,13 +451,13 @@ void
 ModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc_output)
 {
 #ifndef USE_TFLITE
-  Tensor input(DT_FLOAT, TensorShape({AUDIO_WIN_LEN_SAMPLES}));
+  Tensor input(DT_FLOAT, TensorShape({audio_win_len}));
   auto input_mapped = input.flat<float>();
   int i;
   for (i = 0; i < samples.size(); ++i) {
     input_mapped(i) = samples[i];
   }
-  for (; i < AUDIO_WIN_LEN_SAMPLES; ++i) {
+  for (; i < audio_win_len; ++i) {
     input_mapped(i) = 0.f;
   }
 
@@ -556,8 +546,8 @@ ModelState::decode_metadata(const vector<float>& logits)
   for (int i = 0; i < out[0].tokens.size(); ++i) {
     metadata->items[i].character = (char*)alphabet->StringFromLabel(out[0].tokens[i]).c_str(); 
     metadata->items[i].timestep = out[0].timesteps[i]; 
-    metadata->items[i].start_time = static_cast<float>(out[0].timesteps[i] * AUDIO_WIN_STEP);
-    
+    metadata->items[i].start_time = out[0].timesteps[i] * ((float)audio_win_step / sample_rate);
+
     if (metadata->items[i].start_time < 0) {
       metadata->items[i].start_time = 0;
     }
@@ -700,6 +690,13 @@ DS_CreateModel(const char* aModelPath,
                   << std::endl;
         return DS_ERR_INVALID_ALPHABET;
       }
+    } else if (node.name() == "model_metadata") {
+      int sample_rate = node.attr().at("sample_rate").i();
+      model->sample_rate = sample_rate;
+      int win_len_ms = node.attr().at("feature_win_len").i();
+      int win_step_ms = node.attr().at("feature_win_step").i();
+      model->audio_win_len = sample_rate * (win_len_ms / 1000.0);
+      model->audio_win_step = sample_rate * (win_step_ms / 1000.0);
     }
   }
 
@@ -833,7 +830,7 @@ DS_SetupStream(ModelState* aCtx,
 
   ctx->accumulated_logits.reserve(aPreAllocFrames * BATCH_SIZE * num_classes);
 
-  ctx->audio_buffer.reserve(AUDIO_WIN_LEN_SAMPLES);
+  ctx->audio_buffer.reserve(aCtx->audio_win_len);
   ctx->mfcc_buffer.reserve(aCtx->mfcc_feats_per_timestep);
   ctx->mfcc_buffer.resize(aCtx->n_features*aCtx->n_context, 0.f);
   ctx->batch_buffer.reserve(aCtx->n_steps * aCtx->mfcc_feats_per_timestep);

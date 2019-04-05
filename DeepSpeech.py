@@ -534,9 +534,9 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     batch_size = batch_size if batch_size > 0 else None
 
     # Create feature computation graph
-    input_samples = tf.placeholder(tf.float32, [512], 'input_samples')
+    input_samples = tf.placeholder(tf.float32, [Config.audio_window_samples], 'input_samples')
     samples = tf.expand_dims(input_samples, -1)
-    mfccs, _ = samples_to_mfccs(samples, 16000)
+    mfccs, _ = samples_to_mfccs(samples, FLAGS.audio_sample_rate)
     mfccs = tf.identity(mfccs, name='mfccs')
 
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
@@ -710,6 +710,17 @@ def export():
         if not FLAGS.export_tflite:
             frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='previous_state_c,previous_state_h')
             frozen_graph.version = int(file_relative_read('GRAPH_VERSION').strip())
+
+            # Add a no-op node to the graph with metadata information to be loaded by the native client
+            metadata = frozen_graph.node.add()
+            metadata.name = 'model_metadata'
+            metadata.op = 'NoOp'
+            metadata.attr['sample_rate'].i = FLAGS.audio_sample_rate
+            metadata.attr['feature_win_len'].i = FLAGS.feature_win_len
+            metadata.attr['feature_win_step'].i = FLAGS.feature_win_step
+            if FLAGS.export_model_language:
+                metadata.attr['language'].s = FLAGS.export_model_language.encode('ascii')
+
             with open(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())
         else:
