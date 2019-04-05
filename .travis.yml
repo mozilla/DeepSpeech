@@ -1,0 +1,11 @@
+install:
+# Install the latest cardboardlinter
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+    pip install --upgrade cardboardlint;
+  fi
+
+script:
+# Run the cardboardlinter, in case of pull requests
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+    cardboardlinter --refspec $TRAVIS_BRANCH -n auto;
+  fi
