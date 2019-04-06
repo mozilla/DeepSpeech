@@ -718,8 +718,8 @@ def export():
             metadata.attr['sample_rate'].i = FLAGS.audio_sample_rate
             metadata.attr['feature_win_len'].i = FLAGS.feature_win_len
             metadata.attr['feature_win_step'].i = FLAGS.feature_win_step
-            if FLAGS.export_model_language:
-                metadata.attr['language'].s = FLAGS.export_model_language.encode('ascii')
+            if FLAGS.export_language:
+                metadata.attr['language'].s = FLAGS.export_language.encode('ascii')
 
             with open(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())
