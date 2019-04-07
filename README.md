@@ -231,6 +231,7 @@ In addition to the bindings above, third party developers have started to provid
 Install the required dependencies using `pip3`:
 
 ```bash
+sudo apt-get install build-essential libssl-dev libffi-dev python-dev
 cd DeepSpeech
 pip3 install -r requirements.txt
 ```
