@@ -478,9 +478,6 @@ def train():
 
             # Batch loop
             while True:
-                if coord.should_stop():
-                    break
-
                 try:
                     _, current_step, batch_loss, step_summary = \
                         session.run([train_op, global_step, loss, step_summaries_op],
@@ -508,12 +505,8 @@ def train():
         log_info('STARTING Optimization')
         best_dev_loss = float('inf')
         dev_losses = []
-        coord = tf.train.Coordinator()
-        with coord.stop_on_exception():
+        try:
             for epoch in range(FLAGS.epochs):
-                if coord.should_stop():
-                    break
-
                 # Training
                 train_loss = run_set('train', train_init_op)
                 checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
@@ -542,7 +535,8 @@ def train():
                                      ' %f with standard deviation: %f and mean: %f' %
                                      (FLAGS.es_steps, dev_losses[-1], std_loss, mean_loss))
                             break
-            coord.request_stop()
+        except KeyboardInterrupt:
+            pass
     log_debug('Session closed.')
 
 
