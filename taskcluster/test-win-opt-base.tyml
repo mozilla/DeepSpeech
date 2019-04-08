@@ -74,6 +74,7 @@ then:
           pacman --noconfirm -S tar vim &&
           ${extraSystemSetup} &&
           /bin/bash ${build.args.tests_cmdline} ;
+          export TASKCLUSTER_TASK_EXIT_CODE=$? &&
           cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE"
 
   metadata:
