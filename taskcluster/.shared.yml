@@ -50,7 +50,6 @@ nodejs:
     prep_10: 'nvm install 10.12.0 && nvm use 10.12.0'
     prep_11: 'nvm install 11.0.0 && nvm use 11.0.0'
   win:
-    sox: '/usr/bin/wget.exe https://sourceforge.net/projects/sox/files/sox/14.4.2/sox-14.4.2-win32.zip/download -O sox-14.4.2-win32.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_TASK_DIR/bin/ -tzip -aoa sox-14.4.2-win32.zip && rm sox-*zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/sox-14.4.2/:$PATH'
     prep_4: '/usr/bin/wget.exe https://nodejs.org/dist/v4.9.1/node-v4.9.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v4.9.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v4.9.1-win-x64/:$PATH'
     prep_6: '/usr/bin/wget.exe https://nodejs.org/dist/v6.14.4/node-v6.14.4-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v6.14.4-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v6.14.4-win-x64/:$PATH'
     prep_7: '/usr/bin/wget.exe https://nodejs.org/dist/v7.10.1/node-v7.10.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v7.10.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v7.10.1-win-x64/:$PATH'
@@ -91,6 +90,7 @@ system:
     linux: '/home/build-user'
     osx: '/Users/build-user'
     win: '/c/builds/tc-workdir'
+  sox_win: '/usr/bin/wget.exe https://sourceforge.net/projects/sox/files/sox/14.4.2/sox-14.4.2-win32.zip/download -O sox-14.4.2-win32.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_TASK_DIR/bin/ -tzip -aoa sox-14.4.2-win32.zip && rm sox-*zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/sox-14.4.2/:$PATH'
 notifications:
   irc: '#machinelearning'
 aptEc2Mirrors: 'echo "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main" > /etc/apt/sources.list.d/trusty-updates.list && sed -ri -e "s|archive.ubuntu.com|${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com|g" -e "s|security.ubuntu.com|${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com|g" /etc/apt/sources.list && apt-get -qq update && apt-get -qq -y upgrade'
