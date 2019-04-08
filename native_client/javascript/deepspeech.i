@@ -28,6 +28,8 @@ using namespace node;
 
 // make sure the string returned by SpeechToText is freed
 %typemap(newfree) char* "DS_FreeString($1);";
+%typemap(newfree) Metadata* "DS_FreeMetadata($1);";
+
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
@@ -41,7 +43,7 @@ using namespace node;
 %typemap(argout) ModelState **retval {
   $result = SWIGV8_ARRAY_NEW();
   SWIGV8_AppendOutput($result, SWIG_From_int(result));
-  // owned by SWIG, ModelState destructor gets called when the Python object is finalized (see below)
+  // owned by SWIG, ModelState destructor gets called when the JavaScript object is finalized (see below)
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, SWIG_POINTER_OWN));
 }
 
@@ -60,7 +62,7 @@ using namespace node;
 }
 
 // extend ModelState with a destructor so that DestroyModel will be called
-// when the Python object gets finalized.
+// when the JavaScript object gets finalized.
 %nodefaultctor ModelState;
 %nodefaultdtor ModelState;
 
@@ -69,6 +71,31 @@ struct ModelState {};
 %extend ModelState {
   ~ModelState() {
     DS_DestroyModel($self);
+  }
+}
+
+%nodefaultdtor Metadata;
+%nodefaultctor Metadata;
+%nodefaultctor MetadataItem;
+%nodefaultdtor MetadataItem;
+
+%extend Metadata {
+  v8::Handle<v8::Value> items;
+  v8::Handle<v8::Value> items_get() {
+    v8::Handle<v8::Value> jsresult = SWIGV8_ARRAY_NEW();
+    for (int i = 0; i < self->num_items; ++i) {
+      jsresult = SWIGV8_AppendOutput(jsresult, SWIG_NewPointerObj(SWIG_as_voidptr(&self->items[i]), SWIGTYPE_p_MetadataItem, SWIG_POINTER_OWN));
+    }
+  fail:
+    return jsresult;
+  }
+  v8::Handle<v8::Value> items_set(const  v8::Handle<v8::Value> arg) {
+  fail:
+    v8::Handle<v8::Value> result = SWIGV8_ARRAY_NEW();
+    return result;
+  }
+  ~Metadata() {
+    DS_FreeMetadata($self);
   }
 }
 
