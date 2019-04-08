@@ -62,6 +62,7 @@ then:
           export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
           export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
           export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
+          export TASKCLUSTER_NODE_DIR=\"$(cygpath -w $TASKCLUSTER_TASK_DIR/bin)\" &&
           export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
           export PIP_DEFAULT_TIMEOUT=60 &&
           (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
