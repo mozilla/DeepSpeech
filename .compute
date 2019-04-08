@@ -8,7 +8,9 @@ swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 cv2de="${data}/mozilla/CommonVoice/v2.0/de/clips"
 
-wikide="${data}/wikipedia/de/wiki.txt"
+TEXT="${USER_DIR}/"
+mkdir ${USER_DIR}/utf8
+LANGUAGE=en2bytes
 
 srcdir=`pwd`/../src
 
@@ -48,39 +50,43 @@ pushd /tmp/tf
   popd # tensorflow
 
   gen_trie=/tmp/tf/tensorflow/bazel-bin/native_client/generate_trie
-  cp ${gen_trie} ${USER_DIR}/generate_trie
+  cp ${gen_trie} ${USER_DIR}/utf8/generate_trie
 popd # /tmp/tf
 
 # LM stuff
 mkdir -p /tmp/lm
 pushd /tmp/lm
-  # Download and build kenlm
+# Download and build kenlm
+  echo "DOWNLOAD KENLM"
   curl -L https://kheafield.com/code/kenlm.tar.gz | tar xz
   mkdir kenlm/build
   pushd kenlm/build
+    echo "COMPILE KENLM"
     cmake ..
-    make -j16
+    make -j`nproc`
   popd
 
-  klmbin=/tmp/lm/kenlm/build/bin
-
+  echo "COPY KENLM TO GOOD PLACE"
   # Save in user folder
-  mkdir -p ${USER_DIR}/kenlm
+  klmbin=/tmp/lm/kenlm/build/bin
+  mkdir ${USER_DIR}/kenlm
   cp ${klmbin}/lmplz ${USER_DIR}/kenlm/lmplz
   cp ${klmbin}/build_binary ${USER_DIR}/kenlm/build_binary
 
+  echo "TRAIN LM WITH KENLM"
   # Generate LM binary from wikipedia german dump
-  ${klmbin}/lmplz --order 3 --skip_symbols --text ${wikide} --arpa wikide.arpa
-  ${klmbin}/build_binary -a 255 -q 8 trie wikide.arpa wikide.binary
+  ${klmbin}/lmplz --order 3 --skip_symbols --text ${TEXT} --arpa tmp.arpa
+  ${klmbin}/build_binary -a 255 -q 8 trie tmp.arpa wikide.binary
 
+  echo "COPY LM TO GOOD PLACE"
   # Save in user dir
-  mkdir -p ${USER_DIR}/wikide_lm
+  mkdir ${USER_DIR}/wikide_lm
   cp wikide.arpa ${USER_DIR}/wikide_lm/wikide.arpa
   cp wikide.binary ${USER_DIR}/wikide_lm/wikide.binary
-  echo "lmplz --order 3 --text ${wikide} --lm wikide.arpa" > ${USER_DIR}/wikide_lm/README
+  echo "lmplz --order 3 --text ${wikide} --lm ${TEXT}.arpa" > ${USER_DIR}/wikide_lm/README
   echo "build_binary -a 255 -q 8 trie wikide.arpa wikide.binary" >> ${USER_DIR}/wikide_lm/README
 
-  # Generate trie from LM and save in user dir
+  echo "GENERATE TRIE & COPY TO GOOD PLACE"
   ${gen_trie} unused_param /tmp/lm/wikide.binary /tmp/lm/wikide.trie
   cp /tmp/lm/wikide.trie ${USER_DIR}/wikide_lm/wikide.trie
 
@@ -97,10 +103,10 @@ pip install wheel
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.13.1
 
-# Build ds_ctcdecoder
+echo "COMPILE AND INSTALL CTC DECODER"
 pushd ../src/native_client/ctcdecode
   make clean
-  make NUM_PROCESSES=16
+  make NUM_PROCESSES=`nproc`
   pip install dist/*.whl
 popd
 
