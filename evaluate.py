@@ -82,8 +82,7 @@ def evaluate(test_csvs, create_model):
         ground_truths = []
 
         print('Computing acoustic model predictions...')
-        bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength,
-                                      widget=progressbar.AdaptiveETA)
+        bar = progressbar.ProgressBar(widgets=['Steps: ', progressbar.Counter(), ' | ', progressbar.Timer()])
 
         step_count = 0
 

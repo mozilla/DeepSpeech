@@ -458,8 +458,20 @@ def train():
             step_summary_writer = step_summary_writers.get(set_name)
             checkpoint_time = time.time()
 
+            class LossWidget(progressbar.widgets.FormatLabel):
+                def __init__(self):
+                    progressbar.widgets.FormatLabel.__init__(self, format='Loss: %(mean_loss)f')
+
+                def __call__(self, progress, data):
+                    data['mean_loss'] = total_loss / step_count if step_count else 0.0
+                    return progressbar.widgets.FormatLabel.__call__(self, progress, data)
+
             if FLAGS.show_progressbar:
-                pbar = progressbar.ProgressBar(max_value=progressbar.UnknownLength, redirect_stdout=True).start()
+                pbar = progressbar.ProgressBar(widgets=['Epoch {}'.format(epoch),
+                                                        ' | ', progressbar.widgets.Timer(),
+                                                        ' | Steps: ', progressbar.widgets.Counter(),
+                                                        ' | ', LossWidget()])
+                pbar.start()
 
             # Initialize iterator to the appropriate dataset
             session.run(init_op)
@@ -503,17 +515,13 @@ def train():
                     break
 
                 # Training
-                log_info('Training epoch %d...' % epoch)
                 train_loss = run_set('train', train_init_op)
-                log_info('Finished training epoch %d - loss: %f' % (epoch, train_loss))
                 checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
 
                 if FLAGS.dev_files:
                     # Validation
-                    log_info('Validating epoch %d...' % epoch)
                     dev_loss = run_set('dev', dev_init_op)
                     dev_losses.append(dev_loss)
-                    log_info('Finished validating epoch %d - loss: %f' % (epoch, dev_loss))
 
                     if dev_loss < best_dev_loss:
                         best_dev_loss = dev_loss
