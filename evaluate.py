@@ -38,7 +38,7 @@ def sparse_tuple_to_texts(tuple, alphabet):
     return results
 
 
-def evaluate(test_csvs, create_model):
+def evaluate(test_csvs, create_model, try_loading):
     scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                     FLAGS.lm_binary_path, FLAGS.lm_trie_path,
                     Config.alphabet)
@@ -63,18 +63,19 @@ def evaluate(test_csvs, create_model):
                           inputs=logits,
                           sequence_length=batch_x_len)
 
+    global_step = tf.train.create_global_step()
+
     with tf.Session(config=Config.session_config) as session:
         # Create a saver using variables from the above newly created graph
         saver = tf.train.Saver()
 
         # Restore variables from training checkpoint
-        checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
-        if not checkpoint:
+        loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
+        if not loaded:
+            loaded = try_loading(session, saver, 'checkpoint', 'most recent')
+        if not loaded:
             log_error('Checkpoint directory ({}) does not contain a valid checkpoint state.'.format(FLAGS.checkpoint_dir))
             exit(1)
-
-        checkpoint_path = checkpoint.model_checkpoint_path
-        saver.restore(session, checkpoint_path)
 
         logitses = []
         losses = []
@@ -150,8 +151,8 @@ def main(_):
                   'the --test_files flag.')
         exit(1)
 
-    from DeepSpeech import create_model
-    samples = evaluate(FLAGS.test_files.split(','), create_model)
+    from DeepSpeech import create_model, try_loading
+    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
 
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
@@ -160,6 +161,5 @@ def main(_):
 
 if __name__ == '__main__':
     create_flags()
-    tf.app.flags.DEFINE_string('hdf5_test_set', '', 'path to hdf5 file to cache test set features')
     tf.app.flags.DEFINE_string('test_output_file', '', 'path to a file to save all src/decoded/distance/loss tuples')
     tf.app.run(main)
