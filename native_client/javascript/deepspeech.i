@@ -27,7 +27,7 @@ using namespace node;
 
 
 // make sure the string returned by SpeechToText is freed
-%typemap(newfree) char* "free($1);";
+%typemap(newfree) char* "DS_FreeString($1);";
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;

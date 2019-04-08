@@ -116,8 +116,8 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
  * @param aBufferSize The number of samples in the audio signal.
  * @param aSampleRate The sample-rate of the audio signal.
  *
- * @return The STT result. The user is responsible for freeing the string.
- *         Returns NULL on error.
+ * @return The STT result. The user is responsible for freeing the string using
+ *         {@link DS_FreeString()}. Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
@@ -187,7 +187,7 @@ void DS_FeedAudioContent(StreamingState* aSctx,
  * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
  * @return The STT intermediate result. The user is responsible for freeing the
- *         string.
+ *         string using {@link DS_FreeString()}.
  */
 DEEPSPEECH_EXPORT
 char* DS_IntermediateDecode(StreamingState* aSctx);
@@ -198,7 +198,8 @@ char* DS_IntermediateDecode(StreamingState* aSctx);
  *
  * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
- * @return The STT result. The user is responsible for freeing the string.
+ * @return The STT result. The user is responsible for freeing the string using
+ *         {@link DS_FreeString()}.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
@@ -235,7 +236,13 @@ void DS_DiscardStream(StreamingState* aSctx);
  * @brief Free memory allocated for metadata information.
  */
 DEEPSPEECH_EXPORT
-void DS_FreeMetadata(Metadata* m); 
+void DS_FreeMetadata(Metadata* m);
+
+/**
+ * @brief Free a char* string returned by the DeepSpeech API.
+ */
+DEEPSPEECH_EXPORT
+void DS_FreeString(char* str);
 
 /**
  * @brief Print version of this library and of the linked TensorFlow library.

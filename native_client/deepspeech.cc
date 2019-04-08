@@ -927,6 +927,12 @@ DS_FreeMetadata(Metadata* m)
 }
 
 void
+DS_FreeString(char* str)
+{
+  free(str);
+}
+
+void
 DS_PrintVersions() {
   std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
   std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
