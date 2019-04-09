@@ -63,7 +63,7 @@ def evaluate(test_csvs, create_model, try_loading):
                           inputs=logits,
                           sequence_length=batch_x_len)
 
-    global_step = tf.train.create_global_step()
+    global_step = tf.train.get_or_create_global_step()
 
     with tf.Session(config=Config.session_config) as session:
         # Create a saver using variables from the above newly created graph
