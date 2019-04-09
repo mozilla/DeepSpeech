@@ -360,8 +360,6 @@ def try_loading(session, saver, checkpoint_filename, caption):
                   ' between train runs using the same checkpoint dir? Try moving'
                   ' or removing the contents of {0}.'.format(checkpoint_path))
         sys.exit(1)
-    except:
-        return False
 
 
 def train():
@@ -549,7 +547,7 @@ def train():
 
 
 def test():
-    evaluate.evaluate(FLAGS.test_files.split(','), create_model)
+    evaluate.evaluate(FLAGS.test_files.split(','), create_model, try_loading)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
