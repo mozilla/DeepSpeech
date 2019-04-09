@@ -54,6 +54,8 @@ tasks:
         - "--login"
         - "-cxe"
         - >
+          echo "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main" > /etc/apt/sources.list.d/trusty-updates.list &&
+          sed -ri -e "s|archive.ubuntu.com|${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com|g" -e "s|security.ubuntu.com|${TASKCLUSTER_WORKER_GROUP}.ec2.archive.ubuntu.com|g" /etc/apt/sources.list &&
           apt-get -qq update && apt-get -qq -y install git python3-pip curl &&
           adduser --system --home /home/build-user build-user &&
           cd /home/build-user/ &&
