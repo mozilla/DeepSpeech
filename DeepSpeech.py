@@ -508,12 +508,20 @@ def train():
         try:
             for epoch in range(FLAGS.epochs):
                 # Training
+                if not FLAGS.show_progressbar:
+                    log_info('Training epoch %d...' % epoch)
                 train_loss = run_set('train', train_init_op)
+                if not FLAGS.show_progressbar:
+                    log_info('Finished training epoch %d - loss: %f' % (epoch, train_loss))
                 checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
 
                 if FLAGS.dev_files:
                     # Validation
+                    if not FLAGS.show_progressbar:
+                        log_info('Validating epoch %d...' % epoch)
                     dev_loss = run_set('dev', dev_init_op)
+                    if not FLAGS.show_progressbar:
+                        log_info('Finished validating epoch %d - loss: %f' % (epoch, train_loss))
                     dev_losses.append(dev_loss)
 
                     if dev_loss < best_dev_loss:
