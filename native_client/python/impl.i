@@ -33,7 +33,7 @@ import_array();
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
-%typemap(newfree) char* "free($1);";
+%typemap(newfree) char* "DS_FreeString($1);";
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;

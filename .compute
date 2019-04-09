@@ -68,8 +68,10 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
+#--train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+
 python -u DeepSpeech.py \
-       --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+       --train_files "${lbs}-train-clean-100-${bytes}.csv"\
        --dev_files "${lbs}-dev-clean-${bytes}.csv"\
        --test_files "${lbs}-test-clean-${bytes}.csv" \
        --lm_binary_path "/data/rw/home/en/lm-${bytes}.binary" \
@@ -80,7 +82,7 @@ python -u DeepSpeech.py \
        --n_hidden 1024 \
        --learning_rate 0.0001 \
        --dropout_rate 0.2 \
-       --epochs 30 \
+       --epochs 100 \
        --noearly_stop \
        --checkpoint_dir "/dotdot/keep" \
        --summary_dir "/dotdot/keep/summaries"

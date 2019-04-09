@@ -64,8 +64,6 @@ def create_dataset(csvs, batch_size, cache_path):
     df = read_csvs(csvs)
     df.sort_values(by='wav_filesize', inplace=True)
 
-    num_batches = len(df) // batch_size
-
     # Convert to character index arrays
     df['transcript'] = df['transcript'].apply(text_to_char_array)
 
@@ -94,7 +92,6 @@ def create_dataset(csvs, batch_size, cache_path):
                               .map(entry_to_features, num_parallel_calls=tf.data.experimental.AUTOTUNE)
                               .cache(cache_path)
                               .window(batch_size, drop_remainder=True).flat_map(batch_fn)
-                              .prefetch(num_gpus)
-                              .repeat())
+                              .prefetch(num_gpus))
 
-    return dataset, num_batches
+    return dataset

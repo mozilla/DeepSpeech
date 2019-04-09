@@ -360,15 +360,13 @@ def try_loading(session, saver, checkpoint_filename, caption):
                   ' between train runs using the same checkpoint dir? Try moving'
                   ' or removing the contents of {0}.'.format(checkpoint_path))
         sys.exit(1)
-    except:
-        return False
 
 
 def train():
     # Create training and validation datasets
-    train_set, train_batches = create_dataset(FLAGS.train_files.split(','),
-                                              batch_size=FLAGS.train_batch_size,
-                                              cache_path=FLAGS.train_cached_features_path)
+    train_set = create_dataset(FLAGS.train_files.split(','),
+                               batch_size=FLAGS.train_batch_size,
+                               cache_path=FLAGS.train_cached_features_path)
 
     iterator = tf.data.Iterator.from_structure(train_set.output_types,
                                                train_set.output_shapes,
@@ -378,9 +376,9 @@ def train():
     train_init_op = iterator.make_initializer(train_set)
 
     if FLAGS.dev_files:
-        dev_set, dev_batches = create_dataset(FLAGS.dev_files.split(','),
-                                              batch_size=FLAGS.dev_batch_size,
-                                              cache_path=FLAGS.dev_cached_features_path)
+        dev_set = create_dataset(FLAGS.dev_files.split(','),
+                                 batch_size=FLAGS.dev_batch_size,
+                                 cache_path=FLAGS.dev_cached_features_path)
         dev_init_op = iterator.make_initializer(dev_set)
 
     # Dropout
@@ -447,61 +445,82 @@ def train():
                           ' - consider using load option "auto" or "init".' % FLAGS.load)
                 sys.exit(1)
 
-        def run_set(set_name, init_op, num_batches):
+        def run_set(set_name, init_op):
             is_train = set_name == 'train'
             train_op = apply_gradient_op if is_train else []
             feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
+
             total_loss = 0.0
+            step_count = 0
+
             step_summary_writer = step_summary_writers.get(set_name)
-            num_steps = max(1, num_batches // len(Config.available_devices))
             checkpoint_time = time.time()
 
+            class LossWidget(progressbar.widgets.FormatLabel):
+                def __init__(self):
+                    progressbar.widgets.FormatLabel.__init__(self, format='Loss: %(mean_loss)f')
+
+                def __call__(self, progress, data):
+                    data['mean_loss'] = total_loss / step_count if step_count else 0.0
+                    return progressbar.widgets.FormatLabel.__call__(self, progress, data)
+
             if FLAGS.show_progressbar:
-                pbar = progressbar.ProgressBar(max_value=num_steps, redirect_stdout=True).start()
-            else:
-                pbar = lambda i: i
+                pbar = progressbar.ProgressBar(widgets=['Epoch {}'.format(epoch),
+                                                        ' | ', progressbar.widgets.Timer(),
+                                                        ' | Steps: ', progressbar.widgets.Counter(),
+                                                        ' | ', LossWidget()])
+                pbar.start()
 
             # Initialize iterator to the appropriate dataset
             session.run(init_op)
 
             # Batch loop
-            for step_index in pbar(range(num_steps)):
-                if coord.should_stop():
+            while True:
+                try:
+                    _, current_step, batch_loss, step_summary = \
+                        session.run([train_op, global_step, loss, step_summaries_op],
+                                    feed_dict=feed_dict)
+                except tf.errors.OutOfRangeError:
                     break
 
-                _, current_step, batch_loss, step_summary = \
-                    session.run([train_op, global_step, loss, step_summaries_op],
-                                feed_dict=feed_dict)
                 total_loss += batch_loss
+                step_count += 1
+
+                if FLAGS.show_progressbar:
+                    pbar.update(step_count)
+
                 step_summary_writer.add_summary(step_summary, current_step)
 
                 if is_train and FLAGS.checkpoint_secs > 0 and time.time() - checkpoint_time > FLAGS.checkpoint_secs:
                     checkpoint_saver.save(session, checkpoint_path, global_step=current_step)
                     checkpoint_time = time.time()
 
-            return total_loss / num_steps
+            if FLAGS.show_progressbar:
+                pbar.finish()
+
+            return total_loss / step_count
 
         log_info('STARTING Optimization')
         best_dev_loss = float('inf')
         dev_losses = []
-        coord = tf.train.Coordinator()
-        with coord.stop_on_exception():
+        try:
             for epoch in range(FLAGS.epochs):
-                if coord.should_stop():
-                    break
-
                 # Training
-                log_info('Training epoch %d...' % epoch)
-                train_loss = run_set('train', train_init_op, train_batches)
-                log_info('Finished training epoch %d - loss: %f' % (epoch, train_loss))
+                if not FLAGS.show_progressbar:
+                    log_info('Training epoch %d...' % epoch)
+                train_loss = run_set('train', train_init_op)
+                if not FLAGS.show_progressbar:
+                    log_info('Finished training epoch %d - loss: %f' % (epoch, train_loss))
                 checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
 
                 if FLAGS.dev_files:
                     # Validation
-                    log_info('Validating epoch %d...' % epoch)
-                    dev_loss = run_set('dev', dev_init_op, dev_batches)
+                    if not FLAGS.show_progressbar:
+                        log_info('Validating epoch %d...' % epoch)
+                    dev_loss = run_set('dev', dev_init_op)
+                    if not FLAGS.show_progressbar:
+                        log_info('Finished validating epoch %d - loss: %f' % (epoch, train_loss))
                     dev_losses.append(dev_loss)
-                    log_info('Finished validating epoch %d - loss: %f' % (epoch, dev_loss))
 
                     if dev_loss < best_dev_loss:
                         best_dev_loss = dev_loss
@@ -522,12 +541,13 @@ def train():
                                      ' %f with standard deviation: %f and mean: %f' %
                                      (FLAGS.es_steps, dev_losses[-1], std_loss, mean_loss))
                             break
-            coord.request_stop()
+        except KeyboardInterrupt:
+            pass
     log_debug('Session closed.')
 
 
 def test():
-    evaluate.evaluate(FLAGS.test_files.split(','), create_model)
+    evaluate.evaluate(FLAGS.test_files.split(','), create_model, try_loading)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
@@ -718,8 +738,8 @@ def export():
             metadata.attr['sample_rate'].i = FLAGS.audio_sample_rate
             metadata.attr['feature_win_len'].i = FLAGS.feature_win_len
             metadata.attr['feature_win_step'].i = FLAGS.feature_win_step
-            if FLAGS.export_model_language:
-                metadata.attr['language'].s = FLAGS.export_model_language.encode('ascii')
+            if FLAGS.export_language:
+                metadata.attr['language'].s = FLAGS.export_language.encode('ascii')
 
             with open(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())

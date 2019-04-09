@@ -508,6 +508,11 @@ install_pyenv()
     exit 1;
   fi;
 
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    mkdir -p "${PYENV_ROOT}/versions/"
+    return;
+  fi
+
   if [ ! -e "${PYENV_ROOT}/bin/pyenv" ]; then
     git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
     pushd ${PYENV_ROOT}
@@ -520,11 +525,16 @@ install_pyenv()
 
 install_pyenv_virtualenv()
 {
-  PYENV_VENV=$1
+  local PYENV_VENV=$1
 
   if [ -z "${PYENV_VENV}" ]; then
     echo "No PYENV_VENV set";
     exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    echo "No pyenv virtualenv support ; will install virtualenv locally from pip"
+    return
   fi;
 
   if [ ! -e "${PYENV_VENV}/bin/pyenv-virtualenv" ]; then
@@ -535,6 +545,86 @@ install_pyenv_virtualenv()
   fi;
 
   eval "$(pyenv virtualenv-init -)"
+}
+
+setup_pyenv_virtualenv()
+{
+  local version=$1
+  local name=$2
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    echo "installing virtualenv"
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools:${PYENV_ROOT}/versions/python.${version}/tools/Scripts:$PATH pip install virtualenv
+
+    echo "should setup virtualenv ${name} for ${version}"
+    mkdir ${PYENV_ROOT}/versions/python.${version}/envs
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools:${PYENV_ROOT}/versions/python.${version}/tools/Scripts:$PATH virtualenv ${PYENV_ROOT}/versions/python.${version}/envs/${name}
+  else
+    pyenv virtualenv ${version} ${name}
+  fi
+}
+
+virtualenv_activate()
+{
+  local version=$1
+  local name=$2
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    source ${PYENV_ROOT}/versions/python.${version}/envs/${name}/Scripts/activate
+  else
+    source ${PYENV_ROOT}/versions/${version}/envs/${name}/bin/activate
+  fi
+}
+
+virtualenv_deactivate()
+{
+  local version=$1
+  local name=$2
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  deactivate
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    rm -fr ${PYENV_ROOT}/versions/python.${version}/
+  else
+    pyenv uninstall --force ${name}
+    pyenv uninstall --force ${version}
+  fi
+}
+
+pyenv_install()
+{
+  local version=$1
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    PATH=$(cygpath ${ChocolateyInstall})/bin:$PATH nuget install python -Version ${version} -OutputDirectory ${PYENV_ROOT}/versions/
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools/:$PATH python -m pip uninstall pip -y
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools/:$PATH python -m ensurepip
+    pushd ${PYENV_ROOT}/versions/python.${version}/tools/Scripts/
+      ln -s pip3.exe pip.exe
+    popd
+  else
+    pyenv install ${version}
+  fi
 }
 
 maybe_install_xldd()
@@ -806,6 +896,82 @@ maybe_ssl102_py37()
     esac
 }
 
+maybe_numpy_min_version_winamd64()
+{
+    local pyver=$1
+
+    if [ "${OS}" != "${TC_MSYS_VERSION}" ]; then
+        return;
+    fi
+
+    # We set >= and < to make sure we have no numpy incompatibilities
+    # otherwise, `from deepspeech.impl` throws with "illegal instruction"
+    case "${pyver}" in
+        3.5*)
+            export NUMPY_BUILD_VERSION="==1.11.0"
+            export NUMPY_DEP_VERSION=">=1.11.0,<1.12.0"
+        ;;
+        3.6*)
+            export NUMPY_BUILD_VERSION="==1.12.0"
+            export NUMPY_DEP_VERSION=">=1.12.0,<1.14.5"
+        ;;
+        3.7*)
+            export NUMPY_BUILD_VERSION="==1.14.5"
+            export NUMPY_DEP_VERSION=">=1.14.5,<1.16.0"
+        ;;
+    esac
+}
+
+get_python_pkg_url()
+{
+  local pyver_pkg=$1
+  local py_unicode_type=$2
+
+  local pkgname=$3
+  if [ -z "${pkgname}" ]; then
+    pkgname="deepspeech"
+  fi
+
+  local root=$4
+  if [ -z "${root}" ]; then
+    root="${DEEPSPEECH_ARTIFACTS_ROOT}"
+  fi
+
+  local platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; plat = "win" if plat == "windows" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine().lower()));')
+  local whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
+  local deepspeech_pkg="${pkgname}-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
+
+  echo "${root}/${deepspeech_pkg}"
+}
+
+extract_python_versions()
+{
+  # call extract_python_versions ${pyver_full} pyver pyver_pkg py_unicode_type pyconf
+  local _pyver_full=$1
+
+  if [ -z "${_pyver_full}" ]; then
+      echo "No python version given, aborting."
+      exit 1
+  fi;
+
+  local _pyver=$(echo "${_pyver_full}" | cut -d':' -f1)
+
+  # 2.7.x => 27
+  local _pyver_pkg=$(echo "${_pyver}" | cut -d'.' -f1,2 | tr -d '.')
+
+  local _py_unicode_type=$(echo "${_pyver_full}" | cut -d':' -f2)
+  if [ "${_py_unicode_type}" = "m" ]; then
+    local _pyconf="ucs2"
+  elif [ "${_py_unicode_type}" = "mu" ]; then
+    local _pyconf="ucs4"
+  fi;
+
+  eval "${2}=${_pyver}"
+  eval "${3}=${_pyver_pkg}"
+  eval "${4}=${_py_unicode_type}"
+  eval "${5}=${_pyconf}"
+}
+
 do_deepspeech_python_build()
 {
   cd ${DS_DSDIR}
@@ -836,10 +1002,12 @@ do_deepspeech_python_build()
 
     maybe_ssl102_py37 ${pyver}
 
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv install ${pyver}
+    maybe_numpy_min_version_winamd64 ${pyver}
 
-    pyenv virtualenv ${pyver} deepspeech
-    source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv_install ${pyver}
+
+    setup_pyenv_virtualenv "${pyver}" "deepspeech"
+    virtualenv_activate "${pyver}" "deepspeech"
 
     # Set LD path because python ssl might require it
     LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
@@ -860,9 +1028,7 @@ do_deepspeech_python_build()
     unset NUMPY_BUILD_VERSION
     unset NUMPY_DEP_VERSION
 
-    deactivate
-    pyenv uninstall --force deepspeech
-    pyenv uninstall --force ${pyver}
+    virtualenv_deactivate "${pyver}" "deepspeech"
   done;
 }
 

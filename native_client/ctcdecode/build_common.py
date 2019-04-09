@@ -10,7 +10,7 @@ import sys
 from multiprocessing.dummy import Pool
 
 ARGS = ['-O3', '-DNDEBUG', '-DKENLM_MAX_ORDER=6', '-std=c++11',
-        '-Wno-unused-local-typedef', '-Wno-sign-compare']
+        '-Wno-unused-local-typedefs', '-Wno-sign-compare']
 
 INCLUDES = [
     '..',
