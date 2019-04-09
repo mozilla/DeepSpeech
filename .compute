@@ -2,15 +2,9 @@
 
 set -xe
 
-data="${SHARED_DIR}/data"
-fis="${data}/LDC/fisher"
-swb="${data}/LDC/LDC97S62/swb"
-lbs="${data}/OpenSLR/LibriSpeech/librivox"
-cv2de="${data}/mozilla/CommonVoice/v2.0/de/clips"
-
-TEXT="${USER_DIR}/"
-mkdir ${USER_DIR}/utf8
-LANGUAGE=en2bytes
+LANGUAGE=en
+num_bytes=2
+bytes="${num_bytes}-bytes"
 
 srcdir=`pwd`/../src
 
@@ -22,13 +16,10 @@ pushd /tmp/tf
   # Download and install bazel
   curl -LO "https://github.com/bazelbuild/bazel/releases/download/0.19.2/bazel_0.19.2-linux-x86_64.deb"
   dpkg -i bazel_*.deb
-
   # Download tensorflow
   git clone --depth 1 --branch r1.13 http://github.com/mozilla/tensorflow
-
   pushd tensorflow
     ln -s $srcdir/native_client .
-
     # Configure and build generate_trie
     export TF_NEED_CUDA=0
     export TF_ENABLE_XLA=0
@@ -45,55 +36,14 @@ pushd /tmp/tf
     export TF_NEED_TENSORRT=0
     export GCC_HOST_COMPILER_PATH=/usr/bin/gcc
     ./configure
-
     bazel build --config=monolithic -c opt --copt=-march=native --copt=-fvisibility=hidden //native_client:generate_trie
   popd # tensorflow
-
-  gen_trie=/tmp/tf/tensorflow/bazel-bin/native_client/generate_trie
-  cp ${gen_trie} ${USER_DIR}/utf8/generate_trie
 popd # /tmp/tf
-
-# LM stuff
-mkdir -p /tmp/lm
-pushd /tmp/lm
-# Download and build kenlm
-  echo "DOWNLOAD KENLM"
-  curl -L https://kheafield.com/code/kenlm.tar.gz | tar xz
-  mkdir kenlm/build
-  pushd kenlm/build
-    echo "COMPILE KENLM"
-    cmake ..
-    make -j`nproc`
-  popd
-
-  echo "COPY KENLM TO GOOD PLACE"
-  # Save in user folder
-  klmbin=/tmp/lm/kenlm/build/bin
-  mkdir ${USER_DIR}/kenlm
-  cp ${klmbin}/lmplz ${USER_DIR}/kenlm/lmplz
-  cp ${klmbin}/build_binary ${USER_DIR}/kenlm/build_binary
-
-  echo "TRAIN LM WITH KENLM"
-  # Generate LM binary from wikipedia german dump
-  ${klmbin}/lmplz --order 3 --skip_symbols --text ${TEXT} --arpa tmp.arpa
-  ${klmbin}/build_binary -a 255 -q 8 trie tmp.arpa wikide.binary
-
-  echo "COPY LM TO GOOD PLACE"
-  # Save in user dir
-  mkdir ${USER_DIR}/wikide_lm
-  cp wikide.arpa ${USER_DIR}/wikide_lm/wikide.arpa
-  cp wikide.binary ${USER_DIR}/wikide_lm/wikide.binary
-  echo "lmplz --order 3 --text ${wikide} --lm ${TEXT}.arpa" > ${USER_DIR}/wikide_lm/README
-  echo "build_binary -a 255 -q 8 trie wikide.arpa wikide.binary" >> ${USER_DIR}/wikide_lm/README
-
-  echo "GENERATE TRIE & COPY TO GOOD PLACE"
-  ${gen_trie} unused_param /tmp/lm/wikide.binary /tmp/lm/wikide.trie
-  cp /tmp/lm/wikide.trie ${USER_DIR}/wikide_lm/wikide.trie
-
-  lm_binary=/tmp/lm/wikide.binary
-  lm_trie=/tmp/lm/wikide.trie
-popd # /tmp/lm
-
+  
+gen_trie=/tmp/tf/tensorflow/bazel-bin/native_client/generate_trie
+mkdir ${USER_DIR}/utf8
+cp ${gen_trie} ${USER_DIR}/utf8/generate_trie
+${gen_trie} unused_param_inlieuof_alphabet "/data/rw/home/en/lm-${bytes}.binary" "/data/rw/home/en/trie_utf8-${bytes}"
 
 apt-get install -y python3-venv swig
 python3 -m venv /tmp/venv
@@ -111,26 +61,28 @@ pushd ../src/native_client/ctcdecode
 popd
 
 mkdir -p /dotdot/keep/summaries
+    
+data="${SHARED_DIR}/data"
+CV="${data}/mozilla/CommonVoice/v2.0/en/clips"
+fis="${data}/LDC/fisher"
+swb="${data}/LDC/LDC97S62/swb"
+lbs="${data}/OpenSLR/LibriSpeech/librivox"
+
+       # --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
 
 python -u DeepSpeech.py \
-  --train_files "${cv2de}/train.csv" \
-  --train_cached_features_path "/dotdot/cv2-de-train-cache" \
-  --dev_files "${cv2de}/dev.csv"\
-  --test_files "${cv2de}/test.csv" \
-  --train_batch_size 24 \
-  --dev_batch_size 48 \
-  --test_batch_size 48 \
-  --n_hidden 1024 \
-  --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
-  --epochs 30 \
-  --noearly_stop \
-  --checkpoint_dir "/dotdot/keep" \
-  --summary_dir "/dotdot/keep/summaries" \
-  --lm_binary_path "${lm_binary}" \
-  --lm_trie_path "${lm_trie}"
-
-cp -R /dotdot/keep/* ../keep
-
-mkdir -p ${USER_DIR}/cv2-de-train-cache
-cp -R /dotdot/cv2-de-train-cache* ${USER_DIR}/
+       --train_files "${lbs}-train-clean-100-${bytes}.csv"\
+       --dev_files "${lbs}-dev-clean-${bytes}.csv"\
+       --test_files "${lbs}-test-clean-${bytes}.csv" \
+       --lm_binary_path "/data/rw/home/en/lm-${bytes}.binary" \
+       --lm_trie_path "/data/rw/home/en/trie_utf8-${bytes}" \
+       --train_batch_size 24 \
+       --dev_batch_size 48 \
+       --test_batch_size 48 \
+       --n_hidden 1024 \
+       --learning_rate 0.0001 \
+       --dropout_rate 0.2 \
+       --epochs 30 \
+       --noearly_stop \
+       --checkpoint_dir "/dotdot/keep" \
+       --summary_dir "/dotdot/keep/summaries"
