@@ -1,3 +1,5 @@
+'use strict';
+
 const binary = require('node-pre-gyp');
 const path = require('path')
 // 'lib', 'binding', 'v0.1.1', ['node', 'v' + process.versions.modules, process.platform, process.arch].join('-'), 'deepspeech-bingings.node')
