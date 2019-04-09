@@ -43,9 +43,9 @@ def evaluate(test_csvs, create_model):
                     FLAGS.lm_binary_path, FLAGS.lm_trie_path,
                     Config.alphabet)
 
-    test_set, test_batches = create_dataset(test_csvs,
-                                            batch_size=FLAGS.test_batch_size,
-                                            cache_path=FLAGS.test_cached_features_path)
+    test_set = create_dataset(test_csvs,
+                              batch_size=FLAGS.test_batch_size,
+                              cache_path=FLAGS.test_cached_features_path)
     it = test_set.make_one_shot_iterator()
 
     (batch_x, batch_x_len), batch_y = it.get_next()
@@ -82,17 +82,26 @@ def evaluate(test_csvs, create_model):
         ground_truths = []
 
         print('Computing acoustic model predictions...')
-        bar = progressbar.ProgressBar(max_value=test_batches,
-                                      widget=progressbar.AdaptiveETA)
+        bar = progressbar.ProgressBar(widgets=['Steps: ', progressbar.Counter(), ' | ', progressbar.Timer()])
+
+        step_count = 0
 
         # First pass, compute losses and transposed logits for decoding
-        for batch in bar(range(test_batches)):
-            logits, loss_, lengths, transcripts = session.run([transposed, loss, batch_x_len, batch_y])
+        while True:
+            try:
+                logits, loss_, lengths, transcripts = session.run([transposed, loss, batch_x_len, batch_y])
+            except tf.errors.OutOfRangeError:
+                break
+
+            step_count += 1
+            bar.update(step_count)
 
             logitses.append(logits)
             losses.extend(loss_)
             seq_lengths.append(lengths)
             ground_truths.extend(sparse_tensor_value_to_texts(transcripts, Config.alphabet))
+
+    bar.finish()
 
     predictions = []
 
@@ -103,7 +112,7 @@ def evaluate(test_csvs, create_model):
         num_processes = 1
 
     print('Decoding predictions...')
-    bar = progressbar.ProgressBar(max_value=test_batches,
+    bar = progressbar.ProgressBar(max_value=step_count,
                                   widget=progressbar.AdaptiveETA)
 
     # Second pass, decode logits and compute WER and edit distance metrics
