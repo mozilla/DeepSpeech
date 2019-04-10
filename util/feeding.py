@@ -63,7 +63,7 @@ def to_sparse_tuple(sequence):
     return indices, sequence, shape
 
 
-def create_dataset(csvs, batch_size, cache_path):
+def create_dataset(csvs, batch_size, cache_path=''):
     df = read_csvs(csvs)
     df.sort_values(by='wav_filesize', inplace=True)
 
