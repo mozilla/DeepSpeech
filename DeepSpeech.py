@@ -519,7 +519,7 @@ def train():
                         log_info('Validating epoch %d...' % epoch)
                     dev_loss = run_set('dev', dev_init_op)
                     if not FLAGS.show_progressbar:
-                        log_info('Finished validating epoch %d - loss: %f' % (epoch, train_loss))
+                        log_info('Finished validating epoch %d - loss: %f' % (epoch, dev_loss))
                     dev_losses.append(dev_loss)
 
                     if dev_loss < best_dev_loss:
