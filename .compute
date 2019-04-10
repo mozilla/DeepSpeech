@@ -2,16 +2,12 @@
 
 set -xe
 
-LANGUAGE=en
-num_bytes=2
+num_bytes=4
 bytes="${num_bytes}-bytes"
 
-srcdir=`pwd`/../src
-
-apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev openjdk-8-jdk bash-completion unzip
-
+# srcdir=`pwd`/../src
+# apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev liblzma-dev openjdk-8-jdk bash-completion unzip
 # mkdir -p /tmp/tf
-
 # pushd /tmp/tf
 #   # Download and install bazel
 #   curl -LO "https://github.com/bazelbuild/bazel/releases/download/0.19.2/bazel_0.19.2-linux-x86_64.deb"
@@ -38,12 +34,12 @@ apt-get install -y build-essential cmake libboost-all-dev zlib1g-dev libbz2-dev 
 #     ./configure
 #     bazel build --config=monolithic -c opt --copt=-march=native --copt=-fvisibility=hidden //native_client:generate_trie
 #   popd # tensorflow
-# popd # /tmp/tf
-  
+# popd # /tmp/tf  
 # gen_trie=/tmp/tf/tensorflow/bazel-bin/native_client/generate_trie
 # mkdir ${USER_DIR}/utf8
 # cp ${gen_trie} ${USER_DIR}/utf8/generate_trie
-# ${gen_trie} unused_param_inlieuof_alphabet "/data/rw/home/en/lm-${bytes}.binary" "/data/rw/home/en/trie_utf8-${bytes}"
+## GENERATE TRIE
+# ${USER_DIR}/utf8/generate_trie unused_param_inlieuof_alphabet "/data/rw/home/en/lm.binary" "/data/rw/home/en/trie_utf8"
 
 apt-get install -y python3-venv swig
 python3 -m venv /tmp/venv
@@ -68,10 +64,12 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
-#--train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv"\
+       # --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv" \
+       # --dev_files "${lbs}-dev-clean-${bytes}.csv","${lbs}-dev-other-${bytes}.csv"\
+
 
 python -u DeepSpeech.py \
-       --train_files "${lbs}-train-clean-100-${bytes}.csv"\
+       --train_files "${lbs}-train-clean-100-${bytes}.csv" \
        --dev_files "${lbs}-dev-clean-${bytes}.csv"\
        --test_files "${lbs}-test-clean-${bytes}.csv" \
        --lm_binary_path "/data/rw/home/en/lm-${bytes}.binary" \

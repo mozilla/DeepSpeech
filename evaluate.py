@@ -59,7 +59,8 @@ def evaluate(test_csvs, create_model, try_loading):
 
     loss = tf.nn.ctc_loss(labels=batch_y,
                           inputs=logits,
-                          sequence_length=batch_x_len)
+                          sequence_length=batch_x_len,
+                          ignore_longer_outputs_than_inputs=True)
 
     global_step = tf.train.get_or_create_global_step()
 
