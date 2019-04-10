@@ -14,6 +14,7 @@ import progressbar
 import shutil
 import tensorflow as tf
 
+from datetime import datetime
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from evaluate import evaluate
 from six.moves import zip, range
@@ -508,6 +509,7 @@ def train():
             return mean_loss
 
         log_info('STARTING Optimization')
+        train_start_time = datetime.utcnow()
         best_dev_loss = float('inf')
         dev_losses = []
         try:
@@ -551,6 +553,7 @@ def train():
                             break
         except KeyboardInterrupt:
             pass
+        log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
     log_debug('Session closed.')
 
 
