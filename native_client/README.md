@@ -25,28 +25,17 @@ For more information on configuring TensorFlow, read the docs up to the end of [
 Clone our fork of TensorFlow and checkout the correct version:
 
 ```
-git clone git@github.com:mozilla/tensorflow.git
+git clone https://github.com/mozilla/tensorflow.git
 git checkout origin/r1.13
-```
-
-### TensorFlow: Dependencies
-
-Prepare your environment so you can TensorFlow:
-
-```
-sudo apt install python3-dev python3-pip
-pip install -U --user pip six numpy wheel setuptools mock
-pip install -U --user keras_applications==1.0.6 --no-deps
-pip install -U --user keras_preprocessing==1.0.5 --no-deps
 ```
 
 ### Bazel: Download & Install 
 
-[Install the correct version of Bazel](https://docs.bazel.build/versions/master/install.html) for this TensorFlow release. For TensorFlow `r1.13` you will need [Bazel version `0.21.0`](https://github.com/bazelbuild/bazel/releases/tag/0.21.0) or lower.
+First, [find the version of Bazel](https://www.tensorflow.org/install/source#tested_build_configurations) you need for this TensorFlow release. Next, [download and install the correct version of Bazel](https://docs.bazel.build/versions/master/install.html).
 
 ### TensorFlow: Configure with Bazel
 
-After you have installed the correct version Bazel, configure TensorFlow:
+After you have installed the correct version of Bazel, configure TensorFlow:
 
 ```
 cd tensorflow
@@ -121,11 +110,11 @@ This will create the package `deepspeech-VERSION.tgz` in `native_client/javascri
 
 ### Building the CTC decoder package
 
-To build the `ds_ctcdecoder` package, you'll need the general requirements listed above (in particular SWIG).
+To build the `ds_ctcdecoder` package, you'll need the general requirements listed above (in particular SWIG). The command below builds the bindings using eight (8) processes for compilation. Adjust the parameter accordingly for more or less parallelism.
 
 ```
 cd native_client/ctcdecode
-make bindings NUM_PROCESSES=`nproc`
+make bindings NUM_PROCESSES=8
 pip install dist/*.whl
 ```
 

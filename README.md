@@ -34,14 +34,14 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 - [Getting the code](#getting-the-code)
 - [Using a Pre-trained Model](#using-a-pre-trained-model)
   - [CUDA dependency](#cuda-dependency)
-  - [Getting the pre-trained model](#downloading-the-pre-trained-model)
+  - [Getting the pre-trained model](#getting-the-pre-trained-model)
   - [Using the Python package](#using-the-python-package)
   - [Using the Node.JS package](#using-the-nodejs-package)
   - [Using the Command Line client](#using-the-command-line-client)
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
-- [Training your own Model](#training)
-  - [Installing training prerequisites](#installing-prerequisites-for-training)
+- [Training your own Model](#training-your-own-model)
+  - [Installing training prerequisites](#installing-training-prerequisites)
   - [Recommendations](#recommendations)
   - [Common Voice training data](#common-voice-training-data)
   - [Training a model](#training-a-model)
@@ -89,7 +89,7 @@ Please refer to your system's documentation on how to install these dependencies
 
 The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Make sure you've installed the correct version of CUDA
 
-### Downloading the pre-trained model
+### Getting the pre-trained model
 
 If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the DeepSpeech [releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the model files in your current directory:
 
@@ -231,9 +231,9 @@ In addition to the bindings above, third party developers have started to provid
 * [stes](https://github.com/stes) provides preliminary [PKGBUILDs](https://wiki.archlinux.org/index.php/PKGBUILD) to install the client and python bindings on [Arch Linux](https://www.archlinux.org/) in the [arch-deepspeech](https://github.com/stes/arch-deepspeech) repo.
 * [gst-deepspeech](https://github.com/Elleo/gst-deepspeech) provides a [GStreamer](https://gstreamer.freedesktop.org/) plugin which can be used from any language with GStreamer bindings.
 
-## Training
+## Training Your Own Model
 
-### Installing prerequisites for training
+### Installing Training Prerequisites
 
 Install the required dependencies using `pip3`:
 
