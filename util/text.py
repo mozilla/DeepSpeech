@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 
 import codecs
-import numpy as np
 import re
-import sys
+
+import numpy as np
 
 from six.moves import range
 
@@ -33,7 +33,6 @@ class Alphabet(object):
             raise KeyError(
                 '''ERROR: Your transcripts contain characters which do not occur in data/alphabet.txt! Use util/check_characters.py to see what characters are in your {train,dev,test}.csv transcripts, and then add all these to data/alphabet.txt.'''
             ).with_traceback(e.__traceback__)
-            sys.exit()
 
     def decode(self, labels):
         res = ''
@@ -94,18 +93,18 @@ def wer_cer_batch(originals, results):
 # version 1.0. This software is distributed without any warranty. For more
 # information, see <http://creativecommons.org/publicdomain/zero/1.0>
 
-def levenshtein(a,b):
+def levenshtein(a, b):
     "Calculates the Levenshtein distance between a and b."
     n, m = len(a), len(b)
     if n > m:
         # Make sure n <= m, to use O(min(n,m)) space
-        a,b = b,a
-        n,m = m,n
+        a, b = b, a
+        n, m = m, n
 
     current = list(range(n+1))
-    for i in range(1,m+1):
+    for i in range(1, m+1):
         previous, current = current, [i]+[0]*n
-        for j in range(1,n+1):
+        for j in range(1, n+1):
             add, delete = previous[j]+1, current[j-1]+1
             change = previous[j-1]
             if a[j-1] != b[i-1]:
@@ -118,14 +117,7 @@ def levenshtein(a,b):
 # or None if it's invalid.
 def validate_label(label):
     # For now we can only handle [a-z ']
-    if "(" in label or \
-                    "<" in label or \
-                    "[" in label or \
-                    "]" in label or \
-                    "&" in label or \
-                    "*" in label or \
-                    "{" in label or \
-            re.search(r"[0-9]", label) != None:
+    if re.search(r"[0-9]|[(<\[\]&*{]", label) is not None:
         return None
 
     label = label.replace("-", "")
@@ -138,4 +130,3 @@ def validate_label(label):
     label = label.lower()
 
     return label if label else None
-

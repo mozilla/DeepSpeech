@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
-import numpy as np
 import os
+
+from functools import partial
+
+import numpy as np
 import pandas
 import tensorflow as tf
 
-from functools import partial
 from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
+
 from util.config import Config
 from util.text import text_to_char_array
 
@@ -18,7 +21,7 @@ def read_csvs(csv_files):
         file = pandas.read_csv(csv, encoding='utf-8', na_filter=False)
         #FIXME: not cross-platform
         csv_dir = os.path.dirname(os.path.abspath(csv))
-        file['wav_filename'] = file['wav_filename'].str.replace(r'(^[^/])', lambda m: os.path.join(csv_dir, m.group(1)))
+        file['wav_filename'] = file['wav_filename'].str.replace(r'(^[^/])', lambda m: os.path.join(csv_dir, m.group(1))) # pylint: disable=cell-var-from-loop
         if source_data is None:
             source_data = file
         else:
