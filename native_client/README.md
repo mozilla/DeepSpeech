@@ -44,7 +44,7 @@ cd tensorflow
 
 ## Compile DeepSpeech
 
-## Compile `libdeepspeech.so` & `generate_trie`
+### Compile `libdeepspeech.so` & `generate_trie`
 
 Within your TensorFlow checkout, create a symbolic link to the DeepSpeech `native_client` directory. Assuming DeepSpeech and TensorFlow checkouts are in the same directory, do:
 
@@ -61,17 +61,15 @@ bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_A
 
 The generated binaries will be saved to `bazel-bin/native_client/`.
 
-## Compile `libdeepspeech.so` & `generate_trie`
+### Compile Language Bindings
 
-Now, `cd` into the `DeepSpeech/native_client` directory and use the `Makefile` to build everything else (client, Python package, Nodejs package, `ctc_decoder`). Set the environment variable `TFDIR` to point to your TensorFlow checkout.
+Now, `cd` into the `DeepSpeech/native_client` directory and use the `Makefile` to build all the language bindings (C++ client, Python package, Nodejs package, etc.). Set the environment variable `TFDIR` to point to your TensorFlow checkout.
 
 ```
 TFDIR=~/tensorflow
 cd ../DeepSpeech/native_client
 make deepspeech
 ```
-
-
 
 
 ## Installing your own Binaries
@@ -84,7 +82,7 @@ PREFIX=/usr/local sudo make install
 
 It is assumed that `$PREFIX/lib` is a valid library path, otherwise you may need to alter your environment.
 
-### Python bindings
+### Install Python bindings
 
 Included are a set of generated Python bindings. After following the above build and installation instructions, these can be installed by executing the following commands (or equivalent on your system):
 
@@ -96,7 +94,7 @@ pip install dist/deepspeech*
 
 The API mirrors the C++ API and is demonstrated in [client.py](python/client.py). Refer to [deepspeech.h](deepspeech.h) for documentation.
 
-### Node.JS bindings
+### Install Node.JS bindings
 
 After following the above build and installation instructions, the Node.JS bindings can be built:
 
@@ -108,7 +106,7 @@ make npm-pack
 
 This will create the package `deepspeech-VERSION.tgz` in `native_client/javascript`.
 
-### Building the CTC decoder package
+### Install the CTC decoder package
 
 To build the `ds_ctcdecoder` package, you'll need the general requirements listed above (in particular SWIG). The command below builds the bindings using eight (8) processes for compilation. Adjust the parameter accordingly for more or less parallelism.
 
