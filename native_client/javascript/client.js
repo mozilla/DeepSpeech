@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict';
+
 const Fs = require('fs');
 const Sox = require('sox-stream');
 const Ds = require('./index.js');
@@ -40,6 +42,11 @@ util.inherits(VersionAction, argparse.Action);
 
 VersionAction.prototype.call = function(parser) {
   Ds.printVersions();
+  let runtime = 'Node';
+  if (process.versions.electron) {
+    runtime = 'Electron';
+  }
+  console.error('Runtime: ' + runtime);
   process.exit(0);
 }
 
@@ -89,7 +96,7 @@ bufferToStream(buffer).
   pipe(audioStream);
 
 audioStream.on('finish', () => {
-  audioBuffer = audioStream.toBuffer();
+  let audioBuffer = audioStream.toBuffer();
 
   console.error('Loading model from file %s', args['model']);
   const model_load_start = process.hrtime();
@@ -115,4 +122,5 @@ audioStream.on('finish', () => {
   console.log(model.stt(audioBuffer.slice(0, audioBuffer.length / 2), 16000));
   const inference_stop = process.hrtime(inference_start);
   console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
+  process.exit(0);
 });

@@ -21,6 +21,14 @@ genrule(
     local = 1,
 )
 
+genrule(
+    name = "ds_graph_version",
+    outs = ["ds_graph_version.h"],
+    cmd = "$(location :ds_graph_version.sh) >$@",
+    tools = [":ds_graph_version.sh"],
+    local = 1,
+)
+
 KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
                       "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
                      exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"])
@@ -62,15 +70,8 @@ tf_cc_shared_object(
     srcs = ["deepspeech.cc",
             "deepspeech.h",
             "alphabet.h",
-            "c_speech_features/c_speech_features.cpp",
-            "kiss_fft130/kiss_fft.c",
-            "kiss_fft130/tools/kiss_fftr.c",
-            "c_speech_features/c_speech_features.h",
-            "c_speech_features/c_speech_features_config.h",
-            "kiss_fft130/kiss_fft.h",
-            "kiss_fft130/_kiss_fft_guts.h",
-            "kiss_fft130/tools/kiss_fftr.h",
-            "ds_version.h"] +
+            "ds_version.h",
+            "ds_graph_version.h"] +
             DECODER_SOURCES,
     copts = select({ 
         # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
@@ -119,6 +120,10 @@ tf_cc_shared_object(
             "//tensorflow/core/kernels:control_flow_ops",   # Enter
             "//tensorflow/core/kernels:tile_ops",           # Tile
             "//tensorflow/core/kernels:gather_op",          # Gather
+            "//tensorflow/core/kernels:mfcc_op",            # Mfcc
+            "//tensorflow/core/kernels:spectrogram_op",     # AudioSpectrogram
+            "//tensorflow/core/kernels:strided_slice_op",   # StridedSlice
+            "//tensorflow/core/kernels:slice_op",           # Slice, needed by StridedSlice
             "//tensorflow/contrib/rnn:lstm_ops_kernels",    # BlockLSTM
             "//tensorflow/core/kernels:random_ops",         # RandomGammaGrad
             "//tensorflow/core/kernels:pack_op",            # Pack
@@ -130,7 +135,7 @@ tf_cc_shared_object(
     }) + if_cuda([
             "//tensorflow/core:core",
     ]),
-    includes = ["c_speech_features", "kiss_fft130"] + DECODER_INCLUDES,
+    includes = DECODER_INCLUDES,
     defines = ["KENLM_MAX_ORDER=6"],
 )
 

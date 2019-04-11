@@ -29,6 +29,8 @@ build:
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
       - "linux-arm64-cpu-opt"
+      - "win-amd64-cpu-opt"
+      - "win-amd64-gpu-opt"
     javascript:
       # GPU package
       - "node-package-gpu"

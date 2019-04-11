@@ -92,10 +92,13 @@ def initialize_globals():
     # Units in the sixth layer = number of characters in the target language plus one
     c.n_hidden_6 = c.alphabet.size() + 1 # +1 for CTC blank label
 
-    if len(FLAGS.one_shot_infer) > 0:
-        FLAGS.train = False
-        FLAGS.test = False
-        FLAGS.export_dir = ''
+    # Size of audio window in samples
+    c.audio_window_samples = FLAGS.audio_sample_rate * (FLAGS.feature_win_len / 1000)
+
+    # Stride for feature computations in samples
+    c.audio_step_samples = FLAGS.audio_sample_rate * (FLAGS.feature_win_step / 1000)
+
+    if FLAGS.one_shot_infer:
         if not os.path.exists(FLAGS.one_shot_infer):
             log_error('Path specified in --one_shot_infer is not a valid file.')
             exit(1)

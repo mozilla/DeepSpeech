@@ -16,7 +16,7 @@ const float NUM_FLT_LOGE = 0.4342944819;
 inline void check(
     bool x, const char *expr, const char *file, int line, const char *err) {
   if (!x) {
-    std::cout << "[" << file << ":" << line << "] ";
+    std::cerr << "[" << file << ":" << line << "] ";
     LOG(FATAL) << "\"" << expr << "\" check failed. " << err;
   }
 }
