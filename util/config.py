@@ -46,7 +46,7 @@ def initialize_globals():
         FLAGS.dropout_rate6 = FLAGS.dropout_rate
 
     # Set default checkpoint dir
-    if not FLAGS.checkpoint_dir == 0:
+    if not FLAGS.checkpoint_dir:
         FLAGS.checkpoint_dir = xdg.save_data_path(os.path.join('deepspeech', 'checkpoints'))
 
     if FLAGS.load not in ['last', 'best', 'init', 'auto']:
