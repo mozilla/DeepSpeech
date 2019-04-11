@@ -6,6 +6,8 @@ curdir=$(dirname "$0")
 
 pip3 install --quiet --user --upgrade pip
 
+export PATH=$HOME/.local/bin/:$PATH
+
 curl -L --silent https://raw.githubusercontent.com/lissyx/taskcluster-github-decision/${TC_DECISION_SHA}/requirements.txt | pip3 install --quiet --user --upgrade -r /dev/stdin
 curl -L --silent https://raw.githubusercontent.com/lissyx/taskcluster-github-decision/${TC_DECISION_SHA}/tc-decision.py > ${curdir}/tc-decision.py
 
