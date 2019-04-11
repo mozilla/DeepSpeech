@@ -813,11 +813,10 @@ do_deepspeech_ndk_build()
 
 do_deepspeech_netframework_build()
 {
-  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+  cd ${DS_DSDIR}/native_client/dotnet
 
   # Setup dependencies
   nuget install DeepSpeechConsole/packages.config -OutputDirectory packages/
-  nuget install DeepSpeechWPF/packages.config -OutputDirectory packages/
 
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
 
@@ -830,14 +829,14 @@ do_deepspeech_netframework_build()
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.5" \
     /p:OutputPath=bin/nuget/x64/v4.5
-	
+
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.6" \
     /p:OutputPath=bin/nuget/x64/v4.6
-	
+
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
@@ -847,11 +846,6 @@ do_deepspeech_netframework_build()
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
-    /p:Configuration=Release \
-    /p:Platform=x64
-
-  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechWPF/DeepSpeech.WPF.csproj \
     /p:Configuration=Release \
     /p:Platform=x64
 }
@@ -864,7 +858,7 @@ do_nuget_build()
     exit 1
   fi;
 
-  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+  cd ${DS_DSDIR}/native_client/dotnet
 
   cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/build
 
@@ -879,7 +873,7 @@ do_nuget_build()
   mkdir -p nupkg/lib/net47/
   cp DeepSpeechClient/bin/nuget/x64/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
 
-  PROJECT_VERSION=$(shell cat ../../../VERSION | tr -d '\n' | tr -d '\r')
+  PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \
     -e "s/\$NUPKG_ID/${PROJECT_NAME}/" \
     -e "s/\$NUPKG_VERSION/${PROJECT_VERSION}/" \
