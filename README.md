@@ -51,6 +51,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
   - [Making a mmap-able model for inference](#making-a-mmap-able-model-for-inference)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
+- [Contribution guidelines](#contribution-guidelines)
 - [Contact/Getting Help](#contactgetting-help)
 
 ## Prerequisites
@@ -358,6 +359,19 @@ python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder
 ```
 
 Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
+
+## Contribution guidelines
+
+This repository is governed by Mozilla's code of conduct and etiquette guidelines. For more details, please read the [Mozilla Community Participation Guidelines](https://www.mozilla.org/about/governance/policies/participation/).
+
+Before making a Pull Request, check your changes for basic mistakes and style problems by using a linter. We have cardboardlinter setup in this repository, so for example, if you've made some changes and would like to run the linter on just the changed code, you can use the follow command:
+
+```bash
+pip install pylint cardboardlint
+cardboardlinter --refspec master
+```
+
+This will compare the code against master and run the linter on all the changes. We plan to introduce more linter checks (e.g. for C++) in the future.
 
 ## Contact/Getting Help
 
