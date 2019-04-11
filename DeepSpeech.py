@@ -22,7 +22,7 @@ from tensorflow.python.tools import freeze_graph
 from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
-from util.logging import log_info, log_error, log_debug
+from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 
 
 # Graph Creation
@@ -425,15 +425,6 @@ def train():
 
     initializer = tf.global_variables_initializer()
 
-    # Disable progress logging if needed
-    if FLAGS.show_progressbar:
-        pbar_class = progressbar.ProgressBar
-        def log_progress(*args, **kwargs):
-            pass
-    else:
-        pbar_class = progressbar.NullBar
-        log_progress = log_info
-
     with tf.Session(config=Config.session_config) as session:
         log_debug('Session opened.')
 
@@ -479,7 +470,7 @@ def train():
                        ' | Steps: ', progressbar.widgets.Counter(),
                        ' | ', LossWidget()]
             suffix = ' | Dataset: {}'.format(dataset) if dataset else None
-            pbar = pbar_class(prefix=prefix, widgets=widgets, suffix=suffix, fd=sys.stdout).start()
+            pbar = create_progressbar(prefix=prefix, widgets=widgets, suffix=suffix).start()
 
             # Initialize iterator to the appropriate dataset
             session.run(init_op)

@@ -18,7 +18,7 @@ from util.config import Config, initialize_globals
 from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
-from util.logging import log_error
+from util.logging import log_error, log_progress, create_progressbar
 from util.text import levenshtein
 
 
@@ -93,9 +93,9 @@ def evaluate(test_csvs, create_model, try_loading):
             seq_lengths = []
             ground_truths = []
 
-            bar = progressbar.ProgressBar(prefix='Computing acoustic model predictions | ',
-                                          widgets=['Steps: ', progressbar.Counter(), ' | ', progressbar.Timer()],
-                                          fd=sys.stdout).start()
+            bar = create_progressbar(prefix='Computing acoustic model predictions | ',
+                                     widgets=['Steps: ', progressbar.Counter(), ' | ', progressbar.Timer()]).start()
+            log_progress('Computing acoustic model predictions...')
 
             step_count = 0
 
@@ -121,9 +121,9 @@ def evaluate(test_csvs, create_model, try_loading):
 
             predictions = []
 
-            bar = progressbar.ProgressBar(max_value=step_count,
-                                          prefix='Decoding predictions | ',
-                                          fd=sys.stdout).start()
+            bar = create_progressbar(max_value=step_count,
+                                     prefix='Decoding predictions | ').start()
+            log_progress('Decoding predictions...')
 
             # Second pass, decode logits and compute WER and edit distance metrics
             for logits, seq_length in bar(zip(logitses, seq_lengths)):
