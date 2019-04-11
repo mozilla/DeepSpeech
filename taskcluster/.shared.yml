@@ -6,6 +6,9 @@ python:
   brew:
     setup: 'install_local_homebrew "python-ds-test" && install_pkg_local_homebrew "sox" && install_pkg_local_homebrew "readline" && install_pkg_local_homebrew "openssl" && install_pkg_local_homebrew "pkg-config"'
     env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/python-ds-test.brew/bin/:$PATH"'
+electronjs:
+  packages_xenial:
+    apt: 'libatk1.0-0 libatk-bridge2.0-0 libcairo2 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 xvfb'
 nodejs:
   packages_trusty:
     apt: 'nodejs sox'
