@@ -16,23 +16,20 @@ Now we can build the native client of DeepSpeech and run inference on Windows us
     - [Build for CPU](#cpu)
     - [Build with CUDA support](#gpu-with-cuda)
 - [Using the generated library](#using-the-generated-library)
+
 ## Prerequisites
 
-* [Python 3.6](https://www.python.org/)
-* [Git Large File Storage](https://git-lfs.github.com/)
-* [MSYS2(x86_64)](https://www.msys2.org/)
-* [Bazel v0.17.2](https://github.com/bazelbuild/bazel/releases)
-* [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 * Windows 10
+* [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 * [Visual Studio 2017 Community](https://visualstudio.microsoft.com/vs/community/) 
+* [Git Large File Storage](https://git-lfs.github.com/)
+* [TensorFlow Windows pre-requisites](https://www.tensorflow.org/install/source_windows)
 
 Inside the Visual Studio Installer enable `MS Build Tools` and `VC++ 2015.3 v14.00 (v140) toolset for desktop`.
 
-If you want to enable CUDA support you need to install:
+If you want to enable CUDA support you need to follow the steps in [the TensorFlow docs for building on Windows with CUDA](https://www.tensorflow.org/install/gpu#windows_setup).
 
-* [CUDA 9.0 and cuDNN 7.3.1](https://developer.nvidia.com/cuda-90-download-archive) 
-
-It may compile with other versions, as we don't extensively test other versions, we highly recommend sticking to the recommended versions in order to avoid compilation errors caused by incompatible versions.
+We highly recommend sticking to the recommended versions of CUDA/cuDNN in order to avoid compilation errors caused by incompatible versions. We only test with the versions recommended by TensorFlow.
 
 ## Getting the code
 
@@ -43,7 +40,7 @@ git clone https://github.com/mozilla/DeepSpeech
 ```
 
 ```bash
-git clone https://github.com/mozilla/tensorflow
+git clone --branch r1.13 https://github.com/mozilla/tensorflow
 ```
 
 ## Configuring the paths
@@ -73,13 +70,7 @@ For MSYS2 we need to add `bin` directory, if you installed in the default route 
 
 ```bash
 pacman -Syu
-```
-
-```bash
 pacman -Su
-```
-
-```bash
 pacman -S patch unzip
 ```
 
@@ -103,7 +94,7 @@ Add your `python.exe` path to the `PATH` variable.
 If you run CUDA enabled `native_client` we need to add the following to the `PATH` variable.
 
 ```
-C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\bin
+C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\bin
 ```
 
 ### Building the native_client
@@ -131,4 +122,4 @@ Be patient, if you enabled AVX/AVX2 and CUDA it will take a long time. Finally y
 
 ## Using the generated library
 
-As for now we can only use the generated `libdeepspeech.so` with the C# clients, go to [DeepSpeech/examples/net_framework/CSharpExamples/](https://github.com/mozilla/DeepSpeech/tree/master/examples/net_framework/CSharpExamples) in your DeepSpeech directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy `libdeepspeech.so` to the generated `x64/Debug` or `x64/Release` directory.
+As for now we can only use the generated `libdeepspeech.so` with the C# clients, go to [native_client/dotnet/](https://github.com/mozilla/DeepSpeech/tree/master/native_client/dotnet) in your DeepSpeech directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy `libdeepspeech.so` to the generated `x64/Debug` or `x64/Release` directory.
