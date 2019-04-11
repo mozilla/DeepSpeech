@@ -367,7 +367,7 @@ def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               cache_path=FLAGS.train_cached_features_path)
+                               cache_path=FLAGS.feature_cache)
 
     iterator = tf.data.Iterator.from_structure(train_set.output_types,
                                                train_set.output_shapes,
