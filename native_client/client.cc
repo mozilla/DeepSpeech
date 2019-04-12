@@ -269,7 +269,7 @@ WordsFromMetadata(Metadata* metadata)
 
     // Append character to word if it's not a space
     if (strcmp(item.character, " ") != 0 
-        || strcmp(item.character, u8"　") != 0) {
+        && strcmp(item.character, u8"　") != 0) {
       word.append(item.character);
     }
 
