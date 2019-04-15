@@ -53,7 +53,7 @@ def convert_samplerate(audio_path):
 def metadata_to_string(metadata):
     retval = ''
     for item in range(metadata.num_items):
-       retval += metadata.items[item].character
+        retval += metadata.items[item].character
     return retval
 
 
