@@ -51,7 +51,7 @@ struct meta_word {
 };
 
 std::vector<meta_word> WordsFromMetadata(Metadata* metadata);
-char* CSVOutput(std::vector<meta_word> words);
+char* JSONOutput(Metadata* metadata);
 
 ds_result
 LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
@@ -63,7 +63,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
 
   if (extended_output) {
     Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
-    res.string = CSVOutput(WordsFromMetadata(metadata));
+    res.string = JSONOutput(metadata);
     DS_FreeMetadata(metadata);
   } else {
     res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
@@ -305,15 +305,24 @@ WordsFromMetadata(Metadata* metadata)
 }
 
 char* 
-CSVOutput(std::vector<meta_word> words)
+JSONOutput(Metadata* metadata)
 {
+  std::vector<meta_word> words = WordsFromMetadata(metadata);
+
   std::ostringstream out_string;
+  out_string << "{\"metadata\":{\"confidence\":" << std::to_string(metadata->probability) << "},\"words\":[";
 
   for (int i = 0; i < words.size(); i++) {
-    meta_word w = words[i];  
-    out_string << w.word << "," << std::to_string(w.start_time) << "," << std::to_string(w.duration) << "\n";
+    meta_word w = words[i];
+    out_string << "{\"word\":\"" << w.word << "\", \"time\":" << std::to_string(w.start_time) << ", \"duration\":" << std::to_string(w.duration) << "}";
+
+    if (i < words.size() - 1) {
+      out_string << ",";
+    }
   }
   
+  out_string << "]}";
+
   return strdup(out_string.str().c_str());
 }
 
