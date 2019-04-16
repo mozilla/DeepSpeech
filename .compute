@@ -55,8 +55,6 @@ pushd ../src/native_client/ctcdecode
   make NUM_PROCESSES=`nproc`
   pip install dist/*.whl
 popd
-
-mkdir -p /dotdot/keep/summaries
     
 data="${SHARED_DIR}/data"
 CV="${data}/mozilla/CommonVoice/v2.0/en/clips"
@@ -64,23 +62,26 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
-       # --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv" \
-       # --dev_files "${lbs}-dev-clean-${bytes}.csv","${lbs}-dev-other-${bytes}.csv"\
 
+mkdir -p "/tmp/cached_feats"
+mkdir -p "../keep/summaries"
 
 python -u DeepSpeech.py \
-       --train_files "${lbs}-train-clean-100-${bytes}.csv" \
-       --dev_files "${lbs}-dev-clean-${bytes}.csv"\
+       --train_files "${fis}-train-${bytes}.csv","${swb}-train-${bytes}.csv","${lbs}-train-clean-100-${bytes}.csv","${lbs}-train-clean-360-${bytes}.csv","${lbs}-train-other-500-${bytes}.csv" \
+       --dev_files "${lbs}-dev-clean-${bytes}.csv","${lbs}-dev-other-${bytes}.csv"\
        --test_files "${lbs}-test-clean-${bytes}.csv" \
+       --train_cached_features_path "/tmp/cached_feats/train" \
+       --dev_cached_features_path "/tmp/cached_feats/dev" \
+       --test_cached_features_path "/tmp/cached_feats/test" \
        --lm_binary_path "/data/rw/home/en/lm-${bytes}.binary" \
        --lm_trie_path "/data/rw/home/en/trie_utf8-${bytes}" \
        --train_batch_size 24 \
        --dev_batch_size 48 \
        --test_batch_size 48 \
-       --n_hidden 1024 \
+       --n_hidden 2048 \
        --learning_rate 0.0001 \
        --dropout_rate 0.2 \
-       --epochs 100 \
+       --epochs 30 \
        --noearly_stop \
-       --checkpoint_dir "/dotdot/keep" \
-       --summary_dir "/dotdot/keep/summaries"
+       --checkpoint_dir "../keep" \
+       --summary_dir "../keep/summaries"
