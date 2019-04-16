@@ -41,21 +41,26 @@ bytes="${num_bytes}-bytes"
 ## GENERATE TRIE
 # ${USER_DIR}/utf8/generate_trie unused_param_inlieuof_alphabet "/data/rw/home/en/lm.binary" "/data/rw/home/en/trie_utf8"
 
-apt-get install -y python3-venv swig
+# apt-get install -y python3-venv swig
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 
 pip install wheel
 pip install -r <(grep -v tensorflow requirements.txt)
-pip install tensorflow-gpu==1.13.1
+# pip install tensorflow-gpu==1.13.1
+echo "INSTALL TF NO GPU"
+pip install tensorflow
 
 echo "COMPILE AND INSTALL CTC DECODER"
-pushd ../src/native_client/ctcdecode
+# pushd ../src/native_client/ctcdecode
+pushd native_client/ctcdecode
   make clean
   make NUM_PROCESSES=`nproc`
   pip install dist/*.whl
 popd
-    
+
+exit
+
 data="${SHARED_DIR}/data"
 CV="${data}/mozilla/CommonVoice/v2.0/en/clips"
 fis="${data}/LDC/fisher"
