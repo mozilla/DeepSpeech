@@ -92,7 +92,9 @@ def create_flags():
     # Geometry
 
     tf.app.flags.DEFINE_integer ('n_hidden',         2048,        'layer width to use when initialising layers')
-
+    tf.app.flags.DEFINE_integer('n_layers', 1, 'number of recurrent layers')
+    tf.app.flags.DEFINE_string('rnn_cell', 'lstm', 'recurrent cell type, "lstm" or "gru"')
+    
     # Initialization
 
     tf.app.flags.DEFINE_integer ('random_seed',      4568,        'default random seed that is used to initialize variables')
@@ -116,4 +118,3 @@ def create_flags():
     # Inference mode
 
     tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
-

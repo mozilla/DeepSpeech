@@ -76,6 +76,32 @@ def dense(name, x, units, dropout_rate=None, relu=True):
     return output
 
 
+def rnn_impl_dynamic_rnn(x, seq_length, previous_state, reuse):
+    '''
+    NEW RNN for dynamic implementation
+    '''
+    if FLAGS.rnn_cell == 'lstm':
+        cell_type = tf.contrib.rnn.LSTMBlockCell
+    elif FLAGS.rnn_cell == 'gru':
+        cell_type = tf.contrib.rnn.GRUBlockCell
+    else:
+        log_error('Invalid RNN cell type: {}'.format(FLAGS.rnn_cell))
+
+    # Forward direction cell:
+    def cell():
+        return cell_type(Config.n_cell_dim, reuse=reuse)
+    fw_cell = tf.nn.rnn_cell.MultiRNNCell([cell() for _ in range(FLAGS.n_layers)])
+
+    output, output_state = tf.nn.dynamic_rnn(cell=fw_cell,
+                                             inputs=x,
+                                             sequence_length=seq_length,
+                                             initial_state=previous_state,
+                                             dtype=tf.float32,
+                                             time_major=True)
+
+    return output, output_state
+
+
 def rnn_impl_lstmblockfusedcell(x, seq_length, previous_state, reuse):
     # Forward direction cell:
     fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim, reuse=reuse)
@@ -107,7 +133,7 @@ def rnn_impl_static_rnn(x, seq_length, previous_state, reuse):
     return output, output_state
 
 
-def create_model(batch_x, seq_length, dropout, reuse=False, previous_state=None, overlap=True, rnn_impl=rnn_impl_lstmblockfusedcell):
+def create_model(batch_x, seq_length, dropout, reuse=False, previous_state=None, overlap=True, rnn_impl=rnn_impl_dynamic_rnn):
     layers = {}
 
     # Input shape: [batch_size, n_steps, n_input + 2*n_input*n_context]
@@ -587,7 +613,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     if tflite:
         rnn_impl = rnn_impl_static_rnn
     else:
-        rnn_impl = rnn_impl_lstmblockfusedcell
+        rnn_impl = rnn_impl_dynamic_rnn
 
     logits, layers = create_model(batch_x=input_tensor,
                                   seq_length=seq_length if FLAGS.use_seq_length else None,
