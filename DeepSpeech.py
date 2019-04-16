@@ -14,6 +14,7 @@ import progressbar
 import shutil
 import tensorflow as tf
 
+from datetime import datetime
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from evaluate import evaluate
 from six.moves import zip, range
@@ -21,7 +22,7 @@ from tensorflow.python.tools import freeze_graph
 from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
-from util.logging import log_info, log_error, log_debug
+from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 
 
 # Graph Creation
@@ -366,7 +367,7 @@ def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               cache_path=FLAGS.train_cached_features_path)
+                               cache_path=FLAGS.feature_cache)
 
     iterator = tf.data.Iterator.from_structure(train_set.output_types,
                                                train_set.output_shapes,
@@ -376,10 +377,9 @@ def train():
     train_init_op = iterator.make_initializer(train_set)
 
     if FLAGS.dev_files:
-        dev_set = create_dataset(FLAGS.dev_files.split(','),
-                                 batch_size=FLAGS.dev_batch_size,
-                                 cache_path=FLAGS.dev_cached_features_path)
-        dev_init_op = iterator.make_initializer(dev_set)
+        dev_csvs = FLAGS.dev_files.split(',')
+        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size) for csv in dev_csvs]
+        dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
     dropout_rates = [tf.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
@@ -445,7 +445,7 @@ def train():
                           ' - consider using load option "auto" or "init".' % FLAGS.load)
                 sys.exit(1)
 
-        def run_set(set_name, init_op):
+        def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
             train_op = apply_gradient_op if is_train else []
             feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
@@ -456,6 +456,7 @@ def train():
             step_summary_writer = step_summary_writers.get(set_name)
             checkpoint_time = time.time()
 
+            # Setup progress bar
             class LossWidget(progressbar.widgets.FormatLabel):
                 def __init__(self):
                     progressbar.widgets.FormatLabel.__init__(self, format='Loss: %(mean_loss)f')
@@ -464,12 +465,12 @@ def train():
                     data['mean_loss'] = total_loss / step_count if step_count else 0.0
                     return progressbar.widgets.FormatLabel.__call__(self, progress, data, **kwargs)
 
-            if FLAGS.show_progressbar:
-                pbar = progressbar.ProgressBar(widgets=['Epoch {}'.format(epoch),
-                                                        ' | ', progressbar.widgets.Timer(),
-                                                        ' | Steps: ', progressbar.widgets.Counter(),
-                                                        ' | ', LossWidget()])
-                pbar.start()
+            prefix = 'Epoch {} | {:>10}'.format(epoch, 'Training' if is_train else 'Validation')
+            widgets = [' | ', progressbar.widgets.Timer(),
+                       ' | Steps: ', progressbar.widgets.Counter(),
+                       ' | ', LossWidget()]
+            suffix = ' | Dataset: {}'.format(dataset) if dataset else None
+            pbar = create_progressbar(prefix=prefix, widgets=widgets, suffix=suffix).start()
 
             # Initialize iterator to the appropriate dataset
             session.run(init_op)
@@ -486,8 +487,7 @@ def train():
                 total_loss += batch_loss
                 step_count += 1
 
-                if FLAGS.show_progressbar:
-                    pbar.update(step_count)
+                pbar.update(step_count)
 
                 step_summary_writer.add_summary(step_summary, current_step)
 
@@ -495,31 +495,34 @@ def train():
                     checkpoint_saver.save(session, checkpoint_path, global_step=current_step)
                     checkpoint_time = time.time()
 
-            if FLAGS.show_progressbar:
-                pbar.finish()
-
-            return total_loss / step_count
+            pbar.finish()
+            mean_loss = total_loss / step_count if step_count > 0 else 0.0
+            return mean_loss, step_count
 
         log_info('STARTING Optimization')
+        train_start_time = datetime.utcnow()
         best_dev_loss = float('inf')
         dev_losses = []
         try:
             for epoch in range(FLAGS.epochs):
                 # Training
-                if not FLAGS.show_progressbar:
-                    log_info('Training epoch %d...' % epoch)
-                train_loss = run_set('train', train_init_op)
-                if not FLAGS.show_progressbar:
-                    log_info('Finished training epoch %d - loss: %f' % (epoch, train_loss))
+                log_progress('Training epoch %d...' % epoch)
+                train_loss, _ = run_set('train', epoch, train_init_op)
+                log_progress('Finished training epoch %d - loss: %f' % (epoch, train_loss))
                 checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
 
                 if FLAGS.dev_files:
                     # Validation
-                    if not FLAGS.show_progressbar:
-                        log_info('Validating epoch %d...' % epoch)
-                    dev_loss = run_set('dev', dev_init_op)
-                    if not FLAGS.show_progressbar:
-                        log_info('Finished validating epoch %d - loss: %f' % (epoch, dev_loss))
+                    dev_loss = 0.0
+                    total_steps = 0
+                    for csv, init_op in zip(dev_csvs, dev_init_ops):
+                        log_progress('Validating epoch %d on %s...' % (epoch, csv))
+                        set_loss, steps = run_set('dev', epoch, init_op, dataset=csv)
+                        dev_loss += set_loss * steps
+                        total_steps += steps
+                        log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, csv, set_loss))
+                    dev_loss = dev_loss / total_steps
+
                     dev_losses.append(dev_loss)
 
                     if dev_loss < best_dev_loss:
@@ -543,6 +546,7 @@ def train():
                             break
         except KeyboardInterrupt:
             pass
+        log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
     log_debug('Session closed.')
 
 
