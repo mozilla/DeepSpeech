@@ -84,7 +84,7 @@ ln -s ../DeepSpeech/native_client ./
 
 Next, you will need to prepare your environment to configure and build TensorFlow. Clone from `https://github.com/mozilla/tensorflow`, and then (preferably) checkout the version of `tensorflow` which is currently supported by DeepSpeech (see requirements.txt), and use the `bazel` version recommended by TensorFlow for that version. Follow the [instructions](https://www.tensorflow.org/install/install_sources) on the TensorFlow site for your platform, up to the end of ["Configure the Build"](https://www.tensorflow.org/install/source#configure_the_build).
 
-After that, you can build the Tensorflow and DeepSpeech libraries using the following command.
+After that, you can build the main DeepSpeech library, `libdeepspeech.so`, as well as the `generate_trie` binary using the following command:
 
 ```
 bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie

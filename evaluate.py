@@ -5,135 +5,105 @@ from __future__ import absolute_import, division, print_function
 import itertools
 import json
 import numpy as np
-import os
-import pandas
 import progressbar
-import sys
-import tables
 import tensorflow as tf
 
-from collections import namedtuple
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count
 from six.moves import zip, range
-from util.audio import audiofile_to_input_vector
 from util.config import Config, initialize_globals
+from util.evaluate_tools import calculate_report
+from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
 from util.logging import log_error
-from util.preprocess import preprocess
-from util.text import Alphabet, levenshtein
-from util.evaluate_tools import process_decode_result, calculate_report
-
-def split_data(dataset, batch_size):
-    remainder = len(dataset) % batch_size
-    if remainder != 0:
-        dataset = dataset[:-remainder]
-
-    for i in range(0, len(dataset), batch_size):
-        yield dataset[i:i + batch_size]
 
 
-def pad_to_dense(jagged):
-    maxlen = max(len(r) for r in jagged)
-    subshape = jagged[0].shape
-
-    padded = np.zeros((len(jagged), maxlen) +
-                      subshape[1:], dtype=jagged[0].dtype)
-    for i, row in enumerate(jagged):
-        padded[i, :len(row)] = row
-    return padded
+def sparse_tensor_value_to_texts(value):
+    r"""
+    Given a :class:`tf.SparseTensor` ``value``, return an array of Python strings
+    representing its values, converting tokens to strings.
+    """
+    return sparse_tuple_to_texts((value.indices, value.values, value.dense_shape))
 
 
-def evaluate(test_data, inference_graph):
+def sparse_tuple_to_texts(tuple):
+    indices, values, shape = tuple
+    results = [bytearray() for _ in range(shape[0])]
+    for i in range(len(indices)):
+        index = indices[i][0]
+        results[index].append(values[i])
+    # List of strings
+    return [res.decode('utf-8', 'replace') for res in results]
+
+
+def evaluate(test_csvs, create_model, try_loading):
     scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                     FLAGS.lm_binary_path, FLAGS.lm_trie_path,
                     Config.alphabet)
 
+    test_set = create_dataset(test_csvs,
+                              batch_size=FLAGS.test_batch_size,
+                              cache_path=FLAGS.test_cached_features_path)
+    it = test_set.make_one_shot_iterator()
 
-    def create_windows(features):
-        num_strides = len(features) - (Config.n_context * 2)
+    (batch_x, batch_x_len), batch_y = it.get_next()
 
-        # Create a view into the array with overlapping strides of size
-        # numcontext (past) + 1 (present) + numcontext (future)
-        window_size = 2*Config.n_context+1
-        features = np.lib.stride_tricks.as_strided(
-            features,
-            (num_strides, window_size, Config.n_input),
-            (features.strides[0], features.strides[0], features.strides[1]),
-            writeable=False)
+    # One rate per layer
+    no_dropout = [None] * 6
+    logits, _ = create_model(batch_x=batch_x,
+                             seq_length=batch_x_len,
+                             dropout=no_dropout)
 
-        return features
+    # Transpose to batch major and apply softmax for decoder
+    transposed = tf.nn.softmax(tf.transpose(logits, [1, 0, 2]))
 
-    # Create overlapping windows over the features
-    test_data['features'] = test_data['features'].apply(create_windows)
+    loss = tf.nn.ctc_loss(labels=batch_y,
+                          inputs=logits,
+                          sequence_length=batch_x_len,
+                          ignore_longer_outputs_than_inputs=True)
+
+    global_step = tf.train.get_or_create_global_step()
 
     with tf.Session(config=Config.session_config) as session:
-        inputs, outputs, layers = inference_graph
-
-        # Transpose to batch major for decoder
-        transposed = tf.transpose(outputs['outputs'], [1, 0, 2])
-
-        labels_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size, None], name="labels")
-        label_lengths_ph = tf.placeholder(tf.int32, [FLAGS.test_batch_size], name="label_lengths")
-
-        # We add 1 to all elements of the transcript to avoid any zero values
-        # since we use that as an end-of-sequence token for converting the batch
-        # into a SparseTensor. So here we convert the placeholder back into a
-        # SparseTensor and subtract ones to get the real labels.
-        sparse_labels = tf.contrib.layers.dense_to_sparse(labels_ph)
-        neg_ones = tf.SparseTensor(sparse_labels.indices, -1 * tf.ones_like(sparse_labels.values), sparse_labels.dense_shape)
-        sparse_labels = tf.sparse_add(sparse_labels, neg_ones)
-
-        loss = tf.nn.ctc_loss(labels=sparse_labels,
-                              inputs=layers['raw_logits'],
-                              sequence_length=inputs['input_lengths'])
-
         # Create a saver using variables from the above newly created graph
-        mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
-        saver = tf.train.Saver(mapping)
+        saver = tf.train.Saver()
 
         # Restore variables from training checkpoint
-        checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
-        if not checkpoint:
+        loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
+        if not loaded:
+            loaded = try_loading(session, saver, 'checkpoint', 'most recent')
+        if not loaded:
             log_error('Checkpoint directory ({}) does not contain a valid checkpoint state.'.format(FLAGS.checkpoint_dir))
             exit(1)
 
-        checkpoint_path = checkpoint.model_checkpoint_path
-        saver.restore(session, checkpoint_path)
-
         logitses = []
         losses = []
+        seq_lengths = []
+        ground_truths = []
 
         print('Computing acoustic model predictions...')
-        batch_count = len(test_data) // FLAGS.test_batch_size
-        bar = progressbar.ProgressBar(max_value=batch_count,
-                                      widget=progressbar.AdaptiveETA)
+        bar = progressbar.ProgressBar(widgets=['Steps: ', progressbar.Counter(), ' | ', progressbar.Timer()])
+
+        step_count = 0
 
         # First pass, compute losses and transposed logits for decoding
-        for batch in bar(split_data(test_data, FLAGS.test_batch_size)):
-            session.run(outputs['initialize_state'])
+        while True:
+            try:
+                logits, loss_, lengths, transcripts = session.run([transposed, loss, batch_x_len, batch_y])
+            except tf.errors.OutOfRangeError:
+                break
 
-            features = pad_to_dense(batch['features'].values)
-            features_len = batch['features_len'].values
-            labels = pad_to_dense(batch['transcript'].values + 1)
-            label_lengths = batch['transcript_len'].values
-
-            logits, loss_ = session.run([transposed, loss], feed_dict={
-                inputs['input']: features,
-                inputs['input_lengths']: features_len,
-                labels_ph: labels,
-                label_lengths_ph: label_lengths
-            })
+            step_count += 1
+            bar.update(step_count)
 
             logitses.append(logits)
             losses.extend(loss_)
+            seq_lengths.append(lengths)
+            ground_truths.extend(sparse_tensor_value_to_texts(transcripts))
 
-    ground_truths = []
+    bar.finish()
+
     predictions = []
-
-    print('Decoding predictions...')
-    bar = progressbar.ProgressBar(max_value=batch_count,
-                                  widget=progressbar.AdaptiveETA)
 
     # Get number of accessible CPU cores for this process
     try:
@@ -141,19 +111,20 @@ def evaluate(test_data, inference_graph):
     except:
         num_processes = 1
 
-    # Second pass, decode logits and compute WER and edit distance metrics
-    for logits, batch in bar(zip(logitses, split_data(test_data, FLAGS.test_batch_size))):
-        seq_lengths = batch['features_len'].values.astype(np.int32)
-        decoded = ctc_beam_search_decoder_batch(logits, seq_lengths, Config.alphabet, FLAGS.beam_width,
-                                                num_processes=num_processes, scorer=scorer)
+    print('Decoding predictions...')
+    bar = progressbar.ProgressBar(max_value=step_count,
+                                  widget=progressbar.AdaptiveETA)
 
+    # Second pass, decode logits and compute WER and edit distance metrics
+    for logits, seq_length in bar(zip(logitses, seq_lengths)):
+        decoded = ctc_beam_search_decoder_batch(logits, seq_length, Config.alphabet, FLAGS.beam_width,
+                                                num_processes=num_processes, scorer=scorer)
         # ground_truths.extend(Config.alphabet.decode(l) for l in batch['transcript'])
         ground_truths.extend(Config.alphabet.decode(l.astype(np.uint8)) for l in batch['transcript'])
+
         predictions.extend(d[0][1] for d in decoded)
 
-    distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
-
-    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
+    wer, cer, samples = calculate_report(ground_truths, predictions, losses)
     mean_loss = np.mean(losses)
 
     # Take only the first report_count items
@@ -164,7 +135,7 @@ def evaluate(test_data, inference_graph):
     print('-' * 80)
     for sample in report_samples:
         print('WER: %f, CER: %f, loss: %f' %
-              (sample.wer, sample.distance, sample.loss))
+              (sample.wer, sample.cer, sample.loss))
         print(' - src: "%s"' % sample.src)
         print(' - res: "%s"' % sample.res)
         print('-' * 80)
@@ -180,21 +151,8 @@ def main(_):
                   'the --test_files flag.')
         exit(1)
 
-    # sort examples by length, improves packing of batches and timesteps
-    test_data = preprocess(
-        FLAGS.test_files.split(','),
-        FLAGS.test_batch_size,
-        alphabet=Config.alphabet,
-        numcep=Config.n_input,
-        numcontext=Config.n_context,
-        hdf5_cache_path=FLAGS.hdf5_test_set).sort_values(
-        by="features_len",
-        ascending=False)
-
-    from DeepSpeech import create_inference_graph
-    graph = create_inference_graph(batch_size=FLAGS.test_batch_size, n_steps=-1)
-
-    samples = evaluate(test_data, graph)
+    from DeepSpeech import create_model, try_loading
+    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
 
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
@@ -203,6 +161,5 @@ def main(_):
 
 if __name__ == '__main__':
     create_flags()
-    tf.app.flags.DEFINE_string('hdf5_test_set', '', 'path to hdf5 file to cache test set features')
     tf.app.flags.DEFINE_string('test_output_file', '', 'path to a file to save all src/decoded/distance/loss tuples')
     tf.app.run(main)

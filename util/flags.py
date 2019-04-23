@@ -21,12 +21,14 @@ def create_flags():
     tf.app.flags.DEFINE_string  ('dev_cached_features_path',        '',          'comma separated list of files specifying the dataset used for validation. multiple files will get merged')
     tf.app.flags.DEFINE_string  ('test_cached_features_path',       '',          'comma separated list of files specifying the dataset used for testing. multiple files will get merged')
 
+    tf.app.flags.DEFINE_integer ('feature_win_len',  32,          'feature extraction audio window length in milliseconds')
+    tf.app.flags.DEFINE_integer ('feature_win_step', 20,          'feature extraction window step length in milliseconds')
+    tf.app.flags.DEFINE_integer ('audio_sample_rate',16000,       'sample rate value expected by model')
+
     # Global Constants
     # ================
 
-    tf.app.flags.DEFINE_boolean ('train',            True,        'whether to train the network')
-    tf.app.flags.DEFINE_boolean ('test',             True,        'whether to test the network')
-    tf.app.flags.DEFINE_integer ('epoch',            75,          'target epoch to train - if negative, the absolute number of additional epochs will be trained')
+    tf.app.flags.DEFINE_integer ('epochs',           75,          'how many epochs (complete runs through the train files) to train for')
 
     tf.app.flags.DEFINE_float   ('dropout_rate',     0.05,        'dropout rate for feedforward layers')
     tf.app.flags.DEFINE_float   ('dropout_rate2',    -1.0,        'dropout rate for layer 2 - defaults to dropout_rate')
@@ -78,6 +80,7 @@ def create_flags():
     tf.app.flags.DEFINE_boolean ('export_tflite',    False,       'export a graph ready for TF Lite engine')
     tf.app.flags.DEFINE_boolean ('use_seq_length',   True,        'have sequence_length in the exported graph (will make tfcompile unhappy)')
     tf.app.flags.DEFINE_integer ('n_steps',          16,          'how many timesteps to process at once by the export graph, higher values mean more latency')
+    tf.app.flags.DEFINE_string  ('export_language',  '',          'language the model was trained on e.g. "en" or "English". Gets embedded into exported model.')
 
     # Reporting
 
@@ -99,7 +102,7 @@ def create_flags():
 
     # Early Stopping
 
-    tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset')
+    tf.app.flags.DEFINE_boolean ('early_stop',       True,        'enable early stopping mechanism over validation dataset. If validation is not being run, early stopping is disabled.')
     tf.app.flags.DEFINE_integer ('es_steps',         4,           'number of validations to consider for early stopping. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
     tf.app.flags.DEFINE_float   ('es_mean_th',       0.5,         'mean threshold for loss to determine the condition if early stopping is required')
     tf.app.flags.DEFINE_float   ('es_std_th',        0.5,         'standard deviation threshold for loss to determine the condition if early stopping is required')
@@ -115,5 +118,5 @@ def create_flags():
 
     # Inference mode
 
-    tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it. Disables training, testing and exporting.')
+    tf.app.flags.DEFINE_string  ('one_shot_infer',       '',       'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
 

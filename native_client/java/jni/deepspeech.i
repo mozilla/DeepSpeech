@@ -15,6 +15,11 @@
 %pointer_functions(ModelState*, modelstatep);
 %pointer_functions(StreamingState*, streamingstatep);
 
+%typemap(newfree) char* "DS_FreeString($1);";
+%newobject DS_SpeechToText;
+%newobject DS_IntermediateDecode;
+%newobject DS_FinishStream;
+
 %rename ("%(strip:[DS_])s") "";
 
 %include "../deepspeech.h"

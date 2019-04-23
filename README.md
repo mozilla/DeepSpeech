@@ -33,10 +33,11 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
 - [Getting the pre-trained model](#getting-the-pre-trained-model)
-- [CUDA dependency](#cuda-dependency)
 - [Using the model](#using-the-model)
+  - [CUDA dependency](#cuda-dependency)
+  - [Model compatibility](#model-compatibility)
   - [Using the Python package](#using-the-python-package)
-  - [Using the command line client](#using-the-command-line-client)
+  - [Using the command-line client](#using-the-command-line-client)
   - [Using the Node.JS package](#using-the-nodejs-package)
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
@@ -48,6 +49,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Checkpointing](#checkpointing)
   - [Exporting a model for inference](#exporting-a-model-for-inference)
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
+  - [Making a mmap-able model for inference](#making-a-mmap-able-model-for-inference)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
 - [Contact/Getting Help](#contactgetting-help)
 
@@ -87,6 +89,10 @@ There are three ways to use DeepSpeech inference:
 ### CUDA dependency
 
 The GPU capable builds (Python, NodeJS, C++ etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow r1.12 it depends on CUDA 9.0 and CuDNN v7.2.
+
+### Model compatibility
+
+DeepSpeech models are versioned to keep you from trying to use an incompatible graph with a newer client after a breaking change was made to the code. If you get an error saying your model file version is too old for the client, you should either upgrade to a newer model release, re-export your model from the checkpoint using a newer version of the code, or downgrade your client if you need to use the old model and can't re-export it.
 
 ### Using the Python package
 
@@ -251,46 +257,35 @@ Please ensure you have the required [CUDA dependency](#cuda-dependency).
 ### Common Voice training data
 
 The Common Voice corpus consists of voice samples that were donated through Mozilla's [Common Voice](https://voice.mozilla.org/) Initiative.
+You can download individual CommonVoice v2.0 language data sets from [here](https://voice.mozilla.org/data).
+After extraction of such a data set, you'll find the following contents:
+ - the `*.tsv` files output by CorporaCreator for the downloaded language
+ - the mp3 audio files they reference in a `clips` sub-directory.
 
-We provide an importer (`bin/import_cv.py`) which automates downloading and preparing the Common Voice corpus as such:
+For bringing this data into a form that DeepSpeech understands, you have to run the CommonVoice v2.0 importer (`bin/import_cv2.py`):
 
 ```bash
-bin/import_cv.py path/to/target/directory
+bin/import_cv2.py --filter_alphabet path/to/some/alphabet.txt /path/to/extracted/language/archive
 ```
 
-If you already downloaded Common Voice from [here](https://voice.mozilla.org/data), simply run `bin/import_cv.py` on the directory where the corpus is located. The importer will detect that you've already downloaded the data and immediately proceed to unpackaging and importing. If you haven't downloaded the data already, `bin/import_cv.py` will download it for you and save to the path you've specified.
+Providing a filter alphabet is optional. It will exclude all samples whose transcripts contain characters not in the specified alphabet. 
+Running the importer with `-h` will show you some additional options.
 
-Please be aware that training with the Common Voice corpus archive requires at least 70GB of free disk space and quite some time to conclude. As this process creates a huge number of small files, using an SSD drive is highly recommended. If the import script gets interrupted, it will try to continue from where it stopped the next time you run it. Unfortunately, there are some cases where it will need to start over. Once the import is done, the directory will contain a bunch of CSV files.
+Once the import is done, the `clips` sub-directory will contain for each required `.mp3` an additional `.wav` file.
+It will also add the following `.csv` files:
 
-The following files are official user-validated sets for training, validating and testing:
+- `clips/train.csv`
+- `clips/dev.csv`
+- `clips/test.csv`
 
-- `cv-valid-train.csv`
-- `cv-valid-dev.csv`
-- `cv-valid-test.csv`
-
-The following files are the non-validated unofficial sets for training, validating and testing:
-
-- `cv-other-train.csv`
-- `cv-other-dev.csv`
-- `cv-other-test.csv`
-
-`cv-invalid.csv` contains all samples that users flagged as invalid.
-
-A sub-directory called `cv_corpus_{version}` contains the mp3 and wav files that were extracted from an archive named `cv_corpus_{version}.tar.gz`.
-All entries in the CSV files refer to their samples by absolute paths. So moving this sub-directory would require another import or tweaking the CSV files accordingly.
+All entries in these CSV files refer to their samples by absolute paths. So moving this sub-directory would require another import or tweaking the CSV files accordingly.
 
 To use Common Voice data during training, validation and testing, you pass (comma separated combinations of) their filenames into `--train_files`, `--dev_files`, `--test_files` parameters of `DeepSpeech.py`.
 
-If, for example, Common Voice was imported into `../data/CV`, `DeepSpeech.py` could be called like this:
+If, for example, Common Voice language `en` was extracted to `../data/CV/en/`, `DeepSpeech.py` could be called like this:
 
 ```bash
-./DeepSpeech.py --train_files ../data/CV/cv-valid-train.csv --dev_files ../data/CV/cv-valid-dev.csv --test_files ../data/CV/cv-valid-test.csv
-```
-
-If you are brave enough, you can also include the `other` dataset, which contains not-yet-validated content:
-
-```bash
-./DeepSpeech.py --train_files ../data/CV/cv-valid-train.csv,../data/CV/cv-other-train.csv --dev_files ../data/CV/cv-valid-dev.csv --test_files ../data/CV/cv-valid-test.csv
+./DeepSpeech.py --train_files ../data/CV/en/clips/train.csv --dev_files ../data/CV/en/clips/dev.csv --test_files ../data/CV/en/clips/test.csv
 ```
 
 ### Training a model
@@ -334,7 +329,7 @@ Refer to the corresponding [README.md](native_client/README.md) for information 
 
 ### Exporting a model for TFLite
 
-If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the `--export_tflite` flag. If you already have a trained model, you can re-export it for TFLite by running `DeepSpeech.py` again and specifying the same `checkpoint_dir` that you used for training, as well as passing `--notrain --notest --export_tflite --export_dir /model/export/destination`.
+If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the `--nouse_seq_length --export_tflite` flags. If you already have a trained model, you can re-export it for TFLite by running `DeepSpeech.py` again and specifying the same `checkpoint_dir` that you used for training, as well as passing `--nouse_seq_length --export_tflite --export_dir /model/export/destination`.
 
 ### Making a mmap-able model for inference
 
@@ -359,10 +354,10 @@ For example, if you want to fine tune the entire graph using your own data in `m
 
 ```bash
 mkdir fine_tuning_checkpoints
-python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder --epoch -3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
+python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder --epochs 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
 ```
 
-Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models. Note as well the use of a negative epoch count -3 (meaning 3 more epochs) since the checkpoint you're loading from was already trained for several epochs.
+Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
 
 ## Contact/Getting Help
 

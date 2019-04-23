@@ -16,6 +16,10 @@ cp ${DS_ROOT_TASK}/DeepSpeech/ds/examples/net_framework/CSharpExamples/*.nupkg $
 
 cp ${DS_ROOT_TASK}/DeepSpeech/ds/examples/net_framework/CSharpExamples/DeepSpeechConsole/bin/x64/Release/DeepSpeechConsole.exe ${TASKCLUSTER_ARTIFACTS}/
 
+if [ -d ${DS_ROOT_TASK}/DeepSpeech/ds/wheels ]; then
+    cp ${DS_ROOT_TASK}/DeepSpeech/ds/wheels/* ${TASKCLUSTER_ARTIFACTS}/
+fi;
+
 if [ -f ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/wrapper.tar.gz ]; then
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/wrapper.tar.gz ${TASKCLUSTER_ARTIFACTS}/
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/deepspeech-*.tgz ${TASKCLUSTER_ARTIFACTS}/

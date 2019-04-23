@@ -19,7 +19,7 @@ class Alphabet(object):
         assert False
 
     def decode(self, labels):
-        return bytes(labels).decode('utf-8')
+        return bytes(labels).decode('utf-8', errors='replace')
 
     def size(self):
         return self._size
@@ -28,12 +28,12 @@ class Alphabet(object):
         return self._config_file
 
 
-def text_to_char_array(original, alphabet):
+def text_to_char_array(original):
     r"""
     Given a Python string ``original``, remove unsupported characters, map characters
     to integers and return a numpy array representing the processed string.
     """
-    return np.asarray([alphabet.label_from_string(c) for c in original])
+    return np.frombuffer(original.encode('utf-8'), np.uint8).astype(np.int32)
 
 
 def wer_cer_batch(originals, results):

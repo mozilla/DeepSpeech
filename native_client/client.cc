@@ -246,7 +246,7 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
 
   if (result.string) {
     printf("%s\n", result.string);
-    free((void*)result.string);
+    DS_FreeString((char*)result.string);
   }
 
   if (show_times) {

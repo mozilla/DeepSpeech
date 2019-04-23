@@ -196,7 +196,7 @@ class SymbolTableImpl {
   std::vector<int64> idx_key_;
   // Maps key to index for key >= dense_key_limit_.
   //  index = key_map_[key]
-  map<int64, int64> key_map_;
+  std::map<int64, int64> key_map_;
 
   mutable bool check_sum_finalized_;
   mutable string check_sum_string_;

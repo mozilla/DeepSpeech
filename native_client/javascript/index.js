@@ -66,6 +66,5 @@ Model.prototype.finishStream = function() {
 
 module.exports = {
     Model: Model,
-    audioToInputVector: binding.AudioToInputVector,
     printVersions: binding.PrintVersions
 };
