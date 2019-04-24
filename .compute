@@ -2,7 +2,7 @@
 
 set -xe
 
-num_bytes=4
+num_bytes=2
 bytes="${num_bytes}-bytes"
 
 # srcdir=`pwd`/../src
@@ -84,9 +84,10 @@ python -u DeepSpeech.py \
        --dev_batch_size 48 \
        --test_batch_size 48 \
        --n_hidden 2048 \
-       --learning_rate 0.0001 \
+       --n_layers 2\
+       --learning_rate 0.00005 \
        --dropout_rate 0.2 \
-       --epochs 30 \
+       --epochs 60 \
        --noearly_stop \
        --checkpoint_dir "../keep" \
        --summary_dir "../keep/summaries"
