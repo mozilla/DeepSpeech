@@ -515,21 +515,6 @@ def train():
         
         tf.get_default_graph().finalize()
         # TRANSFER LEARNING #
-        
-        # # Loading or initializing
-        # loaded = False
-        # if FLAGS.load in ['auto', 'last']:
-        #     loaded = try_loading(session, checkpoint_saver, checkpoint_filename, 'most recent epoch')
-        # if not loaded and FLAGS.load in ['auto', 'best']:
-        #     loaded = try_loading(session, best_dev_saver, best_dev_filename, 'best validation')
-        # if not loaded:
-        #     if FLAGS.load in ['auto', 'init']:
-        #         log_info('Initializing...')
-        #         session.run(initializer)
-        #     else:
-        #         log_error('Unable to load %s model from specified checkpoint dir'
-        #                   ' - consider using load option "auto" or "init".' % FLAGS.load)
-        #         sys.exit(1)
 
         # Retrieving global_step from restored model and setting training parameters accordingly
         model_feeder.set_data_set(no_dropout_feed_dict, train_set)
