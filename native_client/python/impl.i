@@ -33,7 +33,30 @@ import_array();
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
+%extend struct MetadataItem {
+  MetadataItem* __getitem__(size_t i) {
+    return &$self[i];
+  }
+}
+
+%typemap(out) Metadata* {
+  // owned, extended destructor needs to be called by SWIG
+  %append_output(SWIG_NewPointerObj(%as_voidptr($1), $1_descriptor, SWIG_POINTER_OWN));
+}
+
+%extend struct Metadata {
+  ~Metadata() {
+    DS_FreeMetadata($self);
+  }
+}
+
+%nodefaultdtor Metadata;
+%nodefaultctor Metadata;
+%nodefaultctor MetadataItem;
+%nodefaultdtor MetadataItem;
+
 %typemap(newfree) char* "DS_FreeString($1);";
+
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
