@@ -25,4 +25,6 @@ npm install ${DEEPSPEECH_NODEJS}/deepspeech-${DS_VERSION}.tgz
 
 export PATH=$HOME/node_modules/.bin/:$PATH
 
+check_runtime_nodejs
+
 run_prod_inference_tests

@@ -35,6 +35,10 @@ export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin:'/c/Program Files/nodejs/'
 
 do_deepspeech_binary_build
 
+# Those are the versions available on NuGet.org
+export SUPPORTED_PYTHON_VERSIONS="3.5.4 3.6.7 3.7.1"
+do_deepspeech_python_build "${cuda}"
+
 do_deepspeech_nodejs_build "${cuda}"
 
 do_deepspeech_netframework_build

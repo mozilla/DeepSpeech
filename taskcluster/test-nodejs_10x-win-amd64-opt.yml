@@ -5,7 +5,7 @@ build:
     - "test-training_upstream-linux-amd64-py27mu-opt"
   system_setup:
     >
-      ${nodejs.win.sox} && ${nodejs.win.prep_10}
+      ${system.sox_win} && ${nodejs.win.prep_10}
   args:
     tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/tc-node-tests.sh 10.x"
   metadata:

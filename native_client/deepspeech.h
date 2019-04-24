@@ -26,6 +26,8 @@ struct MetadataItem {
 struct Metadata {
   MetadataItem* items;
   int num_items;
+  // Approximated probability (confidence value) for this transcription.
+  double probability;
 };
 
 enum DeepSpeech_Error_Codes
@@ -40,6 +42,7 @@ enum DeepSpeech_Error_Codes
     DS_ERR_INVALID_ALPHABET   = 0x2000,
     DS_ERR_INVALID_SHAPE      = 0x2001,
     DS_ERR_INVALID_LM         = 0x2002,
+    DS_ERR_MODEL_INCOMPATIBLE = 0x2003,
 
     // Runtime failures
     DS_ERR_FAIL_INIT_MMAP     = 0x3000,
@@ -113,8 +116,8 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
  * @param aBufferSize The number of samples in the audio signal.
  * @param aSampleRate The sample-rate of the audio signal.
  *
- * @return The STT result. The user is responsible for freeing the string.
- *         Returns NULL on error.
+ * @return The STT result. The user is responsible for freeing the string using
+ *         {@link DS_FreeString()}. Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
@@ -184,7 +187,7 @@ void DS_FeedAudioContent(StreamingState* aSctx,
  * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
  * @return The STT intermediate result. The user is responsible for freeing the
- *         string.
+ *         string using {@link DS_FreeString()}.
  */
 DEEPSPEECH_EXPORT
 char* DS_IntermediateDecode(StreamingState* aSctx);
@@ -195,7 +198,8 @@ char* DS_IntermediateDecode(StreamingState* aSctx);
  *
  * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
  *
- * @return The STT result. The user is responsible for freeing the string.
+ * @return The STT result. The user is responsible for freeing the string using
+ *         {@link DS_FreeString()}.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
@@ -229,42 +233,16 @@ DEEPSPEECH_EXPORT
 void DS_DiscardStream(StreamingState* aSctx);
 
 /**
- * @brief Given audio, return a vector suitable for input to a DeepSpeech
- *        model trained with the given parameters.
- *
- * Extracts MFCC features from a given audio signal and adds the appropriate
- * amount of context to run inference on a DeepSpeech model trained with
- * the given parameters.
- *
- * @param aBuffer A 16-bit, mono raw audio signal at the appropriate sample
- *                rate.
- * @param aBufferSize The sample-length of the audio signal.
- * @param aSampleRate The sample-rate of the audio signal.
- * @param aNCep The number of cepstrum.
- * @param aNContext The size of the context window.
- * @param[out] aMfcc An array containing features, of shape
- *                   (@p aNFrames, ncep * ncontext). The user is responsible
- *                   for freeing the array.
- * @param[out] aNFrames (optional) The number of frames in @p aMfcc.
- * @param[out] aFrameLen (optional) The length of each frame
- *                       (ncep * ncontext) in @p aMfcc.
- */
-DEEPSPEECH_EXPORT
-void DS_AudioToInputVector(const short* aBuffer,
-                           unsigned int aBufferSize,
-                           unsigned int aSampleRate,
-                           unsigned int aNCep,
-                           unsigned int aNContext,
-                           float** aMfcc,
-                           int* aNFrames = NULL,
-                           int* aFrameLen = NULL);
-
-/**
  * @brief Free memory allocated for metadata information.
  */
-
 DEEPSPEECH_EXPORT
-void DS_FreeMetadata(Metadata* m); 
+void DS_FreeMetadata(Metadata* m);
+
+/**
+ * @brief Free a char* string returned by the DeepSpeech API.
+ */
+DEEPSPEECH_EXPORT
+void DS_FreeString(char* str);
 
 /**
  * @brief Print version of this library and of the linked TensorFlow library.

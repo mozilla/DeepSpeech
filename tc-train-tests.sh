@@ -32,6 +32,7 @@ export PATH="${PYENV_ROOT}/bin:${HOME}/bin:$PATH"
 mkdir -p ${PYENV_ROOT} || true
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 mkdir -p /tmp/train || true
+mkdir -p /tmp/train_tflite || true
 
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
@@ -57,13 +58,13 @@ LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-bin
 
 pushd ${HOME}/DeepSpeech/ds/
     # Run twice to test preprocessed features
-    time ./bin/run-tc-ldc93s1_new.sh 104
-    time ./bin/run-tc-ldc93s1_new.sh 105
+    time ./bin/run-tc-ldc93s1_new.sh 199
+    time ./bin/run-tc-ldc93s1_new.sh 200
     time ./bin/run-tc-ldc93s1_tflite.sh
 popd
 
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
-cp /tmp/train/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}
+cp /tmp/train_tflite/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}
 
 if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
   convert_graphdef=$(basename "${CONVERT_GRAPHDEF_MEMMAPPED}")
@@ -74,7 +75,7 @@ if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
 fi;
 
 pushd ${HOME}/DeepSpeech/ds/
-    time ./bin/run-tc-ldc93s1_checkpoint.sh 105
+    time ./bin/run-tc-ldc93s1_checkpoint.sh 200
 popd
 
 deactivate

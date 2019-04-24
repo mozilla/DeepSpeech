@@ -39,7 +39,6 @@
     "devDependencies": {
     },
     "scripts": {
-        "install" : "node-pre-gyp install --fallback-to-build",
         "test": "node index.js"
     }
 }

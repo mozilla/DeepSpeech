@@ -57,6 +57,7 @@ model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.15:ucs2 2.7.15:ucs4 3.4.9:ucs4 3.5.6:ucs4 3.6.7:ucs4 3.7.1:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.4 7.10.1 8.12.0 9.11.2 10.12.0 11.0.0}
+SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-1.6.18 1.7.16 1.8.8 2.0.18 3.0.16 3.1.8 4.0.3 4.1.4}
 
 strip() {
   echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
@@ -67,6 +68,22 @@ assert_correct_inference()
 {
   phrase=$(strip "$1")
   expected=$(strip "$2")
+  status=$3
+
+  if [ "$status" -ne "0" ]; then
+      case "$(cat ${TASKCLUSTER_TMP_DIR}/stderr)" in
+          *"incompatible with minimum version"*)
+              echo "Prod model too old for client, skipping test."
+              return 0
+          ;;
+
+          *)
+              echo "Client failed to run:"
+              cat ${TASKCLUSTER_TMP_DIR}/stderr
+              return 1
+          ;;
+      esac
+  fi
 
   if [ -z "${phrase}" -o -z "${expected}" ]; then
       echo "One or more empty strings:"
@@ -95,6 +112,7 @@ assert_working_inference()
 {
   phrase=$1
   expected=$2
+  status=$3
 
   if [ -z "${phrase}" -o -z "${expected}" ]; then
       echo "One or more empty strings:"
@@ -102,6 +120,21 @@ assert_working_inference()
       echo "expected: <${expected}>"
       return 1
   fi;
+
+  if [ "$status" -ne "0" ]; then
+      case "$(cat ${TASKCLUSTER_TMP_DIR}/stderr)" in
+          *"incompatible with minimum version"*)
+              echo "Prod model too old for client, skipping test."
+              return 0
+          ;;
+
+          *)
+              echo "Client failed to run:"
+              cat ${TASKCLUSTER_TMP_DIR}/stderr
+              return 1
+          ;;
+      esac
+  fi
 
   case "${phrase}" in
       *${expected}*)
@@ -135,6 +168,11 @@ assert_shows_something()
   fi;
 
   case "${stderr}" in
+      *"incompatible with minimum version"*)
+          echo "Prod model too old for client, skipping test."
+          return 0
+      ;;
+
       *${expected}*)
           echo "Proper output has been produced:"
           echo "${stderr}"
@@ -186,40 +224,40 @@ assert_not_present()
 
 assert_correct_ldc93s1()
 {
-  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
+  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
 }
 
 assert_working_ldc93s1()
 {
-  assert_working_inference "$1" "she had your dark suit in greasy wash water all year"
+  assert_working_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
 }
 
 assert_correct_ldc93s1_lm()
 {
-  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
+  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
 }
 
 assert_working_ldc93s1_lm()
 {
-  assert_working_inference "$1" "she had your dark suit in greasy wash water all year"
+  assert_working_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
 }
 
 assert_correct_multi_ldc93s1()
 {
-  assert_shows_something "$1" "/LDC93S1.wav%she had your dark suit in greasy wash water all year%"
-  assert_shows_something "$1" "/LDC93S1_pcms16le_2_44100.wav%she had your dark suit in greasy wash water all year%"
+  assert_shows_something "$1" "/LDC93S1.wav%she had your dark suit in greasy wash water all year%" "$?"
+  assert_shows_something "$1" "/LDC93S1_pcms16le_2_44100.wav%she had your dark suit in greasy wash water all year%" "$?"
   ## 8k will output garbage anyway ...
   # assert_shows_something "$1" "/LDC93S1_pcms16le_1_8000.wav%she hayorasryrtl lyreasy asr watal w water all year%"
 }
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had a due and greasy wash water year"
+  assert_correct_inference "$1" "she had a due and greasy wash water year" "$2"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had a due and greasy wash water year"
+  assert_correct_inference "$1" "she had a due and greasy wash water year" "$2"
 }
 
 assert_correct_warning_upsampling()
@@ -247,75 +285,158 @@ check_tensorflow_version()
   assert_deepspeech_version "${ds_help}"
 }
 
+assert_deepspeech_runtime()
+{
+  local expected_runtime=$1
+
+  set +e
+  local ds_version=$(${DS_BINARY_PREFIX}deepspeech --version 2>&1)
+  set -e
+
+  assert_shows_something "${ds_version}" "${expected_runtime}"
+}
+
+check_runtime_nodejs()
+{
+  assert_deepspeech_runtime "Runtime: Node"
+}
+
+check_runtime_electronjs()
+{
+  assert_deepspeech_runtime "Runtime: Electron"
+}
+
 run_tflite_basic_inference_tests()
 {
-  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${ANDROID_TMP_DIR}/ds/${model_name} --alphabet ${ANDROID_TMP_DIR}/ds/alphabet.txt --audio ${ANDROID_TMP_DIR}/ds/LDC93S1.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
+  set +e
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${ANDROID_TMP_DIR}/ds/${model_name} --alphabet ${ANDROID_TMP_DIR}/ds/alphabet.txt --audio ${ANDROID_TMP_DIR}/ds/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 }
 
 run_netframework_inference_tests()
 {
-  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_working_ldc93s1 "${phrase_pbmodel_nolm}"
+  set +e
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
-  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_working_ldc93s1 "${phrase_pbmodel_nolm}"
+  set +e
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
-  phrase_pbmodel_withlm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}"
+  set +e
+  phrase_pbmodel_withlm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
+}
+
+run_electronjs_inference_tests()
+{
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
 }
 
 run_basic_inference_tests()
 {
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}"
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}" "$status"
 }
 
 run_all_inference_tests()
 {
   run_basic_inference_tests
 
-  phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}"
+  set +e
+  phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}" "$status"
 
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_stereo_44k}"
+  set +e
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 
+  set +e
   phrase_pbmodel_nolm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
 
+  set +e
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
 
 run_prod_inference_tests()
 {
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status"
 
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status"
 
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}"
+  set +e
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 
+  set +e
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
 
 run_multi_inference_tests()
 {
-  multi_phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/ | tr '\n' '%')
-  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_nolm}"
+  set +e -o pipefail
+  multi_phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
+  status=$?
+  set -e +o pipefail
+  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_nolm}" "$status"
 
-  multi_phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/ | tr '\n' '%')
-  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}"
+  set +e -o pipefail
+  multi_phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
+  status=$?
+  set -e +o pipefail
+  assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}" "$status"
 }
 
 android_run_tests()
@@ -427,6 +548,11 @@ install_pyenv()
     exit 1;
   fi;
 
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    mkdir -p "${PYENV_ROOT}/versions/"
+    return;
+  fi
+
   if [ ! -e "${PYENV_ROOT}/bin/pyenv" ]; then
     git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
     pushd ${PYENV_ROOT}
@@ -439,11 +565,16 @@ install_pyenv()
 
 install_pyenv_virtualenv()
 {
-  PYENV_VENV=$1
+  local PYENV_VENV=$1
 
   if [ -z "${PYENV_VENV}" ]; then
     echo "No PYENV_VENV set";
     exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    echo "No pyenv virtualenv support ; will install virtualenv locally from pip"
+    return
   fi;
 
   if [ ! -e "${PYENV_VENV}/bin/pyenv-virtualenv" ]; then
@@ -454,6 +585,86 @@ install_pyenv_virtualenv()
   fi;
 
   eval "$(pyenv virtualenv-init -)"
+}
+
+setup_pyenv_virtualenv()
+{
+  local version=$1
+  local name=$2
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    echo "installing virtualenv"
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools:${PYENV_ROOT}/versions/python.${version}/tools/Scripts:$PATH pip install virtualenv
+
+    echo "should setup virtualenv ${name} for ${version}"
+    mkdir ${PYENV_ROOT}/versions/python.${version}/envs
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools:${PYENV_ROOT}/versions/python.${version}/tools/Scripts:$PATH virtualenv ${PYENV_ROOT}/versions/python.${version}/envs/${name}
+  else
+    pyenv virtualenv ${version} ${name}
+  fi
+}
+
+virtualenv_activate()
+{
+  local version=$1
+  local name=$2
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    source ${PYENV_ROOT}/versions/python.${version}/envs/${name}/Scripts/activate
+  else
+    source ${PYENV_ROOT}/versions/${version}/envs/${name}/bin/activate
+  fi
+}
+
+virtualenv_deactivate()
+{
+  local version=$1
+  local name=$2
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  deactivate
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    rm -fr ${PYENV_ROOT}/versions/python.${version}/
+  else
+    pyenv uninstall --force ${name}
+    pyenv uninstall --force ${version}
+  fi
+}
+
+pyenv_install()
+{
+  local version=$1
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    PATH=$(cygpath ${ChocolateyInstall})/bin:$PATH nuget install python -Version ${version} -OutputDirectory ${PYENV_ROOT}/versions/
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools/:$PATH python -m pip uninstall pip -y
+    PATH=${PYENV_ROOT}/versions/python.${version}/tools/:$PATH python -m ensurepip
+    pushd ${PYENV_ROOT}/versions/python.${version}/tools/Scripts/
+      ln -s pip3.exe pip.exe
+    popd
+  else
+    pyenv install ${version}
+  fi
 }
 
 maybe_install_xldd()
@@ -602,11 +813,10 @@ do_deepspeech_ndk_build()
 
 do_deepspeech_netframework_build()
 {
-  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+  cd ${DS_DSDIR}/native_client/dotnet
 
   # Setup dependencies
   nuget install DeepSpeechConsole/packages.config -OutputDirectory packages/
-  nuget install DeepSpeechWPF/packages.config -OutputDirectory packages/
 
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
 
@@ -619,14 +829,14 @@ do_deepspeech_netframework_build()
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.5" \
     /p:OutputPath=bin/nuget/x64/v4.5
-	
+
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.6" \
     /p:OutputPath=bin/nuget/x64/v4.6
-	
+
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
@@ -636,11 +846,6 @@ do_deepspeech_netframework_build()
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
-    /p:Configuration=Release \
-    /p:Platform=x64
-
-  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechWPF/DeepSpeech.WPF.csproj \
     /p:Configuration=Release \
     /p:Platform=x64
 }
@@ -653,7 +858,7 @@ do_nuget_build()
     exit 1
   fi;
 
-  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+  cd ${DS_DSDIR}/native_client/dotnet
 
   cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/build
 
@@ -668,7 +873,7 @@ do_nuget_build()
   mkdir -p nupkg/lib/net47/
   cp DeepSpeechClient/bin/nuget/x64/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
 
-  PROJECT_VERSION=$(shell cat ../../../VERSION | tr -d '\n' | tr -d '\r')
+  PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \
     -e "s/\$NUPKG_ID/${PROJECT_NAME}/" \
     -e "s/\$NUPKG_VERSION/${PROJECT_VERSION}/" \
@@ -725,6 +930,82 @@ maybe_ssl102_py37()
     esac
 }
 
+maybe_numpy_min_version_winamd64()
+{
+    local pyver=$1
+
+    if [ "${OS}" != "${TC_MSYS_VERSION}" ]; then
+        return;
+    fi
+
+    # We set >= and < to make sure we have no numpy incompatibilities
+    # otherwise, `from deepspeech.impl` throws with "illegal instruction"
+    case "${pyver}" in
+        3.5*)
+            export NUMPY_BUILD_VERSION="==1.11.0"
+            export NUMPY_DEP_VERSION=">=1.11.0,<1.12.0"
+        ;;
+        3.6*)
+            export NUMPY_BUILD_VERSION="==1.12.0"
+            export NUMPY_DEP_VERSION=">=1.12.0,<1.14.5"
+        ;;
+        3.7*)
+            export NUMPY_BUILD_VERSION="==1.14.5"
+            export NUMPY_DEP_VERSION=">=1.14.5,<1.16.0"
+        ;;
+    esac
+}
+
+get_python_pkg_url()
+{
+  local pyver_pkg=$1
+  local py_unicode_type=$2
+
+  local pkgname=$3
+  if [ -z "${pkgname}" ]; then
+    pkgname="deepspeech"
+  fi
+
+  local root=$4
+  if [ -z "${root}" ]; then
+    root="${DEEPSPEECH_ARTIFACTS_ROOT}"
+  fi
+
+  local platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; plat = "win" if plat == "windows" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine().lower()));')
+  local whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
+  local deepspeech_pkg="${pkgname}-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
+
+  echo "${root}/${deepspeech_pkg}"
+}
+
+extract_python_versions()
+{
+  # call extract_python_versions ${pyver_full} pyver pyver_pkg py_unicode_type pyconf
+  local _pyver_full=$1
+
+  if [ -z "${_pyver_full}" ]; then
+      echo "No python version given, aborting."
+      exit 1
+  fi;
+
+  local _pyver=$(echo "${_pyver_full}" | cut -d':' -f1)
+
+  # 2.7.x => 27
+  local _pyver_pkg=$(echo "${_pyver}" | cut -d'.' -f1,2 | tr -d '.')
+
+  local _py_unicode_type=$(echo "${_pyver_full}" | cut -d':' -f2)
+  if [ "${_py_unicode_type}" = "m" ]; then
+    local _pyconf="ucs2"
+  elif [ "${_py_unicode_type}" = "mu" ]; then
+    local _pyconf="ucs4"
+  fi;
+
+  eval "${2}=${_pyver}"
+  eval "${3}=${_pyver_pkg}"
+  eval "${4}=${_py_unicode_type}"
+  eval "${5}=${_pyconf}"
+}
+
 do_deepspeech_python_build()
 {
   cd ${DS_DSDIR}
@@ -755,10 +1036,12 @@ do_deepspeech_python_build()
 
     maybe_ssl102_py37 ${pyver}
 
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv install ${pyver}
+    maybe_numpy_min_version_winamd64 ${pyver}
 
-    pyenv virtualenv ${pyver} deepspeech
-    source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv_install ${pyver}
+
+    setup_pyenv_virtualenv "${pyver}" "deepspeech"
+    virtualenv_activate "${pyver}" "deepspeech"
 
     # Set LD path because python ssl might require it
     LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
@@ -779,9 +1062,7 @@ do_deepspeech_python_build()
     unset NUMPY_BUILD_VERSION
     unset NUMPY_DEP_VERSION
 
-    deactivate
-    pyenv uninstall --force deepspeech
-    pyenv uninstall --force ${pyver}
+    virtualenv_deactivate "${pyver}" "deepspeech"
   done;
 }
 
@@ -860,6 +1141,17 @@ do_deepspeech_nodejs_build()
       RASPBIAN=${SYSTEM_RASPBIAN} \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$node \
+      clean node-wrapper
+  done;
+
+  for electron in ${SUPPORTED_ELECTRONJS_VERSIONS}; do
+    EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
+      TARGET=${SYSTEM_TARGET} \
+      RASPBIAN=${SYSTEM_RASPBIAN} \
+      TFDIR=${DS_TFDIR} \
+      NODE_ABI_TARGET=--target=$electron \
+      NODE_DIST_URL=--disturl=https://atom.io/download/electron \
+      NODE_RUNTIME=--runtime=electron \
       clean node-wrapper
   done;
 

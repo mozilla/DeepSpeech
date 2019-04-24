@@ -1,3 +1,5 @@
+'use strict';
+
 const binary = require('node-pre-gyp');
 const path = require('path')
 // 'lib', 'binding', 'v0.1.1', ['node', 'v' + process.versions.modules, process.platform, process.arch].join('-'), 'deepspeech-bingings.node')
@@ -66,6 +68,5 @@ Model.prototype.finishStream = function() {
 
 module.exports = {
     Model: Model,
-    audioToInputVector: binding.AudioToInputVector,
     printVersions: binding.PrintVersions
 };
