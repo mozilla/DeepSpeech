@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeepSpeechClient.Models;
+using System;
 
 namespace DeepSpeechClient.Interfaces
 {
@@ -53,17 +54,38 @@ namespace DeepSpeechClient.Interfaces
                 uint aSampleRate);
 
         /// <summary>
-        /// Destroy a streaming state without decoding the computed logits. 
+        /// Use the DeepSpeech model to perform Speech-To-Text.
+        /// </summary>
+        /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate.</param>
+        /// <param name="aBufferSize">The number of samples in the audio signal.</param>
+        /// <param name="aSampleRate">The sample-rate of the audio signal.</param>
+        /// <returns>The extended metadata result. The user is responsible for freeing the struct.  Returns NULL on error.</returns>
+        unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer,
+                uint aBufferSize,
+                uint aSampleRate);
+
+        /// <summary>
+        /// Destroy a streaming state without decoding the computed logits.
         /// This can be used if you no longer need the result of an ongoing streaming
         /// inference and don't want to perform a costly decode operation.
         /// </summary>
         unsafe void DiscardStream();
 
         /// <summary>
+        /// Free a DeepSpeech allocated string
+        /// </summary>
+        unsafe void FreeString(IntPtr intPtr);
+
+        /// <summary>
+        /// Free a DeepSpeech allocated Metadata struct
+        /// </summary>
+        unsafe void FreeMetadata(IntPtr intPtr);
+
+        /// <summary>
         /// Creates a new streaming inference state.
         /// </summary>
         /// <param name="aPreAllocFrames">Number of timestep frames to reserve.
-        /// One timestep is equivalent to two window lengths(20ms). 
+        /// One timestep is equivalent to two window lengths(20ms).
         /// If set to 0 we reserve enough frames for 3 seconds of audio(150).</param>
         /// <param name="aSampleRate">The sample-rate of the audio signal</param>
         /// <returns>Zero for success, non-zero on failure</returns>
@@ -72,11 +94,11 @@ namespace DeepSpeechClient.Interfaces
         /// <summary>
         /// Feeds audio samples to an ongoing streaming inference.
         /// </summary>
-        /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate.</param> 
+        /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate.</param>
         unsafe void FeedAudioContent(short[] aBuffer, uint aBufferSize);
 
         /// <summary>
-        /// Computes the intermediate decoding of an ongoing streaming inference. This is an expensive process as the decoder implementation isn't 
+        /// Computes the intermediate decoding of an ongoing streaming inference. This is an expensive process as the decoder implementation isn't
         /// currently capable of streaming, so it always starts from the beginning of the audio.
         /// </summary>
         /// <returns>The STT intermediate result. The user is responsible for freeing the string.</returns>
@@ -87,5 +109,11 @@ namespace DeepSpeechClient.Interfaces
         /// </summary>
         /// <returns>The STT result. The user is responsible for freeing the string.</returns>
         unsafe string FinishStream();
+
+        /// <summary>
+        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal.
+        /// </summary>
+        /// <returns>The extended metadata result. The user is responsible for freeing the struct.</returns>
+        unsafe Metadata FinishStreamWithMetadata();
     }
 }

@@ -16,6 +16,25 @@
 %pointer_functions(StreamingState*, streamingstatep);
 
 %typemap(newfree) char* "DS_FreeString($1);";
+
+%include "carrays.i"
+%array_functions(struct MetadataItem, metadataItem_array);
+
+%extend struct Metadata {
+  MetadataItem getItem(int i) {
+    return metadataItem_array_getitem(self->items, i);
+  }
+
+  ~Metadata() {
+    DS_FreeMetadata(self);
+  }
+}
+
+%nodefaultdtor Metadata;
+%nodefaultctor Metadata;
+%nodefaultctor MetadataItem;
+%nodefaultdtor MetadataItem;
+
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;

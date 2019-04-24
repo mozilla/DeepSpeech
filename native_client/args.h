@@ -28,6 +28,8 @@ bool has_versions = false;
 
 bool extended_metadata = false;
 
+bool json_output = false;
+
 void PrintHelp(const char* bin)
 {
     std::cout <<
@@ -41,7 +43,8 @@ void PrintHelp(const char* bin)
     "	--trie TRIE		Path to the language model trie file created with native_client/generate_trie\n"
     "	--audio AUDIO		Path to the audio file to run (WAV format)\n"
     "	-t			Run in benchmark mode, output mfcc & inference time\n"
-    "	-e			Extended output, shows word timings as CSV (word, start time, duration)\n"
+    "	--extended		Output string from extended metadata\n"
+    "	--json			Extended output, shows word timings as JSON\n"
     "	--help			Show help\n"
     "	--version		Print version and exits\n";
     DS_PrintVersions();
@@ -59,7 +62,8 @@ bool ProcessArgs(int argc, char** argv)
             {"audio", required_argument, nullptr, 'w'},
             {"run_very_slowly_without_trie_I_really_know_what_Im_doing", no_argument, nullptr, 999},
             {"t", no_argument, nullptr, 't'},
-            {"e", no_argument, nullptr, 'e'},
+            {"extended", no_argument, nullptr, 'e'},
+            {"json", no_argument, nullptr, 'j'},
             {"help", no_argument, nullptr, 'h'},
             {"version", no_argument, nullptr, 'v'},
             {nullptr, no_argument, nullptr, 0}
@@ -108,6 +112,10 @@ bool ProcessArgs(int argc, char** argv)
 
         case 'e':
             extended_metadata = true;
+            break;
+
+        case 'j':
+            json_output = true;
             break;
 
         case 'h': // -h or --help

@@ -12,6 +12,7 @@ import org.junit.runners.MethodSorters;
 import static org.junit.Assert.*;
 
 import org.mozilla.deepspeech.libdeepspeech.DeepSpeechModel;
+import org.mozilla.deepspeech.libdeepspeech.Metadata;
 
 import java.io.RandomAccessFile;
 import java.io.FileNotFoundException;
@@ -66,10 +67,18 @@ public class BasicTest {
     @Test
     public void loadDeepSpeech_basic() {
         DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
-	m.destroyModel();
+        m.destroyModel();
     }
 
-    private String doSTT(DeepSpeechModel m) {
+    private String metadataToString(Metadata m) {
+        String retval = "";
+        for (int i = 0; i < m.getNum_items(); ++i) {
+            retval += m.getItem(i).getCharacter();
+        }
+        return retval;
+    }
+
+    private String doSTT(DeepSpeechModel m, boolean extendedMetadata) {
         try {
             RandomAccessFile wave = new RandomAccessFile(wavFile, "r");
 
@@ -96,7 +105,11 @@ public class BasicTest {
             // to turn bytes to shorts as either big endian or little endian.
             ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
 
-            return m.stt(shorts, shorts.length, sampleRate);
+            if (extendedMetadata) {
+                return metadataToString(m.sttWithMetadata(shorts, shorts.length, sampleRate));
+            } else {
+                return m.stt(shorts, shorts.length, sampleRate);
+            }
         } catch (FileNotFoundException ex) {
 
         } catch (IOException ex) {
@@ -105,25 +118,44 @@ public class BasicTest {
 
         }
 
-	return "";
+        return "";
     }
 
     @Test
     public void loadDeepSpeech_stt_noLM() {
         DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
 
-        String decoded = doSTT(m);
-	assertEquals("she had your dark suit in greasy wash water all year", decoded);
-	m.destroyModel();
+        String decoded = doSTT(m, false);
+        assertEquals("she had your dark suit in greasy wash water all year", decoded);
+        m.destroyModel();
     }
 
     @Test
     public void loadDeepSpeech_stt_withLM() {
         DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
-	m.enableDecoderWihLM(alphabetFile, lmFile, trieFile, LM_ALPHA, LM_BETA);
+        m.enableDecoderWihLM(alphabetFile, lmFile, trieFile, LM_ALPHA, LM_BETA);
 
-        String decoded = doSTT(m);
-	assertEquals("she had your dark suit in greasy wash water all year", decoded);
-	m.destroyModel();
+        String decoded = doSTT(m, false);
+        assertEquals("she had your dark suit in greasy wash water all year", decoded);
+        m.destroyModel();
+    }
+
+    @Test
+    public void loadDeepSpeech_sttWithMetadata_noLM() {
+        DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
+
+        String decoded = doSTT(m, true);
+        assertEquals("she had your dark suit in greasy wash water all year", decoded);
+        m.destroyModel();
+    }
+
+    @Test
+    public void loadDeepSpeech_sttWithMetadata_withLM() {
+        DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
+        m.enableDecoderWihLM(alphabetFile, lmFile, trieFile, LM_ALPHA, LM_BETA);
+
+        String decoded = doSTT(m, true);
+        assertEquals("she had your dark suit in greasy wash water all year", decoded);
+        m.destroyModel();
     }
 }

@@ -50,6 +50,12 @@ def convert_samplerate(audio_path):
 
     return 16000, np.frombuffer(output, np.int16)
 
+def metadata_to_string(metadata):
+    retval = ''
+    for item in range(metadata.num_items):
+        retval += metadata.items[item].character
+    return retval
+
 
 class VersionAction(argparse.Action):
     def __init__(self, *args, **kwargs):
@@ -73,6 +79,8 @@ def main():
                         help='Path to the audio file to run (WAV format)')
     parser.add_argument('--version', action=VersionAction,
                         help='Print version and exits')
+    parser.add_argument('--extended', required=False, action='store_true',
+                        help='Output string from extended metadata')
     args = parser.parse_args()
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
@@ -101,7 +109,10 @@ def main():
 
     print('Running inference.', file=sys.stderr)
     inference_start = timer()
-    print(ds.stt(audio, fs))
+    if args.extended:
+        print(metadata_to_string(ds.sttWithMetadata(audio, fs)))
+    else:
+        print(ds.stt(audio, fs))
     inference_end = timer() - inference_start
     print('Inference took %0.3fs for %0.3fs audio file.' % (inference_end, audio_length), file=sys.stderr)
 
