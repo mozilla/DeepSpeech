@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 'use strict';
 
 const Fs = require('fs');
@@ -69,6 +68,7 @@ function metadataToString(metadata) {
   for (var i = 0; i < metadata.num_items; ++i) {
     retval += metadata.items[i].character;
   }
+  Ds.FreeMetadata(metadata);
   return retval;
 }
 
@@ -135,5 +135,6 @@ audioStream.on('finish', () => {
   }
   const inference_stop = process.hrtime(inference_start);
   console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
+  Ds.DestroyModel(model);
   process.exit(0);
 });

@@ -28,7 +28,6 @@ using namespace node;
 
 // make sure the string returned by SpeechToText is freed
 %typemap(newfree) char* "DS_FreeString($1);";
-%typemap(newfree) Metadata* "DS_FreeMetadata($1);";
 
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
@@ -61,19 +60,8 @@ using namespace node;
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
-// extend ModelState with a destructor so that DestroyModel will be called
-// when the JavaScript object gets finalized.
 %nodefaultctor ModelState;
 %nodefaultdtor ModelState;
-
-struct ModelState {};
-
-%extend ModelState {
-  ~ModelState() {
-    DS_DestroyModel($self);
-  }
-}
-
 %nodefaultdtor Metadata;
 %nodefaultctor Metadata;
 %nodefaultctor MetadataItem;
@@ -93,9 +81,6 @@ struct ModelState {};
   fail:
     v8::Handle<v8::Value> result = SWIGV8_ARRAY_NEW();
     return result;
-  }
-  ~Metadata() {
-    DS_FreeMetadata($self);
   }
 }
 
