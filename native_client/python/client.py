@@ -39,6 +39,7 @@ N_FEATURES = 26
 # Size of the context window used for producing timesteps in the input vector
 N_CONTEXT = 9
 
+
 def convert_samplerate(audio_path):
     sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path))
     try:
@@ -51,6 +52,10 @@ def convert_samplerate(audio_path):
     return 16000, np.frombuffer(output, np.int16)
 
 
+def metadata_to_string(metadata):
+    return ''.join(item.character for item in metadata.items)
+
+
 class VersionAction(argparse.Action):
     def __init__(self, *args, **kwargs):
         super(VersionAction, self).__init__(nargs=0, *args, **kwargs)
@@ -58,6 +63,7 @@ class VersionAction(argparse.Action):
     def __call__(self, *args, **kwargs):
         printVersions()
         exit(0)
+
 
 def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
@@ -73,6 +79,8 @@ def main():
                         help='Path to the audio file to run (WAV format)')
     parser.add_argument('--version', action=VersionAction,
                         help='Print version and exits')
+    parser.add_argument('--extended', required=False, action='store_true',
+                        help='Output string from extended metadata')
     args = parser.parse_args()
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
@@ -101,7 +109,10 @@ def main():
 
     print('Running inference.', file=sys.stderr)
     inference_start = timer()
-    print(ds.stt(audio, fs))
+    if args.extended:
+        print(metadata_to_string(ds.sttWithMetadata(audio, fs)))
+    else:
+        print(ds.stt(audio, fs))
     inference_end = timer() - inference_start
     print('Inference took %0.3fs for %0.3fs audio file.' % (inference_end, audio_length), file=sys.stderr)
 

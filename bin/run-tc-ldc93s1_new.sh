@@ -14,7 +14,7 @@ fi;
 
 python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --train_files ${ldc93s1_csv} --train_batch_size 1 \
-  --train_cached_features_path '/tmp/ldc93s1_cache' \
+  --feature_cache '/tmp/ldc93s1_cache' \
   --dev_files ${ldc93s1_csv} --dev_batch_size 1 \
   --test_files ${ldc93s1_csv} --test_batch_size 1 \
   --n_hidden 100 --epochs $epoch_count \

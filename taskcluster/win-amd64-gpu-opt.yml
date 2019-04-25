@@ -10,7 +10,7 @@ build:
   scripts:
     build: "taskcluster/win-build.sh --cuda"
     package: "taskcluster/win-package.sh"
-  nc_asset_name: "native_client.amd64.gpu.win.tar.xz"
+  nc_asset_name: "native_client.amd64.cuda.win.tar.xz"
   maxRunTime: 14400
   metadata:
     name: "DeepSpeech Windows AMD64 CUDA"

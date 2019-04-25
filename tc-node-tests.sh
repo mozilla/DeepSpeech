@@ -22,4 +22,6 @@ export PATH="${NODE_ROOT}:${NODE_PATH}/.bin/:$PATH"
 
 npm install --prefix ${NODE_ROOT} ${DEEPSPEECH_NODEJS}/deepspeech-${DS_VERSION}.tgz
 
+check_runtime_nodejs
+
 run_all_inference_tests

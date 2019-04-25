@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
-from attrdict import AttrDict
 from multiprocessing.dummy import Pool
+
+from attrdict import AttrDict
+
 from util.text import wer_cer_batch, levenshtein
 
 def pmap(fun, iterable):

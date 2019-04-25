@@ -32,17 +32,17 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 - [Prerequisites](#prerequisites)
 - [Getting the code](#getting-the-code)
-- [Getting the pre-trained model](#getting-the-pre-trained-model)
-- [Using the model](#using-the-model)
+- [Using a Pre-trained Model](#using-a-pre-trained-model)
   - [CUDA dependency](#cuda-dependency)
+  - [Getting the pre-trained model](#getting-the-pre-trained-model)
   - [Model compatibility](#model-compatibility)
   - [Using the Python package](#using-the-python-package)
-  - [Using the command-line client](#using-the-command-line-client)
   - [Using the Node.JS package](#using-the-nodejs-package)
+  - [Using the Command Line client](#using-the-command-line-client)
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
-- [Training](#training)
-  - [Installing prerequisites for training](#installing-prerequisites-for-training)
+- [Training your own Model](#training-your-own-model)
+  - [Installing training prerequisites](#installing-training-prerequisites)
   - [Recommendations](#recommendations)
   - [Common Voice training data](#common-voice-training-data)
   - [Training a model](#training-a-model)
@@ -51,6 +51,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
   - [Making a mmap-able model for inference](#making-a-mmap-able-model-for-inference)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
+- [Contribution guidelines](#contribution-guidelines)
 - [Contact/Getting Help](#contactgetting-help)
 
 ## Prerequisites
@@ -68,7 +69,30 @@ Install [Git Large File Storage](https://git-lfs.github.com/) either manually or
 git clone https://github.com/mozilla/DeepSpeech
 ```
 
-## Getting the pre-trained model
+
+## Using a Pre-trained Model
+
+There are three ways to use DeepSpeech inference:
+
+- [The Python package](#using-the-python-package)
+- [The Node.JS package](#using-the-nodejs-package)
+- [The Command-Line client](#using-the-command-line-client)
+
+Running `deepspeech` might require some runtime dependencies to be already installed on your system. Regardless of which bindings you are using, you will need the following:
+
+* libsox2
+* libstdc++6
+* libgomp1
+* libpthread
+
+Please refer to your system's documentation on how to install these dependencies.
+
+
+### CUDA dependency
+
+The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Make sure you've installed the correct version of CUDA
+
+### Getting the pre-trained model
 
 If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the DeepSpeech [releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the model files in your current directory:
 
@@ -76,19 +100,6 @@ If you want to use the pre-trained English model for performing speech-to-text, 
 wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-models.tar.gz
 tar xvfz deepspeech-0.4.1-models.tar.gz
 ```
-
-## Using the model
-
-There are three ways to use DeepSpeech inference:
-
-- [The Python package](#using-the-python-package)
-- [The command-line client](#using-the-command-line-client)
-- [The Node.JS package](#using-the-nodejs-package)
-
-
-### CUDA dependency
-
-The GPU capable builds (Python, NodeJS, C++ etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow r1.12 it depends on CUDA 9.0 and CuDNN v7.2.
 
 ### Model compatibility
 
@@ -163,9 +174,30 @@ The arguments `--lm` and `--trie` are optional, and represent a language model.
 
 See [client.py](native_client/python/client.py) for an example of how to use the package programatically.
 
-### Using the command-line client
+### Using the Node.JS package
 
-To download the pre-built binaries for the `deepspeech` command-line client, use `util/taskcluster.py`:
+You can download the Node.JS bindings using `npm`:
+
+```bash
+npm install deepspeech
+```
+
+Please note that as of now, we only support Node.JS versions 4, 5 and 6. Once [SWIG has support](https://github.com/swig/swig/pull/968) we can build for newer versions.
+
+Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can install the GPU specific package as follows:
+
+```bash
+npm install deepspeech-gpu
+```
+
+See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. Please ensure you have the required [CUDA dependency](#cuda-dependency).
+
+See [client.js](native_client/javascript/client.js) for an example of how to use the bindings. Or download the [wav example](examples/nodejs_wav).
+
+
+### Using the Command-Line client
+
+To download the pre-built binaries for the `deepspeech` command-line (compiled C++) client, use `util/taskcluster.py`:
 
 ```bash
 python3 util/taskcluster.py --target .
@@ -193,24 +225,6 @@ Note: the following command assumes you [downloaded the pre-trained model](#gett
 
 See the help output with `./deepspeech -h` and the [native client README](native_client/README.md) for more details.
 
-### Using the Node.JS package
-
-You can download the Node.JS bindings using `npm`:
-
-```bash
-npm install deepspeech
-```
-
-Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can install the GPU specific package as follows:
-
-```bash
-npm install deepspeech-gpu
-```
-
-See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. Please ensure you have the required [CUDA dependency](#cuda-dependency).
-
-See [client.js](native_client/javascript/client.js) for an example of how to use the bindings. Or download the [wav example](examples/nodejs_wav).
-
 ### Installing bindings from source
 
 If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow these [`native_client` installation instructions](native_client/README.md).
@@ -224,9 +238,9 @@ In addition to the bindings above, third party developers have started to provid
 * [stes](https://github.com/stes) provides preliminary [PKGBUILDs](https://wiki.archlinux.org/index.php/PKGBUILD) to install the client and python bindings on [Arch Linux](https://www.archlinux.org/) in the [arch-deepspeech](https://github.com/stes/arch-deepspeech) repo.
 * [gst-deepspeech](https://github.com/Elleo/gst-deepspeech) provides a [GStreamer](https://gstreamer.freedesktop.org/) plugin which can be used from any language with GStreamer bindings.
 
-## Training
+## Training Your Own Model
 
-### Installing prerequisites for training
+### Installing Training Prerequisites
 
 Install the required dependencies using `pip3`:
 
@@ -358,6 +372,58 @@ python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder
 ```
 
 Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
+
+## Contribution guidelines
+
+This repository is governed by Mozilla's code of conduct and etiquette guidelines. For more details, please read the [Mozilla Community Participation Guidelines](https://www.mozilla.org/about/governance/policies/participation/).
+
+Before making a Pull Request, check your changes for basic mistakes and style problems by using a linter. We have cardboardlinter setup in this repository, so for example, if you've made some changes and would like to run the linter on just the changed code, you can use the follow command:
+
+```bash
+pip install pylint cardboardlint
+cardboardlinter --refspec master
+```
+
+This will compare the code against master and run the linter on all the changes. We plan to introduce more linter checks (e.g. for C++) in the future. To run it automatically as a git pre-commit hook, do the following:
+
+```bash
+cat <<\EOF > .git/hooks/pre-commit
+#!/bin/bash
+if [ ! -x "$(command -v cardboardlinter)" ]; then
+    exit 0
+fi
+
+# First, stash index and work dir, keeping only the
+# to-be-committed changes in the working directory.
+echo "Stashing working tree changes..." 1>&2
+old_stash=$(git rev-parse -q --verify refs/stash)
+git stash save -q --keep-index
+new_stash=$(git rev-parse -q --verify refs/stash)
+
+# If there were no changes (e.g., `--amend` or `--allow-empty`)
+# then nothing was stashed, and we should skip everything,
+# including the tests themselves.  (Presumably the tests passed
+# on the previous commit, so there is no need to re-run them.)
+if [ "$old_stash" = "$new_stash" ]; then
+    echo "No changes, skipping lint." 1>&2
+    exit 0
+fi
+
+# Run tests
+cardboardlinter --refspec HEAD^ -n auto
+status=$?
+
+# Restore changes
+echo "Restoring working tree changes..." 1>&2
+git reset --hard -q && git stash apply --index -q && git stash drop -q
+
+# Exit with status from test-run: nonzero prevents commit
+exit $status
+EOF
+chmod +x .git/hooks/pre-commit
+```
+
+This will run the linters on just the changes made in your commit.
 
 ## Contact/Getting Help
 

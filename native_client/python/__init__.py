@@ -34,6 +34,9 @@ class Model(object):
     def stt(self, *args, **kwargs):
         return deepspeech.impl.SpeechToText(self._impl, *args, **kwargs)
 
+    def sttWithMetadata(self, *args, **kwargs):
+        return deepspeech.impl.SpeechToTextWithMetadata(self._impl, *args, **kwargs)
+
     def setupStream(self, pre_alloc_frames=150, sample_rate=16000):
         status, ctx = deepspeech.impl.SetupStream(self._impl,
                                                   aPreAllocFrames=pre_alloc_frames,
@@ -50,3 +53,6 @@ class Model(object):
 
     def finishStream(self, *args, **kwargs):
         return deepspeech.impl.FinishStream(*args, **kwargs)
+
+    def finishStreamWithMetadata(self, *args, **kwargs):
+        return deepspeech.impl.FinishStreamWithMetadata(*args, **kwargs)

@@ -1,5 +1,6 @@
-﻿using System;
-using DeepSpeechClient.Structs;
+﻿using DeepSpeechClient.Structs;
+
+using System;
 using System.Runtime.InteropServices;
 
 namespace DeepSpeechClient
@@ -36,6 +37,12 @@ namespace DeepSpeechClient
                 uint aBufferSize,
                 uint aSampleRate);
 
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        internal static unsafe extern IntPtr DS_SpeechToTextWithMetadata(ModelState** aCtx,
+                 short[] aBuffer,
+                uint aBufferSize,
+                uint aSampleRate);
+
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern void DS_DestroyModel(ModelState** aCtx);
 
@@ -44,9 +51,14 @@ namespace DeepSpeechClient
                uint aPreAllocFrames,
                uint aSampleRate, ref StreamingState** retval);
 
-         
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern void DS_DiscardStream(ref StreamingState** aSctx);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern void DS_FreeMetadata(IntPtr metadata);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern void DS_FreeString(IntPtr str);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]
@@ -57,8 +69,12 @@ namespace DeepSpeechClient
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern string DS_IntermediateDecode(StreamingState** aSctx);
 
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi, SetLastError = true)]
+        internal static unsafe extern IntPtr DS_FinishStream(  StreamingState** aSctx);
+
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern string DS_FinishStream(  StreamingState** aSctx);
+        internal static unsafe extern IntPtr DS_FinishStreamWithMetadata(StreamingState** aSctx);
         #endregion
     }
 }

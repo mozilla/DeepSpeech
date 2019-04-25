@@ -56,7 +56,8 @@ model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.15:ucs2 2.7.15:ucs4 3.4.9:ucs4 3.5.6:ucs4 3.6.7:ucs4 3.7.1:ucs4}
-SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.4 7.10.1 8.12.0 9.11.2 10.12.0 11.0.0}
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.4 7.10.1 8.12.0 9.11.2 10.12.0 11.0.0 12.0.0}
+SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-1.6.18 1.7.16 1.8.8 2.0.18 3.0.16 3.1.8 4.0.3 4.1.4 5.0.0}
 
 strip() {
   echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
@@ -284,10 +285,36 @@ check_tensorflow_version()
   assert_deepspeech_version "${ds_help}"
 }
 
+assert_deepspeech_runtime()
+{
+  local expected_runtime=$1
+
+  set +e
+  local ds_version=$(${DS_BINARY_PREFIX}deepspeech --version 2>&1)
+  set -e
+
+  assert_shows_something "${ds_version}" "${expected_runtime}"
+}
+
+check_runtime_nodejs()
+{
+  assert_deepspeech_runtime "Runtime: Node"
+}
+
+check_runtime_electronjs()
+{
+  assert_deepspeech_runtime "Runtime: Electron"
+}
+
 run_tflite_basic_inference_tests()
 {
   set +e
   phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${ANDROID_TMP_DIR}/ds/${model_name} --alphabet ${ANDROID_TMP_DIR}/ds/alphabet.txt --audio ${ANDROID_TMP_DIR}/ds/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${ANDROID_TMP_DIR}/ds/${model_name} --alphabet ${ANDROID_TMP_DIR}/ds/alphabet.txt --audio ${ANDROID_TMP_DIR}/ds/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 }
@@ -296,6 +323,11 @@ run_netframework_inference_tests()
 {
   set +e
   phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended yes 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
@@ -310,10 +342,39 @@ run_netframework_inference_tests()
   assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
 }
 
+run_electronjs_inference_tests()
+{
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
+}
+
 run_basic_inference_tests()
 {
   set +e
   phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
+
+  set +e
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
@@ -773,31 +834,30 @@ do_deepspeech_ndk_build()
 
 do_deepspeech_netframework_build()
 {
-  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+  cd ${DS_DSDIR}/native_client/dotnet
 
   # Setup dependencies
   nuget install DeepSpeechConsole/packages.config -OutputDirectory packages/
-  nuget install DeepSpeechWPF/packages.config -OutputDirectory packages/
 
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
 
   # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
   # We build the .NET Client for .NET Framework v4.5,v4.6,v4.7
-  
+
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
-    /p:TargetFrameworkVersion="v4.5" \
+    /p:TargetFrameworkVersion="v4.5.2" \
     /p:OutputPath=bin/nuget/x64/v4.5
-	
+
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFrameworkVersion="v4.6" \
     /p:OutputPath=bin/nuget/x64/v4.6
-	
+
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
@@ -807,11 +867,6 @@ do_deepspeech_netframework_build()
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
-    /p:Configuration=Release \
-    /p:Platform=x64
-
-  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechWPF/DeepSpeech.WPF.csproj \
     /p:Configuration=Release \
     /p:Platform=x64
 }
@@ -824,22 +879,22 @@ do_nuget_build()
     exit 1
   fi;
 
-  cd ${DS_DSDIR}/examples/net_framework/CSharpExamples
+  cd ${DS_DSDIR}/native_client/dotnet
 
   cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/build
 
   # We copy the generated clients for .NET into the Nuget framework dirs
-  
+
   mkdir -p nupkg/lib/net45/
   cp DeepSpeechClient/bin/nuget/x64/v4.5/DeepSpeechClient.dll nupkg/lib/net45/
-  
+
   mkdir -p nupkg/lib/net46/
   cp DeepSpeechClient/bin/nuget/x64/v4.6/DeepSpeechClient.dll nupkg/lib/net46/
-  
+
   mkdir -p nupkg/lib/net47/
   cp DeepSpeechClient/bin/nuget/x64/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
 
-  PROJECT_VERSION=$(shell cat ../../../VERSION | tr -d '\n' | tr -d '\r')
+  PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \
     -e "s/\$NUPKG_ID/${PROJECT_NAME}/" \
     -e "s/\$NUPKG_VERSION/${PROJECT_VERSION}/" \
@@ -1107,6 +1162,17 @@ do_deepspeech_nodejs_build()
       RASPBIAN=${SYSTEM_RASPBIAN} \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$node \
+      clean node-wrapper
+  done;
+
+  for electron in ${SUPPORTED_ELECTRONJS_VERSIONS}; do
+    EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
+      TARGET=${SYSTEM_TARGET} \
+      RASPBIAN=${SYSTEM_RASPBIAN} \
+      TFDIR=${DS_TFDIR} \
+      NODE_ABI_TARGET=--target=$electron \
+      NODE_DIST_URL=--disturl=https://atom.io/download/electron \
+      NODE_RUNTIME=--runtime=electron \
       clean node-wrapper
   done;
 

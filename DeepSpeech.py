@@ -5,23 +5,24 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
-log_level_index = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[log_level_index] if log_level_index > 0 and log_level_index < len(sys.argv) else '3'
+LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
 
 import time
-import evaluate
 import numpy as np
 import progressbar
 import shutil
 import tensorflow as tf
 
+from datetime import datetime
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
+from evaluate import evaluate
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph
 from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
-from util.logging import log_info, log_error, log_debug
+from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 
 
 # Graph Creation
@@ -49,7 +50,7 @@ def create_overlapping_windows(batch_x):
     # convolution returns patches of the input tensor as is, and we can create
     # overlapping windows over the MFCCs.
     eye_filter = tf.constant(np.eye(window_width * num_channels)
-                               .reshape(window_width, num_channels, window_width * num_channels), tf.float32)
+                               .reshape(window_width, num_channels, window_width * num_channels), tf.float32) # pylint: disable=bad-continuation
 
     # Create overlapping windows
     batch_x = tf.nn.conv1d(batch_x, eye_filter, stride=1, padding='SAME')
@@ -198,7 +199,7 @@ def create_model(batch_x, seq_length, dropout, reuse=False, previous_state=None,
 # Conveniently, this loss function is implemented in TensorFlow.
 # Thus, we can simply make use of this implementation to define our loss.
 
-def calculate_mean_edit_distance_and_loss(iterator, tower, dropout, reuse):
+def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     r'''
     This routine beam search decodes a mini-batch and calculates the loss and mean edit distance.
     Next to total and average loss it returns the mean edit distance,
@@ -274,10 +275,10 @@ def get_tower_results(iterator, optimizer, dropout_rates):
             device = Config.available_devices[i]
             with tf.device(device):
                 # Create a scope for all operations of tower i
-                with tf.name_scope('tower_%d' % i) as scope:
+                with tf.name_scope('tower_%d' % i):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
-                    avg_loss = calculate_mean_edit_distance_and_loss(iterator, i, dropout_rates, reuse=i>0)
+                    avg_loss = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=i > 0)
 
                     # Allow for variables to be re-used by the next tower
                     tf.get_variable_scope().reuse_variables()
@@ -394,7 +395,7 @@ def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               cache_path=FLAGS.train_cached_features_path)
+                               cache_path=FLAGS.feature_cache)
 
     iterator = tf.data.Iterator.from_structure(train_set.output_types,
                                                train_set.output_shapes,
@@ -404,10 +405,9 @@ def train():
     train_init_op = iterator.make_initializer(train_set)
 
     if FLAGS.dev_files:
-        dev_set = create_dataset(FLAGS.dev_files.split(','),
-                                 batch_size=FLAGS.dev_batch_size,
-                                 cache_path=FLAGS.dev_cached_features_path)
-        dev_init_op = iterator.make_initializer(dev_set)
+        dev_csvs = FLAGS.dev_files.split(',')
+        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size) for csv in dev_csvs]
+        dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
     dropout_rates = [tf.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
@@ -473,7 +473,7 @@ def train():
                           ' - consider using load option "auto" or "init".' % FLAGS.load)
                 sys.exit(1)
 
-        def run_set(set_name, init_op):
+        def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
             train_op = apply_gradient_op if is_train else []
             feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
@@ -484,20 +484,21 @@ def train():
             step_summary_writer = step_summary_writers.get(set_name)
             checkpoint_time = time.time()
 
+            # Setup progress bar
             class LossWidget(progressbar.widgets.FormatLabel):
                 def __init__(self):
                     progressbar.widgets.FormatLabel.__init__(self, format='Loss: %(mean_loss)f')
 
-                def __call__(self, progress, data):
+                def __call__(self, progress, data, **kwargs):
                     data['mean_loss'] = total_loss / step_count if step_count else 0.0
-                    return progressbar.widgets.FormatLabel.__call__(self, progress, data)
+                    return progressbar.widgets.FormatLabel.__call__(self, progress, data, **kwargs)
 
-            if FLAGS.show_progressbar:
-                pbar = progressbar.ProgressBar(widgets=['Epoch {}'.format(epoch),
-                                                        ' | ', progressbar.widgets.Timer(),
-                                                        ' | Steps: ', progressbar.widgets.Counter(),
-                                                        ' | ', LossWidget()])
-                pbar.start()
+            prefix = 'Epoch {} | {:>10}'.format(epoch, 'Training' if is_train else 'Validation')
+            widgets = [' | ', progressbar.widgets.Timer(),
+                       ' | Steps: ', progressbar.widgets.Counter(),
+                       ' | ', LossWidget()]
+            suffix = ' | Dataset: {}'.format(dataset) if dataset else None
+            pbar = create_progressbar(prefix=prefix, widgets=widgets, suffix=suffix).start()
 
             # Initialize iterator to the appropriate dataset
             session.run(init_op)
@@ -514,8 +515,7 @@ def train():
                 total_loss += batch_loss
                 step_count += 1
 
-                if FLAGS.show_progressbar:
-                    pbar.update(step_count)
+                pbar.update(step_count)
 
                 step_summary_writer.add_summary(step_summary, current_step)
 
@@ -523,31 +523,34 @@ def train():
                     checkpoint_saver.save(session, checkpoint_path, global_step=current_step)
                     checkpoint_time = time.time()
 
-            if FLAGS.show_progressbar:
-                pbar.finish()
-
-            return total_loss / step_count
+            pbar.finish()
+            mean_loss = total_loss / step_count if step_count > 0 else 0.0
+            return mean_loss, step_count
 
         log_info('STARTING Optimization')
+        train_start_time = datetime.utcnow()
         best_dev_loss = float('inf')
         dev_losses = []
         try:
             for epoch in range(FLAGS.epochs):
                 # Training
-                if not FLAGS.show_progressbar:
-                    log_info('Training epoch %d...' % epoch)
-                train_loss = run_set('train', train_init_op)
-                if not FLAGS.show_progressbar:
-                    log_info('Finished training epoch %d - loss: %f' % (epoch, train_loss))
+                log_progress('Training epoch %d...' % epoch)
+                train_loss, _ = run_set('train', epoch, train_init_op)
+                log_progress('Finished training epoch %d - loss: %f' % (epoch, train_loss))
                 checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
 
                 if FLAGS.dev_files:
                     # Validation
-                    if not FLAGS.show_progressbar:
-                        log_info('Validating epoch %d...' % epoch)
-                    dev_loss = run_set('dev', dev_init_op)
-                    if not FLAGS.show_progressbar:
-                        log_info('Finished validating epoch %d - loss: %f' % (epoch, train_loss))
+                    dev_loss = 0.0
+                    total_steps = 0
+                    for csv, init_op in zip(dev_csvs, dev_init_ops):
+                        log_progress('Validating epoch %d on %s...' % (epoch, csv))
+                        set_loss, steps = run_set('dev', epoch, init_op, dataset=csv)
+                        dev_loss += set_loss * steps
+                        total_steps += steps
+                        log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, csv, set_loss))
+                    dev_loss = dev_loss / total_steps
+
                     dev_losses.append(dev_loss)
 
                     if dev_loss < best_dev_loss:
@@ -571,11 +574,12 @@ def train():
                             break
         except KeyboardInterrupt:
             pass
+        log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
     log_debug('Session closed.')
 
 
 def test():
-    evaluate.evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    evaluate(FLAGS.test_files.split(','), create_model, try_loading)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
@@ -598,12 +602,12 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         # no state management since n_step is expected to be dynamic too (see below)
         previous_state = previous_state_c = previous_state_h = None
     else:
-        if not tflite:
-            previous_state_c = variable_on_cpu('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
-            previous_state_h = variable_on_cpu('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
-        else:
+        if tflite:
             previous_state_c = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_c')
             previous_state_h = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_h')
+        else:
+            previous_state_c = variable_on_cpu('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
+            previous_state_h = variable_on_cpu('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
 
         previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
@@ -648,28 +652,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         )
 
     new_state_c, new_state_h = layers['rnn_output_state']
-    if not tflite:
-        zero_state = tf.zeros([batch_size, Config.n_cell_dim], tf.float32)
-        initialize_c = tf.assign(previous_state_c, zero_state)
-        initialize_h = tf.assign(previous_state_h, zero_state)
-        initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
-        with tf.control_dependencies([tf.assign(previous_state_c, new_state_c), tf.assign(previous_state_h, new_state_h)]):
-            logits = tf.identity(logits, name='logits')
-
-        return (
-            {
-                'input': input_tensor,
-                'input_lengths': seq_length,
-                'input_samples': input_samples,
-            },
-            {
-                'outputs': logits,
-                'initialize_state': initialize_state,
-                'mfccs': mfccs,
-            },
-            layers
-        )
-    else:
+    if tflite:
         logits = tf.identity(logits, name='logits')
         new_state_c = tf.identity(new_state_c, name='new_state_c')
         new_state_h = tf.identity(new_state_h, name='new_state_h')
@@ -684,17 +667,32 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         if FLAGS.use_seq_length:
             inputs.update({'input_lengths': seq_length})
 
-        return (
-            inputs,
-            {
-                'outputs': logits,
-                'new_state_c': new_state_c,
-                'new_state_h': new_state_h,
-                'mfccs': mfccs,
-            },
-            layers
-        )
+        outputs = {
+            'outputs': logits,
+            'new_state_c': new_state_c,
+            'new_state_h': new_state_h,
+            'mfccs': mfccs,
+        }
+    else:
+        zero_state = tf.zeros([batch_size, Config.n_cell_dim], tf.float32)
+        initialize_c = tf.assign(previous_state_c, zero_state)
+        initialize_h = tf.assign(previous_state_h, zero_state)
+        initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
+        with tf.control_dependencies([tf.assign(previous_state_c, new_state_c), tf.assign(previous_state_h, new_state_h)]):
+            logits = tf.identity(logits, name='logits')
 
+        inputs = {
+            'input': input_tensor,
+            'input_lengths': seq_length,
+            'input_samples': input_samples,
+        }
+        outputs = {
+            'outputs': logits,
+            'initialize_state': initialize_state,
+            'mfccs': mfccs,
+        }
+
+    return inputs, outputs, layers
 
 def file_relative_read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -708,11 +706,9 @@ def export():
     from tensorflow.python.framework.ops import Tensor, Operation
 
     inputs, outputs, _ = create_inference_graph(batch_size=FLAGS.export_batch_size, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
-    input_names = ",".join(tensor.op.name for tensor in inputs.values())
-    output_names_tensors = [ tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
-    output_names_ops = [ tensor.name for tensor in outputs.values() if isinstance(tensor, Operation)]
+    output_names_tensors = [tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
+    output_names_ops = [op.name for op in outputs.values() if isinstance(op, Operation)]
     output_names = ",".join(output_names_tensors + output_names_ops)
-    input_shapes = ":".join(",".join(map(str, tensor.shape)) for tensor in inputs.values())
 
     if not FLAGS.export_tflite:
         mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
@@ -856,6 +852,6 @@ def main(_):
         tf.reset_default_graph()
         do_single_file_inference(FLAGS.one_shot_infer)
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     create_flags()
     tf.app.run(main)

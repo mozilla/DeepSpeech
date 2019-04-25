@@ -1,0 +1,29 @@
+From d6901084c695117379991e59460a81ab37562eb5 Mon Sep 17 00:00:00 2001
+From: Alexandre Lissy <lissyx@lissyx.dyndns.org>
+Date: Thu, 25 Apr 2019 12:43:09 +0200
+Subject: [PATCH 2/3] Move to new MaybeLocal based NewInstance()
+
+---
+ Lib/javascript/v8/javascriptrun.swg | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Lib/javascript/v8/javascriptrun.swg b/Lib/javascript/v8/javascriptrun.swg
+index 866cdb331..3efe8783d 100644
+--- a/Lib/javascript/v8/javascriptrun.swg
++++ b/Lib/javascript/v8/javascriptrun.swg
+@@ -412,8 +412,11 @@ SWIGRUNTIME v8::Local<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info
+   }
+ #endif
+ 
+-//  v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
++#if (NODE_MODULE_VERSION < 72)
+   v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
++#else
++  v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
++#endif
+   SWIGV8_SetPrivateData(result, ptr, info, flags);
+ 
+   SWIGV8_ESCAPE(result);
+-- 
+2.20.1
+
