@@ -30,7 +30,7 @@
         "host"        : "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/"
     },
     "dependencies"  : {
-      "node-pre-gyp": "0.12.x",
+      "node-pre-gyp": "0.13.x",
       "argparse": "1.0.x",
       "sox-stream": "2.0.x",
       "memory-stream": "0.0.3",

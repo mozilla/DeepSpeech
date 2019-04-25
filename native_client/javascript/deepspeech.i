@@ -14,7 +14,7 @@ using namespace node;
 // convert Node Buffer into a C ptr + length
 %typemap(in) (short* IN_ARRAY1, int DIM1)
 {
-  Local<Object> bufferObj = $input->ToObject();
+  Local<Object> bufferObj = SWIGV8_TO_OBJECT($input);
   char* bufferData = Buffer::Data(bufferObj);
   size_t bufferLength = Buffer::Length(bufferObj);
 
@@ -68,18 +68,18 @@ using namespace node;
 %nodefaultdtor MetadataItem;
 
 %extend Metadata {
-  v8::Handle<v8::Value> items;
-  v8::Handle<v8::Value> items_get() {
-    v8::Handle<v8::Value> jsresult = SWIGV8_ARRAY_NEW();
+  v8::Local<v8::Value> items;
+  v8::Local<v8::Value> items_get() {
+    v8::Local<v8::Value> jsresult = SWIGV8_ARRAY_NEW();
     for (int i = 0; i < self->num_items; ++i) {
       jsresult = SWIGV8_AppendOutput(jsresult, SWIG_NewPointerObj(SWIG_as_voidptr(&self->items[i]), SWIGTYPE_p_MetadataItem, SWIG_POINTER_OWN));
     }
   fail:
     return jsresult;
   }
-  v8::Handle<v8::Value> items_set(const  v8::Handle<v8::Value> arg) {
+  v8::Local<v8::Value> items_set(const  v8::Local<v8::Value> arg) {
   fail:
-    v8::Handle<v8::Value> result = SWIGV8_ARRAY_NEW();
+    v8::Local<v8::Value> result = SWIGV8_ARRAY_NEW();
     return result;
   }
 }
