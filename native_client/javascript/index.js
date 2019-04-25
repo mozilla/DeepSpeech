@@ -75,7 +75,13 @@ Model.prototype.finishStreamWithMetadata = function() {
     return binding.FinishStreamWithMetadata.apply(null, arguments);
 }
 
+function DestroyModel(model) {
+    return binding.DestroyModel(model._impl);
+}
+
 module.exports = {
     Model: Model,
-    printVersions: binding.PrintVersions
+    printVersions: binding.PrintVersions,
+    DestroyModel: DestroyModel,
+    FreeMetadata: binding.FreeMetadata
 };

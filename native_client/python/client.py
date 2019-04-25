@@ -39,6 +39,7 @@ N_FEATURES = 26
 # Size of the context window used for producing timesteps in the input vector
 N_CONTEXT = 9
 
+
 def convert_samplerate(audio_path):
     sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path))
     try:
@@ -50,11 +51,9 @@ def convert_samplerate(audio_path):
 
     return 16000, np.frombuffer(output, np.int16)
 
+
 def metadata_to_string(metadata):
-    retval = ''
-    for item in range(metadata.num_items):
-        retval += metadata.items[item].character
-    return retval
+    return ''.join(item.character for item in metadata.items)
 
 
 class VersionAction(argparse.Action):
@@ -64,6 +63,7 @@ class VersionAction(argparse.Action):
     def __call__(self, *args, **kwargs):
         printVersions()
         exit(0)
+
 
 def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
