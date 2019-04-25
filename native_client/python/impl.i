@@ -33,16 +33,18 @@ import_array();
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
-%extend struct MetadataItem {
-  MetadataItem* __getitem__(size_t i) {
-    return &$self[i];
-  }
-}
-
 %typemap(out) Metadata* {
   // owned, extended destructor needs to be called by SWIG
   %append_output(SWIG_NewPointerObj(%as_voidptr($1), $1_descriptor, SWIG_POINTER_OWN));
 }
+
+%typemap(out) MetadataItem* %{
+  $result = PyList_New(arg1->num_items);
+  for (int i = 0; i < arg1->num_items; ++i) {
+    PyObject* o = SWIG_NewPointerObj(SWIG_as_voidptr(&arg1->items[i]), SWIGTYPE_p_MetadataItem, 0);
+    PyList_SetItem($result, i, o);
+  }
+%}
 
 %extend struct Metadata {
   ~Metadata() {
