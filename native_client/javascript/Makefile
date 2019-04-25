@@ -45,8 +45,9 @@ node-wrapper: copy-deps build
 	$(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DIST_URL) package $(NODE_BUILD_VERBOSE)
 
 npm-pack: clean package.json README.md index.js
-	npm install node-pre-gyp@0.12.x
+	npm install node-pre-gyp@0.13.x
 	npm pack $(NODE_BUILD_VERBOSE)
 
 deepspeech_wrap.cxx: deepspeech.i
+	swig -version
 	swig -c++ -javascript -node deepspeech.i
