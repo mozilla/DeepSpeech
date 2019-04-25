@@ -4,11 +4,12 @@ import os
 import tensorflow as tf
 
 from attrdict import AttrDict
+from xdg import BaseDirectory as xdg
+
 from util.flags import FLAGS
 from util.gpu import get_available_gpus
 from util.logging import log_error
 from util.text import Alphabet
-from xdg import BaseDirectory as xdg
 
 class ConfigSingleton:
     _config = None
@@ -21,7 +22,7 @@ class ConfigSingleton:
         return ConfigSingleton._config[name]
 
 
-Config = ConfigSingleton()
+Config = ConfigSingleton() # pylint: disable=invalid-name
 
 def initialize_globals():
     c = AttrDict()
@@ -33,7 +34,7 @@ def initialize_globals():
     c.available_devices = get_available_gpus()
 
     # If there is no GPU available, we fall back to CPU based operation
-    if 0 == len(c.available_devices):
+    if not c.available_devices:
         c.available_devices = [c.cpu_device]
 
     # Set default dropout rates
@@ -45,15 +46,15 @@ def initialize_globals():
         FLAGS.dropout_rate6 = FLAGS.dropout_rate
 
     # Set default checkpoint dir
-    if len(FLAGS.checkpoint_dir) == 0:
-        FLAGS.checkpoint_dir = xdg.save_data_path(os.path.join('deepspeech','checkpoints'))
+    if not FLAGS.checkpoint_dir:
+        FLAGS.checkpoint_dir = xdg.save_data_path(os.path.join('deepspeech', 'checkpoints'))
 
     if FLAGS.load not in ['last', 'best', 'init', 'auto']:
         FLAGS.load = 'auto'
 
     # Set default summary dir
-    if len(FLAGS.summary_dir) == 0:
-        FLAGS.summary_dir = xdg.save_data_path(os.path.join('deepspeech','summaries'))
+    if not FLAGS.summary_dir:
+        FLAGS.summary_dir = xdg.save_data_path(os.path.join('deepspeech', 'summaries'))
 
     # Standard session configuration that'll be used for all new sessions.
     c.session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement,
@@ -103,4 +104,4 @@ def initialize_globals():
             log_error('Path specified in --one_shot_infer is not a valid file.')
             exit(1)
 
-    ConfigSingleton._config = c
+    ConfigSingleton._config = c # pylint: disable=protected-access

@@ -29,6 +29,10 @@ public class DeepSpeechModel {
         return impl.SpeechToText(this._msp, buffer, buffer_size, sample_rate);
     }
 
+    public Metadata sttWithMetadata(short[] buffer, int buffer_size, int sample_rate) {
+        return impl.SpeechToTextWithMetadata(this._msp, buffer, buffer_size, sample_rate);
+    }
+
     public DeepSpeechStreamingState setupStream(int prealloc_frames, int sample_rate) {
         SWIGTYPE_p_p_StreamingState ssp = impl.new_streamingstatep();
         impl.SetupStream(this._msp, prealloc_frames, sample_rate, ssp);
@@ -46,4 +50,8 @@ public class DeepSpeechModel {
     public String finishStream(DeepSpeechStreamingState ctx) {
         return impl.FinishStream(ctx.get());
     }
+
+    public Metadata finishStreamWithMetadata(DeepSpeechStreamingState ctx) {
+        return impl.FinishStreamWithMetadata(ctx.get());
+    } 
 }

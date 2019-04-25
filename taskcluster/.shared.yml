@@ -6,6 +6,9 @@ python:
   brew:
     setup: 'install_local_homebrew "python-ds-test" && install_pkg_local_homebrew "sox" && install_pkg_local_homebrew "readline" && install_pkg_local_homebrew "openssl" && install_pkg_local_homebrew "pkg-config"'
     env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/python-ds-test.brew/bin/:$PATH"'
+electronjs:
+  packages_xenial:
+    apt: 'libatk1.0-0 libatk-bridge2.0-0 libcairo2 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 xvfb'
 nodejs:
   packages_trusty:
     apt: 'nodejs sox'
@@ -21,6 +24,7 @@ nodejs:
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
     prep_10: 'echo "deb http://deb.nodesource.com/node_10.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_11: 'echo "deb http://deb.nodesource.com/node_11.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_stretch:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
@@ -32,6 +36,7 @@ nodejs:
     prep_9: 'echo "deb http://deb.nodesource.com/node_9.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_10: 'echo "deb http://deb.nodesource.com/node_10.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_11: 'echo "deb http://deb.nodesource.com/node_11.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x stretch main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   brew:
     # Using 'nvm' from homebrew results in installing v0.33.6 which seems to
     # suffer from a bug making it unable to work as of now:
@@ -49,6 +54,7 @@ nodejs:
     prep_9: 'nvm install 9.11.2 && nvm use 9.11.2'
     prep_10: 'nvm install 10.12.0 && nvm use 10.12.0'
     prep_11: 'nvm install 11.0.0 && nvm use 11.0.0'
+    prep_12: 'nvm install 12.0.0 && nvm use 12.0.0'
   win:
     prep_4: '/usr/bin/wget.exe https://nodejs.org/dist/v4.9.1/node-v4.9.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v4.9.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v4.9.1-win-x64/:$PATH'
     prep_6: '/usr/bin/wget.exe https://nodejs.org/dist/v6.14.4/node-v6.14.4-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v6.14.4-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v6.14.4-win-x64/:$PATH'
@@ -57,13 +63,14 @@ nodejs:
     prep_9: '/usr/bin/wget.exe https://nodejs.org/dist/v9.11.2/node-v9.11.2-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v9.11.2-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v9.11.2-win-x64/:$PATH'
     prep_10: '/usr/bin/wget.exe https://nodejs.org/dist/v10.12.0/node-v10.12.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v10.12.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v10.12.0-win-x64/:$PATH'
     prep_11: '/usr/bin/wget.exe https://nodejs.org/dist/v11.0.0/node-v11.0.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v11.0.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v11.0.0-win-x64/:$PATH'
+    prep_12: '/usr/bin/wget.exe https://nodejs.org/dist/v12.0.0/node-v12.0.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v12.0.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v12.0.0-win-x64/:$PATH'
 ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:
   packages:
     install_script: 'wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig_3.0.12-1_amd64.deb -O /tmp/swig_3.0.12-1_amd64.deb && wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.12-1_amd64.deb -O /tmp/swig3.0_3.0.12-1_amd64.deb && dpkg -i /tmp/swig_3.0.12-1_amd64.deb /tmp/swig3.0_3.0.12-1_amd64.deb'
   patch_nodejs:
-    linux: '(for patch_file in /home/build-user/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_*.patch; do patch -d /usr/share/swig3.0/ -p2 < $patch_file; done)'
+    linux: '(for patch_file in /home/build-user/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_*.patch /home/build-user/DeepSpeech/ds/native_client/swig_node_v10.12.patch /home/build-user/DeepSpeech/ds/native_client/swig_node_v12_*.patch ; do patch -d /usr/share/swig3.0/ -p2 < $patch_file; done)'
     # Test if we can reverse patch #2:
     #   - if yes, likely we are in a good state, patch _0001 and _0002 have
     #     been applied
@@ -73,11 +80,23 @@ swig:
     # patch of _0001 would require the reverse patch of _0002 to be already
     # applied, and we don't want to. So just test that reversing _0002 in
     # dry-run.
-    osx: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_0002.patch ; then
+    osx_v7v8v9: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_0002.patch ; then
 patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_0001.patch &&
 patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_0002.patch;
 else
-echo "NO PATCH NEEDED";
+echo "NO NODEJS v7-v8-v9 PATCH NEEDED";
+fi)'
+    osx_v10_12: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v10.12.patch ; then
+patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v10.12.patch;
+else
+echo "NO NODEJS v10.12 PATCH NEEDED";
+fi)'
+    osx_v12: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0003-Move-to-new-MaybeLocal-based-GetFunction.patch ; then
+patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0001-Move-from-v8-Handle-to-v8-Local.patch &&
+patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0002-Move-to-new-MaybeLocal-based-NewInstance.patch &&
+patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/3.0.12/share/swig/3.0.12/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0003-Move-to-new-MaybeLocal-based-GetFunction.patch;
+else
+echo "NO NODEJS v12 PATCH NEEDED";
 fi)'
 cpp:
   brew:

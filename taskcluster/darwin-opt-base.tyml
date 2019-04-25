@@ -94,7 +94,9 @@ payload:
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
         cd $TASKCLUSTER_TASK_DIR &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
-        ${swig.patch_nodejs.osx} &&
+        ${swig.patch_nodejs.osx_v7v8v9} &&
+        ${swig.patch_nodejs.osx_v10_12} &&
+        ${swig.patch_nodejs.osx_v12} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
         export TASKCLUSTER_TASK_EXIT_CODE=$? &&

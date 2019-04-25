@@ -50,12 +50,13 @@ struct meta_word {
   float duration;
 };
 
+char* metadataToString(Metadata* metadata);
 std::vector<meta_word> WordsFromMetadata(Metadata* metadata);
-char* CSVOutput(std::vector<meta_word> words);
+char* JSONOutput(Metadata* metadata);
 
 ds_result
 LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
-           int aSampleRate, bool extended_output)
+           int aSampleRate, bool extended_output, bool json_output)
 {
   ds_result res = {0};
 
@@ -63,11 +64,15 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
 
   if (extended_output) {
     Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
-    res.string = CSVOutput(WordsFromMetadata(metadata));
+    res.string = metadataToString(metadata);
+    DS_FreeMetadata(metadata);
+  } else if (json_output) {
+    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
+    res.string = JSONOutput(metadata);
     DS_FreeMetadata(metadata);
   } else {
     res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
-  }  
+  }
 
   clock_t ds_end_infer = clock();
 
@@ -241,7 +246,8 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
                                 (const short*)audio.buffer,
                                 audio.buffer_size / 2,
                                 audio.sample_rate,
-                                extended_metadata);
+                                extended_metadata,
+                                json_output);
   free(audio.buffer);
 
   if (result.string) {
@@ -253,6 +259,17 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
     printf("cpu_time_overall=%.05f\n",
            result.cpu_time_overall);
   }
+}
+
+char*
+metadataToString(Metadata* metadata)
+{
+  std::string retval = "";
+  for (int i = 0; i < metadata->num_items; i++) {
+    MetadataItem item = metadata->items[i];
+    retval += item.character;
+  }
+  return strdup(retval.c_str());
 }
 
 std::vector<meta_word>
@@ -269,21 +286,21 @@ WordsFromMetadata(Metadata* metadata)
 
     // Append character to word if it's not a space
     if (strcmp(item.character, " ") != 0 
-        || strcmp(item.character, u8"　") != 0) {
+        && strcmp(item.character, u8"　") != 0) {
       word.append(item.character);
     }
 
     // Word boundary is either a space or the last character in the array
-    if (strcmp(item.character, " ") == 0 
-        || strcmp(item.character, u8" ") == 0 
+    if (strcmp(item.character, " ") == 0
+        || strcmp(item.character, u8" ") == 0
         || i == metadata->num_items-1) {
-        
+
       float word_duration = item.start_time - word_start_time;
-      
+
       if (word_duration < 0) {
         word_duration = 0;
       }
-      
+
       meta_word w;
       w.word = word;
       w.start_time = word_start_time;
@@ -305,15 +322,24 @@ WordsFromMetadata(Metadata* metadata)
 }
 
 char* 
-CSVOutput(std::vector<meta_word> words)
+JSONOutput(Metadata* metadata)
 {
+  std::vector<meta_word> words = WordsFromMetadata(metadata);
+
   std::ostringstream out_string;
+  out_string << R"({"metadata":{"confidence":)" << metadata->probability << R"(},"words":[)";
 
   for (int i = 0; i < words.size(); i++) {
-    meta_word w = words[i];  
-    out_string << w.word << "," << std::to_string(w.start_time) << "," << std::to_string(w.duration) << "\n";
+    meta_word w = words[i];
+    out_string << R"({"word":")" << w.word << R"(","time":)" << w.start_time << R"(,"duration":)" << w.duration << "}";
+
+    if (i < words.size() - 1) {
+      out_string << ",";
+    }
   }
   
+  out_string << "]}\n";
+
   return strdup(out_string.str().c_str());
 }
 

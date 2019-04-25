@@ -1,11 +1,8 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeechClient", "DeepSpeechClient\DeepSpeechClient.csproj", "{56DE4091-BBBE-47E4-852D-7268B33B971F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeech.WPF", "DeepSpeechWPF\DeepSpeech.WPF.csproj", "{54BFD766-4305-4F4C-BA59-AF45505DF3C1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeechConsole", "DeepSpeechConsole\DeepSpeechConsole.csproj", "{312965E5-C4F6-4D95-BA64-79906B8BC7AC}"
 EndProject
@@ -19,10 +16,6 @@ Global
 		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Debug|x64.Build.0 = Debug|x64
 		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|x64.ActiveCfg = Release|x64
 		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|x64.Build.0 = Release|x64
-		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Debug|x64.ActiveCfg = Debug|x64
-		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Debug|x64.Build.0 = Debug|x64
-		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Release|x64.ActiveCfg = Release|x64
-		{54BFD766-4305-4F4C-BA59-AF45505DF3C1}.Release|x64.Build.0 = Release|x64
 		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|x64.ActiveCfg = Debug|x64
 		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|x64.Build.0 = Debug|x64
 		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|x64.ActiveCfg = Release|x64
@@ -32,6 +25,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {1725B855-0208-4BB2-995A-0C38CAC1CB83}
+		SolutionGuid = {FC035D95-DBFD-4050-885A-A2DD9134B3AD}
 	EndGlobalSection
 EndGlobal

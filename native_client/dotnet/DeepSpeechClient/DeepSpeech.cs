@@ -1,9 +1,10 @@
 ﻿using DeepSpeechClient.Interfaces;
 using DeepSpeechClient.Structs;
+using DeepSpeechClient.Extensions;
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace DeepSpeechClient
 {
@@ -16,7 +17,7 @@ namespace DeepSpeechClient
         private unsafe ModelState* _modelStateP;
         private unsafe StreamingState** _streamingStatePP;
 
-        
+
 
 
         public DeepSpeech()
@@ -119,7 +120,7 @@ namespace DeepSpeechClient
         /// <summary>
         /// Feeds audio samples to an ongoing streaming inference.
         /// </summary>
-        /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate.</param> 
+        /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate.</param>
         public unsafe void FeedAudioContent(short[] aBuffer, uint aBufferSize)
         {
             NativeImp.DS_FeedAudioContent(_streamingStatePP, aBuffer, aBufferSize);
@@ -131,11 +132,20 @@ namespace DeepSpeechClient
         /// <returns>The STT result. The user is responsible for freeing the string.</returns>
         public unsafe string FinishStream()
         {
-            return NativeImp.DS_FinishStream(_streamingStatePP);
+            return NativeImp.DS_FinishStream(_streamingStatePP).PtrToString();
         }
 
         /// <summary>
-        /// Computes the intermediate decoding of an ongoing streaming inference. This is an expensive process as the decoder implementation isn't 
+        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal.
+        /// </summary>
+        /// <returns>The extended metadata. The user is responsible for freeing the struct.</returns>
+        public unsafe Models.Metadata FinishStreamWithMetadata()
+        {
+            return NativeImp.DS_FinishStreamWithMetadata(_streamingStatePP).PtrToMetadata();
+        }
+
+        /// <summary>
+        /// Computes the intermediate decoding of an ongoing streaming inference. This is an expensive process as the decoder implementation isn't
         /// currently capable of streaming, so it always starts from the beginning of the audio.
         /// </summary>
         /// <returns>The STT intermediate result. The user is responsible for freeing the string.</returns>
@@ -156,7 +166,7 @@ namespace DeepSpeechClient
         /// Creates a new streaming inference state.
         /// </summary>
         /// <param name="aPreAllocFrames">Number of timestep frames to reserve.
-        /// One timestep is equivalent to two window lengths(20ms). 
+        /// One timestep is equivalent to two window lengths(20ms).
         /// If set to 0 we reserve enough frames for 3 seconds of audio(150).</param>
         /// <param name="aSampleRate">The sample-rate of the audio signal</param>
         /// <returns>Zero for success, non-zero on failure</returns>
@@ -166,13 +176,29 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
-        /// Destroy a streaming state without decoding the computed logits. 
+        /// Destroy a streaming state without decoding the computed logits.
         /// This can be used if you no longer need the result of an ongoing streaming
         /// inference and don't want to perform a costly decode operation.
         /// </summary>
         public unsafe void DiscardStream()
         {
             NativeImp.DS_DiscardStream(ref _streamingStatePP);
+        }
+
+        /// <summary>
+        /// Free a DeepSpeech allocated string
+        /// </summary>
+        public unsafe void FreeString(IntPtr intPtr)
+        {
+            NativeImp.DS_FreeString(intPtr);
+        }
+
+        /// <summary>
+        /// Free a DeepSpeech allocated Metadata struct
+        /// </summary>
+        public unsafe void FreeMetadata(IntPtr intPtr)
+        {
+            NativeImp.DS_FreeMetadata(intPtr);
         }
 
         /// <summary>
@@ -184,18 +210,24 @@ namespace DeepSpeechClient
         /// <returns>The STT result. The user is responsible for freeing the string.  Returns NULL on error.</returns>
         public unsafe string SpeechToText(short[] aBuffer, uint aBufferSize, uint aSampleRate)
         {
-            var res = NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize, aSampleRate);
-            
-            int len = 0;
-            while (Marshal.ReadByte(res, len) != 0) ++len;
-            byte[] buffer = new byte[len];
-            Marshal.Copy(res, buffer, 0, buffer.Length);
-            return Encoding.UTF8.GetString(buffer);
+            return NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize, aSampleRate).PtrToString();
+        }
+
+        /// <summary>
+        /// Use the DeepSpeech model to perform Speech-To-Text.
+        /// </summary>
+        /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate.</param>
+        /// <param name="aBufferSize">The number of samples in the audio signal.</param>
+        /// <param name="aSampleRate">The sample-rate of the audio signal.</param>
+        /// <returns>The extended metadata. The user is responsible for freeing the struct.  Returns NULL on error.</returns>
+        public unsafe Models.Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize, uint aSampleRate)
+        {
+            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize, aSampleRate).PtrToMetadata();
         }
 
         #endregion
 
 
-        
+
     }
 }
