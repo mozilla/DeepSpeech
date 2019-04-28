@@ -140,11 +140,6 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64:/usr/loc
 COPY . /DeepSpeech/
 
 # Alternative clone from GitHub 
-# RUN apt-get update && apt-get install -y \
-#    software-properties-common \
-#    curl
-# RUN add-apt-repository ppa:git-core/ppa && \
-#     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
 # RUN apt-get update && apt-get install -y git-lfs 
 # WORKDIR /
 # RUN git clone https://github.com/mozilla/DeepSpeech.git
