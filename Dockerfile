@@ -5,13 +5,6 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
 # >> START Install base software
 
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    curl
-
-RUN add-apt-repository ppa:git-core/ppa && \
-    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-
 # Get basic packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
@@ -42,8 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         openjdk-8-jdk \
         bash-completion \
         g++ \
-        unzip \
-        git-lfs
+        unzip
 
 RUN ln -s -f /usr/bin/python3 /usr/bin/python
 
@@ -146,7 +138,14 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64:/usr/loc
 
 # Copy DeepSpeech repo contents to container's /DeepSpeech
 COPY . /DeepSpeech/
+
 # Alternative clone from GitHub 
+# RUN apt-get update && apt-get install -y \
+#    software-properties-common \
+#    curl
+# RUN add-apt-repository ppa:git-core/ppa && \
+#     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+# RUN apt-get update && apt-get install -y git-lfs 
 # WORKDIR /
 # RUN git clone https://github.com/mozilla/DeepSpeech.git
 
