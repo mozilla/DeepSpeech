@@ -11,11 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         wget \
         git \
-        python \
-        python-dev \
-        python-pip \
-        python-wheel \
-        python-numpy \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-wheel \
+        python3-numpy \
         libcurl3-dev  \
         ca-certificates \
         gcc \
@@ -37,6 +37,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         g++ \
         unzip
 
+RUN ln -s -f /usr/bin/python3 /usr/bin/python
+
 # Install NCCL 2.2
 RUN apt-get install -qq -y --allow-downgrades --allow-change-held-packages libnccl2=2.3.7-1+cuda10.0 libnccl-dev=2.3.7-1+cuda10.0
 
@@ -49,7 +51,7 @@ RUN apt-get install -qq -y cuda-command-line-tools-10-0
 
 # Install pip
 RUN wget https://bootstrap.pypa.io/get-pip.py && \
-    python get-pip.py && \
+    python3 get-pip.py && \
     rm get-pip.py
 
 # << END Install base software
@@ -80,7 +82,7 @@ ENV TF_BUILD_CONTAINER_TYPE GPU
 ENV TF_BUILD_OPTIONS OPT
 ENV TF_BUILD_DISABLE_GCP 1
 ENV TF_BUILD_ENABLE_XLA 0
-ENV TF_BUILD_PYTHON_VERSION PYTHON2
+ENV TF_BUILD_PYTHON_VERSION PYTHON3
 ENV TF_BUILD_IS_OPT OPT
 ENV TF_BUILD_IS_PIP PIP
 
@@ -101,8 +103,8 @@ ENV TF_NEED_TENSORRT 0
 ENV TF_NEED_GDR 0
 ENV TF_NEED_VERBS 0
 ENV TF_NEED_OPENCL_SYCL 0
-ENV PYTHON_BIN_PATH /usr/bin/python2.7
-ENV PYTHON_LIB_PATH /usr/lib/python2.7/dist-packages
+ENV PYTHON_BIN_PATH /usr/bin/python3.6
+ENV PYTHON_LIB_PATH /usr/lib/python3.6/dist-packages
 
 # << END Configure Tensorflow Build
 
@@ -134,14 +136,17 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64:/usr/loc
 # << END Configure Bazel
 
 
-
-
 # Copy DeepSpeech repo contents to container's /DeepSpeech
 COPY . /DeepSpeech/
 
+# Alternative clone from GitHub 
+# RUN apt-get update && apt-get install -y git-lfs 
+# WORKDIR /
+# RUN git clone https://github.com/mozilla/DeepSpeech.git
+
 WORKDIR /DeepSpeech
 
-RUN pip --no-cache-dir install -r requirements.txt
+RUN pip3 --no-cache-dir install -r requirements.txt
 
 # Link DeepSpeech native_client libs to tf folder
 RUN ln -s /DeepSpeech/native_client /tensorflow
@@ -176,7 +181,7 @@ RUN bazel build --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_G
 # RUN bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
 #
 # # Install tensorflow from our custom wheel
-# RUN pip install /tmp/tensorflow_pkg/*.whl
+# RUN pip3 install /tmp/tensorflow_pkg/*.whl
 
 # Copy built libs to /DeepSpeech/native_client
 RUN cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_client/ \
@@ -184,7 +189,7 @@ RUN cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_clie
 
 # Install TensorFlow
 WORKDIR /DeepSpeech/
-RUN pip install tensorflow-gpu==1.13.1
+RUN pip3 install tensorflow-gpu==1.13.1
 
 
 # Make DeepSpeech and install Python bindings
@@ -193,10 +198,10 @@ WORKDIR /DeepSpeech/native_client
 RUN make deepspeech
 WORKDIR /DeepSpeech/native_client/python
 RUN make bindings
-RUN pip install dist/deepspeech*
+RUN pip3 install dist/deepspeech*
 WORKDIR /DeepSpeech/native_client/ctcdecode
 RUN make
-RUN pip install dist/*.whl
+RUN pip3 install dist/*.whl
 
 
 # << END Build and bind
