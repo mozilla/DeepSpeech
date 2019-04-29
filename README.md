@@ -410,7 +410,7 @@ if [ "$old_stash" = "$new_stash" ]; then
 fi
 
 # Run tests
-cardboardlinter --refspec HEAD^ -n auto
+cardboardlinter --refspec HEAD -n auto
 status=$?
 
 # Restore changes
