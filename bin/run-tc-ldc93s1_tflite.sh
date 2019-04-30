@@ -10,6 +10,10 @@ if [ ! -f "${ldc93s1_dir}/ldc93s1.csv" ]; then
     python -u bin/import_ldc93s1.py ${ldc93s1_dir}
 fi;
 
+# Force only one visible device because we have a single-sample dataset
+# and when trying to run on multiple devices (like GPUs), this will break
+export CUDA_VISIBLE_DEVICES=0
+
 python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 100 \
   --checkpoint_dir '/tmp/ckpt' \
