@@ -29,28 +29,31 @@ def read_csvs(csv_files):
     return source_data
 
 
-def samples_to_mfccs(samples, sample_rate):
+def samples_to_mfccs(samples, sample_rate, spec_augment=False):
     spectrogram = contrib_audio.audio_spectrogram(samples,
                                                   window_size=Config.audio_window_samples,
                                                   stride=Config.audio_step_samples,
                                                   magnitude_squared=True)
-    mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
-    mfccs = tf.reshape(mfccs, [-1, Config.n_input])
+    if spec_augment:
+		warped_masked_spectrogram = spec_augment(mel_spectrogram=spectrogram)
+	mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
+   
+	mfccs = tf.reshape(mfccs, [-1, Config.n_input])
 
     return mfccs, tf.shape(mfccs)[0]
 
 
-def audiofile_to_features(wav_filename):
+def audiofile_to_features(wav_filename, spec_augment=False):
     samples = tf.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate)
+    features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate, spec_augment)
 
     return features, features_len
 
 
 def entry_to_features(wav_filename, transcript):
     # https://bugs.python.org/issue32117
-    features, features_len = audiofile_to_features(wav_filename)
+    features, features_len = audiofile_to_features(wav_filename, True)
     return features, features_len, tf.SparseTensor(*transcript)
 
 
