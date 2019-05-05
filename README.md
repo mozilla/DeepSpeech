@@ -90,7 +90,7 @@ Please refer to your system's documentation on how to install these dependencies
 
 ### CUDA dependency
 
-The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Make sure you've installed the correct version of CUDA
+The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 1.13 it depends on CUDA 10.0 and CuDNN v7.5.
 
 ### Getting the pre-trained model
 
