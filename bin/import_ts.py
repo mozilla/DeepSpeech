@@ -14,6 +14,14 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import csv
 import unidecode
 import zipfile
+import sox
+import subprocess
+import progressbar
+
+from threading import RLock
+from multiprocessing.dummy import Pool
+from multiprocessing import cpu_count
+from util.downloader import SIMPLE_BAR
 
 from os import path
 
@@ -21,7 +29,8 @@ from util.downloader import maybe_download
 from util.text import validate_label
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
-MAX_SECS = 10
+SAMPLE_RATE = 16000
+MAX_SECS = 15
 ARCHIVE_NAME = '2019-04-11_fr_FR'
 ARCHIVE_DIR_NAME = 'ts_' + ARCHIVE_NAME
 ARCHIVE_URL = 'https://s3.eu-west-3.amazonaws.com/audiocorp/releases/' + ARCHIVE_NAME + '.zip'
@@ -63,6 +72,53 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
             d for d in csv.DictReader(csv_f, delimiter=',')
             if float(d['duration']) <= MAX_SECS
         ]
+
+    # Keep track of how many samples are good vs. problematic
+    counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0}
+    lock = RLock()
+    num_samples = len(data)
+    rows = []
+
+    wav_root_dir = extracted_dir
+
+    def one_sample(sample):
+        """ Take a audio file, and optionally convert it to 16kHz WAV """
+        orig_filename = path.join(wav_root_dir, sample['path'])
+        # Storing wav files next to the wav ones - just with a different suffix
+        wav_filename = path.splitext(orig_filename)[0] + ".converted.wav"
+        _maybe_convert_wav(orig_filename, wav_filename)
+        file_size = -1
+        if path.exists(wav_filename):
+            file_size = path.getsize(wav_filename)
+            frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
+        label = sample['text']
+        with lock:
+            if file_size == -1:
+                # Excluding samples that failed upon conversion
+                counter['failed'] += 1
+            elif label is None:
+                # Excluding samples that failed on label validation
+                counter['invalid_label'] += 1
+            elif int(frames/SAMPLE_RATE*1000/10/2) < len(str(label)):
+                # Excluding samples that are too short to fit the transcript
+                counter['too_short'] += 1
+            elif frames/SAMPLE_RATE > MAX_SECS:
+                # Excluding very long samples to keep a reasonable batch-size
+                counter['too_long'] += 1
+            else:
+                # This one is good - keep it for the target CSV
+                rows.append((wav_filename, file_size, label))
+            counter['all'] += 1
+
+    print("Importing wav files...")
+    pool = Pool(cpu_count())
+    bar = progressbar.ProgressBar(max_value=num_samples, widgets=SIMPLE_BAR)
+    for i, _ in enumerate(pool.imap_unordered(one_sample, data), start=1):
+        bar.update(i)
+    bar.update(num_samples)
+    pool.close()
+    pool.join()
+
     with open(target_csv_template.format('train'), 'w') as train_csv_file:  # 80%
         with open(target_csv_template.format('dev'), 'w') as dev_csv_file:  # 10%
             with open(target_csv_template.format('test'), 'w') as test_csv_file:  # 10%
@@ -73,11 +129,12 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
                 test_writer = csv.DictWriter(test_csv_file, fieldnames=FIELDNAMES)
                 test_writer.writeheader()
 
-                for i, item in enumerate(data):
-                    transcript = validate_label(cleanup_transcript(item['text'], english_compatible=english_compatible))
+                for i, item in enumerate(rows):
+                    print('item', item)
+                    transcript = validate_label(cleanup_transcript(item[2], english_compatible=english_compatible))
                     if not transcript:
                         continue
-                    wav_filename = os.path.join(target_dir, extracted_data, item['path'])
+                    wav_filename = os.path.join(target_dir, extracted_data, item[0])
                     i_mod = i % 10
                     if i_mod == 0:
                         writer = test_writer
@@ -90,6 +147,25 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
                         wav_filesize=os.path.getsize(wav_filename),
                         transcript=transcript,
                     ))
+
+    print('Imported %d samples.' % (counter['all'] - counter['failed'] - counter['too_short'] - counter['too_long']))
+    if counter['failed'] > 0:
+        print('Skipped %d samples that failed upon conversion.' % counter['failed'])
+    if counter['invalid_label'] > 0:
+        print('Skipped %d samples that failed on transcript validation.' % counter['invalid_label'])
+    if counter['too_short'] > 0:
+        print('Skipped %d samples that were too short to match the transcript.' % counter['too_short'])
+    if counter['too_long'] > 0:
+        print('Skipped %d samples that were longer than %d seconds.' % (counter['too_long'], MAX_SECS))
+
+def _maybe_convert_wav(orig_filename, wav_filename):
+    if not path.exists(wav_filename):
+        transformer = sox.Transformer()
+        transformer.convert(samplerate=SAMPLE_RATE)
+        try:
+            transformer.build(orig_filename, wav_filename)
+        except sox.core.SoxError as ex:
+            print('SoX processing error', ex, orig_filename, wav_filename)
 
 
 PUNCTUATIONS_REG = re.compile(r"[°\-,;!?.()\[\]*…—]")
