@@ -33,4 +33,4 @@ python -u DeepSpeech.py \
   --epochs 30 \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries" \
-  --feature_cache "/tmp/cached_feats
+  --feature_cache "/tmp/cached_feats"
