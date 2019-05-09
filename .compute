@@ -27,7 +27,7 @@ python -u DeepSpeech.py \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
-  --n_hidden 2048 \
+  --n_hidden 1024 \
   --learning_rate 0.0001 \
   --dropout_rate 0.15 \
   --epochs 40 \
