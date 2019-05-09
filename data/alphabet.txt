@@ -1,33 +1,78 @@
-# Each line in this file represents the Unicode codepoint (UTF-8 encoded)
-# associated with a numeric label.
-# A line that starts with # is a comment. You can escape it with \# if you wish
-# to use '#' as a label.
+### Reading in the following transcript files: ###
+### ['/Users/kdavis/Code/mozilla/DeepSpeech/vaani_data/train.csv', '/Users/kdavis/Code/mozilla/DeepSpeech/vaani_data/dev.csv', '/Users/kdavis/Code/mozilla/DeepSpeech/vaani_data/test.csv'] ###
+### The following unique characters were found in your transcripts: ###
+छ
+भ
  
-a
-b
-c
-d
-e
-f
-g
-h
-i
-j
-k
-l
-m
-n
-o
-p
-q
-r
-s
-t
-u
-v
-w
-x
-y
-z
+ए
+ऱ
+ु
 '
-# The last (non-comment) line needs to end with a newline.
+ं
+न
+ढ़
+क़
+ग़
+क
+फ
+ॉ
+ऋ
+ट
+थ
+ौ
+ह
+च
+ऐ
+ँ
+ढ
+ल
+ऑ
+र
+ड़
+ू
+ज
+स
+य
+ा
+ब
+ध
+फ़
+झ
+औ
+ृ
+प
+त
+ळ
+ञ
+ै
+घ
+ख़
+्
+ठ
+ॐ
+ऊ
+ः
+ऍ
+े
+ख
+व
+अ
+म
+ि
+आ
+ज़
+ो
+उ
+ॅ
+ग
+ष
+ओ
+ङ
+ड
+ी
+द
+ई
+ण
+श
+इ
+### ^^^ You can copy-paste these into data/alphabet.txt ###
