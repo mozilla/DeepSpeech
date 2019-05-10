@@ -26,6 +26,7 @@ import zipfile
 
 from six import iteritems
 from six.moves import range, map
+from functools import cmp_to_key
 
 r'''
  Tool to:
@@ -74,16 +75,16 @@ def get_arch_string():
         raise AssertionError('Error checking OS')
 
     stdout = stdout.lower().strip()
-    if not 'linux' in stdout:
+    if not b'linux' in stdout:
         raise AssertionError('Unsupported OS')
 
-    if 'armv7l' in stdout:
+    if b'armv7l' in stdout:
         return 'arm'
 
-    if 'x86_64' in stdout:
+    if b'x86_64' in stdout:
         nv_rc, nv_stdout, nv_stderr = exec_command('nvidia-smi')
         nv_stdout = nv_stdout.lower().strip()
-        if 'NVIDIA-SMI' in nv_stdout:
+        if b'NVIDIA-SMI' in nv_stdout:
             return 'gpu'
         else:
             return 'cpu'
@@ -181,7 +182,7 @@ def all_files(models=[]):
             return 1
 
     base = list(map(lambda x: os.path.abspath(x), maybe_inspect_zip(models)))
-    base.sort(cmp=nsort)
+    base.sort(key=cmp_to_key(nsort))
 
     return base
 
@@ -254,7 +255,7 @@ def setup_tempdir(dir, models, wav, alphabet, lm_binary, trie, binaries):
     extract_native_client_tarball(dir)
 
     filenames = map(lambda x: os.path.join(dir, os.path.basename(x)), sorted_models)
-    missing_models = filter(lambda x: not os.path.isfile(x), filenames)
+    missing_models = list(filter(lambda x: not os.path.isfile(x), filenames))
     if len(missing_models) > 0:
         # If we have a ZIP file, directly extract it to the proper path
         if is_zip_file(models):
@@ -404,7 +405,7 @@ def run_benchmarks(dir, models, wav, alphabet, lm_binary=None, trie=None, iters=
             sys.stdout.flush()
             rc, stdout, stderr = exec_command(cmdline, cwd=dir)
             if rc == 0:
-                inference_time = float(stdout.split('\n')[1].split('=')[-1])
+                inference_time = float(stdout.split(b'\n')[1].split(b'=')[-1])
                 # print("[%d] model=%s inference=%f" % (it, model, inference_time))
                 current_model['iters'].append(inference_time)
             else:

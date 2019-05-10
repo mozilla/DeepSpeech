@@ -39,7 +39,7 @@ def reduce_filename(f):
 
 def ingest_csv(datasets=None, range=None):
     existing_files = filter(lambda x: os.path.isfile(x[1]), datasets)
-    assert len(datasets) == len(existing_files)
+    assert len(list(datasets)) == len(list(existing_files))
 
     if range:
         range = map(int, range.split(','))
@@ -79,7 +79,7 @@ def produce_plot_multiseries(input=None, output=None, title=None, size=None, fig
     fig.set_figwidth(float(size.split('x')[0]) / fig_dpi)
     fig.set_figheight(float(size.split('x')[1]) / fig_dpi)
 
-    nb_items = len(input[input.keys()[0]])
+    nb_items = len(input[list(input.keys())[0]])
     x_all    = list(range(nb_items))
     for serie, serie_values in iteritems(input):
         xtics  = list(map(lambda a: reduce_filename(a['model']), serie_values))
@@ -119,7 +119,7 @@ def handle_args():
     parser.add_argument('--dataset', action='append', nargs=2, metavar=('name','source'),
                                 help='Include dataset NAME from file SOURCE. Repeat the option to add more datasets.')
     parser.add_argument('--title', default=None, help='Title of the plot.')
-    parser.add_argument('--plot', type=argparse.FileType('w'), required=False,
+    parser.add_argument('--plot', type=argparse.FileType('wb'), required=False,
                                 help='Target file where to plot data. Format will be deduced from extension.')
     parser.add_argument('--size', default='800x600',
                                 help='Size (px) of the resulting plot.')
