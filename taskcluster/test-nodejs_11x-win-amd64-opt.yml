@@ -2,7 +2,7 @@ build:
   template_file: test-win-opt-base.tyml
   dependencies:
     - "node-package-cpu"
-    - "test-training_upstream-linux-amd64-py27mu-opt"
+    - "test-training_upstream-linux-amd64-py35m-opt"
   system_setup:
     >
       ${system.sox_win} && ${nodejs.win.prep_11}

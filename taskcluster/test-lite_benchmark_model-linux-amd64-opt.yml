@@ -1,7 +1,7 @@
 build:
   template_file: test-linux-opt-base.tyml
   dependencies:
-    - "test-training_upstream-linux-amd64-py27mu-opt"
+    - "test-training_upstream-linux-amd64-py35m-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-lite_benchmark_model-ds-tests.sh"
   benchmark_model_bin: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.13.3e0cc5374d6f4a0cc1e1c14e7a185296fe23ea4b.cpu/artifacts/public/lite_benchmark_model"

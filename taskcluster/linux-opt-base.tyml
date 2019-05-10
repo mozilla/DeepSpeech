@@ -34,7 +34,7 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py35m-opt") }
       in:
         TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb

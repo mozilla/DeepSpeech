@@ -37,7 +37,7 @@ payload:
 
   env:
     $let:
-      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
+      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py35m-opt") }
     in:
       TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
       DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
@@ -94,8 +94,6 @@ payload:
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
         cd $TASKCLUSTER_TASK_DIR &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
-        ${swig.patch_nodejs.osx_v7v8v9} &&
-        ${swig.patch_nodejs.osx_v10_12} &&
         ${swig.patch_nodejs.osx_v12} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
