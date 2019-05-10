@@ -31,7 +31,7 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py27mu-opt") }
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py35m-opt") }
         linux_amd64_build: { $eval: as_slugid("linux-amd64-cpu-opt") }
         linux_amd64_ctc: { $eval: as_slugid("linux-amd64-ctc-opt") }
         node_package_cpu: { $eval: as_slugid("node-package-cpu") }

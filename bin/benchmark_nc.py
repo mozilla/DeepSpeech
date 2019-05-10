@@ -26,6 +26,7 @@ import zipfile
 
 from six import iteritems
 from six.moves import range, map
+from functools import cmp_to_key
 
 r'''
  Tool to:
@@ -181,7 +182,7 @@ def all_files(models=[]):
             return 1
 
     base = list(map(lambda x: os.path.abspath(x), maybe_inspect_zip(models)))
-    base.sort(cmp=nsort)
+    base.sort(key=cmp_to_key(nsort))
 
     return base
 

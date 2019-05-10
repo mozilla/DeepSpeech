@@ -50,7 +50,7 @@ exec_benchmark()
         --size 1280x720
 }
 
-pyver=2.7.13
+pyver=3.5.6
 
 unset PYTHON_BIN_PATH
 unset PYTHONPATH

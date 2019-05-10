@@ -2,7 +2,7 @@ build:
   template_file: test-android-opt-base.tyml
   dependencies:
     - "android-x86_64-cpu-opt"
-    - "test-training_upstream-linux-amd64-py27mu-opt"
+    - "test-training_upstream-linux-amd64-py35m-opt"
   system_setup:
     >
       apt-get -qq -y install curl make python && ${swig.packages.install_script}
