@@ -13,7 +13,6 @@ from six.moves import zip, range
 from multiprocessing import JoinableQueue, Pool, Process, Queue, cpu_count
 from deepspeech import Model
 
-from util.text import levenshtein
 from util.evaluate_tools import process_decode_result, calculate_report
 
 r'''
@@ -96,9 +95,7 @@ def main():
         ground_truths.append(msg['ground_truth'])
         predictions.append(msg['prediction'])
 
-    distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
-
-    wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
+    wer, cer, samples = calculate_report(ground_truths, predictions, losses)
     mean_loss = np.mean(losses)
 
     print('Test - WER: %f, CER: %f, loss: %f' %
