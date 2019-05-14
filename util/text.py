@@ -55,34 +55,6 @@ def text_to_char_array(original, alphabet):
     return np.asarray([alphabet.label_from_string(c) for c in original])
 
 
-def wer_cer_batch(originals, results):
-    r"""
-    The WER is defined as the editing/Levenshtein distance on word level
-    divided by the amount of words in the original text.
-    In case of the original having more words (N) than the result and both
-    being totally different (all N words resulting in 1 edit operation each),
-    the WER will always be 1 (N / N = 1).
-    """
-    # The WER is calculated on word (and NOT on character) level.
-    # Therefore we split the strings into words first
-    assert len(originals) == len(results)
-
-    total_cer = 0.0
-    total_char_length = 0.0
-
-    total_wer = 0.0
-    total_word_length = 0.0
-
-    for original, result in zip(originals, results):
-        total_cer += levenshtein(original, result)
-        total_char_length += len(original)
-
-        total_wer += levenshtein(original.split(), result.split())
-        total_word_length += len(original.split())
-
-    return total_wer / total_word_length, total_cer / total_char_length
-
-
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
 
 # This is a straightforward implementation of a well-known algorithm, and thus

@@ -19,7 +19,6 @@ from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
 from util.logging import log_error, log_progress, create_progressbar
-from util.text import levenshtein
 
 
 def sparse_tensor_value_to_texts(value, alphabet):
@@ -88,14 +87,13 @@ def evaluate(test_csvs, create_model, try_loading):
             exit(1)
 
         def run_test(init_op, dataset):
-            logitses = []
             losses = []
-            seq_lengths = []
+            predictions = []
             ground_truths = []
 
-            bar = create_progressbar(prefix='Computing acoustic model predictions | ',
+            bar = create_progressbar(prefix='Test epoch | ',
                                      widgets=['Steps: ', progressbar.Counter(), ' | ', progressbar.Timer()]).start()
-            log_progress('Computing acoustic model predictions...')
+            log_progress('Test epoch...')
 
             step_count = 0
 
@@ -105,35 +103,23 @@ def evaluate(test_csvs, create_model, try_loading):
             # First pass, compute losses and transposed logits for decoding
             while True:
                 try:
-                    logits, loss_, lengths, transcripts = session.run([transposed, loss, batch_x_len, batch_y])
+                    batch_logits, batch_loss, batch_lengths, batch_transcripts = \
+                        session.run([transposed, loss, batch_x_len, batch_y])
                 except tf.errors.OutOfRangeError:
                     break
+
+                decoded = ctc_beam_search_decoder_batch(batch_logits, batch_lengths, Config.alphabet, FLAGS.beam_width,
+                                                        num_processes=num_processes, scorer=scorer)
+                predictions.extend(d[0][1] for d in decoded)
+                ground_truths.extend(sparse_tensor_value_to_texts(batch_transcripts, Config.alphabet))
+                losses.extend(batch_loss)
 
                 step_count += 1
                 bar.update(step_count)
 
-                logitses.append(logits)
-                losses.extend(loss_)
-                seq_lengths.append(lengths)
-                ground_truths.extend(sparse_tensor_value_to_texts(transcripts, Config.alphabet))
-
             bar.finish()
 
-            predictions = []
-
-            bar = create_progressbar(max_value=step_count,
-                                     prefix='Decoding predictions | ').start()
-            log_progress('Decoding predictions...')
-
-            # Second pass, decode logits and compute WER and edit distance metrics
-            for logits, seq_length in bar(zip(logitses, seq_lengths)):
-                decoded = ctc_beam_search_decoder_batch(logits, seq_length, Config.alphabet, FLAGS.beam_width,
-                                                        num_processes=num_processes, scorer=scorer)
-                predictions.extend(d[0][1] for d in decoded)
-
-            distances = [levenshtein(a, b) for a, b in zip(ground_truths, predictions)]
-
-            wer, cer, samples = calculate_report(ground_truths, predictions, distances, losses)
+            wer, cer, samples = calculate_report(ground_truths, predictions, losses)
             mean_loss = np.mean(losses)
 
             # Take only the first report_count items
@@ -144,7 +130,7 @@ def evaluate(test_csvs, create_model, try_loading):
             print('-' * 80)
             for sample in report_samples:
                 print('WER: %f, CER: %f, loss: %f' %
-                      (sample.wer, sample.distance, sample.loss))
+                      (sample.wer, sample.cer, sample.loss))
                 print(' - src: "%s"' % sample.src)
                 print(' - res: "%s"' % sample.res)
                 print('-' * 80)
