@@ -38,7 +38,9 @@ public:
   }
 
   const std::string& StringFromLabel(unsigned int label) const {
-    assert(label < size_);
+    //assert(label < size_);
+    if (label>=size_)
+      return label_to_str_[size_-1];
     return label_to_str_[label];
   }
 
