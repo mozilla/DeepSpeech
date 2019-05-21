@@ -22,6 +22,7 @@ struct MetadataItem {
   float start_time; // Position of the character in seconds
   double probability; // Logit value at the time the character was chosen
   double entropy; // Entropy across all logits at the time the character was chosen 
+  char* acoustic_char; // Best guess from acoustic model at timestep of chosen letter (sometimes can differ)
 };
 
 // Stores the entire CTC output as an array of character metadata objects
