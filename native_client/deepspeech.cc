@@ -843,6 +843,12 @@ DS_SetupStream(ModelState* aCtx,
 
   ctx->model = aCtx;
 
+#ifdef USE_TFLITE
+  /* Ensure previous_state_{c,h} are not holding previous stream value */
+  memset(ctx->model->previous_state_c_.get(), 0, sizeof(float) * ctx->model->previous_state_size);
+  memset(ctx->model->previous_state_h_.get(), 0, sizeof(float) * ctx->model->previous_state_size);
+#endif // USE_TFLITE
+
   DecoderState *params = decoder_init(*aCtx->alphabet, num_classes, aCtx->scorer);
   aCtx->decoder_state = params;
 
