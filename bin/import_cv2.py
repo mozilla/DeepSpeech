@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+'''
+Broadly speaking, this script takes the audio downloaded from Common Voice
+for a certain language, in addition to the *.tsv files output by CorporaCreator,
+and the script formats the data and transcripts to be in a state usable by
+DeepSpeech.py
+Use "python3 import_cv2.py -h" for help
+'''
 from __future__ import absolute_import, division, print_function
 
 # Make sure we can import stuff from util/
@@ -21,13 +28,6 @@ from multiprocessing import cpu_count
 from util.downloader import SIMPLE_BAR
 from util.text import Alphabet, validate_label
 
-'''
-Broadly speaking, this script takes the audio downloaded from Common Voice
-for a certain language, in addition to the *.tsv files output by CorporaCreator,
-and the script formats the data and transcripts to be in a state usable by
-DeepSpeech.py
-Use "python3 import_cv2.py -h" for help
-'''
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000
@@ -134,29 +134,29 @@ def _maybe_convert_wav(mp3_filename, wav_filename):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Import CommonVoice v2.0 corpora')
-    parser.add_argument('tsv_dir', help='Directory containing tsv files')
-    parser.add_argument('--audio_dir', help='Directory containing the audio clips - defaults to "<tsv_dir>/clips"')
-    parser.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
-    parser.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')
-    parser.add_argument('--space_after_every_character', action='store_true', help='To help transcript join by white space')
+    PARSER = argparse.ArgumentParser(description='Import CommonVoice v2.0 corpora')
+    PARSER.add_argument('tsv_dir', help='Directory containing tsv files')
+    PARSER.add_argument('--audio_dir', help='Directory containing the audio clips - defaults to "<tsv_dir>/clips"')
+    PARSER.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
+    PARSER.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')
+    PARSER.add_argument('--space_after_every_character', action='store_true', help='To help transcript join by white space')
 
-    params = parser.parse_args()
+    PARAMS = PARSER.parse_args()
 
-    audio_dir = params.audio_dir if params.audio_dir else os.path.join(params.tsv_dir, 'clips')
-    alphabet = Alphabet(params.filter_alphabet) if params.filter_alphabet else None
+    AUDIO_DIR = PARAMS.audio_dir if PARAMS.audio_dir else os.path.join(PARAMS.tsv_dir, 'clips')
+    ALPHABET = Alphabet(PARAMS.filter_alphabet) if PARAMS.filter_alphabet else None
 
-    def label_filter(label):
-        if params.normalize:
+    def label_filter_fun(label):
+        if PARAMS.normalize:
             label = unicodedata.normalize("NFKD", label.strip()) \
                 .encode("ascii", "ignore") \
                 .decode("ascii", "ignore")
         label = validate_label(label)
-        if alphabet and label:
+        if ALPHABET and label:
             try:
-                [alphabet.label_from_string(c) for c in label]
+                [ALPHABET.label_from_string(c) for c in label]
             except KeyError:
                 label = None
         return label
 
-    _preprocess_data(params.tsv_dir, audio_dir, label_filter, params.space_after_every_character)
+    _preprocess_data(PARAMS.tsv_dir, AUDIO_DIR, label_filter_fun, PARAMS.space_after_every_character)
