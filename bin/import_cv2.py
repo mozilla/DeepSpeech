@@ -34,17 +34,17 @@ SAMPLE_RATE = 16000
 MAX_SECS = 10
 
 
-def _preprocess_data(tsv_dir, audio_dir, label_filter, mandarin=False):
-    for dataset in ['train','test','dev']:
-        input_tsv= path.join(path.abspath(tsv_dir), dataset+".tsv")
+def _preprocess_data(tsv_dir, audio_dir, label_filter, space_after_every_character=False):
+    for dataset in ['train', 'test', 'dev']:
+        input_tsv = path.join(path.abspath(tsv_dir), dataset+".tsv")
         if os.path.isfile(input_tsv):
             print("Loading TSV file: ", input_tsv)
-            _maybe_convert_set(input_tsv, audio_dir, label_filter, mandarin)
+            _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character)
         else:
             print("ERROR: no TSV file found: ", input_tsv)
 
 
-def _maybe_convert_set(input_tsv, audio_dir, label_filter, mandarin=None):
+def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character=None):
     output_csv = path.join(audio_dir, os.path.split(input_tsv)[-1].replace('tsv', 'csv'))
     print("Saving new DeepSpeech-formatted CSV file to: ", output_csv)
 
@@ -107,10 +107,10 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, mandarin=None):
         writer.writeheader()
         bar = progressbar.ProgressBar(max_value=len(rows), widgets=SIMPLE_BAR)
         for filename, file_size, transcript in bar(rows):
-            if mandarin:
-                writer.writerow({ 'wav_filename': filename, 'wav_filesize': file_size, 'transcript': ' '.join(transcript) })
+            if space_after_every_character:
+                writer.writerow({'wav_filename': filename, 'wav_filesize': file_size, 'transcript': ' '.join(transcript)})
             else:
-                writer.writerow({ 'wav_filename': filename, 'wav_filesize': file_size, 'transcript': transcript })
+                writer.writerow({'wav_filename': filename, 'wav_filesize': file_size, 'transcript': transcript})
 
     print('Imported %d samples.' % (counter['all'] - counter['failed'] - counter['too_short'] - counter['too_long']))
     if counter['failed'] > 0:
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     parser.add_argument('--audio_dir', help='Directory containing the audio clips - defaults to "<tsv_dir>/clips"')
     parser.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
     parser.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')
-    parser.add_argument('--mandarin', action='store_true', help='Mandarin transcript join by white space')
+    parser.add_argument('--space_after_every_character', action='store_true', help='To help transcript join by white space')
 
     params = parser.parse_args()
 
@@ -159,4 +159,4 @@ if __name__ == "__main__":
                 label = None
         return label
 
-    _preprocess_data(params.tsv_dir, audio_dir, label_filter, params.mandarin)
+    _preprocess_data(params.tsv_dir, audio_dir, label_filter, params.space_after_every_character)
