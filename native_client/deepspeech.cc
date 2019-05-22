@@ -75,13 +75,12 @@ using std::vector;
    API. When audio_buffer is full, features are computed from it and pushed to
    mfcc_buffer. When mfcc_buffer is full, the timestep is copied to batch_buffer.
    When batch_buffer is full, we do a single step through the acoustic model
-   and accumulate results in StreamingState::accumulated_logits.
+   and accumulate results in the DecoderState structure.
 
-   When fininshStream() is called, we decode the accumulated logits and return
+   When finishStream() is called, we decode the accumulated logits and return
    the corresponding transcription.
 */
 struct StreamingState {
-  vector<float> accumulated_logits;
   vector<float> audio_buffer;
   vector<float> mfcc_buffer;
   vector<float> batch_buffer;
@@ -113,6 +112,7 @@ struct ModelState {
   unsigned int ncontext;
   Alphabet* alphabet;
   Scorer* scorer;
+  DecoderState* decoder_state;
   unsigned int beam_width;
   unsigned int n_steps;
   unsigned int n_context;
@@ -145,34 +145,26 @@ struct ModelState {
    * @brief Perform decoding of the logits, using basic CTC decoder or
    *        CTC decoder with KenLM enabled
    *
-   * @param logits         Flat matrix of logits, of size:
-   *                       n_frames * batch_size * num_classes
-   *
    * @return String representing the decoded text.
    */
-  char* decode(const vector<float>& logits);
+  char* decode();
 
   /**
    * @brief Perform decoding of the logits, using basic CTC decoder or
    *        CTC decoder with KenLM enabled
    *
-   * @param logits         Flat matrix of logits, of size:
-   *                       n_frames * batch_size * num_classes
-   *
    * @return Vector of Output structs directly from the CTC decoder for additional processing.
    */
-  vector<Output> decode_raw(const vector<float>& logits);
+  vector<Output> decode_raw();
 
   /**
    * @brief Return character-level metadata including letter timings.
    *
-   * @param logits          Flat matrix of logits, of size:
-   *                        n_frames * batch_size * num_classes
    *
    * @return Metadata struct containing MetadataItem structs for each character.
    * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
    */
-  Metadata* decode_metadata(const vector<float>& logits);
+  Metadata* decode_metadata();
 
   /**
    * @brief Do a single inference step in the acoustic model, with:
@@ -202,6 +194,7 @@ ModelState::ModelState()
   , ncontext(0)
   , alphabet(nullptr)
   , scorer(nullptr)
+  , decoder_state(nullptr)
   , beam_width(0)
   , n_steps(-1)
   , n_context(-1)
@@ -232,6 +225,11 @@ ModelState::~ModelState()
 
   delete scorer;
   delete alphabet;
+  
+  if (decoder_state != nullptr) {
+    delete decoder_state;
+    decoder_state = nullptr;
+  }
 }
 
 template<typename T>
@@ -270,21 +268,21 @@ StreamingState::feedAudioContent(const short* buffer,
 char*
 StreamingState::intermediateDecode()
 {
-  return model->decode(accumulated_logits);
+  return model->decode();
 }
 
 char*
 StreamingState::finishStream()
 {
   finalizeStream();
-  return model->decode(accumulated_logits);
+  return model->decode();
 }
 
 Metadata*
 StreamingState::finishStreamWithMetadata()
 {
   finalizeStream();
-  return model->decode_metadata(accumulated_logits);
+  return model->decode_metadata();
 }
 
 void
@@ -372,7 +370,26 @@ StreamingState::processMfccWindow(const vector<float>& buf)
 void
 StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 {
-  model->infer(buf.data(), n_steps, accumulated_logits);
+  vector<float> logits;
+  model->infer(buf.data(), n_steps, logits);
+  
+  const int cutoff_top_n = 40;
+  const double cutoff_prob = 1.0;
+  const size_t num_classes = model->alphabet->GetSize() + 1; // +1 for blank
+  const int n_frames = logits.size() / (BATCH_SIZE * num_classes);
+
+  // Convert logits to double
+  vector<double> inputs(logits.begin(), logits.end());
+
+  decoder_next(inputs.data(), 
+               *model->alphabet,
+               model->decoder_state,
+               n_frames,
+               num_classes,
+               cutoff_prob,
+               cutoff_top_n,
+               model->beam_width,
+               model->scorer);
 }
 
 void
@@ -507,35 +524,24 @@ ModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc_outpu
 }
 
 char*
-ModelState::decode(const vector<float>& logits)
+ModelState::decode()
 {
-  vector<Output> out = ModelState::decode_raw(logits);
+  vector<Output> out = ModelState::decode_raw();
   return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
 }
 
 vector<Output>
-ModelState::decode_raw(const vector<float>& logits)
+ModelState::decode_raw()
 {
-  const int cutoff_top_n = 40;
-  const double cutoff_prob = 1.0;
-  const size_t num_classes = alphabet->GetSize() + 1; // +1 for blank
-  const int n_frames = logits.size() / (BATCH_SIZE * num_classes);
-
-  // Convert logits to double
-  vector<double> inputs(logits.begin(), logits.end());
-
-  // Vector of <probability, Output> pairs
-  vector<Output> out = ctc_beam_search_decoder(
-    inputs.data(), n_frames, num_classes, *alphabet, beam_width,
-    cutoff_prob, cutoff_top_n, scorer);
+  vector<Output> out = decoder_decode(decoder_state, *alphabet, beam_width, scorer);
 
   return out;
 }
 
 Metadata*
-ModelState::decode_metadata(const vector<float>& logits)
+ModelState::decode_metadata()
 {
-  vector<Output> out = decode_raw(logits);
+  vector<Output> out = decode_raw();
 
   std::unique_ptr<Metadata> metadata(new Metadata());
   metadata->num_items = out[0].tokens.size();
@@ -830,14 +836,15 @@ DS_SetupStream(ModelState* aCtx,
     aPreAllocFrames = 150;
   }
 
-  ctx->accumulated_logits.reserve(aPreAllocFrames * BATCH_SIZE * num_classes);
-
   ctx->audio_buffer.reserve(aCtx->audio_win_len);
   ctx->mfcc_buffer.reserve(aCtx->mfcc_feats_per_timestep);
   ctx->mfcc_buffer.resize(aCtx->n_features*aCtx->n_context, 0.f);
   ctx->batch_buffer.reserve(aCtx->n_steps * aCtx->mfcc_feats_per_timestep);
 
   ctx->model = aCtx;
+
+  DecoderState *params = decoder_init(*aCtx->alphabet, num_classes, aCtx->scorer);
+  aCtx->decoder_state = params;
 
   *retval = ctx.release();
   return DS_ERR_OK;
