@@ -52,7 +52,7 @@ namespace CSharpExamples
 
             const uint N_CEP = 26;
             const uint N_CONTEXT = 9;
-            const uint BEAM_WIDTH = 200;
+            const uint BEAM_WIDTH = 500;
             const float LM_ALPHA = 0.75f;
             const float LM_BETA = 1.85f;
 
