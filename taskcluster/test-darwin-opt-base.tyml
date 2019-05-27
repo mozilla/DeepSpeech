@@ -62,15 +62,15 @@ then:
             export HOMEBREW_NO_AUTO_UPDATE=1 &&
             export PIP_DEFAULT_TIMEOUT=60 &&
             env &&
+            trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
+            mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
+            mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
+            cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE" EXIT &&
             git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
             cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
             cd $TASKCLUSTER_TASK_DIR &&
             source $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-brew-tests.sh && ${extraSystemSetup} &&
-            /bin/bash ${build.args.tests_cmdline} ;
-            export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-            mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
-            mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
-            cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE
+            /bin/bash ${build.args.tests_cmdline}
 
     mounts:
       - cacheName: deepspeech-homebrew-bin
