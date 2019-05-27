@@ -88,6 +88,10 @@ payload:
         export MACOSX_DEPLOYMENT_TARGET=10.10 &&
         export HOMEBREW_NO_AUTO_UPDATE=1 &&
         env &&
+        trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
+        mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
+        mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
+        cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE" EXIT &&
         (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
         git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
         cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
@@ -96,11 +100,7 @@ payload:
         $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
         ${swig.patch_nodejs.osx_v12} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
-        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
-        export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-        mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
-        mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
-        cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE
+        $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package}
 
   artifacts:
     - type: "directory"
