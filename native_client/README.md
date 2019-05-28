@@ -10,7 +10,7 @@ It is required to use our fork of TensorFlow since it includes fixes for common 
 
 If you'd like to build the language bindings or the decoder package, you'll also need:
 
-* [SWIG](http://www.swig.org/)
+* [SWIG >= 3.0.12](http://www.swig.org/)
 * [node-pre-gyp](https://github.com/mapbox/node-pre-gyp) (for Node.JS bindings only)
 
 
