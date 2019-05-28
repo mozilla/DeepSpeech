@@ -27,6 +27,7 @@ from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
 from util.downloader import SIMPLE_BAR
 from util.text import Alphabet, validate_label
+from util.feeding import secs_to_hours
 
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
@@ -56,7 +57,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
             samples.append((row['path'], row['sentence']))
 
     # Keep track of how many samples are good vs. problematic
-    counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0}
+    counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0, 'total_time': 0}
     lock = RLock()
     num_samples = len(samples)
     rows = []
@@ -91,6 +92,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
                 # This one is good - keep it for the target CSV
                 rows.append((wav_filename, file_size, label))
             counter['all'] += 1
+            counter['total_time'] += frames
 
     print("Importing mp3 files...")
     pool = Pool(cpu_count())
@@ -121,6 +123,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
         print('Skipped %d samples that were too short to match the transcript.' % counter['too_short'])
     if counter['too_long'] > 0:
         print('Skipped %d samples that were longer than %d seconds.' % (counter['too_long'], MAX_SECS))
+    print('Final amount of imported audio: %s.' % secs_to_hours(counter['total_time'] / SAMPLE_RATE))
 
 
 def _maybe_convert_wav(mp3_filename, wav_filename):

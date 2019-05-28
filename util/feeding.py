@@ -8,6 +8,7 @@ from functools import partial
 import numpy as np
 import pandas
 import tensorflow as tf
+import datetime
 
 from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 
@@ -98,3 +99,8 @@ def create_dataset(csvs, batch_size, cache_path=''):
                               .prefetch(num_gpus))
 
     return dataset
+
+def secs_to_hours(secs):
+    hours, remainder = divmod(secs, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return '%d:%02d:%02d' % (hours, minutes, seconds)
