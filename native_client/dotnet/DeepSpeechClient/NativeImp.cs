@@ -1,4 +1,5 @@
-﻿using DeepSpeechClient.Structs;
+﻿using DeepSpeechClient.Enums;
+using DeepSpeechClient.Structs;
 
 using System;
 using System.Runtime.InteropServices;
@@ -15,7 +16,7 @@ namespace DeepSpeechClient
         internal static extern void DS_PrintVersions();
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal unsafe static extern int DS_CreateModel(string aModelPath,
+        internal unsafe static extern ErrorCodes DS_CreateModel(string aModelPath,
                    uint aNCep,
                    uint aNContext,
                    string aAlphabetConfigPath,
@@ -23,7 +24,7 @@ namespace DeepSpeechClient
                    ref ModelState** pint);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern int DS_EnableDecoderWithLM(ModelState** aCtx,
+        internal static unsafe extern ErrorCodes DS_EnableDecoderWithLM(ModelState** aCtx,
                   string aAlphabetConfigPath,
                   string aLMPath,
                   string aTriePath,
@@ -47,7 +48,7 @@ namespace DeepSpeechClient
         internal static unsafe extern void DS_DestroyModel(ModelState** aCtx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern int DS_SetupStream(ModelState** aCtx,
+        internal static unsafe extern ErrorCodes DS_SetupStream(ModelState** aCtx,
                uint aPreAllocFrames,
                uint aSampleRate, ref StreamingState** retval);
 
