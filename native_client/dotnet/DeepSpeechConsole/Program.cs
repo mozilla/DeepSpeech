@@ -25,7 +25,7 @@ namespace CSharpExamples
         {
             var nl = Environment.NewLine;
             string retval =
-             Environment.NewLine +$"Recognized text: {string.Join("", meta?.Items?.Select(x=>x.Character))} {nl}"
+             Environment.NewLine + $"Recognized text: {string.Join("", meta?.Items?.Select(x => x.Character))} {nl}"
              + $"Prob: {meta?.Probability} {nl}"
              + $"Item count: {meta?.Items?.Length} {nl}"
              + string.Join(nl, meta?.Items?.Select(x => $"Timestep : {x.Timestep} TimeOffset: {x.StartTime} Char: {x.Character}"));
@@ -60,43 +60,27 @@ namespace CSharpExamples
 
             using (IDeepSpeech sttClient = new DeepSpeech())
             {
-                var result = 1;
-                Console.WriteLine("Loading model...");
-                stopwatch.Start();
                 try
                 {
-                    result = sttClient.CreateModel(
+                    Console.WriteLine("Loading model...");
+                    stopwatch.Start();
+                    sttClient.CreateModel(
                         model ?? "output_graph.pbmm",
                         N_CEP, N_CONTEXT,
                         alphabet ?? "alphabet.txt",
                         BEAM_WIDTH);
-                }
-                catch (IOException ex)
-                {
-                    Console.WriteLine("Error loading lm.");
-                    Console.WriteLine(ex.Message);
-                }
-                stopwatch.Stop();
-                if (result == 0)
-                {
+                    stopwatch.Stop();
+
                     Console.WriteLine($"Model loaded - {stopwatch.Elapsed.Milliseconds} ms");
                     stopwatch.Reset();
                     if (lm != null)
                     {
                         Console.WriteLine("Loadin LM...");
-                        try
-                        {
-                            result = sttClient.EnableDecoderWithLM(
-                                alphabet ?? "alphabet.txt",
-                                lm ?? "lm.binary",
-                                trie ?? "trie",
-                                LM_ALPHA, LM_BETA);
-                        }
-                        catch (IOException ex)
-                        {
-                            Console.WriteLine("Error loading lm.");
-                            Console.WriteLine(ex.Message);
-                        }
+                        sttClient.EnableDecoderWithLM(
+                            alphabet ?? "alphabet.txt",
+                            lm ?? "lm.binary",
+                            trie ?? "trie",
+                            LM_ALPHA, LM_BETA);
 
                     }
 
@@ -123,13 +107,13 @@ namespace CSharpExamples
 
                         Console.WriteLine($"Audio duration: {waveInfo.TotalTime.ToString()}");
                         Console.WriteLine($"Inference took: {stopwatch.Elapsed.ToString()}");
-                        Console.WriteLine((extended ? $"Extended result: ": "Recognized text: ") + speechResult);
+                        Console.WriteLine((extended ? $"Extended result: " : "Recognized text: ") + speechResult);
                     }
                     waveBuffer.Clear();
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Error loding the model.");
+                    Console.WriteLine(ex.Message);
                 }
             }
         }

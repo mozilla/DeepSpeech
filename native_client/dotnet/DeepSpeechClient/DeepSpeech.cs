@@ -5,6 +5,7 @@ using DeepSpeechClient.Extensions;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using DeepSpeechClient.Enums;
 
 namespace DeepSpeechClient
 {
@@ -35,8 +36,8 @@ namespace DeepSpeechClient
         /// <param name="aNContext">The context window the model was trained with.</param>
         /// <param name="aAlphabetConfigPath">The path to the configuration file specifying the alphabet used by the network.</param>
         /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.</param>
-        /// <returns>Zero on success, non-zero on failure.</returns>
-        public unsafe int CreateModel(string aModelPath, uint aNCep,
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
+        public unsafe void CreateModel(string aModelPath, uint aNCep,
             uint aNContext, string aAlphabetConfigPath, uint aBeamWidth)
         {
             string exceptionMessage = null;
@@ -61,16 +62,53 @@ namespace DeepSpeechClient
             {
                 throw new FileNotFoundException(exceptionMessage);
             }
-            int result = NativeImp.DS_CreateModel(aModelPath,
+            var resultCode = NativeImp.DS_CreateModel(aModelPath,
                             aNCep,
                             aNContext,
                             aAlphabetConfigPath,
                             aBeamWidth,
                             ref _modelStatePP);
+            EvaluateResultCode(resultCode);
             _modelStateP = *_modelStatePP;
-            return result;
+        }
 
-
+        /// <summary>
+        /// Evaluate the result code and will raise an exception if necessary.
+        /// </summary>
+        /// <param name="resultCode">Native result code.</param>
+        private void EvaluateResultCode(ErrorCodes resultCode)
+        {
+            switch (resultCode)
+            {
+                case ErrorCodes.DS_ERR_OK:
+                    break;
+                case ErrorCodes.DS_ERR_NO_MODEL:
+                    throw new ArgumentException("Missing model information.");
+                case ErrorCodes.DS_ERR_INVALID_ALPHABET:
+                    throw new ArgumentException("Invalid alphabet file or invalid alphabet size.");
+                case ErrorCodes.DS_ERR_INVALID_SHAPE:
+                    throw new ArgumentException("Invalid model shape.");
+                case ErrorCodes.DS_ERR_INVALID_LM:
+                    throw new ArgumentException("Invalid language model file.");
+                case ErrorCodes.DS_ERR_FAIL_INIT_MMAP:
+                    throw new ArgumentException("Failed to initialize memory mapped model.");
+                case ErrorCodes.DS_ERR_FAIL_INIT_SESS:
+                    throw new ArgumentException("Failed to initialize the session.");
+                case ErrorCodes.DS_ERR_FAIL_INTERPRETER:
+                    throw new ArgumentException("Interpreter failed.");
+                case ErrorCodes.DS_ERR_FAIL_RUN_SESS:
+                    throw new ArgumentException("Failed to run the session.");
+                case ErrorCodes.DS_ERR_FAIL_CREATE_STREAM:
+                    throw new ArgumentException("Error creating the stream.");
+                case ErrorCodes.DS_ERR_FAIL_READ_PROTOBUF:
+                    throw new ArgumentException("Error reading the proto buffer model file.");
+                case ErrorCodes.DS_ERR_FAIL_CREATE_SESS:
+                    throw new ArgumentException("Error failed to create session.");
+                case ErrorCodes.DS_ERR_MODEL_INCOMPATIBLE:
+                    throw new ArgumentException("Error incompatible model.");
+                default:
+                    throw new ArgumentException("Unknown error, please make sure you are using the correct native binary.");
+            }
         }
 
         /// <summary>
@@ -89,8 +127,8 @@ namespace DeepSpeechClient
         /// <param name="aTriePath">The path to the trie file build from the same vocabulary as the language model binary.</param>
         /// <param name="aLMAlpha">The alpha hyperparameter of the CTC decoder. Language Model weight.</param>
         /// <param name="aLMBeta">The beta hyperparameter of the CTC decoder. Word insertion weight.</param>
-        /// <returns>Zero on success, non-zero on failure (invalid arguments).</returns>
-        public unsafe int EnableDecoderWithLM(string aAlphabetConfigPath,
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to enable decoding with a language model.</exception>
+        public unsafe void EnableDecoderWithLM(string aAlphabetConfigPath,
             string aLMPath, string aTriePath,
             float aLMAlpha, float aLMBeta)
         {
@@ -109,12 +147,13 @@ namespace DeepSpeechClient
                 throw new FileNotFoundException(exceptionMessage);
             }
 
-            return NativeImp.DS_EnableDecoderWithLM(_modelStatePP,
+            var resultCode = NativeImp.DS_EnableDecoderWithLM(_modelStatePP,
                             aAlphabetConfigPath,
                             aLMPath,
                             aTriePath,
                             aLMAlpha,
                             aLMBeta);
+            EvaluateResultCode(resultCode);
         }
 
         /// <summary>
@@ -169,10 +208,11 @@ namespace DeepSpeechClient
         /// One timestep is equivalent to two window lengths(20ms).
         /// If set to 0 we reserve enough frames for 3 seconds of audio(150).</param>
         /// <param name="aSampleRate">The sample-rate of the audio signal</param>
-        /// <returns>Zero for success, non-zero on failure</returns>
-        public unsafe int SetupStream(uint aPreAllocFrames, uint aSampleRate)
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to initialize the streaming mode.</exception>
+        public unsafe void SetupStream(uint aPreAllocFrames, uint aSampleRate)
         {
-            return NativeImp.DS_SetupStream(_modelStatePP, aPreAllocFrames, aSampleRate, ref _streamingStatePP);
+            var resultCode = NativeImp.DS_SetupStream(_modelStatePP, aPreAllocFrames, aSampleRate, ref _streamingStatePP);
+            EvaluateResultCode(resultCode);
         }
 
         /// <summary>

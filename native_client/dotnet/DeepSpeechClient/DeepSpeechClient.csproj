@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DeepSpeech.cs" />
+    <Compile Include="Enums\ErrorCodes.cs" />
     <Compile Include="Interfaces\IDeepSpeech.cs" />
     <Compile Include="Extensions\NativeExtensions.cs" />
     <Compile Include="Models\Metadata.cs" />

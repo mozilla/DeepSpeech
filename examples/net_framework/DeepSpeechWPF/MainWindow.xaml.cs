@@ -79,14 +79,8 @@ namespace DeepSpeechWPF
             {
                 try
                 {
-                    if (_sttClient.CreateModel("output_graph.pbmm", N_CEP, N_CONTEXT, "alphabet.txt", BEAM_WIDTH) == 0)
-                    {
-                        Dispatcher.Invoke(() => { EnableControls(); });
-                    }
-                    else
-                    {
-                        MessageBox.Show("Model load failed.");
-                    }
+                    _sttClient.CreateModel("output_graph.pbmm", N_CEP, N_CONTEXT, "alphabet.txt", BEAM_WIDTH);
+                    Dispatcher.Invoke(() => { EnableControls(); });
                 }
                 catch (Exception ex)
                 {
@@ -161,18 +155,12 @@ namespace DeepSpeechWPF
             {
                 try
                 {
-                    if (_sttClient.EnableDecoderWithLM("alphabet.txt", "lm.binary", "trie", LM_ALPHA, LM_BETA) != 0)
-                    {
-                        MessageBox.Show("Error loading LM.");
-                        Dispatcher.Invoke(() => btnEnableLM.IsEnabled = true);
-                    }
-                    else
-                    {
-                        Dispatcher.Invoke(() => lblStatus.Content = "LM loaded.");
-                    }
+                    _sttClient.EnableDecoderWithLM("alphabet.txt", "lm.binary", "trie", LM_ALPHA, LM_BETA);
+                    Dispatcher.Invoke(() => lblStatus.Content = "LM loaded.");
                 }
                 catch (Exception ex)
                 {
+                    Dispatcher.Invoke(() => btnEnableLM.IsEnabled = true);
                     MessageBox.Show(ex.Message);
                 }
             });

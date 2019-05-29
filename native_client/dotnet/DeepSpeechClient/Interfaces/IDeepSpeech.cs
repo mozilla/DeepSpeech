@@ -21,8 +21,8 @@ namespace DeepSpeechClient.Interfaces
         /// <param name="aNContext">The context window the model was trained with.</param>
         /// <param name="aAlphabetConfigPath">The path to the configuration file specifying the alphabet used by the network.</param>
         /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.</param>
-        /// <returns>Zero on success, non-zero on failure.</returns>
-        unsafe int CreateModel(string aModelPath, uint aNCep,
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
+        unsafe void CreateModel(string aModelPath, uint aNCep,
                    uint aNContext,
                    string aAlphabetConfigPath,
                    uint aBeamWidth);
@@ -35,8 +35,8 @@ namespace DeepSpeechClient.Interfaces
         /// <param name="aTriePath">The path to the trie file build from the same vocabulary as the language model binary.</param>
         /// <param name="aLMAlpha">The alpha hyperparameter of the CTC decoder. Language Model weight.</param>
         /// <param name="aLMBeta">The beta hyperparameter of the CTC decoder. Word insertion weight.</param>
-        /// <returns>Zero on success, non-zero on failure (invalid arguments).</returns>
-        unsafe int EnableDecoderWithLM(string aAlphabetConfigPath,
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to enable decoding with a language model.</exception>
+        unsafe void EnableDecoderWithLM(string aAlphabetConfigPath,
                   string aLMPath,
                   string aTriePath,
                   float aLMAlpha,
@@ -88,8 +88,8 @@ namespace DeepSpeechClient.Interfaces
         /// One timestep is equivalent to two window lengths(20ms).
         /// If set to 0 we reserve enough frames for 3 seconds of audio(150).</param>
         /// <param name="aSampleRate">The sample-rate of the audio signal</param>
-        /// <returns>Zero for success, non-zero on failure</returns>
-        unsafe int SetupStream(uint aPreAllocFrames, uint aSampleRate);
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to initialize the streaming mode.</exception>
+        unsafe void SetupStream(uint aPreAllocFrames, uint aSampleRate);
 
         /// <summary>
         /// Feeds audio samples to an ongoing streaming inference.
