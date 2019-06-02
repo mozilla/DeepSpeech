@@ -70,9 +70,20 @@ tf_cc_shared_object(
     srcs = ["deepspeech.cc",
             "deepspeech.h",
             "alphabet.h",
+            "modelstate.h",
+            "modelstate.cc",
             "ds_version.h",
             "ds_graph_version.h"] +
-            DECODER_SOURCES,
+            DECODER_SOURCES +
+            select({
+                "//native_client:tflite": [
+                    "tflitemodelstate.h",
+                    "tflitemodelstate.cc"
+                ],
+                "//conditions:default": [
+                    "tfmodelstate.h",
+                    "tfmodelstate.cc"
+            ]}),
     copts = select({ 
         # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
         "//tensorflow:windows": ["/w"],
