@@ -11,6 +11,7 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import csv
+import re
 import sox
 import zipfile
 import subprocess
@@ -74,7 +75,8 @@ def _maybe_convert_sets(target_dir, extracted_data):
     glob_dir = os.path.join(ogg_root_dir, '**/*.ogg')
     for record in glob(glob_dir, recursive=True):
         record_file = record.replace(ogg_root_dir + os.path.sep, '')
-        samples.append((record_file, os.path.splitext(os.path.basename(record_file))[0]))
+        if record_filter(record_file):
+            samples.append((record_file, os.path.splitext(os.path.basename(record_file))[0]))
 
     # Keep track of how many samples are good vs. problematic
     counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0, 'total_time': 0}
@@ -177,11 +179,22 @@ def handle_args():
     parser.add_argument('--english-name', type=str, required=True, help='Enligh name of the language')
     parser.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
     parser.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')
+    parser.add_argument('--bogus-records', type=argparse.FileType('r'), required=False, help='Text file listing well-known bogus record to skip from importing, from https://lingualibre.fr/wiki/LinguaLibre:Misleading_items')
     return parser.parse_args()
 
 if __name__ == "__main__":
     CLI_ARGS = handle_args()
     ALPHABET = Alphabet(CLI_ARGS.filter_alphabet) if CLI_ARGS.filter_alphabet else None
+
+    bogus_regexes = []
+    for line in CLI_ARGS.bogus_records:
+        bogus_regexes.append(re.compile(line.strip()))
+
+    def record_filter(path):
+        if any(regex.match(path) for regex in bogus_regexes):
+            print('Reject', path)
+            return False
+        return True
 
     def label_filter(label):
         if CLI_ARGS.normalize:
