@@ -35,7 +35,8 @@ tflite_get_output_tensor_by_name(const Interpreter* interpreter, const char* nam
   return interpreter->outputs()[idx];
 }
 
-void push_back_if_not_present(std::deque<int>& list, int value)
+void
+push_back_if_not_present(std::deque<int>& list, int value)
 {
   if (std::find(list.begin(), list.end(), value) == list.end()) {
     list.push_back(value);
@@ -83,6 +84,10 @@ TFLiteModelState::TFLiteModelState()
   , previous_state_size_(0)
   , previous_state_c_(nullptr)
   , previous_state_h_(nullptr)
+{
+}
+
+TFLiteModelState::~TFLiteModelState()
 {
 }
 
@@ -235,8 +240,13 @@ TFLiteModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc
     input_samples[i] = samples[i];
   }
 
-  interpreter_->SetExecutionPlan(mfcc_exec_plan_);
-  TfLiteStatus status = interpreter_->Invoke();
+  TfLiteStatus status = interpreter_->SetExecutionPlan(mfcc_exec_plan_);
+  if (status != kTfLiteOk) {
+    std::cerr << "Error setting execution plan: " << status << "\n";
+    return;
+  }
+
+  status = interpreter_->Invoke();
   if (status != kTfLiteOk) {
     std::cerr << "Error running session: " << status << "\n";
     return;

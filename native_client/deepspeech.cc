@@ -271,11 +271,13 @@ DS_CreateModel(const char* aModelPath,
     return DS_ERR_NO_MODEL;
   }
 
+  std::unique_ptr<ModelState> model(
 #ifndef USE_TFLITE
-  std::unique_ptr<ModelState> model(new TFModelState());
+    new TFModelState()
 #else
-  std::unique_ptr<ModelState> model(new TFLiteModelState());
-#endif // USE_TFLITE
+    new TFLiteModelState()
+#endif
+  );
 
   if (!model) {
     std::cerr << "Could not allocate model state." << std::endl;

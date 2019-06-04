@@ -32,6 +32,7 @@ struct TFLiteModelState : public ModelState
   std::vector<int> mfcc_exec_plan_;
 
   TFLiteModelState();
+  virtual ~TFLiteModelState();
 
   virtual int init(const char* model_path,
                    unsigned int n_features,
