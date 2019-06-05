@@ -66,7 +66,7 @@ def to_sparse_tuple(sequence):
 
 def create_dataset(csvs, batch_size, cache_path=''):
     df = read_csvs(csvs)
-    df.sort_values(by='wav_filesize', inplace=True)
+    #df.sort_values(by='wav_filesize', inplace=True)
 
     # Convert to character index arrays
     df['transcript'] = df['transcript'].apply(partial(text_to_char_array, alphabet=Config.alphabet))
