@@ -187,8 +187,9 @@ if __name__ == "__main__":
     ALPHABET = Alphabet(CLI_ARGS.filter_alphabet) if CLI_ARGS.filter_alphabet else None
 
     bogus_regexes = []
-    for line in CLI_ARGS.bogus_records:
-        bogus_regexes.append(re.compile(line.strip()))
+    if CLI_ARGS.bogus_records:
+        for line in CLI_ARGS.bogus_records:
+            bogus_regexes.append(re.compile(line.strip()))
 
     def record_filter(path):
         if any(regex.match(path) for regex in bogus_regexes):
