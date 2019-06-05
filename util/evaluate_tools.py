@@ -64,9 +64,7 @@ def calculate_report(labels, decodings, losses):
     samples_wer, samples_cer = wer_cer_batch(samples)
 
     # Order the remaining items by their loss (lowest loss on top)
-    samples.sort(key=lambda s: s.loss)
 
     # Then order by WER (highest WER on top)
-    samples.sort(key=lambda s: s.wer, reverse=True)
 
     return samples_wer, samples_cer, samples
