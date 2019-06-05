@@ -15,10 +15,6 @@ class Alphabet(object):
         self._size = 0
         with codecs.open(config_file, 'r', 'utf-8') as fin:
             for line in fin:
-                if line[0:2] == '\\#':
-                    line = '#\n'
-                elif line[0] == '#':
-                    continue
                 self._label_to_str += line[:-1] # remove the line ending
                 self._str_to_label[line[:-1]] = self._size
                 self._size += 1
