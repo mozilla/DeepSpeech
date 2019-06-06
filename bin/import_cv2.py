@@ -71,6 +71,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
         wav_filename = path.splitext(mp3_filename)[0] + ".wav"
         _maybe_convert_wav(mp3_filename, wav_filename)
         file_size = -1
+        frames = 0
         if path.exists(wav_filename):
             file_size = path.getsize(wav_filename)
             frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
