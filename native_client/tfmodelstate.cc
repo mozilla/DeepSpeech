@@ -98,6 +98,9 @@ TFModelState::init(const char* model_path,
       n_context_ = (shape.dim(2).size()-1)/2;
       n_features_ = shape.dim(3).size();
       mfcc_feats_per_timestep_ = shape.dim(2).size() * shape.dim(3).size();
+    } else if (node.name() == "previous_state_c") {
+      const auto& shape = node.attr().at("shape").shape();
+      state_size_ = shape.dim(1).size();
     } else if (node.name() == "logits_shape") {
       Tensor logits_shape = Tensor(DT_INT32, TensorShape({3}));
       if (!logits_shape.FromProto(node.attr().at("value").tensor())) {
@@ -134,66 +137,83 @@ TFModelState::init(const char* model_path,
   return DS_ERR_OK;
 }
 
-int
-TFModelState::initialize_state()
+Tensor
+tensor_from_vector(const std::vector<float>& vec, const TensorShape& shape)
 {
-  Status status = session_->Run({}, {}, {"initialize_state"}, nullptr);
-  if (!status.ok()) {
-    std::cerr << "Error running session: " << status << std::endl;
-    return DS_ERR_FAIL_RUN_SESS;
+  Tensor ret(DT_FLOAT, shape);
+  auto ret_mapped = ret.flat<float>();
+  int i;
+  for (i = 0; i < vec.size(); ++i) {
+    ret_mapped(i) = vec[i];
   }
-
-  return DS_ERR_OK;
+  for (; i < shape.num_elements(); ++i) {
+    ret_mapped(i) = 0.f;
+  }
+  return ret;
 }
 
 void
-TFModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logits_output)
+copy_tensor_to_vector(const Tensor& tensor, vector<float>& vec, int num_elements = -1)
+{
+  auto tensor_mapped = tensor.flat<float>();
+  if (num_elements == -1) {
+    num_elements = tensor.shape().num_elements();
+  }
+  for (int i = 0; i < num_elements; ++i) {
+    vec.push_back(tensor_mapped(i));
+  }
+}
+
+void
+TFModelState::infer(const std::vector<float>& mfcc,
+                    unsigned int n_frames,
+                    const std::vector<float>& previous_state_c,
+                    const std::vector<float>& previous_state_h,
+                    vector<float>& logits_output,
+                    vector<float>& state_c_output,
+                    vector<float>& state_h_output)
 {
   const size_t num_classes = alphabet_->GetSize() + 1; // +1 for blank
 
-  Tensor input(DT_FLOAT, TensorShape({BATCH_SIZE, n_steps_, 2*n_context_+1, n_features_}));
-
-  auto input_mapped = input.flat<float>();
-  int i;
-  for (i = 0; i < n_frames*mfcc_feats_per_timestep_; ++i) {
-    input_mapped(i) = aMfcc[i];
-  }
-  for (; i < n_steps_*mfcc_feats_per_timestep_; ++i) {
-    input_mapped(i) = 0.;
-  }
+  Tensor input = tensor_from_vector(mfcc, TensorShape({BATCH_SIZE, n_steps_, 2*n_context_+1, n_features_}));
+  Tensor previous_state_c_t = tensor_from_vector(previous_state_c, TensorShape({BATCH_SIZE, (long long)state_size_}));
+  Tensor previous_state_h_t = tensor_from_vector(previous_state_h, TensorShape({BATCH_SIZE, (long long)state_size_}));
 
   Tensor input_lengths(DT_INT32, TensorShape({1}));
   input_lengths.scalar<int>()() = n_frames;
 
   vector<Tensor> outputs;
   Status status = session_->Run(
-    {{"input_node", input}, {"input_lengths", input_lengths}},
-    {"logits"}, {}, &outputs);
+    {
+     {"input_node", input},
+     {"input_lengths", input_lengths},
+     {"previous_state_c", previous_state_c_t},
+     {"previous_state_h", previous_state_h_t}
+    },
+    {"logits", "new_state_c", "new_state_h"},
+    {},
+    &outputs);
 
   if (!status.ok()) {
     std::cerr << "Error running session: " << status << "\n";
     return;
   }
 
-  auto logits_mapped = outputs[0].flat<float>();
-  // The CTCDecoder works with log-probs.
-  for (int t = 0; t < n_frames * BATCH_SIZE * num_classes; ++t) {
-    logits_output.push_back(logits_mapped(t));
-  }
+  copy_tensor_to_vector(outputs[0], logits_output, n_frames * BATCH_SIZE * num_classes);
+
+  state_c_output.clear();
+  state_c_output.reserve(state_size_);
+  copy_tensor_to_vector(outputs[1], state_c_output);
+
+  state_h_output.clear();
+  state_h_output.reserve(state_size_);
+  copy_tensor_to_vector(outputs[2], state_h_output);
 }
 
 void
 TFModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc_output)
 {
-  Tensor input(DT_FLOAT, TensorShape({audio_win_len_}));
-  auto input_mapped = input.flat<float>();
-  int i;
-  for (i = 0; i < samples.size(); ++i) {
-    input_mapped(i) = samples[i];
-  }
-  for (; i < audio_win_len_; ++i) {
-    input_mapped(i) = 0.f;
-  }
+  Tensor input = tensor_from_vector(samples, TensorShape({audio_win_len_}));
 
   vector<Tensor> outputs;
   Status status = session_->Run({{"input_samples", input}}, {"mfccs"}, {}, &outputs);
@@ -206,9 +226,5 @@ TFModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc_out
   // The feature computation graph is hardcoded to one audio length for now
   const int n_windows = 1;
   assert(outputs[0].shape().num_elements() / n_features_ == n_windows);
-
-  auto mfcc_mapped = outputs[0].flat<float>();
-  for (int i = 0; i < n_windows * n_features_; ++i) {
-    mfcc_output.push_back(mfcc_mapped(i));
-  }
+  copy_tensor_to_vector(outputs[0], mfcc_output);
 }

@@ -4,14 +4,13 @@ using namespace tflite;
 using std::vector;
 
 int
-tflite_get_tensor_by_name(const Interpreter* interpreter,
-                          const vector<int>& list, 
-                          const char* name)
+TFLiteModelState::get_tensor_by_name(const vector<int>& list,
+                                     const char* name)
 {
   int rv = -1;
 
   for (int i = 0; i < list.size(); ++i) {
-    const string& node_name = interpreter->tensor(list[i])->name;
+    const string& node_name = interpreter_->tensor(list[i])->name;
     if (node_name.compare(string(name)) == 0) {
       rv = i;
     }
@@ -22,17 +21,17 @@ tflite_get_tensor_by_name(const Interpreter* interpreter,
 }
 
 int
-tflite_get_input_tensor_by_name(const Interpreter* interpreter, const char* name)
+TFLiteModelState::get_input_tensor_by_name(const char* name)
 {
-  int idx = tflite_get_tensor_by_name(interpreter, interpreter->inputs(), name);
-  return interpreter->inputs()[idx];
+  int idx = get_tensor_by_name(interpreter_->inputs(), name);
+  return interpreter_->inputs()[idx];
 }
 
 int
-tflite_get_output_tensor_by_name(const Interpreter* interpreter, const char* name)
+TFLiteModelState::get_output_tensor_by_name(const char* name)
 {
-  int idx = tflite_get_tensor_by_name(interpreter, interpreter->outputs(), name);
-  return interpreter->outputs()[idx];
+  int idx = get_tensor_by_name(interpreter_->outputs(), name);
+  return interpreter_->outputs()[idx];
 }
 
 void
@@ -48,8 +47,8 @@ push_back_if_not_present(std::deque<int>& list, int value)
 // output, add it to the parent list, and add its input tensors to the frontier
 // list. Because we start from the final tensor and work backwards to the inputs,
 // the parents list is constructed in reverse, adding elements to its front.
-std::vector<int>
-tflite_find_parent_node_ids(Interpreter* interpreter, int tensor_id)
+vector<int>
+TFLiteModelState::find_parent_node_ids(int tensor_id)
 {
   std::deque<int> parents;
   std::deque<int> frontier;
@@ -58,8 +57,8 @@ tflite_find_parent_node_ids(Interpreter* interpreter, int tensor_id)
     int next_tensor_id = frontier.front();
     frontier.pop_front();
     // Find all nodes that have next_tensor_id as an output
-    for (int node_id = 0; node_id < interpreter->nodes_size(); ++node_id) {
-      TfLiteNode node = interpreter->node_and_registration(node_id)->first;
+    for (int node_id = 0; node_id < interpreter_->nodes_size(); ++node_id) {
+      TfLiteNode node = interpreter_->node_and_registration(node_id)->first;
       // Search node outputs for the tensor we're looking for
       for (int i = 0; i < node.outputs->size; ++i) {
         if (node.outputs->data[i] == next_tensor_id) {
@@ -74,16 +73,13 @@ tflite_find_parent_node_ids(Interpreter* interpreter, int tensor_id)
     }
   }
 
-  return std::vector<int>(parents.begin(), parents.end());
+  return vector<int>(parents.begin(), parents.end());
 }
 
 TFLiteModelState::TFLiteModelState()
   : ModelState()
   , interpreter_(nullptr)
   , fbmodel_(nullptr)
-  , previous_state_size_(0)
-  , previous_state_c_(nullptr)
-  , previous_state_h_(nullptr)
 {
 }
 
@@ -120,21 +116,21 @@ TFLiteModelState::init(const char* model_path,
   interpreter_->SetNumThreads(4);
 
   // Query all the index once
-  input_node_idx_       = tflite_get_input_tensor_by_name(interpreter_.get(), "input_node");
-  previous_state_c_idx_ = tflite_get_input_tensor_by_name(interpreter_.get(), "previous_state_c");
-  previous_state_h_idx_ = tflite_get_input_tensor_by_name(interpreter_.get(), "previous_state_h");
-  input_samples_idx_    = tflite_get_input_tensor_by_name(interpreter_.get(), "input_samples");
-  logits_idx_           = tflite_get_output_tensor_by_name(interpreter_.get(), "logits");
-  new_state_c_idx_      = tflite_get_output_tensor_by_name(interpreter_.get(), "new_state_c");
-  new_state_h_idx_      = tflite_get_output_tensor_by_name(interpreter_.get(), "new_state_h");
-  mfccs_idx_            = tflite_get_output_tensor_by_name(interpreter_.get(), "mfccs");
+  input_node_idx_       = get_input_tensor_by_name("input_node");
+  previous_state_c_idx_ = get_input_tensor_by_name("previous_state_c");
+  previous_state_h_idx_ = get_input_tensor_by_name("previous_state_h");
+  input_samples_idx_    = get_input_tensor_by_name("input_samples");
+  logits_idx_           = get_output_tensor_by_name("logits");
+  new_state_c_idx_      = get_output_tensor_by_name("new_state_c");
+  new_state_h_idx_      = get_output_tensor_by_name("new_state_h");
+  mfccs_idx_            = get_output_tensor_by_name("mfccs");
 
   // When we call Interpreter::Invoke, the whole graph is executed by default,
   // which means every time compute_mfcc is called the entire acoustic model is
   // also executed. To workaround that problem, we walk up the dependency DAG
   // from the mfccs output tensor to find all the relevant nodes required for
   // feature computation, building an execution plan that runs just those nodes.
-  auto mfcc_plan = tflite_find_parent_node_ids(interpreter_.get(), mfccs_idx_);
+  auto mfcc_plan = find_parent_node_ids(mfccs_idx_);
   auto orig_plan = interpreter_->execution_plan();
 
   // Remove MFCC nodes from original plan (all nodes) to create the acoustic model plan
@@ -168,50 +164,57 @@ TFLiteModelState::init(const char* model_path,
   TfLiteIntArray* dims_c = interpreter_->tensor(previous_state_c_idx_)->dims;
   TfLiteIntArray* dims_h = interpreter_->tensor(previous_state_h_idx_)->dims;
   assert(dims_c->data[1] == dims_h->data[1]);
-
-  previous_state_size_ = dims_c->data[1];
-  previous_state_c_.reset(new float[previous_state_size_]());
-  previous_state_h_.reset(new float[previous_state_size_]());
-
-  // Set initial values for previous_state_c and previous_state_h
-  memset(previous_state_c_.get(), 0, sizeof(float) * previous_state_size_);
-  memset(previous_state_h_.get(), 0, sizeof(float) * previous_state_size_);
-
-  return DS_ERR_OK;
-}
-
-int
-TFLiteModelState::initialize_state()
-{
-  /* Ensure previous_state_{c,h} are not holding previous stream value */
-  memset(previous_state_c_.get(), 0, sizeof(float) * previous_state_size_);
-  memset(previous_state_h_.get(), 0, sizeof(float) * previous_state_size_);
+  assert(state_size_ > 0);
+  state_size_ = dims_c->data[1];
 
   return DS_ERR_OK;
 }
 
 void
-TFLiteModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>& logits_output)
+TFLiteModelState::copy_vector_to_tensor(const vector<float>& vec,
+                                        int tensor_idx,
+                                        int num_elements)
+{
+  float* tensor = interpreter_->typed_tensor<float>(tensor_idx);
+  int i;
+  for (i = 0; i < vec.size(); ++i) {
+    tensor[i] = vec[i];
+  }
+  for (; i < num_elements; ++i) {
+    tensor[i] = 0.f;
+  }
+}
+
+void
+TFLiteModelState::copy_tensor_to_vector(int tensor_idx,
+                                        int num_elements,
+                                        vector<float>& vec)
+{
+  float* tensor = interpreter_->typed_tensor<float>(tensor_idx);
+  for (int i = 0; i < num_elements; ++i) {
+    vec.push_back(tensor[i]);
+  }
+}
+
+void
+TFLiteModelState::infer(const vector<float>& mfcc,
+                        unsigned int n_frames,
+                        const vector<float>& previous_state_c,
+                        const vector<float>& previous_state_h,
+                        vector<float>& logits_output,
+                        vector<float>& state_c_output,
+                        vector<float>& state_h_output)
 {
   const size_t num_classes = alphabet_->GetSize() + 1; // +1 for blank
 
   // Feeding input_node
-  float* input_node = interpreter_->typed_tensor<float>(input_node_idx_);
-  {
-    int i;
-    for (i = 0; i < n_frames*mfcc_feats_per_timestep_; ++i) {
-      input_node[i] = aMfcc[i];
-    }
-    for (; i < n_steps_*mfcc_feats_per_timestep_; ++i) {
-      input_node[i] = 0;
-    }
-  }
-
-  assert(previous_state_size_ > 0);
+  copy_vector_to_tensor(mfcc, input_node_idx_, n_frames*mfcc_feats_per_timestep_);
 
   // Feeding previous_state_c, previous_state_h
-  memcpy(interpreter_->typed_tensor<float>(previous_state_c_idx_), previous_state_c_.get(), sizeof(float) * previous_state_size_);
-  memcpy(interpreter_->typed_tensor<float>(previous_state_h_idx_), previous_state_h_.get(), sizeof(float) * previous_state_size_);
+  assert(previous_state_c.size() == state_size_);
+  copy_vector_to_tensor(previous_state_c, previous_state_c_idx_, state_size_);
+  assert(previous_state_h.size() == state_size_);
+  copy_vector_to_tensor(previous_state_h, previous_state_h_idx_, state_size_);
 
   interpreter_->SetExecutionPlan(acoustic_exec_plan_);
   TfLiteStatus status = interpreter_->Invoke();
@@ -220,25 +223,23 @@ TFLiteModelState::infer(const float* aMfcc, unsigned int n_frames, vector<float>
     return;
   }
 
-  float* outputs = interpreter_->typed_tensor<float>(logits_idx_);
+  copy_tensor_to_vector(logits_idx_, n_frames * BATCH_SIZE * num_classes, logits_output);
 
-  // The CTCDecoder works with log-probs.
-  for (int t = 0; t < n_frames * BATCH_SIZE * num_classes; ++t) {
-    logits_output.push_back(outputs[t]);
-  }
+  state_c_output.clear();
+  state_c_output.reserve(state_size_);
+  copy_tensor_to_vector(new_state_c_idx_, state_size_, state_c_output);
 
-  memcpy(previous_state_c_.get(), interpreter_->typed_tensor<float>(new_state_c_idx_), sizeof(float) * previous_state_size_);
-  memcpy(previous_state_h_.get(), interpreter_->typed_tensor<float>(new_state_h_idx_), sizeof(float) * previous_state_size_);
+  state_h_output.clear();
+  state_h_output.reserve(state_size_);
+  copy_tensor_to_vector(new_state_h_idx_, state_size_, state_h_output);
 }
 
 void
-TFLiteModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc_output)
+TFLiteModelState::compute_mfcc(const vector<float>& samples,
+                               vector<float>& mfcc_output)
 {
   // Feeding input_node
-  float* input_samples = interpreter_->typed_tensor<float>(input_samples_idx_);
-  for (int i = 0; i < samples.size(); ++i) {
-    input_samples[i] = samples[i];
-  }
+  copy_vector_to_tensor(samples, input_samples_idx_, samples.size());
 
   TfLiteStatus status = interpreter_->SetExecutionPlan(mfcc_exec_plan_);
   if (status != kTfLiteOk) {
@@ -261,8 +262,5 @@ TFLiteModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc
   }
   assert(num_elements / n_features_ == n_windows);
 
-  float* outputs = interpreter_->typed_tensor<float>(mfccs_idx_);
-  for (int i = 0; i < n_windows * n_features_; ++i) {
-    mfcc_output.push_back(outputs[i]);
-  }
+  copy_tensor_to_vector(mfccs_idx_, n_windows * n_features_, mfcc_output);
 }

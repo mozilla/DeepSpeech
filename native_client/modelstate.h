@@ -28,6 +28,7 @@ struct ModelState {
   unsigned int sample_rate_;
   unsigned int audio_win_len_;
   unsigned int audio_win_step_;
+  unsigned int state_size_;
 
   ModelState();
   virtual ~ModelState();
@@ -37,8 +38,6 @@ struct ModelState {
                    unsigned int n_context,
                    const char* alphabet_path,
                    unsigned int beam_width);
-
-  virtual int initialize_state() = 0;
 
   virtual void compute_mfcc(const std::vector<float>& audio_buffer, std::vector<float>& mfcc_output) = 0;
 
@@ -52,7 +51,13 @@ struct ModelState {
    *
    * @param[out] output_logits Where to store computed logits.
    */
-  virtual void infer(const float* mfcc, unsigned int n_frames, std::vector<float>& logits_output) = 0;
+  virtual void infer(const std::vector<float>& mfcc,
+                     unsigned int n_frames,
+                     const std::vector<float>& previous_state_c,
+                     const std::vector<float>& previous_state_h,
+                     std::vector<float>& logits_output,
+                     std::vector<float>& state_c_output,
+                     std::vector<float>& state_h_output) = 0;
 
   /**
    * @brief Perform decoding of the logits, using basic CTC decoder or

@@ -14,10 +14,6 @@ struct TFLiteModelState : public ModelState
   std::unique_ptr<tflite::Interpreter> interpreter_;
   std::unique_ptr<tflite::FlatBufferModel> fbmodel_;
 
-  size_t previous_state_size_;
-  std::unique_ptr<float[]> previous_state_c_;
-  std::unique_ptr<float[]> previous_state_h_;
-
   int input_node_idx_;
   int previous_state_c_idx_;
   int previous_state_h_idx_;
@@ -40,13 +36,28 @@ struct TFLiteModelState : public ModelState
                    const char* alphabet_path,
                    unsigned int beam_width) override;
 
-  virtual int initialize_state() override;
-  
   virtual void compute_mfcc(const std::vector<float>& audio_buffer,
                             std::vector<float>& mfcc_output) override;
 
-  virtual void infer(const float* mfcc, unsigned int n_frames,
-                     std::vector<float>& logits_output) override;
+  virtual void infer(const std::vector<float>& mfcc,
+                     unsigned int n_frames,
+                     const std::vector<float>& previous_state_c,
+                     const std::vector<float>& previous_state_h,
+                     std::vector<float>& logits_output,
+                     std::vector<float>& state_c_output,
+                     std::vector<float>& state_h_output) override;
+
+private:
+  int get_tensor_by_name(const std::vector<int>& list, const char* name);
+  int get_input_tensor_by_name(const char* name);
+  int get_output_tensor_by_name(const char* name);
+  std::vector<int> find_parent_node_ids(int tensor_id);
+  void copy_vector_to_tensor(const std::vector<float>& vec,
+                             int tensor_idx,
+                             int num_elements);
+  void copy_tensor_to_vector(int tensor_idx,
+                             int num_elements,
+                             std::vector<float>& vec);
 };
 
 #endif // TFLITEMODELSTATE_H

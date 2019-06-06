@@ -17,6 +17,7 @@ ModelState::ModelState()
   , sample_rate_(DEFAULT_SAMPLE_RATE)
   , audio_win_len_(DEFAULT_WINDOW_LENGTH)
   , audio_win_step_(DEFAULT_WINDOW_STEP)
+  , state_size_(-1)
 {
 }
 

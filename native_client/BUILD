@@ -114,34 +114,26 @@ tf_cc_shared_object(
             ### => Trying to be more fine-grained
             ### Use bin/ops_in_graph.py to list all the ops used by a frozen graph.
             ### CPU only build, libdeepspeech.so file size reduced by ~50%
-            "//tensorflow/core/kernels:dense_update_ops",   # Assign
-            "//tensorflow/core/kernels:constant_op",        # Const
-            "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst
+            "//tensorflow/core/kernels:dense_update_ops",   # Assign (remove once prod model no longer depends on it)
+            "//tensorflow/core/kernels:constant_op",        # Placeholder
+            "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst (used in memmapped models)
             "//tensorflow/core/kernels:identity_op",        # Identity
             "//tensorflow/core/kernels:softmax_op",         # Softmax
             "//tensorflow/core/kernels:transpose_op",       # Transpose
             "//tensorflow/core/kernels:reshape_op",         # Reshape
             "//tensorflow/core/kernels:shape_ops",          # Shape
             "//tensorflow/core/kernels:concat_op",          # ConcatV2
-            "//tensorflow/core/kernels:split_op",           # Split
-            "//tensorflow/core/kernels:variable_ops",       # VariableV2
             "//tensorflow/core/kernels:relu_op",            # Relu
             "//tensorflow/core/kernels:bias_op",            # BiasAdd
             "//tensorflow/core/kernels:math",               # Range, MatMul
-            "//tensorflow/core/kernels:control_flow_ops",   # Enter
             "//tensorflow/core/kernels:tile_ops",           # Tile
-            "//tensorflow/core/kernels:gather_op",          # Gather
             "//tensorflow/core/kernels:mfcc_op",            # Mfcc
             "//tensorflow/core/kernels:spectrogram_op",     # AudioSpectrogram
             "//tensorflow/core/kernels:strided_slice_op",   # StridedSlice
             "//tensorflow/core/kernels:slice_op",           # Slice, needed by StridedSlice
             "//tensorflow/contrib/rnn:lstm_ops_kernels",    # BlockLSTM
-            "//tensorflow/core/kernels:random_ops",         # RandomGammaGrad
             "//tensorflow/core/kernels:pack_op",            # Pack
             "//tensorflow/core/kernels:gather_nd_op",       # GatherNd
-            #### Needed by production model produced without "--use_seq_length False"
-            #"//tensorflow/core/kernels:logging_ops",         # Assert
-            #"//tensorflow/core/kernels:reverse_sequence_op", # ReverseSequence
         ],
     }) + if_cuda([
             "//tensorflow/core:core",

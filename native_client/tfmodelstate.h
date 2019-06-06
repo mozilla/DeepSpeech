@@ -24,11 +24,13 @@ struct TFModelState : public ModelState
                    const char* alphabet_path,
                    unsigned int beam_width) override;
 
-  virtual int initialize_state() override;
-
-  virtual void infer(const float* mfcc,
+  virtual void infer(const std::vector<float>& mfcc,
                      unsigned int n_frames,
-                     std::vector<float>& logits_output) override;
+                     const std::vector<float>& previous_state_c,
+                     const std::vector<float>& previous_state_h,
+                     std::vector<float>& logits_output,
+                     std::vector<float>& state_c_output,
+                     std::vector<float>& state_h_output) override;
 
   virtual void compute_mfcc(const std::vector<float>& audio_buffer,
                             std::vector<float>& mfcc_output) override;
