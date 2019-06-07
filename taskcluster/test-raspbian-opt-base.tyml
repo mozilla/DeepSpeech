@@ -38,8 +38,8 @@ then:
         DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${linux_rpi3_build}/artifacts/public
         DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package_cpu}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
-        DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod-ctcdecode/output_graph.pb
-        DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.2.0-prod-ctcdecode/output_graph.pbmm
+        DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.5.0-alpha.11/output_graph.pb
+        DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.5.0-alpha.11/output_graph.pbmm
         PIP_DEFAULT_TIMEOUT: "60"
         PIP_EXTRA_INDEX_URL: "https://www.piwheels.org/simple"
         EXTRA_PYTHON_CONFIGURE_OPTS: "--with-fpectl" # Required by Raspbian Stretch / PiWheels
