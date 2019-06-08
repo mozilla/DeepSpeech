@@ -71,7 +71,6 @@ def create_flags():
     # Exporting
 
     f.DEFINE_string('export_dir', '', 'directory in which exported models are stored - if omitted, the model won\'t get exported')
-    f.DEFINE_integer('export_version', 1, 'version number of the exported model')
     f.DEFINE_boolean('remove_export', False, 'whether to remove old exported models')
     f.DEFINE_boolean('export_tflite', False, 'export a graph ready for TF Lite engine')
     f.DEFINE_boolean('use_seq_length', True, 'have sequence_length in the exported graph(will make tfcompile unhappy)')
