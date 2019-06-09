@@ -89,6 +89,7 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
         wav_filename = path.splitext(orig_filename)[0] + ".converted.wav"
         _maybe_convert_wav(orig_filename, wav_filename)
         file_size = -1
+        frames = 0
         if path.exists(wav_filename):
             file_size = path.getsize(wav_filename)
             frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
