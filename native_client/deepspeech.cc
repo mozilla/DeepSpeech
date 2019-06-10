@@ -85,6 +85,7 @@ struct StreamingState {
   vector<float> mfcc_buffer;
   vector<float> batch_buffer;
   ModelState* model;
+  std::unique_ptr<DecoderState> decoder_state;
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
   char* intermediateDecode();
@@ -112,7 +113,6 @@ struct ModelState {
   unsigned int ncontext;
   Alphabet* alphabet;
   Scorer* scorer;
-  DecoderState* decoder_state;
   unsigned int beam_width;
   unsigned int n_steps;
   unsigned int n_context;
@@ -150,7 +150,7 @@ struct ModelState {
    *
    * @return String representing the decoded text.
    */
-  char* decode();
+  char* decode(DecoderState* state);
 
   /**
    * @brief Perform decoding of the logits, using basic CTC decoder or
@@ -158,7 +158,7 @@ struct ModelState {
    *
    * @return Vector of Output structs directly from the CTC decoder for additional processing.
    */
-  vector<Output> decode_raw();
+  vector<Output> decode_raw(DecoderState* state);
 
   /**
    * @brief Return character-level metadata including letter timings.
@@ -167,7 +167,7 @@ struct ModelState {
    * @return Metadata struct containing MetadataItem structs for each character.
    * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
    */
-  Metadata* decode_metadata();
+  Metadata* decode_metadata(DecoderState* state);
 
   /**
    * @brief Do a single inference step in the acoustic model, with:
@@ -197,7 +197,6 @@ ModelState::ModelState()
   , ncontext(0)
   , alphabet(nullptr)
   , scorer(nullptr)
-  , decoder_state(nullptr)
   , beam_width(0)
   , n_steps(-1)
   , n_context(-1)
@@ -228,11 +227,6 @@ ModelState::~ModelState()
 
   delete scorer;
   delete alphabet;
-  
-  if (decoder_state != nullptr) {
-    delete decoder_state;
-    decoder_state = nullptr;
-  }
 }
 
 template<typename T>
@@ -271,21 +265,21 @@ StreamingState::feedAudioContent(const short* buffer,
 char*
 StreamingState::intermediateDecode()
 {
-  return model->decode();
+  return model->decode(decoder_state.get());
 }
 
 char*
 StreamingState::finishStream()
 {
   finalizeStream();
-  return model->decode();
+  return model->decode(decoder_state.get());
 }
 
 Metadata*
 StreamingState::finishStreamWithMetadata()
 {
   finalizeStream();
-  return model->decode_metadata();
+  return model->decode_metadata(decoder_state.get());
 }
 
 void
@@ -386,7 +380,7 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 
   decoder_next(inputs.data(), 
                *model->alphabet,
-               model->decoder_state,
+               decoder_state.get(),
                n_frames,
                num_classes,
                cutoff_prob,
@@ -529,24 +523,24 @@ ModelState::compute_mfcc(const vector<float>& samples, vector<float>& mfcc_outpu
 }
 
 char*
-ModelState::decode()
+ModelState::decode(DecoderState* state)
 {
-  vector<Output> out = ModelState::decode_raw();
+  vector<Output> out = ModelState::decode_raw(state);
   return strdup(alphabet->LabelsToString(out[0].tokens).c_str());
 }
 
 vector<Output>
-ModelState::decode_raw()
+ModelState::decode_raw(DecoderState* state)
 {
-  vector<Output> out = decoder_decode(decoder_state, *alphabet, beam_width, scorer);
+  vector<Output> out = decoder_decode(state, *alphabet, beam_width, scorer);
 
   return out;
 }
 
 Metadata*
-ModelState::decode_metadata()
+ModelState::decode_metadata(DecoderState* state)
 {
-  vector<Output> out = decode_raw();
+  vector<Output> out = decode_raw(state);
 
   std::unique_ptr<Metadata> metadata(new Metadata());
   metadata->num_items = out[0].tokens.size();
@@ -912,8 +906,7 @@ DS_SetupStream(ModelState* aCtx,
   memset(ctx->model->previous_state_h_.get(), 0, sizeof(float) * ctx->model->previous_state_size);
 #endif // USE_TFLITE
 
-  DecoderState *params = decoder_init(*aCtx->alphabet, num_classes, aCtx->scorer);
-  aCtx->decoder_state = params;
+  ctx->decoder_state.reset(decoder_init(*aCtx->alphabet, num_classes, aCtx->scorer));
 
   *retval = ctx.release();
   return DS_ERR_OK;
