@@ -1,0 +1,7 @@
+# ignoring the libs directory. Place up to date binaries in a directory called libs
+
+libs/
+cmake-build-debug/
+cmake-build-release/
+.idea/
+CMakeFiles/

@@ -1,0 +1,3 @@
+/build
+/libs # Not in use
+/src/main/jni # Place up to date binaries here

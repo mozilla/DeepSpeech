@@ -1,1 +1,13 @@
-/build
+# Ignored directories
+
+.gradle/
+.idea/
+gradle/
+out/
+build/
+
+# workingDirectory is ignored
+workingDirectory/
+
+libdeepspeech.iml
+local.properties

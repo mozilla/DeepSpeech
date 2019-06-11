@@ -1,0 +1,4 @@
+build/
+.gradle/
+src/main/jniLibs/ # place up to date binaries here
+deepspeechandroid.iml
