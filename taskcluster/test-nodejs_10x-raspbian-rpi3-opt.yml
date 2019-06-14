@@ -7,7 +7,7 @@ build:
     >
       ${nodejs.packages_stretch.prep_10} && ${nodejs.packages_stretch.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_stretch.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-node-tests.sh 10.x"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 10.x"
   metadata:
     name: "DeepSpeech Raspbian RPi3/ARMv7 CPU NodeJS 10.x tests"
     description: "Testing DeepSpeech for Raspbian RPi3/ARMv7 on NodeJS v10.x, CPU only, optimized version"

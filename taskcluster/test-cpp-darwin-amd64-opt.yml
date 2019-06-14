@@ -7,7 +7,7 @@ build:
     >
       ${cpp.brew.setup} && ${cpp.brew.packages} && ${cpp.brew.env}
   args:
-    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-cpp-ds-tests.sh"
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-cpp-ds-tests.sh"
   metadata:
     name: "DeepSpeech OSX AMD64 CPU C++ tests"
     description: "Testing DeepSpeech C++ for OSX/AMD64, CPU only, optimized version"

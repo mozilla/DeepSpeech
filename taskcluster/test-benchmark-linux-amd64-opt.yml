@@ -7,7 +7,7 @@ build:
     >
       apt-get -qq -y install ${python.packages_trusty.apt} zip
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-benchmark-tests.sh"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-benchmark-tests.sh"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU benchmarking"
     description: "Benchmarking DeepSpeech for Linux/AMD64, CPU only, optimized version"

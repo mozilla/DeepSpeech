@@ -7,7 +7,7 @@ build:
     >
       apt-get -qq -y install curl make python && ${swig.packages.install_script}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-android-apk-tests.sh x86_64 android-25"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-apk-tests.sh x86_64 android-25"
   metadata:
     name: "DeepSpeech Android 7.1 x86_64 Google Pixel APK/Java tests"
     description: "Testing DeepSpeech APK/Java for Android 7.1 x86_64 Google Pixel, optimized version"

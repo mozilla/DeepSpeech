@@ -7,7 +7,7 @@ build:
     >
       ${system.sox_win} && ${nodejs.win.prep_10}
   args:
-    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/tc-electron-tests.sh 10.x 4.1.1"
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 10.x 4.1.1"
   metadata:
     name: "DeepSpeech Windows AMD64 CPU ElectronJS v4.1 tests"
     description: "Testing DeepSpeech for Windows/AMD64 on ElectronJS v4.1, CPU only, optimized version"
