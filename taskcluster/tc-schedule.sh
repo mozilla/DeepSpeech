@@ -2,7 +2,8 @@
 
 set -ex
 
-curdir=$(dirname "$0")
+# tc-decision.py assumes being at the root folder
+curdir=$(dirname "$0")/..
 
 pip3 install --quiet --user --upgrade pip
 

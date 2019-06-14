@@ -4,7 +4,7 @@ set -xe
 
 arm_flavor=$1
 
-source $(dirname "$0")/../tc-tests-utils.sh
+source $(dirname "$0")/tc-tests-utils.sh
 
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 

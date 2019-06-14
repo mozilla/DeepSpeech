@@ -7,7 +7,7 @@ build:
     >
       ${nodejs.packages_stretch.prep_11} && ${nodejs.packages_stretch.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_stretch.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-node-tests.sh 11.x"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 11.x"
   metadata:
     name: "DeepSpeech ARMbian ARM64 Cortex-A53 CPU NodeJS 11.x tests"
     description: "Testing DeepSpeech forARMbian ARM64 Cortex-A53 on NodeJS v11.x, CPU only, optimized version"

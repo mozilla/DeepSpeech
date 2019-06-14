@@ -6,7 +6,7 @@ build:
     >
       ${nodejs.packages_trusty.prep_4} && ${nodejs.packages_trusty.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_trusty.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-node-tests-prod.sh 4.x"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node-tests-prod.sh 4.x"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU NodeJS 4.x prod tests"
     description: "Testing DeepSpeech for Linux/AMD64 on NodeJS v4.x on prod model, CPU only, optimized version"

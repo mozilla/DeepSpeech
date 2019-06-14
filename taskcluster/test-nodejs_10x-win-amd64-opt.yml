@@ -7,7 +7,7 @@ build:
     >
       ${system.sox_win} && ${nodejs.win.prep_10}
   args:
-    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/tc-node-tests.sh 10.x"
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 10.x"
   metadata:
     name: "DeepSpeech Windows AMD64 CPU NodeJS 10.x tests"
     description: "Testing DeepSpeech for Windows/AMD64 on NodeJS v10.x, CPU only, optimized version"

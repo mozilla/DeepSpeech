@@ -4,7 +4,7 @@ build:
     - "win-amd64-cpu-opt"
     - "test-training_upstream-linux-amd64-py35m-opt"
   args:
-    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-netframework-ds-tests.sh"
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-netframework-ds-tests.sh"
   metadata:
     name: "DeepSpeech Windows AMD64 CPU .Net Framework tests"
     description: "Testing DeepSpeech .Net Framework for Windows/AMD64, CPU only, optimized version"
