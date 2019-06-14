@@ -588,7 +588,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         rnn_impl = rnn_impl_lstmblockfusedcell
 
     logits, layers = create_model(batch_x=input_tensor,
-                                  seq_length=seq_length if FLAGS.use_seq_length else None,
+                                  seq_length=seq_length if not FLAGS.export_tflite else None,
                                   dropout=no_dropout,
                                   previous_state=previous_state,
                                   overlap=False,
@@ -630,7 +630,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         'input_samples': input_samples,
     }
 
-    if FLAGS.use_seq_length:
+    if not FLAGS.export_tflite:
         inputs.update({'input_lengths': seq_length})
 
     outputs = {

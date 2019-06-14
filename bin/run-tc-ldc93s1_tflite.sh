@@ -20,4 +20,4 @@ python -u DeepSpeech.py --noshow_progressbar \
   --export_dir '/tmp/train_tflite' \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \
-  --export_tflite --nouse_seq_length
+  --export_tflite
