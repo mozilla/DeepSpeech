@@ -1143,7 +1143,8 @@ do_deepspeech_nodejs_build()
 {
   rename_to_gpu=$1
 
-  npm update && npm install node-gyp node-pre-gyp
+  # Force node-gyp 4.x until https://github.com/nodejs/node-gyp/issues/1778 is fixed
+  npm update && npm install node-gyp@4.x node-pre-gyp
 
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
@@ -1171,7 +1172,7 @@ do_deepspeech_nodejs_build()
       RASPBIAN=${SYSTEM_RASPBIAN} \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$electron \
-      NODE_DIST_URL=--disturl=https://atom.io/download/electron \
+      NODE_DIST_URL=--disturl=https://electronjs.org/headers \
       NODE_RUNTIME=--runtime=electron \
       clean node-wrapper
   done;
@@ -1192,7 +1193,8 @@ do_deepspeech_npm_package()
 
   cd ${DS_DSDIR}
 
-  npm update && npm install node-gyp node-pre-gyp
+  # Force node-gyp 4.x until https://github.com/nodejs/node-gyp/issues/1778 is fixed
+  npm update && npm install node-gyp@4.x node-pre-gyp
 
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
