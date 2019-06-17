@@ -170,6 +170,8 @@ TFLiteModelState::init(const char* model_path,
   return DS_ERR_OK;
 }
 
+// Copy contents of vec into the tensor with index tensor_idx.
+// If vec.size() < num_elements, set the remainder of the tensor values to zero.
 void
 TFLiteModelState::copy_vector_to_tensor(const vector<float>& vec,
                                         int tensor_idx,
@@ -185,6 +187,7 @@ TFLiteModelState::copy_vector_to_tensor(const vector<float>& vec,
   }
 }
 
+// Copy num_elements elements from the tensor with index tensor_idx into vec
 void
 TFLiteModelState::copy_tensor_to_vector(int tensor_idx,
                                         int num_elements,
