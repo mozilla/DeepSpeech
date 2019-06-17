@@ -52,7 +52,7 @@ def evaluate(test_csvs, create_model, try_loading):
                                                  output_classes=tfv1.data.get_output_classes(test_sets[0]))
     test_init_ops = [iterator.make_initializer(test_set) for test_set in test_sets]
 
-    (batch_x, batch_x_len), batch_y = iterator.get_next()
+    batch_wav_filename, (batch_x, batch_x_len), batch_y = iterator.get_next()
 
     # One rate per layer
     no_dropout = [None] * 6
@@ -89,6 +89,7 @@ def evaluate(test_csvs, create_model, try_loading):
             exit(1)
 
         def run_test(init_op, dataset):
+            wav_filenames = []
             losses = []
             predictions = []
             ground_truths = []
@@ -105,8 +106,8 @@ def evaluate(test_csvs, create_model, try_loading):
             # First pass, compute losses and transposed logits for decoding
             while True:
                 try:
-                    batch_logits, batch_loss, batch_lengths, batch_transcripts = \
-                        session.run([transposed, loss, batch_x_len, batch_y])
+                    batch_wav_filenames, batch_logits, batch_loss, batch_lengths, batch_transcripts = \
+                        session.run([batch_wav_filename, transposed, loss, batch_x_len, batch_y])
                 except tf.errors.OutOfRangeError:
                     break
 
@@ -114,6 +115,7 @@ def evaluate(test_csvs, create_model, try_loading):
                                                         num_processes=num_processes, scorer=scorer)
                 predictions.extend(d[0][1] for d in decoded)
                 ground_truths.extend(sparse_tensor_value_to_texts(batch_transcripts, Config.alphabet))
+                wav_filenames.extend(wav_filename.decode('UTF-8') for wav_filename in batch_wav_filenames)
                 losses.extend(batch_loss)
 
                 step_count += 1
@@ -121,7 +123,7 @@ def evaluate(test_csvs, create_model, try_loading):
 
             bar.finish()
 
-            wer, cer, samples = calculate_report(ground_truths, predictions, losses)
+            wer, cer, samples = calculate_report(wav_filenames, ground_truths, predictions, losses)
             mean_loss = np.mean(losses)
 
             # Take only the first report_count items
@@ -133,6 +135,7 @@ def evaluate(test_csvs, create_model, try_loading):
             for sample in report_samples:
                 print('WER: %f, CER: %f, loss: %f' %
                       (sample.wer, sample.cer, sample.loss))
+                print(' - wav: file://%s' % sample.wav_filename)
                 print(' - src: "%s"' % sample.src)
                 print(' - res: "%s"' % sample.res)
                 print('-' * 80)
