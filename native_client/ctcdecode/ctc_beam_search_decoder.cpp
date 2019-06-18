@@ -14,10 +14,11 @@
 
 using FSTMATCH = fst::SortedMatcher<fst::StdVectorFst>;
 
-DecoderState* decoder_init(const Alphabet &alphabet,
-                            int class_dim,
-                            Scorer* ext_scorer) {
-
+DecoderState*
+decoder_init(const Alphabet &alphabet,
+             int class_dim,
+             Scorer* ext_scorer)
+{
   // dimension check
   VALID_CHECK_EQ(class_dim, alphabet.GetSize()+1,
                  "The shape of probs does not match with "
@@ -47,16 +48,17 @@ DecoderState* decoder_init(const Alphabet &alphabet,
   return state;
 }
 
-void decoder_next(const double *probs,
-                  const Alphabet &alphabet,
-                  DecoderState *state,
-                  int time_dim,
-                  int class_dim,
-                  double cutoff_prob,
-                  size_t cutoff_top_n,
-                  size_t beam_size,
-                  Scorer *ext_scorer) {
-
+void
+decoder_next(const double *probs,
+             const Alphabet &alphabet,
+             DecoderState *state,
+             int time_dim,
+             int class_dim,
+             double cutoff_prob,
+             size_t cutoff_top_n,
+             size_t beam_size,
+             Scorer *ext_scorer)
+{
   // prefix search over time 
   for (size_t rel_time_step = 0; rel_time_step < time_dim; ++rel_time_step, ++state->time_step) {
     auto *prob = &probs[rel_time_step*class_dim];
@@ -155,11 +157,12 @@ void decoder_next(const double *probs,
   }  // end of loop over time
 }
 
-std::vector<Output> decoder_decode(DecoderState *state,
-                                   const Alphabet &alphabet,
-                                   size_t beam_size,
-                                   Scorer* ext_scorer) {
-
+std::vector<Output>
+decoder_decode(DecoderState *state,
+               const Alphabet &alphabet,
+               size_t beam_size,
+               Scorer* ext_scorer)
+{
   // score the last word of each prefix that doesn't end with space
   if (ext_scorer != nullptr && !ext_scorer->is_character_based()) {
     for (size_t i = 0; i < beam_size && i < state->prefixes.size(); ++i) {
