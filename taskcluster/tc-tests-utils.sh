@@ -419,6 +419,26 @@ run_all_inference_tests()
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
 
+run_prod_concurrent_stream_tests()
+{
+  set +e
+  output=$(python ${TASKCLUSTER_TMP_DIR}/test_sources/concurrent_streams.py \
+             --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} \
+             --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt \
+             --lm ${TASKCLUSTER_TMP_DIR}/lm.binary \
+             --trie ${TASKCLUSTER_TMP_DIR}/trie \
+             --audio1 ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav \
+             --audio2 ${TASKCLUSTER_TMP_DIR}/new-home-in-the-stars-16k.wav 2>/dev/null)
+  status=$?
+  set -e
+
+  output1=$(echo ${output} | head -n 1)
+  output2=$(echo ${output} | tail -n 1)
+
+  assert_correct_ldc93s1_prodmodel "${output1}" "${status}"
+  assert_correct_inference "${output2}" "i must find a new home in the stars" "${status}"
+}
+
 run_prod_inference_tests()
 {
   set +e
@@ -540,6 +560,7 @@ download_data()
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
+  cp -R ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
 }
 
 download_material()
