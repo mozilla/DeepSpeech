@@ -4,9 +4,9 @@ set -xe
 
 SOURCE_MODEL='../keep/en'
 mkdir $SOURCE_MODEL
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
-tar xvzf ${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
-rm ${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint.tar.gz
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.5.1/deepspeech-0.5.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
+tar xvzf ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
+rm ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz
 
 # venv
 apt-get update -y
@@ -30,7 +30,7 @@ python -u DeepSpeech.py \
 	   --summary_dir "${exp}/summaries/" \
 	   --checkpoint_dir "${exp}/ckpt/" \
 	   --drop_source_layers 1 \
-	   --source_model_checkpoint_dir "${SOURCE_MODEL}/deepspeech-0.4.1-checkpoint" \
+	   --source_model_checkpoint_dir "${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint" \
 	   --n_hidden 2048 \
 	   --epoch -10 \
        --earlystop_nsteps 5 \
