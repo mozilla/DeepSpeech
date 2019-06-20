@@ -574,12 +574,8 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         # no state management since n_step is expected to be dynamic too (see below)
         previous_state = previous_state_c = previous_state_h = None
     else:
-        if tflite:
-            previous_state_c = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_c')
-            previous_state_h = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_h')
-        else:
-            previous_state_c = variable_on_cpu('previous_state_c', [batch_size, Config.n_cell_dim], initializer=None)
-            previous_state_h = variable_on_cpu('previous_state_h', [batch_size, Config.n_cell_dim], initializer=None)
+        previous_state_c = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_c')
+        previous_state_h = tf.placeholder(tf.float32, [batch_size, Config.n_cell_dim], name='previous_state_h')
 
         previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
 
@@ -592,7 +588,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         rnn_impl = rnn_impl_lstmblockfusedcell
 
     logits, layers = create_model(batch_x=input_tensor,
-                                  seq_length=seq_length if FLAGS.use_seq_length else None,
+                                  seq_length=seq_length if not FLAGS.export_tflite else None,
                                   dropout=no_dropout,
                                   previous_state=previous_state,
                                   overlap=False,
@@ -605,7 +601,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         logits = tf.squeeze(logits, [1])
 
     # Apply softmax for CTC decoder
-    logits = tf.nn.softmax(logits)
+    logits = tf.nn.softmax(logits, name='logits')
 
     if batch_size <= 0:
         if tflite:
@@ -618,51 +614,31 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
                 'input_lengths': seq_length,
             },
             {
-                'outputs': tf.identity(logits, name='logits'),
+                'outputs': logits,
             },
             layers
         )
 
     new_state_c, new_state_h = layers['rnn_output_state']
-    if tflite:
-        logits = tf.identity(logits, name='logits')
-        new_state_c = tf.identity(new_state_c, name='new_state_c')
-        new_state_h = tf.identity(new_state_h, name='new_state_h')
+    new_state_c = tf.identity(new_state_c, name='new_state_c')
+    new_state_h = tf.identity(new_state_h, name='new_state_h')
 
-        inputs = {
-            'input': input_tensor,
-            'previous_state_c': previous_state_c,
-            'previous_state_h': previous_state_h,
-            'input_samples': input_samples,
-        }
+    inputs = {
+        'input': input_tensor,
+        'previous_state_c': previous_state_c,
+        'previous_state_h': previous_state_h,
+        'input_samples': input_samples,
+    }
 
-        if FLAGS.use_seq_length:
-            inputs.update({'input_lengths': seq_length})
+    if not FLAGS.export_tflite:
+        inputs.update({'input_lengths': seq_length})
 
-        outputs = {
-            'outputs': logits,
-            'new_state_c': new_state_c,
-            'new_state_h': new_state_h,
-            'mfccs': mfccs,
-        }
-    else:
-        zero_state = tf.zeros([batch_size, Config.n_cell_dim], tf.float32)
-        initialize_c = tf.assign(previous_state_c, zero_state)
-        initialize_h = tf.assign(previous_state_h, zero_state)
-        initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
-        with tf.control_dependencies([tf.assign(previous_state_c, new_state_c), tf.assign(previous_state_h, new_state_h)]):
-            logits = tf.identity(logits, name='logits')
-
-        inputs = {
-            'input': input_tensor,
-            'input_lengths': seq_length,
-            'input_samples': input_samples,
-        }
-        outputs = {
-            'outputs': logits,
-            'initialize_state': initialize_state,
-            'mfccs': mfccs,
-        }
+    outputs = {
+        'outputs': logits,
+        'new_state_c': new_state_c,
+        'new_state_h': new_state_h,
+        'mfccs': mfccs,
+    }
 
     return inputs, outputs, layers
 
@@ -682,10 +658,12 @@ def export():
     output_names_ops = [op.name for op in outputs.values() if isinstance(op, Operation)]
     output_names = ",".join(output_names_tensors + output_names_ops)
 
-    if not FLAGS.export_tflite:
-        mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
-    else:
+    mapping = None
+    if FLAGS.export_tflite:
         # Create a saver using variables from the above newly created graph
+        # Training graph uses LSTMFusedCell, but the TFLite inference graph uses
+        # a static RNN with a normal cell, so we need to rewrite the names to
+        # match the training weights when restoring.
         def fixup(name):
             if name.startswith('rnn/lstm_cell/'):
                 return name.replace('rnn/lstm_cell/', 'lstm_fused_cell/')
@@ -710,7 +688,7 @@ def export():
         if not os.path.isdir(FLAGS.export_dir):
             os.makedirs(FLAGS.export_dir)
 
-        def do_graph_freeze(output_file=None, output_node_names=None, variables_blacklist=None):
+        def do_graph_freeze(output_file=None, output_node_names=None, variables_blacklist=''):
             frozen = freeze_graph.freeze_graph_with_def_protos(
                 input_graph_def=tf.get_default_graph().as_graph_def(),
                 input_saver_def=saver.as_saver_def(),
@@ -731,7 +709,7 @@ def export():
                 placeholder_type_enum=tf.float32.as_datatype_enum)
 
         if not FLAGS.export_tflite:
-            frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='previous_state_c,previous_state_h')
+            frozen_graph = do_graph_freeze(output_node_names=output_names)
             frozen_graph.version = int(file_relative_read('GRAPH_VERSION').strip())
 
             # Add a no-op node to the graph with metadata information to be loaded by the native client
@@ -747,7 +725,7 @@ def export():
             with open(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())
         else:
-            frozen_graph = do_graph_freeze(output_node_names=output_names, variables_blacklist='')
+            frozen_graph = do_graph_freeze(output_node_names=output_names)
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
             converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
@@ -771,8 +749,7 @@ def do_single_file_inference(input_file_path):
         inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=-1)
 
         # Create a saver using variables from the above newly created graph
-        mapping = {v.op.name: v for v in tf.global_variables() if not v.op.name.startswith('previous_state_')}
-        saver = tf.train.Saver(mapping)
+        saver = tf.train.Saver()
 
         # Restore variables from training checkpoint
         # TODO: This restores the most recent checkpoint, but if we use validation to counteract
@@ -784,9 +761,10 @@ def do_single_file_inference(input_file_path):
 
         checkpoint_path = checkpoint.model_checkpoint_path
         saver.restore(session, checkpoint_path)
-        session.run(outputs['initialize_state'])
 
         features, features_len = audiofile_to_features(input_file_path)
+        previous_state_c = np.zeros([1, Config.n_cell_dim])
+        previous_state_h = np.zeros([1, Config.n_cell_dim])
 
         # Add batch dimension
         features = tf.expand_dims(features, 0)
@@ -799,6 +777,8 @@ def do_single_file_inference(input_file_path):
         logits = outputs['outputs'].eval(feed_dict={
             inputs['input']: features,
             inputs['input_lengths']: features_len,
+            inputs['previous_state_c']: previous_state_c,
+            inputs['previous_state_h']: previous_state_h,
         }, session=session)
 
         logits = np.squeeze(logits)
