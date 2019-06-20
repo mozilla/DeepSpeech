@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 
 import tensorflow as tf
 
+import os
 
 FLAGS = tf.app.flags.FLAGS
-
 
 def create_flags():
     # Importer
@@ -113,3 +113,21 @@ def create_flags():
     # Inference mode
 
     f.DEFINE_string('one_shot_infer', '', 'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
+
+    # Register validators for paths which require a file to be specified
+
+    f.register_validator('lm_binary_path',
+                         lambda value: os.path.isfile(value),
+                         message='The file pointed to by --lm_binary_path must exist and be readable.')
+
+    f.register_validator('lm_trie_path',
+                         lambda value: os.path.isfile(value),
+                         message='The file pointed to by --lm_trie_path must exist and be readable.')
+
+    f.register_validator('alphabet_config_path',
+                         lambda value: os.path.isfile(value),
+                         message='The file pointed to by --alphabet_config_path must exist and be readable.')
+
+    f.register_validator('one_shot_infer',
+                         lambda value: os.path.isfile(value),
+                         message='The file pointed to by --one_shot_infer must exist and be readable.')
