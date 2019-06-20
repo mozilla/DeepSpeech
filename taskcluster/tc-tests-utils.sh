@@ -460,6 +460,15 @@ run_multi_inference_tests()
   assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}" "$status"
 }
 
+run_cpp_only_inference_tests()
+{
+  set +e
+  phrase_pbmodel_withlm_intermediate_decode=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --stream 1280 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_intermediate_decode}" "$status"
+}
+
 android_run_tests()
 {
   cd ${DS_DSDIR}/native_client/java/

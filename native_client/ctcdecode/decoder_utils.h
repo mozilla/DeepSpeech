@@ -67,6 +67,8 @@ std::vector<Output> get_beam_search_result(
 // Functor for prefix comparsion
 bool prefix_compare(const PathTrie *x, const PathTrie *y);
 
+bool prefix_compare_external(const PathTrie *x, const PathTrie *y, const std::unordered_map<const PathTrie*, float>& scores);
+
 /* Get length of utf8 encoding string
  * See: http://stackoverflow.com/a/4063229
  */

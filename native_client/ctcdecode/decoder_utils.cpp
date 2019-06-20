@@ -112,6 +112,18 @@ bool prefix_compare(const PathTrie *x, const PathTrie *y) {
   }
 }
 
+bool prefix_compare_external(const PathTrie *x, const PathTrie *y, const std::unordered_map<const PathTrie*, float>& scores) {
+  if (scores.at(x) == scores.at(y)) {
+    if (x->character == y->character) {
+      return false;
+    } else {
+      return (x->character < y->character);
+    }
+  } else {
+    return scores.at(x) > scores.at(y);
+  }
+}
+
 void add_word_to_fst(const std::vector<int> &word,
                      fst::StdVectorFst *dictionary) {
   if (dictionary->NumStates() == 0) {
