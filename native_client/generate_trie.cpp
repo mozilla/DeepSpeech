@@ -3,7 +3,6 @@
 #include <string>
 
 #include "ctcdecode/scorer.h"
-#include "fst/fstlib.h"
 #include "alphabet.h"
 
 using namespace std;

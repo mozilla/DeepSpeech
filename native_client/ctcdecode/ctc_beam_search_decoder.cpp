@@ -12,8 +12,6 @@
 #include "fst/fstlib.h"
 #include "path_trie.h"
 
-using FSTMATCH = fst::SortedMatcher<fst::StdVectorFst>;
-
 DecoderState*
 decoder_init(const Alphabet &alphabet,
              int class_dim,
@@ -41,7 +39,7 @@ decoder_init(const Alphabet &alphabet,
   if (ext_scorer != nullptr && !ext_scorer->is_character_based()) {
     auto dict_ptr = ext_scorer->dictionary->Copy(true);
     root->set_dictionary(dict_ptr);
-    auto matcher = std::make_shared<FSTMATCH>(*dict_ptr, fst::MATCH_INPUT);
+    auto matcher = std::make_shared<fst::SortedMatcher<PathTrie::FstType>>(*dict_ptr, fst::MATCH_INPUT);
     root->set_matcher(matcher);
   }
   
