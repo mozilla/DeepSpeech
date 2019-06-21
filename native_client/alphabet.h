@@ -17,6 +17,12 @@ class Alphabet {
 public:
   Alphabet(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
+
+    if (!in) {
+      std::cerr << "Unable to load alphabet file " << config_file << std::endl;
+      abort();
+    }
+
     unsigned int label = 0;
     space_label_ = -2;
     for (std::string line; std::getline(in, line);) {
