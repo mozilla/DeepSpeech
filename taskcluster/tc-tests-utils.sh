@@ -1066,7 +1066,7 @@ do_deepspeech_python_build()
   mkdir -p wheels
 
   SETUP_FLAGS=""
-  if [ "${rename_to_gpu}" ]; then
+  if [ "${rename_to_gpu}" = "--cuda" ]; then
     SETUP_FLAGS="--project_name deepspeech-gpu"
   fi
 
@@ -1199,7 +1199,7 @@ do_deepspeech_nodejs_build()
       clean node-wrapper
   done;
 
-  if [ "${rename_to_gpu}" ]; then
+  if [ "${rename_to_gpu}" = "--cuda" ]; then
     make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
   else
     make -C native_client/javascript clean npm-pack
@@ -1235,7 +1235,7 @@ do_deepspeech_npm_package()
     curl -L https://queue.taskcluster.net/v1/task/${dep}/artifacts/public/wrapper.tar.gz | tar -C native_client/javascript -xzvf -
   done;
 
-  if [ "${rename_to_gpu}" ]; then
+  if [ "${rename_to_gpu}" = "--cuda" ]; then
     make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
   else
     make -C native_client/javascript clean npm-pack
@@ -1345,6 +1345,26 @@ package_native_client_ndk()
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
     | pixz -9 > "${artifacts_dir}/${artifact_name}"
+}
+
+package_libdeepspeech_as_zip()
+{
+  tensorflow_dir=${DS_TFDIR}
+  artifacts_dir=${TASKCLUSTER_ARTIFACTS}
+  artifact_name=$1
+
+  if [ ! -d ${tensorflow_dir} -o ! -d ${artifacts_dir} ]; then
+    echo "Missing directory. Please check:"
+    echo "tensorflow_dir=${tensorflow_dir}"
+    echo "artifacts_dir=${artifacts_dir}"
+    exit 1
+  fi;
+
+  if [ -z "${artifact_name}" ]; then
+    echo "Please specify artifact name."
+  fi;
+
+  zip -r9 --junk-paths "${artifacts_dir}/${artifact_name}" ${tensorflow_dir}/bazel-bin/native_client/libdeepspeech.so
 }
 
 android_sdk_accept_licenses()

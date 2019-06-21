@@ -1,0 +1,24 @@
+build:
+  template_file: linux-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.tflite"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.tflite"
+    - "index.project.deepspeech.deepspeech.native_client.tflite.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  system_setup:
+    >
+      ${nodejs.packages_trusty.prep_8} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
+      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
+  system_config:
+    >
+      ${swig.patch_nodejs.linux}
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.13.174b4760eb1cba50482ed7d890e654060d360e4b.cpu/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/host-build.sh tflite"
+    package: "taskcluster/package.sh"
+  nc_asset_name: "native_client.amd64.tflite.linux.tar.xz"
+  metadata:
+    name: "DeepSpeech Linux AMD64 TFLite"
+    description: "Building DeepSpeech for Linux/AMD64, TFLite, optimized version"

@@ -1,0 +1,17 @@
+build:
+  template_file: win-opt-base.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.win-tflite.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  tensorflow: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.13.174b4760eb1cba50482ed7d890e654060d360e4b.win/artifacts/public/home.tar.xz"
+  scripts:
+    build: "taskcluster/win-build.sh tflite"
+    package: "taskcluster/win-package.sh"
+  nc_asset_name: "native_client.amd64.tflite.win.tar.xz"
+  maxRunTime: 14400
+  metadata:
+    name: "DeepSpeech Windows AMD64 TFLite"
+    description: "Building DeepSpeech for Windows AMD64, TFLite, optimized version"
