@@ -117,17 +117,17 @@ def create_flags():
     # Register validators for paths which require a file to be specified
 
     f.register_validator('lm_binary_path',
-                         lambda value: os.path.isfile(value),
+                         os.path.isfile,
                          message='The file pointed to by --lm_binary_path must exist and be readable.')
 
     f.register_validator('lm_trie_path',
-                         lambda value: os.path.isfile(value),
+                         os.path.isfile,
                          message='The file pointed to by --lm_trie_path must exist and be readable.')
 
     f.register_validator('alphabet_config_path',
-                         lambda value: os.path.isfile(value),
+                         os.path.isfile,
                          message='The file pointed to by --alphabet_config_path must exist and be readable.')
 
     f.register_validator('one_shot_infer',
-                         lambda value: os.path.isfile(value),
+                         lambda value: not value or os.path.isfile(value),
                          message='The file pointed to by --one_shot_infer must exist and be readable.')
