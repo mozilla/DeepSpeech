@@ -15,6 +15,12 @@ Variable naming
 * class/struct member variables which are private should follow lowercase with
   a final underscore, e.g. `unsigned int beam_width_;` in `modelstate.h`.
 
+File naming
+===========
+
+* Source code files should have a `.cc` prefix and headers a `.h` prefix, excluding 
+  code important from elsewhere, which should follow local conventions, e.g. `.cpp` and `.h` 
+  in `ctcdecode/`.
 
 Doubts
 ======
