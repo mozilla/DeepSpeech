@@ -264,7 +264,7 @@ void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary, bool ad
 
    * This gets rid of "epsilon" transitions in the FST.
    * These are transitions that don't require a string input to be taken.
-   * Getting rid of them is necessary to make the FST determinisitc, but
+   * Getting rid of them is necessary to make the FST deterministic, but
    * can greatly increase the size of the FST
    */
   fst::RmEpsilon(&dictionary);
