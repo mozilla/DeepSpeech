@@ -162,13 +162,12 @@ void PathTrie::remove() {
   }
 }
 
-void PathTrie::set_dictionary(fst::StdVectorFst* dictionary) {
+void PathTrie::set_dictionary(PathTrie::FstType* dictionary) {
   dictionary_ = dictionary;
   dictionary_state_ = dictionary->Start();
   has_dictionary_ = true;
 }
 
-using FSTMATCH = fst::SortedMatcher<fst::StdVectorFst>;
-void PathTrie::set_matcher(std::shared_ptr<FSTMATCH> matcher) {
+void PathTrie::set_matcher(std::shared_ptr<fst::SortedMatcher<FstType>> matcher) {
   matcher_ = matcher;
 }
