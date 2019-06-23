@@ -19,6 +19,8 @@ from sox import Transformer
 from util.downloader import maybe_download
 from tensorflow.python.platform import gfile
 
+SAMPLE_RATE = 16000
+
 def _download_and_preprocess_data(data_dir):
     # Conditionally download data to data_dir
     print("Downloading Librivox data set (55GB) into {} if not already present...".format(data_dir))
@@ -168,7 +170,9 @@ def _convert_audio_and_split_sentences(extracted_dir, data_set, dest_dir):
                     flac_file = os.path.join(root, seqid + ".flac")
                     wav_file = os.path.join(target_dir, seqid + ".wav")
                     if not os.path.exists(wav_file):
-                        Transformer().build(flac_file, wav_file)
+                        tfm = Transformer()
+                        tfm.set_output_format(rate=SAMPLE_RATE)
+                        tfm.build(flac_file, wav_file)
                     wav_filesize = os.path.getsize(wav_file)
 
                     files.append((os.path.abspath(wav_file), wav_filesize, transcript))
