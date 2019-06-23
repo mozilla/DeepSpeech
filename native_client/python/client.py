@@ -17,10 +17,13 @@ try:
 except ImportError:
     from pipes import quote
 
+# Define the sample rate for audio
+
+SAMPLE_RATE = 16000
 # These constants control the beam search decoder
 
 # Beam width used in the CTC decoder when building candidate transcriptions
-BEAM_WIDTH = 500
+BEAM_WIDTH = 1024
 
 # The alpha hyperparameter of the CTC decoder. Language Model weight
 LM_ALPHA = 0.75
@@ -41,7 +44,7 @@ N_CONTEXT = 9
 
 
 def convert_samplerate(audio_path):
-    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate 16000 --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path))
+    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate {} --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path), SAMPLE_RATE)
     try:
         output = subprocess.check_output(shlex.split(sox_cmd), stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
@@ -49,7 +52,7 @@ def convert_samplerate(audio_path):
     except OSError as e:
         raise OSError(e.errno, 'SoX not found, use 16kHz files or install it: {}'.format(e.strerror))
 
-    return 16000, np.frombuffer(output, np.int16)
+    return SAMPLE_RATE, np.frombuffer(output, np.int16)
 
 
 def metadata_to_string(metadata):
@@ -98,13 +101,13 @@ def main():
 
     fin = wave.open(args.audio, 'rb')
     fs = fin.getframerate()
-    if fs != 16000:
-        print('Warning: original sample rate ({}) is different than 16kHz. Resampling might produce erratic speech recognition.'.format(fs), file=sys.stderr)
+    if fs != SAMPLE_RATE:
+        print('Warning: original sample rate ({}) is different than {}hz. Resampling might produce erratic speech recognition.'.format(fs, SAMPLE_RATE), file=sys.stderr)
         fs, audio = convert_samplerate(args.audio)
     else:
         audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
 
-    audio_length = fin.getnframes() * (1/16000)
+    audio_length = fin.getnframes() * (1/SAMPLE_RATE)
     fin.close()
 
     print('Running inference.', file=sys.stderr)
