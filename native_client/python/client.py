@@ -50,7 +50,7 @@ def convert_samplerate(audio_path):
     except subprocess.CalledProcessError as e:
         raise RuntimeError('SoX returned non-zero status: {}'.format(e.stderr, SAMPLE_RATE))
     except OSError as e:
-        raise OSError(e.errno, 'SoX not found, use {}z files or install it: {}'.format(e.strerror))
+        raise OSError(e.errno, 'SoX not found, use {}hz files or install it: {}'.format(e.strerror))
 
     return SAMPLE_RATE, np.frombuffer(output, np.int16)
 
