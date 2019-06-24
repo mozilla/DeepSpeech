@@ -53,13 +53,15 @@ def main():
     if args.lm and args.trie:
         ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_ALPHA, LM_BETA)
 
-    with wave.open(args.audio1, 'rb') as fin:
-        fs1 = fin.getframerate()
-        audio1 = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
+    fin = wave.open(args.audio1, 'rb')
+    fs1 = fin.getframerate()
+    audio1 = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
+    fin.close()
 
-    with wave.open(args.audio2, 'rb') as fin:
-        fs2 = fin.getframerate()
-        audio2 = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
+    fin = wave.open(args.audio2, 'rb')
+    fs2 = fin.getframerate()
+    audio2 = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
+    fin.close()
 
     stream1 = ds.setupStream(sample_rate=fs1)
     stream2 = ds.setupStream(sample_rate=fs2)
