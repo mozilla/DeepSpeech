@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ `uname` = "Darwin" ]; then
    export PATH="/Users/build-user/TaskCluster/Workdir/tasks/tc-workdir/homebrew/opt/coreutils/libexec/gnubin:${PATH}"
@@ -8,14 +8,26 @@ if [ `uname -o` = "Msys" ]; then
    export PATH="/c/Program Files/Git/bin/:${PATH}"
 fi
 
-DS_GIT_DIR="$(realpath "$(dirname "$(realpath "$0")")/../.git/")"
-if [ ! -d "${DS_GIT_DIR}" ]; then
+DS_GIT_DIR="$(realpath "$(dirname "$(realpath "$0")")/../.git")"
+if [ ! -d "${DS_GIT_DIR}" -a ! -f "${DS_GIT_DIR}" ]; then
    return 1
 fi;
 
-TF_GIT_DIR="$(realpath $(pwd)/tensorflow/../.git/)"
-if [ ! -d "${TF_GIT_DIR}" ]; then
+TF_GIT_DIR="$(realpath $(pwd)/tensorflow/../.git)"
+if [ ! -d "${TF_GIT_DIR}" -a ! -f "${TF_GIT_DIR}" ]; then
    return 1
+fi;
+
+# Handle the case of git submodules, the .git file contains the path to the tree
+if [ -f "${DS_GIT_DIR}" ]; then
+   pushd $(dirname ${DS_GIT_DIR}) > /dev/null
+      DS_GIT_DIR=$(realpath "$(grep '^gitdir:' .git | cut -d' ' -f2)")
+   popd > /dev/null
+fi;
+if [ -f "${TF_GIT_DIR}" ]; then
+   pushd $(dirname ${TF_GIT_DIR}) > /dev/null
+      TF_GIT_DIR=$(realpath "$(grep '^gitdir:' .git | cut -d' ' -f2)")
+   popd > /dev/null
 fi;
 
 DS_GIT_VERSION=$(git --git-dir="${DS_GIT_DIR}" describe --long --tags)
