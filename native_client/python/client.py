@@ -48,9 +48,9 @@ def convert_samplerate(audio_path):
     try:
         output = subprocess.check_output(shlex.split(sox_cmd), stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        raise RuntimeError('SoX returned non-zero status: {}'.format(e.stderr, SAMPLE_RATE))
+        raise RuntimeError('SoX returned non-zero status: {}'.format(e.stderr))
     except OSError as e:
-        raise OSError(e.errno, 'SoX not found, use {}hz files or install it: {}'.format(e.strerror))
+        raise OSError(e.errno, 'SoX not found, use {}hz files or install it: {}'.format(SAMPLE_RATE, e.strerror))
 
     return SAMPLE_RATE, np.frombuffer(output, np.int16)
 
