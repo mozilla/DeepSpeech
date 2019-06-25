@@ -14,19 +14,12 @@ config_setting(
 )
 
 genrule(
-    name = "ds_git_version",
-    outs = ["ds_version.h"],
-    cmd = "$(location :ds_git_version.sh) >$@",
-    tools = [":ds_git_version.sh"],
+    name = "workspace_status",
+    outs = ["workspace_status.cc"],
+    cmd = "$(location :gen_workspace_status.sh) >$@",
+    tools = [":gen_workspace_status.sh"],
     local = 1,
-)
-
-genrule(
-    name = "ds_graph_version",
-    outs = ["ds_graph_version.h"],
-    cmd = "$(location :ds_graph_version.sh) >$@",
-    tools = [":ds_graph_version.sh"],
-    local = 1,
+    stamp = 1,
 )
 
 KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-conversion/*.cc",
@@ -72,8 +65,8 @@ tf_cc_shared_object(
             "alphabet.h",
             "modelstate.h",
             "modelstate.cc",
-            "ds_version.h",
-            "ds_graph_version.h"] +
+            "workspace_status.h",
+            "workspace_status.cc"] +
             DECODER_SOURCES +
             select({
                 "//native_client:tflite": [
