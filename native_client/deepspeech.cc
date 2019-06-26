@@ -13,7 +13,7 @@
 #include "alphabet.h"
 #include "modelstate.h"
 
-#include "native_client/ds_version.h"
+#include "workspace_status.h"
 
 #ifndef USE_TFLITE
 #include "tfmodelstate.h"

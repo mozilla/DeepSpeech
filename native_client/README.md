@@ -56,7 +56,7 @@ ln -s ../DeepSpeech/native_client ./
 You can now use Bazel to build the main DeepSpeech library, `libdeepspeech.so`, as well as the `generate_trie` binary. Add `--config=cuda` if you want a CUDA build.
 
 ```
-bazel build --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
 ```
 
 The generated binaries will be saved to `bazel-bin/native_client/`.
@@ -128,13 +128,13 @@ We do support cross-compilation. Please refer to our `mozilla/tensorflow` fork, 
 So your command line for `RPi3` and `ARMv7` should look like:
 
 ```
-bazel build --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
 ```
 
 And your command line for `LePotato` and `ARM64` should look like:
 
 ```
-bazel build --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
 ```
 
 While we test only on RPi3 Raspbian Stretch and LePotato ARMBian stretch, anything compatible with `armv7-a cortex-a53` or `armv8-a cortex-a53` should be fine.
@@ -156,13 +156,13 @@ Please refer to TensorFlow documentation on how to setup the environment to buil
 You can build the `libdeepspeech.so` using (ARMv7):
 
 ```
-bazel build --config=monolithic --config=android --config=android_arm --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
 ```
 
 Or (ARM64):
 
 ```
-bazel build --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
 ```
 
 Building the `deepspeech` binary will happen through `ndk-build` (ARMv7):

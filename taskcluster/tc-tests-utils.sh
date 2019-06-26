@@ -811,7 +811,7 @@ do_bazel_build()
   fi;
 
   bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 
   if is_patched_bazel; then
     find ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar -T -
@@ -824,14 +824,6 @@ shutdown_bazel()
 {
   cd ${DS_ROOT_TASK}/DeepSpeech/tf
   bazel ${BAZEL_OUTPUT_USER_ROOT} shutdown
-}
-
-do_bazel_shared_build()
-{
-  cd ${DS_ROOT_TASK}/DeepSpeech/tf
-  eval "export ${BAZEL_ENV_FLAGS}"
-  bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -s --explain bazel_shared.log --verbose_explanations --experimental_strict_action_env -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 }
 
 do_deepspeech_binary_build()

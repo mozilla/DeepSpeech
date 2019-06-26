@@ -1,6 +1,6 @@
 #include "tfmodelstate.h"
 
-#include "ds_graph_version.h"
+#include "workspace_status.h"
 
 using namespace tensorflow;
 using std::vector;
@@ -81,10 +81,10 @@ TFModelState::init(const char* model_path,
   }
 
   int graph_version = graph_def_.version();
-  if (graph_version < DS_GRAPH_VERSION) {
+  if (graph_version < ds_graph_version()) {
     std::cerr << "Specified model file version (" << graph_version << ") is "
               << "incompatible with minimum version supported by this client ("
-              << DS_GRAPH_VERSION << "). See "
+              << ds_graph_version() << "). See "
               << "https://github.com/mozilla/DeepSpeech/#model-compatibility "
               << "for more information" << std::endl;
     return DS_ERR_MODEL_INCOMPATIBLE;
