@@ -10,6 +10,8 @@ cp ${DS_ROOT_TASK}/DeepSpeech/tf/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
 package_native_client "native_client.tar.xz"
 
+package_libdeepspeech_as_zip "libdeepspeech.zip"
+
 if [ -d ${DS_ROOT_TASK}/DeepSpeech/ds/wheels ]; then
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/wheels/* ${TASKCLUSTER_ARTIFACTS}/
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/deepspeech-*.tgz ${TASKCLUSTER_ARTIFACTS}/
