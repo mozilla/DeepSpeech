@@ -1312,6 +1312,7 @@ package_native_client()
     -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/ deepspeech${PLATFORM_EXE_SUFFIX} \
+    -C ${deepspeech_dir}/native_client/ deepspeech.h \
     -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
     | ${XZ} > "${artifacts_dir}/${artifact_name}"
 }
@@ -1342,6 +1343,7 @@ package_native_client_ndk()
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ deepspeech \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libdeepspeech.so \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libc++_shared.so \
+    -C ${deepspeech_dir}/native_client/ deepspeech.h \
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
     | pixz -9 > "${artifacts_dir}/${artifact_name}"
