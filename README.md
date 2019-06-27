@@ -268,6 +268,14 @@ pip3 install 'tensorflow-gpu==1.13.1'
 
 Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
+It has been reported for some people failure at training:
+```
+tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution algorithm. This is probably because cuDNN failed to initialize, so try looking to see if a warning log message was printed above.
+	 [[{{node tower_0/conv1d/Conv2D}}]]
+```
+
+Setting the `TF_FORCE_GPU_ALLOW_GROWTH` environment variable to `true` seems to help in such cases.
+
 ### Common Voice training data
 
 The Common Voice corpus consists of voice samples that were donated through Mozilla's [Common Voice](https://voice.mozilla.org/) Initiative.
