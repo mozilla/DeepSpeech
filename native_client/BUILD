@@ -88,7 +88,7 @@ tf_cc_shared_object(
         "//conditions:default": [ "-UUSE_TFLITE" ]
     }) + tflite_copts(),
     linkopts = select({
-        "//tensorflow:darwin": [],
+        "//tensorflow:macos": [],
         "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
         "//tensorflow:rpi3": LINUX_LINKOPTS + ["-l:libstdc++.a"],
         "//tensorflow:rpi3-armv8": LINUX_LINKOPTS + ["-l:libstdc++.a"],
@@ -107,26 +107,37 @@ tf_cc_shared_object(
             ### => Trying to be more fine-grained
             ### Use bin/ops_in_graph.py to list all the ops used by a frozen graph.
             ### CPU only build, libdeepspeech.so file size reduced by ~50%
-            "//tensorflow/core/kernels:dense_update_ops",   # Assign (remove once prod model no longer depends on it)
-            "//tensorflow/core/kernels:constant_op",        # Placeholder
+            "//tensorflow/core/kernels:dense_update_ops",      # Assign (remove once prod model no longer depends on it)
+            "//tensorflow/core/kernels:spectrogram_op",        # AudioSpectrogram
+            "//tensorflow/core/kernels:bias_op",               # BiasAdd
+            "//tensorflow/contrib/rnn:lstm_ops_kernels",       # BlockLSTM
+            "//tensorflow/core/kernels:cast_op",               # Cast
+            "//tensorflow/core/kernels:concat_op",             # ConcatV2
+            "//tensorflow/core/kernels:gather_nd_op",          # GatherNd
+            "//tensorflow/core/kernels:identity_op",           # Identity
             "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst (used in memmapped models)
-            "//tensorflow/core/kernels:identity_op",        # Identity
-            "//tensorflow/core/kernels:softmax_op",         # Softmax
-            "//tensorflow/core/kernels:transpose_op",       # Transpose
-            "//tensorflow/core/kernels:reshape_op",         # Reshape
-            "//tensorflow/core/kernels:shape_ops",          # Shape
-            "//tensorflow/core/kernels:concat_op",          # ConcatV2
-            "//tensorflow/core/kernels:relu_op",            # Relu
-            "//tensorflow/core/kernels:bias_op",            # BiasAdd
-            "//tensorflow/core/kernels:math",               # Range, MatMul
-            "//tensorflow/core/kernels:tile_ops",           # Tile
-            "//tensorflow/core/kernels:mfcc_op",            # Mfcc
-            "//tensorflow/core/kernels:spectrogram_op",     # AudioSpectrogram
-            "//tensorflow/core/kernels:strided_slice_op",   # StridedSlice
-            "//tensorflow/core/kernels:slice_op",           # Slice, needed by StridedSlice
-            "//tensorflow/contrib/rnn:lstm_ops_kernels",    # BlockLSTM
-            "//tensorflow/core/kernels:pack_op",            # Pack
-            "//tensorflow/core/kernels:gather_nd_op",       # GatherNd
+            "//tensorflow/core/kernels:deepspeech_cwise_ops",  # Less, Minimum
+            "//tensorflow/core/kernels:matmul_op",             # MatMul
+            "//tensorflow/core/kernels:reduction_ops",         # Max
+            "//tensorflow/core/kernels:mfcc_op",               # Mfcc
+            "//tensorflow/core/kernels:pack_op",               # Pack
+            "//tensorflow/core/kernels:constant_op",           # Placeholder
+            "//tensorflow/core/kernels:sequence_ops",          # Range
+            "//tensorflow/core/kernels:relu_op",               # Relu
+            "//tensorflow/core/kernels:reshape_op",            # Reshape
+            "//tensorflow/core/kernels:shape_ops",             # Shape
+            "//tensorflow/core/kernels:slice_op",              # Slice, needed by StridedSlice
+            "//tensorflow/core/kernels:softmax_op",            # Softmax
+            "//tensorflow/core/kernels:strided_slice_op",      # StridedSlice
+            "//tensorflow/core/kernels:tile_ops",              # Tile
+            "//tensorflow/core/kernels:transpose_op",          # Transpose
+            # And we also need the op libs for these ops:
+            "//tensorflow/core:audio_ops_op_lib",              # AudioSpectrogram, Mfcc
+            "//tensorflow/contrib/rnn:lstm_ops_op_lib",        # BlockLSTM
+            "//tensorflow/core:math_ops_op_lib",               # Cast, Less, Max, MatMul, Minimum, Range
+            "//tensorflow/core:array_ops_op_lib",              # ConcatV2, Const, ExpandDims, Fill, GatherNd, Identity, Pack, Placeholder, Reshape, Tile, Transpose
+            "//tensorflow/core:no_op_op_lib",                  # NoOp
+            "//tensorflow/core:nn_ops_op_lib",                 # Relu, Softmax, BiasAdd
         ],
     }) + if_cuda([
             "//tensorflow/core:core",
