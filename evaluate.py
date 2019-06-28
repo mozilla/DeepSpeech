@@ -77,7 +77,7 @@ def evaluate(test_csvs, create_model, try_loading):
     # Create a saver using variables from the above newly created graph
     saver = tf.train.Saver()
 
-    with tf.Session(config=Config.session_config) as session:
+    with tf.Session() as session:
         # Restore variables from training checkpoint
         loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
         if not loaded:

@@ -425,7 +425,7 @@ def train():
 
     initializer = tf.global_variables_initializer()
 
-    with tf.Session(config=Config.session_config) as session:
+    with tf.Session() as session:
         log_debug('Session opened.')
 
         tf.get_default_graph().finalize()
@@ -745,7 +745,7 @@ def export():
 
 
 def do_single_file_inference(input_file_path):
-    with tf.Session(config=Config.session_config) as session:
+    with tf.Session() as session:
         inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=-1)
 
         # Create a saver using variables from the above newly created graph
