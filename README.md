@@ -90,7 +90,7 @@ Please refer to your system's documentation on how to install these dependencies
 
 ### CUDA dependency
 
-The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 1.13 it depends on CUDA 10.0 and CuDNN v7.5.
+The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 1.14 it depends on CUDA 10.0 and CuDNN v7.5.
 
 ### Getting the pre-trained model
 
@@ -263,7 +263,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 
 ```bash
 pip3 uninstall tensorflow
-pip3 install 'tensorflow-gpu==1.13.1'
+pip3 install 'tensorflow-gpu==1.14.0'
 ```
 
 Please ensure you have the required [CUDA dependency](#cuda-dependency).

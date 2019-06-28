@@ -40,7 +40,7 @@ git clone https://github.com/mozilla/DeepSpeech
 ```
 
 ```bash
-git clone --branch r1.13 https://github.com/mozilla/tensorflow
+git clone --branch r1.14 https://github.com/mozilla/tensorflow
 ```
 
 ## Configuring the paths

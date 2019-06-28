@@ -2,7 +2,7 @@
 
 If you'd like to build the DeepSpeech binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
-* [Mozilla's TensorFlow `r1.13` branch](https://github.com/mozilla/tensorflow/tree/r1.13)
+* [Mozilla's TensorFlow `r1.14` branch](https://github.com/mozilla/tensorflow/tree/r1.14)
 * [General TensorFlow requirements](https://www.tensorflow.org/install/install_sources)
 * [libsox](https://sourceforge.net/projects/sox/)
 
@@ -26,7 +26,7 @@ Clone our fork of TensorFlow and checkout the correct version:
 
 ```
 git clone https://github.com/mozilla/tensorflow.git
-git checkout origin/r1.13
+git checkout origin/r1.14
 ```
 
 ### Bazel: Download & Install 
