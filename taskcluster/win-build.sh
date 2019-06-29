@@ -3,8 +3,9 @@
 set -xe
 
 cuda=$1
+runtime=$1
 
-source $(dirname "$0")/../tc-tests-utils.sh
+source $(dirname "$0")/tc-tests-utils.sh
 
 source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
 
@@ -19,7 +20,10 @@ if [ "${cuda}" = "--cuda" ]; then
     PROJECT_NAME="DeepSpeech-GPU"
 else
     PROJECT_NAME="DeepSpeech"
-    BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS}"
+    if [ "${runtime}" = "tflite" ]; then
+        BAZEL_BUILD_TFLITE="--define=runtime=tflite"
+    fi;
+    BAZEL_BUILD_FLAGS="${BAZEL_BUILD_TFLITE} ${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS}"
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
 fi
 

@@ -91,6 +91,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
         wav_filename = path.splitext(ogg_filename)[0] + ".wav"
         _maybe_convert_wav(ogg_filename, wav_filename)
         file_size = -1
+        frames = 0
         if path.exists(wav_filename):
             file_size = path.getsize(wav_filename)
             frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
@@ -187,8 +188,9 @@ if __name__ == "__main__":
     ALPHABET = Alphabet(CLI_ARGS.filter_alphabet) if CLI_ARGS.filter_alphabet else None
 
     bogus_regexes = []
-    for line in CLI_ARGS.bogus_records:
-        bogus_regexes.append(re.compile(line.strip()))
+    if CLI_ARGS.bogus_records:
+        for line in CLI_ARGS.bogus_records:
+            bogus_regexes.append(re.compile(line.strip()))
 
     def record_filter(path):
         if any(regex.match(path) for regex in bogus_regexes):

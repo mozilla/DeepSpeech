@@ -4,7 +4,7 @@ build:
     - "linux-rpi3-cpu-opt"
     - "test-training_upstream-linux-amd64-py35m-opt"
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-cpp-ds-tests.sh"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-cpp-ds-tests.sh"
   metadata:
     name: "DeepSpeech Raspbian RPi3/ARMv7 CPU C++ tests"
     description: "Testing DeepSpeech C++ for Raspbian RPi3/ARMv7, CPU only, optimized version"

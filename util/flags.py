@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 
 import tensorflow as tf
 
+import os
 
 FLAGS = tf.app.flags.FLAGS
-
 
 def create_flags():
     # Importer
@@ -71,10 +71,8 @@ def create_flags():
     # Exporting
 
     f.DEFINE_string('export_dir', '', 'directory in which exported models are stored - if omitted, the model won\'t get exported')
-    f.DEFINE_integer('export_version', 1, 'version number of the exported model')
     f.DEFINE_boolean('remove_export', False, 'whether to remove old exported models')
     f.DEFINE_boolean('export_tflite', False, 'export a graph ready for TF Lite engine')
-    f.DEFINE_boolean('use_seq_length', True, 'have sequence_length in the exported graph(will make tfcompile unhappy)')
     f.DEFINE_integer('n_steps', 16, 'how many timesteps to process at once by the export graph, higher values mean more latency')
     f.DEFINE_string('export_language', '', 'language the model was trained on e.g. "en" or "English". Gets embedded into exported model.')
 
@@ -115,3 +113,26 @@ def create_flags():
     # Inference mode
 
     f.DEFINE_string('one_shot_infer', '', 'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
+
+    # Register validators for paths which require a file to be specified
+
+    f.register_validator('lm_binary_path',
+                         os.path.isfile,
+                         message='The file pointed to by --lm_binary_path must exist and be readable.')
+
+    f.register_validator('lm_trie_path',
+                         os.path.isfile,
+                         message='The file pointed to by --lm_trie_path must exist and be readable.')
+
+    f.register_validator('alphabet_config_path',
+                         os.path.isfile,
+                         message='The file pointed to by --alphabet_config_path must exist and be readable.')
+
+    f.register_validator('one_shot_infer',
+                         lambda value: not value or os.path.isfile(value),
+                         message='The file pointed to by --one_shot_infer must exist and be readable.')
+
+    f.register_validator('export_dir',
+                         lambda value: not value or os.path.isdir(value),
+                         message='The path pointed to by --export_dir must exist and be a directory.')
+

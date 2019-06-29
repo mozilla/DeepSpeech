@@ -8,7 +8,7 @@ build:
     >
       ${nodejs.packages_xenial.prep_10} && ${nodejs.packages_xenial.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_xenial.apt} ${electronjs.packages_xenial.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/tc-electron-tests.sh 10.x 3.1.8"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 10.x 3.1.8"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU ElectronJS v3.1 tests"
     description: "Testing DeepSpeech for Linux/AMD64 on ElectronJS v3.1, CPU only, optimized version"

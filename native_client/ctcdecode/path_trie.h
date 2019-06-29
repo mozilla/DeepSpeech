@@ -14,6 +14,8 @@
  */
 class PathTrie {
 public:
+  using FstType = fst::ConstFst<fst::StdArc>;
+
   PathTrie();
   ~PathTrie();
 
@@ -33,9 +35,9 @@ public:
   void iterate_to_vec(std::vector<PathTrie*>& output);
 
   // set dictionary for FST
-  void set_dictionary(fst::StdVectorFst* dictionary);
+  void set_dictionary(FstType* dictionary);
 
-  void set_matcher(std::shared_ptr<fst::SortedMatcher<fst::StdVectorFst>>);
+  void set_matcher(std::shared_ptr<fst::SortedMatcher<FstType>>);
 
   bool is_empty() { return ROOT_ == character; }
 
@@ -61,10 +63,10 @@ private:
   std::vector<std::pair<int, PathTrie*>> children_;
 
   // pointer to dictionary of FST
-  fst::StdVectorFst* dictionary_;
-  fst::StdVectorFst::StateId dictionary_state_;
+  FstType* dictionary_;
+  FstType::StateId dictionary_state_;
   // true if finding ars in FST
-  std::shared_ptr<fst::SortedMatcher<fst::StdVectorFst>> matcher_;
+  std::shared_ptr<fst::SortedMatcher<FstType>> matcher_;
 };
 
 #endif  // PATH_TRIE_H

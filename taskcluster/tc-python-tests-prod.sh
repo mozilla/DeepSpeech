@@ -39,4 +39,6 @@ LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-bin
 
 run_prod_inference_tests
 
+run_prod_concurrent_stream_tests
+
 virtualenv_deactivate "${pyver}" "${PYENV_NAME}"

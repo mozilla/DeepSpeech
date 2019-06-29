@@ -30,6 +30,8 @@ bool extended_metadata = false;
 
 bool json_output = false;
 
+int stream_size = 0;
+
 void PrintHelp(const char* bin)
 {
     std::cout <<
@@ -45,6 +47,7 @@ void PrintHelp(const char* bin)
     "	-t			Run in benchmark mode, output mfcc & inference time\n"
     "	--extended		Output string from extended metadata\n"
     "	--json			Extended output, shows word timings as JSON\n"
+    "	--stream size		Run in stream mode, output intermediate results\n"
     "	--help			Show help\n"
     "	--version		Print version and exits\n";
     DS_PrintVersions();
@@ -64,6 +67,7 @@ bool ProcessArgs(int argc, char** argv)
             {"t", no_argument, nullptr, 't'},
             {"extended", no_argument, nullptr, 'e'},
             {"json", no_argument, nullptr, 'j'},
+            {"stream", required_argument, nullptr, 's'},
             {"help", no_argument, nullptr, 'h'},
             {"version", no_argument, nullptr, 'v'},
             {nullptr, no_argument, nullptr, 0}
@@ -118,6 +122,10 @@ bool ProcessArgs(int argc, char** argv)
             json_output = true;
             break;
 
+        case 's':
+            stream_size = atoi(optarg);
+            break;
+
         case 'h': // -h or --help
         case '?': // Unrecognized option
         default:
@@ -133,6 +141,12 @@ bool ProcessArgs(int argc, char** argv)
 
     if (!model || !alphabet || !audio) {
         PrintHelp(argv[0]);
+        return false;
+    }
+
+    if (stream_size < 0 || stream_size % 160 != 0) {
+        std::cout <<
+        "Stream buffer size must be multiples of 160\n";
         return false;
     }
 

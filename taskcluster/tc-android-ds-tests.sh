@@ -9,6 +9,7 @@ source $(dirname "$0")/tc-tests-utils.sh
 
 model_source=${DEEPSPEECH_TEST_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
+export DATA_TMP_DIR=${ANDROID_TMP_DIR}/ds
 
 if [ "${arm_flavor}" = "armeabi-v7a" ]; then
     export DEEPSPEECH_ARTIFACTS_ROOT=${DEEPSPEECH_ARTIFACTS_ROOT_ARMV7}

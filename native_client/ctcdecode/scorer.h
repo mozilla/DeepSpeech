@@ -40,6 +40,8 @@ public:
  *     scorer.get_sent_log_prob({ "WORD1", "WORD2", "WORD3" });
  */
 class Scorer {
+  using FstType = PathTrie::FstType;
+
 public:
   Scorer(double alpha,
          double beta,
@@ -82,7 +84,7 @@ public:
   double beta;
 
   // pointer to the dictionary of FST
-  std::unique_ptr<fst::StdVectorFst> dictionary;
+  std::unique_ptr<FstType> dictionary;
 
 protected:
   // necessary setup: load language model, fill FST's dictionary

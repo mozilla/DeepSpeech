@@ -97,8 +97,8 @@ The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtim
 If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the DeepSpeech [releases page](https://github.com/mozilla/DeepSpeech/releases). Alternatively, you can run the following command to download and unzip the model files in your current directory:
 
 ```bash
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-models.tar.gz
-tar xvfz deepspeech-0.4.1-models.tar.gz
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.5.1/deepspeech-0.5.1-models.tar.gz
+tar xvfz deepspeech-0.5.1-models.tar.gz
 ```
 
 ### Model compatibility
@@ -268,6 +268,14 @@ pip3 install 'tensorflow-gpu==1.13.1'
 
 Please ensure you have the required [CUDA dependency](#cuda-dependency).
 
+It has been reported for some people failure at training:
+```
+tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution algorithm. This is probably because cuDNN failed to initialize, so try looking to see if a warning log message was printed above.
+	 [[{{node tower_0/conv1d/Conv2D}}]]
+```
+
+Setting the `TF_FORCE_GPU_ALLOW_GROWTH` environment variable to `true` seems to help in such cases.
+
 ### Common Voice training data
 
 The Common Voice corpus consists of voice samples that were donated through Mozilla's [Common Voice](https://voice.mozilla.org/) Initiative.
@@ -343,7 +351,7 @@ Refer to the corresponding [README.md](native_client/README.md) for information 
 
 ### Exporting a model for TFLite
 
-If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the `--nouse_seq_length --export_tflite` flags. If you already have a trained model, you can re-export it for TFLite by running `DeepSpeech.py` again and specifying the same `checkpoint_dir` that you used for training, as well as passing `--nouse_seq_length --export_tflite --export_dir /model/export/destination`.
+If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the `--export_tflite` flags. If you already have a trained model, you can re-export it for TFLite by running `DeepSpeech.py` again and specifying the same `checkpoint_dir` that you used for training, as well as passing `--export_tflite --export_dir /model/export/destination`.
 
 ### Making a mmap-able model for inference
 

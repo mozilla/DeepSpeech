@@ -61,7 +61,7 @@ tasks:
           cd /home/build-user/ &&
           echo -e "#!/bin/bash\nset -xe\nenv && id && mkdir ~/DeepSpeech/ && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          sudo -H -u build-user --preserve-env /bin/bash /home/build-user/DeepSpeech/ds/tc-schedule.sh
+          sudo -H -u build-user --preserve-env /bin/bash /home/build-user/DeepSpeech/ds/taskcluster/tc-schedule.sh
       artifacts:
         "public":
           type: "directory"

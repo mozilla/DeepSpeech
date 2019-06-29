@@ -107,14 +107,14 @@ At this point we are ready to start building the `native_client`, go to `tensorf
 We will add AVX/AVX2 support in the command, please make sure that your CPU supports these instructions before adding the flags, if not you can remove them.
 
 ```bash
-bazel build -c opt --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libdeepspeech.so
+bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" -c opt --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libdeepspeech.so
 ```
 
 #### GPU with CUDA
 If you enabled CUDA in [configure.py](https://github.com/mozilla/tensorflow/blob/master/configure.py) configuration command now you can add `--config=cuda` to compile with CUDA support.
 
 ```bash
-bazel build -c opt --config=cuda --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libdeepspeech.so
+bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" -c opt --config=cuda --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libdeepspeech.so
 ```
 
 Be patient, if you enabled AVX/AVX2 and CUDA it will take a long time. Finally you should see it stops and shows the path to the generated `libdeepspeech.so`.

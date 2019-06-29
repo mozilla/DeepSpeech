@@ -7,7 +7,7 @@ build:
     >
       ${nodejs.brew.setup} && ${nodejs.brew.prep_5} && ${nodejs.brew.env}
   args:
-    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tc-node-tests.sh 5.x"
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-node-tests.sh 5.x"
   metadata:
     name: "DeepSpeech OSX AMD64 CPU NodeJS 5.x tests"
     description: "Testing DeepSpeech for OSX/AMD64 on NodeJS v5.x, CPU only, optimized version"

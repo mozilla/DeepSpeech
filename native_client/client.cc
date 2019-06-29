@@ -70,6 +70,31 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
     Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
     res.string = JSONOutput(metadata);
     DS_FreeMetadata(metadata);
+  } else if (stream_size > 0) {
+    StreamingState* ctx;
+    int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
+    if (status != DS_ERR_OK) {
+      res.string = strdup("");
+      return res;
+    }
+    size_t off = 0;
+    const char *last = nullptr;
+    while (off < aBufferSize) {
+      size_t cur = aBufferSize - off > stream_size ? stream_size : aBufferSize - off;
+      DS_FeedAudioContent(ctx, aBuffer + off, cur);
+      off += cur;
+      const char* partial = DS_IntermediateDecode(ctx);
+      if (last == nullptr || strcmp(last, partial)) {
+        printf("%s\n", partial);
+        last = partial;
+      } else {
+        DS_FreeString((char *) partial);
+      }
+    }
+    if (last != nullptr) {
+      DS_FreeString((char *) last);
+    }
+    res.string = DS_FinishStream(ctx);
   } else {
     res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
   }

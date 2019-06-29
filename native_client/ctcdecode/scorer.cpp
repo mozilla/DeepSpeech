@@ -26,8 +26,8 @@
 
 using namespace lm::ngram;
 
-static const int MAGIC = 'TRIE';
-static const int FILE_VERSION = 3;
+static const int32_t MAGIC = 'TRIE';
+static const int32_t FILE_VERSION = 4;
 
 Scorer::Scorer(double alpha,
                double beta,
@@ -123,7 +123,9 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
 
     if (!is_character_based_) {
       fst::FstReadOptions opt;
-      dictionary.reset(fst::StdVectorFst::Read(fin, opt));
+      opt.mode = fst::FstReadOptions::MAP;
+      opt.source = trie_path;
+      dictionary.reset(FstType::Read(fin, opt));
     }
   }
 
@@ -138,6 +140,8 @@ void Scorer::save_dictionary(const std::string& path)
   fout.write(reinterpret_cast<const char*>(&is_character_based_), sizeof(is_character_based_));
   if (!is_character_based_) {
     fst::FstWriteOptions opt;
+    opt.align = true;
+    opt.source = path;
     dictionary->Write(fout, opt);
   }
 }
@@ -248,6 +252,8 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
 
 void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary, bool add_space)
 {
+  // ConstFst is immutable, so we need to use a MutableFst to create the trie,
+  // and then we convert to a ConstFst for the decoder and for storing on disk.
   fst::StdVectorFst dictionary;
   // For each unigram convert to ints and put in trie
   for (const auto& word : vocabulary) {
@@ -258,22 +264,25 @@ void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary, bool ad
 
    * This gets rid of "epsilon" transitions in the FST.
    * These are transitions that don't require a string input to be taken.
-   * Getting rid of them is necessary to make the FST determinisitc, but
+   * Getting rid of them is necessary to make the FST deterministic, but
    * can greatly increase the size of the FST
    */
   fst::RmEpsilon(&dictionary);
-  fst::StdVectorFst* new_dict = new fst::StdVectorFst;
+  std::unique_ptr<fst::StdVectorFst> new_dict(new fst::StdVectorFst);
 
   /* This makes the FST deterministic, meaning for any string input there's
    * only one possible state the FST could be in.  It is assumed our
    * dictionary is deterministic when using it.
    * (lest we'd have to check for multiple transitions at each state)
    */
-  fst::Determinize(dictionary, new_dict);
+  fst::Determinize(dictionary, new_dict.get());
 
   /* Finds the simplest equivalent fst. This is unnecessary but decreases
    * memory usage of the dictionary
    */
-  fst::Minimize(new_dict);
-  this->dictionary.reset(new_dict);
+  fst::Minimize(new_dict.get());
+
+  // Now we convert the MutableFst to a ConstFst (Scorer::FstType) via its ctor
+  std::unique_ptr<FstType> converted(new FstType(*new_dict));
+  this->dictionary = std::move(converted);
 }
