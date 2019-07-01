@@ -86,6 +86,7 @@ payload:
         export LC_ALL=C &&
         export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
         export MACOSX_DEPLOYMENT_TARGET=10.10 &&
+        export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
         export HOMEBREW_NO_AUTO_UPDATE=1 &&
         env &&
         trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&

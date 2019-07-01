@@ -61,6 +61,7 @@ then:
             export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
             export LC_ALL=C &&
             export MACOSX_DEPLOYMENT_TARGET=10.10 &&
+            export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
             export HOMEBREW_NO_AUTO_UPDATE=1 &&
             export PIP_DEFAULT_TIMEOUT=60 &&
             env &&

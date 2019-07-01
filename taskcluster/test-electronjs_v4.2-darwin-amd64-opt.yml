@@ -7,7 +7,7 @@ build:
     >
       ${nodejs.brew.setup} && ${nodejs.brew.prep_10} && ${nodejs.brew.env}
   args:
-    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 10.x 3.1.11"
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 10.x 4.2.5"
   metadata:
-    name: "DeepSpeech OSX AMD64 CPU ElectronJS v3.1 tests"
-    description: "Testing DeepSpeech for OSX/AMD64 on ElectronJS v3.1, CPU only, optimized version"
+    name: "DeepSpeech OSX AMD64 CPU ElectronJS v4.2 tests"
+    description: "Testing DeepSpeech for OSX/AMD64 on ElectronJS v4.2, CPU only, optimized version"
