@@ -68,7 +68,6 @@ using namespace node;
 %nodefaultdtor MetadataItem;
 
 %extend Metadata {
-  v8::Local<v8::Value> items;
   v8::Local<v8::Value> items_get() {
     v8::Local<v8::Value> jsresult = SWIGV8_ARRAY_NEW();
     for (int i = 0; i < self->num_items; ++i) {
