@@ -142,6 +142,7 @@ def main():
 
     if args.source is not None:
         if args.source in DEFAULT_SCHEMES:
+            global TASKCLUSTER_SCHEME
             TASKCLUSTER_SCHEME = DEFAULT_SCHEMES[args.source]
         else:
             print('No such scheme: %s' % args.source)
