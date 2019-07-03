@@ -21,9 +21,13 @@ download_data
 
 node --version
 npm --version
-npm install ${DEEPSPEECH_NODEJS}/deepspeech-${DS_VERSION}.tgz
 
-export PATH=$HOME/node_modules/.bin/:$PATH
+NODE_ROOT="${DS_ROOT_TASK}/ds-test/"
+NODE_CACHE="${DS_ROOT_TASK}/ds-test.cache/"
+export NODE_PATH="${NODE_ROOT}/node_modules/"
+export PATH="${NODE_ROOT}:${NODE_PATH}/.bin/:$PATH"
+
+npm install --prefix ${NODE_ROOT} --cache ${NODE_CACHE} ${DEEPSPEECH_NODEJS}/deepspeech-${DS_VERSION}.tgz
 
 check_runtime_nodejs
 
