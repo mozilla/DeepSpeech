@@ -23,7 +23,7 @@ SAMPLE_RATE = 16000
 # These constants control the beam search decoder
 
 # Beam width used in the CTC decoder when building candidate transcriptions
-BEAM_WIDTH = 1024
+BEAM_WIDTH = 500
 
 # The alpha hyperparameter of the CTC decoder. Language Model weight
 LM_ALPHA = 0.75
