@@ -62,26 +62,27 @@ using namespace node;
 
 %nodefaultctor ModelState;
 %nodefaultdtor ModelState;
+
+%typemap(out) MetadataItem* %{
+  $result = SWIGV8_ARRAY_NEW();
+  for (int i = 0; i < arg1->num_items; ++i) {
+    SWIGV8_AppendOutput($result, SWIG_NewPointerObj(SWIG_as_voidptr(&result[i]), SWIGTYPE_p_MetadataItem, SWIG_POINTER_OWN));
+  }
+%}
+
 %nodefaultdtor Metadata;
 %nodefaultctor Metadata;
 %nodefaultctor MetadataItem;
 %nodefaultdtor MetadataItem;
 
-%extend Metadata {
-  v8::Local<v8::Value> items;
-  v8::Local<v8::Value> items_get() {
-    v8::Local<v8::Value> jsresult = SWIGV8_ARRAY_NEW();
-    for (int i = 0; i < self->num_items; ++i) {
-      jsresult = SWIGV8_AppendOutput(jsresult, SWIG_NewPointerObj(SWIG_as_voidptr(&self->items[i]), SWIGTYPE_p_MetadataItem, SWIG_POINTER_OWN));
-    }
-  fail:
-    return jsresult;
+%extend struct Metadata {
+  ~Metadata() {
+    DS_FreeMetadata($self);
   }
-  v8::Local<v8::Value> items_set(const  v8::Local<v8::Value> arg) {
-  fail:
-    v8::Local<v8::Value> result = SWIGV8_ARRAY_NEW();
-    return result;
-  }
+}
+
+%extend struct MetadataItem {
+  ~MetadataItem() { }
 }
 
 %rename ("%(strip:[DS_])s") "";
