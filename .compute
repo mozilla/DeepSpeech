@@ -19,16 +19,19 @@ fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
+mandarin="${ML_GROUP_DIR}/ds/mandarin"
+
 python -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
-  --dev_files "${lbs}-dev-clean.csv"\
-  --test_files "${lbs}-test-clean.csv" \
+  --train_files "${mandarin}/aidatatang_train.csv,${mandarin}/aishell_train.csv,${mandarin}/freestmandarin_train.csv,${mandarin}/primewords_train.csv" \
+  --dev_files "${mandarin}/aidatatang_dev.csv,${mandarin}/aishell_dev.csv,${mandarin}/freestmandarin_dev.csv,${mandarin}/primewords_dev.csv" \
+  --test_files "${mandarin}/aidatatang_test.csv,${mandarin}/aishell_test.csv,${mandarin}/freestmandarin_test.csv,${mandarin}/primewords_test.csv" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
   --dropout_rate 0.2 \
-  --epoch 13 \
+  --epochs 25 \
+  --noearly_stop \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries"

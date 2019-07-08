@@ -52,7 +52,11 @@ def text_to_char_array(original, alphabet):
     Given a Python string ``original``, remove unsupported characters, map characters
     to integers and return a numpy array representing the processed string.
     """
-    return np.asarray([alphabet.label_from_string(c) for c in original])
+    try:
+        return np.asarray([alphabet.label_from_string(c) for c in original.replace(' ', '')])
+    except:
+        print('Error while processing original: {}'.format(original))
+        raise
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
