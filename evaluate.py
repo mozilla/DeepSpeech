@@ -40,9 +40,10 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
 
 
 def evaluate(test_csvs, create_model, try_loading):
-    scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
-                    FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                    Config.alphabet)
+    # scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
+    #                 FLAGS.lm_binary_path, FLAGS.lm_trie_path,
+    #                 Config.alphabet)
+    scorer = None
 
     test_csvs = FLAGS.test_files.split(',')
     test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size) for csv in test_csvs]
@@ -109,7 +110,7 @@ def evaluate(test_csvs, create_model, try_loading):
                     break
 
                 decoded = ctc_beam_search_decoder_batch(batch_logits, batch_lengths, Config.alphabet, FLAGS.beam_width,
-                                                        num_processes=num_processes, scorer=scorer)
+                                                        num_processes=num_processes, scorer=scorer, cutoff_prob=0.99)
                 predictions.extend(d[0][1] for d in decoded)
                 ground_truths.extend(sparse_tensor_value_to_texts(batch_transcripts, Config.alphabet))
                 losses.extend(batch_loss)

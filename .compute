@@ -22,7 +22,6 @@ lbs="${data}/OpenSLR/LibriSpeech/librivox"
 mandarin="${ML_GROUP_DIR}/ds/mandarin"
 
 python -u DeepSpeech.py \
-  --train_files "${mandarin}/aidatatang_train.csv,${mandarin}/aishell_train.csv,${mandarin}/freestmandarin_train.csv,${mandarin}/primewords_train.csv" \
   --dev_files "${mandarin}/aidatatang_dev.csv,${mandarin}/aishell_dev.csv,${mandarin}/freestmandarin_dev.csv,${mandarin}/primewords_dev.csv" \
   --test_files "${mandarin}/aidatatang_test.csv,${mandarin}/aishell_test.csv,${mandarin}/freestmandarin_test.csv,${mandarin}/primewords_test.csv" \
   --train_batch_size 24 \
