@@ -150,6 +150,9 @@ decoder_next(const double *probs,
       for (size_t i = beam_size; i < state->prefixes.size(); ++i) {
         state->prefixes[i]->remove();
       }
+
+      // Remove the elements from std::vector
+      state->prefixes.resize(beam_size);
     }
     
   }  // end of loop over time
