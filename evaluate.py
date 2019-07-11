@@ -10,6 +10,7 @@ from multiprocessing import cpu_count
 import numpy as np
 import progressbar
 import tensorflow as tf
+import tensorflow.compat.v1 as tfv1
 
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from six.moves import zip
@@ -46,9 +47,9 @@ def evaluate(test_csvs, create_model, try_loading):
 
     test_csvs = FLAGS.test_files.split(',')
     test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size) for csv in test_csvs]
-    iterator = tf.data.Iterator.from_structure(test_sets[0].output_types,
-                                               test_sets[0].output_shapes,
-                                               output_classes=test_sets[0].output_classes)
+    iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(test_sets[0]),
+                                                 tfv1.data.get_output_shapes(test_sets[0]),
+                                                 output_classes=tfv1.data.get_output_classes(test_sets[0]))
     test_init_ops = [iterator.make_initializer(test_set) for test_set in test_sets]
 
     (batch_x, batch_x_len), batch_y = iterator.get_next()
@@ -62,11 +63,11 @@ def evaluate(test_csvs, create_model, try_loading):
     # Transpose to batch major and apply softmax for decoder
     transposed = tf.nn.softmax(tf.transpose(logits, [1, 0, 2]))
 
-    loss = tf.nn.ctc_loss(labels=batch_y,
+    loss = tfv1.nn.ctc_loss(labels=batch_y,
                           inputs=logits,
                           sequence_length=batch_x_len)
 
-    tf.train.get_or_create_global_step()
+    tfv1.train.get_or_create_global_step()
 
     # Get number of accessible CPU cores for this process
     try:
@@ -75,9 +76,9 @@ def evaluate(test_csvs, create_model, try_loading):
         num_processes = 1
 
     # Create a saver using variables from the above newly created graph
-    saver = tf.train.Saver()
+    saver = tfv1.train.Saver()
 
-    with tf.Session(config=Config.session_config) as session:
+    with tfv1.Session() as session:
         # Restore variables from training checkpoint
         loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
         if not loaded:
@@ -163,4 +164,4 @@ def main(_):
 if __name__ == '__main__':
     create_flags()
     tf.app.flags.DEFINE_string('test_output_file', '', 'path to a file to save all src/decoded/distance/loss tuples')
-    tf.app.run(main)
+    tfv1.app.run(main)

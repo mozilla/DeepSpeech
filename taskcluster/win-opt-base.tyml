@@ -58,7 +58,7 @@ payload:
       (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
       env &&
       ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
-      (wget -O - $TENSORFLOW_BUILD_ARTIFACT | 7z x -txz -si -so | 7z x -o$TASKCLUSTER_TASK_DIR -aoa -ttar -si ) &&
+      (wget -O - $TENSORFLOW_BUILD_ARTIFACT | 7z x -txz -si -so | 7z x -aoa -ttar -si ) &&
       git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
       cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
       ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
