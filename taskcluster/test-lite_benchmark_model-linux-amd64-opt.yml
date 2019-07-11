@@ -4,7 +4,7 @@ build:
     - "test-training_upstream-linux-amd64-py35m-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-lite_benchmark_model-ds-tests.sh"
-  benchmark_model_bin: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.13.174b4760eb1cba50482ed7d890e654060d360e4b.cpu/artifacts/public/lite_benchmark_model"
+  benchmark_model_bin: "https://index.taskcluster.net/v1/task/project.deepspeech.tensorflow.pip.r1.14.1aad02a78e90307c9caf9dd617a1af747d2aa9a8.cpu/artifacts/public/lite_benchmark_model"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU TF Lite benchmark_model"
     description: "Testing DeepSpeech TF Lite benchmark_model for Linux/AMD64, CPU only, optimized version"
