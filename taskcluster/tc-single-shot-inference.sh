@@ -4,7 +4,7 @@ set -xe
 
 source $(dirname "$0")/tc-tests-utils.sh
 
-extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf"
+extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf" "pyalias"
 
 ds=$2
 frozen=$2

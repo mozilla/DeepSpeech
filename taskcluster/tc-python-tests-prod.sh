@@ -4,11 +4,17 @@ set -xe
 
 source $(dirname "$0")/tc-tests-utils.sh
 
-extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf"
+extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf" "pyalias"
 
 unset PYTHON_BIN_PATH
 unset PYTHONPATH
-export PYENV_ROOT="${HOME}/ds-test/.pyenv"
+
+if [ -d "${DS_ROOT_TASK}/pyenv.cache/" ]; then
+  export PYENV_ROOT="${DS_ROOT_TASK}/pyenv.cache/ds-test/.pyenv"
+else
+  export PYENV_ROOT="${DS_ROOT_TASK}/ds-test/.pyenv"
+fi;
+
 export PATH="${PYENV_ROOT}/bin:$PATH"
 
 mkdir -p ${PYENV_ROOT} || true
@@ -29,10 +35,10 @@ maybe_ssl102_py37 ${pyver}
 maybe_numpy_min_version_winamd64 ${pyver}
 
 PYENV_NAME=deepspeech-test
-LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL} ${EXTRA_PYTHON_CONFIGURE_OPTS}" pyenv_install ${pyver}
+LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL} ${EXTRA_PYTHON_CONFIGURE_OPTS}" pyenv_install ${pyver} ${pyalias}
 
-setup_pyenv_virtualenv "${pyver}" "${PYENV_NAME}"
-virtualenv_activate "${pyver}" "${PYENV_NAME}"
+setup_pyenv_virtualenv "${pyalias}" "${PYENV_NAME}"
+virtualenv_activate "${pyalias}" "${PYENV_NAME}"
 
 deepspeech_pkg_url=$(get_python_pkg_url ${pyver_pkg} ${py_unicode_type})
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${deepspeech_pkg_url} | cat
@@ -41,4 +47,4 @@ run_prod_inference_tests
 
 run_prod_concurrent_stream_tests
 
-virtualenv_deactivate "${pyver}" "${PYENV_NAME}"
+virtualenv_deactivate "${pyalias}" "${PYENV_NAME}"

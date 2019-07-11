@@ -31,6 +31,7 @@ scopes:
   then:
     - generic-worker:cache:deepspeech-homebrew-bin
     - generic-worker:cache:deepspeech-homebrew-cache
+    - generic-worker:cache:deepspeech-macos-pyenv
 
 payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }
@@ -82,6 +83,7 @@ payload:
         (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
         (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew/ homebrew/ || true) &&
         (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ homebrew.cache/ || true) &&
+        (mv $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ pyenv.cache/ || true) &&
         export TASKCLUSTER_TASK_DIR="$(pwd)" &&
         export LC_ALL=C &&
         export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
@@ -92,6 +94,7 @@ payload:
         trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
         mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
         mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
+        mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ &&
         cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE" EXIT &&
         (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
         git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
@@ -118,6 +121,8 @@ payload:
         directory: homebrew/
       - cacheName: deepspeech-homebrew-cache
         directory: homebrew.cache/
+      - cacheName: deepspeech-macos-pyenv
+        directory: pyenv.cache/
 
 metadata:
   name: ${build.metadata.name}
