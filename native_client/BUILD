@@ -131,13 +131,19 @@ tf_cc_shared_object(
             "//tensorflow/core/kernels:strided_slice_op",      # StridedSlice
             "//tensorflow/core/kernels:tile_ops",              # Tile
             "//tensorflow/core/kernels:transpose_op",          # Transpose
-            # And we also need the op libs for these ops:
+            # And we also need the op libs for these ops used in the model:
             "//tensorflow/core:audio_ops_op_lib",              # AudioSpectrogram, Mfcc
             "//tensorflow/contrib/rnn:lstm_ops_op_lib",        # BlockLSTM
             "//tensorflow/core:math_ops_op_lib",               # Cast, Less, Max, MatMul, Minimum, Range
             "//tensorflow/core:array_ops_op_lib",              # ConcatV2, Const, ExpandDims, Fill, GatherNd, Identity, Pack, Placeholder, Reshape, Tile, Transpose
             "//tensorflow/core:no_op_op_lib",                  # NoOp
             "//tensorflow/core:nn_ops_op_lib",                 # Relu, Softmax, BiasAdd
+            # And op libs for these ops brought in by dependencies of dependencies to silence unknown OpKernel warnings:
+            "//tensorflow/core:state_ops_op_lib",              # Assign, AssignSub, AssignAnd, Variable, VariableV2
+            "//tensorflow/core:bitwise_ops_op_lib",            # BitwiseAnd, BitwiseOr, BitwiseXor, LeftShift, RightShift
+            "//tensorflow/core:random_ops_op_lib",             # RandomGammaGrad
+            "//tensorflow/core:dataset_ops_op_lib",            # UnwrapDatasetVariant, WrapDatasetVariant
+            "//tensorflow/core:sendrecv_ops_op_lib",           # _HostRecv, _HostSend, _Recv, _Send
         ],
     }) + if_cuda([
             "//tensorflow/core:core",
