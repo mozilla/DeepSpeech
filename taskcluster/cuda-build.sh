@@ -21,6 +21,6 @@ do_bazel_build
 
 do_deepspeech_binary_build
 
-do_deepspeech_python_build rename_to_gpu
+do_deepspeech_python_build "--cuda"
 
-do_deepspeech_nodejs_build rename_to_gpu
+do_deepspeech_nodejs_build "--cuda"
