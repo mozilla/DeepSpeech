@@ -1310,6 +1310,7 @@ package_native_client()
   ${TAR} -cf - \
     -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie${PLATFORM_EXE_SUFFIX} \
     -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so.if.lib \
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/ deepspeech${PLATFORM_EXE_SUFFIX} \
     -C ${deepspeech_dir}/native_client/ deepspeech.h \
