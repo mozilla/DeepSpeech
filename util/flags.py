@@ -51,6 +51,10 @@ def create_flags():
 
     f.DEFINE_integer('export_batch_size', 1, 'number of elements per batch on the exported graph')
 
+    # Performance(UNSUPPORTED)
+    f.DEFINE_integer('inter_op_parallelism_threads', 0, 'number of inter-op parallelism threads - see tf.ConfigProto for more details')
+    f.DEFINE_integer('intra_op_parallelism_threads', 0, 'number of intra-op parallelism threads - see tf.ConfigProto for more details')
+
     # Sample limits
 
     f.DEFINE_integer('limit_train', 0, 'maximum number of elements to use from train set - 0 means no limit')
@@ -77,6 +81,7 @@ def create_flags():
     f.DEFINE_integer('log_level', 1, 'log level for console logs - 0: INFO, 1: WARN, 2: ERROR, 3: FATAL')
     f.DEFINE_boolean('show_progressbar', True, 'Show progress for training, validation and testing processes. Log level should be > 0.')
 
+    f.DEFINE_boolean('log_placement', False, 'whether to log device placement of the operators to the console')
     f.DEFINE_integer('report_count', 10, 'number of phrases with lowest WER(best matching) to print out during a WER report')
 
     f.DEFINE_string('summary_dir', '', 'target directory for TensorBoard summaries - defaults to directory "deepspeech/summaries" within user\'s data home specified by the XDG Base Directory Specification')
