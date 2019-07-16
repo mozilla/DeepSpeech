@@ -25,6 +25,8 @@ then:
     "queue:route:notify.irc-channel.*",
     "generic-worker:cache:deepspeech-homebrew-bin",
     "generic-worker:cache:deepspeech-homebrew-cache",
+    "generic-worker:cache:deepspeech-homebrew-local",
+    "generic-worker:cache:deepspeech-macos-pyenv",
   ]
 
   payload:
@@ -57,6 +59,8 @@ then:
             (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
             (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew/ homebrew/ || true) &&
             (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ homebrew.cache/ || true) &&
+            (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.local/ homebrew.local/ || true) &&
+            (mv $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ pyenv.cache/ || true) &&
             export TASKCLUSTER_TASK_DIR="$(pwd)" &&
             export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
             export LC_ALL=C &&
@@ -68,6 +72,8 @@ then:
             trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
             mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
             mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
+            mv $TASKCLUSTER_TASK_DIR/homebrew.local/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.local/ &&
+            mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ &&
             cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE" EXIT &&
             git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
             cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
@@ -80,6 +86,10 @@ then:
         directory: homebrew/
       - cacheName: deepspeech-homebrew-cache
         directory: homebrew.cache/
+      - cacheName: deepspeech-homebrew-local
+        directory: homebrew.local/
+      - cacheName: deepspeech-macos-pyenv
+        directory: pyenv.cache/
 
   metadata:
     name: ${build.metadata.name}
