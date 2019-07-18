@@ -215,7 +215,7 @@ also, if you need some binaries different than current master, like `v0.2.0-alph
 python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
 ```
 
-The script `taskcluster.py` will download `native_client.tar.xz` (which includes the `deepspeech` binary and associated libraries) and extract it into the current folder. Also, `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
+The script `taskcluster.py` will download `native_client.tar.xz` (which includes the `deepspeech` binary, `generate_trie` utility and associated libraries) and extract it into the current folder. Also, `taskcluster.py` will download binaries for Linux/x86_64 by default, but you can override that behavior with the `--arch` parameter. See the help info with `python util/taskcluster.py -h` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
 
 Note: the following command assumes you [downloaded the pre-trained model](#getting-the-pre-trained-model).
 
