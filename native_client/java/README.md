@@ -5,7 +5,7 @@ This is still preliminary work. Please refer to `native_client/README.md` for
 building `libdeepspeech.so` and `deepspeech` binary for Android on ARMv7 and
 ARM64 arch.
 
-Anroid Java / JNI bindings: `libdeepspeech`
+Android Java / JNI bindings: `libdeepspeech`
 ===========================================
 Java / JNI bindings are available under the `libdeepspeech` subdirectory.
 Building depends on prebuilt shared object.  Please ensure to place
