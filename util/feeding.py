@@ -14,9 +14,8 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 
 from util.config import Config
 from util.text import text_to_char_array
-from pertub import speed_pertub, pertub
+from .pertubation import pertub
 
-is_pertub = False
 def read_csvs(csv_files):
     source_data = None
     for csv in csv_files:
@@ -46,9 +45,8 @@ def audiofile_to_features(wav_filename):
     global is_pertub
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    if is_pertub:
-        samples = pertub(decoded.audio)
-    features, features_len = samples_to_mfccs(samples, decoded.sample_rate)
+    audio = pertub(decoded.audio, decoded.sample_rate)
+    features, features_len = samples_to_mfccs(audio, decoded.sample_rate)
 
     return features, features_len
 
