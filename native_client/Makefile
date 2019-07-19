@@ -15,7 +15,7 @@ include definitions.mk
 
 default: $(DEEPSPEECH_BIN)
 
-clean: bindings-clean
+clean:
 	rm -f deepspeech
 
 $(DEEPSPEECH_BIN): client.cc
