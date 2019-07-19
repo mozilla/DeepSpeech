@@ -42,7 +42,6 @@ def samples_to_mfccs(samples, sample_rate):
 
 
 def audiofile_to_features(wav_filename):
-    global is_pertub
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
     audio = pertub(decoded.audio, decoded.sample_rate)
@@ -66,9 +65,7 @@ def to_sparse_tuple(sequence):
     return indices, sequence, shape
 
 
-def create_dataset(csvs, batch_size, cache_path='', pertub=False):
-    global is_pertub
-    is_pertub = pertub
+def create_dataset(csvs, batch_size, cache_path=''):
     df = read_csvs(csvs)
     df.sort_values(by='wav_filesize', inplace=True)
 

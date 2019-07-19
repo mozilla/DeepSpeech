@@ -131,3 +131,6 @@ def create_flags():
                          lambda value: not value or os.path.isdir(value),
                          message='The path pointed to by --export_dir must exist and be a directory.')
 
+
+    # pertubation
+    f.DEFINE_boolean('pertubation', False, 'enable the online audio pertubation')
