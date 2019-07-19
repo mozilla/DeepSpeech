@@ -763,7 +763,7 @@ def do_single_file_inference(input_file_path):
         checkpoint_path = checkpoint.model_checkpoint_path
         saver.restore(session, checkpoint_path)
 
-        features, features_len = audiofile_to_features(input_file_path)
+        features, features_len = audiofile_to_features(input_file_path,FLAGS.augment_data)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 

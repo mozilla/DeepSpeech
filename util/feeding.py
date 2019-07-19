@@ -15,6 +15,9 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 from util.config import Config
 from util.text import text_to_char_array
 
+import librosa
+import random
+from util.flags import create_flags, FLAGS
 
 def read_csvs(csv_files):
     source_data = None
@@ -29,6 +32,14 @@ def read_csvs(csv_files):
             source_data = source_data.append(file)
     return source_data
 
+def augment(sample,sr):
+    sample = librosa.core.to_mono(np.transpose(sample,(1,0)))
+    if(random.random()<0.5):
+        sample=librosa.effects.pitch_shift(sample,sr,random.randint(0,4)).astype('float32')
+    else:
+        sample=librosa.effects.time_stretch(sample,random.uniform(0.8,1.4)).astype('float32')
+    sample=sample.reshape([-1,1])
+    return(sample)
 
 def samples_to_mfccs(samples, sample_rate):
     spectrogram = contrib_audio.audio_spectrogram(samples,
@@ -41,17 +52,21 @@ def samples_to_mfccs(samples, sample_rate):
     return mfccs, tf.shape(mfccs)[0]
 
 
-def audiofile_to_features(wav_filename):
+def audiofile_to_features(wav_filename,augment_data):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate)
+    if(augment_data):
+        samples=tf.py_func(augment,[decoded.audio,decoded.sample_rate],tf.float32)
+        features, features_len = samples_to_mfccs(samples, decoded.sample_rate)
+    else:
+        features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate)
 
     return features, features_len
 
 
 def entry_to_features(wav_filename, transcript):
     # https://bugs.python.org/issue32117
-    features, features_len = audiofile_to_features(wav_filename)
+    features, features_len = audiofile_to_features(wav_filename,FLAGS.augment_data)
     return features, features_len, tf.SparseTensor(*transcript)
 
 

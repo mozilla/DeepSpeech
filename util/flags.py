@@ -61,6 +61,10 @@ def create_flags():
     f.DEFINE_integer('limit_dev', 0, 'maximum number of elements to use from validation set- 0 means no limit')
     f.DEFINE_integer('limit_test', 0, 'maximum number of elements to use from test set- 0 means no limit')
 
+    #Data augmentation
+    f.DEFINE_boolean('augment_data', True, 'online data augmentation')
+
+
     # Checkpointing
 
     f.DEFINE_string('checkpoint_dir', '', 'directory in which checkpoints are stored - defaults to directory "deepspeech/checkpoints" within user\'s data home specified by the XDG Base Directory Specification')
