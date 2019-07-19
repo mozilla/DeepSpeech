@@ -62,7 +62,7 @@ def create_flags():
     f.DEFINE_integer('limit_test', 0, 'maximum number of elements to use from test set- 0 means no limit')
 
     #Data augmentation
-    f.DEFINE_boolean('augment_data', True, 'online data augmentation')
+    f.DEFINE_boolean('augment_data', True, 'online data augmentation, 50-50 chance of changing speed or changing pitch')
 
 
     # Checkpointing
