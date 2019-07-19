@@ -21,3 +21,6 @@ soundfile
 paramiko >= 2.1
 scipy
 matplotlib
+
+#Data augmentation and resampling
+librosa==0.7

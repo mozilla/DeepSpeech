@@ -8,6 +8,7 @@ from functools import partial
 import numpy as np
 import pandas
 import tensorflow as tf
+import tensorflow.compat.v1 as tfv1
 import datetime
 
 from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
@@ -15,6 +16,7 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 from util.config import Config
 from util.text import text_to_char_array
 
+import librosa
 
 def read_csvs(csv_files):
     source_data = None
@@ -29,6 +31,11 @@ def read_csvs(csv_files):
             source_data = source_data.append(file)
     return source_data
 
+def resample(sample, sr, target):
+    sample = librosa.core.to_mono(np.transpose(sample, (1, 0)))
+    sample = librosa.core.resample(sample, sr, target)
+    sample = sample.reshape([-1, 1])
+    return(sample)
 
 def samples_to_mfccs(samples, sample_rate):
     spectrogram = contrib_audio.audio_spectrogram(samples,
@@ -44,7 +51,11 @@ def samples_to_mfccs(samples, sample_rate):
 def audiofile_to_features(wav_filename):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate)
+    if decoded.sample_rate != 16000:
+        samples = tfv1.py_func(resample, [decoded.audio, decoded.sample_rate, 16000], tf.float32)
+    else:
+        samples = decoded.audio
+    features, features_len = samples_to_mfccs(samples, 16000)
 
     return features, features_len
 
