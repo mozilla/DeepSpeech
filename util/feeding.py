@@ -44,7 +44,7 @@ def samples_to_mfccs(samples, sample_rate):
 def audiofile_to_features(wav_filename):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    audio = pertub(decoded.audio, decoded.sample_rate)
+    audio = pertub(decoded.audio)
     features, features_len = samples_to_mfccs(audio, decoded.sample_rate)
 
     return features, features_len
