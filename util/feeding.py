@@ -8,6 +8,7 @@ from functools import partial
 import numpy as np
 import pandas
 import tensorflow as tf
+import tensorflow.compat.v1 as tfv1
 import datetime
 
 from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
@@ -56,7 +57,7 @@ def audiofile_to_features(wav_filename,augment_data):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
     if augment_data:
-        samples = tf.py_func(augment, [decoded.audio, decoded.sample_rate], tf.float32)
+        samples = tfv1.py_func(augment, [decoded.audio, decoded.sample_rate], tf.float32)
         features, features_len = samples_to_mfccs(samples, decoded.sample_rate)
     else:
         features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate)
