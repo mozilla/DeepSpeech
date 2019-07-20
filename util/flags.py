@@ -114,3 +114,8 @@ def create_flags():
     # Inference mode
 
     f.DEFINE_string('one_shot_infer', '', 'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
+
+    # Augmentation
+
+    f.DEFINE_string('audio_augmentation_config_file', None, 'confugration file for audio augmentation')
+    f.DEFINE_string('spectrum_augmentation_config_file', None, 'confugration file for spectrum augmentation')

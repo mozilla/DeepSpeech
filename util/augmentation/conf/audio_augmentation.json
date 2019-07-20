@@ -1,0 +1,7 @@
+[ 
+    {
+        "type": "speed_pertub",
+        "params": {"low_speed" : 0.8, "high_speed" : 1.4},
+        "rate": 0.5
+    }
+]

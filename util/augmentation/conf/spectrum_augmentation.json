@@ -1,0 +1,7 @@
+[ 
+    {
+        "type": "time_warp",
+        "params": {"W" : 80},
+        "rate": 0.5
+    }
+]

@@ -30,29 +30,34 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 
 **Table of Contents**
 
-- [Prerequisites](#prerequisites)
-- [Getting the code](#getting-the-code)
-- [Using a Pre-trained Model](#using-a-pre-trained-model)
-  - [CUDA dependency](#cuda-dependency)
-  - [Getting the pre-trained model](#getting-the-pre-trained-model)
-  - [Model compatibility](#model-compatibility)
-  - [Using the Python package](#using-the-python-package)
-  - [Using the Node.JS package](#using-the-nodejs-package)
-  - [Using the Command Line client](#using-the-command-line-client)
-  - [Installing bindings from source](#installing-bindings-from-source)
-  - [Third party bindings](#third-party-bindings)
-- [Training your own Model](#training-your-own-model)
-  - [Installing training prerequisites](#installing-training-prerequisites)
-  - [Recommendations](#recommendations)
-  - [Common Voice training data](#common-voice-training-data)
-  - [Training a model](#training-a-model)
-  - [Checkpointing](#checkpointing)
-  - [Exporting a model for inference](#exporting-a-model-for-inference)
-  - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
-  - [Making a mmap-able model for inference](#making-a-mmap-able-model-for-inference)
-  - [Continuing training from a release model](#continuing-training-from-a-release-model)
-- [Contribution guidelines](#contribution-guidelines)
-- [Contact/Getting Help](#contactgetting-help)
+- [Project DeepSpeech](#Project-DeepSpeech)
+  - [Prerequisites](#Prerequisites)
+  - [Getting the code](#Getting-the-code)
+  - [Using a Pre-trained Model](#Using-a-Pre-trained-Model)
+    - [CUDA dependency](#CUDA-dependency)
+    - [Getting the pre-trained model](#Getting-the-pre-trained-model)
+    - [Model compatibility](#Model-compatibility)
+    - [Using the Python package](#Using-the-Python-package)
+      - [Create a DeepSpeech virtual environment](#Create-a-DeepSpeech-virtual-environment)
+      - [Activating the environment](#Activating-the-environment)
+      - [Installing DeepSpeech Python bindings](#Installing-DeepSpeech-Python-bindings)
+    - [Using the Node.JS package](#Using-the-NodeJS-package)
+    - [Using the Command-Line client](#Using-the-Command-Line-client)
+    - [Installing bindings from source](#Installing-bindings-from-source)
+    - [Third party bindings](#Third-party-bindings)
+  - [Training Your Own Model](#Training-Your-Own-Model)
+    - [Installing Training Prerequisites](#Installing-Training-Prerequisites)
+    - [Recommendations](#Recommendations)
+    - [Common Voice training data](#Common-Voice-training-data)
+    - [Training a model](#Training-a-model)
+    - [Checkpointing](#Checkpointing)
+    - [Exporting a model for inference](#Exporting-a-model-for-inference)
+    - [Exporting a model for TFLite](#Exporting-a-model-for-TFLite)
+    - [Making a mmap-able model for inference](#Making-a-mmap-able-model-for-inference)
+    - [Continuing training from a release model](#Continuing-training-from-a-release-model)
+  - [Data Augmentation or Pertubation](#Data-Augmentation-or-Pertubation)
+  - [Contribution guidelines](#Contribution-guidelines)
+  - [Contact/Getting Help](#ContactGetting-Help)
 
 ## Prerequisites
 
@@ -372,6 +377,11 @@ python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder
 ```
 
 Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
+
+## Data Augmentation or Pertubation
+
+Online Augmentation is a useful technique to for more generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on audio data and also on spectrogram. 
+Full Documentation `util/augumentation/README.md`. By default augmentation is not enabled, to use this option use flag `--audio_augmentation_config_file="${pwd}/util/augmentation/conf/audio_augmentation.json` for audio augmentation and `--spectrum_augmentation_config_file="${pwd}/util/augmentation/conf/spectrum_augmentation.json`
 
 ## Contribution guidelines
 
