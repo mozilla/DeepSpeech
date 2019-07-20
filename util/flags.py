@@ -27,7 +27,7 @@ def create_flags():
 
     f.DEFINE_integer('epochs', 75, 'how many epochs (complete runs through the train files) to train for')
 
-    f.DEFINE_float('dropout_rate', 0.05, 'dropout rate for feedforward layers')
+    f.DEFINE_float('dropout_rate', 0.225, 'dropout rate for feedforward layers')
     f.DEFINE_float('dropout_rate2', -1.0, 'dropout rate for layer 2 - defaults to dropout_rate')
     f.DEFINE_float('dropout_rate3', -1.0, 'dropout rate for layer 3 - defaults to dropout_rate')
     f.DEFINE_float('dropout_rate4', 0.0, 'dropout rate for layer 4 - defaults to 0.0')
@@ -45,9 +45,9 @@ def create_flags():
 
     # Batch sizes
 
-    f.DEFINE_integer('train_batch_size', 1, 'number of elements in a training batch')
-    f.DEFINE_integer('dev_batch_size', 1, 'number of elements in a validation batch')
-    f.DEFINE_integer('test_batch_size', 1, 'number of elements in a test batch')
+    f.DEFINE_integer('train_batch_size', 64, 'number of elements in a training batch')
+    f.DEFINE_integer('dev_batch_size', 64, 'number of elements in a validation batch')
+    f.DEFINE_integer('test_batch_size', 64, 'number of elements in a test batch')
 
     f.DEFINE_integer('export_batch_size', 1, 'number of elements per batch on the exported graph')
 
@@ -63,6 +63,15 @@ def create_flags():
 
     #Data augmentation
     f.DEFINE_boolean('augment_data', True, 'online data augmentation, 50-50 chance of changing speed or changing pitch')
+    f.DEFINE_float('pitch_shift_chance', 0.1, 'beta 1 parameter of Adam optimizer')
+    f.DEFINE_float('pitch_shift_min', -3, 'beta 1 parameter of Adam optimizer')
+    f.DEFINE_float('pitch_shift_max', +3, 'beta 1 parameter of Adam optimizer')
+    f.DEFINE_float('time_stretch_chance', 0.1, 'beta 1 parameter of Adam optimizer')
+    f.DEFINE_float('rate_min', 0.8, 'beta 1 parameter of Adam optimizer')
+    f.DEFINE_float('rate_max', 1.2, 'beta 1 parameter of Adam optimizer')
+
+
+
 
 
     # Checkpointing

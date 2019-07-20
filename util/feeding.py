@@ -35,10 +35,10 @@ def read_csvs(csv_files):
 
 def augment(sample, sr):
     sample = librosa.core.to_mono(np.transpose(sample, (1, 0)))
-    if random.random() < 0.5:
-        sample = librosa.effects.pitch_shift(sample, sr, random.randint(0, 4)).astype('float32')
-    else:
-        sample = librosa.effects.time_stretch(sample, random.uniform(0.8, 1.4)).astype('float32')
+    if random.random() < FLAGS.pitch_shift_chance:
+        sample = librosa.effects.pitch_shift(sample, sr, random.randint(FLAGS.pitch_shift_min, FLAGS.pitch_shift_max)).astype('float32')
+    if random.random() < FLAGS.time_stretch_chance:
+        sample = librosa.effects.time_stretch(sample, random.uniform(FLAGS.rate_min, FLAGS.rate_max)).astype('float32')
     sample = sample.reshape([-1, 1])
     return(sample)
 
