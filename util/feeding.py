@@ -14,7 +14,10 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 
 from util.config import Config
 from util.text import text_to_char_array
+<<<<<<< HEAD
 from .pertubation import pertub
+=======
+>>>>>>> pertubation_v050
 
 def read_csvs(csv_files):
     source_data = None
@@ -36,15 +39,18 @@ def samples_to_mfccs(samples, sample_rate):
                                                   stride=Config.audio_step_samples,
                                                   magnitude_squared=True)
     mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
+    #FIXME: w.r.t specAugment the audio_spectrogram needs to be changed to mel_frequence bank in log domain
+    # mfccs = Config.spectrum_augmentator.transform(mfccs) if Config.spectrum_augmentator else mfccs
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
-
+    
     return mfccs, tf.shape(mfccs)[0]
 
 
 def audiofile_to_features(wav_filename):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    audio = pertub(decoded.audio)
+    audio = Config.audio_augmentator.transform(decoded.audio, decoded.sample_rate) if Config.audio_augmentator else decoded.audio
+
     features, features_len = samples_to_mfccs(audio, decoded.sample_rate)
 
     return features, features_len

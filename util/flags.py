@@ -132,5 +132,7 @@ def create_flags():
                          message='The path pointed to by --export_dir must exist and be a directory.')
 
 
-    # pertubation
-    f.DEFINE_boolean('pertubation', False, 'enable the online audio pertubation')
+    # Augmentation
+
+    f.DEFINE_string('audio_augmentation_config_file', None, 'confugration file for audio augmentation')
+    f.DEFINE_string('spectrum_augmentation_config_file', None, 'confugration file for spectrum augmentation')

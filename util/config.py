@@ -10,7 +10,7 @@ from util.flags import FLAGS
 from util.gpu import get_available_gpus
 from util.logging import log_error
 from util.text import Alphabet
-
+from util.augmentation import AudioAugmentationPipeline, SpectrumAugmentationPipeline
 class ConfigSingleton:
     _config = None
 
@@ -94,6 +94,10 @@ def initialize_globals():
     # Stride for feature computations in samples
     c.audio_step_samples = FLAGS.audio_sample_rate * (FLAGS.feature_win_step / 1000)
 
+    # Augmentation Config
+    c.audio_augmentator = AudioAugmentationPipeline(FLAGS.audio_augmentation_config_file) if FLAGS.audio_augmentation_config_file else None
+    c.spectrum_augmentator = SpectrumAugmentationPipeline(FLAGS.spectrum_augmentation_config_file) if FLAGS.spectrum_augmentation_config_file else None
+    
     if FLAGS.one_shot_infer:
         if not os.path.exists(FLAGS.one_shot_infer):
             log_error('Path specified in --one_shot_infer is not a valid file.')
