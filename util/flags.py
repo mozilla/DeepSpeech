@@ -63,12 +63,12 @@ def create_flags():
 
     #Data augmentation
     f.DEFINE_boolean('augment_data', True, 'online data augmentation, 50-50 chance of changing speed or changing pitch')
-    f.DEFINE_float('pitch_shift_chance', 0.1, 'beta 1 parameter of Adam optimizer')
-    f.DEFINE_float('pitch_shift_min', -3, 'beta 1 parameter of Adam optimizer')
-    f.DEFINE_float('pitch_shift_max', +3, 'beta 1 parameter of Adam optimizer')
-    f.DEFINE_float('time_stretch_chance', 0.1, 'beta 1 parameter of Adam optimizer')
-    f.DEFINE_float('rate_min', 0.8, 'beta 1 parameter of Adam optimizer')
-    f.DEFINE_float('rate_max', 1.2, 'beta 1 parameter of Adam optimizer')
+    f.DEFINE_float('pitch_shift_chance', 0.1, 'percentage chance of augmenting sample by pitch shift')
+    f.DEFINE_float('pitch_shift_min', -3, 'minimum half step range to shift the pitch by')
+    f.DEFINE_float('pitch_shift_max', +3, 'maximum half step range to shift the pitch by')
+    f.DEFINE_float('time_stretch_chance', 0.1, 'percentage chance of augmenting samples by time strech')
+    f.DEFINE_float('rate_min', 0.8, 'minimum rate of speed')
+    f.DEFINE_float('rate_max', 1.2, 'maximum rate of speed')
 
 
 
