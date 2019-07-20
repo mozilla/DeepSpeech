@@ -3,6 +3,7 @@ from .base import AugmentorBase
 
 import tensorflow as tf
 import librosa
+import tensorflow.compat.v1 as tfv1
 
 class SpeedPertubation(AugmentorBase):
     def __init__(self, rng, low_speed, high_speed):
@@ -23,4 +24,4 @@ class SpeedPertubation(AugmentorBase):
         return samples.reshape([-1, 1])
 
     def transform(self, audio, sample_rate):
-        return tf.py_func(self._random_time_strech, [audio], tf.float32)
+        return tfv1.py_func(self._random_time_strech, [audio], tf.float32)
