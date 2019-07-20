@@ -9,5 +9,6 @@ def speed_pertub(samples):
     return samples.reshape([-1, 1])
 
 def pertub(samples):
-    samples = tf.py_func(speed_pertub,[samples], tf.float32)
+    samples = tf.py_func(speed_pertub, [samples], tf.float32)
     return samples
+    
