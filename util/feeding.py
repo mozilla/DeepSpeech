@@ -14,10 +14,6 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 
 from util.config import Config
 from util.text import text_to_char_array
-<<<<<<< HEAD
-from .pertubation import pertub
-=======
->>>>>>> pertubation_v050
 
 def read_csvs(csv_files):
     source_data = None
