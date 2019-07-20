@@ -173,13 +173,13 @@ RUN bazel build --workspace_status_command="bash native_client/bazel_workspace_s
 ### Using TensorFlow upstream should work
 ###
 # # Build TF pip package
-# RUN bazel build --config=opt --config=cuda --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+RUN bazel build --config=opt --config=cuda --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx //tensorflow/tools/pip_package:build_pip_package --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 #
 # # Build wheel
-# RUN bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
+ RUN bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
 #
 # # Install tensorflow from our custom wheel
-# RUN pip3 install /tmp/tensorflow_pkg/*.whl
+ RUN pip3 install /tmp/tensorflow_pkg/*.whl
 
 # Copy built libs to /DeepSpeech/native_client
 RUN cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_client/ \
