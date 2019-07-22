@@ -30,24 +30,24 @@ KENLM_INCLUDES = [
     "kenlm",
 ]
 
-OPENFST_SOURCES_PLATFORM = select({ 
+OPENFST_SOURCES_PLATFORM = select({
         "//tensorflow:windows": glob(["ctcdecode/third_party/openfst-1.6.9-win/src/lib/*.cc"]),
         "//conditions:default": glob(["ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"]),
 })
 
 DECODER_SOURCES = glob([
     "ctcdecode/*.h",
-    "ctcdecode/*.cpp",  
+    "ctcdecode/*.cpp",
 ], exclude=["ctcdecode/*_wrap.cpp"]) + OPENFST_SOURCES_PLATFORM + KENLM_SOURCES
 
-OPENFST_INCLUDES_PLATFORM = select({ 
+OPENFST_INCLUDES_PLATFORM = select({
         "//tensorflow:windows": ["ctcdecode/third_party/openfst-1.6.9-win/src/include"],
         "//conditions:default": ["ctcdecode/third_party/openfst-1.6.7/src/include"],
 })
 
 DECODER_INCLUDES = [
     ".",
-    "ctcdecode/third_party/ThreadPool",   
+    "ctcdecode/third_party/ThreadPool",
 ] + OPENFST_INCLUDES_PLATFORM + KENLM_INCLUDES
 
 LINUX_LINKOPTS = [
@@ -77,7 +77,7 @@ tf_cc_shared_object(
                     "tfmodelstate.h",
                     "tfmodelstate.cc"
             ]}),
-    copts = select({ 
+    copts = select({
         # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
         "//tensorflow:windows": ["/w"],
         # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
