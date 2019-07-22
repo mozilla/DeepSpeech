@@ -137,8 +137,6 @@ tf_cc_shared_object(
             "//tensorflow/core:no_op_op_lib",                  # NoOp
             "//tensorflow/core:nn_ops_op_lib",                 # Relu, Softmax, BiasAdd
             # And op libs for these ops brought in by dependencies of dependencies to silence unknown OpKernel warnings:
-            "//tensorflow/core:bitwise_ops_op_lib",            # BitwiseAnd, BitwiseOr, BitwiseXor, LeftShift, RightShift
-            "//tensorflow/core:random_ops_op_lib",             # RandomGammaGrad
             "//tensorflow/core:dataset_ops_op_lib",            # UnwrapDatasetVariant, WrapDatasetVariant
             "//tensorflow/core:sendrecv_ops_op_lib",           # _HostRecv, _HostSend, _Recv, _Send
         ],
