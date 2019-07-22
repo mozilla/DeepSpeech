@@ -30,24 +30,24 @@ KENLM_INCLUDES = [
     "kenlm",
 ]
 
-OPENFST_SOURCES_PLATFORM = select({ 
+OPENFST_SOURCES_PLATFORM = select({
         "//tensorflow:windows": glob(["ctcdecode/third_party/openfst-1.6.9-win/src/lib/*.cc"]),
         "//conditions:default": glob(["ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"]),
 })
 
 DECODER_SOURCES = glob([
     "ctcdecode/*.h",
-    "ctcdecode/*.cpp",  
+    "ctcdecode/*.cpp",
 ], exclude=["ctcdecode/*_wrap.cpp"]) + OPENFST_SOURCES_PLATFORM + KENLM_SOURCES
 
-OPENFST_INCLUDES_PLATFORM = select({ 
+OPENFST_INCLUDES_PLATFORM = select({
         "//tensorflow:windows": ["ctcdecode/third_party/openfst-1.6.9-win/src/include"],
         "//conditions:default": ["ctcdecode/third_party/openfst-1.6.7/src/include"],
 })
 
 DECODER_INCLUDES = [
     ".",
-    "ctcdecode/third_party/ThreadPool",   
+    "ctcdecode/third_party/ThreadPool",
 ] + OPENFST_INCLUDES_PLATFORM + KENLM_INCLUDES
 
 LINUX_LINKOPTS = [
@@ -77,7 +77,7 @@ tf_cc_shared_object(
                     "tfmodelstate.h",
                     "tfmodelstate.cc"
             ]}),
-    copts = select({ 
+    copts = select({
         # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
         "//tensorflow:windows": ["/w"],
         # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
@@ -107,28 +107,26 @@ tf_cc_shared_object(
             ### => Trying to be more fine-grained
             ### Use bin/ops_in_graph.py to list all the ops used by a frozen graph.
             ### CPU only build, libdeepspeech.so file size reduced by ~50%
-            "//tensorflow/core/kernels:dense_update_ops",      # Assign (remove once prod model no longer depends on it)
             "//tensorflow/core/kernels:spectrogram_op",        # AudioSpectrogram
             "//tensorflow/core/kernels:bias_op",               # BiasAdd
             "//tensorflow/contrib/rnn:lstm_ops_kernels",       # BlockLSTM
             "//tensorflow/core/kernels:cast_op",               # Cast
             "//tensorflow/core/kernels:concat_op",             # ConcatV2
+            "//tensorflow/core/kernels:constant_op",           # Const, Placeholder
+            "//tensorflow/core/kernels:shape_ops",             # ExpandDims, Shape
             "//tensorflow/core/kernels:gather_nd_op",          # GatherNd
             "//tensorflow/core/kernels:identity_op",           # Identity
             "//tensorflow/core/kernels:immutable_constant_op", # ImmutableConst (used in memmapped models)
-            "//tensorflow/core/kernels:deepspeech_cwise_ops",  # Less, Minimum
+            "//tensorflow/core/kernels:deepspeech_cwise_ops",  # Less, Minimum, Mul
             "//tensorflow/core/kernels:matmul_op",             # MatMul
             "//tensorflow/core/kernels:reduction_ops",         # Max
             "//tensorflow/core/kernels:mfcc_op",               # Mfcc
+            "//tensorflow/core/kernels:no_op",                 # NoOp
             "//tensorflow/core/kernels:pack_op",               # Pack
-            "//tensorflow/core/kernels:constant_op",           # Placeholder
             "//tensorflow/core/kernels:sequence_ops",          # Range
             "//tensorflow/core/kernels:relu_op",               # Relu
             "//tensorflow/core/kernels:reshape_op",            # Reshape
-            "//tensorflow/core/kernels:shape_ops",             # Shape
-            "//tensorflow/core/kernels:slice_op",              # Slice, needed by StridedSlice
             "//tensorflow/core/kernels:softmax_op",            # Softmax
-            "//tensorflow/core/kernels:strided_slice_op",      # StridedSlice
             "//tensorflow/core/kernels:tile_ops",              # Tile
             "//tensorflow/core/kernels:transpose_op",          # Transpose
             # And we also need the op libs for these ops used in the model:
@@ -139,7 +137,6 @@ tf_cc_shared_object(
             "//tensorflow/core:no_op_op_lib",                  # NoOp
             "//tensorflow/core:nn_ops_op_lib",                 # Relu, Softmax, BiasAdd
             # And op libs for these ops brought in by dependencies of dependencies to silence unknown OpKernel warnings:
-            "//tensorflow/core:state_ops_op_lib",              # Assign, AssignSub, AssignAnd, Variable, VariableV2
             "//tensorflow/core:bitwise_ops_op_lib",            # BitwiseAnd, BitwiseOr, BitwiseXor, LeftShift, RightShift
             "//tensorflow/core:random_ops_op_lib",             # RandomGammaGrad
             "//tensorflow/core:dataset_ops_op_lib",            # UnwrapDatasetVariant, WrapDatasetVariant
