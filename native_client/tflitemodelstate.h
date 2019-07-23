@@ -6,6 +6,7 @@
 
 #include "tensorflow/lite/model.h"
 #include "tensorflow/lite/kernels/register.h"
+#include "tensorflow/lite/tools/evaluation/utils.h"
 
 #include "modelstate.h"
 
@@ -55,6 +56,9 @@ private:
   void copy_tensor_to_vector(int tensor_idx,
                              int num_elements,
                              std::vector<float>& vec);
+
+  std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr> get_delegates();
+  std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr> delegates_;
 };
 
 #endif // TFLITEMODELSTATE_H

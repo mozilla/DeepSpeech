@@ -1,7 +1,16 @@
 #include "tflitemodelstate.h"
-
 #include "tensorflow/lite/string_util.h"
 #include "workspace_status.h"
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#define  LOG_TAG    "libdeepspeech"
+#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#else
+#define  LOGD(...)
+#define  LOGE(...)
+#endif // __ANDROID__
 
 using namespace tflite;
 using std::vector;
@@ -90,6 +99,42 @@ TFLiteModelState::~TFLiteModelState()
 {
 }
 
+std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr>
+TFLiteModelState::get_delegates()
+{
+  std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr> delegates;
+
+#ifndef __ANDROID__
+  LOGE("Trying to get GPU delegate ...");
+  // Try to get GPU delegate
+  {
+    tflite::Interpreter::TfLiteDelegatePtr delegate = evaluation::CreateGPUDelegate(fbmodel_.get());
+    if (!delegate) {
+      LOGE("GPU delegation not supported");
+    } else {
+      LOGE("GPU delegation supported");
+      delegates.emplace("GPU", std::move(delegate));
+    }
+  }
+#endif
+
+#ifdef __ANDROID__
+  LOGE("Trying to get NNAPI delegate ...");
+  // Try to get Android NNAPI delegate
+  {
+    tflite::Interpreter::TfLiteDelegatePtr delegate = evaluation::CreateNNAPIDelegate();
+    if (!delegate) {
+      LOGE("NNAPI delegation not supported");
+    } else {
+      LOGE("NNAPI delegation supported");
+      delegates.emplace("NNAPI", std::move(delegate));
+    }
+  }
+#endif 
+
+  return delegates;
+}
+
 int
 TFLiteModelState::init(const char* model_path,
                        unsigned int beam_width)
@@ -112,8 +157,19 @@ TFLiteModelState::init(const char* model_path,
     return DS_ERR_FAIL_INTERPRETER;
   }
 
+  LOGE("Trying to detect delegates ...");
+  delegates_ = get_delegates();
+  LOGE("Finished enumerating delegates ...");
   interpreter_->AllocateTensors();
   interpreter_->SetNumThreads(4);
+
+  LOGE("Trying to use delegates ...");
+  for (const auto& delegate : delegates_) {
+    LOGE("Trying to apply delegate %s", delegate.first.c_str());
+    if (interpreter_->ModifyGraphWithDelegate(delegate.second.get()) != kTfLiteOk) {
+      LOGE("FAILED to apply delegate %s to the graph", delegate.first.c_str());
+    }
+  }
 
   // Query all the index once
   input_node_idx_       = get_input_tensor_by_name("input_node");
