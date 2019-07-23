@@ -214,7 +214,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, batch_size, reuse):
     the decoded result and the batch's original Y.
     '''
     # Obtain the next batch of data
-    (batch_x, batch_seq_len), batch_y = iterator.get_next()
+    _, (batch_x, batch_seq_len), batch_y = iterator.get_next()
 
     if FLAGS.use_cudnn_rnn:
         rnn_impl = rnn_impl_cudnn_rnn

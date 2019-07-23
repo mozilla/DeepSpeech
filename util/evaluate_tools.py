@@ -34,12 +34,13 @@ def wer_cer_batch(samples):
 
 
 def process_decode_result(item):
-    ground_truth, prediction, loss = item
+    wav_filename, ground_truth, prediction, loss = item
     char_distance = levenshtein(ground_truth, prediction)
     char_length = len(ground_truth)
     word_distance = levenshtein(ground_truth.split(), prediction.split())
     word_length = len(ground_truth.split())
     return AttrDict({
+        'wav_filename': wav_filename,
         'src': ground_truth,
         'res': prediction,
         'loss': loss,
@@ -52,13 +53,13 @@ def process_decode_result(item):
     })
 
 
-def calculate_report(labels, decodings, losses):
+def calculate_report(wav_filenames, labels, decodings, losses):
     r'''
     This routine will calculate a WER report.
     It'll compute the `mean` WER and create ``Sample`` objects of the ``report_count`` top lowest
     loss items from the provided WER results tuple (only items with WER!=0 and ordered by their WER).
     '''
-    samples = pmap(process_decode_result, zip(labels, decodings, losses))
+    samples = pmap(process_decode_result, zip(wav_filenames, labels, decodings, losses))
 
     # Getting the WER and CER from the accumulated edit distances and lengths
     samples_wer, samples_cer = wer_cer_batch(samples)
