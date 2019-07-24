@@ -12,7 +12,8 @@ class AugmentationPipeline(object):
         self._augmentors, self._rates = self._parse_pipeline_from_json(augmentation_config)
 
     @abstractmethod
-    def transform(self, *args):
+    # pylint: disable=arguments-differ
+    def transform(self):
         pass
 
     @abstractmethod
