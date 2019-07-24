@@ -11,7 +11,7 @@ class AugmentorBase(object):
 
     @abstractmethod
     def transform(self, mel_fbank):
-        """Add different forms of transformations for spectogram
+        """Add different forms of transformations for spectrogram
         :param mel_fbanks: mel_fiterbank in log
         :type : tensor (1, τ, v, 1)
         """

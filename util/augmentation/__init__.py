@@ -1,2 +1,2 @@
-from .audio_augmentation.augmentation import AugmentationPipeline as AudioAugmentationPipeline
-from .spectrum_augmentation.augmentation import AugmentationPipeline as SpectrumAugmentationPipeline
+from .pipeline import AudioAugmentationPipeline
+from .pipeline import SpectrumAugmentationPipeline

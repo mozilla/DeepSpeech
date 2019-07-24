@@ -5,16 +5,16 @@ import tensorflow as tf
 import librosa
 import tensorflow.compat.v1 as tfv1
 
-class SpeedPertubation(AugmentorBase):
+class SpeedPerturbation(AugmentorBase):
     def __init__(self, rng, low_speed, high_speed):
-        super(SpeedPertubation, self).__init__()
+        super().__init__()
         self._rng = rng
         self._low_speed = low_speed
         self._high_speed = high_speed
 
     def _random_time_strech(self, samples):
         """
-        Random time stretch pertubation along the time axis
+        Random time stretch perturbation along the time axis
         """
         #later: change to tensorflow complete implementation latter
         samples = samples.flatten().astype('float32')
