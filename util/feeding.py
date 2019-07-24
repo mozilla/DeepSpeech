@@ -55,7 +55,7 @@ def audiofile_to_features(wav_filename):
 def entry_to_features(wav_filename, transcript):
     # https://bugs.python.org/issue32117
     features, features_len = audiofile_to_features(wav_filename)
-    return features, features_len, tf.SparseTensor(*transcript)
+    return wav_filename, features, features_len, tf.SparseTensor(*transcript)
 
 
 def to_sparse_tuple(sequence):
@@ -85,12 +85,13 @@ def create_dataset(csvs, batch_size, cache_path=''):
         shape = sparse.dense_shape
         return tf.sparse.reshape(sparse, [shape[0], shape[2]])
 
-    def batch_fn(features, features_len, transcripts):
+    def batch_fn(wav_filenames, features, features_len, transcripts):
         features = tf.data.Dataset.zip((features, features_len))
         features = features.padded_batch(batch_size,
                                          padded_shapes=([None, Config.n_input], []))
         transcripts = transcripts.batch(batch_size).map(sparse_reshape)
-        return tf.data.Dataset.zip((features, transcripts))
+        wav_filenames = wav_filenames.batch(batch_size)
+        return tf.data.Dataset.zip((wav_filenames, features, transcripts))
 
     num_gpus = len(Config.available_devices)
 

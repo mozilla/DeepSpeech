@@ -24,15 +24,14 @@ install_local_homebrew()
 
     for suffix in .brew .cache .logs;
     do
-        if [ -d "${TASKCLUSTER_TASK_DIR}/${LOCAL_HOMEBREW_PREFIX}${suffix}/" ]; then
-            echo "Directory ${TASKCLUSTER_TASK_DIR}/${LOCAL_HOMEBREW_PREFIX}${suffix} already exists, aborting"
-            exit 1
+        if [ -d "${TASKCLUSTER_TASK_DIR}/homebrew.local/${LOCAL_HOMEBREW_PREFIX}${suffix}/" ]; then
+            echo "WARNING: Directory ${TASKCLUSTER_TASK_DIR}/homebrew.local/${LOCAL_HOMEBREW_PREFIX}${suffix} already exists"
         fi
     done;
 
-    export LOCAL_HOMEBREW_DIRECTORY="${TASKCLUSTER_TASK_DIR}/${LOCAL_HOMEBREW_PREFIX}.brew"
-    export HOMEBREW_LOGS="${TASKCLUSTER_TASK_DIR}/${LOCAL_HOMEBREW_PREFIX}.logs"
-    export HOMEBREW_CACHE="${TASKCLUSTER_TASK_DIR}/${LOCAL_HOMEBREW_PREFIX}.cache"
+    export LOCAL_HOMEBREW_DIRECTORY="${TASKCLUSTER_TASK_DIR}/homebrew.local/${LOCAL_HOMEBREW_PREFIX}.brew"
+    export HOMEBREW_LOGS="${TASKCLUSTER_TASK_DIR}/homebrew.local/${LOCAL_HOMEBREW_PREFIX}.logs"
+    export HOMEBREW_CACHE="${TASKCLUSTER_TASK_DIR}/homebrew.local/${LOCAL_HOMEBREW_PREFIX}.cache"
 
     mkdir -p "${LOCAL_HOMEBREW_DIRECTORY}"
     mkdir -p "${HOMEBREW_CACHE}"
@@ -69,5 +68,5 @@ install_pkg_local_homebrew()
         exit 1
     fi;
 
-    (brew list --versions ${pkg} && brew upgrade ${pkg}) || brew install ${pkg}
+    (brew list --versions ${pkg} && brew upgrade --force-bottle ${pkg}) || brew install --force-bottle ${pkg}
 }

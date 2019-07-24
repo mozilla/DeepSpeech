@@ -56,6 +56,11 @@ def initialize_globals():
     if not FLAGS.summary_dir:
         FLAGS.summary_dir = xdg.save_data_path(os.path.join('deepspeech', 'summaries'))
 
+    # Standard session configuration that'll be used for all new sessions.
+    c.session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement,
+                                      inter_op_parallelism_threads=FLAGS.inter_op_parallelism_threads,
+                                      intra_op_parallelism_threads=FLAGS.intra_op_parallelism_threads)
+
     c.alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
 
     # Geometric Constants

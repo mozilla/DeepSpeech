@@ -611,6 +611,13 @@ install_pyenv()
     popd
   fi
 
+  if [ ! -d "${PYENV_ROOT}/plugins/pyenv-alias" ]; then
+    git clone https://github.com/s1341/pyenv-alias.git ${PYENV_ROOT}/plugins/pyenv-alias
+    pushd ${PYENV_ROOT}/plugins/pyenv-alias
+      git checkout --quiet 8896eebb5b47389249b35d21d8a5e74aa33aff08
+    popd
+  fi
+
   eval "$(pyenv init -)"
 }
 
@@ -650,11 +657,11 @@ setup_pyenv_virtualenv()
 
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     echo "installing virtualenv"
-    PATH=${PYENV_ROOT}/versions/python.${version}/tools:${PYENV_ROOT}/versions/python.${version}/tools/Scripts:$PATH pip install virtualenv
+    PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH pip install virtualenv
 
     echo "should setup virtualenv ${name} for ${version}"
-    mkdir ${PYENV_ROOT}/versions/python.${version}/envs
-    PATH=${PYENV_ROOT}/versions/python.${version}/tools:${PYENV_ROOT}/versions/python.${version}/tools/Scripts:$PATH virtualenv ${PYENV_ROOT}/versions/python.${version}/envs/${name}
+    mkdir ${PYENV_ROOT}/versions/${version}/envs
+    PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH virtualenv ${PYENV_ROOT}/versions/${version}/envs/${name}
   else
     pyenv virtualenv ${version} ${name}
   fi
@@ -671,7 +678,7 @@ virtualenv_activate()
   fi;
 
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    source ${PYENV_ROOT}/versions/python.${version}/envs/${name}/Scripts/activate
+    source ${PYENV_ROOT}/versions/${version}/envs/${name}/Scripts/activate
   else
     source ${PYENV_ROOT}/versions/${version}/envs/${name}/bin/activate
   fi
@@ -690,16 +697,21 @@ virtualenv_deactivate()
   deactivate
 
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    rm -fr ${PYENV_ROOT}/versions/python.${version}/
+    rm -fr ${PYENV_ROOT}/versions/${version}/
   else
     pyenv uninstall --force ${name}
-    pyenv uninstall --force ${version}
   fi
 }
 
 pyenv_install()
 {
   local version=$1
+  local version_alias=$2
+
+  if [ -z "${version_alias}" ]; then
+    echo "WARNING, no version_alias specified, please ensure call site is okay"
+    version_alias=${version}
+  fi;
 
   if [ -z "${PYENV_ROOT}" ]; then
     echo "No PYENV_ROOT set";
@@ -708,13 +720,23 @@ pyenv_install()
 
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     PATH=$(cygpath ${ChocolateyInstall})/bin:$PATH nuget install python -Version ${version} -OutputDirectory ${PYENV_ROOT}/versions/
-    PATH=${PYENV_ROOT}/versions/python.${version}/tools/:$PATH python -m pip uninstall pip -y
-    PATH=${PYENV_ROOT}/versions/python.${version}/tools/:$PATH python -m ensurepip
-    pushd ${PYENV_ROOT}/versions/python.${version}/tools/Scripts/
+
+    mv ${PYENV_ROOT}/versions/python.${version} ${PYENV_ROOT}/versions/${version_alias}
+
+    PY_TOOLS_DIR="$(cygpath -w ${PYENV_ROOT}/versions/${version_alias}/tools/)"
+    TEMP=$(cygpath -w ${DS_ROOT_TASK}/tmp/) PATH=${PY_TOOLS_DIR}:$PATH python -m pip uninstall pip -y
+    PATH=${PY_TOOLS_DIR}:$PATH python -m ensurepip
+
+    pushd ${PYENV_ROOT}/versions/${version_alias}/tools/Scripts/
       ln -s pip3.exe pip.exe
     popd
   else
-    pyenv install ${version}
+    # If there's already a matching directory, we should re-use it
+    # otherwise, pyenv install will force-rebuild
+    ls -hal "${PYENV_ROOT}/versions/${version_alias}/" || true
+    if [ ! -d "${PYENV_ROOT}/versions/${version_alias}/" ]; then
+      VERSION_ALIAS=${version_alias} pyenv install ${version}
+    fi;
   fi
 }
 
@@ -1023,7 +1045,7 @@ get_python_pkg_url()
 
 extract_python_versions()
 {
-  # call extract_python_versions ${pyver_full} pyver pyver_pkg py_unicode_type pyconf
+  # call extract_python_versions ${pyver_full} pyver pyver_pkg py_unicode_type pyconf pyalias
   local _pyver_full=$1
 
   if [ -z "${_pyver_full}" ]; then
@@ -1036,6 +1058,8 @@ extract_python_versions()
   # 2.7.x => 27
   local _pyver_pkg=$(echo "${_pyver}" | cut -d'.' -f1,2 | tr -d '.')
 
+  # UCS2 => narrow unicode
+  # UCS4 => wide unicode
   local _py_unicode_type=$(echo "${_pyver_full}" | cut -d':' -f2)
   if [ "${_py_unicode_type}" = "m" ]; then
     local _pyconf="ucs2"
@@ -1043,10 +1067,13 @@ extract_python_versions()
     local _pyconf="ucs4"
   fi;
 
+  local _pyalias="${_pyver}_${_pyconf}"
+
   eval "${2}=${_pyver}"
   eval "${3}=${_pyver_pkg}"
   eval "${4}=${_py_unicode_type}"
   eval "${5}=${_pyconf}"
+  eval "${6}=${_pyalias}"
 }
 
 do_deepspeech_python_build()
@@ -1057,7 +1084,14 @@ do_deepspeech_python_build()
 
   unset PYTHON_BIN_PATH
   unset PYTHONPATH
-  export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
+
+  if [ -d "${DS_ROOT_TASK}/pyenv.cache/" ]; then
+    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv.cache/DeepSpeech/.pyenv"
+  else
+    export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
+  fi;
+
+  export PATH_WITHOUT_PYENV=${PATH}
   export PATH="${PYENV_ROOT}/bin:$PATH"
 
   install_pyenv "${PYENV_ROOT}"
@@ -1074,6 +1108,8 @@ do_deepspeech_python_build()
     pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
     pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
 
+    pyalias="${pyver}_${pyconf}"
+
     export NUMPY_BUILD_VERSION="==1.7.0"
     export NUMPY_DEP_VERSION=">=1.7.0"
 
@@ -1081,10 +1117,12 @@ do_deepspeech_python_build()
 
     maybe_numpy_min_version_winamd64 ${pyver}
 
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv_install ${pyver}
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
+        PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" \
+        pyenv_install ${pyver} ${pyalias}
 
-    setup_pyenv_virtualenv "${pyver}" "deepspeech"
-    virtualenv_activate "${pyver}" "deepspeech"
+    setup_pyenv_virtualenv "${pyalias}" "deepspeech"
+    virtualenv_activate "${pyalias}" "deepspeech"
 
     # Set LD path because python ssl might require it
     LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
@@ -1105,8 +1143,12 @@ do_deepspeech_python_build()
     unset NUMPY_BUILD_VERSION
     unset NUMPY_DEP_VERSION
 
-    virtualenv_deactivate "${pyver}" "deepspeech"
+    virtualenv_deactivate "${pyalias}" "deepspeech"
   done;
+
+  # If not, and if virtualenv_deactivate does not call "pyenv uninstall ${version}"
+  # we get stale python2 in PATH that blocks NodeJS builds
+  export PATH=${PATH_WITHOUT_PYENV}
 }
 
 do_deepspeech_decoder_build()
@@ -1115,7 +1157,13 @@ do_deepspeech_decoder_build()
 
   unset PYTHON_BIN_PATH
   unset PYTHONPATH
-  export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
+
+  if [ -d "${DS_ROOT_TASK}/pyenv.cache/" ]; then
+    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv.cache/DeepSpeech/.pyenv"
+  else
+    export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
+  fi;
+
   export PATH="${PYENV_ROOT}/bin:$PATH"
 
   install_pyenv "${PYENV_ROOT}"
@@ -1127,15 +1175,19 @@ do_deepspeech_decoder_build()
     pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
     pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
 
+    pyalias="${pyver}_${pyconf}"
+
     export NUMPY_BUILD_VERSION="==1.7.0"
     export NUMPY_DEP_VERSION=">=1.7.0"
 
     maybe_ssl102_py37 ${pyver}
 
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" pyenv install ${pyver}
+    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
+        PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" \
+        pyenv_install ${pyver} "${pyalias}"
 
-    pyenv virtualenv ${pyver} deepspeech
-    source ${PYENV_ROOT}/versions/${pyver}/envs/deepspeech/bin/activate
+    setup_pyenv_virtualenv "${pyalias}" "deepspeech"
+    virtualenv_activate "${pyalias}" "deepspeech"
 
     # Set LD path because python ssl might require it
     LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
@@ -1155,10 +1207,12 @@ do_deepspeech_decoder_build()
     unset NUMPY_BUILD_VERSION
     unset NUMPY_DEP_VERSION
 
-    deactivate
-    pyenv uninstall --force deepspeech
-    pyenv uninstall --force ${pyver}
+    virtualenv_deactivate "${pyalias}" "deepspeech"
   done;
+
+  # If not, and if virtualenv_deactivate does not call "pyenv uninstall ${version}"
+  # we get stale python2 in PATH that blocks NodeJS builds
+  export PATH=${PATH_WITHOUT_PYENV}
 }
 
 do_deepspeech_nodejs_build()
@@ -1310,6 +1364,7 @@ package_native_client()
   ${TAR} -cf - \
     -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie${PLATFORM_EXE_SUFFIX} \
     -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so.if.lib \
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/ deepspeech${PLATFORM_EXE_SUFFIX} \
     -C ${deepspeech_dir}/native_client/ deepspeech.h \
