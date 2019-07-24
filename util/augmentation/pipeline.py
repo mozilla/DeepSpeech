@@ -3,7 +3,7 @@ import random
 from abc import ABCMeta, abstractmethod
 from .spectrum_augmentation import TimeWarpAugmentor
 from .audio_augmentation import SpeedPerturbation
-
+# pylint: disable=arguments-differ
 class AugmentationPipeline(object):
     __metaclass__ = ABCMeta
 
@@ -12,7 +12,6 @@ class AugmentationPipeline(object):
         self._augmentors, self._rates = self._parse_pipeline_from_json(augmentation_config)
 
     @abstractmethod
-    # pylint: disable=arguments-differ
     def transform(self):
         pass
 
