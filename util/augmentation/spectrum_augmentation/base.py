@@ -6,6 +6,7 @@ class AugmentorBase(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
+    #pylint: disable=arguments-differ
     def __init__(self):
         pass
 

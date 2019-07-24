@@ -10,7 +10,7 @@ from util.flags import FLAGS
 from util.gpu import get_available_gpus
 from util.logging import log_error
 from util.text import Alphabet
-from util.augmentation import AudioAugmentationPipeline 
+from util.augmentation import AudioAugmentationPipeline
 from util.augmentation import SpectrumAugmentationPipeline
 
 
