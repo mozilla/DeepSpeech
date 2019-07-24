@@ -45,7 +45,9 @@ def samples_to_mfccs(samples, sample_rate):
 def audiofile_to_features(wav_filename):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    audio = Config.audio_augmentator.transform(decoded.audio, decoded.sample_rate) if Config.audio_augmentator else decoded.audio
+    audio = decoded.audio
+    if Config.audio_augmentator:
+        audio = Config.audio_augmentator.transform(decoded.audio, decoded.sample_rate)
 
     features, features_len = samples_to_mfccs(audio, decoded.sample_rate)
 

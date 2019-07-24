@@ -20,17 +20,17 @@ class AugmentationPipeline(object):
         processed_samples = samples
         for augmentor, rate in zip(self._augmentors, self._rates):
             if self._rng.uniform(0., 1.) < rate:
-                processed_samples = augmentor.transform(samples, fs)
+                processed_samples = augmentor.transform(processed_samples, fs)
 
         return processed_samples
 
     def _parse_pipeline_from_json(self, config_json):
         try:
-            with open(config_json, 'r') as config:
-                configs = json.load(config)
+            with open(config_json, 'r') as config_file:
+                configs = json.load(config_file)
             augmentors = [self._get_augmentor_by_name(config["type"], config["params"]) for config in configs]
             rates = [config["rate"] for config in configs]
-        except Exception as e:
+        except json.JSONDecodeError as e:
             raise ValueError("Error parsing the audio augmentation pipeline %s" % str(e))
         return augmentors, rates
 

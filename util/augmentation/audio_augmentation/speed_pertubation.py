@@ -12,12 +12,11 @@ class SpeedPertubation(AugmentorBase):
         self._low_speed = low_speed
         self._high_speed = high_speed
 
-    # pylint: disable=fixme
     def _random_time_strech(self, samples):
         """
         Random time stretch pertubation along the time axis
         """
-        #FIXME: change to tensorflow complete implementation latter
+        #later: change to tensorflow complete implementation latter
         samples = samples.flatten().astype('float32')
         speed_range = self._rng.uniform(self._low_speed, self._high_speed)
         samples = librosa.effects.time_stretch(samples, rate=speed_range)

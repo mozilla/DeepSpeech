@@ -1,15 +1,13 @@
-import json
-import random
+from util.augmentation.base_pipeline import AugmentationPipeline
 from .time_warp import TimeWarpAugmentor
 
-class AugmentationPipeline(object):
+class AugmentationPipeline(AugmentationPipeline):
     def __init__(self, augmentation_config, random_seed=0.001):
-        self._rng = random.Random(random_seed)
-        self._augmentors, self._rates = self._parse_pipeline_from_json(augmentation_config)
+        super(AugmentationPipeline, self).__init__(augmentation_config, random_seed)
 
     def transform(self, mel_fbank):
         """
-        Run the augmentation pipeline for audio_augmentation
+        Run the augmentation pipeline for spectrogram_augmentation
         as per the config file.
 
         :param mel_fbank: melspectrogram
@@ -18,19 +16,9 @@ class AugmentationPipeline(object):
         processed_mel_fbank = mel_fbank
         for augmentor, rate in zip(self._augmentors, self._rates):
             if self._rng.uniform(0., 1.) < rate:
-                processed_mel_fbank = augmentor.transform(mel_fbank)
+                processed_mel_fbank = augmentor.transform(processed_mel_fbank)
 
         return processed_mel_fbank
-
-    def _parse_pipeline_from_json(self, config_json):
-        try:
-            with open(config_json, 'r') as config:
-                configs = json.load(config)
-            augmentors = [self._get_augmentor_by_name(config["type"], config["params"]) for config in configs]
-            rates = [config["rate"] for config in configs]
-        except Exception as e:
-            raise ValueError("Error parsing the audio augmentation pipeline %s" % str(e))
-        return augmentors, rates
 
     def _get_augmentor_by_name(self, name, params):
         augmentor = None
