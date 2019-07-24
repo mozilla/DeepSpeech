@@ -38,9 +38,9 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
     - [Getting the pre-trained model](#Getting-the-pre-trained-model)
     - [Model compatibility](#Model-compatibility)
     - [Using the Python package](#Using-the-Python-package)
-      - [Create a DeepSpeech virtual environment](#Create-a-DeepSpeech-virtual-environment)
-      - [Activating the environment](#Activating-the-environment)
-      - [Installing DeepSpeech Python bindings](#Installing-DeepSpeech-Python-bindings)
+    - [Create a DeepSpeech virtual environment](#Create-a-DeepSpeech-virtual-environment)
+    - [Activating the environment](#Activating-the-environment)
+    - [Installing DeepSpeech Python bindings](#Installing-DeepSpeech-Python-bindings)
     - [Using the Node.JS package](#Using-the-NodeJS-package)
     - [Using the Command-Line client](#Using-the-Command-Line-client)
     - [Installing bindings from source](#Installing-bindings-from-source)
@@ -55,7 +55,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
     - [Exporting a model for TFLite](#Exporting-a-model-for-TFLite)
     - [Making a mmap-able model for inference](#Making-a-mmap-able-model-for-inference)
     - [Continuing training from a release model](#Continuing-training-from-a-release-model)
-  - [Data Augmentation or Pertubation](#Data-Augmentation-or-Pertubation)
+    - [Data Augmentation or Pertubation](#Data-Augmentation-or-Pertubation)
   - [Contribution guidelines](#Contribution-guidelines)
   - [Contact/Getting Help](#ContactGetting-Help)
 
@@ -388,8 +388,8 @@ Note: the released models were trained with `--n_hidden 2048`, so you need to us
 
 ## Data Augmentation or Pertubation
 
-Online Augmentation is a useful technique to for more generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on audio data and also on spectrogram. 
-Full Documentation `util/augumentation/README.md`. By default augmentation is not enabled, to use this option use flag `--audio_augmentation_config_file="${pwd}/util/augmentation/conf/audio_augmentation.json` for audio augmentation and `--spectrum_augmentation_config_file="${pwd}/util/augmentation/conf/spectrum_augmentation.json`
+Online Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm data and spectrogram has been implemented. Refer `util/augumentation/README.md` for more information regarding augmentation.
+By default augmentation is not enabled, to use this option use flag `--audio_augmentation_config_file="./util/augmentation/conf/audio_augmentation.json` for audio augmentation and `--spectrum_augmentation_config_file="./util/augmentation/conf/spectrum_augmentation.json` for spectrogram augmentation.
 
 ## Contribution guidelines
 
