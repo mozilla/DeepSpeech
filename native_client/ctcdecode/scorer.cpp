@@ -61,8 +61,11 @@ Scorer::Scorer(double alpha,
                const std::string& lm_path,
                const std::string& trie_path,
                const std::string& alphabet_config_path)
-  : Scorer(alpha, beta, lm_path, trie_path, Alphabet(alphabet_config_path.c_str()))
 {
+    Alphabet alphabet;
+    alphabet.loadConfigFile(alphabet_config_path.c_str());
+
+    Scorer(alpha, beta, lm_path, trie_path, alphabet);
 }
 
 Scorer::~Scorer()

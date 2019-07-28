@@ -15,8 +15,16 @@
  */
 class Alphabet {
 public:
-  Alphabet(const char *config_file) {
+    Alphabet() {
+    }
+
+  bool loadConfigFile(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
+
+    if (!in) {
+        return false;
+    }
+
     unsigned int label = 0;
     space_label_ = -2;
     for (std::string line; std::getline(in, line);) {
@@ -35,6 +43,8 @@ public:
     }
     size_ = label;
     in.close();
+
+    return true;
   }
 
   const std::string& StringFromLabel(unsigned int label) const {

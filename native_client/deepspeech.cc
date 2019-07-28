@@ -295,6 +295,9 @@ DS_CreateModel(const char* aModelPath,
 
   int err = model->init(aModelPath, aNCep, aNContext, aAlphabetConfigPath, aBeamWidth);
   if (err != DS_ERR_OK) {
+      if (err == DS_ERR_INVALID_ALPHABET) {
+          std::cerr << "Invalid alphabet file." << std::endl;
+      }
     return err;
   }
 
