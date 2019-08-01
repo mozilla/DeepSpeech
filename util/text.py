@@ -52,10 +52,10 @@ def text_to_char_array(original, alphabet):
     Given a Python string ``original``, remove unsupported characters, map characters
     to integers and return a numpy array representing the processed string.
     """
-    characters = np.asarray([alphabet.label_from_string(c) for c in original])
-    if characters.shape[0] == 0:
+    integers = np.asarray([alphabet.label_from_string(c) for c in original])
+    if integers.shape[0] == 0:
         raise Exception("Found an empty transcript! You must include a transcript for all training data.")
-    return characters
+    return integers
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
