@@ -14,7 +14,7 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 
 from util.config import Config
 from util.text import text_to_char_array
-
+from util.flags import FLAGS
 
 def read_csvs(csv_files):
     source_data = None
@@ -45,6 +45,14 @@ def audiofile_to_features(wav_filename):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
     features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate)
+
+
+    if FLAGS.data_aug_features_multiplicative > 0:
+        features = features*tf.random.normal(mean=1, stddev=FLAGS.data_aug_features_multiplicative, shape=tf.shape(features))
+
+    if FLAGS.data_aug_features_additive > 0:
+        features = features+tf.random.normal(mean=0.0, stddev=FLAGS.data_aug_features_additive, shape=tf.shape(features))
+
 
     return features, features_len
 

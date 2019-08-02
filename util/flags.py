@@ -22,6 +22,13 @@ def create_flags():
     f.DEFINE_integer('feature_win_step', 20, 'feature extraction window step length in milliseconds')
     f.DEFINE_integer('audio_sample_rate', 16000, 'sample rate value expected by model')
 
+    # Data Augmentation
+    # ================
+
+    f.DEFINE_float('data_aug_features_additive', 0, 'std of the Gaussian additive noise')
+    f.DEFINE_float('data_aug_features_multiplicative', 0, 'std of normal distribution around 1 for multiplicative noise')
+
+
     # Global Constants
     # ================
 
