@@ -30,7 +30,7 @@ def create_flags():
     f.DEFINE_integer('augmention_sparse_deform', 0, 'whether to use time-warping augmentation')
     f.DEFINE_integer('augmentation_time_warp_max_warping', 12, 'max value for warping')
     f.DEFINE_float('augmentation_sparse_deform_std_warp', 0.5, 'std for warping different values to different frequencies')
-    
+
     f.DEFINE_float('augmentation_spec_dropout_keeprate', 1, 'keep rate of dropout augmentation on spectrogram (if 1, no dropout will be performed on spectrogram)')
 
     f.DEFINE_integer('augmentation_freq_and_time_masking', 0, 'whether to use frequency and time masking augmentation')
