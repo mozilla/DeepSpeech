@@ -15,6 +15,7 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 from util.config import Config
 from util.text import text_to_char_array
 from util.flags import FLAGS
+from util.spectrogram_augmentations import augment_sparse_deform, augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
 
 def read_csvs(csv_files):
     source_data = None
@@ -35,6 +36,32 @@ def samples_to_mfccs(samples, sample_rate):
                                                   window_size=Config.audio_window_samples,
                                                   stride=Config.audio_step_samples,
                                                   magnitude_squared=True)
+
+    if FLAGS.augmention_sparse_deform:
+        spectrogram = augment_sparse_deform(spectrogram,
+                                            time_warping_para=FLAGS.augmentation_time_warp_max_warping,
+                                            normal_around_warping_std=FLAGS.augmentation_sparse_deform_std_warp)
+
+    if FLAGS.augmentation_spec_dropout_keeprate < 1:
+        spectrogram = augment_dropout(spectrogram,
+                                        keep_prob=FLAGS.augmentation_spec_dropout_keeprate)
+
+    if FLAGS.augmentation_freq_and_time_masking:
+        spectrogram = augment_freq_time_mask(spectrogram,
+                                                frequency_masking_para=FLAGS.augmentation_freq_and_time_masking_freq_mask_range,
+                                                time_masking_para=FLAGS.augmentation_freq_and_time_masking_time_mask_range,
+                                                frequency_mask_num=FLAGS.augmentation_freq_and_time_masking_number_freq_masks,
+                                                time_mask_num=FLAGS.augmentation_freq_and_time_masking_number_time_masks)   
+
+    if FLAGS.augmentation_pitch_and_tempo_scaling:
+        spectrogram = augment_pitch_and_tempo(spectrogram,
+                                                max_tempo=FLAGS.augmentation_pitch_and_tempo_scaling_max_tempo,
+                                                max_pitch=FLAGS.augmentation_pitch_and_tempo_scaling_max_pitch,
+                                                min_pitch=FLAGS.augmentation_pitch_and_tempo_scaling_min_pitch)
+
+    if FLAGS.augmentation_speed_up_std > 0:
+        spectrogram = augment_speed_up(spectrogram, speed_std=FLAGS.augmentation_speed_up_std)
+
     mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
 
