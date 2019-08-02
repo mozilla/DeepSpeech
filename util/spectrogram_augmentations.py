@@ -37,7 +37,6 @@ def augment_freq_time_mask(mel_spectrogram,
     freq_max = tf.shape(mel_spectrogram)[1]
     time_max = tf.shape(mel_spectrogram)[2]
     # Frequency masking
-    # Testing without loop
     for _ in range(frequency_mask_num):
         f = tf.random.uniform(shape=(), minval=0, maxval=frequency_masking_para, dtype=tf.dtypes.int32)
         f0 = tf.random.uniform(shape=(), minval=0, maxval=freq_max - f, dtype=tf.dtypes.int32)
@@ -50,7 +49,6 @@ def augment_freq_time_mask(mel_spectrogram,
         mel_spectrogram = mel_spectrogram*freq_mask
 
     # Time masking
-    # Testing without loop
     for _ in range(time_mask_num):
         t = tf.random.uniform(shape=(), minval=0, maxval=time_masking_para, dtype=tf.dtypes.int32)
         t0 = tf.random.uniform(shape=(), minval=0, maxval=time_max - t, dtype=tf.dtypes.int32)
