@@ -104,7 +104,6 @@ TFLiteModelState::get_delegates()
 {
   std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr> delegates;
 
-#ifndef __ANDROID__
   LOGE("Trying to get GPU delegate ...");
   // Try to get GPU delegate
   {
@@ -116,9 +115,8 @@ TFLiteModelState::get_delegates()
       delegates.emplace("GPU", std::move(delegate));
     }
   }
-#endif
 
-#ifdef __ANDROID__
+#if 0
   LOGE("Trying to get NNAPI delegate ...");
   // Try to get Android NNAPI delegate
   {
@@ -130,7 +128,7 @@ TFLiteModelState::get_delegates()
       delegates.emplace("NNAPI", std::move(delegate));
     }
   }
-#endif 
+#endif
 
   return delegates;
 }
@@ -157,19 +155,8 @@ TFLiteModelState::init(const char* model_path,
     return DS_ERR_FAIL_INTERPRETER;
   }
 
-  LOGE("Trying to detect delegates ...");
-  delegates_ = get_delegates();
-  LOGE("Finished enumerating delegates ...");
   interpreter_->AllocateTensors();
   interpreter_->SetNumThreads(4);
-
-  LOGE("Trying to use delegates ...");
-  for (const auto& delegate : delegates_) {
-    LOGE("Trying to apply delegate %s", delegate.first.c_str());
-    if (interpreter_->ModifyGraphWithDelegate(delegate.second.get()) != kTfLiteOk) {
-      LOGE("FAILED to apply delegate %s to the graph", delegate.first.c_str());
-    }
-  }
 
   // Query all the index once
   input_node_idx_       = get_input_tensor_by_name("input_node");
@@ -291,6 +278,20 @@ TFLiteModelState::init(const char* model_path,
   assert(dims_c->data[1] == dims_h->data[1]);
   assert(state_size_ > 0);
   state_size_ = dims_c->data[1];
+
+  LOGE("Trying to detect delegates ...");
+  delegates_ = get_delegates();
+  LOGE("Finished enumerating delegates ...");
+  LOGE("Trying to use delegates ...");
+  for (const auto& delegate : delegates_) {
+    LOGE("Trying to apply delegate %s", delegate.first.c_str());
+    if (interpreter_->ModifyGraphWithDelegate(delegate.second.get()) != kTfLiteOk) {
+      LOGE("FAILED applying delegate %s to the graph", delegate.first.c_str());
+    } else {
+      LOGE("SUCCESS applying delegate %s", delegate.first.c_str());
+    }
+  }
+  LOGE("Delegates ready to run");
 
   return DS_ERR_OK;
 }
