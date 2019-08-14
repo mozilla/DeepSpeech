@@ -568,24 +568,38 @@ def train():
             loaded = True
 
         # TRANSFER LEARNING #
-        if FLAGS.source_model_checkpoint_dir:
-            print('Initializing model from', FLAGS.source_model_checkpoint_dir)
-            ckpt = tf.train.load_checkpoint(FLAGS.source_model_checkpoint_dir)
-            variables = list(ckpt.get_variable_to_shape_map().keys())
+        # Loading or initializing
+        loaded = False
+        if FLAGS.load in ['auto', 'last']:
+            loaded = try_loading(session, checkpoint_saver, checkpoint_filename, 'most recent')
+        if not loaded and FLAGS.load in ['auto', 'best']:
+            loaded = try_loading(session, best_dev_saver, best_dev_filename, 'best validation')
+        if not loaded:
+            if FLAGS.source_model_checkpoint_dir:
+                print('Initializing model from', FLAGS.source_model_checkpoint_dir)
+                ckpt = tf.train.load_checkpoint(FLAGS.source_model_checkpoint_dir)
+                variables = list(ckpt.get_variable_to_shape_map().keys())
 
-            # Load desired source variables
-            for v in tf.global_variables():
-                if not any(layer in v.op.name for layer in drop_source_layers):
-                    print('Loading', v.op.name)
-                    v.load(ckpt.get_tensor(v.op.name), session=session)
-                    
-            # Initialize all variables needed for DS, but not loaded from ckpt
-            init_op=tf.variables_initializer(
-                [ v for v in tf.global_variables()
-                  if any(layer in v.op.name
-                         for layer in drop_source_layers)
-                ])
-            session.run(init_op)
+                # Load desired source variables
+                for v in tf.global_variables():
+                    if not any(layer in v.op.name for layer in drop_source_layers):
+                        print('Loading', v.op.name)
+                        v.load(ckpt.get_tensor(v.op.name), session=session)
+
+                # Initialize all variables needed for DS, but not loaded from ckpt
+                init_op = tf.variables_initializer(
+                    [v for v in tf.global_variables()
+                     if any(layer in v.op.name
+                            for layer in drop_source_layers)
+                     ])
+                session.run(init_op)
+            elif FLAGS.load in ['auto', 'init']:
+                log_info('Initializing variables...')
+                session.run(initializer)
+            else:
+                log_error('Unable to load %s model from specified checkpoint dir'
+                          ' - consider using load option "auto" or "init".' % FLAGS.load)
+                sys.exit(1)
 
         tf.get_default_graph().finalize()
 
