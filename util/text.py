@@ -31,7 +31,9 @@ class Alphabet(object):
             return self._str_to_label[string]
         except KeyError as e:
             raise KeyError(
-                '''ERROR: Your transcripts contain characters which do not occur in data/alphabet.txt! Use util/check_characters.py to see what characters are in your {train,dev,test}.csv transcripts, and then add all these to data/alphabet.txt.'''
+                'ERROR: Your transcripts contain characters (e.g. \'{}\') which do not occur in data/alphabet.txt! Use ' \
+                'util/check_characters.py to see what characters are in your [train,dev,test].csv transcripts, and ' \
+                'then add all these to data/alphabet.txt.'.format(string)
             ).with_traceback(e.__traceback__)
 
     def decode(self, labels):
@@ -47,12 +49,21 @@ class Alphabet(object):
         return self._config_file
 
 
-def text_to_char_array(original, alphabet):
+def text_to_char_array(series, alphabet):
     r"""
-    Given a Python string ``original``, remove unsupported characters, map characters
-    to integers and return a numpy array representing the processed string.
+    Given a Pandas Series containing transcript string, map characters to
+    integers and return a numpy array representing the processed string.
     """
-    return np.asarray([alphabet.label_from_string(c) for c in original])
+    try:
+        series['transcript'] = np.asarray([alphabet.label_from_string(c) for c in series['transcript']])
+    except KeyError as e:
+        # Provide the row context (especially wav_filename) for alphabet errors
+        raise ValueError(str(e), series)
+
+    if series['transcript'].shape[0] == 0:
+        raise ValueError("Found an empty transcript! You must include a transcript for all training data.", series)
+
+    return series
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py

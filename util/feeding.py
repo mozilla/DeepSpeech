@@ -13,6 +13,7 @@ import datetime
 from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 
 from util.config import Config
+from util.logging import log_error
 from util.text import text_to_char_array
 
 
@@ -68,8 +69,13 @@ def create_dataset(csvs, batch_size, cache_path=''):
     df = read_csvs(csvs)
     df.sort_values(by='wav_filesize', inplace=True)
 
-    # Convert to character index arrays
-    df['transcript'] = df['transcript'].apply(partial(text_to_char_array, alphabet=Config.alphabet))
+    try:
+        # Convert to character index arrays
+        df = df.apply(partial(text_to_char_array, alphabet=Config.alphabet), result_type='broadcast', axis=1)
+    except ValueError as e:
+        error_message, series, *_ = e.args
+        log_error('While processing {}:\n  {}'.format(series['wav_filename'], error_message))
+        exit(1)
 
     def generate_values():
         for _, row in df.iterrows():
