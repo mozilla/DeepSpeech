@@ -3,6 +3,9 @@ from __future__ import absolute_import, division, print_function
 
 import codecs
 import sys
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
 import tarfile
 import pandas
 import re
