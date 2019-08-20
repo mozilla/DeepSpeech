@@ -72,7 +72,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
     DS_FreeMetadata(metadata);
   } else if (stream_size > 0) {
     StreamingState* ctx;
-    int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
+    int status = DS_SetupStream(aCtx, aSampleRate, &ctx);
     if (status != DS_ERR_OK) {
       res.string = strdup("");
       return res;

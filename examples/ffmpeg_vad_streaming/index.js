@@ -68,9 +68,6 @@ if (args['lm'] && args['trie']) {
 	console.error('Loaded language model in %ds.', totalTime(lm_load_end));
 }
 
-// Default initial allocation = 3 seconds := 150
-const PRE_ALLOC_FRAMES = 150;
-
 // Default is 16kHz
 const AUDIO_SAMPLE_RATE = 16000;
 
@@ -109,7 +106,7 @@ const ffmpeg = spawn('ffmpeg', [
 ]);
 
 let audioLength = 0;
-let sctx = model.setupStream(PRE_ALLOC_FRAMES, AUDIO_SAMPLE_RATE);
+let sctx = model.setupStream(AUDIO_SAMPLE_RATE);
 
 function finishStream() {
 	const model_load_start = process.hrtime();
@@ -122,7 +119,7 @@ function finishStream() {
 
 function intermediateDecode() {
 	finishStream();
-	sctx = model.setupStream(PRE_ALLOC_FRAMES, AUDIO_SAMPLE_RATE);
+	sctx = model.setupStream(AUDIO_SAMPLE_RATE);
 }
 
 function feedAudioContent(chunk) {

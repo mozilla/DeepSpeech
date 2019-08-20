@@ -33,9 +33,9 @@ public class DeepSpeechModel {
         return impl.SpeechToTextWithMetadata(this._msp, buffer, buffer_size, sample_rate);
     }
 
-    public DeepSpeechStreamingState setupStream(int prealloc_frames, int sample_rate) {
+    public DeepSpeechStreamingState setupStream(int sample_rate) {
         SWIGTYPE_p_p_StreamingState ssp = impl.new_streamingstatep();
-        impl.SetupStream(this._msp, prealloc_frames, sample_rate, ssp);
+        impl.SetupStream(this._msp, sample_rate, ssp);
         return new DeepSpeechStreamingState(impl.streamingstatep_value(ssp));
     }
 

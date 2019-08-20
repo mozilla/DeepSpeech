@@ -252,7 +252,7 @@ namespace DeepSpeechWPF
 
         private void BtnStartRecording_Click(object sender, RoutedEventArgs e)
         {
-            _sttClient.SetupStream(0, 16000);
+            _sttClient.SetupStream(16000);
             _audioCapture.Start();
             btnStartRecording.IsEnabled = false;
             btnStopRecording.IsEnabled = true;

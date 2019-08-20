@@ -49,7 +49,6 @@ namespace DeepSpeechClient
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern ErrorCodes DS_SetupStream(ModelState** aCtx,
-               uint aPreAllocFrames,
                uint aSampleRate, ref StreamingState** retval);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]

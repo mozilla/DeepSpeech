@@ -37,9 +37,8 @@ class Model(object):
     def sttWithMetadata(self, *args, **kwargs):
         return deepspeech.impl.SpeechToTextWithMetadata(self._impl, *args, **kwargs)
 
-    def setupStream(self, pre_alloc_frames=150, sample_rate=16000):
+    def setupStream(self, sample_rate=16000):
         status, ctx = deepspeech.impl.SetupStream(self._impl,
-                                                  aPreAllocFrames=pre_alloc_frames,
                                                   aSampleRate=sample_rate)
         if status != 0:
             raise RuntimeError("SetupStream failed with error code {}".format(status))
