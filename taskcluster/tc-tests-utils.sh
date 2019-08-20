@@ -960,9 +960,11 @@ maybe_ssl102_py37()
     unset PY37_LDPATH
     unset PY37_SOURCE_PACKAGE
 
+    ARCH=$(uname -m)
+
     case "${pyver}" in
         3.7*)
-            if [ "${OS}" = "Linux" ]; then
+            if [ "${OS}" = "Linux" -a "${ARCH}" = "x86_64" ]; then
                 PY37_OPENSSL_DIR=${DS_ROOT_TASK}/ssl-xenial
 
                 if [ -d "${PY37_OPENSSL_DIR}" ]; then

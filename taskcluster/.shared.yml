@@ -3,6 +3,8 @@ python:
     apt: 'make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev liblzma-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
   packages_stretch:
     apt: 'make build-essential libssl1.0-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
+  packages_buster:
+    apt: 'make build-essential libssl1.0-dev libffi-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
   brew:
     setup: 'install_local_homebrew "python-ds-test" && install_pkg_local_homebrew "sox" && install_pkg_local_homebrew "readline" && install_pkg_local_homebrew "openssl" && install_pkg_local_homebrew "pkg-config"'
     env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/python-ds-test.brew/bin/:$PATH"'

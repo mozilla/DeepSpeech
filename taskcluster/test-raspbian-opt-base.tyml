@@ -27,7 +27,7 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-    image: "resin/rpi-raspbian:stretch-20180228"
+    image: "resin/rpi-raspbian:buster-20190121"
 
     env:
       $let:
