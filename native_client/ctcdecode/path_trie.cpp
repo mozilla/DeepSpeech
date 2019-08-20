@@ -39,7 +39,12 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, float cur_log_
   auto child = children_.begin();
   for (child = children_.begin(); child != children_.end(); ++child) {
     if (child->first == new_char) {
-      if (child->second->log_prob_c < cur_log_prob_c) {
+      // If existing child matches this new_char but had a lower probability,
+      // and it's a leaf, update its timestep to new_timestep.
+      // The leak check makes sure we don't update the child to have a later
+      // timestep than a grandchild.
+      if (child->second->log_prob_c < cur_log_prob_c &&
+          child->second->children_.size() == 0) {
         child->second->log_prob_c = cur_log_prob_c;
         child->second->timestep = new_timestep;
       }
@@ -54,7 +59,7 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, float cur_log_
       child->second->log_prob_b_cur = -NUM_FLT_INF;
       child->second->log_prob_nb_cur = -NUM_FLT_INF;
     }
-    return (child->second);
+    return child->second;
   } else {
     if (has_dictionary_) {
       matcher_->SetState(dictionary_state_);
@@ -145,9 +150,7 @@ void PathTrie::remove() {
   exists_ = false;
 
   if (children_.size() == 0) {
-    auto child = parent->children_.begin();
-    for (child = parent->children_.begin(); child != parent->children_.end();
-         ++child) {
+    for (auto child = parent->children_.begin(); child != parent->children_.end(); ++child) {
       if (child->first == character) {
         parent->children_.erase(child);
         break;
