@@ -31,7 +31,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         liblzma-dev \
         locales \
         pkg-config \
+        libpng-dev \
         libsox-dev \
+        libmagic-dev \
+        libgsm1-dev \
+        libltdl-dev \
         openjdk-8-jdk \
         bash-completion \
         g++ \

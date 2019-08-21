@@ -22,7 +22,12 @@ CFLAGS          :=
 CXXFLAGS        :=
 LDFLAGS         :=
 SOX_CFLAGS      := `pkg-config --cflags sox`
+ifeq ($(OS),Linux)
+SOX_CFLAGS      += -fopenmp
+SOX_LDFLAGS     := -Wl,-Bstatic `pkg-config --static --libs sox` -lgsm `pkg-config --static --libs libpng | cut -d' ' -f1` -lz -lmagic -lltdl -Wl,-Bdynamic -ldl
+else # OS == Linux
 SOX_LDFLAGS     := `pkg-config --libs sox`
+endif # OS others
 PYTHON_PACKAGES := numpy${NUMPY_BUILD_VERSION}
 ifeq ($(OS),Linux)
 PYTHON_PLATFORM_NAME := --plat-name manylinux1_x86_64
