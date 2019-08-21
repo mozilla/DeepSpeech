@@ -5,7 +5,7 @@ build:
     - "test-training_upstream-linux-amd64-py35m-opt"
   system_setup:
     >
-      ${nodejs.packages_stretch.prep_4} && ${nodejs.packages_stretch.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_stretch.apt}
+      ${nodejs.packages_buster.prep_4} && ${nodejs.packages_buster.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_buster.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 4.x"
   metadata:

@@ -27,14 +27,14 @@ then:
 
   payload:
     maxRunTime: 14400
-    image: "arm64v8/debian:stretch-20180312"
+    image: "arm64v8/debian:buster-20190812"
 
     command:
       - "/bin/bash"
       - "--login"
       - "-cxe"
       - >
-        apt-get -qq update && apt-get -qq -y install libopenblas-dev liblapack-dev gnupg pixz sudo wget python3.5-minimal python3-pip python3-wheel python3-setuptools &&
+        apt-get -qq update && apt-get -qq -y install libopenblas-dev liblapack-dev gnupg pixz sudo wget python3.7-minimal python3-pip python3-wheel python3-setuptools &&
         mkdir -p /opt/wheels /tmp/artifacts &&
         cd /opt/wheels &&
         pip3 wheel --verbose --wheel-dir /tmp/artifacts/ --build $(pwd)/ --no-binary :all: numpy &&
