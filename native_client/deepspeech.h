@@ -151,9 +151,6 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  *        and {@link DS_FinishStream()}.
  *
  * @param aCtx The ModelState pointer for the model to use.
- * @param aPreAllocFrames Number of timestep frames to reserve. One timestep
- *                        is equivalent to two window lengths (20ms). If set to 
- *                        0 we reserve enough frames for 3 seconds of audio (150).
  * @param aSampleRate The sample-rate of the audio signal.
  * @param[out] retval an opaque pointer that represents the streaming state. Can
  *                    be NULL if an error occurs.
@@ -162,7 +159,6 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  */
 DEEPSPEECH_EXPORT
 int DS_SetupStream(ModelState* aCtx,
-                   unsigned int aPreAllocFrames,
                    unsigned int aSampleRate,
                    StreamingState** retval);
 

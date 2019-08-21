@@ -329,7 +329,6 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
 
 int
 DS_SetupStream(ModelState* aCtx,
-               unsigned int aPreAllocFrames,
                unsigned int aSampleRate,
                StreamingState** retval)
 {
@@ -342,11 +341,6 @@ DS_SetupStream(ModelState* aCtx,
   }
 
   const size_t num_classes = aCtx->alphabet_->GetSize() + 1; // +1 for blank
-
-  // Default initial allocation = 3 seconds.
-  if (aPreAllocFrames == 0) {
-    aPreAllocFrames = 150;
-  }
 
   ctx->audio_buffer_.reserve(aCtx->audio_win_len_);
   ctx->mfcc_buffer_.reserve(aCtx->mfcc_feats_per_timestep_);
@@ -399,7 +393,7 @@ SetupStreamAndFeedAudioContent(ModelState* aCtx,
                                unsigned int aSampleRate)
 {
   StreamingState* ctx;
-  int status = DS_SetupStream(aCtx, 0, aSampleRate, &ctx);
+  int status = DS_SetupStream(aCtx, aSampleRate, &ctx);
   if (status != DS_ERR_OK) {
     return nullptr;
   }

@@ -84,12 +84,9 @@ namespace DeepSpeechClient.Interfaces
         /// <summary>
         /// Creates a new streaming inference state.
         /// </summary>
-        /// <param name="aPreAllocFrames">Number of timestep frames to reserve.
-        /// One timestep is equivalent to two window lengths(20ms).
-        /// If set to 0 we reserve enough frames for 3 seconds of audio(150).</param>
         /// <param name="aSampleRate">The sample-rate of the audio signal</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to initialize the streaming mode.</exception>
-        unsafe void SetupStream(uint aPreAllocFrames, uint aSampleRate);
+        unsafe void SetupStream(uint aSampleRate);
 
         /// <summary>
         /// Feeds audio samples to an ongoing streaming inference.
