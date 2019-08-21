@@ -915,6 +915,25 @@ do_deepspeech_netframework_build()
     /p:Platform=x64
 }
 
+do_deepspeech_netframework_wpf_example_build()
+{
+  cd ${DS_DSDIR}/examples/net_framework
+
+  # Setup dependencies
+  nuget install DeepSpeechWPF/packages.config -OutputDirectory DeepSpeechWPF/packages/
+
+  MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
+
+  # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
+  # Build WPF example
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechWPF/DeepSpeech.WPF.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64 \
+    /p:OutputPath=bin/x64
+
+}
+
 do_nuget_build()
 {
   PROJECT_NAME=$1

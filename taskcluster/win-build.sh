@@ -47,6 +47,8 @@ do_deepspeech_nodejs_build "${cuda}"
 
 do_deepspeech_netframework_build
 
+do_deepspeech_netframework_wpf_example_build
+
 do_nuget_build "${PROJECT_NAME}"
 
 shutdown_bazel
