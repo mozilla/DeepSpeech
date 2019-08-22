@@ -30,18 +30,16 @@ static const int32_t MAGIC = 'TRIE';
 static const int32_t FILE_VERSION = 4;
 
 Scorer::Scorer(double alpha,
-               double beta,
-               const std::string& lm_path,
-               const std::string& trie_path,
-               const Alphabet& alphabet)
-  : dictionary()
-  , language_model_()
-  , is_character_based_(true)
+               double beta)
+  : is_character_based_(true)
   , max_order_(0)
-  , alphabet_(alphabet)
 {
   reset_params(alpha, beta);
+}
 
+void
+Scorer::init(const std::string& lm_path, const std::string& trie_path)
+{
   char_map_.clear();
 
   SPACE_ID_ = alphabet_.GetSpaceLabel();
@@ -60,9 +58,22 @@ Scorer::Scorer(double alpha,
                double beta,
                const std::string& lm_path,
                const std::string& trie_path,
-               const std::string& alphabet_config_path)
-  : Scorer(alpha, beta, lm_path, trie_path, Alphabet(alphabet_config_path.c_str()))
+               const Alphabet& alphabet)
+  : Scorer(alpha, beta)
 {
+  alphabet_ = alphabet;
+  init(lm_path, trie_path);
+}
+
+Scorer::Scorer(double alpha,
+               double beta,
+               const std::string& lm_path,
+               const std::string& trie_path,
+               const std::string& alphabet_config_path)
+  : Scorer(alpha, beta)
+{
+  alphabet_.init(alphabet_config_path.c_str());
+  init(lm_path, trie_path);
 }
 
 Scorer::~Scorer()

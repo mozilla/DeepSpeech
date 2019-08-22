@@ -87,6 +87,11 @@ public:
   std::unique_ptr<FstType> dictionary;
 
 protected:
+  Scorer(double alpha,
+         double beta);
+
+  void init(const std::string& lm_path, const std::string& trie_path);
+
   // necessary setup: load language model, fill FST's dictionary
   void setup(const std::string &lm_path, const std::string &trie_path);
 

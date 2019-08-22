@@ -244,7 +244,7 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
                 previous_state_c_,
                 previous_state_h_);
 
-  const size_t num_classes = model_->alphabet_->GetSize() + 1; // +1 for blank
+  const size_t num_classes = model_->alphabet_.GetSize() + 1; // +1 for blank
   const int n_frames = logits.size() / (ModelState::BATCH_SIZE * num_classes);
 
   // Convert logits to double
@@ -309,10 +309,10 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
                        float aLMBeta)
 {
   try {
-    aCtx->scorer_ = new Scorer(aLMAlpha, aLMBeta,
-                               aLMPath ? aLMPath : "",
-                               aTriePath ? aTriePath : "",
-                               *aCtx->alphabet_);
+    aCtx->scorer_.reset(new Scorer(aLMAlpha, aLMBeta,
+                                   aLMPath ? aLMPath : "",
+                                   aTriePath ? aTriePath : "",
+                                   aCtx->alphabet_));
     return DS_ERR_OK;
   } catch (...) {
     return DS_ERR_INVALID_LM;
@@ -343,11 +343,11 @@ DS_SetupStream(ModelState* aCtx,
   const int cutoff_top_n = 40;
   const double cutoff_prob = 1.0;
 
-  ctx->decoder_state_.init(*aCtx->alphabet_,
+  ctx->decoder_state_.init(aCtx->alphabet_,
                            aCtx->beam_width_,
                            cutoff_prob,
                            cutoff_top_n,
-                           aCtx->scorer_);
+                           aCtx->scorer_.get());
 
   *retval = ctx.release();
   return DS_ERR_OK;

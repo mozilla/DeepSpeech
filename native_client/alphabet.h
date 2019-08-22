@@ -15,7 +15,14 @@
  */
 class Alphabet {
 public:
+  Alphabet() {
+  }
+
   Alphabet(const char *config_file) {
+    init(config_file);
+  }
+
+  void init(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
     unsigned int label = 0;
     space_label_ = -2;

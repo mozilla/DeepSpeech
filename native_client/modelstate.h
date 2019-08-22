@@ -19,8 +19,8 @@ struct ModelState {
   static constexpr unsigned int DEFAULT_WINDOW_LENGTH = DEFAULT_SAMPLE_RATE * 0.032;
   static constexpr unsigned int DEFAULT_WINDOW_STEP = DEFAULT_SAMPLE_RATE * 0.02;
 
-  Alphabet* alphabet_;
-  Scorer* scorer_;
+  Alphabet alphabet_;
+  std::unique_ptr<Scorer> scorer_;
   unsigned int beam_width_;
   unsigned int n_steps_;
   unsigned int n_context_;
