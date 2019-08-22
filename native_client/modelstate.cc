@@ -41,24 +41,17 @@ ModelState::init(const char* model_path,
   return DS_ERR_OK;
 }
 
-vector<Output>
-ModelState::decode_raw(DecoderState* state)
-{
-  vector<Output> out = decoder_decode(state, *alphabet_, beam_width_, scorer_);
-  return out;
-}
-
 char*
-ModelState::decode(DecoderState* state)
+ModelState::decode(const DecoderState& state)
 {
-  vector<Output> out = decode_raw(state);
+  vector<Output> out = state.decode();
   return strdup(alphabet_->LabelsToString(out[0].tokens).c_str());
 }
 
 Metadata*
-ModelState::decode_metadata(DecoderState* state)
+ModelState::decode_metadata(const DecoderState& state)
 {
-  vector<Output> out = decode_raw(state);
+  vector<Output> out = state.decode();
 
   std::unique_ptr<Metadata> metadata(new Metadata());
   metadata->num_items = out[0].tokens.size();
