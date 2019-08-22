@@ -1,9 +1,9 @@
 ###
-### From topdir, first use multistrap to prepare a raspbian stretch armhf root
-### $ sudo multistrap -d multistrap-raspbian-stretch -f native_client/multistrap_raspbian_stretch.conf
+### From topdir, first use multistrap to prepare a raspbian buster armhf root
+### $ multistrap -d multistrap-raspbian-buster -f native_client/multistrap_raspbian_buster.conf
 ###
 ### You can make a tarball after:
-### $ touch multistrap-raspbian-stretch.tar && sudo tar cf multistrap-raspbian-stretch.tar multistrap-raspbian-stretch/ && xz multistrap-raspbian-stretch.tar
+### $ touch multistrap-raspbian-buster.tar && sudo tar cf multistrap-raspbian-buster.tar multistrap-raspbian-buster/ && xz multistrap-raspbian-buster.tar
 ###
 ### Then cross-build:
 ### $ make -C native_client/ TARGET=rpi3 TFDIR=../../tensorflow/tensorflow/

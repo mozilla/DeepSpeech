@@ -1037,7 +1037,7 @@ maybe_numpy_min_version_winamd64()
         ;;
         3.7*)
             export NUMPY_BUILD_VERSION="==1.14.5"
-            export NUMPY_DEP_VERSION=">=1.14.5,<1.16.0"
+            export NUMPY_DEP_VERSION=">=1.14.5,<=1.17.0"
         ;;
     esac
 }

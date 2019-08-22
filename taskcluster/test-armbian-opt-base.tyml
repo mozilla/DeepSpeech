@@ -27,7 +27,7 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-    image: "arm64v8/debian:stretch-20180312"
+    image: "arm64v8/debian:buster-20190812"
 
     env:
       $let:
@@ -42,7 +42,7 @@ then:
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.4/output_graph.pbmm
         PIP_DEFAULT_TIMEOUT: "60"
         PIP_EXTRA_INDEX_URL: "https://lissyx.github.io/deepspeech-python-wheels/"
-        EXTRA_PYTHON_CONFIGURE_OPTS: "--with-fpectl" # Required by Debian Stretch
+        EXTRA_PYTHON_CONFIGURE_OPTS: "" # Required by Debian Buster
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
 
     command:

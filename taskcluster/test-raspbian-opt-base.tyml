@@ -42,7 +42,7 @@ then:
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.4/output_graph.pbmm
         PIP_DEFAULT_TIMEOUT: "60"
         PIP_EXTRA_INDEX_URL: "https://www.piwheels.org/simple"
-        EXTRA_PYTHON_CONFIGURE_OPTS: "--with-fpectl" # Required by Raspbian Stretch / PiWheels
+        EXTRA_PYTHON_CONFIGURE_OPTS: "" # Required by Raspbian Buster / PiWheels
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
 
     command:

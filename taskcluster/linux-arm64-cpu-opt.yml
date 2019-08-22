@@ -16,7 +16,7 @@ build:
       apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
   system_config:
     >
-      multistrap -d /tmp/multistrap-armbian64-stretch/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_armbian64_stretch.conf &&
+      multistrap -d /tmp/multistrap-armbian64-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_armbian64_buster.conf &&
       ${swig.patch_nodejs.linux}
   scripts:
     build: "taskcluster/arm64-build.sh"

@@ -137,9 +137,9 @@ And your command line for `LePotato` and `ARM64` should look like:
 bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
 ```
 
-While we test only on RPi3 Raspbian Stretch and LePotato ARMBian stretch, anything compatible with `armv7-a cortex-a53` or `armv8-a cortex-a53` should be fine.
+While we test only on RPi3 Raspbian Buster and LePotato ARMBian Buster, anything compatible with `armv7-a cortex-a53` or `armv8-a cortex-a53` should be fine.
 
-The `deepspeech` binary can also be cross-built, with `TARGET=rpi3` or `TARGET=rpi3-armv8`. This might require you to setup a system tree using the tool `multistrap` and the multitrap configuration files: `native_client/multistrap_armbian64_stretch.conf` and `native_client/multistrap_raspbian_stretch.conf`.
+The `deepspeech` binary can also be cross-built, with `TARGET=rpi3` or `TARGET=rpi3-armv8`. This might require you to setup a system tree using the tool `multistrap` and the multitrap configuration files: `native_client/multistrap_armbian64_buster.conf` and `native_client/multistrap_raspbian_buster.conf`.
 The path of the system tree can be overridden from the default values defined in `definitions.mk` through the `RASPBIAN` `make` variable.
 
 ```
