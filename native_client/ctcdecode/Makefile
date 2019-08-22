@@ -19,7 +19,7 @@ clean: clean-keep-common
 	rm -f common.a
 
 bindings: clean-keep-common
-	pip install --quiet $(PYTHON_PACKAGES) wheel==0.31.0 setuptools==39.1.0
+	pip install --quiet $(PYTHON_PACKAGES) wheel==0.33.6 setuptools==41.2.0
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS) $(CXXFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py build_ext --num_processes $(NUM_PROCESSES) $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
 	find temp_build -type f -name "*.o" -delete
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS) $(CXXFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py bdist_wheel --num_processes $(NUM_PROCESSES) $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
