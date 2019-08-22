@@ -8,7 +8,10 @@
 using namespace std;
 
 int generate_trie(const char* alphabet_path, const char* kenlm_path, const char* trie_path) {
-  Alphabet alphabet(alphabet_path);
+  Alphabet alphabet;
+  if (int err = alphabet.init(alphabet_path)) {
+    return err;
+  }
   Scorer scorer(0.0, 0.0, kenlm_path, "", alphabet);
   scorer.save_dictionary(trie_path);
   return 0;

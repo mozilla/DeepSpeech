@@ -32,7 +32,9 @@ ModelState::init(const char* model_path,
 {
   n_features_ = n_features;
   n_context_ = n_context;
-  alphabet_.init(alphabet_path);
+  if (alphabet_.init(alphabet_path)) {
+    return DS_ERR_INVALID_ALPHABET;
+  }
   beam_width_ = beam_width;
   return DS_ERR_OK;
 }
