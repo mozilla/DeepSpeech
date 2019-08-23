@@ -67,7 +67,7 @@ payload:
       pacman --noconfirm -S tar make &&
       pacman --noconfirm -S zip &&
       (pacman --noconfirm -S patch swig &&
-        (for patch_file in $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_*.patch ; do patch -d /usr/share/swig/4.0.0/ -p2 < $patch_file; done)
+        (for patch_file in $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_*.patch ; do patch -d /usr/share/swig/*/ -p2 < $patch_file; done)
       ) &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
