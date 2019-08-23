@@ -53,7 +53,7 @@ public:
          const std::string &lm_path,
          const std::string &trie_path,
          const std::string &alphabet_config_path);
-  ~Scorer();
+  ~Scorer() = default;
 
   double get_log_cond_prob(const std::vector<std::string> &words);
 
@@ -89,8 +89,6 @@ public:
 protected:
   Scorer(double alpha,
          double beta);
-
-  void init(const std::string& lm_path, const std::string& trie_path);
 
   // necessary setup: load language model, fill FST's dictionary
   void setup(const std::string &lm_path, const std::string &trie_path);

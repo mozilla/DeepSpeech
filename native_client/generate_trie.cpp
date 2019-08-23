@@ -9,7 +9,8 @@ using namespace std;
 
 int generate_trie(const char* alphabet_path, const char* kenlm_path, const char* trie_path) {
   Alphabet alphabet;
-  if (int err = alphabet.init(alphabet_path)) {
+  int err = alphabet.init(alphabet_path);
+  if (err != 0) {
     return err;
   }
   Scorer scorer(0.0, 0.0, kenlm_path, "", alphabet);
