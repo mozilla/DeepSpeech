@@ -21,7 +21,6 @@ int main(int argc, char** argv)
   if (err != 0) {
     return err;
   }
-  Scorer scorer(0.0, 0.0, kenlm_path, trie_path, alphabet);
-
-  return 0;
+  Scorer scorer;
+  return scorer.init(0.0, 0.0, kenlm_path, trie_path, alphabet);
 }

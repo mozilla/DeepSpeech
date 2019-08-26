@@ -29,34 +29,33 @@ using namespace lm::ngram;
 static const int32_t MAGIC = 'TRIE';
 static const int32_t FILE_VERSION = 4;
 
-Scorer::Scorer(double alpha,
-               double beta)
-  : is_character_based_(true)
-  , max_order_(0)
+int
+Scorer::init(double alpha,
+             double beta,
+             const std::string& lm_path,
+             const std::string& trie_path,
+             const Alphabet& alphabet)
 {
   reset_params(alpha, beta);
-}
-
-Scorer::Scorer(double alpha,
-               double beta,
-               const std::string& lm_path,
-               const std::string& trie_path,
-               const Alphabet& alphabet)
-  : Scorer(alpha, beta)
-{
   alphabet_ = alphabet;
   setup(lm_path, trie_path);
+  return 0;
 }
 
-Scorer::Scorer(double alpha,
-               double beta,
-               const std::string& lm_path,
-               const std::string& trie_path,
-               const std::string& alphabet_config_path)
-  : Scorer(alpha, beta)
+int
+Scorer::init(double alpha,
+             double beta,
+             const std::string& lm_path,
+             const std::string& trie_path,
+             const std::string& alphabet_config_path)
 {
-  alphabet_.init(alphabet_config_path.c_str());
+  reset_params(alpha, beta);
+  int err = alphabet_.init(alphabet_config_path.c_str());
+  if (err != 0) {
+    return err;
+  }
   setup(lm_path, trie_path);
+  return 0;
 }
 
 void Scorer::setup(const std::string& lm_path, const std::string& trie_path)

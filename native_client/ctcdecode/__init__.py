@@ -19,7 +19,10 @@ class Scorer(swigwrapper.Scorer):
     """
 
     def __init__(self, alpha, beta, model_path, trie_path, alphabet):
-        swigwrapper.Scorer.__init__(self, alpha, beta, model_path, trie_path, alphabet.config_file())
+        super(Scorer, self).__init__()
+        err = self.init(alpha, beta, model_path, trie_path, alphabet.config_file())
+        if err != 0:
+          raise ValueError("Scorer initialization failed with error code {}".format(err), err)
 
 
 def ctc_beam_search_decoder(probs_seq,

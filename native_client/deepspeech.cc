@@ -308,15 +308,15 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
                        float aLMAlpha,
                        float aLMBeta)
 {
-  try {
-    aCtx->scorer_.reset(new Scorer(aLMAlpha, aLMBeta,
-                                   aLMPath ? aLMPath : "",
-                                   aTriePath ? aTriePath : "",
-                                   aCtx->alphabet_));
-    return DS_ERR_OK;
-  } catch (...) {
+  aCtx->scorer_.reset(new Scorer());
+  int err = aCtx->scorer_->init(aLMAlpha, aLMBeta,
+                                aLMPath ? aLMPath : "",
+                                aTriePath ? aTriePath : "",
+                                aCtx->alphabet_);
+  if (err != 0) {
     return DS_ERR_INVALID_LM;
   }
+  return DS_ERR_OK;
 }
 
 int
