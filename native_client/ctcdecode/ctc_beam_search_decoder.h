@@ -7,66 +7,67 @@
 #include "scorer.h"
 #include "output.h"
 #include "alphabet.h"
-#include "decoderstate.h"
 
-/* Initialize CTC beam search decoder
+class DecoderState {
+  int abs_time_step_;
+  int space_id_;
+  int blank_id_;
+  size_t beam_size_;
+  double cutoff_prob_;
+  size_t cutoff_top_n_;
 
- * Parameters:
- *     alphabet: The alphabet.
- *     class_dim: Alphabet length (plus 1 for space character).
- *     ext_scorer: External scorer to evaluate a prefix, which consists of
- *                 n-gram language model scoring and word insertion term.
- *                 Default null, decoding the input sample without scorer.
- * Return:
- *     A struct containing prefixes and state variables. 
-*/
-DecoderState* decoder_init(const Alphabet &alphabet,
-                           int class_dim,
-                           Scorer *ext_scorer);
+  Scorer* ext_scorer_; // weak
+  std::vector<PathTrie*> prefixes_;
+  std::unique_ptr<PathTrie> prefix_root_;
 
-/* Send data to the decoder
+public:
+  DecoderState() = default;
+  ~DecoderState() = default;
 
- * Parameters:
- *     probs: 2-D vector where each element is a vector of probabilities
- *               over alphabet of one time step. 
- *     alphabet: The alphabet.
- *     state: The state structure previously obtained from decoder_init().
- *     time_dim: Number of timesteps.
- *     class_dim: Alphabet length (plus 1 for space character).
- *     cutoff_prob: Cutoff probability for pruning.
- *     cutoff_top_n: Cutoff number for pruning.
- *     beam_size: The width of beam search.
- *     ext_scorer: External scorer to evaluate a prefix, which consists of
- *                 n-gram language model scoring and word insertion term.
- *                 Default null, decoding the input sample without scorer.
-*/
-void decoder_next(const double *probs,
-                  const Alphabet &alphabet,
-                  DecoderState *state,
-                  int time_dim,
-                  int class_dim,
-                  double cutoff_prob,
-                  size_t cutoff_top_n,
-                  size_t beam_size,
-                  Scorer *ext_scorer);
+  // Disallow copying
+  DecoderState(const DecoderState&) = delete;
+  DecoderState& operator=(DecoderState&) = delete;
 
-/* Get transcription for the data you sent via decoder_next()
+  /* Initialize CTC beam search decoder
+   *
+   * Parameters:
+   *     alphabet: The alphabet.
+   *     beam_size: The width of beam search.
+   *     cutoff_prob: Cutoff probability for pruning.
+   *     cutoff_top_n: Cutoff number for pruning.
+   *     ext_scorer: External scorer to evaluate a prefix, which consists of
+   *                 n-gram language model scoring and word insertion term.
+   *                 Default null, decoding the input sample without scorer.
+   * Return:
+   *     Zero on success, non-zero on failure.
+  */
+  int init(const Alphabet& alphabet,
+           size_t beam_size,
+           double cutoff_prob,
+           size_t cutoff_top_n,
+           Scorer *ext_scorer);
 
- * Parameters:
- *     state: The state structure previously obtained from decoder_init().
- *     alphabet: The alphabet.
- *     beam_size: The width of beam search.
- *     ext_scorer: External scorer to evaluate a prefix, which consists of
- *                 n-gram language model scoring and word insertion term.
- *                 Default null, decoding the input sample without scorer.
- * Return:
- *     A vector where each element is a pair of score and decoding result,
- *     in descending order.
-*/
-std::vector<Output> decoder_decode(DecoderState *state,
-                                   const Alphabet &alphabet,
-                                   size_t beam_size,
-                                   Scorer* ext_scorer);
+  /* Send data to the decoder
+   *
+   * Parameters:
+   *     probs: 2-D vector where each element is a vector of probabilities
+   *               over alphabet of one time step.
+   *     time_dim: Number of timesteps.
+   *     class_dim: Number of classes (alphabet length + 1 for space character).
+  */
+  void next(const double *probs,
+            int time_dim,
+            int class_dim);
+
+  /* Get transcription from current decoder state
+   *
+   * Return:
+   *     A vector where each element is a pair of score and decoding result,
+   *     in descending order.
+  */
+  std::vector<Output> decode() const;
+};
+
 
 /* CTC Beam Search Decoder
  * Parameters:

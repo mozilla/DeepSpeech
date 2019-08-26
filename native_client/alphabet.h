@@ -15,8 +15,15 @@
  */
 class Alphabet {
 public:
-  Alphabet(const char *config_file) {
+  Alphabet() = default;
+  Alphabet(const Alphabet&) = default;
+  Alphabet& operator=(const Alphabet&) = default;
+
+  int init(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
+    if (!in) {
+      return 1;
+    }
     unsigned int label = 0;
     space_label_ = -2;
     for (std::string line; std::getline(in, line);) {
@@ -35,6 +42,7 @@ public:
     }
     size_ = label;
     in.close();
+    return 0;
   }
 
   const std::string& StringFromLabel(unsigned int label) const {

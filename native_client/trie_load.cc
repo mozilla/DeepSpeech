@@ -16,8 +16,11 @@ int main(int argc, char** argv)
 
   printf("Loading trie(%s) and alphabet(%s)\n", trie_path, alphabet_path);
 
-  Alphabet alphabet(alphabet_path);
-  Scorer scorer(0.0, 0.0, kenlm_path, trie_path, alphabet);
-
-  return 0;
+  Alphabet alphabet;
+  int err = alphabet.init(alphabet_path);
+  if (err != 0) {
+    return err;
+  }
+  Scorer scorer;
+  return scorer.init(0.0, 0.0, kenlm_path, trie_path, alphabet);
 }

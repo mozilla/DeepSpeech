@@ -29,19 +29,38 @@ using namespace lm::ngram;
 static const int32_t MAGIC = 'TRIE';
 static const int32_t FILE_VERSION = 4;
 
-Scorer::Scorer(double alpha,
-               double beta,
-               const std::string& lm_path,
-               const std::string& trie_path,
-               const Alphabet& alphabet)
-  : dictionary()
-  , language_model_()
-  , is_character_based_(true)
-  , max_order_(0)
-  , alphabet_(alphabet)
+int
+Scorer::init(double alpha,
+             double beta,
+             const std::string& lm_path,
+             const std::string& trie_path,
+             const Alphabet& alphabet)
 {
   reset_params(alpha, beta);
+  alphabet_ = alphabet;
+  setup(lm_path, trie_path);
+  return 0;
+}
 
+int
+Scorer::init(double alpha,
+             double beta,
+             const std::string& lm_path,
+             const std::string& trie_path,
+             const std::string& alphabet_config_path)
+{
+  reset_params(alpha, beta);
+  int err = alphabet_.init(alphabet_config_path.c_str());
+  if (err != 0) {
+    return err;
+  }
+  setup(lm_path, trie_path);
+  return 0;
+}
+
+void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
+{
+  // (Re-)Initialize character map
   char_map_.clear();
 
   SPACE_ID_ = alphabet_.GetSpaceLabel();
@@ -53,24 +72,6 @@ Scorer::Scorer(double alpha,
     char_map_[alphabet_.StringFromLabel(i)] = i + 1;
   }
 
-  setup(lm_path, trie_path);
-}
-
-Scorer::Scorer(double alpha,
-               double beta,
-               const std::string& lm_path,
-               const std::string& trie_path,
-               const std::string& alphabet_config_path)
-  : Scorer(alpha, beta, lm_path, trie_path, Alphabet(alphabet_config_path.c_str()))
-{
-}
-
-Scorer::~Scorer()
-{
-}
-
-void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
-{
   // load language model
   const char* filename = lm_path.c_str();
   VALID_CHECK_EQ(access(filename, R_OK), 0, "Invalid language model path");

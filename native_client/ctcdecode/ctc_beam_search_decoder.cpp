@@ -12,29 +12,29 @@
 #include "fst/fstlib.h"
 #include "path_trie.h"
 
-DecoderState*
-decoder_init(const Alphabet &alphabet,
-             int class_dim,
-             Scorer* ext_scorer)
-{
-  // dimension check
-  VALID_CHECK_EQ(class_dim, alphabet.GetSize()+1,
-                 "The shape of probs does not match with "
-                 "the shape of the vocabulary");
 
+int
+DecoderState::init(const Alphabet& alphabet,
+                   size_t beam_size,
+                   double cutoff_prob,
+                   size_t cutoff_top_n,
+                   Scorer *ext_scorer)
+{
   // assign special ids
-  DecoderState *state = new DecoderState;
-  state->time_step = 0;
-  state->space_id = alphabet.GetSpaceLabel();
-  state->blank_id = alphabet.GetSize();
+  abs_time_step_ = 0;
+  space_id_ = alphabet.GetSpaceLabel();
+  blank_id_ = alphabet.GetSize();
+
+  beam_size_ = beam_size;
+  cutoff_prob_ = cutoff_prob;
+  cutoff_top_n_ = cutoff_top_n;
+  ext_scorer_ = ext_scorer;
 
   // init prefixes' root
   PathTrie *root = new PathTrie;
   root->score = root->log_prob_b_prev = 0.0;
-
-  state->prefix_root = root;
-
-  state->prefixes.push_back(root);
+  prefix_root_.reset(root);
+  prefixes_.push_back(root);
 
   if (ext_scorer != nullptr && !ext_scorer->is_character_based()) {
     auto dict_ptr = ext_scorer->dictionary->Copy(true);
@@ -43,51 +43,45 @@ decoder_init(const Alphabet &alphabet,
     root->set_matcher(matcher);
   }
 
-  return state;
+  return 0;
 }
 
 void
-decoder_next(const double *probs,
-             const Alphabet &alphabet,
-             DecoderState *state,
-             int time_dim,
-             int class_dim,
-             double cutoff_prob,
-             size_t cutoff_top_n,
-             size_t beam_size,
-             Scorer *ext_scorer)
+DecoderState::next(const double *probs,
+                   int time_dim,
+                   int class_dim)
 {
   // prefix search over time
-  for (size_t rel_time_step = 0; rel_time_step < time_dim; ++rel_time_step, ++state->time_step) {
+  for (size_t rel_time_step = 0; rel_time_step < time_dim; ++rel_time_step, ++abs_time_step_) {
     auto *prob = &probs[rel_time_step*class_dim];
 
     float min_cutoff = -NUM_FLT_INF;
     bool full_beam = false;
-    if (ext_scorer != nullptr) {
-      size_t num_prefixes = std::min(state->prefixes.size(), beam_size);
+    if (ext_scorer_ != nullptr) {
+      size_t num_prefixes = std::min(prefixes_.size(), beam_size_);
       std::sort(
-          state->prefixes.begin(), state->prefixes.begin() + num_prefixes, prefix_compare);
+          prefixes_.begin(), prefixes_.begin() + num_prefixes, prefix_compare);
 
-      min_cutoff = state->prefixes[num_prefixes - 1]->score +
-                   std::log(prob[state->blank_id]) - std::max(0.0, ext_scorer->beta);
-      full_beam = (num_prefixes == beam_size);
+      min_cutoff = prefixes_[num_prefixes - 1]->score +
+                   std::log(prob[blank_id_]) - std::max(0.0, ext_scorer_->beta);
+      full_beam = (num_prefixes == beam_size_);
     }
 
     std::vector<std::pair<size_t, float>> log_prob_idx =
-        get_pruned_log_probs(prob, class_dim, cutoff_prob, cutoff_top_n);
+        get_pruned_log_probs(prob, class_dim, cutoff_prob_, cutoff_top_n_);
     // loop over class dim
     for (size_t index = 0; index < log_prob_idx.size(); index++) {
       auto c = log_prob_idx[index].first;
       auto log_prob_c = log_prob_idx[index].second;
 
-      for (size_t i = 0; i < state->prefixes.size() && i < beam_size; ++i) {
-        auto prefix = state->prefixes[i];
+      for (size_t i = 0; i < prefixes_.size() && i < beam_size_; ++i) {
+        auto prefix = prefixes_[i];
         if (full_beam && log_prob_c + prefix->score < min_cutoff) {
           break;
         }
 
         // blank
-        if (c == state->blank_id) {
+        if (c == blank_id_) {
           prefix->log_prob_b_cur =
               log_sum_exp(prefix->log_prob_b_cur, log_prob_c + prefix->score);
           continue;
@@ -100,7 +94,7 @@ decoder_next(const double *probs,
         }
 
         // get new prefix
-        auto prefix_new = prefix->get_path_trie(c, state->time_step, log_prob_c);
+        auto prefix_new = prefix->get_path_trie(c, abs_time_step_, log_prob_c);
 
         if (prefix_new != nullptr) {
           float log_p = -NUM_FLT_INF;
@@ -113,11 +107,11 @@ decoder_next(const double *probs,
           }
 
           // language model scoring
-          if (ext_scorer != nullptr &&
-              (c == state->space_id || ext_scorer->is_character_based())) {
+          if (ext_scorer_ != nullptr &&
+              (c == space_id_ || ext_scorer_->is_character_based())) {
             PathTrie *prefix_to_score = nullptr;
             // skip scoring the space
-            if (ext_scorer->is_character_based()) {
+            if (ext_scorer_->is_character_based()) {
               prefix_to_score = prefix_new;
             } else {
               prefix_to_score = prefix;
@@ -125,10 +119,10 @@ decoder_next(const double *probs,
 
             float score = 0.0;
             std::vector<std::string> ngram;
-            ngram = ext_scorer->make_ngram(prefix_to_score);
-            score = ext_scorer->get_log_cond_prob(ngram) * ext_scorer->alpha;
+            ngram = ext_scorer_->make_ngram(prefix_to_score);
+            score = ext_scorer_->get_log_cond_prob(ngram) * ext_scorer_->alpha;
             log_p += score;
-            log_p += ext_scorer->beta;
+            log_p += ext_scorer_->beta;
           }
 
           prefix_new->log_prob_nb_cur =
@@ -138,53 +132,50 @@ decoder_next(const double *probs,
     }    // end of loop over alphabet
 
     // update log probs
-    state->prefixes.clear();
-    state->prefix_root->iterate_to_vec(state->prefixes);
+    prefixes_.clear();
+    prefix_root_->iterate_to_vec(prefixes_);
 
     // only preserve top beam_size prefixes
-    if (state->prefixes.size() > beam_size) {
-      std::nth_element(state->prefixes.begin(),
-                       state->prefixes.begin() + beam_size,
-                       state->prefixes.end(),
+    if (prefixes_.size() > beam_size_) {
+      std::nth_element(prefixes_.begin(),
+                       prefixes_.begin() + beam_size_,
+                       prefixes_.end(),
                        prefix_compare);
-      for (size_t i = beam_size; i < state->prefixes.size(); ++i) {
-        state->prefixes[i]->remove();
+      for (size_t i = beam_size_; i < prefixes_.size(); ++i) {
+        prefixes_[i]->remove();
       }
 
       // Remove the elements from std::vector
-      state->prefixes.resize(beam_size);
+      prefixes_.resize(beam_size_);
     }
   }  // end of loop over time
 }
 
 std::vector<Output>
-decoder_decode(DecoderState *state,
-               const Alphabet &alphabet,
-               size_t beam_size,
-               Scorer* ext_scorer)
+DecoderState::decode() const
 {
-  std::vector<PathTrie*> prefixes_copy = state->prefixes;
+  std::vector<PathTrie*> prefixes_copy = prefixes_;
   std::unordered_map<const PathTrie*, float> scores;
   for (PathTrie* prefix : prefixes_copy) {
     scores[prefix] = prefix->score;
   }
 
   // score the last word of each prefix that doesn't end with space
-  if (ext_scorer != nullptr && !ext_scorer->is_character_based()) {
-    for (size_t i = 0; i < beam_size && i < prefixes_copy.size(); ++i) {
+  if (ext_scorer_ != nullptr && !ext_scorer_->is_character_based()) {
+    for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
       auto prefix = prefixes_copy[i];
-      if (!prefix->is_empty() && prefix->character != state->space_id) {
+      if (!prefix->is_empty() && prefix->character != space_id_) {
         float score = 0.0;
-        std::vector<std::string> ngram = ext_scorer->make_ngram(prefix);
-        score = ext_scorer->get_log_cond_prob(ngram) * ext_scorer->alpha;
-        score += ext_scorer->beta;
+        std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix);
+        score = ext_scorer_->get_log_cond_prob(ngram) * ext_scorer_->alpha;
+        score += ext_scorer_->beta;
         scores[prefix] += score;
       }
     }
   }
 
   using namespace std::placeholders;
-  size_t num_prefixes = std::min(prefixes_copy.size(), beam_size);
+  size_t num_prefixes = std::min(prefixes_copy.size(), beam_size_);
   std::sort(prefixes_copy.begin(), prefixes_copy.begin() + num_prefixes, std::bind(prefix_compare_external, _1, _2, scores));
 
   //TODO: expose this as an API parameter
@@ -194,16 +185,16 @@ decoder_decode(DecoderState *state,
   // return order of decoding result. To delete when decoder gets stable.
   for (size_t i = 0; i < top_paths && i < prefixes_copy.size(); ++i) {
     double approx_ctc = scores[prefixes_copy[i]];
-    if (ext_scorer != nullptr) {
+    if (ext_scorer_ != nullptr) {
       std::vector<int> output;
       std::vector<int> timesteps;
       prefixes_copy[i]->get_path_vec(output, timesteps);
       auto prefix_length = output.size();
-      auto words = ext_scorer->split_labels(output);
+      auto words = ext_scorer_->split_labels(output);
       // remove word insert
-      approx_ctc = approx_ctc - prefix_length * ext_scorer->beta;
+      approx_ctc = approx_ctc - prefix_length * ext_scorer_->beta;
       // remove language model weight:
-      approx_ctc -= (ext_scorer->get_sent_log_prob(words)) * ext_scorer->alpha;
+      approx_ctc -= (ext_scorer_->get_sent_log_prob(words)) * ext_scorer_->alpha;
     }
     prefixes_copy[i]->approx_ctc = approx_ctc;
   }
@@ -221,13 +212,10 @@ std::vector<Output> ctc_beam_search_decoder(
     size_t cutoff_top_n,
     Scorer *ext_scorer)
 {
-  DecoderState *state = decoder_init(alphabet, class_dim, ext_scorer);
-  decoder_next(probs, alphabet, state, time_dim, class_dim, cutoff_prob, cutoff_top_n, beam_size, ext_scorer);
-  std::vector<Output> out = decoder_decode(state, alphabet, beam_size, ext_scorer);
-
-  delete state;
-
-  return out;
+  DecoderState state;
+  state.init(alphabet, beam_size, cutoff_prob, cutoff_top_n, ext_scorer);
+  state.next(probs, time_dim, class_dim);
+  return state.decode();
 }
 
 std::vector<std::vector<Output>>

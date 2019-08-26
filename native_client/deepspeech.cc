@@ -71,7 +71,7 @@ struct StreamingState {
   vector<float> previous_state_h_;
 
   ModelState* model_;
-  std::unique_ptr<DecoderState> decoder_state_;
+  DecoderState decoder_state_;
 
   StreamingState();
   ~StreamingState();
@@ -133,21 +133,21 @@ StreamingState::feedAudioContent(const short* buffer,
 char*
 StreamingState::intermediateDecode()
 {
-  return model_->decode(decoder_state_.get());
+  return model_->decode(decoder_state_);
 }
 
 char*
 StreamingState::finishStream()
 {
   finalizeStream();
-  return model_->decode(decoder_state_.get());
+  return model_->decode(decoder_state_);
 }
 
 Metadata*
 StreamingState::finishStreamWithMetadata()
 {
   finalizeStream();
-  return model_->decode_metadata(decoder_state_.get());
+  return model_->decode_metadata(decoder_state_);
 }
 
 void
@@ -244,23 +244,15 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
                 previous_state_c_,
                 previous_state_h_);
 
-  const int cutoff_top_n = 40;
-  const double cutoff_prob = 1.0;
-  const size_t num_classes = model_->alphabet_->GetSize() + 1; // +1 for blank
+  const size_t num_classes = model_->alphabet_.GetSize() + 1; // +1 for blank
   const int n_frames = logits.size() / (ModelState::BATCH_SIZE * num_classes);
 
   // Convert logits to double
   vector<double> inputs(logits.begin(), logits.end());
 
-  decoder_next(inputs.data(), 
-               *model_->alphabet_,
-               decoder_state_.get(),
-               n_frames,
-               num_classes,
-               cutoff_prob,
-               cutoff_top_n,
-               model_->beam_width_,
-               model_->scorer_);
+  decoder_state_.next(inputs.data(),
+                      n_frames,
+                      num_classes);
 }
 
 int
@@ -316,15 +308,15 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
                        float aLMAlpha,
                        float aLMBeta)
 {
-  try {
-    aCtx->scorer_ = new Scorer(aLMAlpha, aLMBeta,
-                               aLMPath ? aLMPath : "",
-                               aTriePath ? aTriePath : "",
-                               *aCtx->alphabet_);
-    return DS_ERR_OK;
-  } catch (...) {
+  aCtx->scorer_.reset(new Scorer());
+  int err = aCtx->scorer_->init(aLMAlpha, aLMBeta,
+                                aLMPath ? aLMPath : "",
+                                aTriePath ? aTriePath : "",
+                                aCtx->alphabet_);
+  if (err != 0) {
     return DS_ERR_INVALID_LM;
   }
+  return DS_ERR_OK;
 }
 
 int
@@ -340,8 +332,6 @@ DS_SetupStream(ModelState* aCtx,
     return DS_ERR_FAIL_CREATE_STREAM;
   }
 
-  const size_t num_classes = aCtx->alphabet_->GetSize() + 1; // +1 for blank
-
   ctx->audio_buffer_.reserve(aCtx->audio_win_len_);
   ctx->mfcc_buffer_.reserve(aCtx->mfcc_feats_per_timestep_);
   ctx->mfcc_buffer_.resize(aCtx->n_features_*aCtx->n_context_, 0.f);
@@ -350,7 +340,14 @@ DS_SetupStream(ModelState* aCtx,
   ctx->previous_state_h_.resize(aCtx->state_size_, 0.f);
   ctx->model_ = aCtx;
 
-  ctx->decoder_state_.reset(decoder_init(*aCtx->alphabet_, num_classes, aCtx->scorer_));
+  const int cutoff_top_n = 40;
+  const double cutoff_prob = 1.0;
+
+  ctx->decoder_state_.init(aCtx->alphabet_,
+                           aCtx->beam_width_,
+                           cutoff_prob,
+                           cutoff_top_n,
+                           aCtx->scorer_.get());
 
   *retval = ctx.release();
   return DS_ERR_OK;

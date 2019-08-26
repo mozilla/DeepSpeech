@@ -43,17 +43,24 @@ class Scorer {
   using FstType = PathTrie::FstType;
 
 public:
-  Scorer(double alpha,
-         double beta,
-         const std::string &lm_path,
-         const std::string &trie_path,
-         const Alphabet &alphabet);
-  Scorer(double alpha,
-         double beta,
-         const std::string &lm_path,
-         const std::string &trie_path,
-         const std::string &alphabet_config_path);
-  ~Scorer();
+  Scorer() = default;
+  ~Scorer() = default;
+
+  // disallow copying
+  Scorer(const Scorer&) = delete;
+  Scorer& operator=(const Scorer&) = delete;
+
+  int init(double alpha,
+           double beta,
+           const std::string &lm_path,
+           const std::string &trie_path,
+           const Alphabet &alphabet);
+
+  int init(double alpha,
+           double beta,
+           const std::string &lm_path,
+           const std::string &trie_path,
+           const std::string &alphabet_config_path);
 
   double get_log_cond_prob(const std::vector<std::string> &words);
 
@@ -79,9 +86,9 @@ public:
   void save_dictionary(const std::string &path);
 
   // language model weight
-  double alpha;
+  double alpha = 0.;
   // word insertion weight
-  double beta;
+  double beta = 0.;
 
   // pointer to the dictionary of FST
   std::unique_ptr<FstType> dictionary;
@@ -100,8 +107,8 @@ protected:
 
 private:
   std::unique_ptr<lm::base::Model> language_model_;
-  bool is_character_based_;
-  size_t max_order_;
+  bool is_character_based_ = true;
+  size_t max_order_ = 0;
 
   int SPACE_ID_;
   Alphabet alphabet_;

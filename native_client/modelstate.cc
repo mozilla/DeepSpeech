@@ -7,9 +7,7 @@
 using std::vector;
 
 ModelState::ModelState()
-  : alphabet_(nullptr)
-  , scorer_(nullptr)
-  , beam_width_(-1)
+  : beam_width_(-1)
   , n_steps_(-1)
   , n_context_(-1)
   , n_features_(-1)
@@ -23,8 +21,6 @@ ModelState::ModelState()
 
 ModelState::~ModelState()
 {
-  delete scorer_;
-  delete alphabet_;
 }
 
 int
@@ -36,29 +32,24 @@ ModelState::init(const char* model_path,
 {
   n_features_ = n_features;
   n_context_ = n_context;
-  alphabet_ = new Alphabet(alphabet_path);
+  if (alphabet_.init(alphabet_path)) {
+    return DS_ERR_INVALID_ALPHABET;
+  }
   beam_width_ = beam_width;
   return DS_ERR_OK;
 }
 
-vector<Output>
-ModelState::decode_raw(DecoderState* state)
-{
-  vector<Output> out = decoder_decode(state, *alphabet_, beam_width_, scorer_);
-  return out;
-}
-
 char*
-ModelState::decode(DecoderState* state)
+ModelState::decode(const DecoderState& state)
 {
-  vector<Output> out = decode_raw(state);
-  return strdup(alphabet_->LabelsToString(out[0].tokens).c_str());
+  vector<Output> out = state.decode();
+  return strdup(alphabet_.LabelsToString(out[0].tokens).c_str());
 }
 
 Metadata*
-ModelState::decode_metadata(DecoderState* state)
+ModelState::decode_metadata(const DecoderState& state)
 {
-  vector<Output> out = decode_raw(state);
+  vector<Output> out = state.decode();
 
   std::unique_ptr<Metadata> metadata(new Metadata());
   metadata->num_items = out[0].tokens.size();
@@ -68,7 +59,7 @@ ModelState::decode_metadata(DecoderState* state)
 
   // Loop through each character
   for (int i = 0; i < out[0].tokens.size(); ++i) {
-    items[i].character = strdup(alphabet_->StringFromLabel(out[0].tokens[i]).c_str());
+    items[i].character = strdup(alphabet_.StringFromLabel(out[0].tokens[i]).c_str());
     items[i].timestep = out[0].timesteps[i];
     items[i].start_time = out[0].timesteps[i] * ((float)audio_win_step_ / sample_rate_);
 

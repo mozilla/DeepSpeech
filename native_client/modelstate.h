@@ -8,7 +8,8 @@
 
 #include "ctcdecode/scorer.h"
 #include "ctcdecode/output.h"
-#include "ctcdecode/decoderstate.h"
+
+class DecoderState;
 
 struct ModelState {
   //TODO: infer batch size from model/use dynamic batch size
@@ -18,8 +19,8 @@ struct ModelState {
   static constexpr unsigned int DEFAULT_WINDOW_LENGTH = DEFAULT_SAMPLE_RATE * 0.032;
   static constexpr unsigned int DEFAULT_WINDOW_STEP = DEFAULT_SAMPLE_RATE * 0.02;
 
-  Alphabet* alphabet_;
-  Scorer* scorer_;
+  Alphabet alphabet_;
+  std::unique_ptr<Scorer> scorer_;
   unsigned int beam_width_;
   unsigned int n_steps_;
   unsigned int n_context_;
@@ -65,19 +66,9 @@ struct ModelState {
    *
    * @param state Decoder state to use when decoding.
    *
-   * @return Vector of Output structs directly from the CTC decoder for additional processing.
-   */
-  virtual std::vector<Output> decode_raw(DecoderState* state);
-
-  /**
-   * @brief Perform decoding of the logits, using basic CTC decoder or
-   *        CTC decoder with KenLM enabled
-   *
-   * @param state Decoder state to use when decoding.
-   *
    * @return String representing the decoded text.
    */
-  virtual char* decode(DecoderState* state);
+  virtual char* decode(const DecoderState& state);
 
   /**
    * @brief Return character-level metadata including letter timings.
@@ -87,7 +78,7 @@ struct ModelState {
    * @return Metadata struct containing MetadataItem structs for each character.
    * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
    */
-  virtual Metadata* decode_metadata(DecoderState* state);
+  virtual Metadata* decode_metadata(const DecoderState& state);
 };
 
 #endif // MODELSTATE_H
