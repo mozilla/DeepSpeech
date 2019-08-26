@@ -26,29 +26,15 @@ KENLM_SOURCES = glob(["kenlm/lm/*.cc", "kenlm/util/*.cc", "kenlm/util/double-con
                       "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
                      exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"])
 
-KENLM_INCLUDES = [
-    "kenlm",
-]
-
 OPENFST_SOURCES_PLATFORM = select({
         "//tensorflow:windows": glob(["ctcdecode/third_party/openfst-1.6.9-win/src/lib/*.cc"]),
         "//conditions:default": glob(["ctcdecode/third_party/openfst-1.6.7/src/lib/*.cc"]),
 })
 
-DECODER_SOURCES = glob([
-    "ctcdecode/*.h",
-    "ctcdecode/*.cpp",
-], exclude=["ctcdecode/*_wrap.cpp"]) + OPENFST_SOURCES_PLATFORM + KENLM_SOURCES
-
 OPENFST_INCLUDES_PLATFORM = select({
         "//tensorflow:windows": ["ctcdecode/third_party/openfst-1.6.9-win/src/include"],
         "//conditions:default": ["ctcdecode/third_party/openfst-1.6.7/src/include"],
 })
-
-DECODER_INCLUDES = [
-    ".",
-    "ctcdecode/third_party/ThreadPool",
-] + OPENFST_INCLUDES_PLATFORM + KENLM_INCLUDES
 
 LINUX_LINKOPTS = [
     "-ldl",
@@ -57,6 +43,22 @@ LINUX_LINKOPTS = [
     "-Wl,-Bsymbolic-functions",
     "-Wl,-export-dynamic"
 ]
+
+cc_library(
+    name = "decoder",
+    srcs = ["ctcdecode/ctc_beam_search_decoder.cpp",
+            "ctcdecode/decoder_utils.cpp",
+            "ctcdecode/decoder_utils.h",
+            "ctcdecode/scorer.cpp",
+            "ctcdecode/path_trie.cpp",
+            "ctcdecode/path_trie.h"] + KENLM_SOURCES + OPENFST_SOURCES_PLATFORM,
+    hdrs = ["ctcdecode/ctc_beam_search_decoder.h",
+            "ctcdecode/scorer.h"],
+    includes = [".",
+                "ctcdecode/third_party/ThreadPool",
+                "kenlm"] + OPENFST_INCLUDES_PLATFORM,
+    defines = ["KENLM_MAX_ORDER=6"],
+)
 
 tf_cc_shared_object(
     name = "libdeepspeech.so",
@@ -67,7 +69,6 @@ tf_cc_shared_object(
             "modelstate.cc",
             "workspace_status.h",
             "workspace_status.cc"] +
-            DECODER_SOURCES +
             select({
                 "//native_client:tflite": [
                     "tflitemodelstate.h",
@@ -142,9 +143,7 @@ tf_cc_shared_object(
         ],
     }) + if_cuda([
             "//tensorflow/core:core",
-    ]),
-    includes = DECODER_INCLUDES,
-    defines = ["KENLM_MAX_ORDER=6"],
+    ]) + [":decoder"],
 )
 
 cc_binary(
@@ -152,11 +151,10 @@ cc_binary(
     srcs = [
             "generate_trie.cpp",
             "alphabet.h",
-           ] + DECODER_SOURCES,
-    includes = DECODER_INCLUDES,
+           ],
     copts = ["-std=c++11"],
     linkopts = ["-lm", "-ldl", "-pthread"],
-    defines = ["KENLM_MAX_ORDER=6"],
+    deps = [":decoder"],
 )
 
 cc_binary(
@@ -164,9 +162,8 @@ cc_binary(
     srcs = [
             "trie_load.cc",
             "alphabet.h",
-           ] + DECODER_SOURCES,
-    includes = DECODER_INCLUDES,
+           ],
     copts = ["-std=c++11"],
     linkopts = ["-lm", "-ldl", "-pthread"],
-    defines = ["KENLM_MAX_ORDER=6"],
+    deps = [":decoder"],
 )
