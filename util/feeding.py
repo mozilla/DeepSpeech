@@ -27,7 +27,7 @@ def read_csvs(csv_files):
         if source_data is None:
             source_data = file
         else:
-            source_data = source_data.append(file)
+            source_data = source_data.append(file, ignore_index=True)
     return source_data
 
 
