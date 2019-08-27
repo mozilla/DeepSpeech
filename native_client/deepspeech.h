@@ -15,24 +15,24 @@ extern "C" {
     #define DEEPSPEECH_EXPORT
 #endif
 
-struct ModelState;
+typedef struct ModelState ModelState;
 
-struct StreamingState;
+typedef struct StreamingState StreamingState;
 
 // Stores each individual character, along with its timing information
-struct MetadataItem {
+typedef struct MetadataItem {
   char* character;
   int timestep; // Position of the character in units of 20ms
   float start_time; // Position of the character in seconds
-};
+} MetadataItem;
 
 // Stores the entire CTC output as an array of character metadata objects
-struct Metadata {
+typedef struct Metadata {
   MetadataItem* items;
   int num_items;
   // Approximated probability (confidence value) for this transcription.
   double probability;
-};
+} Metadata;
 
 enum DeepSpeech_Error_Codes
 {
