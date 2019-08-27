@@ -1,11 +1,15 @@
 #ifndef DEEPSPEECH_H
 #define DEEPSPEECH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef SWIG
     #if defined _MSC_VER
-        #define DEEPSPEECH_EXPORT extern "C" __declspec(dllexport) 
+        #define DEEPSPEECH_EXPORT __declspec(dllexport) 
     #else                                                                   /*End of _MSC_VER*/  
-        #define DEEPSPEECH_EXPORT extern "C" __attribute__ ((visibility("default")))
+        #define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
 #endif                                                                      /*End of SWIG*/  
 #else
     #define DEEPSPEECH_EXPORT
@@ -252,5 +256,9 @@ DEEPSPEECH_EXPORT
 void DS_PrintVersions();
 
 #undef DEEPSPEECH_EXPORT
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* DEEPSPEECH_H */
