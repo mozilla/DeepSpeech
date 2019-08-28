@@ -8,6 +8,7 @@ import sys
 LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
 
+import absl.app
 import numpy as np
 import progressbar
 import shutil
@@ -891,4 +892,4 @@ def main(_):
 
 if __name__ == '__main__':
     create_flags()
-    tfv1.app.run(main)
+    absl.app.run(main)

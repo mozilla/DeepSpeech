@@ -6,6 +6,7 @@ pandas
 six
 pyxdg
 attrdict
+absl-py
 
 # Requirements for building native_client files
 setuptools

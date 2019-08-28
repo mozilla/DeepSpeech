@@ -1,16 +1,15 @@
 from __future__ import absolute_import, division, print_function
 
-import tensorflow as tf
-
 import os
+import absl.flags
 
-FLAGS = tf.app.flags.FLAGS
+FLAGS = absl.flags.FLAGS
 
 def create_flags():
     # Importer
     # ========
 
-    f = tf.app.flags
+    f = absl.flags
 
     f.DEFINE_string('train_files', '', 'comma separated list of files specifying the dataset used for training. Multiple files will get merged. If empty, training will not be run.')
     f.DEFINE_string('dev_files', '', 'comma separated list of files specifying the dataset used for validation. Multiple files will get merged. If empty, validation will not be run.')
@@ -88,6 +87,8 @@ def create_flags():
     f.DEFINE_integer('report_count', 10, 'number of phrases with lowest WER(best matching) to print out during a WER report')
 
     f.DEFINE_string('summary_dir', '', 'target directory for TensorBoard summaries - defaults to directory "deepspeech/summaries" within user\'s data home specified by the XDG Base Directory Specification')
+
+    f.DEFINE_string('test_output_file', '', 'path to a file to save all src/decoded/distance/loss tuples generated during a test epoch')
 
     # Geometry
 
