@@ -10,7 +10,7 @@ import pandas
 import tensorflow as tf
 import datetime
 
-from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
+from tensorflow.python.ops import gen_audio_ops as contrib_audio
 
 from util.config import Config
 from util.logging import log_error
@@ -39,7 +39,7 @@ def samples_to_mfccs(samples, sample_rate):
     mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
 
-    return mfccs, tf.shape(mfccs)[0]
+    return mfccs, tf.shape(input=mfccs)[0]
 
 
 def audiofile_to_features(wav_filename):
