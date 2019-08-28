@@ -1,34 +1,38 @@
 #ifndef DEEPSPEECH_H
 #define DEEPSPEECH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef SWIG
     #if defined _MSC_VER
-        #define DEEPSPEECH_EXPORT extern "C" __declspec(dllexport) 
-    #else                                                                   /*End of _MSC_VER*/  
-        #define DEEPSPEECH_EXPORT extern "C" __attribute__ ((visibility("default")))
-#endif                                                                      /*End of SWIG*/  
+        #define DEEPSPEECH_EXPORT __declspec(dllexport)
+    #else                                                                   /*End of _MSC_VER*/
+        #define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
+#endif                                                                      /*End of SWIG*/
 #else
     #define DEEPSPEECH_EXPORT
 #endif
 
-struct ModelState;
+typedef struct ModelState ModelState;
 
-struct StreamingState;
+typedef struct StreamingState StreamingState;
 
 // Stores each individual character, along with its timing information
-struct MetadataItem {
+typedef struct MetadataItem {
   char* character;
   int timestep; // Position of the character in units of 20ms
   float start_time; // Position of the character in seconds
-};
+} MetadataItem;
 
 // Stores the entire CTC output as an array of character metadata objects
-struct Metadata {
+typedef struct Metadata {
   MetadataItem* items;
   int num_items;
   // Approximated probability (confidence value) for this transcription.
   double probability;
-};
+} Metadata;
 
 enum DeepSpeech_Error_Codes
 {
@@ -248,5 +252,9 @@ DEEPSPEECH_EXPORT
 void DS_PrintVersions();
 
 #undef DEEPSPEECH_EXPORT
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* DEEPSPEECH_H */
