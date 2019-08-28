@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tfv1
 import sys
 
-with tf.gfile.FastGFile(sys.argv[1], 'rb') as fin:
-    graph_def = tf.GraphDef()
-    graph_def.ParseFromString(fin.read())
+def main():
+    with tfv1.gfile.FastGFile(sys.argv[1], 'rb') as fin:
+        graph_def = tfv1.GraphDef()
+        graph_def.ParseFromString(fin.read())
 
-    print('\n'.join(sorted(set(n.op for n in graph_def.node))))
+        print('\n'.join(sorted(set(n.op for n in graph_def.node))))
+
+if __name__ == '__main__':
+    main()

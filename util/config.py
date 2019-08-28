@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import tensorflow as tf
+import tensorflow.compat.v1 as tfv1
 
 from attrdict import AttrDict
 from xdg import BaseDirectory as xdg
@@ -57,9 +58,9 @@ def initialize_globals():
         FLAGS.summary_dir = xdg.save_data_path(os.path.join('deepspeech', 'summaries'))
 
     # Standard session configuration that'll be used for all new sessions.
-    c.session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement,
-                                      inter_op_parallelism_threads=FLAGS.inter_op_parallelism_threads,
-                                      intra_op_parallelism_threads=FLAGS.intra_op_parallelism_threads)
+    c.session_config = tfv1.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement,
+                                        inter_op_parallelism_threads=FLAGS.inter_op_parallelism_threads,
+                                        intra_op_parallelism_threads=FLAGS.intra_op_parallelism_threads)
 
     c.alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
 
