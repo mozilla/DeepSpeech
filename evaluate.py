@@ -7,6 +7,7 @@ import json
 
 from multiprocessing import cpu_count
 
+import absl.app
 import numpy as np
 import progressbar
 import tensorflow as tf
@@ -167,5 +168,4 @@ def main(_):
 
 if __name__ == '__main__':
     create_flags()
-    tf.app.flags.DEFINE_string('test_output_file', '', 'path to a file to save all src/decoded/distance/loss tuples')
-    tfv1.app.run(main)
+    absl.app.run(main)
