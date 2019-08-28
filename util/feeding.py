@@ -10,7 +10,7 @@ import pandas
 import tensorflow as tf
 import datetime
 
-from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
+from tensorflow.python.ops import gen_audio_ops as contrib_audio
 
 from util.config import Config
 from util.logging import log_error
