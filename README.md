@@ -4,34 +4,40 @@
 
 DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) to make the implementation easier.
 
-![Usage](images/usage.gif)
-
-Pre-built binaries for performing inference with a trained model can be installed with `pip3`. Proper setup using a virtual environment is recommended, and you can find that documentation [below](#using-the-python-package).
-
-A pre-trained English model is available for use and can be downloaded using [the instructions below](#getting-the-pre-trained-model). Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client.
-
-Once everything is installed, you can then use the `deepspeech` binary to do speech-to-text on short (approximately 5-second long) audio files as such:
-
 ```bash
+# Create and activate a virtualenv
+virtualenv -p python3 $HOME/tmp/deepspeech-venv/
+source $HOME/tmp/deepspeech-venv/bin/activate
+
+# Install DeepSpeech
 pip3 install deepspeech
+
+# Transcribe an audio file
 deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
-Alternatively, quicker inference can be performed using a supported NVIDIA GPU on Linux. See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. To run `deepspeech` on a GPU, install the GPU specific package:
+A pre-trained English model is available for use and can be downloaded using [the instructions below](#using-a-pre-trained-model). Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client.
+
+Quicker inference can be performed using a supported NVIDIA GPU on Linux. See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. To run `deepspeech` on a GPU, install the GPU specific package:
 
 ```bash
+# Create and activate a virtualenv
+virtualenv -p python3 $HOME/tmp/deepspeech-gpu-venv/
+source $HOME/tmp/deepspeech-gpu-venv/bin/activate
+
+# Install DeepSpeech CUDA enabled package
 pip3 install deepspeech-gpu
+
+# Transcribe an audio file.
 deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
-Please ensure you have the required [CUDA dependency](#cuda-dependency).
+Please ensure you have the required [CUDA dependencies](#cuda-dependency).
 
 See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
 
 **Table of Contents**
 
-- [Prerequisites](#prerequisites)
-- [Getting the code](#getting-the-code)
 - [Using a Pre-trained Model](#using-a-pre-trained-model)
   - [CUDA dependency](#cuda-dependency)
   - [Getting the pre-trained model](#getting-the-pre-trained-model)
@@ -42,7 +48,9 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Installing bindings from source](#installing-bindings-from-source)
   - [Third party bindings](#third-party-bindings)
 - [Training your own Model](#training-your-own-model)
-  - [Installing training prerequisites](#installing-training-prerequisites)
+  - [Prerequisites for training a model](#prerequisites-for-training-a-model)
+  - [Getting the training code](#getting-the-training-code)
+  - [Installing Python dependencies](#installing-python-dependencies)
   - [Recommendations](#recommendations)
   - [Common Voice training data](#common-voice-training-data)
   - [Training a model](#training-a-model)
@@ -54,43 +62,26 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
 - [Contribution guidelines](#contribution-guidelines)
 - [Contact/Getting Help](#contactgetting-help)
 
-## Prerequisites
-
-* [Python 3.6](https://www.python.org/)
-* [Git Large File Storage](https://git-lfs.github.com/)
-* Mac or Linux environment
-* Go to [build README](examples/net_framework/README.md) to start building DeepSpeech for Windows from source.
-
-## Getting the code
-
-Install [Git Large File Storage](https://git-lfs.github.com/) either manually or through a package-manager if available on your system. Then clone the DeepSpeech repository normally:
-
-```bash
-git clone https://github.com/mozilla/DeepSpeech
-```
-
-
 ## Using a Pre-trained Model
 
-There are three ways to use DeepSpeech inference:
+Inference using a DeepSpeech pre-trained model can be done with a client/language binding package. We have four clients/language bindings in this repository, listed below, and also a few community-maintained clients/language bindings in other repositories, listed [further down in this README](#third-party-bindings).
 
-- [The Python package](#using-the-python-package)
-- [The Node.JS package](#using-the-nodejs-package)
+- [The Python package/language binding](#using-the-python-package)
+- [The Node.JS package/language binding](#using-the-nodejs-package)
 - [The Command-Line client](#using-the-command-line-client)
+- [The .NET client/language binding](native_client/dotnet/README.md)
 
-Running `deepspeech` might require some runtime dependencies to be already installed on your system. Regardless of which bindings you are using, you will need the following:
+Running `deepspeech` might require some runtime dependencies to be already installed on your system:
 
-* libsox2
-* libstdc++6
-* libgomp1
-* libpthread
+* sox - The Python and Node.JS clients use SoX to resample files to 16kHz.
+* libpthread - On Linux, some people have had to install libpthread manually.
 
 Please refer to your system's documentation on how to install these dependencies.
 
 
 ### CUDA dependency
 
-The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 1.14 it depends on CUDA 10.0 and CuDNN v7.5.
+The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 1.14 it depends on CUDA 10.0 and CuDNN v7.5. [See the TensorFlow documentation](https://www.tensorflow.org/install/gpu).
 
 ### Getting the pre-trained model
 
@@ -240,7 +231,39 @@ In addition to the bindings above, third party developers have started to provid
 
 ## Training Your Own Model
 
-### Installing Training Prerequisites
+### Prerequisites for training a model
+
+* [Python 3.6](https://www.python.org/)
+* [Git Large File Storage](https://git-lfs.github.com/)
+* Mac or Linux environment
+
+### Getting the training code
+
+Install [Git Large File Storage](https://git-lfs.github.com/) either manually or through a package-manager if available on your system. Then clone the DeepSpeech repository normally:
+
+```bash
+git clone https://github.com/mozilla/DeepSpeech
+```
+
+### Creating a virtual environment
+
+In creating a virtual environment you will create a directory containing a `python3` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on `$HOME/tmp/deepspeech-train-venv`. You can create it using this command:
+
+```
+$ virtualenv -p python3 $HOME/tmp/deepspeech-train-venv/
+```
+
+Once this command completes successfully, the environment will be ready to be activated.
+
+### Activating the environment
+
+Each time you need to work with DeepSpeech, you have to *activate* this virtual environment. This is done with this simple command:
+
+```
+$ source $HOME/tmp/deepspeech-train-venv/bin/activate
+```
+
+### Installing Python dependencies
 
 Install the required dependencies using `pip3`:
 
@@ -255,7 +278,7 @@ You'll also need to install the `ds_ctcdecoder` Python package. `ds_ctcdecoder` 
 pip3 install $(python3 util/taskcluster.py --decoder)
 ```
 
-This command will download and install the `ds_ctcdecoder` package. If you prefer building the binaries from source, see the [native_client README file](native_client/README.md). You can override the platform with `--arch` if you want the package for ARM7 (`--arch arm`) or ARM64 (`--arch arm64`).
+This command will download and install the `ds_ctcdecoder` package. You can override the platform with `--arch` if you want the package for ARM7 (`--arch arm`) or ARM64 (`--arch arm64`). If you prefer building the `ds_ctcdecoder` package from source, see the [native_client README file](native_client/README.md).
 
 ### Recommendations
 
@@ -274,7 +297,7 @@ tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution 
 	 [[{{node tower_0/conv1d/Conv2D}}]]
 ```
 
-Setting the `TF_FORCE_GPU_ALLOW_GROWTH` environment variable to `true` seems to help in such cases.
+Setting the `TF_FORCE_GPU_ALLOW_GROWTH` environment variable to `true` seems to help in such cases. This could also be due to an incorrect version of libcudnn. Double check your versions with the [TensorFlow 1.14 documentation](#cuda-dependency).
 
 ### Common Voice training data
 
@@ -318,19 +341,19 @@ The central (Python) script is `DeepSpeech.py` in the project's root directory. 
 ./DeepSpeech.py --helpfull
 ```
 
-To get the output of this in a slightly better-formatted way, you can also look up the option definitions top `DeepSpeech.py`.
+To get the output of this in a slightly better-formatted way, you can also look up the option definitions in [`util/flags.py`](util/flags.py).
 
-For executing pre-configured training scenarios, there is a collection of convenience scripts in the `bin` folder. Most of them are named after the corpora they are configured for. Keep in mind that the other speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series recommended) takes even longer.
+For executing pre-configured training scenarios, there is a collection of convenience scripts in the `bin` folder. Most of them are named after the corpora they are configured for. Keep in mind that most speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series or newer recommended) takes even longer.
 
 **If you experience GPU OOM errors while training, try reducing the batch size with the `--train_batch_size`, `--dev_batch_size` and `--test_batch_size` parameters.**
 
-As a simple first example you can open a terminal, change to the directory of the DeepSpeech checkout and run:
+As a simple first example you can open a terminal, change to the directory of the DeepSpeech checkout, activate the virtualenv created above, and run:
 
 ```bash
 ./bin/run-ldc93s1.sh
 ```
 
-This script will train on a small sample dataset called LDC93S1, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters.
+This script will train on a small sample dataset composed of just a single audio file, the sample file for the [TIMIT Acoustic-Phonetic Continuous Speech Corpus](https://catalog.ldc.upenn.edu/LDC93S1), which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters.
 
 Feel also free to pass additional (or overriding) `DeepSpeech.py` parameters to these scripts. Then, just run the script to train the modified network.
 
