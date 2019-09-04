@@ -17,6 +17,9 @@ ModelState::ModelState()
   , audio_win_step_(DEFAULT_WINDOW_STEP)
   , state_size_(-1)
 {
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  log_ = os_log_create("org.mozilla.deepspeech", "PointsOfInterest");
+#endif /* DS_ENABLE_PROFILER_MARKERS */
 }
 
 ModelState::~ModelState()

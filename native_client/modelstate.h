@@ -9,6 +9,8 @@
 #include "ctcdecode/scorer.h"
 #include "ctcdecode/output.h"
 
+#include <os/log.h>
+
 class DecoderState;
 
 struct ModelState {
@@ -30,6 +32,10 @@ struct ModelState {
   unsigned int audio_win_len_;
   unsigned int audio_win_step_;
   unsigned int state_size_;
+
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  os_log_t log_;
+#endif /* DS_ENABLE_PROFILER_MARKERS */
 
   ModelState();
   virtual ~ModelState();

@@ -33,6 +33,11 @@
 #define  LOGE(...)
 #endif // __ANDROID__
 
+#ifdef DS_ENABLE_PROFILER_MARKERS
+#include <os/log.h>
+#include <os/signpost.h>
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
 using std::vector;
 
 /* This is the implementation of the streaming inference API.
@@ -73,6 +78,11 @@ struct StreamingState {
   ModelState* model_;
   DecoderState decoder_state_;
 
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  bool first_feed_ = true;
+  bool first_decoded_ = true;
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
   StreamingState();
   ~StreamingState();
 
@@ -109,6 +119,14 @@ void
 StreamingState::feedAudioContent(const short* buffer,
                                  unsigned int buffer_size)
 {
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  if (first_feed_) {
+    uint64_t sid = os_signpost_id_generate(model_->log_);
+    os_signpost_event_emit(model_->log_, sid, "First feedAudioContent");
+    first_feed_ = false;
+  }
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
   // Consume all the data that was passed in, processing full buffers if needed
   while (buffer_size > 0) {
     while (buffer_size > 0 && audio_buffer_.size() < model_->audio_win_len_) {
@@ -235,6 +253,11 @@ StreamingState::processMfccWindow(const vector<float>& buf)
 void
 StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 {
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  os_signpost_id_t sid = os_signpost_id_generate(model_->log_);
+  os_signpost_interval_begin(model_->log_, sid, "ModelState::infer");
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
   vector<float> logits;
   model_->infer(buf,
                 n_steps,
@@ -244,15 +267,34 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
                 previous_state_c_,
                 previous_state_h_);
 
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  os_signpost_interval_end(model_->log_, sid, "ModelState::infer");
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
   const size_t num_classes = model_->alphabet_.GetSize() + 1; // +1 for blank
   const int n_frames = logits.size() / (ModelState::BATCH_SIZE * num_classes);
 
   // Convert logits to double
   vector<double> inputs(logits.begin(), logits.end());
 
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  sid = os_signpost_id_generate(model_->log_);
+  os_signpost_interval_begin(model_->log_, sid, "DecoderState::next");
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
   decoder_state_.next(inputs.data(),
                       n_frames,
                       num_classes);
+
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  os_signpost_interval_end(model_->log_, sid, "DecoderState::next");
+
+  if (first_decoded_) {
+    uint64_t sid = os_signpost_id_generate(model_->log_);
+    os_signpost_event_emit(model_->log_, sid, "First DecoderState::next completed");
+    first_decoded_ = false;
+  }
+#endif /* DS_ENABLE_PROFILER_MARKERS */
 }
 
 int
@@ -404,8 +446,19 @@ DS_SpeechToText(ModelState* aCtx,
                 unsigned int aBufferSize,
                 unsigned int aSampleRate)
 {
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  uint64_t sid = os_signpost_id_generate(aCtx->log_);
+  os_signpost_interval_begin(aCtx->log_, sid, "DS_SpeechToText");
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
   StreamingState* ctx = SetupStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
-  return DS_FinishStream(ctx);
+  char* result = DS_FinishStream(ctx);
+
+#ifdef DS_ENABLE_PROFILER_MARKERS
+  os_signpost_interval_end(aCtx->log_, sid, "DS_SpeechToText");
+#endif /* DS_ENABLE_PROFILER_MARKERS */
+
+  return result;
 }
 
 Metadata*
