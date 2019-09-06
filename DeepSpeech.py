@@ -472,6 +472,8 @@ def train():
     best_dev_filename = 'best_dev_checkpoint'
 
     # Save flags next to checkpoints
+    os.makedirs(FLAGS.checkpoint_dir, exist_ok=True)
+
     flags_file = os.path.join(FLAGS.checkpoint_dir, 'flags.txt')
     with open(flags_file, 'w') as fout:
         fout.write(FLAGS.flags_into_string())
