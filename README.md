@@ -4,6 +4,8 @@
 
 DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on [Baidu's Deep Speech research paper](https://arxiv.org/abs/1412.5567). Project DeepSpeech uses Google's [TensorFlow](https://www.tensorflow.org/) to make the implementation easier.
 
+To install and use deepspeech all you have to do is:
+
 ```bash
 # Create and activate a virtualenv
 virtualenv -p python3 $HOME/tmp/deepspeech-venv/
@@ -16,9 +18,9 @@ pip3 install deepspeech
 deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
 ```
 
-A pre-trained English model is available for use and can be downloaded using [the instructions below](#using-a-pre-trained-model). Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client.
+A pre-trained English model is available for use and can be downloaded using [the instructions below](#using-a-pre-trained-model). Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client. A package with some example audio files is available for download in our [release notes](https://github.com/mozilla/DeepSpeech/releases/latest).
 
-Quicker inference can be performed using a supported NVIDIA GPU on Linux. See the [release notes](https://github.com/mozilla/DeepSpeech/releases) to find which GPUs are supported. To run `deepspeech` on a GPU, install the GPU specific package:
+Quicker inference can be performed using a supported NVIDIA GPU on Linux. See the [release notes](https://github.com/mozilla/DeepSpeech/releases/latest) to find which GPUs are supported. To run `deepspeech` on a GPU, install the GPU specific package:
 
 ```bash
 # Create and activate a virtualenv
@@ -35,6 +37,8 @@ deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm 
 Please ensure you have the required [CUDA dependencies](#cuda-dependency).
 
 See the output of `deepspeech -h` for more information on the use of `deepspeech`. (If you experience problems running `deepspeech`, please check [required runtime dependencies](native_client/README.md#required-dependencies)).
+
+---
 
 **Table of Contents**
 
@@ -71,7 +75,7 @@ Inference using a DeepSpeech pre-trained model can be done with a client/languag
 - [The Command-Line client](#using-the-command-line-client)
 - [The .NET client/language binding](native_client/dotnet/README.md)
 
-Running `deepspeech` might require some runtime dependencies to be already installed on your system:
+Running `deepspeech` might, see below, require some runtime dependencies to be already installed on your system:
 
 * sox - The Python and Node.JS clients use SoX to resample files to 16kHz.
 * libgomp1 - libsox (statically linked into the clients) depends on OpenMP. Some people have had to install this manually.
