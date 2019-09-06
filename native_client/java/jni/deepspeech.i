@@ -21,6 +21,13 @@
 %array_functions(struct MetadataItem, metadataItem_array);
 
 %extend struct Metadata {
+  /**
+   * Retrieve one MetadataItem element
+   * 
+   * @param i Array index of the MetadataItem to get
+   *
+   * @return The MetadataItem requested or null
+   */
   MetadataItem getItem(int i) {
     return metadataItem_array_getitem(self->items, i);
   }

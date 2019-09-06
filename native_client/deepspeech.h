@@ -19,20 +19,32 @@ typedef struct ModelState ModelState;
 
 typedef struct StreamingState StreamingState;
 
-// Stores each individual character, along with its timing information
+/**
+ * @brief Stores each individual character, along with its timing information
+ */
 typedef struct MetadataItem {
+  /** The character generated for transcription */
   char* character;
-  int timestep; // Position of the character in units of 20ms
-  float start_time; // Position of the character in seconds
+
+  /** Position of the character in units of 20ms */
+  int timestep;
+
+  /** Position of the character in seconds */
+  float start_time;
 } MetadataItem;
 
-// Stores the entire CTC output as an array of character metadata objects
+/**
+ * @brief Stores the entire CTC output as an array of character metadata objects
+ */
 typedef struct Metadata {
+  /** List of items */
   MetadataItem* items;
+  /** Size of the list of items */
   int num_items;
-  // Approximated confidence value for this transcription. This is roughly the
-  // sum of the acoustic model logit values for each timestep/character that
-  // contributed to the creation of this transcription.
+  /** Approximated confidence value for this transcription. This is roughly the
+   * sum of the acoustic model logit values for each timestep/character that
+   * contributed to the creation of this transcription.
+   */
   double confidence;
 } Metadata;
 
@@ -90,8 +102,6 @@ void DS_FreeModel(ModelState* ctx);
  * @brief Enable decoding using beam scoring with a KenLM language model.
  *
  * @param aCtx The ModelState pointer for the model being changed.
- * @param aAlphabetConfigPath The path to the configuration file specifying
- *                            the alphabet used by the network. See alphabet.h.
  * @param aLMPath The path to the language model binary file.
  * @param aTriePath The path to the trie file build from the same vocabu-
  *                  lary as the language model binary.

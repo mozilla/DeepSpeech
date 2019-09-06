@@ -12,12 +12,27 @@ BUILDDIR      = .build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile
+.PHONY: help pip3 npm Makefile doxygen-c doxygen-java
+
+doxygen-c:
+	cd ../ && doxygen doc/doxygen-c.conf
+
+doxygen-java:
+	cd ../ && doxygen doc/doxygen-java.conf
+
+pip3:
+	pip3 install --user -r ../taskcluster/docs-requirements.txt
+
+npm:
+	npm install jsdoc@3.6.3
+
+dist: html
+	cd $(BUILDDIR)/html/ && zip -r9 ../../html.zip *
 
 dist: html
 	@cd $(BUILDDIR)/html/ && zip -r9 ../../html.zip *
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile
+%: Makefile pip3 npm doxygen-c doxygen-java
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

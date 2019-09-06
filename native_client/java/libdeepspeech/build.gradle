@@ -43,6 +43,11 @@ android {
         timeOutInMs 15 * 60 * 1000  // 10 minutes
         installOptions "-d","-t"
     }
+
+    // Avoid scanning libdeepspeech_doc
+    sourceSets {
+        main.java.srcDirs = [ 'src/main/java/org/mozilla/deepspeech/libdeepspeech/' ]
+    }
 }
 
 dependencies {

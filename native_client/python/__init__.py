@@ -18,7 +18,19 @@ from deepspeech.impl import PrintVersions as printVersions
 from deepspeech.impl import FreeStream as freeStream
 
 class Model(object):
-    def __init__(self, *args, **kwargs):
+    """
+    Class holding a DeepSpeech model
+
+    :param aModelPath: Path to model file to load
+    :type aModelPath: str
+
+    :param aAlphabetConfigPath: Path to alphabet file to load
+    :type aAlphabetConfigPath: str
+
+    :param aBeamWidth: Decoder beam width
+    :type aBeamWidth: int
+    """
+    def __init__(self,  *args, **kwargs):
         # make sure the attribute is there if CreateModel fails
         self._impl = None
 
@@ -33,15 +45,74 @@ class Model(object):
             self._impl = None
 
     def enableDecoderWithLM(self, *args, **kwargs):
+        """
+        Enable decoding using beam scoring with a KenLM language model.
+
+        :param aLMPath: The path to the language model binary file.
+        :type aLMPath: str
+
+        :param aTriePath: The path to the trie file build from the same vocabulary as the language model binary.
+        :type aTriePath: str
+
+        :param aLMAlpha: The alpha hyperparameter of the CTC decoder. Language Model weight.
+        :type aLMAlpha: float
+
+        :param aLMBeta: The beta hyperparameter of the CTC decoder. Word insertion weight.
+        :type aLMBeta: float
+
+        :return: Zero on success, non-zero on failure (invalid arguments).
+        :type: int
+        """
         return deepspeech.impl.EnableDecoderWithLM(self._impl, *args, **kwargs)
 
     def stt(self, *args, **kwargs):
+        """
+        Use the DeepSpeech model to perform Speech-To-Text.
+
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :type aBuffer: int array
+
+        :param aBufferSize: The number of samples in the audio signal.
+        :type aBufferSize: int
+
+        :param aSampleRate: The sample-rate of the audio signal.
+        :type aSampleRate: int
+
+        :return: The STT result.
+        :type: str
+        """
         return deepspeech.impl.SpeechToText(self._impl, *args, **kwargs)
 
     def sttWithMetadata(self, *args, **kwargs):
+        """
+        Use the DeepSpeech model to perform Speech-To-Text and output metadata about the results.
+
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :type aBuffer: int array
+
+        :param aBufferSize: The number of samples in the audio signal.
+        :type aBufferSize: int
+
+        :param aSampleRate: The sample-rate of the audio signal.
+        :type aSampleRate: int
+
+        :return: Outputs a struct of individual letters along with their timing information.
+        :type: :func:`Metadata`
+        """
         return deepspeech.impl.SpeechToTextWithMetadata(self._impl, *args, **kwargs)
 
     def createStream(self, sample_rate=16000):
+        """
+        Create a new streaming inference state. The streaming state returned
+        by this function can then be passed to :func:`feedAudioContent()` and :func:`finishStream()`.
+
+        :param aSampleRate: The sample-rate of the audio signal.
+        :type aSampleRate: int
+
+        :return: Object holding the stream
+
+        :throws: RuntimeError on error
+        """
         status, ctx = deepspeech.impl.CreateStream(self._impl,
                                                    aSampleRate=sample_rate)
         if status != 0:
@@ -49,13 +120,113 @@ class Model(object):
         return ctx
 
     def feedAudioContent(self, *args, **kwargs):
+        """
+        Feed audio samples to an ongoing streaming inference.
+
+        :param aSctx: A streaming state pointer returned by :func:`createStream()`.
+        :type aSctx: object
+
+        :param aBuffer: An array of 16-bit, mono raw audio samples at the appropriate sample rate.
+        :type aBuffer: int array
+
+        :param aBufferSize: The number of samples in @p aBuffer.
+        :type aBufferSize: int
+        """
         deepspeech.impl.FeedAudioContent(*args, **kwargs)
 
     def intermediateDecode(self, *args, **kwargs):
+        """
+        Compute the intermediate decoding of an ongoing streaming inference.
+        This is an expensive process as the decoder implementation isn't
+        currently capable of streaming, so it always starts from the beginning
+        of the audio.
+
+        :param aSctx: A streaming state pointer returned by :func:`createStream()`.
+        :type aSctx: object
+
+        :return: The STT intermediate result.
+        :type: str
+        """
         return deepspeech.impl.IntermediateDecode(*args, **kwargs)
 
     def finishStream(self, *args, **kwargs):
+        """
+        Signal the end of an audio signal to an ongoing streaming
+        inference, returns the STT result over the whole audio signal.
+
+        :param aSctx: A streaming state pointer returned by :func:`createStream()`.
+        :type aSctx: object
+
+        :return: The STT result.
+        :type: str
+        """
         return deepspeech.impl.FinishStream(*args, **kwargs)
 
     def finishStreamWithMetadata(self, *args, **kwargs):
+        """
+        Signal the end of an audio signal to an ongoing streaming
+        inference, returns per-letter metadata.
+
+        :param aSctx: A streaming state pointer returned by :func:`createStream()`.
+        :type aSctx: object
+
+        :return: Outputs a struct of individual letters along with their timing information.
+        :type: :func:`Metadata`
+        """
         return deepspeech.impl.FinishStreamWithMetadata(*args, **kwargs)
+
+# This is only for documentation purpose
+# Metadata and MetadataItem should be in sync with native_client/deepspeech.h
+class MetadataItem(object):
+    """
+    Stores each individual character, along with its timing information
+    """
+
+    def character(self):
+        """
+        The character generated for transcription
+        """
+        pass
+
+    def timestep(self):
+        """
+        Position of the character in units of 20ms
+        """
+        pass
+
+    def start_time(self):
+        """
+        Position of the character in seconds
+        """
+        pass
+
+
+class Metadata(object):
+    """
+    Stores the entire CTC output as an array of character metadata objects
+    """
+    def items(self):
+        """
+        List of items
+
+        :return: A list of :func:`MetadataItem` elements
+        :type: list
+        """
+        pass
+
+    def num_items(self):
+        """
+        Size of the list of items
+
+        :return: Size of the list of items
+        :type: int
+        """
+        pass
+
+    def confidence(self):
+        """
+        Approximated confidence value for this transcription. This is roughly the
+        sum of the acoustic model logit values for each timestep/character that
+        contributed to the creation of this transcription.
+        """
+        pass
