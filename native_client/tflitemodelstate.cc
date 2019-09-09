@@ -89,12 +89,10 @@ TFLiteModelState::~TFLiteModelState()
 
 int
 TFLiteModelState::init(const char* model_path,
-                       unsigned int n_features,
-                       unsigned int n_context,
                        const char* alphabet_path,
                        unsigned int beam_width)
 {
-  int err = ModelState::init(model_path, n_features, n_context, alphabet_path, beam_width);
+  int err = ModelState::init(model_path, alphabet_path, beam_width);
   if (err != DS_ERR_OK) {
     return err;
   }

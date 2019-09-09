@@ -63,8 +63,6 @@ enum DeepSpeech_Error_Codes
  * @brief An object providing an interface to a trained DeepSpeech model.
  *
  * @param aModelPath The path to the frozen model graph.
- * @param aNCep The number of cepstrum the model was trained with.
- * @param aNContext The context window the model was trained with.
  * @param aAlphabetConfigPath The path to the configuration file specifying
  *                            the alphabet used by the network. See alphabet.h.
  * @param aBeamWidth The beam width used by the decoder. A larger beam
@@ -76,8 +74,6 @@ enum DeepSpeech_Error_Codes
  */
 DEEPSPEECH_EXPORT
 int DS_CreateModel(const char* aModelPath,
-                   unsigned int aNCep,
-                   unsigned int aNContext,
                    const char* aAlphabetConfigPath,
                    unsigned int aBeamWidth,
                    ModelState** retval);
@@ -86,7 +82,7 @@ int DS_CreateModel(const char* aModelPath,
  * @brief Frees associated resources and destroys model object.
  */
 DEEPSPEECH_EXPORT
-void DS_DestroyModel(ModelState* ctx);
+void DS_FreeModel(ModelState* ctx);
 
 /**
  * @brief Enable decoding using beam scoring with a KenLM language model.
@@ -106,7 +102,6 @@ void DS_DestroyModel(ModelState* ctx);
  */
 DEEPSPEECH_EXPORT
 int DS_EnableDecoderWithLM(ModelState* aCtx,
-                           const char* aAlphabetConfigPath,
                            const char* aLMPath,
                            const char* aTriePath,
                            float aLMAlpha,
@@ -145,9 +140,9 @@ char* DS_SpeechToText(ModelState* aCtx,
  */
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
-                      const short* aBuffer,
-                      unsigned int aBufferSize,
-                      unsigned int aSampleRate);
+                                      const short* aBuffer,
+                                      unsigned int aBufferSize,
+                                      unsigned int aSampleRate);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -162,14 +157,14 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  * @return Zero for success, non-zero on failure.
  */
 DEEPSPEECH_EXPORT
-int DS_SetupStream(ModelState* aCtx,
-                   unsigned int aSampleRate,
-                   StreamingState** retval);
+int DS_CreateStream(ModelState* aCtx,
+                    unsigned int aSampleRate,
+                    StreamingState** retval);
 
 /**
  * @brief Feed audio samples to an ongoing streaming inference.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  * @param aBuffer An array of 16-bit, mono raw audio samples at the
  *                appropriate sample rate.
  * @param aBufferSize The number of samples in @p aBuffer.
@@ -185,7 +180,7 @@ void DS_FeedAudioContent(StreamingState* aSctx,
  *        currently capable of streaming, so it always starts from the beginning
  *        of the audio.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
  * @return The STT intermediate result. The user is responsible for freeing the
  *         string using {@link DS_FreeString()}.
@@ -197,7 +192,7 @@ char* DS_IntermediateDecode(StreamingState* aSctx);
  * @brief Signal the end of an audio signal to an ongoing streaming
  *        inference, returns the STT result over the whole audio signal.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
  * @return The STT result. The user is responsible for freeing the string using
  *         {@link DS_FreeString()}.
@@ -211,7 +206,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  * @brief Signal the end of an audio signal to an ongoing streaming
  *        inference, returns per-letter metadata.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
@@ -226,12 +221,12 @@ Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx);
  *        can be used if you no longer need the result of an ongoing streaming
  *        inference and don't want to perform a costly decode operation.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_SetupStream()}.
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
-void DS_DiscardStream(StreamingState* aSctx);
+void DS_FreeStream(StreamingState* aSctx);
 
 /**
  * @brief Free memory allocated for metadata information.

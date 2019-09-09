@@ -31,8 +31,6 @@ struct TFLiteModelState : public ModelState
   virtual ~TFLiteModelState();
 
   virtual int init(const char* model_path,
-                   unsigned int n_features,
-                   unsigned int n_context,
                    const char* alphabet_path,
                    unsigned int beam_width) override;
 
