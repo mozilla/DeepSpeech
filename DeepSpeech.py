@@ -471,6 +471,13 @@ def train():
     best_dev_path = os.path.join(FLAGS.checkpoint_dir, 'best_dev')
     best_dev_filename = 'best_dev_checkpoint'
 
+    # Save flags next to checkpoints
+    os.makedirs(FLAGS.checkpoint_dir, exist_ok=True)
+
+    flags_file = os.path.join(FLAGS.checkpoint_dir, 'flags.txt')
+    with open(flags_file, 'w') as fout:
+        fout.write(FLAGS.flags_into_string())
+
     initializer = tfv1.global_variables_initializer()
 
     with tfv1.Session(config=Config.session_config) as session:
