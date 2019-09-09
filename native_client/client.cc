@@ -33,8 +33,6 @@
 #include "deepspeech.h"
 #include "args.h"
 
-#define N_CEP 26
-#define N_CONTEXT 9
 #define BEAM_WIDTH 500
 #define LM_ALPHA 0.75f
 #define LM_BETA 1.85f
@@ -72,7 +70,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
     DS_FreeMetadata(metadata);
   } else if (stream_size > 0) {
     StreamingState* ctx;
-    int status = DS_SetupStream(aCtx, aSampleRate, &ctx);
+    int status = DS_CreateStream(aCtx, aSampleRate, &ctx);
     if (status != DS_ERR_OK) {
       res.string = strdup("");
       return res;
@@ -377,7 +375,7 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
-  int status = DS_CreateModel(model, N_CEP, N_CONTEXT, alphabet, BEAM_WIDTH, &ctx);
+  int status = DS_CreateModel(model, alphabet, BEAM_WIDTH, &ctx);
   if (status != 0) {
     fprintf(stderr, "Could not create model.\n");
     return 1;
@@ -385,7 +383,6 @@ main(int argc, char **argv)
 
   if (lm && (trie || load_without_trie)) {
     int status = DS_EnableDecoderWithLM(ctx,
-                                        alphabet,
                                         lm,
                                         trie,
                                         LM_ALPHA,
@@ -449,7 +446,7 @@ main(int argc, char **argv)
   sox_quit();
 #endif // NO_SOX
 
-  DS_DestroyModel(ctx);
+  DS_FreeModel(ctx);
 
   return 0;
 }
