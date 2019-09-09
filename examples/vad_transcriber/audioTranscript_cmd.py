@@ -22,9 +22,9 @@ def main(args):
     parser.add_argument('--stream', required=False, action='store_true',
                         help='To use deepspeech streaming interface')
     args = parser.parse_args()
-    if args.stream is True and len(sys.argv[1:]) == 3:
+    if args.stream is True:
              print("Opening mic for streaming")
-    elif args.audio is not None and len(sys.argv[1:]) == 6:
+    elif args.audio is not None:
             logging.debug("Transcribing audio file @ %s" % args.audio)
     else:
         parser.print_help()

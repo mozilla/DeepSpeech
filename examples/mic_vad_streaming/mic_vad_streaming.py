@@ -20,8 +20,10 @@ class Audio(object):
     CHANNELS = 1
     BLOCKS_PER_SECOND = 50
 
-    def __init__(self, callback=None, device=None, input_rate=RATE_PROCESS):
+    def __init__(self, callback=None, device=None, input_rate=RATE_PROCESS, file=None):
         def proxy_callback(in_data, frame_count, time_info, status):
+            if self.chunk is not None:
+                in_data = self.wf.readframes(self.chunk)
             callback(in_data)
             return (None, pyaudio.paContinue)
         if callback is None: callback = lambda in_data: self.buffer_queue.put(in_data)
@@ -42,9 +44,13 @@ class Audio(object):
             'stream_callback': proxy_callback,
         }
 
+        self.chunk = None
         # if not default device
         if self.device:
             kwargs['input_device_index'] = self.device
+        elif file is not None:
+            self.chunk = 320
+            self.wf = wave.open(file, 'rb')
 
         self.stream = self.pa.open(**kwargs)
         self.stream.start_stream()
@@ -96,8 +102,8 @@ class Audio(object):
 class VADAudio(Audio):
     """Filter & segment audio with voice activity detection."""
 
-    def __init__(self, aggressiveness=3, device=None, input_rate=None):
-        super().__init__(device=device, input_rate=input_rate)
+    def __init__(self, aggressiveness=3, device=None, input_rate=None, file=None):
+        super().__init__(device=device, input_rate=input_rate, file=file)
         self.vad = webrtcvad.Vad(aggressiveness)
 
     def frame_generator(self):
@@ -121,6 +127,9 @@ class VADAudio(Audio):
         triggered = False
 
         for frame in frames:
+            if len(frame) < 640:
+                return
+
             is_speech = self.vad.is_speech(frame, self.sample_rate)
 
             if not triggered:
@@ -162,7 +171,8 @@ def main(ARGS):
     # Start audio with VAD
     vad_audio = VADAudio(aggressiveness=ARGS.vad_aggressiveness,
                          device=ARGS.device,
-                         input_rate=ARGS.rate)
+                         input_rate=ARGS.rate,
+                         file=ARGS.file)
     print("Listening (ctrl-C to exit)...")
     frames = vad_audio.vad_collector()
 
@@ -204,6 +214,8 @@ if __name__ == '__main__':
         help="Disable spinner")
     parser.add_argument('-w', '--savewav',
         help="Save .wav files of utterences to given directory")
+    parser.add_argument('-f', '--file',
+        help="Read from .wav file instead of microphone")
 
     parser.add_argument('-m', '--model', required=True,
                         help="Path to the model (protocol buffer binary file, or entire directory containing all standard-named files for model)")
@@ -214,7 +226,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--trie', default='trie',
                         help="Path to the language model trie file created with native_client/generate_trie. Default: trie")
     parser.add_argument('-d', '--device', type=int, default=None,
-                        help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index(). If not provided, falls back to PyAudio.get_default_device()")
+                        help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index(). If not provided, falls back to PyAudio.get_default_device().")
     parser.add_argument('-r', '--rate', type=int, default=DEFAULT_SAMPLE_RATE,
                         help=f"Input device sample rate. Default: {DEFAULT_SAMPLE_RATE}. Your device may require 44100.")
     parser.add_argument('-nf', '--n_features', type=int, default=N_FEATURES,
