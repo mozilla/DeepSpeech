@@ -29,13 +29,11 @@ Then run with a TF Lite model, alphabet, LM/trie and a CSV test file
 BEAM_WIDTH = 500
 LM_ALPHA = 0.75
 LM_BETA = 1.85
-N_FEATURES = 26
-N_CONTEXT = 9
 
 def tflite_worker(model, alphabet, lm, trie, queue_in, queue_out, gpu_mask):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_mask)
-    ds = Model(model, N_FEATURES, N_CONTEXT, alphabet, BEAM_WIDTH)
-    ds.enableDecoderWithLM(alphabet, lm, trie, LM_ALPHA, LM_BETA)
+    ds = Model(model, alphabet, BEAM_WIDTH)
+    ds.enableDecoderWithLM(lm, trie, LM_ALPHA, LM_BETA)
 
     while True:
         msg = queue_in.get()

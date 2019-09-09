@@ -19,7 +19,7 @@ import_array();
 }
 
 %typemap(argout) ModelState **retval {
-  // not owned, Python wrapper in __init__.py calls DS_DestroyModel
+  // not owned, Python wrapper in __init__.py calls DS_FreeModel
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 

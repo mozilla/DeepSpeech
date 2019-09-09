@@ -32,17 +32,6 @@ LM_ALPHA = 0.75
 LM_BETA = 1.85
 
 
-# These constants are tied to the shape of the graph used (changing them changes
-# the geometry of the first layer), so make sure you use the same constants that
-# were used during training
-
-# Number of MFCC features to use
-N_FEATURES = 26
-
-# Size of the context window used for producing timesteps in the input vector
-N_CONTEXT = 9
-
-
 def convert_samplerate(audio_path):
     sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate {} --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path), SAMPLE_RATE)
     try:
@@ -88,14 +77,14 @@ def main():
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
-    ds = Model(args.model, N_FEATURES, N_CONTEXT, args.alphabet, BEAM_WIDTH)
+    ds = Model(args.model, args.alphabet, BEAM_WIDTH)
     model_load_end = timer() - model_load_start
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
 
     if args.lm and args.trie:
         print('Loading language model from files {} {}'.format(args.lm, args.trie), file=sys.stderr)
         lm_load_start = timer()
-        ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_ALPHA, LM_BETA)
+        ds.enableDecoderWithLM(args.lm, args.trie, LM_ALPHA, LM_BETA)
         lm_load_end = timer() - lm_load_start
         print('Loaded language model in {:.3}s.'.format(lm_load_end), file=sys.stderr)
 
