@@ -16,7 +16,7 @@ from util.config import Config
 from util.logging import log_error
 from util.text import text_to_char_array
 from util.flags import FLAGS
-from util.spectrogram_augmentations import augment_sparse_deform, augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
+from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
 
 def read_csvs(csv_files):
     source_data = None
@@ -40,11 +40,6 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
 
     # Data Augmentations
     if train_phase:
-        if FLAGS.augmention_sparse_deform:
-            spectrogram = augment_sparse_deform(spectrogram,
-                                                time_warping_para=FLAGS.augmentation_time_warp_max_warping,
-                                                normal_around_warping_std=FLAGS.augmentation_sparse_deform_std_warp)
-
         if FLAGS.augmentation_spec_dropout_keeprate < 1:
             spectrogram = augment_dropout(spectrogram,
                                           keep_prob=FLAGS.augmentation_spec_dropout_keeprate)

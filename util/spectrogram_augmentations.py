@@ -1,33 +1,4 @@
 import tensorflow as tf
-from util.sparse_image_warp import sparse_image_warp
-
-def augment_sparse_deform(mel_spectrogram,
-                          time_warping_para=12,
-                          normal_around_warping_std=0.5):
-    mel_spectrogram = tf.expand_dims(mel_spectrogram, -1)
-    freq_max = tf.shape(mel_spectrogram)[1]
-    time_max = tf.shape(mel_spectrogram)[2]
-    center_freq = tf.cast(freq_max, tf.float32)/2.0
-    random_time_point = tf.random.uniform(shape=(), minval=time_warping_para, maxval=tf.cast(time_max, tf.float32) - time_warping_para)
-    chosen_warping = tf.random.uniform(shape=(), minval=0, maxval=time_warping_para)
-    #add different warping values to different frequencies
-    normal_around_warping = tf.random.normal(mean=chosen_warping, stddev=normal_around_warping_std, shape=(3,))
-
-    control_point_freqs = tf.stack([0.0, center_freq, tf.cast(freq_max, tf.float32)], axis=0)
-    control_point_times_src = tf.stack([random_time_point, random_time_point, random_time_point], axis=0)
-    control_point_times_dst = control_point_times_src+normal_around_warping
-
-    control_src = tf.expand_dims(tf.stack([control_point_freqs, control_point_times_src], axis=-1), 0)
-    control_dst = tf.expand_dims(tf.stack([control_point_freqs, control_point_times_dst], axis=1), 0)
-    warped_mel_spectrogram, _ = sparse_image_warp(mel_spectrogram,
-                                                  source_control_point_locations=control_src,
-                                                  dest_control_point_locations=control_dst,
-                                                  interpolation_order=2,
-                                                  regularization_weight=0,
-                                                  num_boundary_points=1
-                                                  )
-    warped_mel_spectrogram = warped_mel_spectrogram[:, :, :, 0]
-    return warped_mel_spectrogram
 
 def augment_freq_time_mask(mel_spectrogram,
                            frequency_masking_para=30,
