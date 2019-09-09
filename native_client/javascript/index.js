@@ -48,13 +48,13 @@ Model.prototype.sttWithMetadata = function() {
     return binding.SpeechToTextWithMetadata.apply(null, args);
 }
 
-Model.prototype.setupStream = function() {
+Model.prototype.createStream = function() {
     const args = [this._impl].concat(Array.prototype.slice.call(arguments));
-    const rets = binding.SetupStream.apply(null, args);
+    const rets = binding.CreateStream.apply(null, args);
     const status = rets[0];
     const ctx = rets[1];
     if (status !== 0) {
-        throw "SetupStream failed with error code " + status;
+        throw "CreateStream failed with error code " + status;
     }
     return ctx;
 }
@@ -75,13 +75,14 @@ Model.prototype.finishStreamWithMetadata = function() {
     return binding.FinishStreamWithMetadata.apply(null, arguments);
 }
 
-function DestroyModel(model) {
-    return binding.DestroyModel(model._impl);
+function FreeModel(model) {
+    return binding.FreeModel(model._impl);
 }
 
 module.exports = {
     Model: Model,
     printVersions: binding.PrintVersions,
-    DestroyModel: DestroyModel,
+    FreeModel: FreeModel,
+    FreeStream: binding.FreeStream,
     FreeMetadata: binding.FreeMetadata
 };

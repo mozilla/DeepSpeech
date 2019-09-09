@@ -47,7 +47,7 @@ using namespace node;
 }
 
 
-// convert double pointer retval in SetupStream to an output
+// convert double pointer retval in CreateStream to an output
 %typemap(in, numinputs=0) StreamingState **retval (StreamingState *ret) {
   ret = NULL;
   $1 = &ret;
