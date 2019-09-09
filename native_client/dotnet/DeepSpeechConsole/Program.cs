@@ -50,8 +50,6 @@ namespace CSharpExamples
                 extended = !string.IsNullOrWhiteSpace(GetArgument(args, "--extended"));
             }
 
-            const uint N_CEP = 26;
-            const uint N_CONTEXT = 9;
             const uint BEAM_WIDTH = 500;
             const float LM_ALPHA = 0.75f;
             const float LM_BETA = 1.85f;
@@ -66,7 +64,6 @@ namespace CSharpExamples
                     stopwatch.Start();
                     sttClient.CreateModel(
                         model ?? "output_graph.pbmm",
-                        N_CEP, N_CONTEXT,
                         alphabet ?? "alphabet.txt",
                         BEAM_WIDTH);
                     stopwatch.Stop();
@@ -77,7 +74,6 @@ namespace CSharpExamples
                     {
                         Console.WriteLine("Loadin LM...");
                         sttClient.EnableDecoderWithLM(
-                            alphabet ?? "alphabet.txt",
                             lm ?? "lm.binary",
                             trie ?? "trie",
                             LM_ALPHA, LM_BETA);
