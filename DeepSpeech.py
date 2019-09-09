@@ -415,7 +415,8 @@ def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               cache_path=FLAGS.feature_cache)
+                               cache_path=FLAGS.feature_cache,
+                               train_phase=True)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -426,7 +427,7 @@ def train():
 
     if FLAGS.dev_files:
         dev_csvs = FLAGS.dev_files.split(',')
-        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size) for csv in dev_csvs]
+        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False) for csv in dev_csvs]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
