@@ -22,8 +22,6 @@ namespace DeepSpeechWPF
     {
         private readonly IDeepSpeech _sttClient;
          
-        private const uint N_CEP = 26;
-        private const uint N_CONTEXT = 9;
         private const uint BEAM_WIDTH = 500;
         private const float LM_ALPHA = 0.75f;
         private const float LM_BETA = 1.85f;
@@ -79,7 +77,7 @@ namespace DeepSpeechWPF
             {
                 try
                 {
-                    _sttClient.CreateModel("output_graph.pbmm", N_CEP, N_CONTEXT, "alphabet.txt", BEAM_WIDTH);
+                    _sttClient.CreateModel("output_graph.pbmm", "alphabet.txt", BEAM_WIDTH);
                     Dispatcher.Invoke(() => { EnableControls(); });
                 }
                 catch (Exception ex)
@@ -155,7 +153,7 @@ namespace DeepSpeechWPF
             {
                 try
                 {
-                    _sttClient.EnableDecoderWithLM("alphabet.txt", "lm.binary", "trie", LM_ALPHA, LM_BETA);
+                    _sttClient.EnableDecoderWithLM("lm.binary", "trie", LM_ALPHA, LM_BETA);
                     Dispatcher.Invoke(() => lblStatus.Content = "LM loaded.");
                 }
                 catch (Exception ex)
@@ -198,7 +196,7 @@ namespace DeepSpeechWPF
                 _soundInSource.Dispose();
                 _convertedSource.Dispose();
                 _audioCapture.DataAvailable -= _capture_DataAvailable;
-                _sttClient.DiscardStream(); //this a good example of discardstream, the user changed the audio input, so we no longer need the current stream
+                _sttClient.FreeStream(); //this a good example of FreeStream, the user changed the audio input, so we no longer need the current stream
             }
             if (_audioCaptureDevices!=null)
             {
@@ -252,7 +250,7 @@ namespace DeepSpeechWPF
 
         private void BtnStartRecording_Click(object sender, RoutedEventArgs e)
         {
-            _sttClient.SetupStream(16000);
+            _sttClient.CreateStream(16000);
             _audioCapture.Start();
             btnStartRecording.IsEnabled = false;
             btnStopRecording.IsEnabled = true;
