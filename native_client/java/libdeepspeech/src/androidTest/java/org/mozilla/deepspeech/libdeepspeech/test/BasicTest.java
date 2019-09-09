@@ -35,8 +35,6 @@ public class BasicTest {
     public static final String trieFile     = "/data/local/tmp/test/trie";
     public static final String wavFile      = "/data/local/tmp/test/LDC93S1.wav";
 
-    public static final int N_CEP      = 26;
-    public static final int N_CONTEXT  = 9;
     public static final int BEAM_WIDTH = 50;
 
     public static final float LM_ALPHA = 0.75f;
@@ -66,8 +64,8 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_basic() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
-        m.destroyModel();
+        DeepSpeechModel m = new DeepSpeechModel(modelFile, alphabetFile, BEAM_WIDTH);
+        m.freeModel();
     }
 
     private String metadataToString(Metadata m) {
@@ -123,39 +121,39 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_stt_noLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile, alphabetFile, BEAM_WIDTH);
 
         String decoded = doSTT(m, false);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
-        m.destroyModel();
+        m.freeModel();
     }
 
     @Test
     public void loadDeepSpeech_stt_withLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
-        m.enableDecoderWihLM(alphabetFile, lmFile, trieFile, LM_ALPHA, LM_BETA);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile, alphabetFile, BEAM_WIDTH);
+        m.enableDecoderWihLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
 
         String decoded = doSTT(m, false);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
-        m.destroyModel();
+        m.freeModel();
     }
 
     @Test
     public void loadDeepSpeech_sttWithMetadata_noLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile, alphabetFile, BEAM_WIDTH);
 
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
-        m.destroyModel();
+        m.freeModel();
     }
 
     @Test
     public void loadDeepSpeech_sttWithMetadata_withLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, N_CEP, N_CONTEXT, alphabetFile, BEAM_WIDTH);
-        m.enableDecoderWihLM(alphabetFile, lmFile, trieFile, LM_ALPHA, LM_BETA);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile, alphabetFile, BEAM_WIDTH);
+        m.enableDecoderWihLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
 
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
-        m.destroyModel();
+        m.freeModel();
     }
 }

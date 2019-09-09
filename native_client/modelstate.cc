@@ -25,13 +25,9 @@ ModelState::~ModelState()
 
 int
 ModelState::init(const char* model_path,
-                 unsigned int n_features,
-                 unsigned int n_context,
                  const char* alphabet_path,
                  unsigned int beam_width)
 {
-  n_features_ = n_features;
-  n_context_ = n_context;
   if (alphabet_.init(alphabet_path)) {
     return DS_ERR_INVALID_ALPHABET;
   }

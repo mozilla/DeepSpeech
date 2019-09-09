@@ -7,6 +7,8 @@ using GraphDef = System.IntPtr;
 
 namespace DeepSpeechClient.Structs
 {
+    //FIXME: ModelState is an opaque pointer to the API, why is this code reverse
+    // engineering its contents?
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public unsafe struct ModelState
     {

@@ -21,17 +21,6 @@ LM_ALPHA = 0.75
 LM_BETA = 1.85
 
 
-# These constants are tied to the shape of the graph used (changing them changes
-# the geometry of the first layer), so make sure you use the same constants that
-# were used during training
-
-# Number of MFCC features to use
-N_FEATURES = 26
-
-# Size of the context window used for producing timesteps in the input vector
-N_CONTEXT = 9
-
-
 def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model', required=True,
@@ -48,10 +37,10 @@ def main():
                         help='Second audio file to use in interleaved streams')
     args = parser.parse_args()
 
-    ds = Model(args.model, N_FEATURES, N_CONTEXT, args.alphabet, BEAM_WIDTH)
+    ds = Model(args.model, args.alphabet, BEAM_WIDTH)
 
     if args.lm and args.trie:
-        ds.enableDecoderWithLM(args.alphabet, args.lm, args.trie, LM_ALPHA, LM_BETA)
+        ds.enableDecoderWithLM(args.lm, args.trie, LM_ALPHA, LM_BETA)
 
     fin = wave.open(args.audio1, 'rb')
     fs1 = fin.getframerate()
@@ -63,8 +52,8 @@ def main():
     audio2 = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
     fin.close()
 
-    stream1 = ds.setupStream(sample_rate=fs1)
-    stream2 = ds.setupStream(sample_rate=fs2)
+    stream1 = ds.createStream(sample_rate=fs1)
+    stream2 = ds.createStream(sample_rate=fs2)
 
     splits1 = np.array_split(audio1, 10)
     splits2 = np.array_split(audio2, 10)

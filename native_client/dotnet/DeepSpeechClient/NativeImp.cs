@@ -17,15 +17,12 @@ namespace DeepSpeechClient
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal unsafe static extern ErrorCodes DS_CreateModel(string aModelPath,
-                   uint aNCep,
-                   uint aNContext,
                    string aAlphabetConfigPath,
                    uint aBeamWidth,
                    ref ModelState** pint);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern ErrorCodes DS_EnableDecoderWithLM(ModelState** aCtx,
-                  string aAlphabetConfigPath,
                   string aLMPath,
                   string aTriePath,
                   float aLMAlpha,
@@ -45,14 +42,14 @@ namespace DeepSpeechClient
                 uint aSampleRate);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern void DS_DestroyModel(ModelState** aCtx);
+        internal static unsafe extern void DS_FreeModel(ModelState** aCtx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern ErrorCodes DS_SetupStream(ModelState** aCtx,
+        internal static unsafe extern ErrorCodes DS_CreateStream(ModelState** aCtx,
                uint aSampleRate, ref StreamingState** retval);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern void DS_DiscardStream(ref StreamingState** aSctx);
+        internal static unsafe extern void DS_FreeStream(ref StreamingState** aSctx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern void DS_FreeMetadata(IntPtr metadata);

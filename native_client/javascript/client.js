@@ -22,16 +22,6 @@ const LM_ALPHA = 0.75;
 const LM_BETA = 1.85;
 
 
-// These constants are tied to the shape of the graph used (changing them changes
-// the geometry of the first layer), so make sure you use the same constants that
-// were used during training
-
-// Number of MFCC features to use
-const N_FEATURES = 26;
-
-// Size of the context window used for producing timesteps in the input vector
-const N_CONTEXT = 9;
-
 var VersionAction = function VersionAction(options) {
   options = options || {};
   options.nargs = 0;
@@ -109,15 +99,14 @@ audioStream.on('finish', () => {
 
   console.error('Loading model from file %s', args['model']);
   const model_load_start = process.hrtime();
-  var model = new Ds.Model(args['model'], N_FEATURES, N_CONTEXT, args['alphabet'], BEAM_WIDTH);
+  var model = new Ds.Model(args['model'], args['alphabet'], BEAM_WIDTH);
   const model_load_end = process.hrtime(model_load_start);
   console.error('Loaded model in %ds.', totalTime(model_load_end));
 
   if (args['lm'] && args['trie']) {
     console.error('Loading language model from files %s %s', args['lm'], args['trie']);
     const lm_load_start = process.hrtime();
-    model.enableDecoderWithLM(args['alphabet'], args['lm'], args['trie'],
-                              LM_ALPHA, LM_BETA);
+    model.enableDecoderWithLM(args['lm'], args['trie'], LM_ALPHA, LM_BETA);
     const lm_load_end = process.hrtime(lm_load_start);
     console.error('Loaded language model in %ds.', totalTime(lm_load_end));
   }
@@ -135,6 +124,6 @@ audioStream.on('finish', () => {
   }
   const inference_stop = process.hrtime(inference_start);
   console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
-  Ds.DestroyModel(model);
+  Ds.FreeModel(model);
   process.exit(0);
 });

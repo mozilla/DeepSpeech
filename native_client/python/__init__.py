@@ -1,6 +1,9 @@
 import os
 import platform
 
+#The API is not snake case which triggers linter errors
+#pylint: disable=invalid-name
+
 # On Windows, we can't rely on RPATH being set to $ORIGIN/lib/ or on
 # @loader_path/lib but we can change the PATH to include the proper directory
 # for the dynamic linker
@@ -12,6 +15,7 @@ import deepspeech
 
 # rename for backwards compatibility
 from deepspeech.impl import PrintVersions as printVersions
+from deepspeech.impl import FreeStream as freeStream
 
 class Model(object):
     def __init__(self, *args, **kwargs):
@@ -25,7 +29,7 @@ class Model(object):
 
     def __del__(self):
         if self._impl:
-            deepspeech.impl.DestroyModel(self._impl)
+            deepspeech.impl.FreeModel(self._impl)
             self._impl = None
 
     def enableDecoderWithLM(self, *args, **kwargs):
@@ -37,11 +41,11 @@ class Model(object):
     def sttWithMetadata(self, *args, **kwargs):
         return deepspeech.impl.SpeechToTextWithMetadata(self._impl, *args, **kwargs)
 
-    def setupStream(self, sample_rate=16000):
-        status, ctx = deepspeech.impl.SetupStream(self._impl,
-                                                  aSampleRate=sample_rate)
+    def createStream(self, sample_rate=16000):
+        status, ctx = deepspeech.impl.CreateStream(self._impl,
+                                                   aSampleRate=sample_rate)
         if status != 0:
-            raise RuntimeError("SetupStream failed with error code {}".format(status))
+            raise RuntimeError("CreateStream failed with error code {}".format(status))
         return ctx
 
     def feedAudioContent(self, *args, **kwargs):

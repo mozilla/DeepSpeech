@@ -11,18 +11,18 @@ public class DeepSpeechModel {
     SWIGTYPE_p_p_ModelState _mspp;
     SWIGTYPE_p_ModelState   _msp;
 
-    public DeepSpeechModel(String modelPath, int n_cep, int n_context, String alphabetPath, int beam_width) {
+    public DeepSpeechModel(String modelPath, String alphabetPath, int beam_width) {
         this._mspp = impl.new_modelstatep();
-        impl.CreateModel(modelPath, n_cep, n_context, alphabetPath, beam_width, this._mspp);
+        impl.CreateModel(modelPath, alphabetPath, beam_width, this._mspp);
         this._msp  = impl.modelstatep_value(this._mspp);
     }
 
-    public void destroyModel() {
-        impl.DestroyModel(this._msp);
+    public void freeModel() {
+        impl.FreeModel(this._msp);
     }
 
-    public void enableDecoderWihLM(String alphabet, String lm, String trie, float lm_alpha, float lm_beta) {
-        impl.EnableDecoderWithLM(this._msp, alphabet, lm, trie, lm_alpha, lm_beta);
+    public void enableDecoderWihLM(String lm, String trie, float lm_alpha, float lm_beta) {
+        impl.EnableDecoderWithLM(this._msp, lm, trie, lm_alpha, lm_beta);
     }
 
     public String stt(short[] buffer, int buffer_size, int sample_rate) {
@@ -33,9 +33,9 @@ public class DeepSpeechModel {
         return impl.SpeechToTextWithMetadata(this._msp, buffer, buffer_size, sample_rate);
     }
 
-    public DeepSpeechStreamingState setupStream(int sample_rate) {
+    public DeepSpeechStreamingState createStream(int sample_rate) {
         SWIGTYPE_p_p_StreamingState ssp = impl.new_streamingstatep();
-        impl.SetupStream(this._msp, sample_rate, ssp);
+        impl.CreateStream(this._msp, sample_rate, ssp);
         return new DeepSpeechStreamingState(impl.streamingstatep_value(ssp));
     }
 

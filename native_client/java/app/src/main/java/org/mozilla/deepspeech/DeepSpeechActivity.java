@@ -31,8 +31,6 @@ public class DeepSpeechActivity extends AppCompatActivity {
 
     Button _startInference;
 
-    final int N_CEP = 26;
-    final int N_CONTEXT = 9;
     final int BEAM_WIDTH = 50;
     final float LM_ALPHA = 0.75f;
     final float LM_BETA = 1.85f;
@@ -54,7 +52,7 @@ public class DeepSpeechActivity extends AppCompatActivity {
     private void newModel(String tfliteModel, String alphabet) {
         this._tfliteStatus.setText("Creating model");
         if (this._m == null) {
-            this._m = new DeepSpeechModel(tfliteModel, N_CEP, N_CONTEXT, alphabet, BEAM_WIDTH);
+            this._m = new DeepSpeechModel(tfliteModel, alphabet, BEAM_WIDTH);
         }
     }
 
@@ -167,7 +165,7 @@ public class DeepSpeechActivity extends AppCompatActivity {
         super.onDestroy();
 
         if (this._m != null) {
-            this._m.destroyModel();
+            this._m.freeModel();
         }
     }
 }
