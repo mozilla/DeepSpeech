@@ -3,6 +3,10 @@
 
 #include "deepspeech.h"
 
+#warning This header is a convenience wrapper for compatibility with \
+         the previous API, it has deprecated function names and arguments. \
+         If possible, update your code instead of using this header.
+
 /**
  * @brief An object providing an interface to a trained DeepSpeech model.
  *
