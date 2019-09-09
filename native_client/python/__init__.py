@@ -1,6 +1,9 @@
 import os
 import platform
 
+#The API is not snake case which triggers linter errors
+#pylint: disable=invalid-name
+
 # On Windows, we can't rely on RPATH being set to $ORIGIN/lib/ or on
 # @loader_path/lib but we can change the PATH to include the proper directory
 # for the dynamic linker
