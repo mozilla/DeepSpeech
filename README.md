@@ -71,6 +71,7 @@ See the output of `deepspeech -h` for more information on the use of `deepspeech
   - [Exporting a model for TFLite](#exporting-a-model-for-tflite)
   - [Making a mmap-able model for inference](#making-a-mmap-able-model-for-inference)
   - [Continuing training from a release model](#continuing-training-from-a-release-model)
+  - [Training with Augmentation](#training with augmentation)
 - [Contribution guidelines](#contribution-guidelines)
 - [Contact/Getting Help](#contactgetting-help)
 
@@ -417,6 +418,34 @@ python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder
 ```
 
 Note: the released models were trained with `--n_hidden 2048`, so you need to use that same value when initializing from the release models.
+
+### Training with augmentation
+
+Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm and spectrogram has been implemented and can be used while training the model. 
+
+#### Audio Augmentation
+1. **Std for Gaussian additive noise:** ```data_aug_features_additive [0 - 1]```
+2. **Std for Normal distribution around 1 for multiplicative noise:** ```data_aug_features_multiplicative [0 - 1]``` 
+3. **Std for speeding-up tempo. If std is 0, this augmentation is not performed:** ```augmentation_speed_up_std [0 - 1]``` 
+
+#### Spectrogram Augmentation
+Inspired by Google Paper on [SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition]( https://arxiv.org/abs/1904.08779)
+1. **Keep rate of dropout augmentation on a spectrogram (if 1, no dropout will be performed on the spectrogram)**: 
+   * Enable / Disable : ```augmentation_spec_dropout_keeprate [0 - 1]``` 
+
+2. **Whether to use frequency and time masking augmentation:** 
+   * Enable / Disable : ```augmentation_freq_and_time_masking [0, 1]```  
+   * Max range of masks in the frequency domain when performing freqtime-mask augmentation: ```augmentation_freq_and_time_masking_freq_mask_range eg: 5```
+   * Number of masks in the frequency domain when performing freqtime-mask augmentation: ```augmentation_freq_and_time_masking_number_freq_masks eg: 3``` 
+   * Max range of masks in the time domain when performing freqtime-mask augmentation: ```augmentation_freq_and_time_masking_time_mask_rangee eg: 2``` 
+   * Number of masks in the time domain when performing freqtime-mask augmentation: ```augmentation_freq_and_time_masking_number_time_masks eg: 3 ``` 
+
+3. **Whether to use spectrogram speed and tempo scaling:** 
+   * Enable / Disable : ```augmentation_pitch_and_tempo_scaling [0,1]```  
+   * Min value of pitch scaling: ```augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95 ``` 
+   * Max value of pitch scaling: ```augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2```  
+   * Max vlaue of tempo scaling: ```augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2```  
+
 
 ## Contribution guidelines
 
