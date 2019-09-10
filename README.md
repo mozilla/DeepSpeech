@@ -442,9 +442,9 @@ Inspired by Google Paper on [SpecAugment: A Simple Data Augmentation Method for 
 
 3. **Whether to use spectrogram speed and tempo scaling:** 
    * Enable / Disable : ```--augmentation_pitch_and_tempo_scaling / --noaugmentation_pitch_and_tempo_scaling.```  
-   * Min value of pitch scaling: ```augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95 ``` 
-   * Max value of pitch scaling: ```augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2```  
-   * Max valaue of tempo scaling: ```augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2```  
+   * Min value of pitch scaling: ```--augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95 ``` 
+   * Max value of pitch scaling: ```--augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2```  
+   * Max valaue of tempo scaling: ```--augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2```  
 
 
 ## Contribution guidelines
