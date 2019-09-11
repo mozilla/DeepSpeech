@@ -65,6 +65,10 @@ def preprocess_data(folder_with_archives, target_dir):
             durations = (df['wav_filesize'] - 44) / 16000 / 2
             df = df[durations <= 10.0]
             print('Trimming {} samples > 10 seconds'.format((durations > 10.0).sum()))
+            
+            with_noise = df['transcript'].str.contains(r'\[(FIL|SPK)\]')
+            df = df[~with_noise]
+            print('Trimming {} samples with noise ([FIL] or [SPK])'.format(sum(with_noise)))
 
         dest_csv = os.path.join(target_dir, 'magicdata_{}.csv'.format(subset))
         print('Saving {} set into {}...'.format(subset, dest_csv))
