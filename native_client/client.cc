@@ -350,7 +350,7 @@ JSONOutput(Metadata* metadata)
   std::vector<meta_word> words = WordsFromMetadata(metadata);
 
   std::ostringstream out_string;
-  out_string << R"({"metadata":{"confidence":)" << metadata->probability << R"(},"words":[)";
+  out_string << R"({"metadata":{"confidence":)" << metadata->confidence << R"(},"words":[)";
 
   for (int i = 0; i < words.size(); i++) {
     meta_word w = words[i];

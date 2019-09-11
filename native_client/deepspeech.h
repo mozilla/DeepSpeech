@@ -30,8 +30,8 @@ typedef struct MetadataItem {
 typedef struct Metadata {
   MetadataItem* items;
   int num_items;
-  // Approximated probability (confidence value) for this transcription.
-  double probability;
+  // Approximated confidence value for this transcription.
+  double confidence;
 } Metadata;
 
 enum DeepSpeech_Error_Codes
