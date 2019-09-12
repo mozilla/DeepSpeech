@@ -11,6 +11,7 @@ import argparse
 import glob
 import pandas
 import tarfile
+import wave
 
 
 COLUMN_NAMES = ['wav_filename', 'wav_filesize', 'transcript']
@@ -20,6 +21,18 @@ def extract(archive_path, target_dir):
     print('Extracting {} into {}...'.format(archive_path, target_dir))
     with tarfile.open(archive_path) as tar:
         tar.extractall(target_dir)
+
+
+def is_file_truncated(wav_filename, wav_filesize):
+    with wave.open(wav_filename, mode='rb') as fin:
+        assert fin.getframerate() == 16000
+        assert fin.getsampwidth() == 2
+        assert fin.getnchannels() == 1
+
+        header_duration = fin.getnframes() / fin.getframerate()
+        filesize_duration = (wav_filesize - 44) / 16000 / 2
+
+    return header_duration != filesize_duration
 
 
 def preprocess_data(folder_with_archives, target_dir):
@@ -50,6 +63,15 @@ def preprocess_data(folder_with_archives, target_dir):
                 wav_filesize = os.path.getsize(wav)
                 transcript_key = os.path.basename(wav)
                 transcript = transcripts.loc[transcript_key, 'Transcription']
+
+                # Some files in this dataset are truncated, the header duration
+                # doesn't match the file size. This causes errors at training
+                # time, so check here if things are fine before including a file
+                if is_file_truncated(wav_filename, wav_filesize):
+                    print('Warning: File {} is corrupted, header duration does '
+                          'not match file size. Ignoring.'.format(wav_filename))
+                    continue
+
                 set_files.append((wav_filename, wav_filesize, transcript))
             except KeyError:
                 print('Warning: Missing transcript for WAV file {}.'.format(wav))
