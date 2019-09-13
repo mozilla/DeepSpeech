@@ -1,0 +1,18 @@
+build:
+  template_file: docs.tyml
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.docs"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.docs"
+    - "index.project.deepspeech.deepspeech.native_client.docs.${event.head.sha}"
+    - "notify.irc-channel.${notifications.irc}.on-exception"
+    - "notify.irc-channel.${notifications.irc}.on-failed"
+  system_setup:
+    >
+      ${nodejs.packages_docs_bionic.prep_12} && ${nodejs.packages_docs_bionic.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_docs_bionic.apt} ${python.packages_docs_bionic.apt}
+  scripts:
+    build: "taskcluster/docs-build.sh"
+    package: "taskcluster/docs-package.sh"
+  metadata:
+    name: "DeepSpeech API Documentation"
+    description: "Building DeepSpeech API Documentation"
