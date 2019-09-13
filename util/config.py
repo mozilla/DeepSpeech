@@ -28,16 +28,6 @@ Config = ConfigSingleton() # pylint: disable=invalid-name
 def initialize_globals():
     c = AttrDict()
 
-    # CPU device
-    c.cpu_device = '/cpu:0'
-
-    # Available GPU devices
-    c.available_devices = get_available_gpus()
-
-    # If there is no GPU available, we fall back to CPU based operation
-    if not c.available_devices:
-        c.available_devices = [c.cpu_device]
-
     # Set default dropout rates
     if FLAGS.dropout_rate2 < 0:
         FLAGS.dropout_rate2 = FLAGS.dropout_rate
@@ -60,7 +50,18 @@ def initialize_globals():
     # Standard session configuration that'll be used for all new sessions.
     c.session_config = tfv1.ConfigProto(allow_soft_placement=True, log_device_placement=FLAGS.log_placement,
                                         inter_op_parallelism_threads=FLAGS.inter_op_parallelism_threads,
-                                        intra_op_parallelism_threads=FLAGS.intra_op_parallelism_threads)
+                                        intra_op_parallelism_threads=FLAGS.intra_op_parallelism_threads,
+                                        gpu_options=tfv1.GPUOptions(allow_growth=FLAGS.use_allow_growth))
+
+    # CPU device
+    c.cpu_device = '/cpu:0'
+
+    # Available GPU devices
+    c.available_devices = get_available_gpus(c.session_config)
+
+    # If there is no GPU available, we fall back to CPU based operation
+    if not c.available_devices:
+        c.available_devices = [c.cpu_device]
 
     c.alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
 
