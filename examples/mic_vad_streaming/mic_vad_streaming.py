@@ -162,11 +162,11 @@ def main(ARGS):
     print('Initializing model...')
     logging.info("ARGS.model: %s", ARGS.model)
     logging.info("ARGS.alphabet: %s", ARGS.alphabet)
-    model = deepspeech.Model(ARGS.model, ARGS.n_features, ARGS.n_context, ARGS.alphabet, ARGS.beam_width)
+    model = deepspeech.Model(ARGS.model, ARGS.alphabet, ARGS.beam_width)
     if ARGS.lm and ARGS.trie:
         logging.info("ARGS.lm: %s", ARGS.lm)
         logging.info("ARGS.trie: %s", ARGS.trie)
-        model.enableDecoderWithLM(ARGS.alphabet, ARGS.lm, ARGS.trie, ARGS.lm_alpha, ARGS.lm_beta)
+        model.enableDecoderWithLM(ARGS.lm, ARGS.trie, ARGS.lm_alpha, ARGS.lm_beta)
 
     # Start audio with VAD
     vad_audio = VADAudio(aggressiveness=ARGS.vad_aggressiveness,
@@ -179,7 +179,7 @@ def main(ARGS):
     # Stream from microphone to DeepSpeech using VAD
     spinner = None
     if not ARGS.nospinner: spinner = Halo(spinner='line')
-    stream_context = model.setupStream()
+    stream_context = model.createStream()
     wav_data = bytearray()
     for frame in frames:
         if frame is not None:
@@ -195,15 +195,13 @@ def main(ARGS):
                 wav_data = bytearray()
             text = model.finishStream(stream_context)
             print("Recognized: %s" % text)
-            stream_context = model.setupStream()
+            stream_context = model.createStream()
 
 if __name__ == '__main__':
     BEAM_WIDTH = 500
     DEFAULT_SAMPLE_RATE = 16000
     LM_ALPHA = 0.75
     LM_BETA = 1.85
-    N_FEATURES = 26
-    N_CONTEXT = 9
 
     import argparse
     parser = argparse.ArgumentParser(description="Stream from microphone to DeepSpeech using VAD")
@@ -229,10 +227,6 @@ if __name__ == '__main__':
                         help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index(). If not provided, falls back to PyAudio.get_default_device().")
     parser.add_argument('-r', '--rate', type=int, default=DEFAULT_SAMPLE_RATE,
                         help=f"Input device sample rate. Default: {DEFAULT_SAMPLE_RATE}. Your device may require 44100.")
-    parser.add_argument('-nf', '--n_features', type=int, default=N_FEATURES,
-                        help=f"Number of MFCC features to use. Default: {N_FEATURES}")
-    parser.add_argument('-nc', '--n_context', type=int, default=N_CONTEXT,
-                        help=f"Size of the context window used for producing timesteps in the input vector. Default: {N_CONTEXT}")
     parser.add_argument('-la', '--lm_alpha', type=float, default=LM_ALPHA,
                         help=f"The alpha hyperparameter of the CTC decoder. Language Model weight. Default: {LM_ALPHA}")
     parser.add_argument('-lb', '--lm_beta', type=float, default=LM_BETA,

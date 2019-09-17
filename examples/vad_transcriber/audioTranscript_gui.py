@@ -283,7 +283,7 @@ class App(QMainWindow):
             logging.debug("Start Recording pressed")
             logging.debug("Preparing for transcription...")
 
-            sctx = self.model[0].setupStream()
+            sctx = self.model[0].createStream()
             subproc = subprocess.Popen(shlex.split('rec -q -V0 -e signed -L -c 1 -b 16 -r 16k -t raw - gain -2'),
                                        stdout=subprocess.PIPE,
                                        bufsize=0)

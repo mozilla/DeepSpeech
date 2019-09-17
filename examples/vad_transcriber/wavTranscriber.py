@@ -16,19 +16,17 @@ Load the pre-trained model into the memory
 Returns a list [DeepSpeech Object, Model Load Time, LM Load Time]
 '''
 def load_model(models, alphabet, lm, trie):
-    N_FEATURES = 26
-    N_CONTEXT = 9
     BEAM_WIDTH = 500
     LM_ALPHA = 0.75
     LM_BETA = 1.85
 
     model_load_start = timer()
-    ds = Model(models, N_FEATURES, N_CONTEXT, alphabet, BEAM_WIDTH)
+    ds = Model(models, alphabet, BEAM_WIDTH)
     model_load_end = timer() - model_load_start
     logging.debug("Loaded model in %0.3fs." % (model_load_end))
 
     lm_load_start = timer()
-    ds.enableDecoderWithLM(alphabet, lm, trie, LM_ALPHA, LM_BETA)
+    ds.enableDecoderWithLM(lm, trie, LM_ALPHA, LM_BETA)
     lm_load_end = timer() - lm_load_start
     logging.debug('Loaded language model in %0.3fs.' % (lm_load_end))
 
