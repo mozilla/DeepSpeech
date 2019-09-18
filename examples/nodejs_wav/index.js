@@ -6,19 +6,17 @@ const Duplex = require('stream').Duplex;
 const Wav = require('node-wav');
 
 const BEAM_WIDTH = 1024;
-const N_FEATURES = 26;
-const N_CONTEXT = 9;
 let modelPath = './models/output_graph.pbmm';
 let alphabetPath = './models/alphabet.txt';
 
-let model = new DeepSpeech.Model(modelPath, N_FEATURES, N_CONTEXT, alphabetPath, BEAM_WIDTH);
+let model = new DeepSpeech.Model(modelPath, alphabetPath, BEAM_WIDTH);
 
 const LM_ALPHA = 0.75;
 const LM_BETA = 1.85;
 let lmPath = './models/lm.binary';
 let triePath = './models/trie';
 
-model.enableDecoderWithLM(alphabetPath, lmPath, triePath, LM_ALPHA, LM_BETA);
+model.enableDecoderWithLM(lmPath, triePath, LM_ALPHA, LM_BETA);
 
 let audioFile = process.argv[2] || './audio/2830-3980-0043.wav';
 

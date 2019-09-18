@@ -1,0 +1,10 @@
+build:
+  template_file: examples-base.tyml
+  docker_image: "node:8"
+  dependencies:
+    - "node-package-cpu"
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/examples/nodejs_wav/test.sh"
+  metadata:
+    name: "DeepSpeech examples: NodeJS WAV NodeJS v8.x"
+    description: "DeepSpeech examples: NodeJS WAV NodeJS v8.x"

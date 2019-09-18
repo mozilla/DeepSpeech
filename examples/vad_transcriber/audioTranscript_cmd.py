@@ -22,10 +22,10 @@ def main(args):
     parser.add_argument('--stream', required=False, action='store_true',
                         help='To use deepspeech streaming interface')
     args = parser.parse_args()
-    if args.stream is True and len(sys.argv[1:]) == 3:
-             print("Opening mic for streaming")
-    elif args.audio is not None and len(sys.argv[1:]) == 6:
-            logging.debug("Transcribing audio file @ %s" % args.audio)
+    if args.stream is True:
+        print("Opening mic for streaming")
+    elif args.audio is not None:
+        logging.debug("Transcribing audio file @ %s" % args.audio)
     else:
         parser.print_help()
         parser.exit()
@@ -72,7 +72,7 @@ def main(args):
         logging.debug("************************************************************************************************************")
         print("%-30s %-20.3f %-20.3f %-20.3f %-0.3f" % (filename + ext, audio_length, inference_time, model_retval[1], model_retval[2]))
     else:
-        sctx = model_retval[0].setupStream()
+        sctx = model_retval[0].createStream()
         subproc = subprocess.Popen(shlex.split('rec -q -V0 -e signed -L -c 1 -b 16 -r 16k -t raw - gain -2'),
                                    stdout=subprocess.PIPE,
                                    bufsize=0)
