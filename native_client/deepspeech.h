@@ -30,7 +30,9 @@ typedef struct MetadataItem {
 typedef struct Metadata {
   MetadataItem* items;
   int num_items;
-  // Approximated confidence value for this transcription.
+  // Approximated confidence value for this transcription. This is roughly the
+  // sum of the acoustic model logit values for each timestep/character that
+  // contributed to the creation of this transcription.
   double confidence;
 } Metadata;
 

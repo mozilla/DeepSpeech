@@ -26,7 +26,7 @@ namespace CSharpExamples
             var nl = Environment.NewLine;
             string retval =
              Environment.NewLine + $"Recognized text: {string.Join("", meta?.Items?.Select(x => x.Character))} {nl}"
-             + $"Prob: {meta?.Probability} {nl}"
+             + $"Confidence: {meta?.Confidence} {nl}"
              + $"Item count: {meta?.Items?.Length} {nl}"
              + string.Join(nl, meta?.Items?.Select(x => $"Timestep : {x.Timestep} TimeOffset: {x.StartTime} Char: {x.Character}"));
             return retval;
