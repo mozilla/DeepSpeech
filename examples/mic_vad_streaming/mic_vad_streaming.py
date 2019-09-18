@@ -22,6 +22,7 @@ class Audio(object):
 
     def __init__(self, callback=None, device=None, input_rate=RATE_PROCESS, file=None):
         def proxy_callback(in_data, frame_count, time_info, status):
+            #pylint: disable=unused-argument
             if self.chunk is not None:
                 in_data = self.wf.readframes(self.chunk)
             callback(in_data)
@@ -178,7 +179,8 @@ def main(ARGS):
 
     # Stream from microphone to DeepSpeech using VAD
     spinner = None
-    if not ARGS.nospinner: spinner = Halo(spinner='line')
+    if not ARGS.nospinner:
+        spinner = Halo(spinner='line')
     stream_context = model.createStream()
     wav_data = bytearray()
     for frame in frames:
@@ -207,13 +209,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Stream from microphone to DeepSpeech using VAD")
 
     parser.add_argument('-v', '--vad_aggressiveness', type=int, default=3,
-        help="Set aggressiveness of VAD: an integer between 0 and 3, 0 being the least aggressive about filtering out non-speech, 3 the most aggressive. Default: 3")
+                        help="Set aggressiveness of VAD: an integer between 0 and 3, 0 being the least aggressive about filtering out non-speech, 3 the most aggressive. Default: 3")
     parser.add_argument('--nospinner', action='store_true',
-        help="Disable spinner")
+                        help="Disable spinner")
     parser.add_argument('-w', '--savewav',
-        help="Save .wav files of utterences to given directory")
+                        help="Save .wav files of utterences to given directory")
     parser.add_argument('-f', '--file',
-        help="Read from .wav file instead of microphone")
+                        help="Read from .wav file instead of microphone")
 
     parser.add_argument('-m', '--model', required=True,
                         help="Path to the model (protocol buffer binary file, or entire directory containing all standard-named files for model)")
