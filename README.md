@@ -421,7 +421,7 @@ Note: the released models were trained with `--n_hidden 2048`, so you need to us
 
 ### Training with augmentation
 
-Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm and spectrogram has been implemented and can be used while training the model. Following are the available augmentation techniques and can been used at the time of training while using these flags in command line options.
+Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm and spectrogram has been implemented and can be used while training the model. Following are the available augmentation techniques that can be enabled at training time by using the corresponding flags in the command line.
 
 #### Audio Augmentation
 1. **Standard deviation for Gaussian additive noise:** ```--data_aug_features_additive```
@@ -444,7 +444,7 @@ Inspired by Google Paper on [SpecAugment: A Simple Data Augmentation Method for 
    * Enable / Disable : ```--augmentation_pitch_and_tempo_scaling / --noaugmentation_pitch_and_tempo_scaling.```  
    * Min value of pitch scaling: ```--augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95 ``` 
    * Max value of pitch scaling: ```--augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2```  
-   * Max valaue of tempo scaling: ```--augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2```  
+   * Max value of tempo scaling: ```--augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2```  
 
 
 ## Contribution guidelines
