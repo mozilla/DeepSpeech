@@ -20,8 +20,11 @@ class Audio(object):
     CHANNELS = 1
     BLOCKS_PER_SECOND = 50
 
-    def __init__(self, callback=None, device=None, input_rate=RATE_PROCESS):
+    def __init__(self, callback=None, device=None, input_rate=RATE_PROCESS, file=None):
         def proxy_callback(in_data, frame_count, time_info, status):
+            #pylint: disable=unused-argument
+            if self.chunk is not None:
+                in_data = self.wf.readframes(self.chunk)
             callback(in_data)
             return (None, pyaudio.paContinue)
         if callback is None: callback = lambda in_data: self.buffer_queue.put(in_data)
@@ -42,9 +45,13 @@ class Audio(object):
             'stream_callback': proxy_callback,
         }
 
+        self.chunk = None
         # if not default device
         if self.device:
             kwargs['input_device_index'] = self.device
+        elif file is not None:
+            self.chunk = 320
+            self.wf = wave.open(file, 'rb')
 
         self.stream = self.pa.open(**kwargs)
         self.stream.start_stream()
@@ -96,8 +103,8 @@ class Audio(object):
 class VADAudio(Audio):
     """Filter & segment audio with voice activity detection."""
 
-    def __init__(self, aggressiveness=3, device=None, input_rate=None):
-        super().__init__(device=device, input_rate=input_rate)
+    def __init__(self, aggressiveness=3, device=None, input_rate=None, file=None):
+        super().__init__(device=device, input_rate=input_rate, file=file)
         self.vad = webrtcvad.Vad(aggressiveness)
 
     def frame_generator(self):
@@ -121,6 +128,9 @@ class VADAudio(Audio):
         triggered = False
 
         for frame in frames:
+            if len(frame) < 640:
+                return
+
             is_speech = self.vad.is_speech(frame, self.sample_rate)
 
             if not triggered:
@@ -153,23 +163,25 @@ def main(ARGS):
     print('Initializing model...')
     logging.info("ARGS.model: %s", ARGS.model)
     logging.info("ARGS.alphabet: %s", ARGS.alphabet)
-    model = deepspeech.Model(ARGS.model, ARGS.n_features, ARGS.n_context, ARGS.alphabet, ARGS.beam_width)
+    model = deepspeech.Model(ARGS.model, ARGS.alphabet, ARGS.beam_width)
     if ARGS.lm and ARGS.trie:
         logging.info("ARGS.lm: %s", ARGS.lm)
         logging.info("ARGS.trie: %s", ARGS.trie)
-        model.enableDecoderWithLM(ARGS.alphabet, ARGS.lm, ARGS.trie, ARGS.lm_alpha, ARGS.lm_beta)
+        model.enableDecoderWithLM(ARGS.lm, ARGS.trie, ARGS.lm_alpha, ARGS.lm_beta)
 
     # Start audio with VAD
     vad_audio = VADAudio(aggressiveness=ARGS.vad_aggressiveness,
                          device=ARGS.device,
-                         input_rate=ARGS.rate)
+                         input_rate=ARGS.rate,
+                         file=ARGS.file)
     print("Listening (ctrl-C to exit)...")
     frames = vad_audio.vad_collector()
 
     # Stream from microphone to DeepSpeech using VAD
     spinner = None
-    if not ARGS.nospinner: spinner = Halo(spinner='line')
-    stream_context = model.setupStream()
+    if not ARGS.nospinner:
+        spinner = Halo(spinner='line')
+    stream_context = model.createStream()
     wav_data = bytearray()
     for frame in frames:
         if frame is not None:
@@ -185,25 +197,25 @@ def main(ARGS):
                 wav_data = bytearray()
             text = model.finishStream(stream_context)
             print("Recognized: %s" % text)
-            stream_context = model.setupStream()
+            stream_context = model.createStream()
 
 if __name__ == '__main__':
     BEAM_WIDTH = 500
     DEFAULT_SAMPLE_RATE = 16000
     LM_ALPHA = 0.75
     LM_BETA = 1.85
-    N_FEATURES = 26
-    N_CONTEXT = 9
 
     import argparse
     parser = argparse.ArgumentParser(description="Stream from microphone to DeepSpeech using VAD")
 
     parser.add_argument('-v', '--vad_aggressiveness', type=int, default=3,
-        help="Set aggressiveness of VAD: an integer between 0 and 3, 0 being the least aggressive about filtering out non-speech, 3 the most aggressive. Default: 3")
+                        help="Set aggressiveness of VAD: an integer between 0 and 3, 0 being the least aggressive about filtering out non-speech, 3 the most aggressive. Default: 3")
     parser.add_argument('--nospinner', action='store_true',
-        help="Disable spinner")
+                        help="Disable spinner")
     parser.add_argument('-w', '--savewav',
-        help="Save .wav files of utterences to given directory")
+                        help="Save .wav files of utterences to given directory")
+    parser.add_argument('-f', '--file',
+                        help="Read from .wav file instead of microphone")
 
     parser.add_argument('-m', '--model', required=True,
                         help="Path to the model (protocol buffer binary file, or entire directory containing all standard-named files for model)")
@@ -214,13 +226,9 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--trie', default='trie',
                         help="Path to the language model trie file created with native_client/generate_trie. Default: trie")
     parser.add_argument('-d', '--device', type=int, default=None,
-                        help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index(). If not provided, falls back to PyAudio.get_default_device()")
+                        help="Device input index (Int) as listed by pyaudio.PyAudio.get_device_info_by_index(). If not provided, falls back to PyAudio.get_default_device().")
     parser.add_argument('-r', '--rate', type=int, default=DEFAULT_SAMPLE_RATE,
                         help=f"Input device sample rate. Default: {DEFAULT_SAMPLE_RATE}. Your device may require 44100.")
-    parser.add_argument('-nf', '--n_features', type=int, default=N_FEATURES,
-                        help=f"Number of MFCC features to use. Default: {N_FEATURES}")
-    parser.add_argument('-nc', '--n_context', type=int, default=N_CONTEXT,
-                        help=f"Size of the context window used for producing timesteps in the input vector. Default: {N_CONTEXT}")
     parser.add_argument('-la', '--lm_alpha', type=float, default=LM_ALPHA,
                         help=f"The alpha hyperparameter of the CTC decoder. Language Model weight. Default: {LM_ALPHA}")
     parser.add_argument('-lb', '--lm_beta', type=float, default=LM_BETA,
