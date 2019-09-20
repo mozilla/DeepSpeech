@@ -73,7 +73,7 @@ def _maybe_convert_set(target_csv):
             y, sr = librosa.load(sample, sr=16000)
 
             # Trim the beginning and ending silence
-            yt, index = librosa.effects.trim(y)
+            yt, index = librosa.effects.trim(y) # pylint: disable=unused-variable
 
             duration = librosa.get_duration(yt, sr)
             if duration > MAX_SECS or duration < MIN_SECS:
@@ -174,7 +174,7 @@ def make_manifest(directory):
 
 def load_txts(directory):
     utterences = dict()
-    dir = os.path.expanduser(directory)
+    directory = os.path.expanduser(directory)
     for target in sorted(os.listdir(directory)):
         d = os.path.join(dir, target)
         if not os.path.isdir(d):
