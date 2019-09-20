@@ -12,17 +12,12 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import re
-import csv
 import librosa
-import subprocess
 import progressbar
 
-from glob import glob
 from os import path
-from threading import RLock
 from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
-from util.text import validate_label
 from util.downloader import maybe_download, SIMPLE_BAR
 from zipfile import ZipFile
 
@@ -48,9 +43,9 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
     extracted_path = path.join(target_dir, extracted_data)
     if not path.exists(extracted_path):
         print(f'No directory {extracted_path} - extracting archive...')
-        with ZipFile(archive_path, 'r') as zipObj:
+        with ZipFile(archive_path, 'r') as zipobj:
             # Extract all the contents of zip file in current directory
-            zipObj.extractall(target_dir)
+            zipobj.extractall(target_dir)
     else:
         print(f'Found directory {extracted_path} - not extracting it from archive.')
 
@@ -59,28 +54,28 @@ def _maybe_convert_sets(target_dir, extracted_data):
     txt_dir = path.join(target_dir, extracted_data, 'txt')
 
     cnt = 1
-    dir = os.path.expanduser(extracted_dir)
-    srtd = len(sorted(os.listdir(dir)))
+    directory = os.path.expanduser(extracted_dir)
+    srtd = len(sorted(os.listdir(directory)))
               
-    for target in sorted(os.listdir(dir)):
+    for target in sorted(os.listdir(directory)):
         print(f'\nSpeaker {cnt} of {srtd}')
-        _maybe_convert_set(extracted_dir, txt_dir, target_dir, path.join(extracted_dir, os.path.split(target)[-1]))
+        _maybe_convert_set(path.join(extracted_dir, os.path.split(target)[-1]))
         cnt += 1
     
     _write_csv(extracted_dir, txt_dir, target_dir)
     
-def _maybe_convert_set(extracted_dir, txt_dir, target_dir, target_csv):
+def _maybe_convert_set(target_csv):
     
     def one_sample(sample):
         if is_audio_file(sample):
-            sample = os.path.join(target_csv,sample)
+            sample = os.path.join(target_csv, sample)
 
             y, sr = librosa.load(sample, sr=16000)
 
             # Trim the beginning and ending silence
             yt, index = librosa.effects.trim(y)
 
-            duration = librosa.get_duration(yt,sr)
+            duration = librosa.get_duration(yt, sr)
             if duration > MAX_SECS or duration < MIN_SECS:
                 os.remove(sample)
             else:
@@ -88,9 +83,7 @@ def _maybe_convert_set(extracted_dir, txt_dir, target_dir, target_csv):
     
     samples = sorted(os.listdir(target_csv))
     
-    lock = RLock()
     num_samples = len(samples)
-    rows = []   
 
     print(f'Converting wav files to {SAMPLE_RATE}hz...')
     pool = Pool(cpu_count())
@@ -144,19 +137,19 @@ def _write_csv(extracted_dir, txt_dir, target_dir):
     print(len(dev_data))
     print(len(test_data))
 
-    with open(os.path.join(extracted_dir,'vctk_full.csv'),'w') as fd:
+    with open(os.path.join(extracted_dir,'vctk_full.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in csv:
             fd.write(i)
-    with open(os.path.join(extracted_dir,'vctk_train.csv'),'w') as fd:
+    with open(os.path.join(extracted_dir,'vctk_train.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in train_data:
             fd.write(i)
-    with open(os.path.join(extracted_dir,'vctk_dev.csv'),'w') as fd:
+    with open(os.path.join(extracted_dir,'vctk_dev.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in dev_data:
             fd.write(i)
-    with open(os.path.join(extracted_dir,'vctk_test.csv'),'w') as fd:
+    with open(os.path.join(extracted_dir,'vctk_test.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in test_data:
             fd.write(i)
