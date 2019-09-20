@@ -9,7 +9,8 @@ from __future__ import absolute_import, division, print_function
 import os
 import random
 import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+sys.path.insert(1, os.path.join(sys.path[0], ".."))
 
 import re
 import librosa
@@ -24,10 +25,13 @@ from zipfile import ZipFile
 SAMPLE_RATE = 16000
 MAX_SECS = 10
 MIN_SECS = 1
-ARCHIVE_DIR_NAME = 'VCTK-Corpus'
-ARCHIVE_NAME = 'VCTK-Corpus.zip?sequence=2&isAllowed=y'
-ARCHIVE_URL = 'https://datashare.is.ed.ac.uk/bitstream/handle/10283/2651/' + ARCHIVE_NAME
- 
+ARCHIVE_DIR_NAME = "VCTK-Corpus"
+ARCHIVE_NAME = "VCTK-Corpus.zip?sequence=2&isAllowed=y"
+ARCHIVE_URL = (
+    "https://datashare.is.ed.ac.uk/bitstream/handle/10283/2651/" + ARCHIVE_NAME
+)
+
+
 def _download_and_preprocess_data(target_dir):
     # Making path absolute
     target_dir = path.abspath(target_dir)
@@ -38,34 +42,36 @@ def _download_and_preprocess_data(target_dir):
     # Conditionally convert common voice CSV files and mp3 data to DeepSpeech CSVs and wav
     _maybe_convert_sets(target_dir, ARCHIVE_DIR_NAME)
 
+
 def _maybe_extract(target_dir, extracted_data, archive_path):
     # If target_dir/extracted_data does not exist, extract archive in target_dir
     extracted_path = path.join(target_dir, extracted_data)
     if not path.exists(extracted_path):
-        print(f'No directory {extracted_path} - extracting archive...')
-        with ZipFile(archive_path, 'r') as zipobj:
+        print(f"No directory {extracted_path} - extracting archive...")
+        with ZipFile(archive_path, "r") as zipobj:
             # Extract all the contents of zip file in current directory
             zipobj.extractall(target_dir)
     else:
-        print(f'Found directory {extracted_path} - not extracting it from archive.')
+        print(f"Found directory {extracted_path} - not extracting it from archive.")
+
 
 def _maybe_convert_sets(target_dir, extracted_data):
-    extracted_dir = path.join(target_dir, extracted_data, 'wav48')
-    txt_dir = path.join(target_dir, extracted_data, 'txt')
+    extracted_dir = path.join(target_dir, extracted_data, "wav48")
+    txt_dir = path.join(target_dir, extracted_data, "txt")
 
     cnt = 1
     directory = os.path.expanduser(extracted_dir)
     srtd = len(sorted(os.listdir(directory)))
 
     for target in sorted(os.listdir(directory)):
-        print(f'\nSpeaker {cnt} of {srtd}')
+        print(f"\nSpeaker {cnt} of {srtd}")
         _maybe_convert_set(path.join(extracted_dir, os.path.split(target)[-1]))
         cnt += 1
 
     _write_csv(extracted_dir, txt_dir, target_dir)
 
-def _maybe_convert_set(target_csv):
 
+def _maybe_convert_set(target_csv):
     def one_sample(sample):
         if is_audio_file(sample):
             sample = os.path.join(target_csv, sample)
@@ -73,7 +79,7 @@ def _maybe_convert_set(target_csv):
             y, sr = librosa.load(sample, sr=16000)
 
             # Trim the beginning and ending silence
-            yt, index = librosa.effects.trim(y) # pylint: disable=unused-variable
+            yt, index = librosa.effects.trim(y)  # pylint: disable=unused-variable
 
             duration = librosa.get_duration(yt, sr)
             if duration > MAX_SECS or duration < MIN_SECS:
@@ -85,7 +91,7 @@ def _maybe_convert_set(target_csv):
 
     num_samples = len(samples)
 
-    print(f'Converting wav files to {SAMPLE_RATE}hz...')
+    print(f"Converting wav files to {SAMPLE_RATE}hz...")
     pool = Pool(cpu_count())
     bar = progressbar.ProgressBar(max_value=num_samples, widgets=SIMPLE_BAR)
     for i, _ in enumerate(pool.imap_unordered(one_sample, samples), start=1):
@@ -96,7 +102,7 @@ def _maybe_convert_set(target_csv):
 
 
 def _write_csv(extracted_dir, txt_dir, target_dir):
-    print(f'Writing CSV file')
+    print(f"Writing CSV file")
     print(target_dir)
     dset_abs_path = extracted_dir
     dset_txt_abs_path = txt_dir
@@ -111,21 +117,20 @@ def _write_csv(extracted_dir, txt_dir, target_dir):
         st = os.stat(file)
         file_size = st.st_size
 
-        #Seems to be one wav directory missing from txts - skip it
+        # Seems to be one wav directory missing from txts - skip it
         file_parts = file.split(os.sep)
         file_subdir = file_parts[-2]
-        if file_subdir == 'p315':
+        if file_subdir == "p315":
             continue
 
         file_name = file_parts[-1]
-        file_name_no_ext = file_name.split('.')[0]
+        file_name_no_ext = file_name.split(".")[0]
 
         utterence = utterences[file_name_no_ext]
         utterence_clean = re.sub(r"[^a-zA-Z' ]+", "", utterence).lower().strip()
 
-        csv_line = f'{file},{file_size},{utterence_clean}\n'
+        csv_line = f"{file},{file_size},{utterence_clean}\n"
         csv.append(csv_line)
-
 
     random.shuffle(csv)
 
@@ -137,24 +142,25 @@ def _write_csv(extracted_dir, txt_dir, target_dir):
     print(len(dev_data))
     print(len(test_data))
 
-    with open(os.path.join(target_dir, 'vctk_full.csv'), 'w') as fd:
-        fd.write('wav_filename,wav_filesize,transcript\n')
+    with open(os.path.join(target_dir, "vctk_full.csv"), "w") as fd:
+        fd.write("wav_filename,wav_filesize,transcript\n")
         for i in csv:
             fd.write(i)
-    with open(os.path.join(target_dir, 'vctk_train.csv'), 'w') as fd:
-        fd.write('wav_filename,wav_filesize,transcript\n')
+    with open(os.path.join(target_dir, "vctk_train.csv"), "w") as fd:
+        fd.write("wav_filename,wav_filesize,transcript\n")
         for i in train_data:
             fd.write(i)
-    with open(os.path.join(target_dir, 'vctk_dev.csv'), 'w') as fd:
-        fd.write('wav_filename,wav_filesize,transcript\n')
+    with open(os.path.join(target_dir, "vctk_dev.csv"), "w") as fd:
+        fd.write("wav_filename,wav_filesize,transcript\n")
         for i in dev_data:
             fd.write(i)
-    with open(os.path.join(target_dir, 'vctk_test.csv'), 'w') as fd:
-        fd.write('wav_filename,wav_filesize,transcript\n')
+    with open(os.path.join(target_dir, "vctk_test.csv"), "w") as fd:
+        fd.write("wav_filename,wav_filesize,transcript\n")
         for i in test_data:
             fd.write(i)
 
-    print(f'Wrote {len(csv)} entries')
+    print(f"Wrote {len(csv)} entries")
+
 
 def make_manifest(directory):
     audios = []
@@ -184,14 +190,12 @@ def load_txts(directory):
             for fname in fnames:
                 if fname.endswith(".txt"):
                     with open(os.path.join(root, fname), "r") as f:
-                        fname_no_ext = os.path.basename(
-                            fname).rsplit(".", 1)[0]
+                        fname_no_ext = os.path.basename(fname).rsplit(".", 1)[0]
                         utterences[fname_no_ext] = f.readline()
     return utterences
 
-AUDIO_EXTENSIONS = [
-    '.wav', 'WAV'
-]
+
+AUDIO_EXTENSIONS = [".wav", "WAV"]
 
 
 def is_audio_file(filename):
