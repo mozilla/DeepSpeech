@@ -27,7 +27,7 @@ MIN_SECS = 1
 ARCHIVE_DIR_NAME = 'VCTK-Corpus'
 ARCHIVE_NAME = 'VCTK-Corpus.zip?sequence=2&isAllowed=y'
 ARCHIVE_URL = 'https://datashare.is.ed.ac.uk/bitstream/handle/10283/2651/' + ARCHIVE_NAME
-
+ 
 def _download_and_preprocess_data(target_dir):
     # Making path absolute
     target_dir = path.abspath(target_dir)
@@ -176,7 +176,7 @@ def load_txts(directory):
     utterences = dict()
     directory = os.path.expanduser(directory)
     for target in sorted(os.listdir(directory)):
-        d = os.path.join(dir, target)
+        d = os.path.join(directory, target)
         if not os.path.isdir(d):
             continue
 
