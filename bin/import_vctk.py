@@ -158,7 +158,7 @@ def _write_csv(extracted_dir, txt_dir, target_dir):
 
 def make_manifest(directory):
     audios = []
-    dir = os.path.expanduser(directory)
+    directory = os.path.expanduser(directory)
     for target in sorted(os.listdir(directory)):
         d = os.path.join(directory, target)
         if not os.path.isdir(d):
@@ -172,10 +172,10 @@ def make_manifest(directory):
     return audios
 
 
-def load_txts(dir):
+def load_txts(directory):
     utterences = dict()
-    dir = os.path.expanduser(dir)
-    for target in sorted(os.listdir(dir)):
+    dir = os.path.expanduser(directory)
+    for target in sorted(os.listdir(directory)):
         d = os.path.join(dir, target)
         if not os.path.isdir(d):
             continue
