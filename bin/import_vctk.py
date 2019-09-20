@@ -56,16 +56,16 @@ def _maybe_convert_sets(target_dir, extracted_data):
     cnt = 1
     directory = os.path.expanduser(extracted_dir)
     srtd = len(sorted(os.listdir(directory)))
-              
+
     for target in sorted(os.listdir(directory)):
         print(f'\nSpeaker {cnt} of {srtd}')
         _maybe_convert_set(path.join(extracted_dir, os.path.split(target)[-1]))
         cnt += 1
-    
+
     _write_csv(extracted_dir, txt_dir, target_dir)
-    
+
 def _maybe_convert_set(target_csv):
-    
+
     def one_sample(sample):
         if is_audio_file(sample):
             sample = os.path.join(target_csv, sample)
@@ -80,9 +80,9 @@ def _maybe_convert_set(target_csv):
                 os.remove(sample)
             else:
                 librosa.output.write_wav(sample, yt, sr)
-    
+
     samples = sorted(os.listdir(target_csv))
-    
+
     num_samples = len(samples)
 
     print(f'Converting wav files to {SAMPLE_RATE}hz...')
@@ -93,7 +93,7 @@ def _maybe_convert_set(target_csv):
     bar.update(num_samples)
     pool.close()
     pool.join()
-        
+
 
 def _write_csv(extracted_dir, txt_dir, target_dir):
     print(f'Writing CSV file')
@@ -110,11 +110,11 @@ def _write_csv(extracted_dir, txt_dir, target_dir):
 
         st = os.stat(file)
         file_size = st.st_size
-        
+
         #Seems to be one wav directory missing from txts - skip it
         file_parts = file.split(os.sep)
         file_subdir = file_parts[-2]
-        if file_subdir == 'p315': 
+        if file_subdir == 'p315':
             continue
 
         file_name = file_parts[-1]
@@ -126,7 +126,7 @@ def _write_csv(extracted_dir, txt_dir, target_dir):
         csv_line = f'{file},{file_size},{utterence_clean}\n'
         csv.append(csv_line)
 
-    
+
     random.shuffle(csv)
 
     train_data = csv[:37000]
@@ -137,37 +137,37 @@ def _write_csv(extracted_dir, txt_dir, target_dir):
     print(len(dev_data))
     print(len(test_data))
 
-    with open(os.path.join(extracted_dir,'vctk_full.csv'), 'w') as fd:
+    with open(os.path.join(target_dir, 'vctk_full.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in csv:
             fd.write(i)
-    with open(os.path.join(extracted_dir,'vctk_train.csv'), 'w') as fd:
+    with open(os.path.join(target_dir, 'vctk_train.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in train_data:
             fd.write(i)
-    with open(os.path.join(extracted_dir,'vctk_dev.csv'), 'w') as fd:
+    with open(os.path.join(target_dir, 'vctk_dev.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in dev_data:
             fd.write(i)
-    with open(os.path.join(extracted_dir,'vctk_test.csv'), 'w') as fd:
+    with open(os.path.join(target_dir, 'vctk_test.csv'), 'w') as fd:
         fd.write('wav_filename,wav_filesize,transcript\n')
         for i in test_data:
             fd.write(i)
-            
+
     print(f'Wrote {len(csv)} entries')
 
-def make_manifest(dir):
+def make_manifest(directory):
     audios = []
-    dir = os.path.expanduser(dir)
-    for target in sorted(os.listdir(dir)):
-        d = os.path.join(dir, target)
+    dir = os.path.expanduser(directory)
+    for target in sorted(os.listdir(directory)):
+        d = os.path.join(directory, target)
         if not os.path.isdir(d):
             continue
 
         for root, _, fnames in sorted(os.walk(d)):
             for fname in fnames:
-                path = os.path.join(root, fname)
-                item = path
+                new_path = os.path.join(root, fname)
+                item = new_path
                 audios.append(item)
     return audios
 
