@@ -49,7 +49,7 @@ ModelState::decode_metadata(const DecoderState& state)
 
   std::unique_ptr<Metadata> metadata(new Metadata());
   metadata->num_items = out[0].tokens.size();
-  metadata->probability = out[0].probability;
+  metadata->confidence = out[0].confidence;
 
   std::unique_ptr<MetadataItem[]> items(new MetadataItem[metadata->num_items]());
 

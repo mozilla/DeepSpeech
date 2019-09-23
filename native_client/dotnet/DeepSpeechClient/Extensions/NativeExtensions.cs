@@ -36,7 +36,7 @@ namespace DeepSpeechClient.Extensions
             var metaData = (Metadata)Marshal.PtrToStructure(intPtr, typeof(Metadata));
 
             managedMetaObject.Items = new Models.MetadataItem[metaData.num_items];
-            managedMetaObject.Probability = metaData.probability;
+            managedMetaObject.Confidence = metaData.confidence;
 
 
             //we need to manually read each item from the native ptr using its size

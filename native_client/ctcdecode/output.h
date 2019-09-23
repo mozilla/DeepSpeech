@@ -7,7 +7,7 @@
  * for each token in the beam search output
  */
 struct Output {
-    double probability;
+    double confidence;
     std::vector<int> tokens;
     std::vector<int> timesteps;
 };
