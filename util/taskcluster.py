@@ -118,10 +118,11 @@ def main():
         if plat == 'darwin':
             plat = 'macosx_10_10'
 
-        version_string = read('../VERSION').strip()
-        ds_version = parse_version(version_string)
-
-        if not has_branch_set:
+        if has_branch_set:
+            ds_version = args.branch.lstrip('v')
+        else:
+            version_string = read('../VERSION').strip()
+            ds_version = parse_version(version_string)
             args.branch = "v{}".format(version_string)
 
         m_or_mu = 'mu' if is_ucs2 else 'm'
