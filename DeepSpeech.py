@@ -271,7 +271,7 @@ def create_optimizer():
 # on which all operations within the tower execute.
 # For example, all operations of 'tower 0' could execute on the first GPU `tf.device('/gpu:0')`.
 
-def get_tower_results(iterator, optimizer, dropout_rates):
+def get_tower_results(iterator, optimizer, dropout_rates, drop_source_layers):
     r'''
     With this preliminary step out of the way, we can for each GPU introduce a
     tower for which's batch we calculate and return the optimization gradients
@@ -304,9 +304,25 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
-                    # Compute gradients for model parameters using tower's mini-batch
-                    gradients = optimizer.compute_gradients(avg_loss)
+                    # # Compute gradients for model parameters using tower's mini-batch
+                    # gradients = optimizer.compute_gradients(avg_loss)
 
+                    if FLAGS.fine_tune:
+                        # train from source model and fine-tine
+                        # aka - update all layers
+                        gradients = optimizer.compute_gradients(avg_loss)
+                    else:
+                        # train from source model and freeze old layers
+                        # aka - only update new layers
+                        gradients = optimizer.compute_gradients(
+                            avg_loss,
+                            var_list = [ v for v in tf.trainable_variables()
+                                         if any(
+                                                 layer in v.op.name
+                                                 for layer in drop_source_layers
+                                         )]
+                        )
+                    
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
 
@@ -411,6 +427,8 @@ def try_loading(session, saver, checkpoint_filename, caption):
         sys.exit(1)
 
 
+
+
 def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
@@ -430,6 +448,19 @@ def train():
         dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False) for csv in dev_csvs]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
+    # The transfer learning approach here need us to supply the layers which we
+    # want to exclude from the source model.
+    # Say we want to exclude all layers except for the first one, we can use this:
+    #
+    #    drop_source_layers=['2', '3', 'lstm', '5', '6']
+    #
+    # If we want to use all layers from the source model except the last one, we use this:
+    #
+    #    drop_source_layers=['6']
+    #
+
+    drop_source_layers = ['2', '3', 'lstm', '5', '6'][-int(FLAGS.drop_source_layers):]
+    
     # Dropout
     dropout_rates = [tfv1.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
     dropout_feed_dict = {
@@ -530,13 +561,33 @@ def train():
         if not loaded and FLAGS.load in ['auto', 'best']:
             loaded = try_loading(session, best_dev_saver, best_dev_filename, 'best validation')
         if not loaded:
-            if FLAGS.load in ['auto', 'init']:
+            if FLAGS.source_model_checkpoint_dir:
+                print('Initializing model from', FLAGS.source_model_checkpoint_dir)
+                ckpt = tf.train.load_checkpoint(FLAGS.source_model_checkpoint_dir)
+                variables = list(ckpt.get_variable_to_shape_map().keys())
+
+                # Load desired source variables
+                for v in tf.global_variables():
+                    if not any(layer in v.op.name for layer in drop_source_layers):
+                        print('Loading', v.op.name)
+                        v.load(ckpt.get_tensor(v.op.name), session=session)
+
+                # Initialize all variables needed for DS, but not loaded from ckpt
+                init_op = tf.variables_initializer(
+                    [v for v in tf.global_variables()
+                     if any(layer in v.op.name
+                            for layer in drop_source_layers)
+                     ])
+                session.run(init_op)
+            elif FLAGS.load in ['auto', 'init']:
                 log_info('Initializing variables...')
                 session.run(initializer)
             else:
                 log_error('Unable to load %s model from specified checkpoint dir'
                           ' - consider using load option "auto" or "init".' % FLAGS.load)
                 sys.exit(1)
+
+        tf.get_default_graph().finalize()
 
         def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
