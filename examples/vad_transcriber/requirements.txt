@@ -1,3 +1,3 @@
-deepspeech~=0.6.0a6
+deepspeech~=0.6.0a7
 webrtcvad
 pyqt5
