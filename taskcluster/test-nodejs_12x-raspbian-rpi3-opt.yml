@@ -7,7 +7,7 @@ build:
     >
       ${nodejs.packages_buster.prep_12} && ${nodejs.packages_buster.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_buster.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 12.x"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node_tflite-tests.sh 12.x"
   metadata:
     name: "DeepSpeech Raspbian RPi3/ARMv7 CPU NodeJS 12.x tests"
     description: "Testing DeepSpeech for Raspbian RPi3/ARMv7 on NodeJS v12.x, CPU only, optimized version"
