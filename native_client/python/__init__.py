@@ -119,6 +119,7 @@ class Model(object):
             raise RuntimeError("CreateStream failed with error code {}".format(status))
         return ctx
 
+    # pylint: disable=no-self-use
     def feedAudioContent(self, *args, **kwargs):
         """
         Feed audio samples to an ongoing streaming inference.
@@ -134,6 +135,7 @@ class Model(object):
         """
         deepspeech.impl.FeedAudioContent(*args, **kwargs)
 
+    # pylint: disable=no-self-use
     def intermediateDecode(self, *args, **kwargs):
         """
         Compute the intermediate decoding of an ongoing streaming inference.
@@ -149,6 +151,7 @@ class Model(object):
         """
         return deepspeech.impl.IntermediateDecode(*args, **kwargs)
 
+    # pylint: disable=no-self-use
     def finishStream(self, *args, **kwargs):
         """
         Signal the end of an audio signal to an ongoing streaming
@@ -162,6 +165,7 @@ class Model(object):
         """
         return deepspeech.impl.FinishStream(*args, **kwargs)
 
+    # pylint: disable=no-self-use
     def finishStreamWithMetadata(self, *args, **kwargs):
         """
         Signal the end of an audio signal to an ongoing streaming
@@ -186,18 +190,21 @@ class MetadataItem(object):
         """
         The character generated for transcription
         """
+        # pylint: disable=unnecessary-pass
         pass
 
     def timestep(self):
         """
         Position of the character in units of 20ms
         """
+        # pylint: disable=unnecessary-pass
         pass
 
     def start_time(self):
         """
         Position of the character in seconds
         """
+        # pylint: disable=unnecessary-pass
         pass
 
 
@@ -212,6 +219,7 @@ class Metadata(object):
         :return: A list of :func:`MetadataItem` elements
         :type: list
         """
+        # pylint: disable=unnecessary-pass
         pass
 
     def num_items(self):
@@ -221,6 +229,7 @@ class Metadata(object):
         :return: Size of the list of items
         :type: int
         """
+        # pylint: disable=unnecessary-pass
         pass
 
     def confidence(self):
@@ -229,4 +238,5 @@ class Metadata(object):
         sum of the acoustic model logit values for each timestep/character that
         contributed to the creation of this transcription.
         """
+        # pylint: disable=unnecessary-pass
         pass
