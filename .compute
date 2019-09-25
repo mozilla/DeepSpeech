@@ -2,43 +2,33 @@
 
 set -xe
 
-SOURCE_MODEL='../keep/en'
-# mkdir $SOURCE_MODEL
-# wget https://github.com/mozilla/DeepSpeech/releases/download/v0.5.1/deepspeech-0.5.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
-# tar xvzf ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
-# rm ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz
-
-# venv
-apt-get update -y
 apt-get install -y python3-venv
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
+
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.14.0
+
+# Install ds_ctcdecoder package from TaskCluster
 pip install $(python3 util/taskcluster.py --decoder)
 
-echo "##############################"
-echo " STARTING TRANSFER LEARNING "
-echo "##############################"
+mkdir -p ../keep/summaries
 
-exp="../keep/en"
+data="${SHARED_DIR}/data"
+fis="${data}/LDC/fisher"
+swb="${data}/LDC/LDC97S62/swb"
+lbs="${data}/OpenSLR/LibriSpeech/librivox"
 
 python -u DeepSpeech.py \
-       --load "transfer" \
-       --nofine_tune \
-	   --export_dir "${exp}/model/" \
-	   --summary_dir "${exp}/summaries/" \
-	   --checkpoint_dir "${exp}/ckpt/" \
-	   --drop_source_layers 3 \
-	   --source_model_checkpoint_dir "${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint" \
-	   --n_hidden 2048 \
-	   --epochs 1 \
-       --early_stop 5 \
-	   --train_batch_size 24 \
-	   --dev_batch_size 48 \
-	   --test_batch_size 48 \
-	   --learning_rate 0.0001 \
-	   --dropout_rate 0.2 \
-       --train_files "/home/josh/data/clips/head-train.csv" \
-       --dev_files "/home/josh/data/clips/head-dev.csv" \
-       --test_files "/home/josh/data/clips/head-test.csv"
+  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
+  --dev_files "${lbs}-dev-clean.csv"\
+  --test_files "${lbs}-test-clean.csv" \
+  --train_batch_size 24 \
+  --dev_batch_size 48 \
+  --test_batch_size 48 \
+  --n_hidden 2048 \
+  --learning_rate 0.0001 \
+  --dropout_rate 0.2 \
+  --epoch 13 \
+  --checkpoint_dir "../keep" \
+  --summary_dir "../keep/summaries"
