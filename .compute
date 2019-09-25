@@ -3,10 +3,10 @@
 set -xe
 
 SOURCE_MODEL='../keep/en'
-mkdir $SOURCE_MODEL
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.5.1/deepspeech-0.5.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
-tar xvzf ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
-rm ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz
+# mkdir $SOURCE_MODEL
+# wget https://github.com/mozilla/DeepSpeech/releases/download/v0.5.1/deepspeech-0.5.1-checkpoint.tar.gz --directory-prefix="${SOURCE_MODEL}"
+# tar xvzf ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz --no-same-owner --directory "${SOURCE_MODEL}"
+# rm ${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint.tar.gz
 
 # venv
 apt-get update -y
@@ -15,29 +15,30 @@ python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 pip install -r <(grep -v tensorflow requirements.txt)
 pip install tensorflow-gpu==1.14.0
-
+pip install $(python3 util/taskcluster.py --decoder)
 
 echo "##############################"
 echo " STARTING TRANSFER LEARNING "
 echo "##############################"
 
-exp="../keep/transfer"
+exp="../keep/en"
 
 python -u DeepSpeech.py \
+       --load "transfer" \
        --nofine_tune \
 	   --export_dir "${exp}/model/" \
 	   --summary_dir "${exp}/summaries/" \
 	   --checkpoint_dir "${exp}/ckpt/" \
-	   --drop_source_layers 1 \
+	   --drop_source_layers 3 \
 	   --source_model_checkpoint_dir "${SOURCE_MODEL}/deepspeech-0.5.1-checkpoint" \
 	   --n_hidden 2048 \
-	   --epoch -10 \
-       --earlystop_nsteps 5 \
+	   --epochs 1 \
+       --early_stop 5 \
 	   --train_batch_size 24 \
 	   --dev_batch_size 48 \
 	   --test_batch_size 48 \
 	   --learning_rate 0.0001 \
 	   --dropout_rate 0.2 \
-       --train_files "transfer-train.csv" \
-       --dev_files "transfer-dev.csv" \
-       --test_files "transfer-test.csv"
+       --train_files "/home/josh/data/clips/head-train.csv" \
+       --dev_files "/home/josh/data/clips/head-dev.csv" \
+       --test_files "/home/josh/data/clips/head-test.csv"

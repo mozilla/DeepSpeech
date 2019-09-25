@@ -10,8 +10,6 @@ def create_flags():
     # ========
 
     f = absl.flags
-    f.DEFINE_boolean('fine_tune',      False,          'fine-tune the transfered layers from source model or not')
-    f.DEFINE_integer('drop_source_layers',      1,          'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')
     f.DEFINE_string('train_files', '', 'comma separated list of files specifying the dataset used for training. Multiple files will get merged. If empty, training will not be run.')
     f.DEFINE_string('dev_files', '', 'comma separated list of files specifying the dataset used for validation. Multiple files will get merged. If empty, validation will not be run.')
     f.DEFINE_string('test_files', '', 'comma separated list of files specifying the dataset used for testing. Multiple files will get merged. If empty, the model will not be tested.')
@@ -93,7 +91,7 @@ def create_flags():
     f.DEFINE_string('checkpoint_dir', '', 'directory in which checkpoints are stored - defaults to directory "deepspeech/checkpoints" within user\'s data home specified by the XDG Base Directory Specification')
     f.DEFINE_integer('checkpoint_secs', 600, 'checkpoint saving interval in seconds')
     f.DEFINE_integer('max_to_keep', 5, 'number of checkpoint files to keep - default value is 5')
-    f.DEFINE_string('load', 'auto', '"last" for loading most recent epoch checkpoint, "best" for loading best validated checkpoint, "init" for initializing a fresh model, "auto" for trying the other options in order last > best > init')
+    f.DEFINE_string('load', 'transfer', '"last" for loading most recent epoch checkpoint, "best" for loading best validated checkpoint, "init" for initializing a fresh model, "transfer" for transfer learning, "auto" for trying the other options in order last > best > init')
 
     # Exporting
 
@@ -160,3 +158,9 @@ def create_flags():
     f.register_validator('one_shot_infer',
                          lambda value: not value or os.path.isfile(value),
                          message='The file pointed to by --one_shot_infer must exist and be readable.')
+        
+    # Transfer Learning
+    # ========
+    
+    f.DEFINE_boolean('fine_tune',      False,          'fine-tune the transfered layers from source model or not')
+    f.DEFINE_integer('drop_source_layers',      1,          'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')
