@@ -308,25 +308,27 @@ def get_tower_results(iterator, optimizer, dropout_rates, drop_source_layers):
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
-                    # # Compute gradients for model parameters using tower's mini-batch
-                    # gradients = optimizer.compute_gradients(avg_loss)
-
-                    if FLAGS.fine_tune:
-                        # train from source model and fine-tine
-                        # aka - update all layers
-                        gradients = optimizer.compute_gradients(avg_loss)
+                    # Compute gradients for model parameters using tower's mini-batch
+                    if FLAGS.load == "transfer":
+                        if not FLAGS.fine_tune:
+                            # train from source model and freeze old layers
+                            # aka - only update new layers
+                            gradients = optimizer.compute_gradients(
+                                avg_loss,
+                                var_list = [ v for v in tfv1.trainable_variables()
+                                             if any(
+                                                     layer in v.op.name
+                                                     for layer in drop_source_layers
+                                             )]
+                            )
+                        else:
+                            # Transfer learning, but update all layers
+                            # aka - fine tune all layers
+                            gradients = optimizer.compute_gradients(avg_loss)
                     else:
-                        # train from source model and freeze old layers
-                        # aka - only update new layers
-                        gradients = optimizer.compute_gradients(
-                            avg_loss,
-                            var_list = [ v for v in tf.trainable_variables()
-                                         if any(
-                                                 layer in v.op.name
-                                                 for layer in drop_source_layers
-                                         )]
-                        )
-                    
+                        # no Transfer Learning, and updating all layers 
+                        gradients = optimizer.compute_gradients(avg_loss)
+                        
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
 
@@ -470,6 +472,22 @@ def train():
         dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False) for csv in dev_csvs]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
+    # The transfer learning approach here need us to supply the layers which we
+    # want to exclude from the source model.
+    # Say we want to exclude all layers except for the first one, we can use this:
+    #
+    #    drop_source_layers=['2', '3', 'lstm', '5', '6']
+    #
+    # If we want to use all layers from the source model except the last one, we use this:
+    #
+    #    drop_source_layers=['6']
+    #
+
+    if FLAGS.load == "transfer":
+        drop_source_layers = ['2', '3', 'lstm', '5', '6'][-FLAGS.drop_source_layers:]
+    else:
+        drop_source_layers=None
+    
     # Dropout
     dropout_rates = [tfv1.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
     dropout_feed_dict = {
@@ -486,7 +504,7 @@ def train():
 
     # Building the graph
     optimizer = create_optimizer()
-
+    
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info('Enabling automatic mixed precision training.')
@@ -567,17 +585,14 @@ def train():
             session.run(init_op)
             loaded = True
 
-        # TRANSFER LEARNING #
-        # Loading or initializing
-        loaded = False
-        if FLAGS.load in ['auto', 'last']:
+        if not loaded and FLAGS.load in ['auto', 'last']:
             loaded = try_loading(session, checkpoint_saver, checkpoint_filename, 'most recent')
         if not loaded and FLAGS.load in ['auto', 'best']:
             loaded = try_loading(session, best_dev_saver, best_dev_filename, 'best validation')
-        if not loaded:
+        if not loaded and FLAGS.load == "transfer":
             if FLAGS.source_model_checkpoint_dir:
                 print('Initializing model from', FLAGS.source_model_checkpoint_dir)
-                ckpt = tf.train.load_checkpoint(FLAGS.source_model_checkpoint_dir)
+                ckpt = tfv1.train.load_checkpoint(FLAGS.source_model_checkpoint_dir)
                 variables = list(ckpt.get_variable_to_shape_map().keys())
 
                 # Load desired source variables
@@ -587,7 +602,7 @@ def train():
                         v.load(ckpt.get_tensor(v.op.name), session=session)
 
                 # Initialize all variables needed for DS, but not loaded from ckpt
-                init_op = tf.variables_initializer(
+                init_op = tfv1.variables_initializer(
                     [v for v in tf.global_variables()
                      if any(layer in v.op.name
                             for layer in drop_source_layers)
