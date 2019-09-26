@@ -97,6 +97,7 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
       fill_dictionary(vocab, true);
     }
   } else {
+    config.load_method = util::LoadMethod::LAZY;
     language_model_.reset(lm::ngram::LoadVirtual(filename, config));
 
     // Read metadata and trie from file
