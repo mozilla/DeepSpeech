@@ -219,7 +219,7 @@ double Scorer::get_sent_log_prob(const std::vector<std::string>& words)
   for (int win_start = 0, win_end = 1; win_end <= sent_len+1; ++win_end) {
     const int win_size = win_end - win_start;
     bool bos = win_size < max_order_;
-    bool eos = win_end == sent_len + 1;
+    bool eos = win_end == (sent_len + 1);
 
     // The last window goes one past the end of the words vector as passing the
     // EOS=true flag counts towards the length of the scored sentence, so we
