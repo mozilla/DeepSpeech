@@ -39,7 +39,7 @@ using std::vector;
 
    The streaming process uses three buffers that are fed eagerly as audio data
    is fed in. The buffers only hold the minimum amount of data needed to do a
-   step in the acoustic model. The three buffers which live in StreamingContext
+   step in the acoustic model. The three buffers which live in StreamingState
    are:
 
    - audio_buffer, used to buffer audio samples until there's enough data to
