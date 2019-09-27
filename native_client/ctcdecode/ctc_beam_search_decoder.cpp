@@ -120,7 +120,8 @@ DecoderState::next(const double *probs,
             float score = 0.0;
             std::vector<std::string> ngram;
             ngram = ext_scorer_->make_ngram(prefix_to_score);
-            score = ext_scorer_->get_log_cond_prob(ngram) * ext_scorer_->alpha;
+            bool bos = ngram.size() < ext_scorer_->get_max_order();
+            score = ext_scorer_->get_log_cond_prob(ngram, bos) * ext_scorer_->alpha;
             log_p += score;
             log_p += ext_scorer_->beta;
           }
