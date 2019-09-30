@@ -6,11 +6,9 @@ from . import swigwrapper
 class Scorer(swigwrapper.Scorer):
     """Wrapper for Scorer.
 
-    :param alpha: Parameter associated with language model. Don't use
-                  language model when alpha = 0.
+    :param alpha: Language model weight.
     :type alpha: float
-    :param beta: Parameter associated with word count. Don't use word
-                 count when beta = 0.
+    :param beta: Word insertion bonus.
     :type beta: float
     :model_path: Path to load language model.
     :trie_path: Path to trie file.
