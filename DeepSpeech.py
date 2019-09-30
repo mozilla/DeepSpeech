@@ -870,9 +870,12 @@ def do_single_file_inference(input_file_path):
 
         logits = np.squeeze(logits)
 
-        scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
-                        FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                        Config.alphabet)
+        if FLAGS.lm_binary_path:
+            scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
+                            FLAGS.lm_binary_path, FLAGS.lm_trie_path,
+                            Config.alphabet)
+        else:
+            scorer = None
         decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width, scorer=scorer)
         # Print highest probability result
         print(decoded[0][1])
