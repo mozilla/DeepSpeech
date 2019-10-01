@@ -424,6 +424,8 @@ Note: the released models were trained with `--n_hidden 2048`, so you need to us
 
 Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm and spectrogram has been implemented and can be used while training the model. Following are the available augmentation techniques that can be enabled at training time by using the corresponding flags in the command line.
 
+**Note**: It is important not to specify the --feature_cache flag. Delete your cache files for completeness.
+
 #### Audio Augmentation
 1. **Standard deviation for Gaussian additive noise:** ```--data_aug_features_additive```
 2. **Standard deviation for Normal distribution around 1 for multiplicative noise:** ```--data_aug_features_multiplicative``` 
