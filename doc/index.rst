@@ -10,14 +10,15 @@ Welcome to DeepSpeech's documentation!
    :maxdepth: 2
    :caption: Introduction
 
-   DeepSpeech
+   Introduction
 
 .. toctree::
    :maxdepth: 2
    :caption: DeepSpeech Model
 
+   DeepSpeech
+
    Geometry
-   ParallelOptimization
 
 .. toctree::
    :maxdepth: 2

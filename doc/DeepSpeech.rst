@@ -3,7 +3,8 @@ Introduction
 
 In this project we will reproduce the results of
 `Deep Speech: Scaling up end-to-end speech recognition <http://arxiv.org/abs/1412.5567>`_.
-The core of the system is a bidirectional recurrent neural network (BRNN)
+
+The core of the system is a unidirectional recurrent neural network (RNN)
 trained to ingest speech spectrograms and generate English text transcriptions.
 
 Let a single utterance :math:`x` and label :math:`y` be sampled from a training set
@@ -15,13 +16,13 @@ Each utterance, :math:`x^{(i)}` is a time-series of length :math:`T^{(i)}`
 where every time-slice is a vector of audio features,
 :math:`x^{(i)}_t` where :math:`t=1,\ldots,T^{(i)}`.
 We use MFCC as our features; so :math:`x^{(i)}_{t,p}` denotes the :math:`p`-th MFCC feature
-in the audio frame at time :math:`t`. The goal of our BRNN is to convert an input
+in the audio frame at time :math:`t`. The goal of our RNN is to convert an input
 sequence :math:`x` into a sequence of character probabilities for the transcription
 :math:`y`, with :math:`\hat{y}_t =\mathbb{P}(c_t \mid x)`,
 where :math:`c_t \in \{a,b,c, . . . , z, space, apostrophe, blank\}`.
 (The significance of :math:`blank` will be explained below.)
 
-Our BRNN model is composed of :math:`5` layers of hidden units.
+Our RNN model is composed of :math:`5` layers of hidden units.
 For an input :math:`x`, the hidden units at layer :math:`l` are denoted :math:`h^{(l)}` with the
 convention that :math:`h^{(0)}` is the input. The first three layers are not recurrent.
 For the first layer, at each time :math:`t`, the output depends on the MFCC frame
@@ -35,7 +36,7 @@ Thus, for each time :math:`t`, the first :math:`3` layers are computed by:
 
 where :math:`g(z) = \min\{\max\{0, z\}, 20\}` is a clipped rectified-linear (ReLu)
 activation function and :math:`W^{(l)}`, :math:`b^{(l)}` are the weight matrix and bias
-parameters for layer :math:`l`. The fourth layer is a bidirectional recurrent
+parameters for layer :math:`l`. The fourth layer is a unidirectional recurrent
 layer `[1] <http://www.di.ufpe.br/~fnj/RNA/bibliografia/BRNN.pdf>`_.
 This layer includes two sets of hidden units: a set with forward recurrence,
 :math:`h^{(f)}`, and a set with backward recurrence :math:`h^{(b)}`:
@@ -73,7 +74,7 @@ with respect to all of the model parameters may be done via back-propagation
 through the rest of the network. We use the Adam method for training
 `[3] <http://arxiv.org/abs/1412.6980>`_.
 
-The complete BRNN model is illustrated in the figure below.
+The complete RNN model is illustrated in the figure below.
 
 .. image:: ../images/rnn_fig-624x548.png
-    :alt: DeepSpeech BRNN
+    :alt: DeepSpeech RNN
