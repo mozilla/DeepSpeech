@@ -1,10 +1,8 @@
 ﻿using DeepSpeechClient.Interfaces;
-using DeepSpeechClient.Structs;
 using DeepSpeechClient.Extensions;
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using DeepSpeechClient.Enums;
 
 namespace DeepSpeechClient
@@ -14,9 +12,8 @@ namespace DeepSpeechClient
     /// </summary>
     public class DeepSpeech : IDeepSpeech
     {
-        private unsafe ModelState** _modelStatePP;
-        private unsafe ModelState* _modelStateP;
-        private unsafe StreamingState** _streamingStatePP;
+        private unsafe IntPtr** _modelStatePP;
+        private unsafe IntPtr** _streamingStatePP;
 
 
 
@@ -65,7 +62,6 @@ namespace DeepSpeechClient
                             aBeamWidth,
                             ref _modelStatePP);
             EvaluateResultCode(resultCode);
-            _modelStateP = *_modelStatePP;
         }
 
         /// <summary>
