@@ -83,7 +83,7 @@ namespace DeepSpeechWPF
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
-                    Close();
+                    Dispatcher.Invoke(() => { Close(); }); 
                 }
             });
         }
