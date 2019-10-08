@@ -36,7 +36,7 @@ To install and use deepspeech all you have to do is:
    # Transcribe an audio file
    deepspeech --model deepspeech-0.5.1-models/output_graph.pbmm --alphabet deepspeech-0.5.1-models/alphabet.txt --lm deepspeech-0.5.1-models/lm.binary --trie deepspeech-0.5.1-models/trie --audio audio/2830-3980-0043.wav
 
-A pre-trained English model is available for use and can be downloaded using `the instructions below <#using-a-pre-trained-model>`_. Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client. A package with some example audio files is available for download in our `release notes <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
+A pre-trained English model is available for use and can be downloaded using `the instructions below <USING.rst#using-a-pre-trained-model>`_. Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client. A package with some example audio files is available for download in our `release notes <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
 
 Quicker inference can be performed using a supported NVIDIA GPU on Linux. See the `release notes <https://github.com/mozilla/DeepSpeech/releases/latest>`_ to find which GPUs are supported. To run ``deepspeech`` on a GPU, install the GPU specific package:
 
@@ -52,7 +52,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    # Transcribe an audio file.
    deepspeech --model deepspeech-0.5.1-models/output_graph.pbmm --alphabet deepspeech-0.5.1-models/alphabet.txt --lm deepspeech-0.5.1-models/lm.binary --trie deepspeech-0.5.1-models/trie --audio audio/2830-3980-0043.wav
 
-Please ensure you have the required `CUDA dependencies <#cuda-dependency>`_.
+Please ensure you have the required `CUDA dependencies <USING.rst#cuda-dependency>`_.
 
 See the output of ``deepspeech -h`` for more information on the use of ``deepspeech``. (If you experience problems running ``deepspeech``\ , please check `required runtime dependencies <native_client/README.md#required-dependencies>`_\ ).
 
