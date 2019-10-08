@@ -132,10 +132,13 @@ def create_dataset(csvs, batch_size, cache_path='', train_phase=False):
 
     dataset = (tf.data.Dataset.from_generator(generate_values,
                                               output_types=(tf.string, (tf.int64, tf.int32, tf.int64)))
-                              .map(process_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-                              .cache(cache_path)
-                              .window(batch_size, drop_remainder=True).flat_map(batch_fn)
-                              .prefetch(num_gpus))
+                              .map(process_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE))
+
+    if cache_path is not None:
+        dataset = dataset.cache(cache_path)
+
+    dataset = (dataset.window(batch_size, drop_remainder=True).flat_map(batch_fn)
+                      .prefetch(num_gpus))
 
     return dataset
 

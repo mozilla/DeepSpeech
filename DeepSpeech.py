@@ -412,10 +412,21 @@ def try_loading(session, saver, checkpoint_filename, caption):
 
 
 def train():
+    do_cache_dataset = True
+
+    # pylint: disable=too-many-boolean-expressions
+    if (FLAGS.data_aug_features_multiplicative > 0 or
+            FLAGS.data_aug_features_additive > 0 or
+            FLAGS.augmentation_spec_dropout_keeprate < 1 or
+            FLAGS.augmentation_freq_and_time_masking or
+            FLAGS.augmentation_pitch_and_tempo_scaling or
+            FLAGS.augmentation_speed_up_std > 0):
+        do_cache_dataset = False
+
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               cache_path=FLAGS.feature_cache,
+                               cache_path=FLAGS.feature_cache if do_cache_dataset else None,
                                train_phase=True)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
