@@ -86,10 +86,8 @@ swig:
     # patch of _0001 would require the reverse patch of _0002 to be already
     # applied, and we don't want to. So just test that reversing _0002 in
     # dry-run.
-    osx_v12: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0003-Move-to-new-MaybeLocal-based-GetFunction.patch ; then
-patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0001-Move-from-v8-Handle-to-v8-Local.patch &&
-patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0002-Move-to-new-MaybeLocal-based-NewInstance.patch &&
-patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0003-Move-to-new-MaybeLocal-based-GetFunction.patch;
+    osx_v12: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-runtime.patch ; then
+patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds//native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-runtime.patch ;
 else
 echo "NO NODEJS v12 PATCH NEEDED";
 fi)'
