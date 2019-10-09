@@ -42,22 +42,18 @@ namespace DeepSpeechClient.Interfaces
         /// </summary>
         /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate.</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
-        /// <param name="aSampleRate">The sample-rate of the audio signal.</param>
         /// <returns>The STT result. The user is responsible for freeing the string.  Returns NULL on error.</returns>
         unsafe string SpeechToText(short[] aBuffer,
-                uint aBufferSize,
-                uint aSampleRate);
+                uint aBufferSize);
 
         /// <summary>
         /// Use the DeepSpeech model to perform Speech-To-Text.
         /// </summary>
         /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate.</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
-        /// <param name="aSampleRate">The sample-rate of the audio signal.</param>
         /// <returns>The extended metadata result. The user is responsible for freeing the struct.  Returns NULL on error.</returns>
         unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer,
-                uint aBufferSize,
-                uint aSampleRate);
+                uint aBufferSize);
 
         /// <summary>
         /// Destroy a streaming state without decoding the computed logits.
@@ -79,9 +75,8 @@ namespace DeepSpeechClient.Interfaces
         /// <summary>
         /// Creates a new streaming inference state.
         /// </summary>
-        /// <param name="aSampleRate">The sample-rate of the audio signal</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to initialize the streaming mode.</exception>
-        unsafe void CreateStream(uint aSampleRate);
+        unsafe void CreateStream();
 
         /// <summary>
         /// Feeds audio samples to an ongoing streaming inference.
