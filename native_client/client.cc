@@ -221,6 +221,7 @@ GetAudioBuffer(const char* path)
 
   unsigned int sample_rate;
   fseek(wave, 24, SEEK_SET); rv = fread(&sample_rate, 4, 1, wave);
+  res.sample_rate = (int)sample_rate;
 
   unsigned short bits_per_sample;
   fseek(wave, 34, SEEK_SET); rv = fread(&bits_per_sample, 2, 1, wave);
