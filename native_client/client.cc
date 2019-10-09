@@ -54,23 +54,23 @@ char* JSONOutput(Metadata* metadata);
 
 ds_result
 LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
-           int aSampleRate, bool extended_output, bool json_output)
+           bool extended_output, bool json_output)
 {
   ds_result res = {0};
 
   clock_t ds_start_time = clock();
 
   if (extended_output) {
-    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
+    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize);
     res.string = metadataToString(metadata);
     DS_FreeMetadata(metadata);
   } else if (json_output) {
-    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, aSampleRate);
+    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize);
     res.string = JSONOutput(metadata);
     DS_FreeMetadata(metadata);
   } else if (stream_size > 0) {
     StreamingState* ctx;
-    int status = DS_CreateStream(aCtx, aSampleRate, &ctx);
+    int status = DS_CreateStream(aCtx, &ctx);
     if (status != DS_ERR_OK) {
       res.string = strdup("");
       return res;
@@ -94,7 +94,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
     }
     res.string = DS_FinishStream(ctx);
   } else {
-    res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize, aSampleRate);
+    res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize);
   }
 
   clock_t ds_end_infer = clock();
@@ -108,7 +108,6 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
 typedef struct {
   char*  buffer;
   size_t buffer_size;
-  int    sample_rate;
 } ds_audio_buffer;
 
 ds_audio_buffer
@@ -158,8 +157,6 @@ GetAudioBuffer(const char* path)
 #endif
 
   assert(output);
-
-  res.sample_rate = (int)output->signal.rate;
 
   if ((int)input->signal.rate < 16000) {
     fprintf(stderr, "Warning: original sample rate (%d) is lower than 16kHz. Up-sampling might produce erratic speech recognition.\n", (int)input->signal.rate);
@@ -221,7 +218,6 @@ GetAudioBuffer(const char* path)
 
   unsigned int sample_rate;
   fseek(wave, 24, SEEK_SET); rv = fread(&sample_rate, 4, 1, wave);
-  res.sample_rate = (int)sample_rate;
 
   unsigned short bits_per_sample;
   fseek(wave, 34, SEEK_SET); rv = fread(&bits_per_sample, 2, 1, wave);
@@ -269,7 +265,6 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
   ds_result result = LocalDsSTT(context,
                                 (const short*)audio.buffer,
                                 audio.buffer_size / 2,
-                                audio.sample_rate,
                                 extended_metadata,
                                 json_output);
   free(audio.buffer);
