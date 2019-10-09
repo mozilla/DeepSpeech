@@ -66,7 +66,6 @@ Model.prototype.enableDecoderWithLM = function() {
  *
  * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate.
  * @param {number} aBufferSize The number of samples in the audio signal.
- * @param {number} aSampleRate The sample-rate of the audio signal.
  *
  * @return {string} The STT result. Returns undefined on error.
  */
@@ -81,7 +80,6 @@ Model.prototype.stt = function() {
  *
  * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate.
  * @param {number} aBufferSize The number of samples in the audio signal.
- * @param {number} aSampleRate The sample-rate of the audio signal.
  *
  * @return {object} Outputs a :js:func:`Metadata` struct of individual letters along with their timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
@@ -93,7 +91,6 @@ Model.prototype.sttWithMetadata = function() {
 /**
  * Create a new streaming inference state. The streaming state returned by this function can then be passed to :js:func:`Model.feedAudioContent` and :js:func:`Model.finishStream`.
  *
- * @param {number} aSampleRate The sample-rate of the audio signal.
  * @return {object} an opaque object that represents the streaming state.
  *
  * @throws on error

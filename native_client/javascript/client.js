@@ -118,9 +118,9 @@ audioStream.on('finish', () => {
   // We take half of the buffer_size because buffer is a char* while
   // LocalDsSTT() expected a short*
   if (args['extended']) {
-    console.log(metadataToString(model.sttWithMetadata(audioBuffer.slice(0, audioBuffer.length / 2), 16000)));
+    console.log(metadataToString(model.sttWithMetadata(audioBuffer.slice(0, audioBuffer.length / 2))));
   } else {
-    console.log(model.stt(audioBuffer.slice(0, audioBuffer.length / 2), 16000));
+    console.log(model.stt(audioBuffer.slice(0, audioBuffer.length / 2)));
   }
   const inference_stop = process.hrtime(inference_start);
   console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
