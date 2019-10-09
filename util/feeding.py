@@ -94,8 +94,12 @@ def to_sparse_tuple(sequence):
     return indices, sequence, shape
 
 
-def create_dataset(csvs, batch_size, cache_path='', train_phase=False):
+def create_dataset(csvs, batch_size, cache_path='', train_phase=False, subset=None):
     df = read_csvs(csvs)
+    # subset is percent
+    if subset is not None and subset > 0:
+        df = df[:int((len(df)/100)*subset)]
+
     df.sort_values(by='wav_filesize', inplace=True)
 
     df['transcript'] = df.apply(text_to_char_array, alphabet=Config.alphabet, result_type='reduce', axis=1)

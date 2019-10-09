@@ -10,6 +10,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_
 
 import absl.app
 import json
+import math
 import numpy as np
 import progressbar
 import shutil
@@ -782,13 +783,13 @@ def export():
 
     # Reshape with dimension [1] required to avoid this error:
     # ERROR: Input array not provided for operation 'reshape'.
-    outputs['metadata_version'] = tf.constant([graph_version], name='metadata_version')
-    outputs['metadata_sample_rate'] = tf.constant([FLAGS.audio_sample_rate], name='metadata_sample_rate')
-    outputs['metadata_feature_win_len'] = tf.constant([FLAGS.feature_win_len], name='metadata_feature_win_len')
-    outputs['metadata_feature_win_step'] = tf.constant([FLAGS.feature_win_step], name='metadata_feature_win_step')
+    #outputs['metadata_version'] = tf.constant([graph_version], name='metadata_version')
+    #outputs['metadata_sample_rate'] = tf.constant([FLAGS.audio_sample_rate], name='metadata_sample_rate')
+    #outputs['metadata_feature_win_len'] = tf.constant([FLAGS.feature_win_len], name='metadata_feature_win_len')
+    #outputs['metadata_feature_win_step'] = tf.constant([FLAGS.feature_win_step], name='metadata_feature_win_step')
 
-    if FLAGS.export_language:
-        outputs['metadata_language'] = tf.constant([FLAGS.export_language.encode('ascii')], name='metadata_language')
+    #if FLAGS.export_language:
+        #outputs['metadata_language'] = tf.constant([FLAGS.export_language.encode('ascii')], name='metadata_language')
 
     output_names_tensors = [tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
     output_names_ops = [op.name for op in outputs.values() if isinstance(op, Operation)]
@@ -839,9 +840,105 @@ def export():
                 fout.write(frozen_graph.SerializeToString())
         else:
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
+            output_tflite_temp_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.temp.tflite'))
+
+            if FLAGS.tflite_use_devset:
+                print('Generating a first temporary TFLite model')
+                # Perform a first conversion so we can run the model and fetch previous_state_c/h
+                converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
+                converter.optimizations = [ tf.lite.Optimize.DEFAULT ]
+                # AudioSpectrogram and Mfcc ops are custom but have built-in kernels in TFLite
+                converter.allow_custom_ops = True
+                tflite_model = converter.convert()
+
+                with open(output_tflite_temp_path, 'wb') as fout:
+                    fout.write(tflite_model)
+
+                interpreter = tf.lite.Interpreter(output_tflite_temp_path)
+                interpreter.allocate_tensors()
+
+                input_details = interpreter.get_input_details()
+                output_details = interpreter.get_output_details()
+
+                def get_tensor_by_name(name, tensor_details):
+                    for tensor in tensor_details:
+                        if name == tensor['name']:
+                            return tensor
+
+                tflite_input_node = get_tensor_by_name('input_node', input_details)
+                tflite_previous_state_c = get_tensor_by_name('previous_state_c', input_details)
+                tflite_previous_state_h = get_tensor_by_name('previous_state_h', input_details)
+
+                tflite_new_state_c = get_tensor_by_name('new_state_c', output_details)
+                tflite_new_state_h = get_tensor_by_name('new_state_h', output_details)
+
+            def representative_dataset_produce():
+                dev_csvs = FLAGS.dev_files.split(',')
+                dev_sets = [create_dataset([csv], batch_size=1, train_phase=False, subset=1) for csv in dev_csvs]
+
+                iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(dev_sets[0]),
+                                                 tfv1.data.get_output_shapes(dev_sets[0]),
+                                                 output_classes=tfv1.data.get_output_classes(dev_sets[0]))
+
+                dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
+
+                with tfv1.Session(config=Config.session_config) as session:
+                    for csv, init_op in zip(dev_csvs, dev_init_ops):
+                        print('Testing model on {}'.format(csv))
+
+                        tflite_devset_bar = create_progressbar(prefix='Optimize | ',
+                                                     widgets=['Steps: ', progressbar.Counter(), ' | ', progressbar.Timer()]).start()
+                        tflite_devset_step_count = 0
+
+                        # Initialize iterator to the appropriate dataset
+                        all = session.run(init_op)
+
+                        while True:
+                            try:
+                                batch_filenames, (batch_x, batch_seq_len), batch_y = iterator.get_next()
+                                batch_x, batch_seq_len_out, batch_y_out = session.run([batch_x, batch_seq_len, batch_y])
+                            except tf.errors.OutOfRangeError:
+                                break
+
+                            previous_state_c = tf.constant(np.zeros([1, Config.n_cell_dim]), tf.float32)
+                            previous_state_h = tf.constant(np.zeros([1, Config.n_cell_dim]), tf.float32)
+
+                            input_samples = tf.constant(np.zeros([int(Config.audio_window_samples)]), tf.float32)
+                            input_node = create_overlapping_windows(batch_x).eval(session=session)
+                            bins = input_node.shape[1] / FLAGS.n_steps
+                            remainder = math.ceil(bins - int(bins))
+                            input_split = [FLAGS.n_steps]*int(bins) + [input_node.shape[1] - FLAGS.n_steps*int(bins)]*remainder
+                            input_node = tf.split(input_node, input_split, axis=1)
+
+                            input_node, previous_state_c, previous_state_h, input_samples = session.run([input_node, previous_state_c, previous_state_h, input_samples])
+
+                            for node in input_node:
+                                if node.shape[1] != FLAGS.n_steps:
+                                    node = np.pad(node,
+                                            ((0, 0),
+                                             (0, FLAGS.n_steps - node.shape[1]),
+                                             (0, 0),
+                                             (0, 0)),
+                                            mode='constant',
+                                            constant_values=0)
+
+                                yield [node, previous_state_c, previous_state_h, input_samples]
+
+                                interpreter.set_tensor(tflite_input_node['index'], node)
+                                interpreter.invoke()
+
+                                previous_state_c = interpreter.get_tensor(tflite_new_state_c['index'])
+                                previous_state_h = interpreter.get_tensor(tflite_new_state_h['index'])
+
+                            tflite_devset_step_count += 1
+                            tflite_devset_bar.update(tflite_devset_step_count)
+
+                tflite_devset_bar.finish()
 
             converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
             converter.optimizations = [ tf.lite.Optimize.DEFAULT ]
+            if FLAGS.tflite_use_devset:
+                converter.representative_dataset = tf.lite.RepresentativeDataset(representative_dataset_produce)
             # AudioSpectrogram and Mfcc ops are custom but have built-in kernels in TFLite
             converter.allow_custom_ops = True
             tflite_model = converter.convert()
@@ -850,6 +947,9 @@ def export():
                 fout.write(tflite_model)
 
             log_info('Exported model for TF Lite engine as {}'.format(os.path.basename(output_tflite_path)))
+
+            if FLAGS.tflite_use_devset:
+                os.remove(output_tflite_temp_path)
 
         log_info('Models exported at %s' % (FLAGS.export_dir))
     except RuntimeError as e:
