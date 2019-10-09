@@ -100,7 +100,7 @@ public class DeepSpeechActivity extends AppCompatActivity {
 
             long inferenceStartTime = System.currentTimeMillis();
 
-            String decoded = this._m.stt(shorts, shorts.length, sampleRate);
+            String decoded = this._m.stt(shorts, shorts.length);
 
             inferenceExecTime = System.currentTimeMillis() - inferenceStartTime;
 
