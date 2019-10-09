@@ -318,7 +318,6 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
 
 int
 DS_CreateStream(ModelState* aCtx,
-                unsigned int aSampleRate,
                 StreamingState** retval)
 {
   *retval = nullptr;
@@ -383,11 +382,10 @@ DS_FinishStreamWithMetadata(StreamingState* aSctx)
 StreamingState*
 CreateStreamAndFeedAudioContent(ModelState* aCtx,
                                 const short* aBuffer,
-                                unsigned int aBufferSize,
-                                unsigned int aSampleRate)
+                                unsigned int aBufferSize)
 {
   StreamingState* ctx;
-  int status = DS_CreateStream(aCtx, aSampleRate, &ctx);
+  int status = DS_CreateStream(aCtx, &ctx);
   if (status != DS_ERR_OK) {
     return nullptr;
   }
@@ -398,20 +396,18 @@ CreateStreamAndFeedAudioContent(ModelState* aCtx,
 char*
 DS_SpeechToText(ModelState* aCtx,
                 const short* aBuffer,
-                unsigned int aBufferSize,
-                unsigned int aSampleRate)
+                unsigned int aBufferSize)
 {
-  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
   return DS_FinishStream(ctx);
 }
 
 Metadata*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
-                            unsigned int aBufferSize,
-                            unsigned int aSampleRate)
+                            unsigned int aBufferSize)
 {
-  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
   return DS_FinishStreamWithMetadata(ctx);
 }
 

@@ -71,17 +71,17 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
  *        and {@link DS_FinishStream()}.
  *
  * @param aCtx The ModelState pointer for the model to use.
- * @param aSampleRate The sample-rate of the audio signal.
+ * @param aSampleRate UNUSED, DEPRECATED.
  * @param[out] retval an opaque pointer that represents the streaming state. Can
  *                    be NULL if an error occurs.
  *
  * @return Zero for success, non-zero on failure.
  */
 int DS_SetupStream(ModelState* aCtx,
-                   unsigned int aSampleRate,
+                   unsigned int /*aSampleRate*/,
                    StreamingState** retval)
 {
-  return DS_CreateStream(aCtx, aSampleRate, retval);
+  return DS_CreateStream(aCtx, retval);
 }
 
 /**
@@ -96,6 +96,47 @@ int DS_SetupStream(ModelState* aCtx,
 void DS_DiscardStream(StreamingState* aSctx)
 {
   return DS_FreeStream(aSctx);
+}
+
+/**
+ * @brief Use the DeepSpeech model to perform Speech-To-Text.
+ *
+ * @param aCtx The ModelState pointer for the model to use.
+ * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
+ *                sample rate.
+ * @param aBufferSize The number of samples in the audio signal.
+ * @param aSampleRate UNUSED, DEPRECATED.
+ *
+ * @return The STT result. The user is responsible for freeing the string using
+ *         {@link DS_FreeString()}. Returns NULL on error.
+ */
+char* DS_SpeechToText(ModelState* aCtx,
+                      const short* aBuffer,
+                      unsigned int aBufferSize,
+                      unsigned int /*aSampleRate*/)
+{
+  return DS_SpeechToText(aCtx, aBuffer, aBufferSize);
+}
+
+/**
+ * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata
+ * about the results.
+ *
+ * @param aCtx The ModelState pointer for the model to use.
+ * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
+ *                sample rate.
+ * @param aBufferSize The number of samples in the audio signal.
+ * @param aSampleRate UNUSED, DEPRECATED.
+ *
+ * @return Outputs a struct of individual letters along with their timing information.
+ *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ */
+Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
+                                      const short* aBuffer,
+                                      unsigned int aBufferSize,
+                                      unsigned int /*aSampleRate*/)
+{
+  return DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize);
 }
 
 #endif /* DEEPSPEECH_COMPAT_H */
