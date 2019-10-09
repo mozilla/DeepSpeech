@@ -828,7 +828,7 @@ def export():
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
             converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
-            converter.post_training_quantize = True
+            converter.optimizations = [ tf.lite.Optimize.DEFAULT ]
             # AudioSpectrogram and Mfcc ops are custom but have built-in kernels in TFLite
             converter.allow_custom_ops = True
             tflite_model = converter.convert()
