@@ -64,7 +64,7 @@ Model.prototype.enableDecoderWithLM = function() {
 /**
  * Use the DeepSpeech model to perform Speech-To-Text.
  *
- * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate.
+ * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
  * @param {number} aBufferSize The number of samples in the audio signal.
  *
  * @return {string} The STT result. Returns undefined on error.
@@ -78,7 +78,7 @@ Model.prototype.stt = function() {
  * Use the DeepSpeech model to perform Speech-To-Text and output metadata
  * about the results.
  *
- * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate.
+ * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
  * @param {number} aBufferSize The number of samples in the audio signal.
  *
  * @return {object} Outputs a :js:func:`Metadata` struct of individual letters along with their timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
@@ -111,7 +111,7 @@ Model.prototype.createStream = function() {
  *
  * @param {object} aSctx A streaming state returned by :js:func:`Model.setupStream`.
  * @param {buffer} aBuffer An array of 16-bit, mono raw audio samples at the
- *                 appropriate sample rate.
+ *                 appropriate sample rate (matching what the model was trained on).
  * @param {number} aBufferSize The number of samples in @param aBuffer.
  */
 Model.prototype.feedAudioContent = function() {

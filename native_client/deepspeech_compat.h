@@ -103,7 +103,7 @@ void DS_DiscardStream(StreamingState* aSctx)
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
- *                sample rate.
+ *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
  * @param aSampleRate UNUSED, DEPRECATED.
  *
@@ -124,7 +124,7 @@ char* DS_SpeechToText(ModelState* aCtx,
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
- *                sample rate.
+ *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
  * @param aSampleRate UNUSED, DEPRECATED.
  *

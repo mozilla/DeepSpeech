@@ -69,7 +69,7 @@ class Model(object):
         """
         Use the DeepSpeech model to perform Speech-To-Text.
 
-        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in the audio signal.
@@ -84,7 +84,7 @@ class Model(object):
         """
         Use the DeepSpeech model to perform Speech-To-Text and output metadata about the results.
 
-        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in the audio signal.
@@ -117,7 +117,7 @@ class Model(object):
         :param aSctx: A streaming state pointer returned by :func:`createStream()`.
         :type aSctx: object
 
-        :param aBuffer: An array of 16-bit, mono raw audio samples at the appropriate sample rate.
+        :param aBuffer: An array of 16-bit, mono raw audio samples at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in @p aBuffer.

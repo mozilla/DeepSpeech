@@ -57,7 +57,7 @@ public class DeepSpeechModel {
     * @brief Use the DeepSpeech model to perform Speech-To-Text.
     *
     * @param buffer A 16-bit, mono raw audio signal at the appropriate
-    *                sample rate.
+    *                sample rate (matching what the model was trained on).
     * @param buffer_size The number of samples in the audio signal.
     *
     * @return The STT result.
@@ -71,7 +71,7 @@ public class DeepSpeechModel {
     * about the results.
     *
     * @param buffer A 16-bit, mono raw audio signal at the appropriate
-    *                sample rate.
+    *                sample rate (matching what the model was trained on).
     * @param buffer_size The number of samples in the audio signal.
     *
     * @return Outputs a Metadata object of individual letters along with their timing information.
@@ -98,7 +98,7 @@ public class DeepSpeechModel {
     *
     * @param cctx A streaming state pointer returned by createStream().
     * @param buffer An array of 16-bit, mono raw audio samples at the
-    *                appropriate sample rate.
+    *                appropriate sample rate (matching what the model was trained on).
     * @param buffer_size The number of samples in @p buffer.
     */
     public void feedAudioContent(DeepSpeechStreamingState ctx, short[] buffer, int buffer_size) {
