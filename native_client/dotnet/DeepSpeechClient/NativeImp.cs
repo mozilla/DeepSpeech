@@ -21,6 +21,9 @@ namespace DeepSpeechClient
                    ref IntPtr** pint);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal unsafe static extern int DS_GetModelSampleRate(IntPtr** aCtx);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern ErrorCodes DS_EnableDecoderWithLM(IntPtr** aCtx,
                   string aLMPath,
                   string aTriePath,
