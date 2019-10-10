@@ -64,7 +64,7 @@ audioStream.on('finish', () => {
 	const audioLength = (audioBuffer.length / 2) * ( 1 / 16000);
 	console.log('audio length', audioLength);
 	
-	let result = model.stt(audioBuffer.slice(0, audioBuffer.length / 2), 16000);
+	let result = model.stt(audioBuffer.slice(0, audioBuffer.length / 2));
 	
 	console.log('result:', result);
 });
