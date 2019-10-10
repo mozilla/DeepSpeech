@@ -54,7 +54,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
 
 Please ensure you have the required `CUDA dependencies <USING.rst#cuda-dependency>`_.
 
-See the output of ``deepspeech -h`` for more information on the use of ``deepspeech``. (If you experience problems running ``deepspeech``\ , please check `required runtime dependencies <native_client/README.md#required-dependencies>`_\ ).
+See the output of ``deepspeech -h`` for more information on the use of ``deepspeech``. (If you experience problems running ``deepspeech``\ , please check `required runtime dependencies <native_client/README.rst#required-dependencies>`_\ ).
 
 ----
 

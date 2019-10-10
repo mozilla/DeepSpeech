@@ -2,7 +2,7 @@
 DeepSpeech Java / Android bindings
 ==================================
 
-This is still preliminary work. Please refer to ``native_client/README.md`` for
+This is still preliminary work. Please refer to ``native_client/README.rst`` for
 building ``libdeepspeech.so`` and ``deepspeech`` binary for Android on ARMv7 and
 ARM64 arch.
 

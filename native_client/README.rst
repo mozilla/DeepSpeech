@@ -166,7 +166,7 @@ The path of the system tree can be overridden from the default values defined in
 Android devices
 ^^^^^^^^^^^^^^^
 
-We have preliminary support for Android relying on TensorFlow Lite, with Java and JNI bindinds. For more details on how to experiment with those, please refer to ``native_client/java/README.md``.
+We have preliminary support for Android relying on TensorFlow Lite, with Java and JNI bindinds. For more details on how to experiment with those, please refer to ``native_client/java/README.rst``.
 
 Please refer to TensorFlow documentation on how to setup the environment to build for Android (SDK and NDK required).
 
