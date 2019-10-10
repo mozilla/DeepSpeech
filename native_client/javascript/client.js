@@ -62,11 +62,29 @@ function metadataToString(metadata) {
   return retval;
 }
 
+console.error('Loading model from file %s', args['model']);
+const model_load_start = process.hrtime();
+var model = new Ds.Model(args['model'], args['alphabet'], BEAM_WIDTH);
+const model_load_end = process.hrtime(model_load_start);
+console.error('Loaded model in %ds.', totalTime(model_load_end));
+
+var desired_sample_rate = model.sampleRate();
+
+if (args['lm'] && args['trie']) {
+  console.error('Loading language model from files %s %s', args['lm'], args['trie']);
+  const lm_load_start = process.hrtime();
+  model.enableDecoderWithLM(args['lm'], args['trie'], LM_ALPHA, LM_BETA);
+  const lm_load_end = process.hrtime(lm_load_start);
+  console.error('Loaded language model in %ds.', totalTime(lm_load_end));
+}
+
 const buffer = Fs.readFileSync(args['audio']);
 const result = Wav.decode(buffer);
 
-if (result.sampleRate < 16000) {
-  console.error('Warning: original sample rate (' + result.sampleRate + ') is lower than 16kHz. Up-sampling might produce erratic speech recognition.');
+if (result.sampleRate < desired_sample_rate) {
+  console.error('Warning: original sample rate (' + result.sampleRate + ') ' +
+                'is lower than ' + desired_sample_rate + 'Hz. ' +
+                'Up-sampling might produce erratic speech recognition.');
 }
 
 function bufferToStream(buffer) {
@@ -84,7 +102,7 @@ bufferToStream(buffer).
     },
     output: {
       bits: 16,
-      rate: 16000,
+      rate: desired_sample_rate,
       channels: 1,
       encoding: 'signed-integer',
       endian: 'little',
@@ -97,23 +115,9 @@ bufferToStream(buffer).
 audioStream.on('finish', () => {
   let audioBuffer = audioStream.toBuffer();
 
-  console.error('Loading model from file %s', args['model']);
-  const model_load_start = process.hrtime();
-  var model = new Ds.Model(args['model'], args['alphabet'], BEAM_WIDTH);
-  const model_load_end = process.hrtime(model_load_start);
-  console.error('Loaded model in %ds.', totalTime(model_load_end));
-
-  if (args['lm'] && args['trie']) {
-    console.error('Loading language model from files %s %s', args['lm'], args['trie']);
-    const lm_load_start = process.hrtime();
-    model.enableDecoderWithLM(args['lm'], args['trie'], LM_ALPHA, LM_BETA);
-    const lm_load_end = process.hrtime(lm_load_start);
-    console.error('Loaded language model in %ds.', totalTime(lm_load_end));
-  }
-
   const inference_start = process.hrtime();
   console.error('Running inference.');
-  const audioLength = (audioBuffer.length / 2) * ( 1 / 16000);
+  const audioLength = (audioBuffer.length / 2) * (1 / desired_sample_rate);
 
   // We take half of the buffer_size because buffer is a char* while
   // LocalDsSTT() expected a short*
