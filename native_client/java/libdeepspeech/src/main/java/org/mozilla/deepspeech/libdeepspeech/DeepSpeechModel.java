@@ -33,6 +33,15 @@ public class DeepSpeechModel {
     }
 
    /**
+    * @brief Return the sample rate expected by the model.
+    *
+    * @return Sample rate.
+    */
+    public int sampleRate() {
+        return impl.GetModelSampleRate(this._msp);
+    }
+
+   /**
     * @brief Frees associated resources and destroys model object.
     */
     public void freeModel() {
