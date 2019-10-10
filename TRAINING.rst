@@ -54,7 +54,7 @@ You'll also need to install the ``ds_ctcdecoder`` Python package. ``ds_ctcdecode
 
    pip3 install $(python3 util/taskcluster.py --decoder)
 
-This command will download and install the ``ds_ctcdecoder`` package. You can override the platform with ``--arch`` if you want the package for ARM7 (\ ``--arch arm``\ ) or ARM64 (\ ``--arch arm64``\ ). If you prefer building the ``ds_ctcdecoder`` package from source, see the `native_client README file <native_client/README.md>`_.
+This command will download and install the ``ds_ctcdecoder`` package. You can override the platform with ``--arch`` if you want the package for ARM7 (\ ``--arch arm``\ ) or ARM64 (\ ``--arch arm64``\ ). If you prefer building the ``ds_ctcdecoder`` package from source, see the `native_client README file <native_client/README.rst>`_.
 
 Recommendations
 ^^^^^^^^^^^^^^^
@@ -155,7 +155,7 @@ Exporting a model for inference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the ``--export_dir`` parameter is provided, a model will have been exported to this directory during training.
-Refer to the corresponding `README.md <native_client/README.md>`_ for information on building and running a client that can use the exported model.
+Refer to the corresponding `README.rst <native_client/README.rst>`_ for information on building and running a client that can use the exported model.
 
 Exporting a model for TFLite
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

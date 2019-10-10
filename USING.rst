@@ -7,7 +7,7 @@ Inference using a DeepSpeech pre-trained model can be done with a client/languag
 * `The Python package/language binding <#using-the-python-package>`_
 * `The Node.JS package/language binding <#using-the-nodejs-package>`_
 * `The Command-Line client <#using-the-command-line-client>`_
-* `The .NET client/language binding <native_client/dotnet/README.md>`_
+* `The .NET client/language binding <native_client/dotnet/README.rst>`_
 
 Running ``deepspeech`` might, see below, require some runtime dependencies to be already installed on your system:
 
@@ -161,12 +161,12 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
    ./deepspeech --model models/output_graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio audio_input.wav
 
-See the help output with ``./deepspeech -h`` and the `native client README <native_client/README.md>`_ for more details.
+See the help output with ``./deepspeech -h`` and the `native client README <native_client/README.rst>`_ for more details.
 
 Installing bindings from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow these `\ ``native_client`` installation instructions <native_client/README.md>`_.
+If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow these `\ ``native_client`` installation instructions <native_client/README.rst>`_.
 
 Third party bindings
 ^^^^^^^^^^^^^^^^^^^^
