@@ -52,8 +52,8 @@ def main():
     audio2 = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
     fin.close()
 
-    stream1 = ds.createStream(sample_rate=fs1)
-    stream2 = ds.createStream(sample_rate=fs2)
+    stream1 = ds.createStream()
+    stream2 = ds.createStream()
 
     splits1 = np.array_split(audio1, 10)
     splits2 = np.array_split(audio2, 10)
