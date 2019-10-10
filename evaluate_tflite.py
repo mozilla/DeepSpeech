@@ -45,7 +45,7 @@ def tflite_worker(model, alphabet, lm, trie, queue_in, queue_out, gpu_mask):
         audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
         fin.close()
 
-        decoded = ds.stt(audio, fs)
+        decoded = ds.stt(audio)
 
         queue_out.put({'wav': wavname, 'prediction': decoded, 'ground_truth': msg['transcript']})
         print(queue_out.qsize(), end='\r') # Update the current progress
