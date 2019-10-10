@@ -292,6 +292,12 @@ DS_CreateModel(const char* aModelPath,
   return DS_ERR_OK;
 }
 
+int
+DS_GetModelSampleRate(ModelState* aCtx)
+{
+  return aCtx->sample_rate_;
+}
+
 void
 DS_FreeModel(ModelState* ctx)
 {
