@@ -102,9 +102,9 @@ def main():
     print('Running inference.', file=sys.stderr)
     inference_start = timer()
     if args.extended:
-        print(metadata_to_string(ds.sttWithMetadata(audio, fs)))
+        print(metadata_to_string(ds.sttWithMetadata(audio)))
     else:
-        print(ds.stt(audio, fs))
+        print(ds.stt(audio))
     inference_end = timer() - inference_start
     print('Inference took %0.3fs for %0.3fs audio file.' % (inference_end, audio_length), file=sys.stderr)
 

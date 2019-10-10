@@ -130,7 +130,7 @@ namespace DeepSpeechWPF
                 watch.Start();
                 await Task.Run(() =>
                 {
-                    string speechResult = _sttClient.SpeechToText(waveBuffer.ShortBuffer, Convert.ToUInt32(waveBuffer.MaxSize / 2), 16000);
+                    string speechResult = _sttClient.SpeechToText(waveBuffer.ShortBuffer, Convert.ToUInt32(waveBuffer.MaxSize / 2));
                     watch.Stop();
                     Dispatcher.Invoke(() =>
                     {
@@ -250,7 +250,7 @@ namespace DeepSpeechWPF
 
         private void BtnStartRecording_Click(object sender, RoutedEventArgs e)
         {
-            _sttClient.CreateStream(16000);
+            _sttClient.CreateStream();
             _audioCapture.Start();
             btnStartRecording.IsEnabled = false;
             btnStopRecording.IsEnabled = true;

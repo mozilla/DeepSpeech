@@ -104,9 +104,9 @@ public class BasicTest {
             ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
 
             if (extendedMetadata) {
-                return metadataToString(m.sttWithMetadata(shorts, shorts.length, sampleRate));
+                return metadataToString(m.sttWithMetadata(shorts, shorts.length));
             } else {
-                return m.stt(shorts, shorts.length, sampleRate);
+                return m.stt(shorts, shorts.length);
             }
         } catch (FileNotFoundException ex) {
 

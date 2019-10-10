@@ -69,14 +69,11 @@ class Model(object):
         """
         Use the DeepSpeech model to perform Speech-To-Text.
 
-        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in the audio signal.
         :type aBufferSize: int
-
-        :param aSampleRate: The sample-rate of the audio signal.
-        :type aSampleRate: int
 
         :return: The STT result.
         :type: str
@@ -87,34 +84,27 @@ class Model(object):
         """
         Use the DeepSpeech model to perform Speech-To-Text and output metadata about the results.
 
-        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in the audio signal.
         :type aBufferSize: int
-
-        :param aSampleRate: The sample-rate of the audio signal.
-        :type aSampleRate: int
 
         :return: Outputs a struct of individual letters along with their timing information.
         :type: :func:`Metadata`
         """
         return deepspeech.impl.SpeechToTextWithMetadata(self._impl, *args, **kwargs)
 
-    def createStream(self, sample_rate=16000):
+    def createStream(self):
         """
         Create a new streaming inference state. The streaming state returned
         by this function can then be passed to :func:`feedAudioContent()` and :func:`finishStream()`.
-
-        :param aSampleRate: The sample-rate of the audio signal.
-        :type aSampleRate: int
 
         :return: Object holding the stream
 
         :throws: RuntimeError on error
         """
-        status, ctx = deepspeech.impl.CreateStream(self._impl,
-                                                   aSampleRate=sample_rate)
+        status, ctx = deepspeech.impl.CreateStream(self._impl)
         if status != 0:
             raise RuntimeError("CreateStream failed with error code {}".format(status))
         return ctx
@@ -127,7 +117,7 @@ class Model(object):
         :param aSctx: A streaming state pointer returned by :func:`createStream()`.
         :type aSctx: object
 
-        :param aBuffer: An array of 16-bit, mono raw audio samples at the appropriate sample rate.
+        :param aBuffer: An array of 16-bit, mono raw audio samples at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in @p aBuffer.

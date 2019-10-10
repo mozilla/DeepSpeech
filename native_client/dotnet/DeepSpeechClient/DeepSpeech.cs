@@ -148,7 +148,7 @@ namespace DeepSpeechClient
         /// <summary>
         /// Feeds audio samples to an ongoing streaming inference.
         /// </summary>
-        /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate.</param>
+        /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate (matching what the model was trained on).</param>
         public unsafe void FeedAudioContent(short[] aBuffer, uint aBufferSize)
         {
             NativeImp.DS_FeedAudioContent(_streamingStatePP, aBuffer, aBufferSize);
@@ -193,11 +193,10 @@ namespace DeepSpeechClient
         /// <summary>
         /// Creates a new streaming inference state.
         /// </summary>
-        /// <param name="aSampleRate">The sample-rate of the audio signal</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to initialize the streaming mode.</exception>
-        public unsafe void CreateStream(uint aSampleRate)
+        public unsafe void CreateStream()
         {
-            var resultCode = NativeImp.DS_CreateStream(_modelStatePP, aSampleRate, ref _streamingStatePP);
+            var resultCode = NativeImp.DS_CreateStream(_modelStatePP, ref _streamingStatePP);
             EvaluateResultCode(resultCode);
         }
 
@@ -230,25 +229,23 @@ namespace DeepSpeechClient
         /// <summary>
         /// Use the DeepSpeech model to perform Speech-To-Text.
         /// </summary>
-        /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate.</param>
+        /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
-        /// <param name="aSampleRate">The sample-rate of the audio signal.</param>
         /// <returns>The STT result. The user is responsible for freeing the string.  Returns NULL on error.</returns>
-        public unsafe string SpeechToText(short[] aBuffer, uint aBufferSize, uint aSampleRate)
+        public unsafe string SpeechToText(short[] aBuffer, uint aBufferSize)
         {
-            return NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize, aSampleRate).PtrToString();
+            return NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize).PtrToString();
         }
 
         /// <summary>
         /// Use the DeepSpeech model to perform Speech-To-Text.
         /// </summary>
-        /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate.</param>
+        /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
-        /// <param name="aSampleRate">The sample-rate of the audio signal.</param>
         /// <returns>The extended metadata. The user is responsible for freeing the struct.  Returns NULL on error.</returns>
-        public unsafe Models.Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize, uint aSampleRate)
+        public unsafe Models.Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize)
         {
-            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize, aSampleRate).PtrToMetadata();
+            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize).PtrToMetadata();
         }
 
         #endregion

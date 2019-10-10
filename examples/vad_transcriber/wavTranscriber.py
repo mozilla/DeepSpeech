@@ -44,12 +44,12 @@ Returns a list [Inference, Inference Time, Audio Length]
 '''
 def stt(ds, audio, fs):
     inference_time = 0.0
-    audio_length = len(audio) * (1 / 16000)
+    audio_length = len(audio) * (1 / fs)
 
     # Run Deepspeech
     logging.debug('Running inference...')
     inference_start = timer()
-    output = ds.stt(audio, fs)
+    output = ds.stt(audio)
     inference_end = timer() - inference_start
     inference_time += inference_end
     logging.debug('Inference took %0.3fs for %0.3fs audio file.' % (inference_end, audio_length))

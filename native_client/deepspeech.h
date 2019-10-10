@@ -124,9 +124,8 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
- *                sample rate.
+ *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
- * @param aSampleRate The sample-rate of the audio signal.
  *
  * @return The STT result. The user is responsible for freeing the string using
  *         {@link DS_FreeString()}. Returns NULL on error.
@@ -134,8 +133,7 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
 DEEPSPEECH_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
                       const short* aBuffer,
-                      unsigned int aBufferSize,
-                      unsigned int aSampleRate);
+                      unsigned int aBufferSize);
 
 /**
  * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata 
@@ -143,9 +141,8 @@ char* DS_SpeechToText(ModelState* aCtx,
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
- *                sample rate.
+ *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
- * @param aSampleRate The sample-rate of the audio signal.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
@@ -153,8 +150,7 @@ char* DS_SpeechToText(ModelState* aCtx,
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                                       const short* aBuffer,
-                                      unsigned int aBufferSize,
-                                      unsigned int aSampleRate);
+                                      unsigned int aBufferSize);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -162,7 +158,6 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  *        and {@link DS_FinishStream()}.
  *
  * @param aCtx The ModelState pointer for the model to use.
- * @param aSampleRate The sample-rate of the audio signal.
  * @param[out] retval an opaque pointer that represents the streaming state. Can
  *                    be NULL if an error occurs.
  *
@@ -170,7 +165,6 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  */
 DEEPSPEECH_EXPORT
 int DS_CreateStream(ModelState* aCtx,
-                    unsigned int aSampleRate,
                     StreamingState** retval);
 
 /**
@@ -178,7 +172,7 @@ int DS_CreateStream(ModelState* aCtx,
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  * @param aBuffer An array of 16-bit, mono raw audio samples at the
- *                appropriate sample rate.
+ *                appropriate sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in @p aBuffer.
  */
 DEEPSPEECH_EXPORT

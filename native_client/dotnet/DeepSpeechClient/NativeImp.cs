@@ -31,21 +31,19 @@ namespace DeepSpeechClient
             CharSet = CharSet.Ansi, SetLastError = true)]
         internal static unsafe extern IntPtr DS_SpeechToText(IntPtr** aCtx,
                  short[] aBuffer,
-                uint aBufferSize,
-                uint aSampleRate);
+                uint aBufferSize);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
         internal static unsafe extern IntPtr DS_SpeechToTextWithMetadata(IntPtr** aCtx,
                  short[] aBuffer,
-                uint aBufferSize,
-                uint aSampleRate);
+                uint aBufferSize);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern void DS_FreeModel(IntPtr** aCtx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern ErrorCodes DS_CreateStream(IntPtr** aCtx,
-               uint aSampleRate, ref IntPtr** retval);
+               ref IntPtr** retval);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern void DS_FreeStream(ref IntPtr** aSctx);
