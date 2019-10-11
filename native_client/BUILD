@@ -173,6 +173,14 @@ tf_cc_shared_object(
     ]) + [":decoder"],
 )
 
+genrule(
+    name = "libdeepspeech_so_dsym",
+    srcs = [":libdeepspeech.so"],
+    outs = ["libdeepspeech.so.dSYM"],
+    output_to_bindir = True,
+    cmd = "dsymutil $(location :libdeepspeech.so) -o $@"
+)
+
 cc_binary(
     name = "generate_trie",
     srcs = [
