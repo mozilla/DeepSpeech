@@ -9,8 +9,9 @@ import sys
 
 from multiprocessing.dummy import Pool
 
-ARGS = ['-O3', '-DNDEBUG', '-DKENLM_MAX_ORDER=6', '-std=c++11',
-        '-Wno-unused-local-typedefs', '-Wno-sign-compare']
+ARGS = ['-DKENLM_MAX_ORDER=6', '-std=c++11', '-Wno-unused-local-typedefs', '-Wno-sign-compare']
+OPT_ARGS = ['-O3', '-DNDEBUG']
+DBG_ARGS = ['-O0', '-g', '-UNDEBUG']
 
 INCLUDES = [
     '..',
@@ -33,11 +34,12 @@ COMMON_FILES = [
 
 COMMON_FILES += glob.glob('*.cpp')
 
-def build_common(out_name='common.a', build_dir='temp_build/temp_build', num_parallel=1):
+def build_common(out_name='common.a', build_dir='temp_build/temp_build', debug=False, num_parallel=1):
     compiler = os.environ.get('CXX', 'g++')
     ar = os.environ.get('AR', 'ar')
     libtool = os.environ.get('LIBTOOL', 'libtool')
     cflags = os.environ.get('CFLAGS', '') + os.environ.get('CXXFLAGS', '')
+    args = ARGS + (DBG_ARGS if debug else OPT_ARGS)
 
     for file in COMMON_FILES:
         outfile = os.path.join(build_dir, os.path.splitext(file)[0] + '.o')
@@ -54,7 +56,7 @@ def build_common(out_name='common.a', build_dir='temp_build/temp_build', num_par
         cmd = '{cc} -fPIC -c {cflags} {args} {includes} {infile} -o {outfile}'.format(
             cc=compiler,
             cflags=cflags,
-            args=' '.join(ARGS),
+            args=' '.join(args),
             includes=' '.join('-I' + i for i in INCLUDES),
             infile=file,
             outfile=outfile,
