@@ -111,7 +111,7 @@ typedef struct {
 } ds_audio_buffer;
 
 ds_audio_buffer
-GetAudioBuffer(const char* path)
+GetAudioBuffer(const char* path, int desired_sample_rate)
 {
   ds_audio_buffer res = {0};
 
@@ -121,7 +121,7 @@ GetAudioBuffer(const char* path)
 
   // Resample/reformat the audio so we can pass it through the MFCC functions
   sox_signalinfo_t target_signal = {
-      16000, // Rate
+      static_cast<sox_rate_t>(desired_sample_rate), // Rate
       1, // Channels
       16, // Precision
       SOX_UNSPEC, // Length
@@ -158,8 +158,10 @@ GetAudioBuffer(const char* path)
 
   assert(output);
 
-  if ((int)input->signal.rate < 16000) {
-    fprintf(stderr, "Warning: original sample rate (%d) is lower than 16kHz. Up-sampling might produce erratic speech recognition.\n", (int)input->signal.rate);
+  if ((int)input->signal.rate < desired_sample_rate) {
+    fprintf(stderr, "Warning: original sample rate (%d) is lower than %dkHz. "
+                    "Up-sampling might produce erratic speech recognition.\n",
+                    desired_sample_rate, (int)input->signal.rate);
   }
 
   // Setup the effects chain to decode/resample
@@ -205,7 +207,7 @@ GetAudioBuffer(const char* path)
 #endif // NO_SOX
 
 #ifdef NO_SOX
-  // FIXME: Hack and support only 16kHz mono 16-bits PCM
+  // FIXME: Hack and support only mono 16-bits PCM with standard SoX header
   FILE* wave = fopen(path, "r");
 
   size_t rv;
@@ -224,12 +226,12 @@ GetAudioBuffer(const char* path)
 
   assert(audio_format == 1); // 1 is PCM
   assert(num_channels == 1); // MONO
-  assert(sample_rate == 16000); // 16000 Hz
+  assert(sample_rate == desired_sample_rate); // at desired sample rate
   assert(bits_per_sample == 16); // 16 bits per sample
 
   fprintf(stderr, "audio_format=%d\n", audio_format);
   fprintf(stderr, "num_channels=%d\n", num_channels);
-  fprintf(stderr, "sample_rate=%d\n", sample_rate);
+  fprintf(stderr, "sample_rate=%d (desired=%d)\n", sample_rate, desired_sample_rate);
   fprintf(stderr, "bits_per_sample=%d\n", bits_per_sample);
 
   fseek(wave, 40, SEEK_SET); rv = fread(&res.buffer_size, 4, 1, wave);
@@ -257,7 +259,7 @@ GetAudioBuffer(const char* path)
 void
 ProcessFile(ModelState* context, const char* path, bool show_times)
 {
-  ds_audio_buffer audio = GetAudioBuffer(path);
+  ds_audio_buffer audio = GetAudioBuffer(path, DS_GetModelSampleRate(context));
 
   // Pass audio to DeepSpeech
   // We take half of buffer_size because buffer is a char* while

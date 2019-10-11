@@ -93,6 +93,16 @@ int DS_CreateModel(const char* aModelPath,
                    ModelState** retval);
 
 /**
+ * @brief Return the sample rate expected by a model.
+ *
+ * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ *
+ * @return Sample rate expected by the model for its input.
+ */
+DEEPSPEECH_EXPORT
+int DS_GetModelSampleRate(ModelState* aCtx);
+
+/**
  * @brief Frees associated resources and destroys model object.
  */
 DEEPSPEECH_EXPORT

@@ -65,6 +65,15 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
+        /// Return the sample rate expected by the model.
+        /// </summary>
+        /// <returns>Sample rate.</returns>
+        public unsafe int GetModelSampleRate()
+        {
+            return NativeImp.DS_GetModelSampleRate(_modelStatePP);
+        }
+
+        /// <summary>
         /// Evaluate the result code and will raise an exception if necessary.
         /// </summary>
         /// <param name="resultCode">Native result code.</param>

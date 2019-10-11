@@ -46,6 +46,15 @@ function Model() {
 }
 
 /**
+ * Return the sample rate expected by the model.
+ *
+ * @return {number} Sample rate.
+ */
+Model.prototype.sampleRate = function() {
+    return binding.GetModelSampleRate(this._impl);
+}
+
+/**
  * Enable decoding using beam scoring with a KenLM language model.
  *
  * @param {string} aAlphabetConfigPath The path to the configuration file specifying the alphabet used by the network. See alphabet.h.

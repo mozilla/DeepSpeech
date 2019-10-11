@@ -44,6 +44,15 @@ class Model(object):
             deepspeech.impl.FreeModel(self._impl)
             self._impl = None
 
+    def sampleRate(self):
+        """
+        Return the sample rate expected by the model.
+
+        :return: Sample rate.
+        :type: int
+        """
+        return deepspeech.impl.GetModelSampleRate(self._impl)
+
     def enableDecoderWithLM(self, *args, **kwargs):
         """
         Enable decoding using beam scoring with a KenLM language model.

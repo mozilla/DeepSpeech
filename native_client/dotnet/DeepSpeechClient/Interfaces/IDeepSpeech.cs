@@ -25,6 +25,12 @@ namespace DeepSpeechClient.Interfaces
                    uint aBeamWidth);
 
         /// <summary>
+        /// Return the sample rate expected by the model.
+        /// </summary>
+        /// <returns>Sample rate.</returns>
+        unsafe int GetModelSampleRate();
+
+        /// <summary>
         /// Enable decoding using beam scoring with a KenLM language model.
         /// </summary>
         /// <param name="aLMPath">The path to the language model binary file.</param>

@@ -202,15 +202,13 @@ namespace DeepSpeechWPF
             {
                 _audioCapture.Device = _audioCaptureDevices[cbxAudioInputs.SelectedIndex]; 
             }
-            InitilizeAudioCapture();
+            InitializeAudioCapture(_sttClient.GetModelSampleRate());
         }
-
-       
 
         /// <summary>
         /// Initializes the recorder and setup the native stream.
         /// </summary>
-        private void InitilizeAudioCapture()
+        private void InitializeAudioCapture(int desiredSampleRate)
         {
             _audioCapture.Initialize();
             _audioCapture.DataAvailable += _capture_DataAvailable;
@@ -218,7 +216,7 @@ namespace DeepSpeechWPF
             //create a source, that converts the data provided by the
             //soundInSource to required by the deepspeech model
             _convertedSource = _soundInSource
-               .ChangeSampleRate(16000) // sample rate
+               .ChangeSampleRate(desiredSampleRate) // sample rate
                .ToSampleSource()
                .ToWaveSource(16); //bits per sample
              
