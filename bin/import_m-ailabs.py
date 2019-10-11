@@ -173,7 +173,7 @@ def handle_args():
     parser.add_argument(dest='target_dir')
     parser.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
     parser.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')
-    parser.add_argument('--skiplist', type=str, help='Directories / books to skip, comma separated')
+    parser.add_argument('--skiplist', type=str, default='', help='Directories / books to skip, comma separated')
     parser.add_argument('--language', required=True, type=str, help='Dataset language to use')
     return parser.parse_args()
 
