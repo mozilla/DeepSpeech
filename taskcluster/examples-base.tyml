@@ -30,7 +30,7 @@ then:
     image: ${build.docker_image}
 
     env:
-      DEEPSPEECH_MODEL: "https://github.com/lissyx/DeepSpeech/releases/download/tc-0.6.0/models.tar.gz"
+      DEEPSPEECH_MODEL: "https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.8/models.tar.gz"
       DEEPSPEECH_AUDIO: "https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/audio-0.4.1.tar.gz"
       PIP_DEFAULT_TIMEOUT: "60"
 
