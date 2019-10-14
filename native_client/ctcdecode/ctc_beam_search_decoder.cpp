@@ -170,7 +170,8 @@ DecoderState::decode() const
       if (!prefix->is_empty() && prefix->character != space_id_) {
         float score = 0.0;
         std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix);
-        score = ext_scorer_->get_log_cond_prob(ngram) * ext_scorer_->alpha;
+        bool bos = ngram.size() < ext_scorer_->get_max_order();
+        score = ext_scorer_->get_log_cond_prob(ngram, bos) * ext_scorer_->alpha;
         score += ext_scorer_->beta;
         scores[prefix] += score;
       }
