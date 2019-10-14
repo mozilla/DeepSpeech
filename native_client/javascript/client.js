@@ -10,18 +10,6 @@ const Wav = require('node-wav');
 const Duplex = require('stream').Duplex;
 const util = require('util');
 
-// These constants control the beam search decoder
-
-// Beam width used in the CTC decoder when building candidate transcriptions
-const BEAM_WIDTH = 500;
-
-// The alpha hyperparameter of the CTC decoder. Language Model weight
-const LM_ALPHA = 0.75;
-
-// The beta hyperparameter of the CTC decoder. Word insertion bonus.
-const LM_BETA = 1.85;
-
-
 var VersionAction = function VersionAction(options) {
   options = options || {};
   options.nargs = 0;
@@ -45,6 +33,9 @@ parser.addArgument(['--alphabet'], {required: true, help: 'Path to the configura
 parser.addArgument(['--lm'], {help: 'Path to the language model binary file', nargs: '?'});
 parser.addArgument(['--trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
 parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});
+parser.addArgument(['--beam_width'], {help: 'Beam width for the CTC decoder', defaultValue: 500, type: 'int'});
+parser.addArgument(['--lm_alpha'], {help: 'Language model weight (lm_alpha)', defaultValue: 0.75, type: 'float'});
+parser.addArgument(['--lm_beta'], {help: 'Word insertion bonus (lm_beta)', defaultValue: 1.85, type: 'float'});
 parser.addArgument(['--version'], {action: VersionAction, help: 'Print version and exits'});
 parser.addArgument(['--extended'], {action: 'storeTrue', help: 'Output string from extended metadata'});
 var args = parser.parseArgs();
@@ -64,7 +55,7 @@ function metadataToString(metadata) {
 
 console.error('Loading model from file %s', args['model']);
 const model_load_start = process.hrtime();
-var model = new Ds.Model(args['model'], args['alphabet'], BEAM_WIDTH);
+var model = new Ds.Model(args['model'], args['alphabet'], args['beam_width']);
 const model_load_end = process.hrtime(model_load_start);
 console.error('Loaded model in %ds.', totalTime(model_load_end));
 
@@ -73,7 +64,7 @@ var desired_sample_rate = model.sampleRate();
 if (args['lm'] && args['trie']) {
   console.error('Loading language model from files %s %s', args['lm'], args['trie']);
   const lm_load_start = process.hrtime();
-  model.enableDecoderWithLM(args['lm'], args['trie'], LM_ALPHA, LM_BETA);
+  model.enableDecoderWithLM(args['lm'], args['trie'], args['lm_alpha'], args['lm_beta']);
   const lm_load_end = process.hrtime(lm_load_start);
   console.error('Loaded language model in %ds.', totalTime(lm_load_end));
 }
