@@ -33,10 +33,6 @@
 #include "deepspeech.h"
 #include "args.h"
 
-#define BEAM_WIDTH 500
-#define LM_ALPHA 0.75f
-#define LM_BETA 1.85f
-
 typedef struct {
   const char* string;
   double cpu_time_overall;
@@ -373,7 +369,7 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
-  int status = DS_CreateModel(model, alphabet, BEAM_WIDTH, &ctx);
+  int status = DS_CreateModel(model, alphabet, beam_width, &ctx);
   if (status != 0) {
     fprintf(stderr, "Could not create model.\n");
     return 1;
@@ -383,8 +379,8 @@ main(int argc, char **argv)
     int status = DS_EnableDecoderWithLM(ctx,
                                         lm,
                                         trie,
-                                        LM_ALPHA,
-                                        LM_BETA);
+                                        lm_alpha,
+                                        lm_beta);
     if (status != 0) {
       fprintf(stderr, "Could not enable CTC decoder with LM.\n");
       return 1;
