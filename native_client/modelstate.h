@@ -15,10 +15,6 @@ struct ModelState {
   //TODO: infer batch size from model/use dynamic batch size
   static constexpr unsigned int BATCH_SIZE = 1;
 
-  static constexpr unsigned int DEFAULT_SAMPLE_RATE = 16000;
-  static constexpr unsigned int DEFAULT_WINDOW_LENGTH = DEFAULT_SAMPLE_RATE * 0.032;
-  static constexpr unsigned int DEFAULT_WINDOW_STEP = DEFAULT_SAMPLE_RATE * 0.02;
-
   Alphabet alphabet_;
   std::unique_ptr<Scorer> scorer_;
   unsigned int beam_width_;
