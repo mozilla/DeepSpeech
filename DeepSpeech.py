@@ -9,6 +9,7 @@ LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
 
 import absl.app
+import json
 import numpy as np
 import progressbar
 import shutil
@@ -662,6 +663,9 @@ def train():
 
 def test():
     evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    if FLAGS.test_output_file:
+        # Save decoded tuples as JSON, converting NumPy floats to Python floats
+        json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
