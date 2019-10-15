@@ -36,7 +36,7 @@ DecoderState::init(const Alphabet& alphabet,
   prefix_root_.reset(root);
   prefixes_.push_back(root);
 
-  if (ext_scorer != nullptr && !ext_scorer->is_character_based()) {
+  if (ext_scorer != nullptr) {
     // no need for std::make_shared<>() since Copy() does 'new' behind the doors
     auto dict_ptr = std::shared_ptr<PathTrie::FstType>(ext_scorer->dictionary->Copy(true));
     root->set_dictionary(dict_ptr);
@@ -110,19 +110,10 @@ DecoderState::next(const double *probs,
           }
 
           // language model scoring
-          if (ext_scorer_ != nullptr &&
-              (c == space_id_ || ext_scorer_->is_character_based())) {
-            PathTrie *prefix_to_score = nullptr;
-            // skip scoring the space
-            if (ext_scorer_->is_character_based()) {
-              prefix_to_score = prefix_new;
-            } else {
-              prefix_to_score = prefix;
-            }
-
+          if (prefix->character != -1 && ext_scorer_ != nullptr && ext_scorer_->is_scoring_boundary(c)) {
             float score = 0.0;
             std::vector<std::string> ngram;
-            ngram = ext_scorer_->make_ngram(prefix_to_score);
+            ngram = ext_scorer_->make_ngram(prefix);
             bool bos = ngram.size() < ext_scorer_->get_max_order();
             score = ext_scorer_->get_log_cond_prob(ngram, bos) * ext_scorer_->alpha;
             log_p += score;
@@ -165,10 +156,12 @@ DecoderState::decode() const
   }
 
   // score the last word of each prefix that doesn't end with space
-  if (ext_scorer_ != nullptr && !ext_scorer_->is_character_based()) {
+  if (ext_scorer_ != nullptr) {
     for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
       auto prefix = prefixes_copy[i];
-      if (!prefix->is_empty() && prefix->character != space_id_) {
+      if (prefix->is_empty()) {
+        scores[prefix] = OOV_SCORE;
+      } else if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
         float score = 0.0;
         std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix);
         bool bos = ngram.size() < ext_scorer_->get_max_order();
