@@ -76,6 +76,51 @@ class Alphabet(object):
         return self._config_file
 
 
+class UTF8Alphabet(object):
+    @staticmethod
+    def _string_from_label(_):
+        assert False
+
+    @staticmethod
+    def _label_from_string(_):
+        assert False
+
+    @staticmethod
+    def encode(string):
+        # 0 never happens in the data, so we can shift values by one, use 255 for
+        # the CTC blank, and keep the alphabet size = 256
+        return np.frombuffer(string.encode('utf-8'), np.uint8).astype(np.int32) - 1
+
+    @staticmethod
+    def decode(labels):
+        # And here we need to shift back up
+        return bytes(np.asarray(labels, np.uint8) + 1).decode('utf-8', errors='replace')
+
+    @staticmethod
+    def size():
+        return 255
+
+    @staticmethod
+    def serialize():
+        res = bytearray()
+        res += struct.pack('<h', 255)
+        for i in range(255):
+            # Note that we also shift back up in the mapping constructed here
+            # so that the native client sees the correct byte values when decoding.
+            res += struct.pack('<hh1s', i, 1, bytes([i+1]))
+        return bytes(res)
+
+    @staticmethod
+    def deserialize(buf):
+        size = struct.unpack('<I', buf)[0]
+        assert size == 255
+        return UTF8Alphabet()
+
+    @staticmethod
+    def config_file():
+        return ''
+
+
 def text_to_char_array(series, alphabet):
     r"""
     Given a Pandas Series containing transcript string, map characters to

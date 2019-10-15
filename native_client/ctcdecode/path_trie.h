@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "fst/fstlib.h"
+#include "alphabet.h"
 
 #ifdef DEBUG
 #include "alphabet.h"
@@ -26,14 +27,17 @@ public:
   // get new prefix after appending new char
   PathTrie* get_path_trie(int new_char, int new_timestep, float log_prob_c, bool reset = true);
 
-  // get the prefix in index from root to current node
-  PathTrie* get_path_vec(std::vector<int>& output, std::vector<int>& timesteps);
+  // get the prefix data in correct time order from root to current node
+  void get_path_vec(std::vector<int>& output, std::vector<int>& timesteps);
 
-  // get the prefix in index from some stop node to current nodel
-  PathTrie* get_path_vec(std::vector<int>& output,
-                         std::vector<int>& timesteps,
-                         int stop,
-                         size_t max_steps = std::numeric_limits<size_t>::max());
+  // get the prefix data in correct time order from beginning of last grapheme to current node
+  PathTrie* get_prev_grapheme(std::vector<int>& output,
+                              std::vector<int>& timesteps);
+
+  // get the prefix data in correct time order from beginning of last word to current node
+  PathTrie* get_prev_word(std::vector<int>& output,
+                          std::vector<int>& timesteps,
+                          int space_id);
 
   // update log probs
   void iterate_to_vec(std::vector<PathTrie*>& output);
