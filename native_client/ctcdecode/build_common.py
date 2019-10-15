@@ -11,7 +11,7 @@ from multiprocessing.dummy import Pool
 
 ARGS = ['-DKENLM_MAX_ORDER=6', '-std=c++11', '-Wno-unused-local-typedefs', '-Wno-sign-compare']
 OPT_ARGS = ['-O3', '-DNDEBUG']
-DBG_ARGS = ['-O0', '-g', '-UNDEBUG']
+DBG_ARGS = ['-O0', '-g', '-UNDEBUG', '-DDEBUG']
 
 INCLUDES = [
     '..',

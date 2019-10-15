@@ -9,6 +9,10 @@
 
 #include "fst/fstlib.h"
 
+#ifdef DEBUG
+#include "alphabet.h"
+#endif
+
 /* Trie tree for prefix storing and manipulating, with a dictionary in
  * finite-state transducer for spelling correction.
  */
@@ -43,6 +47,11 @@ public:
 
   // remove current path from root
   void remove();
+
+#ifdef DEBUG
+  void vec(std::vector<PathTrie*>& out);
+  void print(const Alphabet& a);
+#endif // DEBUG
 
   float log_prob_b_prev;
   float log_prob_nb_prev;
