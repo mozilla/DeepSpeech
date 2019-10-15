@@ -119,7 +119,11 @@ PathTrie* PathTrie::get_path_vec(std::vector<int>& output,
                                  std::vector<int>& timesteps,
                                  int stop,
                                  size_t max_steps) {
-  if (character == stop || character == ROOT_ || output.size() == max_steps) {
+  if ((stop != ROOT_ && (character & 0xC0) != 0x80) || character == ROOT_ || output.size() == max_steps) {
+    if ((stop != ROOT_ && (character & 0xC0) != 0x80) && character != ROOT_ && output.size() != max_steps) {
+      output.push_back(character);
+      timesteps.push_back(timestep);
+    }
     std::reverse(output.begin(), output.end());
     std::reverse(timesteps.begin(), timesteps.end());
     return this;

@@ -61,13 +61,18 @@ size_t get_utf8_str_len(const std::string &str) {
   return str_len;
 }
 
-std::vector<std::string> split_utf8_str(const std::string &str) {
+// Return weather a byte is a code point boundary (not a continuation byte).
+bool byte_is_codepoint_boundary(unsigned char c) {
+  // only continuation bytes have their most significant bits set to 10
+  return (c & 0xC0) != 0x80;
+}
+
+std::vector<std::string> split_into_codepoints(const std::string &str) {
   std::vector<std::string> result;
   std::string out_str;
 
   for (char c : str) {
-    if ((c & 0xc0) != 0x80)  // new UTF-8 character
-    {
+    if (byte_is_codepoint_boundary(c)) {
       if (!out_str.empty()) {
         result.push_back(out_str);
         out_str.clear();
@@ -77,6 +82,17 @@ std::vector<std::string> split_utf8_str(const std::string &str) {
     out_str.append(1, c);
   }
   result.push_back(out_str);
+  return result;
+}
+
+std::vector<std::string> split_into_bytes(const std::string &str) {
+  std::vector<std::string> result;
+
+  for (char c : str) {
+    std::string ch(1, c);
+    result.push_back(ch);
+  }
+
   return result;
 }
 
@@ -144,27 +160,23 @@ void add_word_to_fst(const std::vector<int> &word,
 bool add_word_to_dictionary(
     const std::string &word,
     const std::unordered_map<std::string, int> &char_map,
-    bool add_space,
+    bool utf8,
     int SPACE_ID,
     fst::StdVectorFst *dictionary) {
-  auto characters = split_utf8_str(word);
+  auto characters = utf8 ? split_into_bytes(word) : split_into_codepoints(word);
 
   std::vector<int> int_word;
 
   for (auto &c : characters) {
-    if (c == " ") {
-      int_word.push_back(SPACE_ID);
+    auto int_c = char_map.find(c);
+    if (int_c != char_map.end()) {
+      int_word.push_back(int_c->second);
     } else {
-      auto int_c = char_map.find(c);
-      if (int_c != char_map.end()) {
-        int_word.push_back(int_c->second);
-      } else {
-        return false;  // return without adding
-      }
+      return false;  // return without adding
     }
   }
 
-  if (add_space) {
+  if (!utf8) {
     int_word.push_back(SPACE_ID);
   }
 

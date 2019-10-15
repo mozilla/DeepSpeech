@@ -77,7 +77,7 @@ public:
   size_t get_max_order() const { return max_order_; }
 
   // retrun true if the language model is character based
-  bool is_character_based() const { return is_character_based_; }
+  bool is_utf8_mode() const { return is_utf8_mode_; }
 
   // reset params alpha & beta
   void reset_params(float alpha, float beta);
@@ -91,6 +91,9 @@ public:
 
   // save dictionary in file
   void save_dictionary(const std::string &path);
+
+  // return weather this label represents a boundary where beam scoring should happen
+  bool is_scoring_boundary(size_t label);
 
   // language model weight
   double alpha = 0.;
@@ -108,11 +111,11 @@ protected:
   void load_lm(const std::string &lm_path);
 
   // fill dictionary for FST
-  void fill_dictionary(const std::vector<std::string> &vocabulary, bool add_space);
+  void fill_dictionary(const std::vector<std::string> &vocabulary);
 
 private:
   std::unique_ptr<lm::base::Model> language_model_;
-  bool is_character_based_ = true;
+  bool is_utf8_mode_ = true;
   size_t max_order_ = 0;
 
   int SPACE_ID_;

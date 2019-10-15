@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "fst/fstlib.h"
+#include "alphabet.h"
 
 #ifdef DEBUG
 #include "alphabet.h"
