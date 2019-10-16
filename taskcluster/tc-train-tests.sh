@@ -42,6 +42,7 @@ PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
+pip install -U pip wheel setuptools
 pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 
 pushd ${HOME}/DeepSpeech/ds/

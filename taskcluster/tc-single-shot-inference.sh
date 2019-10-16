@@ -28,6 +28,7 @@ PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv_install ${pyver}
 setup_pyenv_virtualenv "${pyver}" "${PYENV_NAME}"
 virtualenv_activate "${pyver}" "${PYENV_NAME}"
 
+pip install -U pip wheel setuptools
 pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 
 decoder_pkg_url=$(get_python_pkg_url ${pyver_pkg} ${py_unicode_type} "ds_ctcdecoder" "${DECODER_ARTIFACTS_ROOT}")
