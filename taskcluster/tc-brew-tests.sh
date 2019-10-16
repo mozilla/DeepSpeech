@@ -36,7 +36,7 @@ install_local_homebrew()
     mkdir -p "${LOCAL_HOMEBREW_DIRECTORY}"
     mkdir -p "${HOMEBREW_CACHE}"
 
-    curl -L https://github.com/Homebrew/brew/tarball/2.1.6 | tar xz --strip 1 -C "${LOCAL_HOMEBREW_DIRECTORY}"
+    curl -L https://github.com/Homebrew/brew/tarball/2.1.14 | tar xz --strip 1 -C "${LOCAL_HOMEBREW_DIRECTORY}"
     export PATH=${LOCAL_HOMEBREW_DIRECTORY}/bin:$PATH
 
     if [ ! -x "${LOCAL_HOMEBREW_DIRECTORY}/bin/brew" ]; then
