@@ -771,6 +771,20 @@ def export():
     from tensorflow.python.framework.ops import Tensor, Operation
 
     inputs, outputs, _ = create_inference_graph(batch_size=FLAGS.export_batch_size, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
+
+    graph_version = int(file_relative_read('GRAPH_VERSION').strip())
+    assert graph_version > 0
+
+    # Reshape with dimension [1] required to avoid this error:
+    # ERROR: Input array not provided for operation 'reshape'.
+    outputs['metadata_version'] = tf.constant([graph_version], name='metadata_version')
+    outputs['metadata_sample_rate'] = tf.constant([FLAGS.audio_sample_rate], name='metadata_sample_rate')
+    outputs['metadata_feature_win_len'] = tf.constant([FLAGS.feature_win_len], name='metadata_feature_win_len')
+    outputs['metadata_feature_win_step'] = tf.constant([FLAGS.feature_win_step], name='metadata_feature_win_step')
+
+    if FLAGS.export_language:
+        outputs['metadata_language'] = tf.constant([FLAGS.export_language.encode('ascii')], name='metadata_language')
+
     output_names_tensors = [tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
     output_names_ops = [op.name for op in outputs.values() if isinstance(op, Operation)]
     output_names = ",".join(output_names_tensors + output_names_ops)
@@ -813,24 +827,12 @@ def export():
                 output_node_names=output_node_names.split(','),
                 placeholder_type_enum=tf.float32.as_datatype_enum)
 
+        frozen_graph = do_graph_freeze(output_node_names=output_names)
+
         if not FLAGS.export_tflite:
-            frozen_graph = do_graph_freeze(output_node_names=output_names)
-            frozen_graph.version = int(file_relative_read('GRAPH_VERSION').strip())
-
-            # Add a no-op node to the graph with metadata information to be loaded by the native client
-            metadata = frozen_graph.node.add()
-            metadata.name = 'model_metadata'
-            metadata.op = 'NoOp'
-            metadata.attr['sample_rate'].i = FLAGS.audio_sample_rate
-            metadata.attr['feature_win_len'].i = FLAGS.feature_win_len
-            metadata.attr['feature_win_step'].i = FLAGS.feature_win_step
-            if FLAGS.export_language:
-                metadata.attr['language'].s = FLAGS.export_language.encode('ascii')
-
             with open(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())
         else:
-            frozen_graph = do_graph_freeze(output_node_names=output_names)
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
             converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
