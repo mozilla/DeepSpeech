@@ -165,9 +165,9 @@ void PathTrie::remove() {
   }
 }
 
-void PathTrie::set_dictionary(PathTrie::FstType* dictionary) {
+void PathTrie::set_dictionary(std::shared_ptr<PathTrie::FstType> dictionary) {
   dictionary_ = dictionary;
-  dictionary_state_ = dictionary->Start();
+  dictionary_state_ = dictionary_->Start();
   has_dictionary_ = true;
 }
 

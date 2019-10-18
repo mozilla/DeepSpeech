@@ -37,7 +37,8 @@ DecoderState::init(const Alphabet& alphabet,
   prefixes_.push_back(root);
 
   if (ext_scorer != nullptr && !ext_scorer->is_character_based()) {
-    auto dict_ptr = ext_scorer->dictionary->Copy(true);
+    // no need for std::make_shared<>() since Copy() does 'new' behind the doors
+    auto dict_ptr = std::shared_ptr<PathTrie::FstType>(ext_scorer->dictionary->Copy(true));
     root->set_dictionary(dict_ptr);
     auto matcher = std::make_shared<fst::SortedMatcher<PathTrie::FstType>>(*dict_ptr, fst::MATCH_INPUT);
     root->set_matcher(matcher);
