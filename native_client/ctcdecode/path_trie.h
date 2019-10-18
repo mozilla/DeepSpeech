@@ -39,7 +39,7 @@ public:
   void iterate_to_vec(std::vector<PathTrie*>& output);
 
   // set dictionary for FST
-  void set_dictionary(FstType* dictionary);
+  void set_dictionary(std::shared_ptr<FstType> dictionary);
 
   void set_matcher(std::shared_ptr<fst::SortedMatcher<FstType>>);
 
@@ -72,7 +72,7 @@ private:
   std::vector<std::pair<int, PathTrie*>> children_;
 
   // pointer to dictionary of FST
-  FstType* dictionary_;
+  std::shared_ptr<FstType> dictionary_;
   FstType::StateId dictionary_state_;
   // true if finding ars in FST
   std::shared_ptr<fst::SortedMatcher<FstType>> matcher_;
