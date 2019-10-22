@@ -116,7 +116,8 @@ def evaluate(test_csvs, create_model, try_loading):
                     break
 
                 decoded = ctc_beam_search_decoder_batch(batch_logits, batch_lengths, Config.alphabet, FLAGS.beam_width,
-                                                        num_processes=num_processes, scorer=scorer)
+                                                        num_processes=num_processes, scorer=scorer,
+                                                        cutoff_prob=FLAGS.cutoff_prob, cutoff_top_n=FLAGS.cutoff_top_n)
                 predictions.extend(d[0][1] for d in decoded)
                 ground_truths.extend(sparse_tensor_value_to_texts(batch_transcripts, Config.alphabet))
                 wav_filenames.extend(wav_filename.decode('UTF-8') for wav_filename in batch_wav_filenames)
