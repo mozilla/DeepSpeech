@@ -158,7 +158,7 @@ if __name__ == "__main__":
         label = validate_label(label)
         if ALPHABET and label:
             try:
-                [ALPHABET.label_from_string(c) for c in label]
+                ALPHABET.encode(label)
             except KeyError:
                 label = None
         return label
