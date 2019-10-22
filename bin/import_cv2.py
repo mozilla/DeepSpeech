@@ -51,7 +51,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
 
     # Get audiofile path and transcript for each sentence in tsv
     samples = []
-    with open(input_tsv) as input_tsv_file:
+    with open(input_tsv, encoding='utf-8') as input_tsv_file:
         reader = csv.DictReader(input_tsv_file, delimiter='\t')
         for row in reader:
             samples.append((row['path'], row['sentence']))
@@ -104,7 +104,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
     pool.close()
     pool.join()
 
-    with open(output_csv, 'w') as output_csv_file:
+    with open(output_csv, 'w', encoding='utf-8') as output_csv_file:
         print('Writing CSV file for DeepSpeech.py as: ', output_csv)
         writer = csv.DictWriter(output_csv_file, fieldnames=FIELDNAMES)
         writer.writeheader()
