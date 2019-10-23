@@ -144,6 +144,7 @@ COPY . /DeepSpeech/
 # Alternative clone from GitHub 
 # RUN apt-get update && apt-get install -y git-lfs 
 # WORKDIR /
+# RUN git lfs install
 # RUN git clone https://github.com/mozilla/DeepSpeech.git
 
 WORKDIR /DeepSpeech
