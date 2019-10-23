@@ -159,13 +159,7 @@ def read_token(token):
 
 
 def in_alphabet(alphabet, c):
-    if alphabet is None:
-        return False
-    try:
-        alphabet.label_from_string(c)
-        return True
-    except KeyError:
-        return False
+    return True if alphabet is None else alphabet.has_char(c)
 
 
 alphabets = {}
@@ -200,7 +194,7 @@ def label_filter(label, language):
                             .encode("ascii", "ignore")
                             .decode("ascii", "ignore"))
         for sc in c:
-            if alphabet is not None and not in_alphabet(alphabet, sc):
+            if not in_alphabet(alphabet, sc):
                 return None, 'illegal character'
             chars.append(sc)
     label = ''.join(chars)

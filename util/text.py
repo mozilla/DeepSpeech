@@ -36,6 +36,9 @@ class Alphabet(object):
                 'then add all these to data/alphabet.txt.'.format(string)
             ).with_traceback(e.__traceback__)
 
+    def has_char(self, char):
+        return char in self._str_to_label
+
     def encode(self, string):
         res = []
         for char in string:
