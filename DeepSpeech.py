@@ -896,7 +896,9 @@ def do_single_file_inference(input_file_path):
                             Config.alphabet)
         else:
             scorer = None
-        decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width, scorer=scorer)
+        decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width,
+                                          scorer=scorer, cutoff_prob=FLAGS.cutoff_prob,
+                                          cutoff_top_n=FLAGS.cutoff_top_n)
         # Print highest probability result
         print(decoded[0][1])
 
