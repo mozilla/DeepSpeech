@@ -136,6 +136,8 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
+ * @param cutoff_top_n Cutoff probability for pruning.
+ * @param cutoff_prob Cutoff number for pruning.
  *
  * @return The STT result. The user is responsible for freeing the string using
  *         {@link DS_FreeString()}. Returns NULL on error.
@@ -143,7 +145,9 @@ int DS_EnableDecoderWithLM(ModelState* aCtx,
 DEEPSPEECH_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
                       const short* aBuffer,
-                      unsigned int aBufferSize);
+                      unsigned int aBufferSize,
+                      int cutoff_top_n = 40,
+                      double cutoff_prob = 1.0);
 
 /**
  * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata 
@@ -153,6 +157,8 @@ char* DS_SpeechToText(ModelState* aCtx,
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
+ * @param cutoff_top_n Cutoff probability for pruning.
+ * @param cutoff_prob Cutoff number for pruning.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
@@ -160,7 +166,9 @@ char* DS_SpeechToText(ModelState* aCtx,
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                                       const short* aBuffer,
-                                      unsigned int aBufferSize);
+                                      unsigned int aBufferSize,
+                                      int cutoff_top_n = 40,
+                                      double cutoff_prob = 1.0);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -170,12 +178,16 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  * @param aCtx The ModelState pointer for the model to use.
  * @param[out] retval an opaque pointer that represents the streaming state. Can
  *                    be NULL if an error occurs.
+ * @param cutoff_top_n Cutoff probability for pruning.
+ * @param cutoff_prob Cutoff number for pruning.
  *
  * @return Zero for success, non-zero on failure.
  */
 DEEPSPEECH_EXPORT
 int DS_CreateStream(ModelState* aCtx,
-                    StreamingState** retval);
+                    StreamingState** retval,
+                    int cutoff_top_n = 40,
+                    double cutoff_prob = 1.0);
 
 /**
  * @brief Feed audio samples to an ongoing streaming inference.

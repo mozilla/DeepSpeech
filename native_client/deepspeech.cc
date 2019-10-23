@@ -324,7 +324,9 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
 
 int
 DS_CreateStream(ModelState* aCtx,
-                StreamingState** retval)
+                StreamingState** retval,
+                int cutoff_top_n,
+                double cutoff_prob)
 {
   *retval = nullptr;
 
@@ -341,9 +343,6 @@ DS_CreateStream(ModelState* aCtx,
   ctx->previous_state_c_.resize(aCtx->state_size_, 0.f);
   ctx->previous_state_h_.resize(aCtx->state_size_, 0.f);
   ctx->model_ = aCtx;
-
-  const int cutoff_top_n = 40;
-  const double cutoff_prob = 1.0;
 
   ctx->decoder_state_.init(aCtx->alphabet_,
                            aCtx->beam_width_,
@@ -388,10 +387,12 @@ DS_FinishStreamWithMetadata(StreamingState* aSctx)
 StreamingState*
 CreateStreamAndFeedAudioContent(ModelState* aCtx,
                                 const short* aBuffer,
-                                unsigned int aBufferSize)
+                                unsigned int aBufferSize,
+                                int cutoff_top_n,
+                                double cutoff_prob)
 {
   StreamingState* ctx;
-  int status = DS_CreateStream(aCtx, &ctx);
+  int status = DS_CreateStream(aCtx, &ctx, cutoff_top_n, cutoff_prob);
   if (status != DS_ERR_OK) {
     return nullptr;
   }
@@ -402,18 +403,24 @@ CreateStreamAndFeedAudioContent(ModelState* aCtx,
 char*
 DS_SpeechToText(ModelState* aCtx,
                 const short* aBuffer,
-                unsigned int aBufferSize)
+                unsigned int aBufferSize,
+                int cutoff_top_n,
+                double cutoff_prob)
 {
-  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
+  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize,
+                                                        cutoff_top_n, cutoff_prob);
   return DS_FinishStream(ctx);
 }
 
 Metadata*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
-                            unsigned int aBufferSize)
+                            unsigned int aBufferSize,
+                            int cutoff_top_n,
+                            double cutoff_prob)
 {
-  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
+  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize,
+                                                        cutoff_top_n, cutoff_prob);
   return DS_FinishStreamWithMetadata(ctx);
 }
 
