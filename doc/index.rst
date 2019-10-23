@@ -33,9 +33,11 @@ Welcome to DeepSpeech's documentation!
 
    C-API
 
-   NodeJS-API
+   DotNet-API
 
    Java-API
+
+   NodeJS-API
 
    Python-API
 
