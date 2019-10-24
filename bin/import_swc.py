@@ -58,8 +58,7 @@ SUBSTITUTIONS = {
 }
 
 DONT_NORMALIZE = {
-    'german': 'ÄÖÜäöüß',
-    'dutch': 'Ĳĳ'
+    'german': 'ÄÖÜäöüß'
 }
 
 PRE_FILTER = str.maketrans(dict.fromkeys('/()[]{}<>:'))
