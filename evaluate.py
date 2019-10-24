@@ -34,7 +34,7 @@ def sparse_tensor_value_to_texts(value, alphabet):
 def sparse_tuple_to_texts(sp_tuple, alphabet):
     indices = sp_tuple[0]
     values = sp_tuple[1]
-    results = [[]] * sp_tuple[2][0]
+    results = [[] for _ in range(sp_tuple[2][0])]
     for i, index in enumerate(indices):
         results[index[0]].append(values[i])
     # List of strings
