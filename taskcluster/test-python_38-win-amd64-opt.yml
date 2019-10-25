@@ -1,0 +1,13 @@
+build:
+  template_file: test-win-opt-base.tyml
+  dependencies:
+    - "win-amd64-cpu-opt"
+    - "test-training_upstream-linux-amd64-py35m-opt"
+  system_setup:
+    >
+      ${system.sox_win}
+  args:
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.8.0:"
+  metadata:
+    name: "DeepSpeech Windows AMD64 CPU Python v3.8 tests"
+    description: "Testing DeepSpeech for Windows/AMD64 on Python v3.8, CPU only, optimized version"
