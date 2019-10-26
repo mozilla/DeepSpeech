@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "argparse": "^1.0.10",
-    "deepspeech": "^0.6.0-alpha.10",
+    "deepspeech": "^0.6.0-alpha.11",
     "node-wav": "0.0.2",
     "sox-stream": "^2.0.3",
     "util": "^0.11.1"
