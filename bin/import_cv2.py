@@ -36,13 +36,11 @@ MAX_SECS = 10
 
 
 def _preprocess_data(tsv_dir, audio_dir, label_filter, space_after_every_character=False):
-    for dataset in ['train', 'test', 'dev']:
+    for dataset in ['train', 'test', 'dev', 'validated', 'other']:
         input_tsv = path.join(path.abspath(tsv_dir), dataset+".tsv")
         if os.path.isfile(input_tsv):
             print("Loading TSV file: ", input_tsv)
             _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character)
-        else:
-            print("ERROR: no TSV file found: ", input_tsv)
 
 
 def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character=None):
@@ -91,7 +89,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
                 counter['too_long'] += 1
             else:
                 # This one is good - keep it for the target CSV
-                rows.append((wav_filename, file_size, label))
+                rows.append((os.path.split(wav_filename)[-1], file_size, label))
             counter['all'] += 1
             counter['total_time'] += frames
 
