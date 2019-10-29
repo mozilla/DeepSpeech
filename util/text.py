@@ -64,15 +64,13 @@ def text_to_char_array(series, alphabet):
     integers and return a numpy array representing the processed string.
     """
     try:
-        series['transcript'] = np.asarray(alphabet.encode(series['transcript']))
+        transcript = np.asarray(alphabet.encode(series['transcript']))
+        if not len(transcript):
+            raise ValueError('While processing: {}\nFound an empty transcript! You must include a transcript for all training data.'.format(series['wav_filename']))
+        return transcript
     except KeyError as e:
         # Provide the row context (especially wav_filename) for alphabet errors
-        raise ValueError(str(e), series)
-
-    if series['transcript'].shape[0] == 0:
-        raise ValueError("Found an empty transcript! You must include a transcript for all training data.", series)
-
-    return series
+        raise ValueError('While processing: {}\n{}'.format(series['wav_filename'], e))
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
