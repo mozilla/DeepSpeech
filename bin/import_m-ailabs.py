@@ -150,7 +150,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
                     else:
                         writer = train_writer
                     writer.writerow(dict(
-                        wav_filename=wav_filename,
+                        wav_filename=os.path.relpath(wav_filename, extracted_dir),
                         wav_filesize=os.path.getsize(wav_filename),
                         transcript=transcript,
                     ))
