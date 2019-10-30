@@ -65,7 +65,7 @@ def text_to_char_array(series, alphabet):
     """
     try:
         transcript = np.asarray(alphabet.encode(series['transcript']))
-        if not len(transcript):
+        if len(transcript) == 0:
             raise ValueError('While processing: {}\nFound an empty transcript! You must include a transcript for all training data.'.format(series['wav_filename']))
         return transcript
     except KeyError as e:
@@ -115,7 +115,10 @@ def validate_label(label):
     label = re.sub("[ ]{2,}", " ", label)
     label = label.replace(".", "")
     label = label.replace(",", "")
+    label = label.replace(";", "")
     label = label.replace("?", "")
+    label = label.replace("!", "")
+    label = label.replace(":", "")
     label = label.replace("\"", "")
     label = label.strip()
     label = label.lower()
