@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=invalid-name
 from __future__ import absolute_import, division, print_function
 
 # Make sure we can import stuff from util/
@@ -7,13 +8,9 @@ import argparse
 import os
 import sys
 
-
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import csv
-import re
-import sox
-import zipfile
 import subprocess
 import progressbar
 import unicodedata
@@ -39,7 +36,6 @@ ARCHIVE_DIR_NAME = '{language}'
 ARCHIVE_NAME = '{language}.tgz'
 ARCHIVE_URL = 'http://www.caito.de/data/Training/stt_tts/' + ARCHIVE_NAME
 
-SKIP_LIST = []
 
 def _download_and_preprocess_data(target_dir):
     # Making path absolute
@@ -50,6 +46,7 @@ def _download_and_preprocess_data(target_dir):
     _maybe_extract(target_dir, ARCHIVE_DIR_NAME, archive_path)
     # Produce CSV files
     _maybe_convert_sets(target_dir, ARCHIVE_DIR_NAME)
+
 
 def _maybe_extract(target_dir, extracted_data, archive_path):
     # If target_dir/extracted_data does not exist, extract archive in target_dir
@@ -64,6 +61,7 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
     else:
         print('Found directory "%s" - not extracting it from archive.' % archive_path)
 
+
 def _maybe_convert_sets(target_dir, extracted_data):
     extracted_dir = path.join(target_dir, extracted_data)
     # override existing CSV with normalized one
@@ -77,14 +75,14 @@ def _maybe_convert_sets(target_dir, extracted_data):
     samples = []
     glob_dir = os.path.join(wav_root_dir, '**/metadata.csv')
     for record in glob(glob_dir, recursive=True):
-        for sk in SKIP_LIST:
-            if not (sk in record):
-                with open(record, 'r') as rec:
-                    for re in rec.readlines():
-                        re = re.strip().split('|')
-                        audio = os.path.join(os.path.dirname(record), 'wavs', re[0] + '.wav')
-                        transcript = re[2]
-                        samples.append((audio, transcript))
+        if any(map(lambda sk: sk in record, SKIP_LIST)):  # pylint: disable=cell-var-from-loop
+            continue
+        with open(record, 'r') as rec:
+            for re in rec.readlines():
+                re = re.strip().split('|')
+                audio = os.path.join(os.path.dirname(record), 'wavs', re[0] + '.wav')
+                transcript = re[2]
+                samples.append((audio, transcript))
 
     # Keep track of how many samples are good vs. problematic
     counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0, 'total_time': 0}
@@ -168,6 +166,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
         print('Skipped %d samples that were longer than %d seconds.' % (counter['too_long'], MAX_SECS))
     print('Final amount of imported audio: %s.' % secs_to_hours(counter['total_time'] / SAMPLE_RATE))
 
+
 def handle_args():
     parser = argparse.ArgumentParser(description='Importer for M-AILABS dataset. https://www.caito.de/2019/01/the-m-ailabs-speech-dataset/.')
     parser.add_argument(dest='target_dir')
@@ -177,10 +176,11 @@ def handle_args():
     parser.add_argument('--language', required=True, type=str, help='Dataset language to use')
     return parser.parse_args()
 
+
 if __name__ == "__main__":
     CLI_ARGS = handle_args()
     ALPHABET = Alphabet(CLI_ARGS.filter_alphabet) if CLI_ARGS.filter_alphabet else None
-    SKIP_LIST = CLI_ARGS.skiplist.split(',')
+    SKIP_LIST = filter(None, CLI_ARGS.skiplist.split(','))
 
     def label_filter(label):
         if CLI_ARGS.normalize:
