@@ -780,12 +780,11 @@ def export():
     graph_version = int(file_relative_read('GRAPH_VERSION').strip())
     assert graph_version > 0
 
-    # Reshape with dimension [1] required to avoid this error:
-    # ERROR: Input array not provided for operation 'reshape'.
     outputs['metadata_version'] = tf.constant([graph_version], name='metadata_version')
     outputs['metadata_sample_rate'] = tf.constant([FLAGS.audio_sample_rate], name='metadata_sample_rate')
     outputs['metadata_feature_win_len'] = tf.constant([FLAGS.feature_win_len], name='metadata_feature_win_len')
     outputs['metadata_feature_win_step'] = tf.constant([FLAGS.feature_win_step], name='metadata_feature_win_step')
+    outputs['metadata_alphabet'] = tf.constant([Config.alphabet.serialize()], name='metadata_alphabet')
 
     if FLAGS.export_language:
         outputs['metadata_language'] = tf.constant([FLAGS.export_language.encode('ascii')], name='metadata_language')

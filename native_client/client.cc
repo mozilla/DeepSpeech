@@ -369,7 +369,7 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
-  int status = DS_CreateModel(model, alphabet, beam_width, &ctx);
+  int status = DS_CreateModel(model, beam_width, &ctx);
   if (status != 0) {
     fprintf(stderr, "Could not create model.\n");
     return 1;

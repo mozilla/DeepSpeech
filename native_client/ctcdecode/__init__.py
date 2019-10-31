@@ -18,9 +18,18 @@ class Scorer(swigwrapper.Scorer):
 
     def __init__(self, alpha, beta, model_path, trie_path, alphabet):
         super(Scorer, self).__init__()
-        err = self.init(alpha, beta, model_path, trie_path, alphabet.config_file())
+        serialized = alphabet.serialize()
+        native_alphabet = swigwrapper.Alphabet()
+        err = native_alphabet.deserialize(serialized, len(serialized))
         if err != 0:
-          raise ValueError("Scorer initialization failed with error code {}".format(err), err)
+            raise ValueError("Error when deserializing alphabet.")
+
+        err = self.init(alpha, beta,
+                        model_path.encode('utf-8'),
+                        trie_path.encode('utf-8'),
+                        native_alphabet)
+        if err != 0:
+            raise ValueError("Scorer initialization failed with error code {}".format(err), err)
 
 
 def ctc_beam_search_decoder(probs_seq,
@@ -35,8 +44,7 @@ def ctc_beam_search_decoder(probs_seq,
                       step, with each element being a list of normalized
                       probabilities over alphabet and blank.
     :type probs_seq: 2-D list
-    :param alphabet: alphabet list.
-    :alphabet: Alphabet
+    :param alphabet: Alphabet
     :param beam_size: Width for beam search.
     :type beam_size: int
     :param cutoff_prob: Cutoff probability in pruning,
@@ -53,8 +61,13 @@ def ctc_beam_search_decoder(probs_seq,
              results, in descending order of the confidence.
     :rtype: list
     """
+    serialized = alphabet.serialize()
+    native_alphabet = swigwrapper.Alphabet()
+    err = native_alphabet.deserialize(serialized, len(serialized))
+    if err != 0:
+        raise ValueError("Error when deserializing alphabet.")
     beam_results = swigwrapper.ctc_beam_search_decoder(
-        probs_seq, alphabet.config_file(), beam_size, cutoff_prob, cutoff_top_n,
+        probs_seq, native_alphabet, beam_size, cutoff_prob, cutoff_top_n,
         scorer)
     beam_results = [(res.confidence, alphabet.decode(res.tokens)) for res in beam_results]
     return beam_results
@@ -95,9 +108,12 @@ def ctc_beam_search_decoder_batch(probs_seq,
              results, in descending order of the confidence.
     :rtype: list
     """
-    batch_beam_results = swigwrapper.ctc_beam_search_decoder_batch(
-        probs_seq, seq_lengths, alphabet.config_file(), beam_size, num_processes,
-        cutoff_prob, cutoff_top_n, scorer)
+    serialized = alphabet.serialize()
+    native_alphabet = swigwrapper.Alphabet()
+    err = native_alphabet.deserialize(serialized, len(serialized))
+    if err != 0:
+        raise ValueError("Error when deserializing alphabet.")
+    batch_beam_results = swigwrapper.ctc_beam_search_decoder_batch(probs_seq, seq_lengths, native_alphabet, beam_size, num_processes, cutoff_prob, cutoff_top_n, scorer)
     batch_beam_results = [
         [(res.confidence, alphabet.decode(res.tokens)) for res in beam_results]
         for beam_results in batch_beam_results

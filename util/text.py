@@ -1,27 +1,29 @@
 from __future__ import absolute_import, division, print_function
 
 import codecs
-import re
-
 import numpy as np
+import re
+import struct
 
+from util.flags import FLAGS
 from six.moves import range
 
 class Alphabet(object):
     def __init__(self, config_file):
         self._config_file = config_file
-        self._label_to_str = []
+        self._label_to_str = {}
         self._str_to_label = {}
         self._size = 0
-        with codecs.open(config_file, 'r', 'utf-8') as fin:
-            for line in fin:
-                if line[0:2] == '\\#':
-                    line = '#\n'
-                elif line[0] == '#':
-                    continue
-                self._label_to_str += line[:-1] # remove the line ending
-                self._str_to_label[line[:-1]] = self._size
-                self._size += 1
+        if config_file:
+            with codecs.open(config_file, 'r', 'utf-8') as fin:
+                for line in fin:
+                    if line[0:2] == '\\#':
+                        line = '#\n'
+                    elif line[0] == '#':
+                        continue
+                    self._label_to_str[self._size] = line[:-1] # remove the line ending
+                    self._str_to_label[line[:-1]] = self._size
+                    self._size += 1
 
     def _string_from_label(self, label):
         return self._label_to_str[label]
@@ -49,6 +51,35 @@ class Alphabet(object):
         res = ''
         for label in labels:
             res += self._string_from_label(label)
+        return res
+
+    def serialize(self):
+        res = bytearray()
+        res += struct.pack('<h', self._size)
+        for key, value in self._label_to_str.items():
+            value = value.encode('utf-8')
+            res += struct.pack('<hh{}s'.format(len(value)), key, len(value), value)
+        return bytes(res)
+
+    @staticmethod
+    def deserialize(buf):
+        #pylint: disable=protected-access
+        res = Alphabet(config_file=None)
+
+        offset = 0
+        def unpack_and_fwd(fmt, buf):
+            nonlocal offset
+            result = struct.unpack_from(fmt, buf, offset)
+            offset += struct.calcsize(fmt)
+            return result
+
+        res.size = unpack_and_fwd('<h', buf)[0]
+        for _ in range(res.size):
+            label, val_len = unpack_and_fwd('<hh', buf)
+            val = unpack_and_fwd('<{}s'.format(val_len), buf)[0].decode('utf-8')
+            res._label_to_str[label] = val
+            res._str_to_label[val] = label
+
         return res
 
     def size(self):

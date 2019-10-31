@@ -31,7 +31,6 @@ struct TFLiteModelState : public ModelState
   virtual ~TFLiteModelState();
 
   virtual int init(const char* model_path,
-                   const char* alphabet_path,
                    unsigned int beam_width) override;
 
   virtual void compute_mfcc(const std::vector<float>& audio_buffer,

@@ -25,12 +25,8 @@ ModelState::~ModelState()
 
 int
 ModelState::init(const char* model_path,
-                 const char* alphabet_path,
                  unsigned int beam_width)
 {
-  if (alphabet_.init(alphabet_path)) {
-    return DS_ERR_INVALID_ALPHABET;
-  }
   beam_width_ = beam_width;
   return DS_ERR_OK;
 }
