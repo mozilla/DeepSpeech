@@ -18,7 +18,7 @@ def main(args):
     parser.add_argument('--audio', required=False,
                         help='Path to the audio file to run (WAV format)')
     parser.add_argument('--model', required=True,
-                        help='Path to directory that contains all model files (output_graph, lm, trie and alphabet)')
+                        help='Path to directory that contains all model files (output_graph, lm and trie)')
     parser.add_argument('--stream', required=False, action='store_true',
                         help='To use deepspeech streaming interface')
     args = parser.parse_args()
@@ -34,10 +34,10 @@ def main(args):
     dirName = os.path.expanduser(args.model)
 
     # Resolve all the paths of model files
-    output_graph, alphabet, lm, trie = wavTranscriber.resolve_models(dirName)
+    output_graph, lm, trie = wavTranscriber.resolve_models(dirName)
 
     # Load output_graph, alpahbet, lm and trie
-    model_retval = wavTranscriber.load_model(output_graph, alphabet, lm, trie)
+    model_retval = wavTranscriber.load_model(output_graph, lm, trie)
 
     if args.audio is not None:
         title_names = ['Filename', 'Duration(s)', 'Inference Time(s)', 'Model Load Time(s)', 'LM Load Time(s)']

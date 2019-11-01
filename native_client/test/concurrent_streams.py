@@ -25,8 +25,6 @@ def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('--alphabet', required=True,
-                        help='Path to the configuration file specifying the alphabet used by the network')
     parser.add_argument('--lm', nargs='?',
                         help='Path to the language model binary file')
     parser.add_argument('--trie', nargs='?',
@@ -37,7 +35,7 @@ def main():
                         help='Second audio file to use in interleaved streams')
     args = parser.parse_args()
 
-    ds = Model(args.model, args.alphabet, BEAM_WIDTH)
+    ds = Model(args.model, BEAM_WIDTH)
 
     if args.lm and args.trie:
         ds.enableDecoderWithLM(args.lm, args.trie, LM_ALPHA, LM_BETA)

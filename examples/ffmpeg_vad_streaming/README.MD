@@ -22,14 +22,12 @@ Here is an example for a local audio file:
 ```bash
 node ./index.js --audio <AUDIO_FILE> \
                 --model $HOME/models/output_graph.pbmm \
-                --alphabet $HOME/models/alphabet.txt
 ```
 
 Here is an example for a remote RTMP-Stream:
 ```bash
 node ./index.js  --audio rtmp://<IP>:1935/live/teststream \
                  --model $HOME/models/output_graph.pbmm \
-                 --alphabet $HOME/models/alphabet.txt
 ```
 
 ## Examples
@@ -39,21 +37,18 @@ node ./index.js --audio $HOME/audio/2830-3980-0043.wav \
                 --lm $HOME/models/lm.binary \
                 --trie $HOME/models/trie \
                 --model $HOME/models/output_graph.pbmm \
-                --alphabet $HOME/models/alphabet.txt
 ```
 ```bash
 node ./index.js --audio $HOME/audio/4507-16021-0012.wav \
                 --lm $HOME/models/lm.binary \
                 --trie $HOME/models/trie \
                 --model $HOME/models/output_graph.pbmm \
-                --alphabet $HOME/models/alphabet.txt
 ```
 ```bash
 node ./index.js --audio $HOME/audio/8455-210777-0068.wav \
                 --lm $HOME/models/lm.binary \
                 --trie $HOME/models/trie \
                 --model $HOME/models/output_graph.pbmm \
-                --alphabet $HOME/models/alphabet.txt
 ```
 Real time streaming inference in combination with a RTMP server.
 ```bash
@@ -61,7 +56,6 @@ node ./index.js --audio rtmp://<HOST>/<APP>/<KEY> \
                 --lm $HOME/models/lm.binary \
                 --trie $HOME/models/trie \
                 --model $HOME/models/output_graph.pbmm \
-                --alphabet $HOME/models/alphabet.txt
 ```
 
 ## Notes

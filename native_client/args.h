@@ -12,8 +12,6 @@
 
 char* model = NULL;
 
-char* alphabet = NULL;
-
 char* lm = NULL;
 
 char* trie = NULL;
@@ -41,12 +39,11 @@ int stream_size = 0;
 void PrintHelp(const char* bin)
 {
     std::cout <<
-    "Usage: " << bin << " --model MODEL --alphabet ALPHABET [--lm LM --trie TRIE] --audio AUDIO [-t] [-e]\n"
+    "Usage: " << bin << " --model MODEL [--lm LM --trie TRIE] --audio AUDIO [-t] [-e]\n"
     "\n"
     "Running DeepSpeech inference.\n"
     "\n"
     "	--model MODEL		Path to the model (protocol buffer binary file)\n"
-    "	--alphabet ALPHABET	Path to the configuration file specifying the alphabet used by the network\n"
     "	--lm LM			Path to the language model binary file\n"
     "	--trie TRIE		Path to the language model trie file created with native_client/generate_trie\n"
     "	--audio AUDIO		Path to the audio file to run (WAV format)\n"
@@ -68,7 +65,6 @@ bool ProcessArgs(int argc, char** argv)
     const char* const short_opts = "m:a:l:r:w:c:d:b:tehv";
     const option long_opts[] = {
             {"model", required_argument, nullptr, 'm'},
-            {"alphabet", required_argument, nullptr, 'a'},
             {"lm", required_argument, nullptr, 'l'},
             {"trie", required_argument, nullptr, 'r'},
             {"audio", required_argument, nullptr, 'w'},
@@ -96,10 +92,6 @@ bool ProcessArgs(int argc, char** argv)
         {
         case 'm':
             model = optarg;
-            break;
-
-        case 'a':
-            alphabet = optarg;
             break;
 
         case 'l':
@@ -163,7 +155,7 @@ bool ProcessArgs(int argc, char** argv)
         return false;
     }
 
-    if (!model || !alphabet || !audio) {
+    if (!model || !audio) {
         PrintHelp(argv[0]);
         return false;
     }

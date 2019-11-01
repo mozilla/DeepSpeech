@@ -309,12 +309,12 @@ check_runtime_electronjs()
 run_tflite_basic_inference_tests()
 {
   set +e
-  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${DATA_TMP_DIR}/${model_name} --alphabet ${DATA_TMP_DIR}/alphabet.txt --audio ${DATA_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${DATA_TMP_DIR}/${model_name} --audio ${DATA_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${DATA_TMP_DIR}/${model_name} --alphabet ${DATA_TMP_DIR}/alphabet.txt --audio ${DATA_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${DATA_TMP_DIR}/${model_name} --audio ${DATA_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 }
@@ -322,22 +322,22 @@ run_tflite_basic_inference_tests()
 run_netframework_inference_tests()
 {
   set +e
-  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended yes 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended yes 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_withlm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(DeepSpeechConsole.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
 }
@@ -345,22 +345,22 @@ run_netframework_inference_tests()
 run_electronjs_inference_tests()
 {
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
 }
@@ -368,25 +368,25 @@ run_electronjs_inference_tests()
 run_basic_inference_tests()
 {
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}" "$status"
@@ -397,24 +397,24 @@ run_all_inference_tests()
   run_basic_inference_tests
 
   set +e
-  phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}" "$status"
 
   set +e
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 
   set +e
-  phrase_pbmodel_nolm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  phrase_pbmodel_nolm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
 
   set +e
-  phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
@@ -424,7 +424,6 @@ run_prod_concurrent_stream_tests()
   set +e
   output=$(python ${TASKCLUSTER_TMP_DIR}/test_sources/concurrent_streams.py \
              --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} \
-             --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt \
              --lm ${TASKCLUSTER_TMP_DIR}/lm.binary \
              --trie ${TASKCLUSTER_TMP_DIR}/trie \
              --audio1 ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav \
@@ -442,25 +441,25 @@ run_prod_concurrent_stream_tests()
 run_prod_inference_tests()
 {
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status"
 
   set +e
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 
   set +e
-  phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   set -e
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
 }
@@ -468,13 +467,13 @@ run_prod_inference_tests()
 run_multi_inference_tests()
 {
   set +e -o pipefail
-  multi_phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
+  multi_phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
   status=$?
   set -e +o pipefail
   assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_nolm}" "$status"
 
   set +e -o pipefail
-  multi_phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
+  multi_phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
   status=$?
   set -e +o pipefail
   assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}" "$status"
@@ -483,7 +482,7 @@ run_multi_inference_tests()
 run_cpp_only_inference_tests()
 {
   set +e
-  phrase_pbmodel_withlm_intermediate_decode=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --stream 1280 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm_intermediate_decode=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav --stream 1280 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_intermediate_decode}" "$status"
@@ -566,7 +565,6 @@ download_data()
   ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source}"
   ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source_mmap}"
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/alphabet.txt ${TASKCLUSTER_TMP_DIR}/alphabet.txt
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.pruned.lm ${TASKCLUSTER_TMP_DIR}/lm.binary
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
   cp -R ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
@@ -579,7 +577,7 @@ download_material()
   download_native_client_files "${target_dir}"
   download_data
 
-  ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
+  ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav
 }
 
 download_benchmark_model()
@@ -1595,7 +1593,6 @@ android_setup_ndk_data()
   adb push \
     ${TASKCLUSTER_TMP_DIR}/${model_name} \
     ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav \
-    ${TASKCLUSTER_TMP_DIR}/alphabet.txt \
     ${ANDROID_TMP_DIR}/ds/
 }
 
@@ -1606,7 +1603,6 @@ android_setup_apk_data()
   adb push \
     ${TASKCLUSTER_TMP_DIR}/${model_name} \
     ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav \
-    ${TASKCLUSTER_TMP_DIR}/alphabet.txt \
     ${TASKCLUSTER_TMP_DIR}/lm.binary \
     ${TASKCLUSTER_TMP_DIR}/trie \
     ${ANDROID_TMP_DIR}/test/

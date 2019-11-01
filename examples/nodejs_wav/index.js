@@ -7,9 +7,8 @@ const Wav = require('node-wav');
 
 const BEAM_WIDTH = 1024;
 let modelPath = './models/output_graph.pbmm';
-let alphabetPath = './models/alphabet.txt';
 
-let model = new DeepSpeech.Model(modelPath, alphabetPath, BEAM_WIDTH);
+let model = new DeepSpeech.Model(modelPath, BEAM_WIDTH);
 
 let desiredSampleRate = model.sampleRate();
 

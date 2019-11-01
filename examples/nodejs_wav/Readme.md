@@ -11,7 +11,6 @@ Edit references to models path if necessary:
 
 ```
 let modelPath = './models/output_graph.pbmm';
-let alphabetPath = './models/alphabet.txt';
 let lmPath = './models/lm.binary';
 let triePath = './models/trie';
 ```

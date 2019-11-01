@@ -17,7 +17,7 @@ Once everything is installed, you can then use the `deepspeech` binary to do spe
 
 pip3 install deepspeech
 
-deepspeech --model models/output*graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my*audio_file.wav
+deepspeech --model models/output*graph.pbmm --lm models/lm.binary --trie models/trie --audio my*audio_file.wav
 
 ```
 
@@ -27,7 +27,7 @@ Alternatively, quicker inference can be performed using a supported NVIDIA GPU o
 
 pip3 install deepspeech-gpu
 
-deepspeech --model models/output*graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my*audio_file.wav
+deepspeech --model models/output*graph.pbmm --lm models/lm.binary --trie models/trie --audio my*audio_file.wav
 
 ```
 
@@ -223,7 +223,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 ```bash
 
-deepspeech --model models/output*graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio my*audio_file.wav
+deepspeech --model models/output*graph.pbmm --lm models/lm.binary --trie models/trie --audio my*audio_file.wav
 
 ```
 
@@ -290,7 +290,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 ```bash
 
-./deepspeech --model models/output*graph.pbmm --alphabet models/alphabet.txt --lm models/lm.binary --trie models/trie --audio audio*input.wav
+./deepspeech --model models/output*graph.pbmm --lm models/lm.binary --trie models/trie --audio audio*input.wav
 
 ```
 

@@ -14,7 +14,6 @@ pushd ${THIS}
 
   python mic_vad_streaming.py \
 	  --model $HOME/DeepSpeech/models/output_graph.pbmm \
-	  --alphabet $HOME/DeepSpeech/models/alphabet.txt \
 	  --lm $HOME/DeepSpeech/models/lm.binary \
 	  --trie $HOME/DeepSpeech/models/trie \
 	  --file $HOME/DeepSpeech/audio/2830-3980-0043.wav

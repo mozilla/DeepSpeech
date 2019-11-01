@@ -30,9 +30,6 @@ class Model(object):
     :param aModelPath: Path to model file to load
     :type aModelPath: str
 
-    :param aAlphabetConfigPath: Path to alphabet file to load
-    :type aAlphabetConfigPath: str
-
     :param aBeamWidth: Decoder beam width
     :type aBeamWidth: int
     """

@@ -77,7 +77,7 @@ namespace DeepSpeechWPF
             {
                 try
                 {
-                    _sttClient.CreateModel("output_graph.pbmm", "alphabet.txt", BEAM_WIDTH);
+                    _sttClient.CreateModel("output_graph.pbmm", BEAM_WIDTH);
                     Dispatcher.Invoke(() => { EnableControls(); });
                 }
                 catch (Exception ex)
