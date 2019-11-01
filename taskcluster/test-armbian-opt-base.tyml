@@ -38,8 +38,8 @@ then:
         DEEPSPEECH_ARTIFACTS_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${linux_arm64_build}/artifacts/public
         DEEPSPEECH_NODEJS: https://community-tc.services.mozilla.com/api/queue/v1/task/${node_package_cpu}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
-        DEEPSPEECH_PROD_MODEL: https://github.com/lissyx/DeepSpeech/releases/download/prod-metadata-constant/output_graph.pb
-        DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/lissyx/DeepSpeech/releases/download/prod-metadata-constant/output_graph.pbmm
+        DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.11/output_graph.pb
+        DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.11/output_graph.pbmm
         PIP_DEFAULT_TIMEOUT: "60"
         PIP_EXTRA_INDEX_URL: "https://lissyx.github.io/deepspeech-python-wheels/"
         EXTRA_PYTHON_CONFIGURE_OPTS: "" # Required by Debian Buster
