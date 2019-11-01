@@ -35,9 +35,9 @@ then:
         android_arm64_build: { $eval: as_slugid("android-arm64-cpu-opt") }
         android_armv7_build: { $eval: as_slugid("android-armv7-cpu-opt") }
       in:
-        DEEPSPEECH_ARTIFACTS_ROOT_ARM64: https://queue.taskcluster.net/v1/task/${android_arm64_build}/artifacts/public
-        DEEPSPEECH_ARTIFACTS_ROOT_ARMV7: https://queue.taskcluster.net/v1/task/${android_armv7_build}/artifacts/public
-        DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
+        DEEPSPEECH_ARTIFACTS_ROOT_ARM64: https://community-tc.services.mozilla.com/queue/v1/task/${android_arm64_build}/artifacts/public
+        DEEPSPEECH_ARTIFACTS_ROOT_ARMV7: https://community-tc.services.mozilla.com/queue/v1/task/${android_armv7_build}/artifacts/public
+        DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/queue/v1/task/${training}/artifacts/public/output_graph.pb
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
 
     command:

@@ -7,8 +7,8 @@ Project DeepSpeech
    :alt: Documentation
 
 
-.. image:: https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/badge.svg
-   :target: https://github.taskcluster.net/v1/repository/mozilla/DeepSpeech/master/latest
+.. image:: https://community-tc.services.mozilla.com/github/v1/repository/mozilla/DeepSpeech/master/badge.svg
+   :target: https://community-tc.services.mozilla.com/github/v1/repository/mozilla/DeepSpeech/master/latest
    :alt: Task Status
 
 

@@ -39,10 +39,10 @@ then:
         darwin_amd64_tflite: { $eval: as_slugid("darwin-amd64-tflite-opt") }
         node_package_cpu: { $eval: as_slugid("node-package-cpu") }
       in:
-        DEEPSPEECH_ARTIFACTS_ROOT: https://queue.taskcluster.net/v1/task/${darwin_amd64_build}/artifacts/public
-        DEEPSPEECH_ARTIFACTS_TFLITE_ROOT: https://queue.taskcluster.net/v1/task/${darwin_amd64_tflite}/artifacts/public
-        DEEPSPEECH_NODEJS: https://queue.taskcluster.net/v1/task/${node_package_cpu}/artifacts/public
-        DEEPSPEECH_TEST_MODEL: https://queue.taskcluster.net/v1/task/${training}/artifacts/public/output_graph.pb
+        DEEPSPEECH_ARTIFACTS_ROOT: https://community-tc.services.mozilla.com/queue/v1/task/${darwin_amd64_build}/artifacts/public
+        DEEPSPEECH_ARTIFACTS_TFLITE_ROOT: https://community-tc.services.mozilla.com/queue/v1/task/${darwin_amd64_tflite}/artifacts/public
+        DEEPSPEECH_NODEJS: https://community-tc.services.mozilla.com/queue/v1/task/${node_package_cpu}/artifacts/public
+        DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/queue/v1/task/${training}/artifacts/public/output_graph.pb
         DEEPSPEECH_PROD_MODEL: https://github.com/lissyx/DeepSpeech/releases/download/prod-metadata-constant/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/lissyx/DeepSpeech/releases/download/prod-metadata-constant/output_graph.pbmm
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
