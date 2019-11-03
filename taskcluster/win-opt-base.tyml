@@ -42,7 +42,7 @@ payload:
       TC_MSYS_VERSION: 'MSYS_NT-6.3'
       MSYS: 'winsymlinks:nativestrict'
       TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
-      DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/queue/v1/task/${training}/artifacts/public/output_graph.pb
+      DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
 
   command:
     - >-

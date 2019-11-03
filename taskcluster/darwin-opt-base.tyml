@@ -41,7 +41,7 @@ payload:
       training: { $eval: as_slugid("test-training_upstream-linux-amd64-py35m-opt") }
     in:
       TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
-      DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/queue/v1/task/${training}/artifacts/public/output_graph.pb
+      DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
 
   # There is no VM yet running tasks on OSX
   # so one should install by hand:

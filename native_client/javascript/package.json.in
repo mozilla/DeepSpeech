@@ -27,7 +27,7 @@
         "module_path" : "./lib/binding/v{version}/{platform}-{arch}/{node_abi}/",
         "remote_path" : "./v{version}/{configuration}/",
         "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
-        "host"        : "https://community-tc.services.mozilla.com/index/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/"
+        "host"        : "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/"
     },
     "dependencies"  : {
       "node-pre-gyp": "0.13.x",

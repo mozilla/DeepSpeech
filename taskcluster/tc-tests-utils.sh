@@ -1324,10 +1324,10 @@ do_deepspeech_npm_package()
 
   export PATH="$NPM_ROOT/.bin/$PYTHON27:$PATH"
 
-  all_tasks="$(curl -s https://community-tc.services.mozilla.com/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  all_tasks="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
 
   for dep in ${all_tasks}; do
-    curl -L https://community-tc.services.mozilla.com/queue/v1/task/${dep}/artifacts/public/wrapper.tar.gz | tar -C native_client/javascript -xzvf -
+    curl -L https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/wrapper.tar.gz | tar -C native_client/javascript -xzvf -
   done;
 
   if [ "${rename_to_gpu}" = "--cuda" ]; then
@@ -1351,10 +1351,10 @@ do_deepspeech_java_apk_build()
 
   export ANDROID_HOME=${ANDROID_SDK_HOME}
 
-  all_tasks="$(curl -s https://community-tc.services.mozilla.com/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  all_tasks="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
 
   for dep in ${all_tasks}; do
-    nc_arch="$(curl -s https://community-tc.services.mozilla.com/queue/v1/task/${dep} | python -c 'import json; import sys; print(json.loads(sys.stdin.read())["extra"]["nc_asset_name"])' | cut -d'.' -f2)"
+    nc_arch="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep} | python -c 'import json; import sys; print(json.loads(sys.stdin.read())["extra"]["nc_asset_name"])' | cut -d'.' -f2)"
     nc_dir=""
 
     # if a dep is included that has no "nc_asset_name" then it will be empty, just skip
@@ -1374,7 +1374,7 @@ do_deepspeech_java_apk_build()
 
       mkdir native_client/java/libdeepspeech/libs/${nc_dir}
 
-      curl -L https://community-tc.services.mozilla.com/queue/v1/task/${dep}/artifacts/public/native_client.tar.xz | tar -C native_client/java/libdeepspeech/libs/${nc_dir}/ -Jxvf - libdeepspeech.so
+      curl -L https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/native_client.tar.xz | tar -C native_client/java/libdeepspeech/libs/${nc_dir}/ -Jxvf - libdeepspeech.so
     fi;
   done;
 
