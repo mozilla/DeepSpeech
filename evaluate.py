@@ -7,6 +7,7 @@ import json
 
 from multiprocessing import cpu_count
 
+import sys
 import absl.app
 import numpy as np
 import progressbar
@@ -86,7 +87,7 @@ def evaluate(test_csvs, create_model, try_loading):
     with tfv1.Session(config=Config.session_config) as session:
         # Restore variables from training checkpoint
         loaded = False
-        if not loaded and FLAGS.load in ['auto', 'best']:
+        if not loaded and FLAGS.load in ['auto', 'transfer', 'best']:
             loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
         if not loaded and FLAGS.load in ['auto', 'last']:
             loaded = try_loading(session, saver, 'checkpoint', 'most recent')

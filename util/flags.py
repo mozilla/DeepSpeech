@@ -161,6 +161,6 @@ def create_flags():
     # Transfer Learning
     # ========
     
-    f.DEFINE_string('source_model_checkpoint_dir', '', 'directory in which checkpoints have been stored, which will now be used for transfer learning )
+    f.DEFINE_string('source_model_checkpoint_dir', '', 'directory in which checkpoints have been stored, which will now be used for transfer learning' )
     f.DEFINE_boolean('fine_tune',      False,          'fine-tune the transfered layers from source model or not')
     f.DEFINE_integer('drop_source_layers',      1,          'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')

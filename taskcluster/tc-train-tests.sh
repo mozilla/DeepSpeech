@@ -76,6 +76,7 @@ fi;
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1_checkpoint.sh 200
+    time ./bin/run-tc-ldc93s1-ru_transfer.sh 200
 popd
 
 deactivate
