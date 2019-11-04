@@ -586,9 +586,11 @@ def train():
             loaded = True
 
         if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, checkpoint_saver, checkpoint_filename, 'most recent')
+            tf.initialize_all_variables().run()
+            loaded = try_loading(session, checkpoint_saver, 'checkpoint', 'most recent')
         if not loaded and FLAGS.load in ['auto', 'best']:
-            loaded = try_loading(session, best_dev_saver, best_dev_filename, 'best validation')
+            tf.initialize_all_variables().run()
+            loaded = try_loading(session, best_dev_saver, 'best_dev_checkpoint', 'best validation') 
         if not loaded and FLAGS.load == "transfer":
             if FLAGS.source_model_checkpoint_dir:
                 print('Initializing model from', FLAGS.source_model_checkpoint_dir)
@@ -608,15 +610,14 @@ def train():
                             for layer in drop_source_layers)
                      ])
                 session.run(init_op)
-            elif FLAGS.load in ['auto', 'init']:
-                log_info('Initializing variables...')
-                session.run(initializer)
-            else:
-                log_error('Unable to load %s model from specified checkpoint dir'
-                          ' - consider using load option "auto" or "init".' % FLAGS.load)
-                sys.exit(1)
+        elif FLAGS.load in ['auto', 'init']:
+            log_info('Initializing variables...')
+            session.run(initializer)
+        else:
+            log_error('Unable to load %s model from specified checkpoint dir'
+                      ' - consider using load option "auto" or "init".' % FLAGS.load)
+            sys.exit(1)
 
-        tf.get_default_graph().finalize()
 
         # TRANSFER LEARNING #
 
