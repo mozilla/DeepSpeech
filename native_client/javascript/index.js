@@ -25,8 +25,6 @@ if (process.platform === 'win32') {
  * An object providing an interface to a trained DeepSpeech model.
  *
  * @param {string} aModelPath The path to the frozen model graph.
- * @param {number} aNCep The number of cepstrum the model was trained with.
- * @param {number} aNContext The context window the model was trained with.
  * @param {string} aAlphabetConfigPath The path to the configuration file specifying the alphabet used by the network. See alphabet.h.
  * @param {number} aBeamWidth The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.
  *
@@ -57,7 +55,6 @@ Model.prototype.sampleRate = function() {
 /**
  * Enable decoding using beam scoring with a KenLM language model.
  *
- * @param {string} aAlphabetConfigPath The path to the configuration file specifying the alphabet used by the network. See alphabet.h.
  * @param {string} aLMPath The path to the language model binary file.
  * @param {string} aTriePath The path to the trie file build from the same vocabulary as the language model binary.
  * @param {float} aLMAlpha The alpha hyperparameter of the CTC decoder. Language Model weight.
