@@ -47,25 +47,25 @@ public:
 
   int deserialize(const char* buffer, const int buffer_size) {
     int offset = 0;
-    if (buffer_size - offset < sizeof(int16_t)) {
+    if (buffer_size - offset < sizeof(uint16_t)) {
       return 1;
     }
-    int16_t size = *(int16_t*)(buffer + offset);
-    offset += sizeof(int16_t);
+    uint16_t size = *(uint16_t*)(buffer + offset);
+    offset += sizeof(uint16_t);
     size_ = size;
 
     for (int i = 0; i < size; ++i) {
-      if (buffer_size - offset < sizeof(int16_t)) {
+      if (buffer_size - offset < sizeof(uint16_t)) {
         return 1;
       }
-      int16_t label = *(int16_t*)(buffer + offset);
-      offset += sizeof(int16_t);
+      uint16_t label = *(uint16_t*)(buffer + offset);
+      offset += sizeof(uint16_t);
 
-      if (buffer_size - offset < sizeof(int16_t)) {
+      if (buffer_size - offset < sizeof(uint16_t)) {
         return 1;
       }
-      int16_t val_len = *(int16_t*)(buffer + offset);
-      offset += sizeof(int16_t);
+      uint16_t val_len = *(uint16_t*)(buffer + offset);
+      offset += sizeof(uint16_t);
 
       if (buffer_size - offset < val_len) {
         return 1;

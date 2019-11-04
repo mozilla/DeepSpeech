@@ -55,32 +55,11 @@ class Alphabet(object):
 
     def serialize(self):
         res = bytearray()
-        res += struct.pack('<h', self._size)
+        res += struct.pack('<H', self._size)
         for key, value in self._label_to_str.items():
             value = value.encode('utf-8')
-            res += struct.pack('<hh{}s'.format(len(value)), key, len(value), value)
+            res += struct.pack('<HH{}s'.format(len(value)), key, len(value), value)
         return bytes(res)
-
-    @staticmethod
-    def deserialize(buf):
-        #pylint: disable=protected-access
-        res = Alphabet(config_file=None)
-
-        offset = 0
-        def unpack_and_fwd(fmt, buf):
-            nonlocal offset
-            result = struct.unpack_from(fmt, buf, offset)
-            offset += struct.calcsize(fmt)
-            return result
-
-        res.size = unpack_and_fwd('<h', buf)[0]
-        for _ in range(res.size):
-            label, val_len = unpack_and_fwd('<hh', buf)
-            val = unpack_and_fwd('<{}s'.format(val_len), buf)[0].decode('utf-8')
-            res._label_to_str[label] = val
-            res._str_to_label[val] = label
-
-        return res
 
     def size(self):
         return self._size
