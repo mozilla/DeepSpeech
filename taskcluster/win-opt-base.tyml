@@ -37,7 +37,7 @@ payload:
 
   env:
     $let:
-      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py35m-opt") }
+      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
     in:
       TC_MSYS_VERSION: 'MSYS_NT-6.3'
       MSYS: 'winsymlinks:nativestrict'

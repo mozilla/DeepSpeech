@@ -2,7 +2,7 @@ build:
   template_file: test-win-opt-base.tyml
   dependencies:
     - "win-amd64-cpu-opt"
-    - "test-training_upstream-linux-amd64-py35m-opt"
+    - "test-training_upstream-linux-amd64-py36m-opt"
   args:
     tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-cppwin-ds-tests.sh"
   metadata:

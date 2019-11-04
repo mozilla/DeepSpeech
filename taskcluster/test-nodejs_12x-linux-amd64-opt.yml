@@ -3,7 +3,7 @@ build:
   docker_image: "ubuntu:16.04"
   dependencies:
     - "node-package-cpu"
-    - "test-training_upstream-linux-amd64-py35m-opt"
+    - "test-training_upstream-linux-amd64-py36m-opt"
   system_setup:
     >
       ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_xenial.apt}
