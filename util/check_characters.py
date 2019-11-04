@@ -18,12 +18,14 @@ import argparse
 import csv
 import os
 import sys
+import unicodedata
 
 def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-csv", "--csv-files", help="Str. Filenames as a comma separated list", required=True)
     parser.add_argument("-alpha", "--alphabet-format", help="Bool. Print in format for alphabet.txt", action="store_true")
+    parser.add_argument("-unicode", "--disable-unicode-variants", help="Bool. DISABLE check for unicode consistency (use with --alphabet-format)", action="store_true")
     args = parser.parse_args()
     in_files = [os.path.abspath(i) for i in args.csv_files.split(",")]
 
@@ -37,7 +39,12 @@ def main():
             try:
                 next(reader, None)  # skip the file header (i.e. "transcript")
                 for row in reader:
-                    all_text |= set(str(row[2]))
+                    if not args.disable_unicode_variants:
+                        unicode_transcript = unicodedata.normalize("NFKC", row[2])
+                        if row[2] != unicode_transcript:
+                            print("Your input file", in_file, "contains at least one transript with unicode chars on more than one code-point: '{}'. Consider using NFKC normalization: unicodedata.normalize('NFKC', str).".format(row[2]))
+                            sys.exit(-1)
+                    all_text |= set(row[2])
             except IndexError:
                 print("Your input file", in_file, "is not formatted properly. Check if there are 3 columns with the 3rd containing the transcript")
                 sys.exit(-1)
