@@ -79,6 +79,8 @@ def create_flags():
     f.DEFINE_boolean('use_cudnn_rnn', False, 'use CuDNN RNN backend for training on GPU. Note that checkpoints created with this flag can only be used with CuDNN RNN, i.e. fine tuning on a CPU device will not work')
     f.DEFINE_string('cudnn_checkpoint', '', 'path to a checkpoint created using --use_cudnn_rnn. Specifying this flag allows one to convert a CuDNN RNN checkpoint to a checkpoint capable of running on a CPU graph.')
 
+    f.DEFINE_boolean('automatic_mixed_precision', False, 'whether to allow automatic mixed precision training. USE OF THIS FLAG IS UNSUPPORTED. Checkpoints created with automatic mixed precision training will not be usable without mixed precision.')
+
     # Sample limits
 
     f.DEFINE_integer('limit_train', 0, 'maximum number of elements to use from train set - 0 means no limit')
@@ -131,25 +133,22 @@ def create_flags():
     # Decoder
 
     f.DEFINE_string('alphabet_config_path', 'data/alphabet.txt', 'path to the configuration file specifying the alphabet used by the network. See the comment in data/alphabet.txt for a description of the format.')
+    f.DEFINE_alias('alphabet', 'alphabet_config_path')
     f.DEFINE_string('lm_binary_path', 'data/lm/lm.binary', 'path to the language model binary file created with KenLM')
+    f.DEFINE_alias('lm', 'lm_binary_path')
     f.DEFINE_string('lm_trie_path', 'data/lm/trie', 'path to the language model trie file created with native_client/generate_trie')
+    f.DEFINE_alias('trie', 'lm_trie_path')
     f.DEFINE_integer('beam_width', 1024, 'beam width used in the CTC decoder when building candidate transcriptions')
     f.DEFINE_float('lm_alpha', 0.75, 'the alpha hyperparameter of the CTC decoder. Language Model weight.')
     f.DEFINE_float('lm_beta', 1.85, 'the beta hyperparameter of the CTC decoder. Word insertion weight.')
+    f.DEFINE_float('cutoff_prob', 1.0, 'only consider characters until this probability mass is reached. 1.0 = disabled.')
+    f.DEFINE_integer('cutoff_top_n', 300, 'only process this number of characters sorted by probability mass for each time step. If bigger than alphabet size, disabled.')
 
     # Inference mode
 
     f.DEFINE_string('one_shot_infer', '', 'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
 
     # Register validators for paths which require a file to be specified
-
-    f.register_validator('lm_binary_path',
-                         os.path.isfile,
-                         message='The file pointed to by --lm_binary_path must exist and be readable.')
-
-    f.register_validator('lm_trie_path',
-                         os.path.isfile,
-                         message='The file pointed to by --lm_trie_path must exist and be readable.')
 
     f.register_validator('alphabet_config_path',
                          os.path.isfile,

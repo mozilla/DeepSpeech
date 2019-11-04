@@ -33,11 +33,35 @@ Welcome to DeepSpeech's documentation!
 
    C-API
 
-   NodeJS-API
+   DotNet-API
 
    Java-API
 
+   NodeJS-API
+
    Python-API
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples
+
+   C-Examples
+
+   NodeJS-Examples
+
+   Java-Examples
+
+   Python-Examples
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contributed examples
+
+   DotNet-contrib-examples.rst
+
+   NodeJS-contrib-Examples
+
+   Python-contrib-Examples
 
 Indices and tables
 ==================

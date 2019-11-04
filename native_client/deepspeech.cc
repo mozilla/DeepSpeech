@@ -39,7 +39,7 @@ using std::vector;
 
    The streaming process uses three buffers that are fed eagerly as audio data
    is fed in. The buffers only hold the minimum amount of data needed to do a
-   step in the acoustic model. The three buffers which live in StreamingContext
+   step in the acoustic model. The three buffers which live in StreamingState
    are:
 
    - audio_buffer, used to buffer audio samples until there's enough data to
@@ -292,6 +292,12 @@ DS_CreateModel(const char* aModelPath,
   return DS_ERR_OK;
 }
 
+int
+DS_GetModelSampleRate(ModelState* aCtx)
+{
+  return aCtx->sample_rate_;
+}
+
 void
 DS_FreeModel(ModelState* ctx)
 {
@@ -318,7 +324,6 @@ DS_EnableDecoderWithLM(ModelState* aCtx,
 
 int
 DS_CreateStream(ModelState* aCtx,
-                unsigned int aSampleRate,
                 StreamingState** retval)
 {
   *retval = nullptr;
@@ -383,11 +388,10 @@ DS_FinishStreamWithMetadata(StreamingState* aSctx)
 StreamingState*
 CreateStreamAndFeedAudioContent(ModelState* aCtx,
                                 const short* aBuffer,
-                                unsigned int aBufferSize,
-                                unsigned int aSampleRate)
+                                unsigned int aBufferSize)
 {
   StreamingState* ctx;
-  int status = DS_CreateStream(aCtx, aSampleRate, &ctx);
+  int status = DS_CreateStream(aCtx, &ctx);
   if (status != DS_ERR_OK) {
     return nullptr;
   }
@@ -398,20 +402,18 @@ CreateStreamAndFeedAudioContent(ModelState* aCtx,
 char*
 DS_SpeechToText(ModelState* aCtx,
                 const short* aBuffer,
-                unsigned int aBufferSize,
-                unsigned int aSampleRate)
+                unsigned int aBufferSize)
 {
-  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
   return DS_FinishStream(ctx);
 }
 
 Metadata*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
-                            unsigned int aBufferSize,
-                            unsigned int aSampleRate)
+                            unsigned int aBufferSize)
 {
-  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize, aSampleRate);
+  StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
   return DS_FinishStreamWithMetadata(ctx);
 }
 

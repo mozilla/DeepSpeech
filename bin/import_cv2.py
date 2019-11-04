@@ -36,13 +36,11 @@ MAX_SECS = 10
 
 
 def _preprocess_data(tsv_dir, audio_dir, label_filter, space_after_every_character=False):
-    for dataset in ['train', 'test', 'dev']:
+    for dataset in ['train', 'test', 'dev', 'validated', 'other']:
         input_tsv = path.join(path.abspath(tsv_dir), dataset+".tsv")
         if os.path.isfile(input_tsv):
             print("Loading TSV file: ", input_tsv)
             _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character)
-        else:
-            print("ERROR: no TSV file found: ", input_tsv)
 
 
 def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character=None):
@@ -51,7 +49,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
 
     # Get audiofile path and transcript for each sentence in tsv
     samples = []
-    with open(input_tsv) as input_tsv_file:
+    with open(input_tsv, encoding='utf-8') as input_tsv_file:
         reader = csv.DictReader(input_tsv_file, delimiter='\t')
         for row in reader:
             samples.append((row['path'], row['sentence']))
@@ -91,7 +89,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
                 counter['too_long'] += 1
             else:
                 # This one is good - keep it for the target CSV
-                rows.append((wav_filename, file_size, label))
+                rows.append((os.path.split(wav_filename)[-1], file_size, label))
             counter['all'] += 1
             counter['total_time'] += frames
 
@@ -104,7 +102,7 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
     pool.close()
     pool.join()
 
-    with open(output_csv, 'w') as output_csv_file:
+    with open(output_csv, 'w', encoding='utf-8') as output_csv_file:
         print('Writing CSV file for DeepSpeech.py as: ', output_csv)
         writer = csv.DictWriter(output_csv_file, fieldnames=FIELDNAMES)
         writer.writeheader()
@@ -158,7 +156,7 @@ if __name__ == "__main__":
         label = validate_label(label)
         if ALPHABET and label:
             try:
-                [ALPHABET.label_from_string(c) for c in label]
+                ALPHABET.encode(label)
             except KeyError:
                 label = None
         return label

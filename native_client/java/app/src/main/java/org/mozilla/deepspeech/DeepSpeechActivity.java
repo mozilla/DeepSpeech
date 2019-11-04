@@ -77,7 +77,7 @@ public class DeepSpeechActivity extends AppCompatActivity {
             // tv_numChannels.setText("numChannels=" + (numChannels == 1 ? "MONO" : "!MONO"));
 
             wave.seek(24); int sampleRate = this.readLEInt(wave);
-            assert (sampleRate == 16000); // 16000 Hz
+            assert (sampleRate == this._m.sampleRate()); // desired sample rate
             // tv_sampleRate.setText("sampleRate=" + (sampleRate == 16000 ? "16kHz" : "!16kHz"));
 
             wave.seek(34); char bitsPerSample = this.readLEChar(wave);
@@ -100,7 +100,7 @@ public class DeepSpeechActivity extends AppCompatActivity {
 
             long inferenceStartTime = System.currentTimeMillis();
 
-            String decoded = this._m.stt(shorts, shorts.length, sampleRate);
+            String decoded = this._m.stt(shorts, shorts.length);
 
             inferenceExecTime = System.currentTimeMillis() - inferenceStartTime;
 

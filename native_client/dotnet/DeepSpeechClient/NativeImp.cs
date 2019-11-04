@@ -1,5 +1,4 @@
 ﻿using DeepSpeechClient.Enums;
-using DeepSpeechClient.Structs;
 
 using System;
 using System.Runtime.InteropServices;
@@ -19,10 +18,13 @@ namespace DeepSpeechClient
         internal unsafe static extern ErrorCodes DS_CreateModel(string aModelPath,
                    string aAlphabetConfigPath,
                    uint aBeamWidth,
-                   ref ModelState** pint);
+                   ref IntPtr** pint);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern ErrorCodes DS_EnableDecoderWithLM(ModelState** aCtx,
+        internal unsafe static extern int DS_GetModelSampleRate(IntPtr** aCtx);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern ErrorCodes DS_EnableDecoderWithLM(IntPtr** aCtx,
                   string aLMPath,
                   string aTriePath,
                   float aLMAlpha,
@@ -30,26 +32,24 @@ namespace DeepSpeechClient
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]
-        internal static unsafe extern IntPtr DS_SpeechToText(ModelState** aCtx,
+        internal static unsafe extern IntPtr DS_SpeechToText(IntPtr** aCtx,
                  short[] aBuffer,
-                uint aBufferSize,
-                uint aSampleRate);
+                uint aBufferSize);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
-        internal static unsafe extern IntPtr DS_SpeechToTextWithMetadata(ModelState** aCtx,
+        internal static unsafe extern IntPtr DS_SpeechToTextWithMetadata(IntPtr** aCtx,
                  short[] aBuffer,
-                uint aBufferSize,
-                uint aSampleRate);
+                uint aBufferSize);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern void DS_FreeModel(ModelState** aCtx);
+        internal static unsafe extern void DS_FreeModel(IntPtr** aCtx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern ErrorCodes DS_CreateStream(ModelState** aCtx,
-               uint aSampleRate, ref StreamingState** retval);
+        internal static unsafe extern ErrorCodes DS_CreateStream(IntPtr** aCtx,
+               ref IntPtr** retval);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern void DS_FreeStream(ref StreamingState** aSctx);
+        internal static unsafe extern void DS_FreeStream(ref IntPtr** aSctx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern void DS_FreeMetadata(IntPtr metadata);
@@ -59,19 +59,19 @@ namespace DeepSpeechClient
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]
-        internal static unsafe extern void DS_FeedAudioContent(StreamingState** aSctx,
+        internal static unsafe extern void DS_FeedAudioContent(IntPtr** aSctx,
                      short[] aBuffer,
                     uint aBufferSize);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern string DS_IntermediateDecode(StreamingState** aSctx);
+        internal static unsafe extern string DS_IntermediateDecode(IntPtr** aSctx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]
-        internal static unsafe extern IntPtr DS_FinishStream(  StreamingState** aSctx);
+        internal static unsafe extern IntPtr DS_FinishStream(IntPtr** aSctx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern IntPtr DS_FinishStreamWithMetadata(StreamingState** aSctx);
+        internal static unsafe extern IntPtr DS_FinishStreamWithMetadata(IntPtr** aSctx);
         #endregion
     }
 }

@@ -80,7 +80,7 @@ def main():
     parser.add_argument('--source', required=False, default=None,
                         help='Name of the TaskCluster scheme to use.')
     parser.add_argument('--branch', required=False,
-                        help='Branch name to use. Defaulting to "master".')
+                        help='Branch name to use. Defaulting to current content of VERSION file.')
     parser.add_argument('--decoder', action='store_true',
                         help='Get URL to ds_ctcdecoder Python package.')
 
@@ -103,10 +103,12 @@ def main():
         else:
             args.arch = 'cpu'
 
-    has_branch_set = True
     if not args.branch:
-        has_branch_set = False
-        args.branch = 'master'
+        version_string = read('../VERSION').strip()
+        ds_version = parse_version(version_string)
+        args.branch = "v{}".format(version_string)
+    else:
+        ds_version = args.branch.lstrip('v')
 
     if args.decoder:
         plat = platform.system().lower()
@@ -117,13 +119,6 @@ def main():
 
         if plat == 'darwin':
             plat = 'macosx_10_10'
-
-        if has_branch_set:
-            ds_version = args.branch.lstrip('v')
-        else:
-            version_string = read('../VERSION').strip()
-            ds_version = parse_version(version_string)
-            args.branch = "v{}".format(version_string)
 
         m_or_mu = 'mu' if is_ucs2 else 'm'
         pyver = ''.join(map(str, sys.version_info[0:2]))

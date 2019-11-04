@@ -83,7 +83,7 @@ namespace DeepSpeechWPF
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
-                    Close();
+                    Dispatcher.Invoke(() => { Close(); }); 
                 }
             });
         }
@@ -130,7 +130,7 @@ namespace DeepSpeechWPF
                 watch.Start();
                 await Task.Run(() =>
                 {
-                    string speechResult = _sttClient.SpeechToText(waveBuffer.ShortBuffer, Convert.ToUInt32(waveBuffer.MaxSize / 2), 16000);
+                    string speechResult = _sttClient.SpeechToText(waveBuffer.ShortBuffer, Convert.ToUInt32(waveBuffer.MaxSize / 2));
                     watch.Stop();
                     Dispatcher.Invoke(() =>
                     {
@@ -202,15 +202,13 @@ namespace DeepSpeechWPF
             {
                 _audioCapture.Device = _audioCaptureDevices[cbxAudioInputs.SelectedIndex]; 
             }
-            InitilizeAudioCapture();
+            InitializeAudioCapture(_sttClient.GetModelSampleRate());
         }
-
-       
 
         /// <summary>
         /// Initializes the recorder and setup the native stream.
         /// </summary>
-        private void InitilizeAudioCapture()
+        private void InitializeAudioCapture(int desiredSampleRate)
         {
             _audioCapture.Initialize();
             _audioCapture.DataAvailable += _capture_DataAvailable;
@@ -218,7 +216,7 @@ namespace DeepSpeechWPF
             //create a source, that converts the data provided by the
             //soundInSource to required by the deepspeech model
             _convertedSource = _soundInSource
-               .ChangeSampleRate(16000) // sample rate
+               .ChangeSampleRate(desiredSampleRate) // sample rate
                .ToSampleSource()
                .ToWaveSource(16); //bits per sample
              
@@ -250,7 +248,7 @@ namespace DeepSpeechWPF
 
         private void BtnStartRecording_Click(object sender, RoutedEventArgs e)
         {
-            _sttClient.CreateStream(16000);
+            _sttClient.CreateStream();
             _audioCapture.Start();
             btnStartRecording.IsEnabled = false;
             btnStopRecording.IsEnabled = true;

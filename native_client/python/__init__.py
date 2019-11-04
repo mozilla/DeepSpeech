@@ -4,12 +4,18 @@ import platform
 #The API is not snake case which triggers linter errors
 #pylint: disable=invalid-name
 
-# On Windows, we can't rely on RPATH being set to $ORIGIN/lib/ or on
-# @loader_path/lib but we can change the PATH to include the proper directory
-# for the dynamic linker
 if platform.system().lower() == "windows":
     dslib_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'lib')
-    os.environ['PATH'] = dslib_path + ';' + os.environ['PATH']
+
+    # On Windows, we can't rely on RPATH being set to $ORIGIN/lib/ or on
+    # @loader_path/lib
+    if hasattr(os, 'add_dll_directory'):
+        # Starting with Python 3.8 this properly handles the problem
+        os.add_dll_directory(dslib_path)
+    else:
+        # Before Pythin 3.8 we need to change the PATH to include the proper
+        # directory for the dynamic linker
+        os.environ['PATH'] = dslib_path + ';' + os.environ['PATH']
 
 import deepspeech
 
@@ -44,6 +50,15 @@ class Model(object):
             deepspeech.impl.FreeModel(self._impl)
             self._impl = None
 
+    def sampleRate(self):
+        """
+        Return the sample rate expected by the model.
+
+        :return: Sample rate.
+        :type: int
+        """
+        return deepspeech.impl.GetModelSampleRate(self._impl)
+
     def enableDecoderWithLM(self, *args, **kwargs):
         """
         Enable decoding using beam scoring with a KenLM language model.
@@ -69,14 +84,11 @@ class Model(object):
         """
         Use the DeepSpeech model to perform Speech-To-Text.
 
-        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in the audio signal.
         :type aBufferSize: int
-
-        :param aSampleRate: The sample-rate of the audio signal.
-        :type aSampleRate: int
 
         :return: The STT result.
         :type: str
@@ -87,34 +99,27 @@ class Model(object):
         """
         Use the DeepSpeech model to perform Speech-To-Text and output metadata about the results.
 
-        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate.
+        :param aBuffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in the audio signal.
         :type aBufferSize: int
-
-        :param aSampleRate: The sample-rate of the audio signal.
-        :type aSampleRate: int
 
         :return: Outputs a struct of individual letters along with their timing information.
         :type: :func:`Metadata`
         """
         return deepspeech.impl.SpeechToTextWithMetadata(self._impl, *args, **kwargs)
 
-    def createStream(self, sample_rate=16000):
+    def createStream(self):
         """
         Create a new streaming inference state. The streaming state returned
         by this function can then be passed to :func:`feedAudioContent()` and :func:`finishStream()`.
-
-        :param aSampleRate: The sample-rate of the audio signal.
-        :type aSampleRate: int
 
         :return: Object holding the stream
 
         :throws: RuntimeError on error
         """
-        status, ctx = deepspeech.impl.CreateStream(self._impl,
-                                                   aSampleRate=sample_rate)
+        status, ctx = deepspeech.impl.CreateStream(self._impl)
         if status != 0:
             raise RuntimeError("CreateStream failed with error code {}".format(status))
         return ctx
@@ -127,7 +132,7 @@ class Model(object):
         :param aSctx: A streaming state pointer returned by :func:`createStream()`.
         :type aSctx: object
 
-        :param aBuffer: An array of 16-bit, mono raw audio samples at the appropriate sample rate.
+        :param aBuffer: An array of 16-bit, mono raw audio samples at the appropriate sample rate (matching what the model was trained on).
         :type aBuffer: int array
 
         :param aBufferSize: The number of samples in @p aBuffer.

@@ -1,22 +1,23 @@
-From cbec3f33bc1dbefc9833e721332b1ff46a801458 Mon Sep 17 00:00:00 2001
+From 203493e23f55f38c35e296e4a72334e1710ed85c Mon Sep 17 00:00:00 2001
 From: Alexandre Lissy <lissyx@lissyx.dyndns.org>
 Date: Thu, 25 Apr 2019 12:29:19 +0200
-Subject: [PATCH 1/3] Move from v8::Handle to v8::Local
+Subject: [PATCH] Upgrade SWIG to support NodeJS v12 / V8 v7.6 runtime
 
 ---
- Lib/javascript/v8/javascriptcode.swg      | 22 ++++++-------
- Lib/javascript/v8/javascriptcomplex.swg   | 10 +++---
- Lib/javascript/v8/javascripthelpers.swg   | 20 ++++++------
- Lib/javascript/v8/javascriptinit.swg      |  4 +--
- Lib/javascript/v8/javascriptprimtypes.swg | 28 ++++++++---------
- Lib/javascript/v8/javascriptrun.swg       | 38 +++++++++++------------
- Lib/javascript/v8/javascriptstrings.swg   | 10 +++---
+ Lib/javascript/v8/javascriptcode.swg      | 26 ++++----
+ Lib/javascript/v8/javascriptcomplex.swg   | 10 ++--
+ Lib/javascript/v8/javascripthelpers.swg   | 24 ++++----
+ Lib/javascript/v8/javascriptinit.swg      |  4 +-
+ Lib/javascript/v8/javascriptprimtypes.swg | 28 ++++-----
+ Lib/javascript/v8/javascriptrun.swg       | 73 +++++++++++++++--------
+ Lib/javascript/v8/javascriptruntime.swg   |  4 ++
+ Lib/javascript/v8/javascriptstrings.swg   | 10 ++--
  Lib/javascript/v8/javascripttypemaps.swg  |  2 +-
- Tools/javascript/v8_shell.cxx             | 18 +++++------
- 9 files changed, 76 insertions(+), 76 deletions(-)
+ Tools/javascript/v8_shell.cxx             | 18 +++---
+ 10 files changed, 118 insertions(+), 81 deletions(-)
 
 diff --git a/Lib/javascript/v8/javascriptcode.swg b/Lib/javascript/v8/javascriptcode.swg
-index c4aaf3db0..86963c1ed 100644
+index c4aaf3db0..c6a813bbb 100644
 --- a/Lib/javascript/v8/javascriptcode.swg
 +++ b/Lib/javascript/v8/javascriptcode.swg
 @@ -11,7 +11,7 @@
@@ -91,7 +92,7 @@ index c4aaf3db0..86963c1ed 100644
    SWIGV8_SET_CLASS_TEMPL($jsmangledname_clientData.class_templ, $jsmangledname_class);
    $jsmangledname_clientData.dtor = $jsdtor;
    if (SWIGTYPE_$jsmangledtype->clientdata == 0) {
-@@ -420,11 +420,11 @@ fail:
+@@ -420,11 +420,15 @@ fail:
  %fragment("jsv8_create_class_instance", "templates")
  %{
    /* Class: $jsname ($jsmangledname) */
@@ -99,13 +100,17 @@ index c4aaf3db0..86963c1ed 100644
 +  v8::Local<v8::FunctionTemplate> $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname");
    $jsmangledname_class_0->SetCallHandler($jsctor);
    $jsmangledname_class_0->Inherit($jsmangledname_class);
++#if (SWIG_V8_VERSION < 0x0705)
    $jsmangledname_class_0->SetHiddenPrototype(true);
 -  v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
 +  v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();
++#else
++  v8::Local<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
++#endif
  %}
  
  /* -----------------------------------------------------------------------------
-@@ -444,7 +444,7 @@ fail:
+@@ -444,7 +448,7 @@ fail:
   * ----------------------------------------------------------------------------- */
  %fragment("jsv8_create_namespace", "templates")
  %{
@@ -158,7 +163,7 @@ index d3b4aaffa..533e54813 100644
      if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
      double re, im;
 diff --git a/Lib/javascript/v8/javascripthelpers.swg b/Lib/javascript/v8/javascripthelpers.swg
-index 80fbd7aa1..c610f5196 100644
+index 80fbd7aa1..fa33e9762 100644
 --- a/Lib/javascript/v8/javascripthelpers.swg
 +++ b/Lib/javascript/v8/javascripthelpers.swg
 @@ -21,19 +21,19 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
@@ -185,7 +190,7 @@ index 80fbd7aa1..c610f5196 100644
      cptr_templ->Set(SWIGV8_SYMBOL_NEW("getCPtr"), SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr));
  
      SWIGV8_ESCAPE(class_templ);
-@@ -42,25 +42,25 @@ SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const ch
+@@ -42,33 +42,37 @@ SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const ch
  /**
   * Registers a class method with given name for a given class template.
   */
@@ -214,9 +219,13 @@ index 80fbd7aa1..c610f5196 100644
 -SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol,
 +SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Local<v8::Object> obj, const char* symbol,
    const SwigV8FunctionCallback& _func) {
++#if (SWIG_V8_VERSION < 0x0705)
    obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction());
++#else
++  obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
++#endif
  }
-@@ -68,7 +68,7 @@ SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char
+ 
  /**
   * Registers a class method with given name for a given object.
   */
@@ -377,10 +386,66 @@ index f76be983b..24f5daf7c 100644
    if(!obj->IsNumber()) {
      return SWIG_TypeError;
 diff --git a/Lib/javascript/v8/javascriptrun.swg b/Lib/javascript/v8/javascriptrun.swg
-index 2452f4040..866cdb331 100644
+index 2452f4040..99587943b 100644
 --- a/Lib/javascript/v8/javascriptrun.swg
 +++ b/Lib/javascript/v8/javascriptrun.swg
-@@ -163,7 +163,7 @@ public:
+@@ -10,7 +10,11 @@
+ #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031803)
+ #define SWIGV8_STRING_NEW2(cstr, len) v8::String::New(cstr, len)
+ #else
++#if (SWIG_V8_VERSION < 0x0706)
+ #define SWIGV8_STRING_NEW2(cstr, len) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::String::kNormalString, len)
++#else
++#define SWIGV8_STRING_NEW2(cstr, len) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::NewStringType::kNormal, len)).ToLocalChecked()
++#endif
+ #endif
+ 
+ #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+@@ -47,12 +51,18 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
+ #define SWIGV8_THROW_EXCEPTION(err) v8::ThrowException(err)
+ #define SWIGV8_STRING_NEW(str) v8::String::New(str)
+ #define SWIGV8_SYMBOL_NEW(sym) v8::String::NewSymbol(sym)
+-#else
++#elif (SWIG_V8_VERSION < 0x0706)
+ #define SWIGV8_ADJUST_MEMORY(size) v8::Isolate::GetCurrent()->AdjustAmountOfExternalAllocatedMemory(size)
+ #define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
+ #define SWIGV8_THROW_EXCEPTION(err) v8::Isolate::GetCurrent()->ThrowException(err)
+ #define SWIGV8_STRING_NEW(str) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str)
+ #define SWIGV8_SYMBOL_NEW(sym) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym)
++#else
++#define SWIGV8_ADJUST_MEMORY(size) v8::Isolate::GetCurrent()->AdjustAmountOfExternalAllocatedMemory(size)
++#define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
++#define SWIGV8_THROW_EXCEPTION(err) v8::Isolate::GetCurrent()->ThrowException(err)
++#define SWIGV8_STRING_NEW(str) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str)).ToLocalChecked()
++#define SWIGV8_SYMBOL_NEW(sym) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym)).ToLocalChecked()
+ #endif
+ 
+ #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032318)
+@@ -107,7 +117,7 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
+ #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue()
+ #define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(buffer, len)
+ #define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length()
+-#else
++#elif (SWIG_V8_VERSION < 0x0706)
+ #define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+ #define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+ #define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+@@ -115,6 +125,14 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
+ #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+ #define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
+ #define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
++#else
++#define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
++#define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
++#define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
++#define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
++#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(v8::Isolate::GetCurrent())
++#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
++#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
+ #endif
+ 
+ /* ---------------------------------------------------------------------------
+@@ -163,7 +181,7 @@ public:
          SWIGV8_THROW_EXCEPTION(err);
      }
    }
@@ -389,7 +454,7 @@ index 2452f4040..866cdb331 100644
  };
  
  /* ---------------------------------------------------------------------------
-@@ -228,13 +228,13 @@ public:
+@@ -228,13 +246,13 @@ public:
  
  SWIGRUNTIME v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
  
@@ -405,7 +470,7 @@ index 2452f4040..866cdb331 100644
    SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(v8::External::Unwrap(cdataRef));
  #else
    SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
-@@ -280,11 +280,11 @@ SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackInfo<SWIGV8_Prox
+@@ -280,11 +298,11 @@ SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackInfo<SWIGV8_Prox
    delete proxy;
  }
  
@@ -419,7 +484,7 @@ index 2452f4040..866cdb331 100644
  
    if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
  
-@@ -304,7 +304,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr)
+@@ -304,7 +322,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr)
    return SWIG_OK;
  }
  
@@ -428,7 +493,16 @@ index 2452f4040..866cdb331 100644
    SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
    cdata->swigCObject = ptr;
    cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
-@@ -367,7 +367,7 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, sw
+@@ -361,13 +379,15 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, sw
+   cdata->handle.MarkIndependent();
+ #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
+   cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
+-#else
++#elif (SWIG_V8_VERSION < 0x0706)
+   cdata->handle.MarkIndependent();
++// Looks like future versions do not require that anymore:
++// https://monorail-prod.appspot.com/p/chromium/issues/detail?id=923361#c11
+ #endif
  
  }
  
@@ -437,7 +511,7 @@ index 2452f4040..866cdb331 100644
    SWIGV8_HANDLESCOPE();
    
    /* special case: JavaScript null => C NULL pointer */
-@@ -378,14 +378,14 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swi
+@@ -378,14 +398,14 @@ SWIGRUNTIME int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swi
    if(!valRef->IsObject()) {
      return SWIG_TypeError;
    }
@@ -455,7 +529,20 @@ index 2452f4040..866cdb331 100644
  
    if (ptr == NULL) {
  #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-@@ -433,7 +433,7 @@ SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_inf
+@@ -412,8 +432,11 @@ SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_inf
+   }
+ #endif
+ 
+-//  v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
++#if (SWIG_V8_VERSION < 0x0705)
+   v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
++#else
++  v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
++#endif
+   SWIGV8_SetPrivateData(result, ptr, info, flags);
+ 
+   SWIGV8_ESCAPE(result);
+@@ -433,7 +456,7 @@ SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_inf
  SWIGRUNTIME SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
    SWIGV8_HANDLESCOPE();
    
@@ -464,7 +551,7 @@ index 2452f4040..866cdb331 100644
    void *arg1 = (void *) 0 ;
    void *arg2 = (void *) 0 ;
    bool result;
-@@ -463,7 +463,7 @@ fail:
+@@ -463,7 +486,7 @@ fail:
  SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
    SWIGV8_HANDLESCOPE();
    
@@ -473,7 +560,7 @@ index 2452f4040..866cdb331 100644
    void *arg1 = (void *) 0 ;
    long result;
    int res1;
-@@ -502,10 +502,10 @@ public:
+@@ -502,10 +525,10 @@ public:
  };
  
  SWIGRUNTIMEINLINE
@@ -486,7 +573,7 @@ index 2452f4040..866cdb331 100644
    if(objRef->InternalFieldCount() < 1) return false;
  #if (V8_MAJOR_VERSION-0) < 5
    v8::Handle<v8::Value> flag = objRef->GetHiddenValue(SWIGV8_STRING_NEW("__swig__packed_data__"));
-@@ -519,13 +519,13 @@ int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
+@@ -519,13 +542,13 @@ int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
  }
  
  SWIGRUNTIME
@@ -502,7 +589,7 @@ index 2452f4040..866cdb331 100644
  
  #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031511)
      v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
-@@ -542,7 +542,7 @@ swig_type_info *SwigV8Packed_UnpackData(v8::Handle<v8::Value> valRef, void *ptr,
+@@ -542,7 +565,7 @@ swig_type_info *SwigV8Packed_UnpackData(v8::Handle<v8::Value> valRef, void *ptr,
  }
  
  SWIGRUNTIME
@@ -511,7 +598,7 @@ index 2452f4040..866cdb331 100644
    swig_type_info *to = SwigV8Packed_UnpackData(valRef, ptr, sz);
    if (!to) return SWIG_ERROR;
    if (ty) {
-@@ -590,7 +590,7 @@ SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackInfo<SwigV8
+@@ -590,7 +613,7 @@ SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackInfo<SwigV8
  }
  
  SWIGRUNTIME
@@ -520,7 +607,19 @@ index 2452f4040..866cdb331 100644
    SWIGV8_HANDLESCOPE_ESC();
  
    SwigV8PackedData *cdata = new SwigV8PackedData(data, size, type);
-@@ -657,7 +657,7 @@ SWIGRUNTIME
+@@ -636,8 +659,10 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
+   cdata->handle.MarkIndependent();
+ #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
+   cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
+-#else
++#elif (SWIG_V8_VERSION < 0x0706)
+   cdata->handle.MarkIndependent();
++// Looks like future versions do not require that anymore:
++// https://monorail-prod.appspot.com/p/chromium/issues/detail?id=923361#c11
+ #endif
+ 
+   SWIGV8_ESCAPE(obj);
+@@ -657,7 +682,7 @@ SWIGRUNTIME
  #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
  v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Handle<v8::Value> result, v8::Handle<v8::Value> obj) {
  #else
@@ -529,6 +628,21 @@ index 2452f4040..866cdb331 100644
  #endif
    SWIGV8_HANDLESCOPE_ESC();
    
+diff --git a/Lib/javascript/v8/javascriptruntime.swg b/Lib/javascript/v8/javascriptruntime.swg
+index c78e04efb..e7941d657 100644
+--- a/Lib/javascript/v8/javascriptruntime.swg
++++ b/Lib/javascript/v8/javascriptruntime.swg
+@@ -56,6 +56,10 @@
+ %insert(runtime) %{
+ #include <v8.h>
+ 
++#if defined(V8_MAJOR_VERSION) && defined(V8_MINOR_VERSION)
++#define SWIG_V8_VERSION (V8_MAJOR_VERSION * 256 + V8_MINOR_VERSION)
++#endif
++
+ #include <errno.h>
+ #include <limits.h>
+ #include <stdlib.h>
 diff --git a/Lib/javascript/v8/javascriptstrings.swg b/Lib/javascript/v8/javascriptstrings.swg
 index e767a6d66..61a937fa5 100644
 --- a/Lib/javascript/v8/javascriptstrings.swg

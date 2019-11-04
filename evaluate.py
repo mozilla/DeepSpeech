@@ -34,17 +34,20 @@ def sparse_tensor_value_to_texts(value, alphabet):
 def sparse_tuple_to_texts(sp_tuple, alphabet):
     indices = sp_tuple[0]
     values = sp_tuple[1]
-    results = [''] * sp_tuple[2][0]
+    results = [[] for _ in range(sp_tuple[2][0])]
     for i, index in enumerate(indices):
-        results[index[0]] += alphabet.string_from_label(values[i])
+        results[index[0]].append(values[i])
     # List of strings
-    return results
+    return [alphabet.decode(res) for res in results]
 
 
 def evaluate(test_csvs, create_model, try_loading):
-    scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
-                    FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                    Config.alphabet)
+    if FLAGS.lm_binary_path:
+        scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
+                        FLAGS.lm_binary_path, FLAGS.lm_trie_path,
+                        Config.alphabet)
+    else:
+        scorer = None
 
     test_csvs = FLAGS.test_files.split(',')
     test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size, train_phase=False) for csv in test_csvs]
@@ -82,12 +85,14 @@ def evaluate(test_csvs, create_model, try_loading):
 
     with tfv1.Session(config=Config.session_config) as session:
         # Restore variables from training checkpoint
-        loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
-        if not loaded:
+        loaded = False
+        if not loaded and FLAGS.load in ['auto', 'best']:
+            loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
+        if not loaded and FLAGS.load in ['auto', 'last']:
             loaded = try_loading(session, saver, 'checkpoint', 'most recent')
         if not loaded:
-            log_error('Checkpoint directory ({}) does not contain a valid checkpoint state.'.format(FLAGS.checkpoint_dir))
-            exit(1)
+            print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
+            sys.exit(1)
 
         def run_test(init_op, dataset):
             wav_filenames = []
@@ -113,7 +118,8 @@ def evaluate(test_csvs, create_model, try_loading):
                     break
 
                 decoded = ctc_beam_search_decoder_batch(batch_logits, batch_lengths, Config.alphabet, FLAGS.beam_width,
-                                                        num_processes=num_processes, scorer=scorer)
+                                                        num_processes=num_processes, scorer=scorer,
+                                                        cutoff_prob=FLAGS.cutoff_prob, cutoff_top_n=FLAGS.cutoff_top_n)
                 predictions.extend(d[0][1] for d in decoded)
                 ground_truths.extend(sparse_tensor_value_to_texts(batch_transcripts, Config.alphabet))
                 wav_filenames.extend(wav_filename.decode('UTF-8') for wav_filename in batch_wav_filenames)
@@ -156,7 +162,7 @@ def main(_):
     if not FLAGS.test_files:
         log_error('You need to specify what files to use for evaluation via '
                   'the --test_files flag.')
-        exit(1)
+        sys.exit(1)
 
     from DeepSpeech import create_model, try_loading # pylint: disable=cyclic-import
     samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)

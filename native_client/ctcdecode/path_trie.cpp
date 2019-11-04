@@ -165,12 +165,40 @@ void PathTrie::remove() {
   }
 }
 
-void PathTrie::set_dictionary(PathTrie::FstType* dictionary) {
+void PathTrie::set_dictionary(std::shared_ptr<PathTrie::FstType> dictionary) {
   dictionary_ = dictionary;
-  dictionary_state_ = dictionary->Start();
+  dictionary_state_ = dictionary_->Start();
   has_dictionary_ = true;
 }
 
 void PathTrie::set_matcher(std::shared_ptr<fst::SortedMatcher<FstType>> matcher) {
   matcher_ = matcher;
 }
+
+#ifdef DEBUG
+void PathTrie::vec(std::vector<PathTrie*>& out) {
+  if (parent != nullptr) {
+    parent->vec(out);
+  }
+  out.push_back(this);
+}
+
+void PathTrie::print(const Alphabet& a) {
+  std::vector<PathTrie*> chain;
+  vec(chain);
+  std::string tr;
+  printf("characters:\t ");
+  for (PathTrie* el : chain) {
+    printf("%X ", el->character);
+    if (el->character != ROOT_) {
+      tr.append(a.StringFromLabel(el->character));
+    }
+  }
+  printf("\ntimesteps:\t ");
+  for (PathTrie* el : chain) {
+    printf("%d ", el->timestep);
+  }
+  printf("\n");
+  printf("transcript:\t %s\n", tr.c_str());
+}
+#endif // DEBUG

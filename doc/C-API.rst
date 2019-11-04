@@ -10,6 +10,9 @@ C
 .. doxygenfunction:: DS_EnableDecoderWithLM
    :project: deepspeech-c
 
+.. doxygenfunction:: DS_GetModelSampleRate
+   :project: deepspeech-c
+
 .. doxygenfunction:: DS_SpeechToText
    :project: deepspeech-c
 

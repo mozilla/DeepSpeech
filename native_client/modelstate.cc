@@ -12,9 +12,9 @@ ModelState::ModelState()
   , n_context_(-1)
   , n_features_(-1)
   , mfcc_feats_per_timestep_(-1)
-  , sample_rate_(DEFAULT_SAMPLE_RATE)
-  , audio_win_len_(DEFAULT_WINDOW_LENGTH)
-  , audio_win_step_(DEFAULT_WINDOW_STEP)
+  , sample_rate_(-1)
+  , audio_win_len_(-1)
+  , audio_win_step_(-1)
   , state_size_(-1)
 {
 }

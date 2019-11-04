@@ -9,6 +9,7 @@ LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
 
 import absl.app
+import json
 import numpy as np
 import progressbar
 import shutil
@@ -82,6 +83,7 @@ def dense(name, x, units, dropout_rate=None, relu=True):
 def rnn_impl_lstmblockfusedcell(x, seq_length, previous_state, reuse):
     with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell/cell_0'):
         fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim,
+                                                    forget_bias=0,
                                                     reuse=reuse,
                                                     name='cudnn_compatible_lstm_cell')
 
@@ -410,15 +412,18 @@ def log_grads_and_vars(grads_and_vars):
         log_variable(variable, gradient=gradient)
 
 
-def try_loading(session, saver, checkpoint_filename, caption):
+def try_loading(session, saver, checkpoint_filename, caption, load_step=True):
     try:
         checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir, checkpoint_filename)
         if not checkpoint:
             return False
         checkpoint_path = checkpoint.model_checkpoint_path
         saver.restore(session, checkpoint_path)
-        restored_step = session.run(tfv1.train.get_global_step())
-        log_info('Restored variables from %s checkpoint at %s, step %d' % (caption, checkpoint_path, restored_step))
+        if load_step:
+            restored_step = session.run(tfv1.train.get_global_step())
+            log_info('Restored variables from %s checkpoint at %s, step %d' % (caption, checkpoint_path, restored_step))
+        else:
+            log_info('Restored variables from %s checkpoint at %s' % (caption, checkpoint_path))
         return True
     except tf.errors.InvalidArgumentError as e:
         log_error(str(e))
@@ -432,10 +437,21 @@ def try_loading(session, saver, checkpoint_filename, caption):
 
 
 def train():
+    do_cache_dataset = True
+
+    # pylint: disable=too-many-boolean-expressions
+    if (FLAGS.data_aug_features_multiplicative > 0 or
+            FLAGS.data_aug_features_additive > 0 or
+            FLAGS.augmentation_spec_dropout_keeprate < 1 or
+            FLAGS.augmentation_freq_and_time_masking or
+            FLAGS.augmentation_pitch_and_tempo_scaling or
+            FLAGS.augmentation_speed_up_std > 0):
+        do_cache_dataset = False
+
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               cache_path=FLAGS.feature_cache,
+                               cache_path=FLAGS.feature_cache if do_cache_dataset else None,
                                train_phase=True)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
@@ -482,7 +498,13 @@ def train():
 
     # Building the graph
     optimizer = create_optimizer()
-    gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates, drop_source_layers)
+
+    # Enable mixed precision training
+    if FLAGS.automatic_mixed_precision:
+        log_info('Enabling automatic mixed precision training.')
+        optimizer = tfv1.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
+
+    gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates)
 
     # Average tower gradients across GPUs
     avg_tower_gradients = average_gradients(gradients)
@@ -502,11 +524,9 @@ def train():
     # Checkpointing
     checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
     checkpoint_path = os.path.join(FLAGS.checkpoint_dir, 'train')
-    checkpoint_filename = 'checkpoint'
 
     best_dev_saver = tfv1.train.Saver(max_to_keep=1)
     best_dev_path = os.path.join(FLAGS.checkpoint_dir, 'best_dev')
-    best_dev_filename = 'best_dev_checkpoint'
 
     # Save flags next to checkpoints
     os.makedirs(FLAGS.checkpoint_dir, exist_ok=True)
@@ -532,7 +552,7 @@ def train():
                           'a CPU-capable graph. If your system is capable of '
                           'using CuDNN RNN, you can just specify the CuDNN RNN '
                           'checkpoint normally with --checkpoint_dir.')
-                exit(1)
+                sys.exit(1)
 
             log_info('Converting CuDNN RNN checkpoint from {}'.format(FLAGS.cudnn_checkpoint))
             ckpt = tfv1.train.load_checkpoint(FLAGS.cudnn_checkpoint)
@@ -550,7 +570,7 @@ def train():
                 log_error('Tried to load a CuDNN RNN checkpoint but there were '
                           'more missing variables than just the Adam moment '
                           'tensors.')
-                exit(1)
+                sys.exit(1)
 
             # Initialize Adam moment tensors from scratch to allow use of CuDNN
             # RNN checkpoints.
@@ -560,7 +580,7 @@ def train():
             loaded = True
 
         if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, checkpoint_saver, checkpoint_filename, 'most recent')
+            loaded = try_loading(session, checkpoint_saver, 'checkpoint', 'most recent')
         if not loaded and FLAGS.load in ['auto', 'best']:
             loaded = try_loading(session, best_dev_saver, best_dev_filename, 'best validation')
         if not loaded and FLAGS.load == "transfer":
@@ -679,7 +699,7 @@ def train():
 
                     if dev_loss < best_dev_loss:
                         best_dev_loss = dev_loss
-                        save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step, latest_filename=best_dev_filename)
+                        save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step, latest_filename='best_dev_checkpoint')
                         log_info("Saved new best validating model with loss %f to: %s" % (best_dev_loss, save_path))
 
                     # Early stopping
@@ -703,7 +723,10 @@ def train():
 
 
 def test():
-    evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    if FLAGS.test_output_file:
+        # Save decoded tuples as JSON, converting NumPy floats to Python floats
+        json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
@@ -807,6 +830,20 @@ def export():
     from tensorflow.python.framework.ops import Tensor, Operation
 
     inputs, outputs, _ = create_inference_graph(batch_size=FLAGS.export_batch_size, n_steps=FLAGS.n_steps, tflite=FLAGS.export_tflite)
+
+    graph_version = int(file_relative_read('GRAPH_VERSION').strip())
+    assert graph_version > 0
+
+    # Reshape with dimension [1] required to avoid this error:
+    # ERROR: Input array not provided for operation 'reshape'.
+    outputs['metadata_version'] = tf.constant([graph_version], name='metadata_version')
+    outputs['metadata_sample_rate'] = tf.constant([FLAGS.audio_sample_rate], name='metadata_sample_rate')
+    outputs['metadata_feature_win_len'] = tf.constant([FLAGS.feature_win_len], name='metadata_feature_win_len')
+    outputs['metadata_feature_win_step'] = tf.constant([FLAGS.feature_win_step], name='metadata_feature_win_step')
+
+    if FLAGS.export_language:
+        outputs['metadata_language'] = tf.constant([FLAGS.export_language.encode('ascii')], name='metadata_language')
+
     output_names_tensors = [tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
     output_names_ops = [op.name for op in outputs.values() if isinstance(op, Operation)]
     output_names = ",".join(output_names_tensors + output_names_ops)
@@ -849,28 +886,16 @@ def export():
                 output_node_names=output_node_names.split(','),
                 placeholder_type_enum=tf.float32.as_datatype_enum)
 
+        frozen_graph = do_graph_freeze(output_node_names=output_names)
+
         if not FLAGS.export_tflite:
-            frozen_graph = do_graph_freeze(output_node_names=output_names)
-            frozen_graph.version = int(file_relative_read('GRAPH_VERSION').strip())
-
-            # Add a no-op node to the graph with metadata information to be loaded by the native client
-            metadata = frozen_graph.node.add()
-            metadata.name = 'model_metadata'
-            metadata.op = 'NoOp'
-            metadata.attr['sample_rate'].i = FLAGS.audio_sample_rate
-            metadata.attr['feature_win_len'].i = FLAGS.feature_win_len
-            metadata.attr['feature_win_step'].i = FLAGS.feature_win_step
-            if FLAGS.export_language:
-                metadata.attr['language'].s = FLAGS.export_language.encode('ascii')
-
             with open(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())
         else:
-            frozen_graph = do_graph_freeze(output_node_names=output_names)
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
             converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
-            converter.post_training_quantize = True
+            converter.optimizations = [ tf.lite.Optimize.DEFAULT ]
             # AudioSpectrogram and Mfcc ops are custom but have built-in kernels in TFLite
             converter.allow_custom_ops = True
             tflite_model = converter.convert()
@@ -893,15 +918,14 @@ def do_single_file_inference(input_file_path):
         saver = tfv1.train.Saver()
 
         # Restore variables from training checkpoint
-        # TODO: This restores the most recent checkpoint, but if we use validation to counteract
-        #       over-fitting, we may want to restore an earlier checkpoint.
-        checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
-        if not checkpoint:
-            log_error('Checkpoint directory ({}) does not contain a valid checkpoint state.'.format(FLAGS.checkpoint_dir))
-            exit(1)
-
-        checkpoint_path = checkpoint.model_checkpoint_path
-        saver.restore(session, checkpoint_path)
+        loaded = False
+        if not loaded and FLAGS.load in ['auto', 'last']:
+            loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
+        if not loaded and FLAGS.load in ['auto', 'best']:
+            loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
+        if not loaded:
+            print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
+            sys.exit(1)
 
         features, features_len = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
@@ -924,10 +948,15 @@ def do_single_file_inference(input_file_path):
 
         logits = np.squeeze(logits)
 
-        scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
-                        FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                        Config.alphabet)
-        decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width, scorer=scorer)
+        if FLAGS.lm_binary_path:
+            scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
+                            FLAGS.lm_binary_path, FLAGS.lm_trie_path,
+                            Config.alphabet)
+        else:
+            scorer = None
+        decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width,
+                                          scorer=scorer, cutoff_prob=FLAGS.cutoff_prob,
+                                          cutoff_top_n=FLAGS.cutoff_top_n)
         # Print highest probability result
         print(decoded[0][1])
 

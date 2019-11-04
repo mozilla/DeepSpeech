@@ -95,7 +95,7 @@ const ffmpeg = spawn('ffmpeg', [
 ]);
 
 let audioLength = 0;
-let sctx = model.createStream(AUDIO_SAMPLE_RATE);
+let sctx = model.createStream();
 
 function finishStream() {
 	const model_load_start = process.hrtime();
@@ -108,7 +108,7 @@ function finishStream() {
 
 function intermediateDecode() {
 	finishStream();
-	sctx = model.createStream(AUDIO_SAMPLE_RATE);
+	sctx = model.createStream();
 }
 
 function feedAudioContent(chunk) {

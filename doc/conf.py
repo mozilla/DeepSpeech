@@ -31,6 +31,7 @@ if read_the_docs_build:
     import subprocess
     subprocess.call('cd ../ && doxygen doc/doxygen-c.conf', shell=True)
     subprocess.call('cd ../ && doxygen doc/doxygen-java.conf', shell=True)
+    subprocess.call('cd ../ && doxygen doc/doxygen-dotnet.conf', shell=True)
 
 # -- General configuration ------------------------------------------------
 
@@ -75,6 +76,7 @@ extensions = [
 breathe_projects = {
   "deepspeech-c": "xml-c/",
   "deepspeech-java": "xml-java/",
+  "deepspeech-dotnet": "xml-dotnet/",
 }
 
 js_source_path = "../native_client/javascript"

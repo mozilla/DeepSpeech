@@ -31,10 +31,11 @@ parser.add_argument(
     default=1,
     type=int,
     help="Number of cpu processes to build package. (default: %(default)d)")
-args = parser.parse_known_args()
+known_args, unknown_args = parser.parse_known_args()
+debug = '--debug' in unknown_args
 
 # reconstruct sys.argv to pass to setup below
-sys.argv = [sys.argv[0]] + args[1]
+sys.argv = [sys.argv[0]] + unknown_args
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -50,7 +51,8 @@ if not os.path.exists(common_build):
 
     build_common(out_name='common.a',
                  build_dir=build_dir,
-                 num_parallel=args[0].num_processes)
+                 num_parallel=known_args.num_processes,
+                 debug=debug)
 
 decoder_module = Extension(
     name='ds_ctcdecoder._swigwrapper',
@@ -58,7 +60,7 @@ decoder_module = Extension(
     swig_opts=['-c++', '-extranative'],
     language='c++',
     include_dirs=INCLUDES + [numpy_include],
-    extra_compile_args=ARGS,
+    extra_compile_args=ARGS + (DBG_ARGS if debug else OPT_ARGS),
     extra_link_args=[common_build],
 )
 

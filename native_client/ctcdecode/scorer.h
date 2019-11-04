@@ -62,7 +62,14 @@ public:
            const std::string &trie_path,
            const std::string &alphabet_config_path);
 
-  double get_log_cond_prob(const std::vector<std::string> &words);
+  double get_log_cond_prob(const std::vector<std::string> &words,
+                           bool bos = false,
+                           bool eos = false);
+
+  double get_log_cond_prob(const std::vector<std::string>::const_iterator &begin,
+                           const std::vector<std::string>::const_iterator &end,
+                           bool bos = false,
+                           bool eos = false);
 
   double get_sent_log_prob(const std::vector<std::string> &words);
 
@@ -102,8 +109,6 @@ protected:
 
   // fill dictionary for FST
   void fill_dictionary(const std::vector<std::string> &vocabulary, bool add_space);
-
-  double get_log_prob(const std::vector<std::string> &words);
 
 private:
   std::unique_ptr<lm::base::Model> language_model_;

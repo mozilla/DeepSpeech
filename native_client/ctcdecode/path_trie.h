@@ -9,6 +9,10 @@
 
 #include "fst/fstlib.h"
 
+#ifdef DEBUG
+#include "alphabet.h"
+#endif
+
 /* Trie tree for prefix storing and manipulating, with a dictionary in
  * finite-state transducer for spelling correction.
  */
@@ -35,7 +39,7 @@ public:
   void iterate_to_vec(std::vector<PathTrie*>& output);
 
   // set dictionary for FST
-  void set_dictionary(FstType* dictionary);
+  void set_dictionary(std::shared_ptr<FstType> dictionary);
 
   void set_matcher(std::shared_ptr<fst::SortedMatcher<FstType>>);
 
@@ -43,6 +47,11 @@ public:
 
   // remove current path from root
   void remove();
+
+#ifdef DEBUG
+  void vec(std::vector<PathTrie*>& out);
+  void print(const Alphabet& a);
+#endif // DEBUG
 
   float log_prob_b_prev;
   float log_prob_nb_prev;
@@ -63,7 +72,7 @@ private:
   std::vector<std::pair<int, PathTrie*>> children_;
 
   // pointer to dictionary of FST
-  FstType* dictionary_;
+  std::shared_ptr<FstType> dictionary_;
   FstType::StateId dictionary_state_;
   // true if finding ars in FST
   std::shared_ptr<fst::SortedMatcher<FstType>> matcher_;

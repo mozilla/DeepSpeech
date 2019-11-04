@@ -11,6 +11,8 @@ let alphabetPath = './models/alphabet.txt';
 
 let model = new DeepSpeech.Model(modelPath, alphabetPath, BEAM_WIDTH);
 
+let desiredSampleRate = model.sampleRate();
+
 const LM_ALPHA = 0.75;
 const LM_BETA = 1.85;
 let lmPath = './models/lm.binary';
@@ -28,8 +30,8 @@ if (!Fs.existsSync(audioFile)) {
 const buffer = Fs.readFileSync(audioFile);
 const result = Wav.decode(buffer);
 
-if (result.sampleRate < 16000) {
-	console.error('Warning: original sample rate (' + result.sampleRate + ') is lower than 16kHz. Up-sampling might produce erratic speech recognition.');
+if (result.sampleRate < desiredSampleRate) {
+	console.error('Warning: original sample rate (' + result.sampleRate + ') is lower than ' + desiredSampleRate + 'Hz. Up-sampling might produce erratic speech recognition.');
 }
 
 function bufferToStream(buffer) {
@@ -47,7 +49,7 @@ pipe(Sox({
 	},
 	output: {
 		bits: 16,
-		rate: 16000,
+		rate: desiredSampleRate,
 		channels: 1,
 		encoding: 'signed-integer',
 		endian: 'little',
@@ -58,13 +60,12 @@ pipe(Sox({
 pipe(audioStream);
 
 audioStream.on('finish', () => {
-	
 	let audioBuffer = audioStream.toBuffer();
 	
-	const audioLength = (audioBuffer.length / 2) * ( 1 / 16000);
+	const audioLength = (audioBuffer.length / 2) * (1 / desiredSampleRate);
 	console.log('audio length', audioLength);
 	
-	let result = model.stt(audioBuffer.slice(0, audioBuffer.length / 2), 16000);
+	let result = model.stt(audioBuffer.slice(0, audioBuffer.length / 2));
 	
 	console.log('result:', result);
 });

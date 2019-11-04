@@ -23,10 +23,10 @@ class Alphabet(object):
                 self._str_to_label[line[:-1]] = self._size
                 self._size += 1
 
-    def string_from_label(self, label):
+    def _string_from_label(self, label):
         return self._label_to_str[label]
 
-    def label_from_string(self, string):
+    def _label_from_string(self, string):
         try:
             return self._str_to_label[string]
         except KeyError as e:
@@ -36,10 +36,19 @@ class Alphabet(object):
                 'then add all these to data/alphabet.txt.'.format(string)
             ).with_traceback(e.__traceback__)
 
+    def has_char(self, char):
+        return char in self._str_to_label
+
+    def encode(self, string):
+        res = []
+        for char in string:
+            res.append(self._label_from_string(char))
+        return res
+
     def decode(self, labels):
         res = ''
         for label in labels:
-            res += self.string_from_label(label)
+            res += self._string_from_label(label)
         return res
 
     def size(self):
@@ -55,15 +64,13 @@ def text_to_char_array(series, alphabet):
     integers and return a numpy array representing the processed string.
     """
     try:
-        series['transcript'] = np.asarray([alphabet.label_from_string(c) for c in series['transcript']])
+        transcript = np.asarray(alphabet.encode(series['transcript']))
+        if len(transcript) == 0:
+            raise ValueError('While processing: {}\nFound an empty transcript! You must include a transcript for all training data.'.format(series['wav_filename']))
+        return transcript
     except KeyError as e:
         # Provide the row context (especially wav_filename) for alphabet errors
-        raise ValueError(str(e), series)
-
-    if series['transcript'].shape[0] == 0:
-        raise ValueError("Found an empty transcript! You must include a transcript for all training data.", series)
-
-    return series
+        raise ValueError('While processing: {}\n{}'.format(series['wav_filename'], e))
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
@@ -108,7 +115,10 @@ def validate_label(label):
     label = re.sub("[ ]{2,}", " ", label)
     label = label.replace(".", "")
     label = label.replace(",", "")
+    label = label.replace(";", "")
     label = label.replace("?", "")
+    label = label.replace("!", "")
+    label = label.replace(":", "")
     label = label.replace("\"", "")
     label = label.strip()
     label = label.lower()

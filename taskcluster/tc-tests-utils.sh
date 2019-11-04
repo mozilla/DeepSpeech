@@ -55,9 +55,9 @@ model_name="$(basename "${model_source}")"
 model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.16:ucs2 2.7.16:ucs4 3.4.10:ucs4 3.5.7:ucs4 3.6.8:ucs4 3.7.3:ucs4}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.16:ucs2 2.7.16:ucs4 3.4.10:ucs4 3.5.7:ucs4 3.6.8:ucs4 3.7.3:ucs4 3.8.0:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.17.1 7.10.1 8.16.0 9.11.2 10.16.0 11.15.0 12.5.0}
-SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-1.6.18 1.7.16 1.8.8 2.0.18 3.0.16 3.1.11 4.0.3 4.1.5 4.2.5 5.0.6}
+SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-1.6.18 1.7.16 1.8.8 2.0.18 3.0.16 3.1.11 4.0.3 4.1.5 4.2.5 5.0.6 6.0.11}
 
 strip() {
   echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
@@ -252,12 +252,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had reduce suit in greasy water all year" "$2"
+  assert_correct_inference "$1" "she had i do so in greasy wash for a year" "$2"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had reduce suit in greasy water all year" "$2"
+  assert_correct_inference "$1" "she had the doctor in greasy wash for a year" "$2"
 }
 
 assert_correct_warning_upsampling()
@@ -436,7 +436,7 @@ run_prod_concurrent_stream_tests()
   output2=$(echo "${output}" | tail -n 1)
 
   assert_correct_ldc93s1_prodmodel "${output1}" "${status}"
-  assert_correct_inference "${output2}" "i must find a new home in the stars" "${status}"
+  assert_correct_inference "${output2}" "we must find a new home in the stars" "${status}"
 }
 
 run_prod_inference_tests()
@@ -604,12 +604,18 @@ install_pyenv()
     return;
   fi
 
+  # Allows updating local cache if required
   if [ ! -e "${PYENV_ROOT}/bin/pyenv" ]; then
     git clone --quiet https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
+  else
     pushd ${PYENV_ROOT}
-      git checkout --quiet eb68ec9488f0df1f668e9272dd5bd8854edf1dff
+      git fetch origin
     popd
   fi
+
+  pushd ${PYENV_ROOT}
+    git checkout --quiet 0e7cfc3b3d4eca46ad83d632e1505f5932cd179b
+  popd
 
   if [ ! -d "${PYENV_ROOT}/plugins/pyenv-alias" ]; then
     git clone https://github.com/s1341/pyenv-alias.git ${PYENV_ROOT}/plugins/pyenv-alias
@@ -982,7 +988,7 @@ maybe_ssl102_py37()
     ARCH=$(uname -m)
 
     case "${pyver}" in
-        3.7*)
+        3.7*|3.8*)
             if [ "${OS}" = "Linux" -a "${ARCH}" = "x86_64" ]; then
                 PY37_OPENSSL_DIR=${DS_ROOT_TASK}/ssl-xenial
 
@@ -1010,8 +1016,16 @@ maybe_ssl102_py37()
                 export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
             fi;
 
-	    export NUMPY_BUILD_VERSION="==1.14.5"
-	    export NUMPY_DEP_VERSION=">=1.14.5"
+            case "${pyver}" in
+                3.7*)
+                    export NUMPY_BUILD_VERSION="==1.14.5"
+                    export NUMPY_DEP_VERSION=">=1.14.5"
+                ;;
+                3.8*)
+                    export NUMPY_BUILD_VERSION="==1.17.3"
+                    export NUMPY_DEP_VERSION=">=1.17.3"
+                ;;
+            esac
         ;;
     esac
 }
@@ -1038,6 +1052,10 @@ maybe_numpy_min_version_winamd64()
         3.7*)
             export NUMPY_BUILD_VERSION="==1.14.5"
             export NUMPY_DEP_VERSION=">=1.14.5,<=1.17.0"
+        ;;
+        3.8*)
+            export NUMPY_BUILD_VERSION="==1.17.3"
+            export NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
         ;;
     esac
 }
@@ -1085,6 +1103,8 @@ extract_python_versions()
   if [ "${_py_unicode_type}" = "m" ]; then
     local _pyconf="ucs2"
   elif [ "${_py_unicode_type}" = "mu" ]; then
+    local _pyconf="ucs4"
+  elif [ "${_py_unicode_type}" = "" ]; then # valid for Python 3.8
     local _pyconf="ucs4"
   fi;
 
