@@ -1,0 +1,13 @@
+build:
+  template_file: test-darwin-opt-base.tyml
+  dependencies:
+    - "node-package-cpu"
+    - "test-training_upstream-linux-amd64-py35m-opt"
+  system_setup:
+    >
+      ${nodejs.brew.setup} && ${nodejs.brew.prep_12} && ${nodejs.brew.env}
+  args:
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 7.0.1"
+  metadata:
+    name: "DeepSpeech OSX AMD64 CPU ElectronJS v7.0 tests"
+    description: "Testing DeepSpeech for OSX/AMD64 on ElectronJS v7.0, CPU only, optimized version"
