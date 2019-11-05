@@ -1,23 +1,23 @@
-From 203493e23f55f38c35e296e4a72334e1710ed85c Mon Sep 17 00:00:00 2001
+From 7ae52d43e069c6c089dbd431d170493fd18499c2 Mon Sep 17 00:00:00 2001
 From: Alexandre Lissy <lissyx@lissyx.dyndns.org>
 Date: Thu, 25 Apr 2019 12:29:19 +0200
-Subject: [PATCH] Upgrade SWIG to support NodeJS v12 / V8 v7.6 runtime
+Subject: [PATCH] Upgrade SWIG to support NodeJS v12 / V8 v7.6, v8 v7.8 runtime
 
 ---
- Lib/javascript/v8/javascriptcode.swg      | 26 ++++----
- Lib/javascript/v8/javascriptcomplex.swg   | 10 ++--
- Lib/javascript/v8/javascripthelpers.swg   | 24 ++++----
+ Lib/javascript/v8/javascriptcode.swg      | 30 +++++----
+ Lib/javascript/v8/javascriptcomplex.swg   | 10 +--
+ Lib/javascript/v8/javascripthelpers.swg   | 26 +++++---
  Lib/javascript/v8/javascriptinit.swg      |  4 +-
- Lib/javascript/v8/javascriptprimtypes.swg | 28 ++++-----
- Lib/javascript/v8/javascriptrun.swg       | 73 +++++++++++++++--------
+ Lib/javascript/v8/javascriptprimtypes.swg | 28 ++++----
+ Lib/javascript/v8/javascriptrun.swg       | 78 ++++++++++++++++-------
  Lib/javascript/v8/javascriptruntime.swg   |  4 ++
- Lib/javascript/v8/javascriptstrings.swg   | 10 ++--
+ Lib/javascript/v8/javascriptstrings.swg   | 10 +--
  Lib/javascript/v8/javascripttypemaps.swg  |  2 +-
  Tools/javascript/v8_shell.cxx             | 18 +++---
- 10 files changed, 118 insertions(+), 81 deletions(-)
+ 10 files changed, 129 insertions(+), 81 deletions(-)
 
 diff --git a/Lib/javascript/v8/javascriptcode.swg b/Lib/javascript/v8/javascriptcode.swg
-index c4aaf3db0..c6a813bbb 100644
+index c4aaf3db0..3fba197c0 100644
 --- a/Lib/javascript/v8/javascriptcode.swg
 +++ b/Lib/javascript/v8/javascriptcode.swg
 @@ -11,7 +11,7 @@
@@ -110,7 +110,19 @@ index c4aaf3db0..c6a813bbb 100644
  %}
  
  /* -----------------------------------------------------------------------------
-@@ -444,7 +448,7 @@ fail:
+@@ -435,7 +439,11 @@ fail:
+  * ----------------------------------------------------------------------------- */
+ %fragment("jsv8_register_class", "templates")
+ %{
++#if (SWIG_V8_VERSION < 0x0708)
+   $jsparent_obj->Set(SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
++#else
++  $jsparent_obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW("$jsname"), $jsmangledname_obj);
++#endif
+ %}
+ 
+ /* -----------------------------------------------------------------------------
+@@ -444,7 +452,7 @@ fail:
   * ----------------------------------------------------------------------------- */
  %fragment("jsv8_create_namespace", "templates")
  %{
@@ -163,7 +175,7 @@ index d3b4aaffa..533e54813 100644
      if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
      double re, im;
 diff --git a/Lib/javascript/v8/javascripthelpers.swg b/Lib/javascript/v8/javascripthelpers.swg
-index 80fbd7aa1..fa33e9762 100644
+index 80fbd7aa1..7b42e888e 100644
 --- a/Lib/javascript/v8/javascripthelpers.swg
 +++ b/Lib/javascript/v8/javascripthelpers.swg
 @@ -21,19 +21,19 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
@@ -190,7 +202,7 @@ index 80fbd7aa1..fa33e9762 100644
      cptr_templ->Set(SWIGV8_SYMBOL_NEW("getCPtr"), SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr));
  
      SWIGV8_ESCAPE(class_templ);
-@@ -42,33 +42,37 @@ SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const ch
+@@ -42,33 +42,39 @@ SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const ch
  /**
   * Registers a class method with given name for a given class template.
   */
@@ -221,8 +233,10 @@ index 80fbd7aa1..fa33e9762 100644
    const SwigV8FunctionCallback& _func) {
 +#if (SWIG_V8_VERSION < 0x0705)
    obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction());
-+#else
++#elif (SWIG_V8_VERSION < 0x0708)
 +  obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
++#else
++  obj->Set(SWIGV8_CURRENT_CONTEXT(), SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
 +#endif
  }
  
@@ -386,7 +400,7 @@ index f76be983b..24f5daf7c 100644
    if(!obj->IsNumber()) {
      return SWIG_TypeError;
 diff --git a/Lib/javascript/v8/javascriptrun.swg b/Lib/javascript/v8/javascriptrun.swg
-index 2452f4040..99587943b 100644
+index 2452f4040..78e7ea018 100644
 --- a/Lib/javascript/v8/javascriptrun.swg
 +++ b/Lib/javascript/v8/javascriptrun.swg
 @@ -10,7 +10,11 @@
@@ -628,6 +642,19 @@ index 2452f4040..99587943b 100644
  #endif
    SWIGV8_HANDLESCOPE_ESC();
    
+@@ -669,7 +694,12 @@ v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Local<v8::Value> result, v8::Handl
+ #else  
+   v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(result);
+ #endif
++
++#if (SWIG_V8_VERSION < 0x0708)
+   arr->Set(arr->Length(), obj);
++#else
++  arr->Set(SWIGV8_CURRENT_CONTEXT(), arr->Length(), obj);
++#endif
+ 
+   SWIGV8_ESCAPE(arr);
+ }
 diff --git a/Lib/javascript/v8/javascriptruntime.swg b/Lib/javascript/v8/javascriptruntime.swg
 index c78e04efb..e7941d657 100644
 --- a/Lib/javascript/v8/javascriptruntime.swg
