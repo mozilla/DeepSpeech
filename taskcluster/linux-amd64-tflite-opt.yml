@@ -14,7 +14,7 @@ build:
   system_config:
     >
       ${swig.patch_nodejs.linux}
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.14.351a98ab6e60c2bf257f05e515a420aba3027d8b.cpu/artifacts/public/home.tar.xz"
+  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.14.e77504ac6b941fd2af495b49a0bcd56f25ca0e1e.cpu/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/host-build.sh tflite"
     package: "taskcluster/package.sh"

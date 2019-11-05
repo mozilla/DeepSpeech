@@ -35,6 +35,9 @@ if [ "${OS}" = "Darwin" ]; then
   ln -s Electron.app/Contents/MacOS/Electron "${NODE_ROOT}/node_modules/electron/dist/node"
 else
   ln -s electron "${NODE_ROOT}/node_modules/electron/dist/node"
+  if [ -f "${NODE_ROOT}/node_modules/electron/dist//chrome-sandbox" ]; then
+    export ELECTRON_DISABLE_SANDBOX=1
+  fi;
 fi
 
 find ${NODE_ROOT}/node_modules/electron/dist/
