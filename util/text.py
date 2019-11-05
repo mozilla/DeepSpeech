@@ -54,10 +54,18 @@ class Alphabet(object):
         return res
 
     def serialize(self):
+        # Serialization format is a sequence of (key, value) pairs, where key is
+        # a uint16_t and value is a uint16_t length followed by `length` UTF-8
+        # encoded bytes with the label.
         res = bytearray()
+
+        # We start by writing the number of pairs in the buffer as uint16_t.
         res += struct.pack('<H', self._size)
         for key, value in self._label_to_str.items():
             value = value.encode('utf-8')
+            # struct.pack only takes fixed length strings/buffers, so we have to
+            # construct the correct format string with the length of the encoded
+            # label.
             res += struct.pack('<HH{}s'.format(len(value)), key, len(value), value)
         return bytes(res)
 

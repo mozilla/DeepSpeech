@@ -46,6 +46,7 @@ public:
   }
 
   int deserialize(const char* buffer, const int buffer_size) {
+    // See util/text.py for an explanation of the serialization format.
     int offset = 0;
     if (buffer_size - offset < sizeof(uint16_t)) {
       return 1;
