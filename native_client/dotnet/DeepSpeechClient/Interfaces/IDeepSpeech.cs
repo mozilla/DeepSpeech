@@ -17,11 +17,9 @@ namespace DeepSpeechClient.Interfaces
         /// Create an object providing an interface to a trained DeepSpeech model.
         /// </summary>
         /// <param name="aModelPath">The path to the frozen model graph.</param>
-        /// <param name="aAlphabetConfigPath">The path to the configuration file specifying the alphabet used by the network.</param>
         /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
         unsafe void CreateModel(string aModelPath,
-                   string aAlphabetConfigPath,
                    uint aBeamWidth);
 
         /// <summary>

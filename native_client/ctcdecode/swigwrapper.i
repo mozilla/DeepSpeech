@@ -3,6 +3,7 @@
 %{
 #include "ctc_beam_search_decoder.h"
 #define SWIG_FILE_WITH_INIT
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
 %}
 
 %include "pyabc.i"
@@ -16,57 +17,12 @@ import_array();
 
 // Convert NumPy arrays to pointer+lengths
 %apply (double* IN_ARRAY2, int DIM1, int DIM2) {(const double *probs, int time_dim, int class_dim)};
-%apply (double* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(const double *probs, int batch_dim, int time_dim, int class_dim)};
+%apply (double* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(const double *probs, int batch_size, int time_dim, int class_dim)};
 %apply (int* IN_ARRAY1, int DIM1) {(const int *seq_lengths, int seq_lengths_size)};
-
-// Add overloads converting char* to Alphabet
-%inline %{
-std::vector<Output>
-ctc_beam_search_decoder(const double *probs,
-                        int time_dim,
-                        int class_dim,
-                        char* alphabet_config_path,
-                        size_t beam_size,
-                        double cutoff_prob,
-                        size_t cutoff_top_n,
-                        Scorer *ext_scorer)
-{
-    Alphabet a;
-    if (a.init(alphabet_config_path)) {
-      std::cerr << "Error initializing alphabet from file: \"" << alphabet_config_path << "\"\n";
-    }
-    return ctc_beam_search_decoder(probs, time_dim, class_dim, a, beam_size,
-                                   cutoff_prob, cutoff_top_n, ext_scorer);
-}
-
-std::vector<std::vector<Output>>
-ctc_beam_search_decoder_batch(const double *probs,
-                              int batch_dim,
-                              int time_dim,
-                              int class_dim,
-                              const int *seq_lengths,
-                              int seq_lengths_size,
-                              char* alphabet_config_path,
-                              size_t beam_size,
-                              size_t num_processes,
-                              double cutoff_prob,
-                              size_t cutoff_top_n,
-                              Scorer *ext_scorer)
-{
-    Alphabet a;
-    if (a.init(alphabet_config_path)) {
-      std::cerr << "Error initializing alphabet from file: \"" << alphabet_config_path << "\"\n";
-    }
-    return ctc_beam_search_decoder_batch(probs, batch_dim, time_dim, class_dim,
-                                         seq_lengths, seq_lengths_size, a, beam_size,
-                                         num_processes, cutoff_prob, cutoff_top_n,
-                                         ext_scorer);
-}
-%}
-
 
 %ignore Scorer::dictionary;
 
+%include "../alphabet.h"
 %include "output.h"
 %include "scorer.h"
 %include "ctc_beam_search_decoder.h"

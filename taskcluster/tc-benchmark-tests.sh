@@ -21,7 +21,6 @@ exec_benchmark()
         --dir /tmp/bench-ds/ \
         --models ${model_file} \
         --wav /tmp/LDC93S1.wav \
-        --alphabet /tmp/alphabet.txt \
         --lm_binary /tmp/lm.binary \
         --trie /tmp/trie \
         --csv ${csv}
@@ -30,7 +29,6 @@ exec_benchmark()
         --dir /tmp/bench-ds-nolm/ \
         --models ${model_file} \
         --wav /tmp/LDC93S1.wav \
-        --alphabet /tmp/alphabet.txt \
         --csv ${csv_nolm}
 
     python ${DS_ROOT_TASK}/DeepSpeech/ds/bin/benchmark_plotter.py \

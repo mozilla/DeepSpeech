@@ -2,7 +2,7 @@ build:
   template_file: test-darwin-opt-base.tyml
   dependencies:
     - "node-package-cpu"
-    - "test-training_upstream-linux-amd64-py35m-opt"
+    - "test-training_upstream-linux-amd64-py36m-opt"
   system_setup:
     >
       ${nodejs.brew.setup} && ${nodejs.brew.prep_9} && ${nodejs.brew.env}

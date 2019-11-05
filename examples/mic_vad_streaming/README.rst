@@ -29,7 +29,7 @@ Usage
 .. code-block::
 
    usage: mic_vad_streaming.py [-h] [-v VAD_AGGRESSIVENESS] [--nospinner]
-                               [-w SAVEWAV] -m MODEL [-a ALPHABET] [-l LM]
+                               [-w SAVEWAV] -m MODEL [-l LM]
                                [-t TRIE] [-nf N_FEATURES] [-nc N_CONTEXT]
                                [-la LM_ALPHA] [-lb LM_BETA]
                                [-bw BEAM_WIDTH]
@@ -49,9 +49,6 @@ Usage
                            Path to the model (protocol buffer binary file, or
                            entire directory containing all standard-named files
                            for model)
-     -a ALPHABET, --alphabet ALPHABET
-                           Path to the configuration file specifying the alphabet
-                           used by the network. Default: alphabet.txt
      -l LM, --lm LM        Path to the language model binary file. Default:
                            lm.binary
      -t TRIE, --trie TRIE  Path to the language model trie file created with

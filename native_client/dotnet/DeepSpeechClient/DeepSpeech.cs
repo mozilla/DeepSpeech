@@ -29,28 +29,19 @@ namespace DeepSpeechClient
         /// Create an object providing an interface to a trained DeepSpeech model.
         /// </summary>
         /// <param name="aModelPath">The path to the frozen model graph.</param>
-        /// <param name="aAlphabetConfigPath">The path to the configuration file specifying the alphabet used by the network.</param>
         /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
         public unsafe void CreateModel(string aModelPath,
-            string aAlphabetConfigPath, uint aBeamWidth)
+            uint aBeamWidth)
         {
             string exceptionMessage = null;
             if (string.IsNullOrWhiteSpace(aModelPath))
             {
                 exceptionMessage = "Model path cannot be empty.";
             }
-            if (string.IsNullOrWhiteSpace(aAlphabetConfigPath))
-            {
-                exceptionMessage = "Alphabet path cannot be empty.";
-            }
             if (!File.Exists(aModelPath))
             {
                 exceptionMessage = $"Cannot find the model file: {aModelPath}";
-            }
-            if (!File.Exists(aAlphabetConfigPath))
-            {
-                exceptionMessage = $"Cannot find the alphabet file: {aAlphabetConfigPath}";
             }
 
             if (exceptionMessage != null)
@@ -58,7 +49,6 @@ namespace DeepSpeechClient
                 throw new FileNotFoundException(exceptionMessage);
             }
             var resultCode = NativeImp.DS_CreateModel(aModelPath,
-                            aAlphabetConfigPath,
                             aBeamWidth,
                             ref _modelStatePP);
             EvaluateResultCode(resultCode);
@@ -86,7 +76,7 @@ namespace DeepSpeechClient
                 case ErrorCodes.DS_ERR_NO_MODEL:
                     throw new ArgumentException("Missing model information.");
                 case ErrorCodes.DS_ERR_INVALID_ALPHABET:
-                    throw new ArgumentException("Invalid alphabet file or invalid alphabet size.");
+                    throw new ArgumentException("Invalid alphabet embedded in model. (Data corruption?)");
                 case ErrorCodes.DS_ERR_INVALID_SHAPE:
                     throw new ArgumentException("Invalid model shape.");
                 case ErrorCodes.DS_ERR_INVALID_LM:

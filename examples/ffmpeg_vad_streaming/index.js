@@ -32,7 +32,6 @@ VersionAction.prototype.call = function(parser) {
 
 let parser = new argparse.ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
 parser.addArgument(['--model'], {required: true, help: 'Path to the model (protocol buffer binary file)'});
-parser.addArgument(['--alphabet'], {required: true, help: 'Path to the configuration file specifying the alphabet used by the network'});
 parser.addArgument(['--lm'], {help: 'Path to the language model binary file', nargs: '?'});
 parser.addArgument(['--trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
 parser.addArgument(['--audio'], {required: true, help: 'Path to the audio source to run (ffmpeg supported formats)'});
@@ -45,7 +44,7 @@ function totalTime(hrtimeValue) {
 
 console.error('Loading model from file %s', args['model']);
 const model_load_start = process.hrtime();
-let model = new Ds.Model(args['model'], args['alphabet'], BEAM_WIDTH);
+let model = new Ds.Model(args['model'], BEAM_WIDTH);
 const model_load_end = process.hrtime(model_load_start);
 console.error('Loaded model in %ds.', totalTime(model_load_end));
 

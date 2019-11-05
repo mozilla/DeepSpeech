@@ -46,8 +46,6 @@ def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('--alphabet', required=True,
-                        help='Path to the configuration file specifying the alphabet used by the network')
     parser.add_argument('--lm', nargs='?',
                         help='Path to the language model binary file')
     parser.add_argument('--trie', nargs='?',
@@ -68,7 +66,7 @@ def main():
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
-    ds = Model(args.model, args.alphabet, args.beam_width)
+    ds = Model(args.model, args.beam_width)
     model_load_end = timer() - model_load_start
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
 

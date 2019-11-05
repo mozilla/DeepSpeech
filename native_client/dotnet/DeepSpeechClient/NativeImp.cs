@@ -16,7 +16,6 @@ namespace DeepSpeechClient
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal unsafe static extern ErrorCodes DS_CreateModel(string aModelPath,
-                   string aAlphabetConfigPath,
                    uint aBeamWidth,
                    ref IntPtr** pint);
 

@@ -25,10 +25,9 @@ TFModelState::~TFModelState()
 
 int
 TFModelState::init(const char* model_path,
-                   const char* alphabet_path,
                    unsigned int beam_width)
 {
-  int err = ModelState::init(model_path, alphabet_path, beam_width);
+  int err = ModelState::init(model_path, beam_width);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -78,20 +77,16 @@ TFModelState::init(const char* model_path,
     return DS_ERR_FAIL_CREATE_SESS;
   }
 
-  std::vector<tensorflow::Tensor> metadata_outputs;
+  std::vector<tensorflow::Tensor> version_output;
   status = session_->Run({}, {
-    "metadata_version",
-    // "metadata_language",
-    "metadata_sample_rate",
-    "metadata_feature_win_len",
-    "metadata_feature_win_step"
-  }, {}, &metadata_outputs);
+    "metadata_version"
+  }, {}, &version_output);
   if (!status.ok()) {
-    std::cout << "Unable to fetch metadata: " << status << std::endl;
+    std::cerr << "Unable to fetch graph version: " << status << std::endl;
     return DS_ERR_MODEL_INCOMPATIBLE;
   }
 
-  int graph_version = metadata_outputs[0].scalar<int>()();
+  int graph_version = version_output[0].scalar<int>()();
   if (graph_version < ds_graph_version()) {
     std::cerr << "Specified model file version (" << graph_version << ") is "
               << "incompatible with minimum version supported by this client ("
@@ -101,11 +96,29 @@ TFModelState::init(const char* model_path,
     return DS_ERR_MODEL_INCOMPATIBLE;
   }
 
-  sample_rate_ = metadata_outputs[1].scalar<int>()();
-  int win_len_ms = metadata_outputs[2].scalar<int>()();
-  int win_step_ms = metadata_outputs[3].scalar<int>()();
+  std::vector<tensorflow::Tensor> metadata_outputs;
+  status = session_->Run({}, {
+    "metadata_sample_rate",
+    "metadata_feature_win_len",
+    "metadata_feature_win_step",
+    "metadata_alphabet",
+  }, {}, &metadata_outputs);
+  if (!status.ok()) {
+    std::cout << "Unable to fetch metadata: " << status << std::endl;
+    return DS_ERR_MODEL_INCOMPATIBLE;
+  }
+
+  sample_rate_ = metadata_outputs[0].scalar<int>()();
+  int win_len_ms = metadata_outputs[1].scalar<int>()();
+  int win_step_ms = metadata_outputs[2].scalar<int>()();
   audio_win_len_ = sample_rate_ * (win_len_ms / 1000.0);
   audio_win_step_ = sample_rate_ * (win_step_ms / 1000.0);
+
+  string serialized_alphabet = metadata_outputs[3].scalar<string>()();
+  err = alphabet_.deserialize(serialized_alphabet.data(), serialized_alphabet.size());
+  if (err != 0) {
+    return DS_ERR_INVALID_ALPHABET;
+  }
 
   assert(sample_rate_ > 0);
   assert(audio_win_len_ > 0);

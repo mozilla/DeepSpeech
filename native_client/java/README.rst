@@ -51,7 +51,6 @@ Please push DeepSpeech data to ``/sdcard/deepspeech/``\ , including:
 
 
 * ``output_graph.tflite`` which is the TF Lite model
-* ``alphabet.txt``
 * ``lm.binary`` and ``trie`` files, if you want to use the language model ; please
   be aware that too big language model will make the device run out of memory
 

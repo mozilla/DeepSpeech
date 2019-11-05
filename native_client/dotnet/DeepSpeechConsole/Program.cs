@@ -35,7 +35,6 @@ namespace CSharpExamples
         static void Main(string[] args)
         {
             string model = null;
-            string alphabet = null;
             string lm = null;
             string trie = null;
             string audio = null;
@@ -43,7 +42,6 @@ namespace CSharpExamples
             if (args.Length > 0)
             {
                 model = GetArgument(args, "--model");
-                alphabet = GetArgument(args, "--alphabet");
                 lm = GetArgument(args, "--lm");
                 trie = GetArgument(args, "--trie");
                 audio = GetArgument(args, "--audio");
@@ -64,7 +62,6 @@ namespace CSharpExamples
                     stopwatch.Start();
                     sttClient.CreateModel(
                         model ?? "output_graph.pbmm",
-                        alphabet ?? "alphabet.txt",
                         BEAM_WIDTH);
                     stopwatch.Stop();
 

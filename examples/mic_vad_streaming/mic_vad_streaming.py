@@ -156,14 +156,12 @@ def main(ARGS):
     if os.path.isdir(ARGS.model):
         model_dir = ARGS.model
         ARGS.model = os.path.join(model_dir, 'output_graph.pb')
-        ARGS.alphabet = os.path.join(model_dir, ARGS.alphabet if ARGS.alphabet else 'alphabet.txt')
         ARGS.lm = os.path.join(model_dir, ARGS.lm)
         ARGS.trie = os.path.join(model_dir, ARGS.trie)
 
     print('Initializing model...')
     logging.info("ARGS.model: %s", ARGS.model)
-    logging.info("ARGS.alphabet: %s", ARGS.alphabet)
-    model = deepspeech.Model(ARGS.model, ARGS.alphabet, ARGS.beam_width)
+    model = deepspeech.Model(ARGS.model, ARGS.beam_width)
     if ARGS.lm and ARGS.trie:
         logging.info("ARGS.lm: %s", ARGS.lm)
         logging.info("ARGS.trie: %s", ARGS.trie)
@@ -219,8 +217,6 @@ if __name__ == '__main__':
 
     parser.add_argument('-m', '--model', required=True,
                         help="Path to the model (protocol buffer binary file, or entire directory containing all standard-named files for model)")
-    parser.add_argument('-a', '--alphabet', default='alphabet.txt',
-                        help="Path to the configuration file specifying the alphabet used by the network. Default: alphabet.txt")
     parser.add_argument('-l', '--lm', default='lm.binary',
                         help="Path to the language model binary file. Default: lm.binary")
     parser.add_argument('-t', '--trie', default='trie',

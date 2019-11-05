@@ -77,8 +77,6 @@ enum DeepSpeech_Error_Codes
  * @brief An object providing an interface to a trained DeepSpeech model.
  *
  * @param aModelPath The path to the frozen model graph.
- * @param aAlphabetConfigPath The path to the configuration file specifying
- *                            the alphabet used by the network. See alphabet.h.
  * @param aBeamWidth The beam width used by the decoder. A larger beam
  *                   width generates better results at the cost of decoding
  *                   time.
@@ -88,7 +86,6 @@ enum DeepSpeech_Error_Codes
  */
 DEEPSPEECH_EXPORT
 int DS_CreateModel(const char* aModelPath,
-                   const char* aAlphabetConfigPath,
                    unsigned int aBeamWidth,
                    ModelState** retval);
 

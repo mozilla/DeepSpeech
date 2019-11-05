@@ -13,8 +13,7 @@
  * @param aModelPath The path to the frozen model graph.
  * @param aNCep UNUSED, DEPRECATED.
  * @param aNContext UNUSED, DEPRECATED.
- * @param aAlphabetConfigPath The path to the configuration file specifying
- *                            the alphabet used by the network. See alphabet.h.
+ * @param aAlphabetConfigPath UNUSED, DEPRECATED.
  * @param aBeamWidth The beam width used by the decoder. A larger beam
  *                   width generates better results at the cost of decoding
  *                   time.
@@ -25,11 +24,11 @@
 int DS_CreateModel(const char* aModelPath,
                    unsigned int /*aNCep*/,
                    unsigned int /*aNContext*/,
-                   const char* aAlphabetConfigPath,
+                   const char* /*aAlphabetConfigPath*/,
                    unsigned int aBeamWidth,
                    ModelState** retval)
 {
-  return DS_CreateModel(aModelPath, aAlphabetConfigPath, aBeamWidth, retval);
+  return DS_CreateModel(aModelPath, aBeamWidth, retval);
 }
 
 /**

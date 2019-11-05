@@ -23,7 +23,6 @@ public class DeepSpeechActivity extends AppCompatActivity {
     DeepSpeechModel _m = null;
 
     EditText _tfliteModel;
-    EditText _alphabet;
     EditText _audioFile;
 
     TextView _decodedString;
@@ -49,10 +48,10 @@ public class DeepSpeechActivity extends AppCompatActivity {
         return (int)((b1 & 0xFF) | (b2 & 0xFF) << 8 | (b3 & 0xFF) << 16 | (b4 & 0xFF) << 24);
     }
 
-    private void newModel(String tfliteModel, String alphabet) {
+    private void newModel(String tfliteModel) {
         this._tfliteStatus.setText("Creating model");
         if (this._m == null) {
-            this._m = new DeepSpeechModel(tfliteModel, alphabet, BEAM_WIDTH);
+            this._m = new DeepSpeechModel(tfliteModel, BEAM_WIDTH);
         }
     }
 
@@ -61,7 +60,7 @@ public class DeepSpeechActivity extends AppCompatActivity {
 
         this._startInference.setEnabled(false);
 
-        this.newModel(this._tfliteModel.getText().toString(), this._alphabet.getText().toString());
+        this.newModel(this._tfliteModel.getText().toString());
 
         this._tfliteStatus.setText("Extracting audio features ...");
 
@@ -128,13 +127,11 @@ public class DeepSpeechActivity extends AppCompatActivity {
         this._tfliteStatus = (TextView) findViewById(R.id.tfliteStatus);
 
         this._tfliteModel   = (EditText) findViewById(R.id.tfliteModel);
-        this._alphabet      = (EditText) findViewById(R.id.alphabet);
         this._audioFile     = (EditText) findViewById(R.id.audioFile);
 
         this._tfliteModel.setText("/sdcard/deepspeech/output_graph.tflite");
         this._tfliteStatus.setText("Ready, waiting ...");
 
-        this._alphabet.setText("/sdcard/deepspeech/alphabet.txt");
         this._audioFile.setText("/sdcard/deepspeech/audio.wav");
 
         this._startInference = (Button) findViewById(R.id.btnStartInference);

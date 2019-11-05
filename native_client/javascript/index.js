@@ -25,7 +25,6 @@ if (process.platform === 'win32') {
  * An object providing an interface to a trained DeepSpeech model.
  *
  * @param {string} aModelPath The path to the frozen model graph.
- * @param {string} aAlphabetConfigPath The path to the configuration file specifying the alphabet used by the network. See alphabet.h.
  * @param {number} aBeamWidth The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.
  *
  * @throws on error

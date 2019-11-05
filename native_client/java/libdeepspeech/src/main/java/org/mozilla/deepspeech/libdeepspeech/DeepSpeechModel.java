@@ -20,15 +20,13 @@ public class DeepSpeechModel {
     * @constructor
     *
     * @param modelPath The path to the frozen model graph.
-    * @param alphabetPath The path to the configuration file specifying
-    *                     the alphabet used by the network. See alphabet.h.
     * @param beam_width The beam width used by the decoder. A larger beam
     *                   width generates better results at the cost of decoding
     *                   time.
     */
-    public DeepSpeechModel(String modelPath, String alphabetPath, int beam_width) {
+    public DeepSpeechModel(String modelPath, int beam_width) {
         this._mspp = impl.new_modelstatep();
-        impl.CreateModel(modelPath, alphabetPath, beam_width, this._mspp);
+        impl.CreateModel(modelPath, beam_width, this._mspp);
         this._msp  = impl.modelstatep_value(this._mspp);
     }
 

@@ -1,5 +1,6 @@
 #include "tflitemodelstate.h"
 
+#include "tensorflow/lite/string_util.h"
 #include "workspace_status.h"
 
 using namespace tflite;
@@ -91,10 +92,9 @@ TFLiteModelState::~TFLiteModelState()
 
 int
 TFLiteModelState::init(const char* model_path,
-                       const char* alphabet_path,
                        unsigned int beam_width)
 {
-  int err = ModelState::init(model_path, alphabet_path, beam_width);
+  int err = ModelState::init(model_path, beam_width);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -126,17 +126,17 @@ TFLiteModelState::init(const char* model_path,
   mfccs_idx_            = get_output_tensor_by_name("mfccs");
 
   int metadata_version_idx  = get_output_tensor_by_name("metadata_version");
-  // int metadata_language_idx = get_output_tensor_by_name("metadata_language");
   int metadata_sample_rate_idx      = get_output_tensor_by_name("metadata_sample_rate");
   int metadata_feature_win_len_idx  = get_output_tensor_by_name("metadata_feature_win_len");
   int metadata_feature_win_step_idx = get_output_tensor_by_name("metadata_feature_win_step");
+  int metadata_alphabet_idx = get_output_tensor_by_name("metadata_alphabet");
 
   std::vector<int> metadata_exec_plan;
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_version_idx)[0]);
-  // metadata_exec_plan.push_back(find_parent_node_ids(metadata_language_idx)[0]);
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_sample_rate_idx)[0]);
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_feature_win_len_idx)[0]);
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_feature_win_step_idx)[0]);
+  metadata_exec_plan.push_back(find_parent_node_ids(metadata_alphabet_idx)[0]);
 
   for (int i = 0; i < metadata_exec_plan.size(); ++i) {
     assert(metadata_exec_plan[i] > -1);
@@ -199,6 +199,12 @@ TFLiteModelState::init(const char* model_path,
 
   audio_win_len_  = sample_rate_ * (*win_len_ms / 1000.0);
   audio_win_step_ = sample_rate_ * (*win_step_ms / 1000.0);
+
+  tflite::StringRef serialized_alphabet = tflite::GetString(interpreter_->tensor(metadata_alphabet_idx), 0);
+  err = alphabet_.deserialize(serialized_alphabet.str, serialized_alphabet.len);
+  if (err != 0) {
+    return DS_ERR_INVALID_ALPHABET;
+  }
 
   assert(sample_rate_ > 0);
   assert(audio_win_len_ > 0);

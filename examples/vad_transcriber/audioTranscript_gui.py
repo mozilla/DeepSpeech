@@ -109,7 +109,7 @@ class App(QMainWindow):
         self.microphone = QRadioButton("Microphone")
         self.fileUpload = QRadioButton("File Upload")
         self.browseBox = QLineEdit(self, placeholderText="Wave File, Mono @ 16 kHz, 16bit Little-Endian")
-        self.modelsBox = QLineEdit(self, placeholderText="Directory path for output_graph, alphabet, lm & trie")
+        self.modelsBox = QLineEdit(self, placeholderText="Directory path for output_graph, lm & trie")
         self.textboxTranscript = QPlainTextEdit(self, placeholderText="Transcription")
         self.browseButton = QPushButton('Browse', self)
         self.browseButton.setToolTip('Select a wav file')
@@ -238,9 +238,9 @@ class App(QMainWindow):
 
     def modelResult(self, dirName):
         # Fetch and Resolve all the paths of model files
-        output_graph, alphabet, lm, trie = wavTranscriber.resolve_models(dirName)
+        output_graph, lm, trie = wavTranscriber.resolve_models(dirName)
         # Load output_graph, alpahbet, lm and trie
-        self.model = wavTranscriber.load_model(output_graph, alphabet, lm, trie)
+        self.model = wavTranscriber.load_model(output_graph, lm, trie)
 
     def modelFinish(self):
         # self.timer.stop()

@@ -257,7 +257,6 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 
 int
 DS_CreateModel(const char* aModelPath,
-               const char* aAlphabetConfigPath,
                unsigned int aBeamWidth,
                ModelState** retval)
 {
@@ -283,7 +282,7 @@ DS_CreateModel(const char* aModelPath,
     return DS_ERR_FAIL_CREATE_MODEL;
   }
 
-  int err = model->init(aModelPath, aAlphabetConfigPath, aBeamWidth);
+  int err = model->init(aModelPath, aBeamWidth);
   if (err != DS_ERR_OK) {
     return err;
   }

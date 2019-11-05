@@ -36,7 +36,7 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py35m-opt") }
+        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
         win_amd64_build: { $eval: as_slugid("win-amd64-cpu-opt") }
         win_amd64_tflite: { $eval: as_slugid("win-amd64-tflite-opt") }
         node_package_cpu: { $eval: as_slugid("node-package-cpu") }
@@ -45,8 +45,8 @@ then:
         DEEPSPEECH_ARTIFACTS_TFLITE_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${win_amd64_tflite}/artifacts/public
         DEEPSPEECH_NODEJS: https://community-tc.services.mozilla.com/api/queue/v1/task/${node_package_cpu}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
-        DEEPSPEECH_PROD_MODEL: https://github.com/lissyx/DeepSpeech/releases/download/prod-metadata-constant/output_graph.pb
-        DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/lissyx/DeepSpeech/releases/download/prod-metadata-constant/output_graph.pbmm
+        DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.11/output_graph.pb
+        DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.11/output_graph.pbmm
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
         TC_MSYS_VERSION: 'MSYS_NT-6.3'
         MSYS: 'winsymlinks:nativestrict'
