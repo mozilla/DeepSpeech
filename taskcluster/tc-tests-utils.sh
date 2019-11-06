@@ -1080,6 +1080,25 @@ get_python_pkg_url()
   echo "${root}/${deepspeech_pkg}"
 }
 
+# Will inspect this task's dependencies for one that provides a matching npm package
+get_dep_npm_pkg_url()
+{
+  local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  local deepspeech_pkg="deepspeech-${DS_VERSION}.tgz"
+
+  for dep in ${all_deps}; do
+    local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${deepspeech_pkg}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
+    if [ "${has_artifact}" = "True" ]; then
+      echo "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/${deepspeech_pkg}"
+      exit 0
+    fi;
+  done;
+
+  echo ""
+  # This should not be reached, otherwise it means we could not find a matching nodejs package
+  exit 1
+}
+
 extract_python_versions()
 {
   # call extract_python_versions ${pyver_full} pyver pyver_pkg py_unicode_type pyconf pyalias

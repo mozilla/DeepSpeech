@@ -29,7 +29,8 @@ export PATH="${NODE_ROOT}:${NODE_PATH}/.bin/:${NODE_PATH}/electron/dist/:$PATH"
 
 npm install --prefix ${NODE_ROOT} --cache ${NODE_CACHE} electron@${electronver}
 
-npm install --prefix ${NODE_ROOT} --cache ${NODE_CACHE} ${DEEPSPEECH_NODEJS}/deepspeech-${DS_VERSION}.tgz
+deepspeech_npm_url=$(get_dep_npm_pkg_url)
+npm install --prefix ${NODE_ROOT} --cache ${NODE_CACHE} ${deepspeech_npm_url}
 
 if [ "${OS}" = "Darwin" ]; then
   ln -s Electron.app/Contents/MacOS/Electron "${NODE_ROOT}/node_modules/electron/dist/node"

@@ -1,7 +1,7 @@
 build:
   template_file: test-linux-opt-base.tyml
   dependencies:
-    - "node-package-cpu"
+    - "linux-amd64-cpu-opt"
     - "test-training_upstream-linux-amd64-py36m-opt"
   system_setup:
     >
