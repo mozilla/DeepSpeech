@@ -214,7 +214,7 @@ def collect_samples(base_dir, language):
             elif duration > CLI_ARGS.max_duration > 0 and CLI_ARGS.ignore_too_long:
                 skip = True
                 p_reason = 'exceeded duration'
-            elif int(duration / 20) < len(text):
+            elif int(duration / 30) < len(text):
                 skip = True
                 p_reason = 'too short to decode'
             elif duration / len(text) < 10:
