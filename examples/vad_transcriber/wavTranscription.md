@@ -5,7 +5,36 @@ They take in a wav file of any duration, use the WebRTC Voice Activity Detector 
 to split it into smaller chunks and finally save a consolidated transcript.
 
 ### 0. Prerequisites
-Setup your environment
+#### 0.1 Install requiered packages
+Install the package which contains rec on the machine:
+
+Fedora:
+
+``` sudo dnf install sox ```
+
+Tested on: 29
+
+Ubuntu/Debian
+
+``` sudo apt install sox ```
+
+A list of distributions where the package is available can be found at: https://pkgs.org/download/sox
+
+#### 0.1 Download Deepspeech 
+
+Download a stable(!) release from the release page and extract it to a folder of your choice.
+
+This is because you need to use the same deepspeech model version and deepspeech version for things to work.
+
+You only need the example folder, but you can't download it seperately, so you have to download the whole sourcecode.
+
+For the next steps we assume you have extracted the files to ~/Deepspeech
+
+**Note: Currently there is a bug in requierement.txt of the example folders which installs deepspech 4.1 when downloading the source code for 5.1, to fix this simply run pip3 install deepspeech==0.5.1 after installing**
+
+#### 0.2 Setup your environment
+
+Ubuntu/Debian:
 
 ```
 ~/Deepspeech$ sudo apt install virtualenv
@@ -14,6 +43,18 @@ Setup your environment
 ~/Deepspeech/examples/vad_transcriber$ source venv/bin/activate
 (venv) ~/Deepspeech/examples/vad_transcriber$ pip3 install -r requirements.txt
 ```
+
+Fedora
+
+```
+~/Deepspeech$ sudo dnf install python-virtualen
+~/Deepspeech$ cd examples/vad_transcriber
+~/Deepspeech/examples/vad_transcriber$ virtualenv -p python3 venv
+~/Deepspeech/examples/vad_transcriber$ source venv/bin/activate
+(venv) ~/Deepspeech/examples/vad_transcriber$ pip3 install -r requirements.txt
+```
+
+Tested on: 29
 
 ### 1. Command line tool
 
@@ -63,3 +104,11 @@ In such a scenario, the GUI tool will not work. The following steps is known to 
 (venv) ~/Deepspeech/examples/vad_transcriber$ python3 audioTranscript_gui.py
 
 ```
+#### 2.2 Known Bugs
+#####  Could not load modal with error code X
+Often this is because you try to load a older or newer model than the deepspeech version you are using.
+Be sure to load only the models that where released with the same deepspeech version you are using.
+
+This is the reason we advice you to use the examples from a released stable version.
+#####  The GUI programm immediately crashes when you press start recording
+This happens when you don't load the models via the "Browse Models" button, before pressing the "Start recording" button.
