@@ -76,7 +76,7 @@ def check_wav_file(wav_path, sentence):  # pylint: disable=too-many-return-state
             return False, 'wrong number of channels'
         if sample_width != SAMPLE_WIDTH:
             return False, 'wrong sample width'
-        if milliseconds / len(sentence) < 20:
+        if milliseconds / len(sentence) < 30:
             return False, 'too short'
         if milliseconds > CLI_ARGS.max_duration > 0:
             return False, 'too long'
