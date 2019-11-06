@@ -27,10 +27,12 @@ nodejs:
     prep_10: 'echo "deb http://deb.nodesource.com/node_10.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_11: 'echo "deb http://deb.nodesource.com/node_11.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_12: 'echo "deb http://deb.nodesource.com/node_12.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_docs_bionic:
     apt: 'nodejs'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
     prep_12: 'echo "deb http://deb.nodesource.com/node_12.x bionic main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x bionic main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_buster:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
@@ -43,6 +45,7 @@ nodejs:
     prep_10: 'echo "deb http://deb.nodesource.com/node_10.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_11: 'echo "deb http://deb.nodesource.com/node_11.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_12: 'echo "deb http://deb.nodesource.com/node_12.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   brew:
     # Using 'nvm' from homebrew results in installing v0.33.6 which seems to
     # suffer from a bug making it unable to work as of now:
@@ -61,6 +64,7 @@ nodejs:
     prep_10: 'nvm install 10.16.0 && nvm use 10.16.0'
     prep_11: 'nvm install 11.15.0 && nvm use 11.15.0'
     prep_12: 'nvm install 12.5.0 && nvm use 12.5.0'
+    prep_13: 'nvm install 13.0.1 && nvm use 13.0.1'
   win:
     prep_4: '/usr/bin/wget.exe https://nodejs.org/dist/v4.9.1/node-v4.9.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v4.9.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v4.9.1-win-x64/:$PATH'
     prep_6: '/usr/bin/wget.exe https://nodejs.org/dist/v6.17.1/node-v6.17.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v6.17.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v6.17.1-win-x64/:$PATH'
@@ -70,6 +74,7 @@ nodejs:
     prep_10: '/usr/bin/wget.exe https://nodejs.org/dist/v10.16.0/node-v10.16.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v10.16.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v10.16.0-win-x64/:$PATH'
     prep_11: '/usr/bin/wget.exe https://nodejs.org/dist/v11.15.0/node-v11.15.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v11.15.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v11.15.0-win-x64/:$PATH'
     prep_12: '/usr/bin/wget.exe https://nodejs.org/dist/v12.5.0/node-v12.5.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v12.5.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v12.5.0-win-x64/:$PATH'
+    prep_13: '/usr/bin/wget.exe https://nodejs.org/dist/v13.0.1/node-v13.0.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v13.0.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v13.0.1-win-x64/:$PATH'
 ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:
