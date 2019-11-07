@@ -59,8 +59,7 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 ----
 
 **Table of Contents**
-
-
+  
 * `Using a Pre-trained Model <USING.rst#using-a-pre-trained-model>`_
 
   * `CUDA dependency <USING.rst#cuda-dependency>`_
@@ -72,6 +71,19 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
   * `Installing bindings from source <USING.rst#installing-bindings-from-source>`_
   * `Third party bindings <USING.rst#third-party-bindings>`_
 
+
+* `Trying out DeepSpeech with examples <examples/EXAMPLES.rst>`_
+
+  * `Microphone VAD streaming  <examples/mic_vad_streaming/README.rst>`_
+  
+  * `FFMPEG VAD streaming  <examples/ffmpeg_vad_streaming/README.rst>`_
+  
+  * `Net framework  <examples/net_framework/README.rst>`_
+  
+  * `Nodejs wav  <examples/nodejs_wav/README.rst>`_
+  
+  * `VAD transcriber  <examples/vad_transcriber/README.rst>`_
+  
 * `Training your own Model <TRAINING.rst#training-your-own-model>`_
 
   * `Prerequisites for training a model <TRAINING.rst#prerequisites-for-training-a-model>`_
