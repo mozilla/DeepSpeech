@@ -59,6 +59,18 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 ----
 
 **Table of Contents**
+  
+* `Using a Pre-trained Model <USING.rst#using-a-pre-trained-model>`_
+
+  * `CUDA dependency <USING.rst#cuda-dependency>`_
+  * `Getting the pre-trained model <USING.rst#getting-the-pre-trained-model>`_
+  * `Model compatibility <USING.rst#model-compatibility>`_
+  * `Using the Python package <USING.rst#using-the-python-package>`_
+  * `Using the Node.JS package <USING.rst#using-the-nodejs-package>`_
+  * `Using the Command Line client <USING.rst#using-the-command-line-client>`_
+  * `Installing bindings from source <USING.rst#installing-bindings-from-source>`_
+  * `Third party bindings <USING.rst#third-party-bindings>`_
+
 
 * `Trying out DeepSpeech with examples <examples/EXAMPLES.rst>`_
 
@@ -72,17 +84,6 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
   
   * `VAD transcriber  <examples/vad_transcriber/README.rst>`_
   
-* `Using a Pre-trained Model <USING.rst#using-a-pre-trained-model>`_
-
-  * `CUDA dependency <USING.rst#cuda-dependency>`_
-  * `Getting the pre-trained model <USING.rst#getting-the-pre-trained-model>`_
-  * `Model compatibility <USING.rst#model-compatibility>`_
-  * `Using the Python package <USING.rst#using-the-python-package>`_
-  * `Using the Node.JS package <USING.rst#using-the-nodejs-package>`_
-  * `Using the Command Line client <USING.rst#using-the-command-line-client>`_
-  * `Installing bindings from source <USING.rst#installing-bindings-from-source>`_
-  * `Third party bindings <USING.rst#third-party-bindings>`_
-
 * `Training your own Model <TRAINING.rst#training-your-own-model>`_
 
   * `Prerequisites for training a model <TRAINING.rst#prerequisites-for-training-a-model>`_
