@@ -1,5 +1,5 @@
 Examples
-==================
+=====
 There are various examples on how to use or integrate DeepSpeech on a basic level.
 
 It is a good way to just try out DeepSpeech, without much knowledge on how DeepSpeech actually works.
