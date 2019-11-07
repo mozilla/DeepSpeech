@@ -2,7 +2,7 @@ build:
   template_file: examples-base.tyml
   docker_image: "node:10"
   dependencies:
-    - "node-package-cpu"
+    - "linux-amd64-cpu-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/examples/nodejs_wav/test.sh"
   metadata:

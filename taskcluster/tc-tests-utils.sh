@@ -56,7 +56,7 @@ model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.16:ucs2 2.7.16:ucs4 3.4.10:ucs4 3.5.7:ucs4 3.6.8:ucs4 3.7.3:ucs4 3.8.0:ucs4}
-SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.17.1 7.10.1 8.16.0 9.11.2 10.16.0 11.15.0 12.5.0}
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.17.1 7.10.1 8.16.0 9.11.2 10.16.0 11.15.0 12.5.0 13.0.1}
 SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-1.6.18 1.7.16 1.8.8 2.0.18 3.0.16 3.1.11 4.0.3 4.1.5 4.2.5 5.0.6 6.0.11 7.0.1}
 
 strip() {
@@ -1078,6 +1078,25 @@ get_python_pkg_url()
   local deepspeech_pkg="${pkgname}-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
   echo "${root}/${deepspeech_pkg}"
+}
+
+# Will inspect this task's dependencies for one that provides a matching npm package
+get_dep_npm_pkg_url()
+{
+  local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  local deepspeech_pkg="deepspeech-${DS_VERSION}.tgz"
+
+  for dep in ${all_deps}; do
+    local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${deepspeech_pkg}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
+    if [ "${has_artifact}" = "True" ]; then
+      echo "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/${deepspeech_pkg}"
+      exit 0
+    fi;
+  done;
+
+  echo ""
+  # This should not be reached, otherwise it means we could not find a matching nodejs package
+  exit 1
 }
 
 extract_python_versions()

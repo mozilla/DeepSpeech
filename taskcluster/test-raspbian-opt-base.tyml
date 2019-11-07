@@ -33,10 +33,8 @@ then:
       $let:
         training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
         linux_rpi3_build: { $eval: as_slugid("linux-rpi3-cpu-opt") }
-        node_package_cpu: { $eval: as_slugid("node-package-cpu") }
       in:
         DEEPSPEECH_ARTIFACTS_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${linux_rpi3_build}/artifacts/public
-        DEEPSPEECH_NODEJS: https://community-tc.services.mozilla.com/api/queue/v1/task/${node_package_cpu}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
         DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.11/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.11/output_graph.pbmm
@@ -52,7 +50,7 @@ then:
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
-          apt-get -qq update && apt-get -qq -y install git pixz sox wget libatlas3-base xxd && ${extraSystemSetup} &&
+          apt-get -qq update && apt-get -qq -y install curl python-simplejson git pixz sox wget libatlas3-base xxd && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
           cd ${system.homedir.linux} &&
           echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&

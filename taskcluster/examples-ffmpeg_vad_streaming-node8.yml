@@ -2,7 +2,7 @@ build:
   template_file: examples-base.tyml
   docker_image: "node:8"
   dependencies:
-    - "node-package-cpu"
+    - "linux-amd64-cpu-opt"
   system_setup:
     >
       apt-get -qq -y install ffmpeg
