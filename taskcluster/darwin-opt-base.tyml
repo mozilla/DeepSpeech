@@ -95,7 +95,7 @@ payload:
         mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
         mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
         mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ &&
-        cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/tc-workdir/ &&
+        cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
         exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
         (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
         git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&

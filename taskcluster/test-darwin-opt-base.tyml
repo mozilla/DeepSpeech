@@ -72,7 +72,7 @@ then:
             mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
             mv $TASKCLUSTER_TASK_DIR/homebrew.local/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.local/ &&
             mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ &&
-            cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/tc-workdir/ &&
+            cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
             exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
             git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
             cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
