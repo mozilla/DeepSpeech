@@ -33,6 +33,9 @@ public:
   PathTrie* get_prev_grapheme(std::vector<int>& output,
                               std::vector<int>& timesteps);
 
+  // get the distance from current node to the first codepoint boundary, and the byte value at the boundary
+  int distance_to_codepoint_boundary(unsigned char *first_byte);
+
   // get the prefix data in correct time order from beginning of last word to current node
   PathTrie* get_prev_word(std::vector<int>& output,
                           std::vector<int>& timesteps,

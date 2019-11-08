@@ -92,8 +92,8 @@ public:
   // save dictionary in file
   void save_dictionary(const std::string &path);
 
-  // return weather this label represents a boundary where beam scoring should happen
-  bool is_scoring_boundary(size_t label);
+  // return weather this step represents a boundary where beam scoring should happen
+  bool is_scoring_boundary(PathTrie* prefix, size_t new_label);
 
   // language model weight
   double alpha = 0.;

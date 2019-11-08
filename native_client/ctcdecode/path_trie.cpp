@@ -133,12 +133,26 @@ PathTrie* PathTrie::get_prev_grapheme(std::vector<int>& output,
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
   //FIXME: use Alphabet instead of hardcoding +1 here
-  if (!byte_is_codepoint_boundary(character+1)) {
+  if (!byte_is_codepoint_boundary(character + 1)) {
     stop = parent->get_prev_grapheme(output, timesteps);
   }
   output.push_back(character);
   timesteps.push_back(timestep);
   return stop;
+}
+
+int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte)
+{
+  //FIXME: use Alphabet instead of hardcoding +1 here
+  if (byte_is_codepoint_boundary(character + 1)) {
+    *first_byte = (unsigned char)character + 1;
+    return 1;
+  }
+  if (parent != nullptr && parent->character != ROOT_) {
+    return 1 + parent->distance_to_codepoint_boundary(first_byte);
+  }
+  assert(false); // unreachable
+  return 0;
 }
 
 PathTrie* PathTrie::get_prev_word(std::vector<int>& output,

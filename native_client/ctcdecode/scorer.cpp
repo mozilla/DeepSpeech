@@ -149,13 +149,30 @@ void Scorer::save_dictionary(const std::string& path)
   dictionary->Write(fout, opt);
 }
 
-bool Scorer::is_scoring_boundary(size_t label)
+bool Scorer::is_scoring_boundary(PathTrie* prefix, size_t new_label)
 {
   if (is_utf8_mode()) {
-    unsigned char byte_val = alphabet_.StringFromLabel(label)[0];
-    return byte_is_codepoint_boundary(byte_val);
+    if (prefix->character == -1) {
+      return false;
+    }
+    unsigned char first_byte;
+    int distance_to_boundary = prefix->distance_to_codepoint_boundary(&first_byte);
+    int needed_bytes;
+    if ((first_byte >> 3) == 0x1E) {
+      needed_bytes = 4;
+    } else if ((first_byte >> 4) == 0x0E) {
+      needed_bytes = 3;
+    } else if ((first_byte >> 5) == 0x06) {
+      needed_bytes = 2;
+    } else if ((first_byte >> 7) == 0x00) {
+      needed_bytes = 1;
+    } else {
+      assert(false); // invalid byte sequence. should be unreachable, disallowed by vocabulary/trie
+      return false;
+    }
+    return distance_to_boundary == needed_bytes;
   } else {
-    return label == SPACE_ID_;
+    return new_label == SPACE_ID_;
   }
 }
 
