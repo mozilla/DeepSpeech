@@ -32,8 +32,6 @@ COMMON_FILES = [
         'unittest.cc'))
 ]
 
-COMMON_FILES += glob.glob('*.cpp')
-
 def build_common(out_name='common.a', build_dir='temp_build/temp_build', debug=False, num_parallel=1):
     compiler = os.environ.get('CXX', 'g++')
     ar = os.environ.get('AR', 'ar')

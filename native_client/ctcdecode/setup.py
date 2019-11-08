@@ -49,14 +49,18 @@ if not os.path.exists(common_build):
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
 
-    build_common(out_name='common.a',
+    build_common(out_name=common_build,
                  build_dir=build_dir,
                  num_parallel=known_args.num_processes,
                  debug=debug)
 
 decoder_module = Extension(
     name='ds_ctcdecoder._swigwrapper',
-    sources=['swigwrapper.i'],
+    sources=['swigwrapper.i',
+             'ctc_beam_search_decoder.cpp',
+             'scorer.cpp',
+             'path_trie.cpp',
+             'decoder_utils.cpp'],
     swig_opts=['-c++', '-extranative'],
     language='c++',
     include_dirs=INCLUDES + [numpy_include],
