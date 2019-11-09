@@ -273,14 +273,14 @@ void Scorer::reset_params(float alpha, float beta)
   this->beta = beta;
 }
 
-std::vector<std::string> Scorer::split_labels(const std::vector<int>& labels)
+std::vector<std::string> Scorer::split_labels_into_scored_units(const std::vector<int>& labels)
 {
   if (labels.empty()) return {};
 
   std::string s = alphabet_.LabelsToString(labels);
   std::vector<std::string> words;
   if (is_utf8_mode_) {
-    words = split_into_bytes(s);
+    words = split_into_codepoints(s);
   } else {
     words = split_str(s, " ");
   }

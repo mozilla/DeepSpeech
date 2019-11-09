@@ -192,27 +192,30 @@ DecoderState::decode() const
                     std::bind(prefix_compare_external, _1, _2, scores));
 
   //TODO: expose this as an API parameter
-  const int top_paths = 1;
+  const size_t top_paths = 1;
+  size_t num_returned = std::min(num_prefixes, top_paths);
+
+  std::vector<Output> outputs;
+  outputs.reserve(num_returned);
 
   // compute aproximate ctc score as the return score, without affecting the
   // return order of decoding result. To delete when decoder gets stable.
-  for (size_t i = 0; i < top_paths && i < prefixes_copy.size(); ++i) {
+  for (size_t i = 0; i < num_returned; ++i) {
+    Output output;
+    prefixes_copy[i]->get_path_vec(output.tokens, output.timesteps);
     double approx_ctc = scores[prefixes_copy[i]];
     if (ext_scorer_ != nullptr) {
-      std::vector<int> output;
-      std::vector<int> timesteps;
-      prefixes_copy[i]->get_path_vec(output, timesteps);
-      auto prefix_length = output.size();
-      auto words = ext_scorer_->split_labels(output);
-      // remove word insert
-      approx_ctc = approx_ctc - prefix_length * ext_scorer_->beta;
-      // remove language model weight:
+      auto words = ext_scorer_->split_labels_into_scored_units(output.tokens);
+      // remove term insertion weight
+      approx_ctc -= words.size() * ext_scorer_->beta;
+      // remove language model weight
       approx_ctc -= (ext_scorer_->get_sent_log_prob(words)) * ext_scorer_->alpha;
     }
-    prefixes_copy[i]->approx_ctc = approx_ctc;
+    output.confidence = -approx_ctc;
+    outputs.push_back(output);
   }
 
-  return get_beam_search_result(prefixes_copy, top_paths);
+  return outputs;
 }
 
 std::vector<Output> ctc_beam_search_decoder(

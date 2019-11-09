@@ -59,11 +59,6 @@ std::vector<std::pair<size_t, float>> get_pruned_log_probs(
     double cutoff_prob,
     size_t cutoff_top_n);
 
-// Get beam search result from prefixes in trie tree
-std::vector<Output> get_beam_search_result(
-    const std::vector<PathTrie *> &prefixes,
-    size_t top_paths);
-
 // Functor for prefix comparsion
 bool prefix_compare(const PathTrie *x, const PathTrie *y);
 

@@ -38,21 +38,6 @@ std::vector<std::pair<size_t, float>> get_pruned_log_probs(
   return log_prob_idx;
 }
 
-
-std::vector<Output> get_beam_search_result(
-    const std::vector<PathTrie *> &prefixes,
-    size_t top_paths) {
-  std::vector<Output> output_vecs;
-  for (size_t i = 0; i < top_paths && i < prefixes.size(); ++i) {
-    Output output;
-    prefixes[i]->get_path_vec(output.tokens, output.timesteps);
-    output.confidence = -prefixes[i]->approx_ctc;
-    output_vecs.push_back(output);
-  }
-
-  return output_vecs;
-}
-
 size_t get_utf8_str_len(const std::string &str) {
   size_t str_len = 0;
   for (char c : str) {

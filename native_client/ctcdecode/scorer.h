@@ -87,7 +87,7 @@ public:
 
   // trransform the labels in index to the vector of words (word based lm) or
   // the vector of characters (character based lm)
-  std::vector<std::string> split_labels(const std::vector<int> &labels);
+  std::vector<std::string> split_labels_into_scored_units(const std::vector<int> &labels);
 
   // save dictionary in file
   void save_dictionary(const std::string &path);
