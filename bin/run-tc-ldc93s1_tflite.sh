@@ -21,3 +21,14 @@ python -u DeepSpeech.py --noshow_progressbar \
   --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
   --lm_trie_path 'data/smoke_test/vocab.trie' \
   --export_tflite
+
+mkdir /tmp/train_tflite/en-us
+
+python -u DeepSpeech.py --noshow_progressbar \
+  --n_hidden 100 \
+  --checkpoint_dir '/tmp/ckpt' \
+  --export_dir '/tmp/train_tflite/en-us' \
+  --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
+  --lm_trie_path 'data/smoke_test/vocab.trie' \
+  --export_language 'Fake English (fk-FK)' \
+  --export_zip

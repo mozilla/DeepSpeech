@@ -102,6 +102,7 @@ def create_flags():
     f.DEFINE_boolean('export_tflite', False, 'export a graph ready for TF Lite engine')
     f.DEFINE_integer('n_steps', 16, 'how many timesteps to process at once by the export graph, higher values mean more latency')
     f.DEFINE_string('export_language', '', 'language the model was trained on e.g. "en" or "English". Gets embedded into exported model.')
+    f.DEFINE_boolean('export_zip', False, 'export a TFLite model and package with LM and info.json')
 
     # Reporting
 
