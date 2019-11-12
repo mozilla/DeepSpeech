@@ -89,8 +89,11 @@ std::vector<std::string> split_into_bytes(const std::string &str);
 void add_word_to_fst(const std::vector<int> &word,
                      fst::StdVectorFst *dictionary);
 
-// Return weather a byte is a code point boundary (not a continuation byte).
-bool byte_is_codepoint_boundary(unsigned char c);
+// Return whether a byte is a code point boundary (not a continuation byte).
+inline bool byte_is_codepoint_boundary(unsigned char c) {
+  // only continuation bytes have their most significant bits set to 10
+  return (c & 0xC0) != 0x80;
+}
 
 // Add a word in string to dictionary
 bool add_word_to_dictionary(

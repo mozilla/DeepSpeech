@@ -46,12 +46,6 @@ size_t get_utf8_str_len(const std::string &str) {
   return str_len;
 }
 
-// Return weather a byte is a code point boundary (not a continuation byte).
-bool byte_is_codepoint_boundary(unsigned char c) {
-  // only continuation bytes have their most significant bits set to 10
-  return (c & 0xC0) != 0x80;
-}
-
 std::vector<std::string> split_into_codepoints(const std::string &str) {
   std::vector<std::string> result;
   std::string out_str;

@@ -109,27 +109,25 @@ DecoderState::next(const double *probs,
             log_p = log_prob_c + prefix->score;
           }
 
-          // skip scoring the space in word based LMs
-          PathTrie* prefix_to_score;
-          if (ext_scorer_->is_utf8_mode()) {
-            prefix_to_score = prefix_new;
-          } else {
-            prefix_to_score = prefix;
-          }
+          if (ext_scorer_ != nullptr) {
+            // skip scoring the space in word based LMs
+            PathTrie* prefix_to_score;
+            if (ext_scorer_->is_utf8_mode()) {
+              prefix_to_score = prefix_new;
+            } else {
+              prefix_to_score = prefix;
+            }
 
-          // check if we need to score
-          bool is_scoring_boundary = ext_scorer_ != nullptr &&
-                                     ext_scorer_->is_scoring_boundary(prefix_to_score, c);
-
-          // language model scoring
-          if (is_scoring_boundary) {
-            float score = 0.0;
-            std::vector<std::string> ngram;
-            ngram = ext_scorer_->make_ngram(prefix_to_score);
-            bool bos = ngram.size() < ext_scorer_->get_max_order();
-            score = ext_scorer_->get_log_cond_prob(ngram, bos) * ext_scorer_->alpha;
-            log_p += score;
-            log_p += ext_scorer_->beta;
+            // language model scoring
+            if (ext_scorer_->is_scoring_boundary(prefix_to_score, c)) {
+              float score = 0.0;
+              std::vector<std::string> ngram;
+              ngram = ext_scorer_->make_ngram(prefix_to_score);
+              bool bos = ngram.size() < ext_scorer_->get_max_order();
+              score = ext_scorer_->get_log_cond_prob(ngram, bos) * ext_scorer_->alpha;
+              log_p += score;
+              log_p += ext_scorer_->beta;
+            }
           }
 
           prefix_new->log_prob_nb_cur =
