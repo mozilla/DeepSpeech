@@ -16,11 +16,10 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <TextBox
-            x:Name="txtResult"
             Grid.Row="1"
             Margin="10,36,10,10"
             FontSize="16px"
-            Text=""
+            Text="{Binding Transcription, Mode=OneWay}"
             TextWrapping="Wrap" />
         <Label
             Grid.Row="1"
@@ -34,78 +33,70 @@
             VerticalAlignment="Top"
             Content="Select an audio file to transcript:" />
         <TextBox
-            x:Name="txtFileName"
             Height="23"
             Margin="10,41,10,0"
             VerticalAlignment="Top"
-            Text=""
+            Text="{Binding AudioFilePath, Mode=TwoWay}"
             TextWrapping="Wrap" />
         <Button
-            x:Name="btnOpenFile"
             Width="80"
             Height="25"
             Margin="10,69,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Click="BtnOpenFile_Click"
-            Content="Open file"
-            IsEnabled="False" />
+            Command="{Binding SelectFileCommand}"
+            Content="Open file" />
         <Button
-            x:Name="btnEnableLM"
             Width="82"
             Height="25"
             Margin="95,69,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Click="BtnEnableLM_Click"
-            Content="Enable LM"
-            IsEnabled="False" />
+            Command="{Binding EnableLanguageModelCommand}"
+            Content="Enable LM" />
         <Button
-            x:Name="btnTranscript"
             Width="75"
             Height="25"
             Margin="182,69,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Click="BtnTranscript_Click"
-            Content="Transcript"
-            IsEnabled="False" />
+            Command="{Binding InferenceFromFileCommand}"
+            Content="Transcript" />
         <Label
-            x:Name="lblStatus"
             Height="30"
-            Margin="10,192,10,0"
+            Margin="10,99,10,0"
             VerticalAlignment="Top"
-            Content="" />
+            Content="{Binding StatusMessage, Mode=OneWay}" />
         <Label
             Height="26"
-            Margin="10,119,10,0"
+            Margin="10,158,10,0"
             VerticalAlignment="Top"
             Content="Select an audio input:" />
         <ComboBox
-            x:Name="cbxAudioInputs"
             Height="23"
-            Margin="20,150,186,0"
+            Margin="20,189,186,0"
             VerticalAlignment="Top"
-            SelectionChanged="CbxAudioInputs_SelectionChanged" />
+            DisplayMemberPath="FriendlyName"
+            ItemsSource="{Binding AvailableRecordDevices, Mode=TwoWay}"
+            SelectedIndex="0"
+            SelectedItem="{Binding SelectedDevice, Mode=TwoWay}" />
         <Button
-            x:Name="btnStartRecording"
             Width="91"
             Height="23"
-            Margin="0,0,90,49"
+            Margin="0,0,90,10"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
-            Click="BtnStartRecording_Click"
+            Command="{Binding StartRecordingCommand}"
             Content="Record"
-            IsEnabled="False" />
+            IsEnabled="{Binding EnableStartRecord, Mode=OneWay}" />
         <Button
-            x:Name="btnStopRecording"
             Width="75"
             Height="23"
-            Margin="0,0,10,49"
+            Margin="0,0,10,10"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
-            Click="BtnStopRecording_Click"
+            Command="{Binding StopRecordingCommand}"
             Content="Stop"
-            IsEnabled="False" />
+            IsEnabled="{Binding EnableStopRecord, Mode=OneWay}" />
     </Grid>
 </Window>
