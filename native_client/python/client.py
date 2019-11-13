@@ -68,9 +68,9 @@ def words_from_metadata(metadata):
 
 
 def metadata_json_output(metadata):
-    json_result=dict()
+    json_result = dict()
     json_result["words"] = words_from_metadata(metadata)
-    json_result["confidence"]=metadata.confidence
+    json_result["confidence"] = metadata.confidence
     return json.dumps(json_result)
 	
 
