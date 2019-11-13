@@ -68,10 +68,10 @@ def words_from_metadata(metadata):
 
 
 def metadata_json_output(metadata):
-	json_result=dict()
-	json_result["words"] = words_from_metadata(metadata)
-	json_result["confidence"]=metadata.confidence
-	return json.dumps(json_result)
+    json_result=dict()
+    json_result["words"] = words_from_metadata(metadata)
+    json_result["confidence"]=metadata.confidence
+    return json.dumps(json_result)
 	
 
 
@@ -104,7 +104,7 @@ def main():
                         help='Print version and exits')
     parser.add_argument('--extended', required=False, action='store_true',
                         help='Output string from extended metadata')
-	parser.add_argument('--json', required=False, action='store_false',
+    parser.add_argument('--json', required=False, action='store_false',
                         help='Output json from metadata with timestamp of each word')
     args = parser.parse_args()
 
@@ -138,8 +138,8 @@ def main():
     inference_start = timer()
     if args.extended:
         print(metadata_to_string(ds.sttWithMetadata(audio)))
-	if args.json:
-		print(metadata_json_output(ds.sttWithMetadata(audio)))
+    if args.json:
+        print(metadata_json_output(ds.sttWithMetadata(audio)))
     else:
         print(ds.stt(audio))
     inference_end = timer() - inference_start
