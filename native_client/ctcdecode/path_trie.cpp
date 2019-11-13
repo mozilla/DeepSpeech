@@ -111,23 +111,66 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, float cur_log_
   }
 }
 
-PathTrie* PathTrie::get_path_vec(std::vector<int>& output, std::vector<int>& timesteps) {
-  return get_path_vec(output, timesteps, ROOT_);
-}
-
-PathTrie* PathTrie::get_path_vec(std::vector<int>& output,
-                                 std::vector<int>& timesteps,
-                                 int stop,
-                                 size_t max_steps) {
-  if (character == stop || character == ROOT_ || output.size() == max_steps) {
-    std::reverse(output.begin(), output.end());
-    std::reverse(timesteps.begin(), timesteps.end());
-    return this;
-  } else {
+void PathTrie::get_path_vec(std::vector<int>& output, std::vector<int>& timesteps) {
+  // Recursive call: recurse back until stop condition, then append data in
+  // correct order as we walk back down the stack in the lines below.
+  if (parent != nullptr) {
+    parent->get_path_vec(output, timesteps);
+  }
+  if (character != ROOT_) {
     output.push_back(character);
     timesteps.push_back(timestep);
-    return parent->get_path_vec(output, timesteps, stop, max_steps);
   }
+}
+
+PathTrie* PathTrie::get_prev_grapheme(std::vector<int>& output,
+                                      std::vector<int>& timesteps)
+{
+  PathTrie* stop = this;
+  if (character == ROOT_) {
+    return stop;
+  }
+  // Recursive call: recurse back until stop condition, then append data in
+  // correct order as we walk back down the stack in the lines below.
+  //FIXME: use Alphabet instead of hardcoding +1 here
+  if (!byte_is_codepoint_boundary(character + 1)) {
+    stop = parent->get_prev_grapheme(output, timesteps);
+  }
+  output.push_back(character);
+  timesteps.push_back(timestep);
+  return stop;
+}
+
+int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte)
+{
+  //FIXME: use Alphabet instead of hardcoding +1 here
+  if (byte_is_codepoint_boundary(character + 1)) {
+    *first_byte = (unsigned char)character + 1;
+    return 1;
+  }
+  if (parent != nullptr && parent->character != ROOT_) {
+    return 1 + parent->distance_to_codepoint_boundary(first_byte);
+  }
+  assert(false); // unreachable
+  return 0;
+}
+
+PathTrie* PathTrie::get_prev_word(std::vector<int>& output,
+                                  std::vector<int>& timesteps,
+                                  int space_id)
+{
+  PathTrie* stop = this;
+  if (character == space_id || character == ROOT_) {
+    return stop;
+  }
+  // Recursive call: recurse back until stop condition, then append data in
+  // correct order as we walk back down the stack in the lines below.
+  if (parent != nullptr) {
+    stop = parent->get_prev_word(output, timesteps, space_id);
+  }
+  output.push_back(character);
+  timesteps.push_back(timestep);
+  return stop;
 }
 
 void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
@@ -189,7 +232,7 @@ void PathTrie::print(const Alphabet& a) {
   std::string tr;
   printf("characters:\t ");
   for (PathTrie* el : chain) {
-    printf("%X ", el->character);
+    printf("%X ", (unsigned char)(el->character));
     if (el->character != ROOT_) {
       tr.append(a.StringFromLabel(el->character));
     }

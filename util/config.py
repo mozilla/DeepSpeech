@@ -10,7 +10,7 @@ from xdg import BaseDirectory as xdg
 from util.flags import FLAGS
 from util.gpu import get_available_gpus
 from util.logging import log_error
-from util.text import Alphabet
+from util.text import Alphabet, UTF8Alphabet
 
 class ConfigSingleton:
     _config = None
@@ -63,7 +63,10 @@ def initialize_globals():
     if not c.available_devices:
         c.available_devices = [c.cpu_device]
 
-    c.alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
+    if FLAGS.utf8:
+        c.alphabet = UTF8Alphabet()
+    else:
+        c.alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))
 
     # Geometric Constants
     # ===================

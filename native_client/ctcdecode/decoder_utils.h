@@ -59,11 +59,6 @@ std::vector<std::pair<size_t, float>> get_pruned_log_probs(
     double cutoff_prob,
     size_t cutoff_top_n);
 
-// Get beam search result from prefixes in trie tree
-std::vector<Output> get_beam_search_result(
-    const std::vector<PathTrie *> &prefixes,
-    size_t top_paths);
-
 // Functor for prefix comparsion
 bool prefix_compare(const PathTrie *x, const PathTrie *y);
 
@@ -81,20 +76,30 @@ size_t get_utf8_str_len(const std::string &str);
 std::vector<std::string> split_str(const std::string &s,
                                    const std::string &delim);
 
-/* Splits string into vector of strings representing
- * UTF-8 characters (not same as chars)
+/* Splits string into vector of UTF-8 byte sequences representing a single
+ * Unicode codepoint.
  */
-std::vector<std::string> split_utf8_str(const std::string &str);
+std::vector<std::string> split_into_codepoints(const std::string &str);
+
+/* Splits string into bytes.
+ */
+std::vector<std::string> split_into_bytes(const std::string &str);
 
 // Add a word in index to the dicionary of fst
 void add_word_to_fst(const std::vector<int> &word,
                      fst::StdVectorFst *dictionary);
 
+// Return whether a byte is a code point boundary (not a continuation byte).
+inline bool byte_is_codepoint_boundary(unsigned char c) {
+  // only continuation bytes have their most significant bits set to 10
+  return (c & 0xC0) != 0x80;
+}
+
 // Add a word in string to dictionary
 bool add_word_to_dictionary(
     const std::string &word,
     const std::unordered_map<std::string, int> &char_map,
-    bool add_space,
+    bool utf8,
     int SPACE_ID,
     fst::StdVectorFst *dictionary);
 #endif  // DECODER_UTILS_H
