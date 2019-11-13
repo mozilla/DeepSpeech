@@ -667,7 +667,18 @@ setup_pyenv_virtualenv()
     mkdir ${PYENV_ROOT}/versions/${version}/envs
     PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH virtualenv ${PYENV_ROOT}/versions/${version}/envs/${name}
   else
-    pyenv virtualenv ${version} ${name}
+    ls -hal "${PYENV_ROOT}/versions/"
+
+    # There could be a symlink when re-using cacche on macOS
+    # We don't care, let's just remove it
+    if [ -L "${PYENV_ROOT}/versions/${name}" ]; then
+      rm "${PYENV_ROOT}/versions/${name}"
+    fi
+
+    # Don't force-reinstall existing version
+    if [ ! -f "${PYENV_ROOT}/versions/${version}/envs/${name}/bin/activate" ]; then
+      pyenv virtualenv ${version} ${name}
+    fi
   fi
 }
 
