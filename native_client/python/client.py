@@ -8,6 +8,7 @@ import shlex
 import subprocess
 import sys
 import wave
+import json
 
 from deepspeech import Model, printVersions
 from timeit import default_timer as timer
@@ -31,6 +32,47 @@ def convert_samplerate(audio_path, desired_sample_rate):
 
 def metadata_to_string(metadata):
     return ''.join(item.character for item in metadata.items)
+
+def words_from_metadata(metadata):
+    word = ""
+    word_list = []
+    word_start_time = 0
+    # Loop through each character
+    for i in range(0, metadata.num_items):
+        item = metadata.items[i]
+        # Append character to word if it's not a space
+        if item.character != " ":
+            word = word + item.character
+        # Word boundary is either a space or the last character in the array
+        if item.character == " " or i == metadata.num_items - 1:
+            word_duration = item.start_time - word_start_time
+
+            if word_duration < 0:
+                word_duration = 0
+
+            each_word = dict()
+            each_word["word"] = word
+            each_word["start_time "] = round(word_start_time, 4)
+            each_word["duration"] = round(word_duration, 4)
+
+            word_list.append(each_word)
+            # Reset
+            word = ""
+            word_start_time = 0
+        else:
+            if len(word) == 1:
+                # Log the start time of the new word
+                word_start_time = item.start_time
+
+    return word_list
+
+
+def metadata_json_output(metadata):
+	json_result=dict()
+	json_result["words"] = words_from_metadata(metadata)
+	json_result["confidence"]=metadata.confidence
+	return json.dumps(json_result)
+	
 
 
 class VersionAction(argparse.Action):
@@ -62,6 +104,8 @@ def main():
                         help='Print version and exits')
     parser.add_argument('--extended', required=False, action='store_true',
                         help='Output string from extended metadata')
+	parser.add_argument('--json', required=False, action='store_false',
+                        help='Output json from metadata with timestamp of each word')
     args = parser.parse_args()
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
@@ -94,6 +138,8 @@ def main():
     inference_start = timer()
     if args.extended:
         print(metadata_to_string(ds.sttWithMetadata(audio)))
+	if args.json:
+		print(metadata_json_output(ds.sttWithMetadata(audio)))
     else:
         print(ds.stt(audio))
     inference_end = timer() - inference_start
