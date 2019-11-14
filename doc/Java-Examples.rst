@@ -7,7 +7,7 @@ Creating a model instance and loading model
 .. literalinclude:: ../native_client/java/app/src/main/java/org/mozilla/deepspeech/DeepSpeechActivity.java
    :language: java
    :linenos:
-   :lines: 55
+   :lines: 54
 
 Performing inference
 --------------------
@@ -15,7 +15,7 @@ Performing inference
 .. literalinclude:: ../native_client/java/app/src/main/java/org/mozilla/deepspeech/DeepSpeechActivity.java
    :language: java
    :linenos:
-   :lines: 103
+   :lines: 102
 
 Full source code
 ----------------

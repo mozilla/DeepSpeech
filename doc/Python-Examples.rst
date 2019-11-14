@@ -7,7 +7,7 @@ Creating a model instance and loading model
 .. literalinclude:: ../native_client/python/client.py
    :language: python
    :linenos:
-   :lines: 80, 87
+   :lines: 69, 78
 
 Performing inference
 --------------------
@@ -15,7 +15,7 @@ Performing inference
 .. literalinclude:: ../native_client/python/client.py
    :language: python
    :linenos:
-   :lines: 104-107
+   :lines: 95-98
 
 Full source code
 ----------------
