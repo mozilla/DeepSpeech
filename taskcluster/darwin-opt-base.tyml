@@ -92,9 +92,9 @@ payload:
         export HOMEBREW_NO_AUTO_UPDATE=1 &&
         env &&
         trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-        mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ &&
-        mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ &&
-        mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ &&
+        (mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ || true) &&
+        (mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ || true) &&
+        (mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ || true) &&
         cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
         exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
         (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
