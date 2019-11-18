@@ -8,15 +8,15 @@ from functools import partial
 import numpy as np
 import pandas
 import tensorflow as tf
-import datetime
 
 from tensorflow.python.ops import gen_audio_ops as contrib_audio
 
 from util.config import Config
-from util.logging import log_error
 from util.text import text_to_char_array
 from util.flags import FLAGS
 from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
+from util.audio import read_frames_from_file, vad_split, DEFAULT_FORMAT
+
 
 def read_csvs(csv_files):
     sets = []
@@ -133,6 +133,46 @@ def create_dataset(csvs, batch_size, cache_path='', train_phase=False):
                       .prefetch(num_gpus))
 
     return dataset
+
+
+def split_audio_file(audio_path,
+                     audio_format=DEFAULT_FORMAT,
+                     batch_size=1,
+                     aggressiveness=3,
+                     outlier_duration_ms=10000,
+                     outlier_batch_size=1):
+    sample_rate, _, sample_width = audio_format
+    multiplier = 1.0 / (1 << (8 * sample_width - 1))
+
+    def generate_values():
+        frames = read_frames_from_file(audio_path)
+        segments = vad_split(frames, aggressiveness=aggressiveness)
+        for segment in segments:
+            segment_buffer, time_start, time_end = segment
+            samples = np.frombuffer(segment_buffer, dtype=np.int16)
+            samples = samples * multiplier
+            samples = np.expand_dims(samples, axis=1)
+            yield time_start, time_end, samples
+
+    def to_mfccs(time_start, time_end, samples):
+        features, features_len = samples_to_mfccs(samples, sample_rate)
+        return time_start, time_end, features, features_len
+
+    def create_batch_set(bs, criteria):
+        return (tf.data.Dataset
+                .from_generator(generate_values, output_types=(tf.int32, tf.int32, tf.float32))
+                .map(to_mfccs, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+                .filter(criteria)
+                .padded_batch(bs, padded_shapes=([], [], [None, Config.n_input], [])))
+
+    nds = create_batch_set(batch_size,
+                           lambda start, end, f, fl: end - start <= int(outlier_duration_ms))
+    ods = create_batch_set(outlier_batch_size,
+                           lambda start, end, f, fl: end - start > int(outlier_duration_ms))
+    dataset = nds.concatenate(ods)
+    dataset = dataset.prefetch(len(Config.available_devices))
+    return dataset
+
 
 def secs_to_hours(secs):
     hours, remainder = divmod(secs, 3600)
