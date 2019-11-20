@@ -394,7 +394,7 @@ def log_grads_and_vars(grads_and_vars):
         log_variable(variable, gradient=gradient)
 
 
-def try_loading(session, saver, checkpoint_filename, caption, load_step=True):
+def try_loading(session, saver, checkpoint_filename, caption, load_step=True, log_success=True):
     try:
         checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir, checkpoint_filename)
         if not checkpoint:
@@ -403,8 +403,10 @@ def try_loading(session, saver, checkpoint_filename, caption, load_step=True):
         saver.restore(session, checkpoint_path)
         if load_step:
             restored_step = session.run(tfv1.train.get_global_step())
-            log_info('Restored variables from %s checkpoint at %s, step %d' % (caption, checkpoint_path, restored_step))
-        else:
+            if log_success:
+                log_info('Restored variables from %s checkpoint at %s, step %d' %
+                         (caption, checkpoint_path, restored_step))
+        elif log_success:
             log_info('Restored variables from %s checkpoint at %s' % (caption, checkpoint_path))
         return True
     except tf.errors.InvalidArgumentError as e:

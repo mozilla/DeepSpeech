@@ -1,6 +1,5 @@
 import os
 import sox
-import time
 import wave
 import tempfile
 import collections
@@ -55,13 +54,6 @@ class AudioFile:
             self.open_file.close()
         _, self.tmp_file_path = tempfile.mkstemp(suffix='.wav')
         convert_audio(self.audio_path, self.tmp_file_path, file_type='wav', audio_format=self.audio_format)
-        retry_count = 10
-        while retry_count > 0 and not (os.path.exists(self.tmp_file_path) and os.path.getsize(self.tmp_file_path) > 0):
-            retry_count -= 1
-            if retry_count == 0:
-                raise RuntimeError('Unable to read temporary .wav file')
-            time.sleep(1)
-            print('Trying to read temporary .wav file...')
         if self.as_path:
             return self.tmp_file_path
         self.open_file = wave.open(self.tmp_file_path, 'r')
