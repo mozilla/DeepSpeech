@@ -11,6 +11,9 @@ absl-py
 # Requirements for building native_client files
 setuptools
 
+# Requirements for transcribe.py
+webrtcvad
+
 # Requirements for importers
 sox
 bs4
