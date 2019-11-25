@@ -66,15 +66,6 @@ namespace DeepSpeechClient.Interfaces
         /// </summary>
         unsafe void FreeStream();
 
-        /// <summary>
-        /// Free a DeepSpeech allocated string
-        /// </summary>
-        unsafe void FreeString(IntPtr intPtr);
-
-        /// <summary>
-        /// Free a DeepSpeech allocated Metadata struct
-        /// </summary>
-        unsafe void FreeMetadata(IntPtr intPtr);
 
         /// <summary>
         /// Creates a new streaming inference state.

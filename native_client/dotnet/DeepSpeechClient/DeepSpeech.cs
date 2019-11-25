@@ -209,18 +209,6 @@ namespace DeepSpeechClient
             NativeImp.DS_FreeStream(ref _streamingStatePP);
         }
 
-        /// <summary>
-        /// Free a DeepSpeech allocated string
-        /// </summary>
-        public unsafe void FreeString(IntPtr intPtr)
-        {
-            NativeImp.DS_FreeString(intPtr);
-        }
-
-        /// <summary>
-        /// Free a DeepSpeech allocated Metadata struct
-        /// </summary>
-        public unsafe void FreeMetadata(IntPtr intPtr)
         {
             NativeImp.DS_FreeMetadata(intPtr);
         }
