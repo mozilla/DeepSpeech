@@ -34,7 +34,7 @@ To install and use deepspeech all you have to do is:
    tar xvf audio-0.5.1.tar.gz
 
    # Transcribe an audio file
-   deepspeech --model deepspeech-0.5.1-models/output_graph.pbmm --lm deepspeech-0.5.1-models/lm.binary --trie deepspeech-0.5.1-models/trie --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.5.1-models/output_graph.pbmm --lm deepspeech-0.5.1-models/lm.binary --trie deepspeech-0.5.1-models/trie --alphabet deepspeech-0.5.1-models/alphabet.txt --audio audio/2830-3980-0043.wav
 
 A pre-trained English model is available for use and can be downloaded using `the instructions below <USING.rst#using-a-pre-trained-model>`_. Currently, only 16-bit, 16 kHz, mono-channel WAVE audio files are supported in the Python client. A package with some example audio files is available for download in our `release notes <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
 
