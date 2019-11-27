@@ -72,7 +72,7 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
   * `Third party bindings <USING.rst#third-party-bindings>`_
 
 
-* `Trying out DeepSpeech with examples <examples/EXAMPLES.rst>`_
+* `Trying out DeepSpeech with examples <examples/README.rst>`_
 
   * `Microphone VAD streaming  <examples/mic_vad_streaming/README.rst>`_
   
