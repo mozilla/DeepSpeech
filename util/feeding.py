@@ -94,7 +94,7 @@ def to_sparse_tuple(sequence):
     return indices, sequence, shape
 
 
-def create_dataset(csvs, batch_size, cache_path='', train_phase=False):
+def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_phase=False):
     df = read_csvs(csvs)
     df.sort_values(by='wav_filesize', inplace=True)
 
@@ -126,7 +126,7 @@ def create_dataset(csvs, batch_size, cache_path='', train_phase=False):
                                               output_types=(tf.string, (tf.int64, tf.int32, tf.int64)))
                               .map(process_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE))
 
-    if cache_path is not None:
+    if enable_cache:
         dataset = dataset.cache(cache_path)
 
     dataset = (dataset.window(batch_size, drop_remainder=True).flat_map(batch_fn)
