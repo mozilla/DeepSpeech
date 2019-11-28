@@ -37,6 +37,7 @@ then:
       - $let:
           dockerfile: { $eval: strip(str(build.dockerfile)) }
         in: >
+          apt-get -qq -y remove --purge ubuntu-advantage-tools &&
           ${aptEc2Mirrors} &&
           apt-get -qq update && apt-get -qq -y install git wget pkg-config apt-transport-https ca-certificates curl software-properties-common &&
           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - &&
