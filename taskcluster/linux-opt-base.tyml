@@ -47,6 +47,7 @@ then:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
           extraSystemConfig: { $eval: strip(str(build.system_config)) }
         in: >
+          apt-get -qq -y remove --purge ubuntu-advantage-tools &&
           ${aptEc2Mirrors} &&
           apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
