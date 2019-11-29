@@ -48,7 +48,7 @@ namespace DeepSpeechClient
                ref IntPtr** retval);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern void DS_FreeStream(ref IntPtr** aSctx);
+        internal static unsafe extern void DS_FreeStream(IntPtr** aSctx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern void DS_FreeMetadata(IntPtr metadata);
