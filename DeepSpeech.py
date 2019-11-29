@@ -433,7 +433,8 @@ def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               cache_path=FLAGS.feature_cache if do_cache_dataset else None,
+                               enable_cache=FLAGS.feature_cache and do_cache_dataset,
+                               cache_path=FLAGS.feature_cache,
                                train_phase=True)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
