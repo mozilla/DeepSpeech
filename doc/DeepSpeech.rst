@@ -21,7 +21,7 @@ Let a single utterance :math:`x` and label :math:`y` be sampled from a training 
 Each utterance, :math:`x^{(i)}` is a time-series of length :math:`T^{(i)}`
 where every time-slice is a vector of audio features,
 :math:`x^{(i)}_t` where :math:`t=1,\ldots,T^{(i)}`.
-We use MFCC coefficients as our features; so :math:`x^{(i)}_{t,p}` denotes the :math:`p`-th MFCC feature
+We use MFCC's as our features; so :math:`x^{(i)}_{t,p}` denotes the :math:`p`-th MFCC feature
 in the audio frame at time :math:`t`. The goal of our RNN is to convert an input
 sequence :math:`x` into a sequence of character probabilities for the transcription
 :math:`y`, with :math:`\hat{y}_t =\mathbb{P}(c_t \mid x)`,

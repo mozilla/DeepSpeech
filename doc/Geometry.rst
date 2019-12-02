@@ -3,13 +3,6 @@ Geometric Constants
 
 This is about several constants related to the geometry of the network.
 
-n_steps
--------
-The network views each speech sample as a sequence of time-slices :math:`x^{(i)}_t` of
-length :math:`T^{(i)}`. As the speech samples vary in length, we know that :math:`T^{(i)}`
-need not equal :math:`T^{(j)}` for :math:`i \ne j`. For each batch, RNN in TensorFlow needs
-to know ``n_steps`` which is the maximum :math:`T^{(i)}` for the batch.
-
 n_input
 -------
 Each of the at maximum ``n_steps`` vectors is a vector of MFCC features of a
