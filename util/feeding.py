@@ -14,7 +14,7 @@ from tensorflow.python.ops import gen_audio_ops as contrib_audio
 from util.config import Config
 from util.text import text_to_char_array
 from util.flags import FLAGS
-from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
+from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up, augment_sparse_warp
 from util.audio import read_frames_from_file, vad_split, DEFAULT_FORMAT
 
 
@@ -57,6 +57,8 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
 
         if FLAGS.augmentation_speed_up_std > 0:
             spectrogram = augment_speed_up(spectrogram, speed_std=FLAGS.augmentation_speed_up_std)
+
+        # spectrogram = augment_sparse_warp(spectrogram)
 
     mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
