@@ -5,7 +5,7 @@ Building DeepSpeech Binaries
 If you'd like to build the DeepSpeech binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
 
-* `Mozilla's TensorFlow ``r1.14`` branch <https://github.com/mozilla/tensorflow/tree/r1.14>`_
+* `Mozilla's TensorFlow r1.14 branch <https://github.com/mozilla/tensorflow/tree/r1.14>`_
 * `General TensorFlow requirements <https://www.tensorflow.org/install/install_sources>`_
 * `libsox <https://sourceforge.net/projects/sox/>`_
 
