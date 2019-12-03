@@ -17,10 +17,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
-
 import tensorflow as tf
-from tensorflow.compat import v1 as tfv1
+import tensorflow.compat.v1 as tfv1
+from tensorflow.compat import dimension_value
 from tensorflow.contrib.image.python.ops import dense_image_warp
 from tensorflow.contrib.image.python.ops import interpolate_spline
 
@@ -29,31 +28,43 @@ from tensorflow.python.framework import ops
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import array_ops
 
+def _to_float32(value):
+    return tf.cast(value, tf.float32)
+
+def _to_int32(value):
+    return tf.cast(value, tf.int32)
 
 def _get_grid_locations(image_height, image_width):
     """Wrapper for np.meshgrid."""
+    tfv1.assert_type(image_height, tf.int32)
+    tfv1.assert_type(image_width, tf.int32)
 
-    y_range = np.linspace(0, image_height - 1, image_height)
-    x_range = np.linspace(0, image_width - 1, image_width)
-    y_grid, x_grid = np.meshgrid(y_range, x_range, indexing='ij')
-    return np.stack((y_grid, x_grid), -1)
+    y_range = tf.range(image_height)
+    x_range = tf.range(image_width)
+    y_grid, x_grid = tf.meshgrid(y_range, x_range, indexing='ij')
+    return tf.stack((y_grid, x_grid), -1)
 
 
-def _expand_to_minibatch(np_array, batch_size):
+def _expand_to_minibatch(tensor, batch_size):
     """Tile arbitrarily-sized np_array to include new batch dimension."""
-    tiles = [batch_size] + [1] * np_array.ndim
-    return np.tile(np.expand_dims(np_array, 0), tiles)
+    ndim = tf.size(tf.shape(tensor))
+    ones = tf.ones((ndim,), tf.int32)
+
+    tiles = tf.concat(([batch_size], ones), 0)
+    return tf.tile(tf.expand_dims(tensor, 0), tiles)
 
 
 def _get_boundary_locations(image_height, image_width, num_points_per_edge):
     """Compute evenly-spaced indices along edge of image."""
-    y_range = np.linspace(0, image_height - 1, num_points_per_edge + 2)
-    x_range = np.linspace(0, image_width - 1, num_points_per_edge + 2)
-    ys, xs = np.meshgrid(y_range, x_range, indexing='ij')
-    is_boundary = np.logical_or(
-        np.logical_or(xs == 0, xs == image_width - 1),
-        np.logical_or(ys == 0, ys == image_height - 1))
-    return np.stack([ys[is_boundary], xs[is_boundary]], axis=-1)
+    image_height_end = _to_float32(tf.math.subtract(image_height, 1))
+    image_width_end = _to_float32(tf.math.subtract(image_width, 1))
+    y_range = tf.linspace(0.0, image_height_end, num_points_per_edge + 2)
+    x_range = tf.linspace(0.0, image_height_end, num_points_per_edge + 2)
+    ys, xs = tf.meshgrid(y_range, x_range, indexing='ij')
+    is_boundary = tf.logical_or(
+        tf.logical_or(tf.equal(xs, 0.0), tf.equal(xs, image_width_end)),
+        tf.logical_or(tf.equal(ys, 0.0), tf.equal(ys, image_height_end)))
+    return tf.stack([tf.boolean_mask(ys, is_boundary), tf.boolean_mask(xs, is_boundary)], axis=-1)
 
 
 def _add_zero_flow_controls_at_boundary(control_point_locations,
@@ -79,25 +90,25 @@ def _add_zero_flow_controls_at_boundary(control_point_locations,
       merged_control_point_flows: augmented set of control point flows
     """
 
-    batch_size = tensor_shape.dimension_value(control_point_locations.shape[0])
+    batch_size = dimension_value(tf.shape(control_point_locations)[0])
 
     boundary_point_locations = _get_boundary_locations(image_height, image_width,
                                                        boundary_points_per_edge)
+    boundary_point_shape = tf.shape(boundary_point_locations)
+    boundary_point_flows = tf.zeros([boundary_point_shape[0], 2])
 
-    boundary_point_flows = np.zeros([boundary_point_locations.shape[0], 2])
-
+    minbatch_locations = _expand_to_minibatch(boundary_point_locations, batch_size)
     type_to_use = control_point_locations.dtype
-    boundary_point_locations = constant_op.constant(
-        _expand_to_minibatch(boundary_point_locations, batch_size),
-        dtype=type_to_use)
+    boundary_point_locations = tf.cast(minbatch_locations, type_to_use)
 
-    boundary_point_flows = constant_op.constant(
-        _expand_to_minibatch(boundary_point_flows, batch_size), dtype=type_to_use)
+    minbatch_flows = _expand_to_minibatch(boundary_point_flows, batch_size)
 
-    merged_control_point_locations = array_ops.concat(
+    boundary_point_flows = tf.cast(minbatch_flows, type_to_use)
+
+    merged_control_point_locations = tf.concat(
         [control_point_locations, boundary_point_locations], 1)
 
-    merged_control_point_flows = array_ops.concat(
+    merged_control_point_flows = tf.concat(
         [control_point_flows, boundary_point_flows], 1)
 
     return merged_control_point_locations, merged_control_point_flows
@@ -173,17 +184,20 @@ def sparse_image_warp(image,
     boundary_points_per_edge = num_boundary_points - 1
 
     with ops.name_scope(name):
-        batch_size, image_height, image_width, _ = image.get_shape().as_list()
+        image_shape = tf.shape(image)
+        batch_size, image_height, image_width = image_shape[0], image_shape[1], image_shape[2]
 
         # This generates the dense locations where the interpolant
         # will be evaluated.
         grid_locations = _get_grid_locations(image_height, image_width)
 
-        flattened_grid_locations = np.reshape(grid_locations,
-                                              [image_height * image_width, 2])
+        flattened_grid_locations = tf.reshape(grid_locations,
+                                              [tf.multiply(image_height, image_width), 2])
 
-        flattened_grid_locations = constant_op.constant(
-            _expand_to_minibatch(flattened_grid_locations, batch_size), image.dtype)
+        # flattened_grid_locations = constant_op.constant(
+        #     _expand_to_minibatch(flattened_grid_locations, batch_size), image.dtype)
+        flattened_grid_locations = _expand_to_minibatch(flattened_grid_locations, batch_size)
+        flattened_grid_locations = tf.cast(flattened_grid_locations, dtype=image.dtype)
 
         if clamp_boundaries:
             (dest_control_point_locations,

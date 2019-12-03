@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow.compat.v1 as tfv1
 from util.sparse_image_warp import sparse_image_warp
 
 def augment_freq_time_mask(mel_spectrogram,
@@ -83,54 +84,42 @@ def augment_dropout(spectrogram,
     return tf.nn.dropout(spectrogram, rate=1-keep_prob)
 
 
-def augment_sparse_warp(spectrogram: tf.Tensor, time_warping_para=80):
-    """Spec augmentation Calculation Function.
-    'SpecAugment' have 3 steps for audio data augmentation.
-    first step is time warping using Tensorflow's image_sparse_warp function.
-    Second step is frequency masking, last step is time masking.
-    # Arguments:
-      mel_spectrogram(numpy array): audio file path of you want to warping and masking.
-      time_warping_para(float): Augmentation parameter, "time warp parameter W".
-        If none, default = 80 for LibriSpeech.
-    # Returns
-      mel_spectrogram(numpy array): warped and masked mel spectrogram.
-    """
-    if spectrogram.get_shape().ndims == 2:
-        spectrogram = tf.reshape(spectrogram, shape=[1, -1, spectrogram.shape[1], 1])
-    elif spectrogram.get_shape().ndims == 3:
-        spectrogram = tf.reshape(spectrogram, shape=[spectrogram.shape[0], -1, spectrogram.shape[2], 1])
-    assert spectrogram.get_shape().ndims == 4
-    fbank_size = tf.shape(spectrogram)
-    n, v = fbank_size[1], fbank_size[2]
+def augment_sparse_warp(spectrogram: tf.Tensor, time_warping_para=80, interpolation_order=2, regularization_weight=0.0, num_boundary_points=1):
 
-    # Step 1 : Time warping
-    # Image warping control point setting.
-    # Source
-    # radnom point along the time axis
-    pt = tf.random.uniform([], time_warping_para, n -
-                           time_warping_para, tf.int32)
-    src_ctr_pt_freq = tf.range(tf.floordiv(v, 2))  # control points on freq-axis
-    # control points on time-axis
-    src_ctr_pt_time = tf.ones_like(src_ctr_pt_freq) * pt
-    src_ctr_pts = tf.stack((src_ctr_pt_time, src_ctr_pt_freq), -1)
-    src_ctr_pts = tf.cast(src_ctr_pts, dtype=tf.float32)
+    if spectrogram.get_shape().ndims == 3:
+        spectrogram = tf.expand_dims(spectrogram, -1)
+    elif spectrogram.get_shape().ndims == 2:
+        spectrogram = tf.expand_dims(tf.expand_dims(spectrogram, 0), -1)
+        # spectrogram shape: (1, time steps, freq, 1)
 
-    # Destination
-    w = tf.random.uniform([], -time_warping_para,
-                          time_warping_para, tf.int32)  # distance
-    dest_ctr_pt_freq = src_ctr_pt_freq
-    dest_ctr_pt_time = src_ctr_pt_time + w
-    dest_ctr_pts = tf.stack((dest_ctr_pt_time, dest_ctr_pt_freq), -1)
-    dest_ctr_pts = tf.cast(dest_ctr_pts, dtype=tf.float32)
+    spec_shape = tf.shape(spectrogram)
+    tau, freq_size = spec_shape[1], spec_shape[2] # batch_size must be 1
+    time_warping_para = tf.math.minimum(tau, tf.math.floordiv(tau, 2)) # to protect short audio
 
+    mid_tau = tf.math.floordiv(tau, 2)
+    mid_freq = tf.math.floordiv(freq_size, 2)
+    left_mid_point = [0, mid_freq]
+    right_mid_point = [tau, mid_freq]
+
+    time_warping_para = tf.math.minimum(time_warping_para, tf.math.floordiv(tau, 2))
+    random_dest_time_point = tfv1.random_uniform(
+        [], time_warping_para, tau - time_warping_para, tf.int32)
     # warp
-    source_control_point_locations = tf.expand_dims(
-        src_ctr_pts, 0)  # (1, v//2, 2)
-    dest_control_point_locations = tf.expand_dims(
-        dest_ctr_pts, 0)  # (1, v//2, 2)
+    source_control_point_locations = tf.cast([[
+        left_mid_point,
+        [mid_tau, mid_freq],
+        right_mid_point
+    ]], tf.float32)
+    dest_control_point_locations = tf.cast([[
+        left_mid_point,
+        [random_dest_time_point, mid_freq],
+        right_mid_point
+    ]], tf.float32)
 
-    print(spectrogram.shape)
     warped_image, _ = sparse_image_warp(spectrogram,
-                                        source_control_point_locations,
-                                        dest_control_point_locations)
-    return warped_image
+                                        source_control_point_locations=source_control_point_locations,
+                                        dest_control_point_locations=dest_control_point_locations,
+                                        interpolation_order=interpolation_order,
+                                        regularization_weight=regularization_weight,
+                                        num_boundary_points=num_boundary_points)
+    return tf.reshape(warped_image, shape=(1, -1, freq_size))
