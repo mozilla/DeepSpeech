@@ -90,7 +90,7 @@ def augment_sparse_warp(spectrogram, time_warping_para=80, interpolation_order=2
 
     # to protect short audio
     time_warping_para = tf.math.minimum(
-        time_warping_para, tf.math.floordiv(tau, 2))
+        time_warping_para, tf.math.subtract(tf.math.floordiv(tau, 2), 1))
 
     mid_tau = tf.math.floordiv(tau, 2)
     mid_freq = tf.math.floordiv(freq_size, 2)
