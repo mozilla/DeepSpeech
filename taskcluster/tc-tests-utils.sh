@@ -55,7 +55,7 @@ model_name="$(basename "${model_source}")"
 model_name_mmap="$(basename -s ".pb" "${model_source}").pbmm"
 model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.16:ucs2 2.7.16:ucs4 3.4.10:ucs4 3.5.7:ucs4 3.6.8:ucs4 3.7.3:ucs4 3.8.0:ucs4}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.16:ucs2 2.7.16:ucs4 3.5.7:ucs4 3.6.8:ucs4 3.7.3:ucs4 3.8.0:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.17.1 7.10.1 8.16.0 9.11.2 10.16.0 11.15.0 12.5.0 13.0.1}
 SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-1.6.18 1.7.16 1.8.8 2.0.18 3.0.16 3.1.11 4.0.3 4.1.5 4.2.5 5.0.6 6.0.11 7.0.1 7.1.2}
 
@@ -252,12 +252,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
+  assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
+  assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
 }
 
 assert_correct_warning_upsampling()
@@ -435,7 +435,7 @@ run_prod_concurrent_stream_tests()
   output2=$(echo "${output}" | tail -n 1)
 
   assert_correct_ldc93s1_prodmodel "${output1}" "${status}"
-  assert_correct_inference "${output2}" "she was ars re else are e he a" "${status}"
+  assert_correct_inference "${output2}" "we must find a new home in the stars" "${status}"
 }
 
 run_prod_inference_tests()
