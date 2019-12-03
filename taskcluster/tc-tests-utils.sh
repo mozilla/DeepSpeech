@@ -252,12 +252,12 @@ assert_correct_multi_ldc93s1()
 
 assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
+  assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
 }
 
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
+  assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
 }
 
 assert_correct_warning_upsampling()
@@ -435,7 +435,7 @@ run_prod_concurrent_stream_tests()
   output2=$(echo "${output}" | tail -n 1)
 
   assert_correct_ldc93s1_prodmodel "${output1}" "${status}"
-  assert_correct_inference "${output2}" "she was ars re else are e he a" "${status}"
+  assert_correct_inference "${output2}" "we must find a new home in the stars" "${status}"
 }
 
 run_prod_inference_tests()
