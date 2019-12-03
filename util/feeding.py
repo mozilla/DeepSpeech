@@ -66,8 +66,6 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
         if FLAGS.augmentation_speed_up_std > 0:
             spectrogram = augment_speed_up(spectrogram, speed_std=FLAGS.augmentation_speed_up_std)
 
-        # spectrogram = augment_sparse_warp(spectrogram)
-
     mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
 

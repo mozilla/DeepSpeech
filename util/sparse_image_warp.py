@@ -13,6 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 """Image warping using sparse flow defined at control points."""
+
+# The following code is from: https://github.com/tensorflow/tensorflow/blob/v1.14.0/tensorflow/contrib/image/python/ops/sparse_image_warp.py
+# But refactored for dynamic tensor shape compatibility
+# The core idea is to replace every numpy implementation with tensorflow implementation
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -23,9 +28,7 @@ from tensorflow.compat import dimension_value
 from tensorflow.contrib.image.python.ops import dense_image_warp
 from tensorflow.contrib.image.python.ops import interpolate_spline
 
-from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import ops
-from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import array_ops
 
 def _to_float32(value):
