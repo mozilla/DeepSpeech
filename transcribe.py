@@ -11,6 +11,7 @@ import tensorflow.compat.v1.logging as tflogging
 tflogging.set_verbosity(tflogging.ERROR)
 import logging
 logging.getLogger('sox').setLevel(logging.ERROR)
+import glob
 
 from multiprocessing import Process, cpu_count
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
@@ -76,13 +77,14 @@ def transcribe_file(audio_path, tlog_path):
                 json.dump(transcripts, tlog_file, default=float)
 
 
-def transcribe_many(path_pairs):
-    pbar = create_progressbar(prefix='Transcribing files | ', max_value=len(path_pairs)).start()
-    for i, (src_path, dst_path) in enumerate(path_pairs):
-        p = Process(target=transcribe_file, args=(src_path, dst_path))
+def transcribe_many(wavs):
+    pbar = create_progressbar(prefix='Transcribing files | ', max_value=len(wavs)).start()
+    for i, wav in enumerate(wavs):
+        tlog = wav.replace('.wav','.tlog')
+        p = Process(target=transcribe_file, args=(wav, tlog))
         p.start()
         p.join()
-        log_progress('Transcribed file {} of {} from "{}" to "{}"'.format(i + 1, len(path_pairs), src_path, dst_path))
+        log_progress('Transcribed file {} of {} from "{}" to "{}"'.format(i + 1, len(wavs), wav, tlog))
         pbar.update(i)
     pbar.finish()
 
@@ -101,36 +103,33 @@ def resolve(base_path, spec_path):
 
 
 def main(_):
-    if not FLAGS.src:
+    if not FLAGS.src or not os.path.exists(FLAGS.src):
+        # path not given or non-existant
         fail('You have to specify which file or catalog to transcribe via the --src flag.')
-    src_path = os.path.abspath(FLAGS.src)
-    if not os.path.isfile(src_path):
-        fail('Path in --src not existing')
-    if src_path.endswith('.catalog'):
-        if FLAGS.dst:
-            fail('Parameter --dst not supported if --src points to a catalog')
-        catalog_dir = os.path.dirname(src_path)
-        with open(src_path, 'r') as catalog_file:
-            catalog_entries = json.load(catalog_file)
-        catalog_entries = [(resolve(catalog_dir, e['audio']), resolve(catalog_dir, e['tlog'])) for e in catalog_entries]
-        if any(map(lambda e: not os.path.isfile(e[0]), catalog_entries)):
-            fail('Missing source file(s) in catalog')
-        if not FLAGS.force and any(map(lambda e: os.path.isfile(e[1]), catalog_entries)):
-            fail('Destination file(s) from catalog already existing, use --force for overwriting')
-        if any(map(lambda e: not os.path.isdir(os.path.dirname(e[1])), catalog_entries)):
-            fail('Missing destination directory for at least one catalog entry')
-        transcribe_many(catalog_entries)
     else:
-        dst_path = os.path.abspath(FLAGS.dst) if FLAGS.dst else os.path.splitext(src_path)[0] + '.tlog'
-        if os.path.isfile(dst_path):
-            if FLAGS.force:
+        # path given and exists
+        src_path = os.path.abspath(FLAGS.src)
+        
+        if os.path.isfile(src_path):
+            # Transcribe one file
+            dst_path = os.path.abspath(FLAGS.dst) if FLAGS.dst else os.path.splitext(src_path)[0] + '.tlog'
+            if os.path.isfile(dst_path):
+                if FLAGS.force:
+                    transcribe_one(src_path, dst_path)
+                else:
+                    fail('Destination file "{}" already existing - use --force for overwriting'.format(dst_path), code=0)
+            elif os.path.isdir(os.path.dirname(dst_path)):
                 transcribe_one(src_path, dst_path)
             else:
-                fail('Destination file "{}" already existing - use --force for overwriting'.format(dst_path), code=0)
-        elif os.path.isdir(os.path.dirname(dst_path)):
-            transcribe_one(src_path, dst_path)
-        else:
-            fail('Missing destination directory')
+                fail('Missing destination directory')
+                
+        elif os.path.isdir(src_path):
+            # Transcribe all files in dir
+            if FLAGS.dst:
+                fail('Destination file not supported for batch decoding jobs.')
+            else:
+                wavs = glob.glob(src_path + "/*.wav")
+                transcribe_many(wavs)
 
 
 if __name__ == '__main__':
