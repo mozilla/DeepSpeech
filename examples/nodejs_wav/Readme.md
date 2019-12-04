@@ -3,8 +3,8 @@
 Download the pre-trained model (1.8GB):
 
 ```
-wget https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/deepspeech-0.4.1-models.tar.gz
-tar xvfz deepspeech-0.4.1-models.tar.gz
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.6.0/deepspeech-0.6.0-models.tar.gz
+tar xvfz deepspeech-0.6.0-models.tar.gz
 ```
 
 Edit references to models path if necessary:
