@@ -33,6 +33,8 @@ then:
       DEEPSPEECH_MODEL: "https://github.com/reuben/DeepSpeech/releases/download/v0.6.0-alpha.15/models.tar.gz"
       DEEPSPEECH_AUDIO: "https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/audio-0.4.1.tar.gz"
       PIP_DEFAULT_TIMEOUT: "60"
+      EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
+      EXAMPLES_CHECKOUT_TARGET: "master"
 
     command:
       - "/bin/bash"
@@ -44,7 +46,7 @@ then:
           apt-get -qq update && apt-get -qq -y upgrade && apt-get -qq -y install git sox sudo && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
           cd ${system.homedir.linux} &&
-          echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && wget -O - $DEEPSPEECH_MODEL | tar -C ~/DeepSpeech/ -xzvf - && wget -O - $DEEPSPEECH_AUDIO | tar -C ~/DeepSpeech/ -xzvf - " > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet $EXAMPLES_CLONE_URL ~/DeepSpeech/examples && cd ~/DeepSpeech/examples && git checkout --quiet $EXAMPLES_CHECKOUT_TARGET && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && wget -O - $DEEPSPEECH_MODEL | tar -C ~/DeepSpeech/ -xzvf - && wget -O - $DEEPSPEECH_AUDIO | tar -C ~/DeepSpeech/ -xzvf - " > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u ${system.username} /bin/bash /tmp/clone.sh &&
           sudo -H -u ${system.username} --preserve-env /bin/bash ${build.args.tests_cmdline}
 
