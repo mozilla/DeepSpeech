@@ -427,7 +427,8 @@ def train():
             FLAGS.augmentation_spec_dropout_keeprate < 1 or
             FLAGS.augmentation_freq_and_time_masking or
             FLAGS.augmentation_pitch_and_tempo_scaling or
-            FLAGS.augmentation_speed_up_std > 0):
+            FLAGS.augmentation_speed_up_std > 0 or
+            FLAGS.augmentation_sparse_warp):
         do_cache_dataset = False
 
     # Create training and validation datasets

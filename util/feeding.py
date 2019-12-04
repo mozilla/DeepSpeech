@@ -48,7 +48,8 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
                                               time_warping_para=FLAGS.augmentation_sparse_warp_time_warping_para,
                                               interpolation_order=FLAGS.augmentation_sparse_warp_interpolation_order,
                                               regularization_weight=FLAGS.augmentation_sparse_warp_regularization_weight,
-                                              num_boundary_points=FLAGS.augmentation_sparse_warp_num_boundary_points)
+                                              num_boundary_points=FLAGS.augmentation_sparse_warp_num_boundary_points,
+                                              num_control_points=FLAGS.augmentation_sparse_warp_num_control_points)
 
         if FLAGS.augmentation_freq_and_time_masking:
             spectrogram = augment_freq_time_mask(spectrogram,

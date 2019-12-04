@@ -30,6 +30,7 @@ def create_flags():
     f.DEFINE_float('augmentation_spec_dropout_keeprate', 1, 'keep rate of dropout augmentation on spectrogram (if 1, no dropout will be performed on spectrogram)')
 
     f.DEFINE_boolean('augmentation_sparse_warp', False, 'whether to use spectrogram sparse warp')
+    f.DEFINE_integer('augmentation_sparse_warp_num_control_points', 1, 'specify number of control points')
     f.DEFINE_integer('augmentation_sparse_warp_time_warping_para', 80, 'time_warping_para')
     f.DEFINE_integer('augmentation_sparse_warp_interpolation_order', 2, 'sparse_warp_interpolation_order')
     f.DEFINE_float('augmentation_sparse_warp_regularization_weight', 0.0, 'sparse_warp_regularization_weight')
