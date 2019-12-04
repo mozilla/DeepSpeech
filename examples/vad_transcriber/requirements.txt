@@ -1,3 +1,0 @@
-deepspeech==0.6.0
-webrtcvad
-pyqt5
