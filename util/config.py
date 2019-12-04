@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+import sys
 import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
 
@@ -99,14 +100,28 @@ def initialize_globals():
     c.n_hidden_6 = c.alphabet.size() + 1 # +1 for CTC blank label
 
     # Size of audio window in samples
+    if (FLAGS.feature_win_len * FLAGS.audio_sample_rate) % 1000 != 0:
+        log_error('--feature_win_len value ({}) in milliseconds ({}) multiplied '
+                  'by --audio_sample_rate value ({}) must be an integer value. Adjust '
+                  'your --feature_win_len value or resample your audio accordingly.'
+                  ''.format(FLAGS.feature_win_len, FLAGS.feature_win_len / 1000, FLAGS.audio_sample_rate))
+        sys.exit(1)
+
     c.audio_window_samples = FLAGS.audio_sample_rate * (FLAGS.feature_win_len / 1000)
 
     # Stride for feature computations in samples
+    if (FLAGS.feature_win_step * FLAGS.audio_sample_rate) % 1000 != 0:
+        log_error('--feature_win_step value ({}) in milliseconds ({}) multiplied '
+                  'by --audio_sample_rate value ({}) must be an integer value. Adjust '
+                  'your --feature_win_step value or resample your audio accordingly.'
+                  ''.format(FLAGS.feature_win_step, FLAGS.feature_win_step / 1000, FLAGS.audio_sample_rate))
+        sys.exit(1)
+
     c.audio_step_samples = FLAGS.audio_sample_rate * (FLAGS.feature_win_step / 1000)
 
     if FLAGS.one_shot_infer:
         if not os.path.exists(FLAGS.one_shot_infer):
             log_error('Path specified in --one_shot_infer is not a valid file.')
-            exit(1)
+            sys.exit(1)
 
     ConfigSingleton._config = c # pylint: disable=protected-access
