@@ -189,9 +189,6 @@ void DS_FeedAudioContent(StreamingState* aSctx,
 
 /**
  * @brief Compute the intermediate decoding of an ongoing streaming inference.
- *        This is an expensive process as the decoder implementation isn't
- *        currently capable of streaming, so it always starts from the beginning
- *        of the audio.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
