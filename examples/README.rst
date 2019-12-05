@@ -8,10 +8,10 @@ It is a good way to just try out DeepSpeech, without much knowledge on how DeepS
 
 * `Microphone VAD streaming  <mic_vad_streaming/README.rst>`_
   
-* `FFMPEG VAD streaming  <ffmpeg_vad_streaming/README.rst>`_
+* `FFMPEG VAD streaming  <ffmpeg_vad_streaming/README.MD>`_
   
-* `Net framework  <net_framework/README.rst>`_
+* `.NET framework  <net_framework/>`_
   
-* `Nodejs wav  <nodejs_wav/README.rst>`_
+* `Node.JS wav  <nodejs_wav/Readme.md>`_
   
-* `VAD transcriber  <vad_transcriber/README.rst>`_
+* `VAD transcriber  <vad_transcriber/>`_
