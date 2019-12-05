@@ -78,13 +78,13 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 
   * `Microphone VAD streaming  <examples/mic_vad_streaming/README.rst>`_
   
-  * `FFMPEG VAD streaming  <examples/ffmpeg_vad_streaming/README.rst>`_
+  * `FFMPEG VAD streaming  <examples/ffmpeg_vad_streaming/README.MD>`_
   
-  * `Net framework  <examples/net_framework/README.rst>`_
+  * `.NET framework  <examples/net_framework/>`_
   
-  * `Nodejs wav  <examples/nodejs_wav/README.rst>`_
+  * `Node.JS wav  <examples/nodejs_wav/Readme.md>`_
   
-  * `VAD transcriber  <examples/vad_transcriber/README.rst>`_
+  * `VAD transcriber  <examples/vad_transcriber/>`_
   
 * `Training your own Model <TRAINING.rst#training-your-own-model>`_
 
