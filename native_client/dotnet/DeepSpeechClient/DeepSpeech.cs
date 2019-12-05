@@ -172,8 +172,7 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
-        /// Computes the intermediate decoding of an ongoing streaming inference. This is an expensive process as the decoder implementation isn't
-        /// currently capable of streaming, so it always starts from the beginning of the audio.
+        /// Computes the intermediate decoding of an ongoing streaming inference.
         /// </summary>
         /// <returns>The STT intermediate result. The user is responsible for freeing the string.</returns>
         public unsafe string IntermediateDecode()

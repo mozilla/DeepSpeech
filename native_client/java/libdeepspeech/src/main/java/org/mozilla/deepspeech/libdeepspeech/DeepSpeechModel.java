@@ -114,9 +114,6 @@ public class DeepSpeechModel {
 
    /**
     * @brief Compute the intermediate decoding of an ongoing streaming inference.
-    *        This is an expensive process as the decoder implementation isn't
-    *        currently capable of streaming, so it always starts from the beginning
-    *        of the audio.
     *
     * @param ctx A streaming state pointer returned by createStream().
     *
