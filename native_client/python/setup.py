@@ -68,7 +68,7 @@ def main():
 
     setup(name=project_name,
           description='A library for running inference on a DeepSpeech model',
-          long_description=read('../../README.rst'),
+          long_description=read('README.rst'),
           long_description_content_type='text/x-rst; charset=UTF-8',
           author='Mozilla',
           version=project_version,
