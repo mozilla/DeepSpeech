@@ -4,7 +4,9 @@ build:
     # Make sure builds are ready
     - "linux-arm64-cpu-opt"
     - "darwin-amd64-cpu-opt"
+    - "darwin-amd64-tflite-opt"
     - "linux-amd64-cpu-opt"
+    - "linux-amd64-tflite-opt"
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
     - "node-package-gpu"
@@ -25,11 +27,14 @@ build:
   artifacts_deps:
     python:
       - "darwin-amd64-cpu-opt"
+      - "darwin-amd64-tflite-opt"
       - "linux-amd64-cpu-opt"
+      - "linux-amd64-tflite-opt"
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
       - "linux-arm64-cpu-opt"
       - "win-amd64-cpu-opt"
+      - "win-amd64-tflite-opt"
       - "win-amd64-gpu-opt"
     javascript:
       # GPU package
