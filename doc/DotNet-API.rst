@@ -15,6 +15,13 @@ DeepSpeech Class
    :project: deepspeech-dotnet
    :members:
 
+DeepSpeechStream Class
+----------------
+
+.. doxygenclass:: DeepSpeechClient::DeepSpeechStream
+   :project: deepspeech-dotnet
+   :members:
+
 ErrorCodes
 ----------
 

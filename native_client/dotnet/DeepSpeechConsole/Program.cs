@@ -53,16 +53,13 @@ namespace CSharpExamples
             const float LM_BETA = 1.85f;
 
             Stopwatch stopwatch = new Stopwatch();
-
-            using (IDeepSpeech sttClient = new DeepSpeech())
+            try
             {
-                try
+                Console.WriteLine("Loading model...");
+                stopwatch.Start();
+                using (IDeepSpeech sttClient = new DeepSpeech(model ?? "output_graph.pbmm",
+                    BEAM_WIDTH))
                 {
-                    Console.WriteLine("Loading model...");
-                    stopwatch.Start();
-                    sttClient.CreateModel(
-                        model ?? "output_graph.pbmm",
-                        BEAM_WIDTH);
                     stopwatch.Stop();
 
                     Console.WriteLine($"Model loaded - {stopwatch.Elapsed.Milliseconds} ms");
@@ -88,12 +85,14 @@ namespace CSharpExamples
                         string speechResult;
                         if (extended)
                         {
-                            Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer, Convert.ToUInt32(waveBuffer.MaxSize / 2));
+                            Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer,
+                                Convert.ToUInt32(waveBuffer.MaxSize / 2));
                             speechResult = MetadataToString(metaResult);
                         }
                         else
                         {
-                            speechResult = sttClient.SpeechToText(waveBuffer.ShortBuffer, Convert.ToUInt32(waveBuffer.MaxSize / 2));
+                            speechResult = sttClient.SpeechToText(waveBuffer.ShortBuffer,
+                                Convert.ToUInt32(waveBuffer.MaxSize / 2));
                         }
 
                         stopwatch.Stop();
@@ -104,10 +103,10 @@ namespace CSharpExamples
                     }
                     waveBuffer.Clear();
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }

@@ -18,20 +18,20 @@ namespace DeepSpeechWPF
 
             const int BEAM_WIDTH = 500;
 
-            //Register instance of DeepSpeech
-            DeepSpeechClient.DeepSpeech deepSpeechClient = new DeepSpeechClient.DeepSpeech();
             try
             {
-                deepSpeechClient.CreateModel("output_graph.pbmm", BEAM_WIDTH);
+                //Register instance of DeepSpeech
+                DeepSpeechClient.DeepSpeech deepSpeechClient =
+                    new DeepSpeechClient.DeepSpeech("output_graph.pbmm", BEAM_WIDTH);
+
+                SimpleIoc.Default.Register<IDeepSpeech>(() => deepSpeechClient);
+                SimpleIoc.Default.Register<MainWindowViewModel>();
             }
             catch (System.Exception ex)
             {
                 MessageBox.Show(ex.Message);
                 Current.Shutdown();
             }
-            
-            SimpleIoc.Default.Register<IDeepSpeech>(() => deepSpeechClient);
-            SimpleIoc.Default.Register<MainWindowViewModel>();
         }
 
         protected override void OnExit(ExitEventArgs e)
