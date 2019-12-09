@@ -1149,7 +1149,7 @@ do_deepspeech_python_build()
 {
   cd ${DS_DSDIR}
 
-  rename_to_gpu=$1
+  package_option=$1
 
   unset PYTHON_BIN_PATH
   unset PYTHONPATH
@@ -1169,8 +1169,10 @@ do_deepspeech_python_build()
   mkdir -p wheels
 
   SETUP_FLAGS=""
-  if [ "${rename_to_gpu}" = "--cuda" ]; then
+  if [ "${package_option}" = "--cuda" ]; then
     SETUP_FLAGS="--project_name deepspeech-gpu"
+  elif [ "${package_option}" = "--tflite" ]; then
+    SETUP_FLAGS="--project_name deepspeech-tflite"
   fi
 
   for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do

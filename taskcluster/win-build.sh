@@ -41,7 +41,11 @@ do_deepspeech_binary_build
 
 # Those are the versions available on NuGet.org
 export SUPPORTED_PYTHON_VERSIONS="3.5.4 3.6.7 3.7.1 3.8.0"
-do_deepspeech_python_build "${cuda}"
+if [ "${runtime}" = "tflite" ]; then
+  do_deepspeech_python_build "--tflite"
+else
+  do_deepspeech_python_build "${cuda}"
+fi
 
 do_deepspeech_nodejs_build "${cuda}"
 
