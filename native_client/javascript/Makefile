@@ -13,7 +13,7 @@ endif
 default: build
 
 clean:
-	rm -f deepspeech_wrap.cxx package.json README.rst
+	rm -f deepspeech_wrap.cxx package.json
 	rm -rf ./build/
 
 clean-npm-pack:
@@ -22,9 +22,6 @@ clean-npm-pack:
 
 really-clean: clean clean-npm-pack
 	rm -fr ./lib/
-
-README.rst:
-	cp ../../README.rst README.rst
 
 package.json: package.json.in
 	sed \
@@ -44,7 +41,7 @@ copy-deps: build
 node-wrapper: copy-deps build
 	$(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DIST_URL) package $(NODE_BUILD_VERBOSE)
 
-npm-pack: clean package.json README.rst index.js
+npm-pack: clean package.json index.js
 	npm install node-pre-gyp@0.13.x
 	npm pack $(NODE_BUILD_VERBOSE)
 
