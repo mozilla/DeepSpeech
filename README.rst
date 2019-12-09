@@ -52,7 +52,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    pip3 install deepspeech-gpu
 
    # Transcribe an audio file.
-   deepspeech --model deepspeech-0.6.0-models/output_graph.pbmm --lm deepspeech-0.6.0-models/lm.binary --trie deepspeech-0.6.0-models/trie --audio audio/2830-3980-0043.wav
+   deepspeech --alphabet data/alphabet.txt --model deepspeech-0.6.0-models/output_graph.pbmm --lm deepspeech-0.6.0-models/lm.binary --trie deepspeech-0.6.0-models/trie --audio audio/2830-3980-0043.wav
 
 Please ensure you have the required `CUDA dependencies <USING.rst#cuda-dependency>`_.
 
