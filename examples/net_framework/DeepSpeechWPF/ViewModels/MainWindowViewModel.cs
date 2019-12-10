@@ -4,7 +4,6 @@ using CSCore.CoreAudioAPI;
 using CSCore.SoundIn;
 using CSCore.Streams;
 using DeepSpeechClient.Interfaces;
-using DeepSpeechClient.Models;
 using GalaSoft.MvvmLight.CommandWpf;
 using Microsoft.Win32;
 using System;
@@ -59,12 +58,6 @@ namespace DeepSpeech.WPF.ViewModels
         #endregion
 
         #region Streaming
-
-        /// <summary>
-        /// Stream used to feed data into the acoustic model.
-        /// </summary>
-        private DeepSpeechStream _sttStream;
-
         /// <summary>
         /// Records the audio of the selected device.
         /// </summary>
@@ -315,7 +308,7 @@ namespace DeepSpeech.WPF.ViewModels
                 if (_bufferQueue.TryDequeue(out short[] buffer))
                 {
                     StreamingIsBusy = true;
-                    _sttClient.FeedAudioContent(_sttStream, buffer, Convert.ToUInt32(buffer.Length));
+                    _sttClient.FeedAudioContent(buffer, Convert.ToUInt32(buffer.Length));
                     StreamingIsBusy = false;
                 }
             }
@@ -393,7 +386,7 @@ namespace DeepSpeech.WPF.ViewModels
             {
                 await Task.Delay(90);
             }
-            Transcription = _sttClient.FinishStream(_sttStream);
+            Transcription = _sttClient.FinishStream();
             EnableStartRecord = true;
         }
 
@@ -402,7 +395,7 @@ namespace DeepSpeech.WPF.ViewModels
         /// </summary>
         private void StartRecording()
         {
-            _sttStream =_sttClient.CreateStream();
+            _sttClient.CreateStream();
             _audioCapture.Start();
             EnableStartRecord = false;
             EnableStopRecord = true;
