@@ -4,7 +4,7 @@ build:
   dependencies:
     - "linux-amd64-cpu-opt"
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/examples/nodejs_wav/test.sh"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/nodejs_wav/test.sh"
   metadata:
     name: "DeepSpeech examples: NodeJS WAV NodeJS v10.x"
     description: "DeepSpeech examples: NodeJS WAV NodeJS v10.x"

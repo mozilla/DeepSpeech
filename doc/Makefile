@@ -31,11 +31,15 @@ pip3:
 npm:
 	npm install jsdoc@3.6.3
 
-dist: html
-	cd $(BUILDDIR)/html/ && zip -r9 ../../html.zip *
+submodule:
+	git submodule update --init --remote
+
+# Add submodule update dependency to Sphinx's "html" target
+html: Makefile submodule pip3 npm doxygen-c doxygen-java doxygen-dotnet
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 dist: html
-	@cd $(BUILDDIR)/html/ && zip -r9 ../../html.zip *
+	cd $(BUILDDIR)/html/ && zip -r9 ../../html.zip *
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).

@@ -1,0 +1,4 @@
+[submodule "doc/examples"]
+	path = doc/examples
+	url = https://github.com/mozilla/DeepSpeech-examples.git
+	branch = master

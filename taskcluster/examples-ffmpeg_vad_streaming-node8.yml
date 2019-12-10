@@ -7,7 +7,7 @@ build:
     >
       apt-get -qq -y install ffmpeg
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/examples/ffmpeg_vad_streaming/test.sh"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/ffmpeg_vad_streaming/test.sh"
   metadata:
     name: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v8.x"
     description: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v8.x"

@@ -32,6 +32,7 @@ mkdir -p ${TASKCLUSTER_TMP_DIR} || true
 
 export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
+export DS_EXAMPLEDIR=${DS_ROOT_TASK}/DeepSpeech/examples
 
 export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
 
@@ -932,7 +933,7 @@ do_deepspeech_netframework_build()
 
 do_deepspeech_netframework_wpf_example_build()
 {
-  cd ${DS_DSDIR}/examples/net_framework
+  cd ${DS_EXAMPLEDIR}/net_framework
 
   # Setup dependencies
   nuget install DeepSpeechWPF/packages.config -OutputDirectory DeepSpeechWPF/packages/
