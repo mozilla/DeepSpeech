@@ -249,8 +249,8 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
 # (www.cs.toronto.edu/~fritz/absps/momentum.pdf) was used,
 # we will use the Adam method for optimization (http://arxiv.org/abs/1412.6980),
 # because, generally, it requires less fine-tuning.
-def create_optimizer():
-    optimizer = tfv1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate,
+def create_optimizer(learning_rate):
+    optimizer = tfv1.train.AdamOptimizer(learning_rate=learning_rate,
                                          beta1=FLAGS.beta1,
                                          beta2=FLAGS.beta2,
                                          epsilon=FLAGS.epsilon)
@@ -463,8 +463,14 @@ def train():
         rate: 0. for rate in dropout_rates
     }
 
+    # global_step is automagically incremented by the optimizer
+    global_step = tfv1.train.get_or_create_global_step()
+
+    # Learning rate with warm up
+    learning_rate = (tf.minimum(tf.cast(global_step+1, tf.float32), FLAGS.lr_warm_up) * FLAGS.learning_rate) / FLAGS.lr_warm_up
+
     # Building the graph
-    optimizer = create_optimizer()
+    optimizer = create_optimizer(learning_rate)
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
@@ -477,8 +483,6 @@ def train():
     avg_tower_gradients = average_gradients(gradients)
     log_grads_and_vars(avg_tower_gradients)
 
-    # global_step is automagically incremented by the optimizer
-    global_step = tfv1.train.get_or_create_global_step()
     apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
     # Summaries

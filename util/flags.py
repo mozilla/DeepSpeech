@@ -63,6 +63,7 @@ def create_flags():
     f.DEFINE_float('beta2', 0.999, 'beta 2 parameter of Adam optimizer')
     f.DEFINE_float('epsilon', 1e-8, 'epsilon parameter of Adam optimizer')
     f.DEFINE_float('learning_rate', 0.001, 'learning rate of Adam optimizer')
+    f.DEFINE_integer('lr_warm_up', 0, 'duration of learning rate warm up in steps. Set to 0 to disable.')
 
     # Batch sizes
 
