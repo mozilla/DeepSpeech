@@ -1571,9 +1571,12 @@ android_setup_emulator()
 
   avdmanager create avd --name "ds-pixel" --device 17 --package "system-images;${api_level};google_apis;${flavor}"
 
+  # Use xvfb because:
+  #  > emulator: INFO: QtLogger.cpp:68: Warning: could not connect to display  ((null):0, (null))
+
   # -accel on is needed otherwise it is too slow, but it will require KVM support exposed
   pushd ${ANDROID_SDK_HOME}
-    ./tools/emulator -verbose -avd ds-pixel -no-skin -no-audio -no-window -no-boot-anim -accel off &
+    xvfb-run ./tools/emulator -verbose -avd ds-pixel -no-skin -no-audio -no-window -no-boot-anim -accel off &
     emulator_rc=$?
     export ANDROID_DEVICE_EMULATOR=$!
   popd
