@@ -10,6 +10,7 @@ build:
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
     - "win-amd64-cpu-opt"
+    - "win-amd64-tflite-opt"
     - "win-amd64-gpu-opt"
   allowed:
     - "tag"
@@ -31,6 +32,7 @@ build:
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
       - "win-amd64-cpu-opt"
+      - "win-amd64-tflite-opt"
       - "win-amd64-gpu-opt"
       # - "linux-arm64-cpu-opt" Aarch64 packages are refused by upload.pypi.org
     nuget: []
