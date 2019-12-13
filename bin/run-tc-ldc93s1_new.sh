@@ -2,7 +2,7 @@
 
 set -xe
 
-ldc93s1_dir="./data/ldc93s1-tc"
+ldc93s1_dir="./data/smoke_test"
 ldc93s1_csv="${ldc93s1_dir}/ldc93s1.csv"
 
 epoch_count=$1
