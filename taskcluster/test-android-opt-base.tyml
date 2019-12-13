@@ -47,7 +47,7 @@ then:
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
-          apt-get -qq update && apt-get -qq -y install git gnupg pixz sox sudo wget unzip software-properties-common &&
+          apt-get -qq update && apt-get -qq -y install git gnupg pixz sox sudo wget unzip software-properties-common xvfb &&
           add-apt-repository --yes ppa:openjdk-r/ppa && apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y --force-yes install openjdk-8-jdk && java -version && update-ca-certificates -f &&
           ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
