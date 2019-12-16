@@ -49,7 +49,6 @@ def evaluate(test_csvs, create_model, try_loading):
     else:
         scorer = None
 
-    test_csvs = FLAGS.test_files.split(',')
     test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size, train_phase=False) for csv in test_csvs]
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(test_sets[0]),
                                                  tfv1.data.get_output_shapes(test_sets[0]),

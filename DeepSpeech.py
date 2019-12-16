@@ -23,10 +23,10 @@ from evaluate import evaluate
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph, strip_unused_lib
 from util.config import Config, initialize_globals
-from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
+from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features, read_csvs
 from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
-
+from util.finetune_lm_params import finetune_parabola, pick_lowest_param
 
 # Graph Creation
 # ==============
@@ -670,6 +670,68 @@ def train():
         log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
     log_debug('Session closed.')
 
+def finetune_lm_params():
+    tmp_csv_path = '/tmp/finetune.csv'
+    df = read_csvs(FLAGS.finetune_lm_csv_files.split(','))
+    n_sample = min(df.shape[0], FLAGS.finetune_lm_sampling_size)
+    df = df.sample(replace=False, n=n_sample)
+    df.to_csv(tmp_csv_path)
+
+    stats = []
+    for alpha in np.linspace(start=FLAGS.finetune_lm_alpha_min, stop=FLAGS.finetune_lm_alpha_max, num=FLAGS.finetune_lm_alpha_steps):
+        print('#### [FINETUNE LM] Test alpha = {} ####'.format(alpha))
+        FLAGS.lm_alpha = alpha
+        tfv1.reset_default_graph()
+        samples = evaluate([tmp_csv_path], create_model, try_loading)
+        for sample in samples:
+            stats.append({
+                'param': alpha,
+                'result': sample['wer'],
+            })
+
+    best_alpha = finetune_parabola(stats, FLAGS.finetune_lm_alpha_min, FLAGS.finetune_lm_alpha_max)
+    print('#### [FINETUNE LM] Set best alpha = {} ####'.format(best_alpha))
+    FLAGS.lm_alpha = best_alpha
+
+    stats = []
+    for beta in np.linspace(start=FLAGS.finetune_lm_beta_min, stop=FLAGS.finetune_lm_beta_max, num=FLAGS.finetune_lm_beta_steps):
+        print('#### [FINETUNE LM] Test beta = {} ####'.format(beta))
+        FLAGS.lm_beta = beta
+        tfv1.reset_default_graph()
+        samples = evaluate([tmp_csv_path], create_model, try_loading)
+        for sample in samples:
+            stats.append({
+                'param': beta,
+                'result': sample['wer'],
+            })
+    best_beta = pick_lowest_param(stats)
+    print('#### [FINETUNE LM] Set best beta = {} ####'.format(best_beta))
+    FLAGS.lm_beta = best_beta
+
+    stats = []
+    for alpha in np.linspace(start=FLAGS.finetune_lm_alpha_min, stop=FLAGS.finetune_lm_alpha_max, num=FLAGS.finetune_lm_alpha_steps):
+        print('#### [FINETUNE LM] Test alpha = {} ####'.format(alpha))
+        FLAGS.lm_alpha = alpha
+        tfv1.reset_default_graph()
+        samples = evaluate([tmp_csv_path], create_model, try_loading)
+        for sample in samples:
+            stats.append({
+                'param': alpha,
+                'result': sample['wer'],
+            })
+
+    best_alpha = finetune_parabola(stats, FLAGS.finetune_lm_alpha_min, FLAGS.finetune_lm_alpha_max)
+    print('#### [FINETUNE LM] Set best alpha = {} ####'.format(best_alpha))
+    FLAGS.lm_alpha = best_alpha
+
+    if FLAGS.finetune_output_file:
+        print('dump FINETUNE result at: {}'.format(FLAGS.finetune_output_file))
+        with open(FLAGS.finetune_output_file, 'w+') as file:
+            file.write('lm_alpha: {}\n'.format(best_alpha))
+            file.write('lm_beta: {}\n'.format(best_beta))
+
+    os.remove(tmp_csv_path)
+    return best_alpha, best_beta
 
 def test():
     samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
@@ -938,6 +1000,11 @@ def main(_):
         train()
 
     if FLAGS.test_files:
+        if FLAGS.finetune_lm_csv_files:
+            best_alpha, best_beta = finetune_lm_params()
+            print('#### [FINETUNE LM PARAMETERS] best alpha = {}, best beta = {} ####'.format(
+                best_alpha, best_beta
+            ))
         tfv1.reset_default_graph()
         test()
 

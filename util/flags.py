@@ -145,6 +145,18 @@ def create_flags():
     f.DEFINE_float('cutoff_prob', 1.0, 'only consider characters until this probability mass is reached. 1.0 = disabled.')
     f.DEFINE_integer('cutoff_top_n', 300, 'only process this number of characters sorted by probability mass for each time step. If bigger than alphabet size, disabled.')
 
+    # Fine Tune Decoder: tune alpha -> tune beta -> tune alpha
+
+    f.DEFINE_string('finetune_lm_csv_files', '', 'specify csv files to enable tunning lm parameters before test')
+    f.DEFINE_integer('finetune_lm_sampling_size', 1024, 'sampling audio from `train_files` to evaluate wer')
+    f.DEFINE_float('finetune_lm_alpha_min', 0.5, 'fit alpha as parabola curve, but constraint the minimum value')
+    f.DEFINE_float('finetune_lm_alpha_max', 2.0, 'fit alpha as parabola curve, but constraint the maximum value')
+    f.DEFINE_integer('finetune_lm_alpha_steps', 7, 'scan alpha from tune_lm_alpha_min to tune_lm_alpha_max by steps')
+    f.DEFINE_float('finetune_lm_beta_min', 0.5, 'pick lowest beta, but constraint the minimum value')
+    f.DEFINE_float('finetune_lm_beta_max', 2.0, 'pick lowest beta, but constraint the maximum value')
+    f.DEFINE_integer('finetune_lm_beta_steps', 7, 'scan alpha from tune_lm_beta_min to tune_lm_beta_max by steps')
+    f.DEFINE_string('finetune_output_file', 'data/lm/finetune.txt', 'path to a file to save best alphabet and beta')
+
     # Inference mode
 
     f.DEFINE_string('one_shot_infer', '', 'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
