@@ -9,6 +9,7 @@ import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
+
 def finetune_parabola(param_result_list, param_min, param_max):
     # input: <list>
     # param_result_list = [{
@@ -22,13 +23,15 @@ def finetune_parabola(param_result_list, param_min, param_max):
     # assume:
     #   result0 = C0 * param0^2 + C1 * param0 + C2
     #   result1 = C0 * param1^2 + C1 * param1 + C2
-    #   ...
+    #   .
+    #   .
+    #   .
     # X = [[param0^2, param0, 1], [param1^2, param1, 1], ...]
     # Y = [[result0], [result1], ...]
     # A = [[C0], [C1], [C2]]
     # XA = Y
     # if C0 > 0 => best_alpha = - C1 / 2 / C0
-    # if C0 < 0 => best_alpha = X[argmin(wer)]
+    # if C0 < 0 => best_alpha = X[argmin(result)]
     mat_x = []
     mat_y = []
     for param_result in param_result_list:
@@ -39,7 +42,7 @@ def finetune_parabola(param_result_list, param_min, param_max):
     c0 = mat_a[0, 0]
     c1 = mat_a[1, 0]
     if c0 <= 0:
-        print("#### [Fit Failed] it's not a ideal parabola, so just pick a lowest parameter ####")
+        print("[Fitting Failed] it's not a ideal valley parabola, so just pick a lowest parameter")
         return pick_lowest_param(param_result_list)
 
     # the parabola has minimum param

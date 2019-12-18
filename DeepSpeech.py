@@ -26,7 +26,8 @@ from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features, read_csvs
 from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
-from util.finetune_lm_params import finetune_parabola, pick_lowest_param
+from util.finetune_lm_params import finetune_parabola
+from util.evaluate_tools import wer_cer_batch
 
 # Graph Creation
 # ==============
@@ -671,7 +672,9 @@ def train():
     log_debug('Session closed.')
 
 def finetune_lm_params():
-    tmp_csv_path = '/tmp/finetune.csv'
+    original_alpha, original_beta = FLAGS.lm_alpha, FLAGS.lm_beta
+    csv_paths = FLAGS.finetune_lm_csv_files.split(',')
+    tmp_csv_path = os.path.join(os.path.dirname(csv_paths[0]), '__TMP_FINETUNE_SAMPLE__.csv')
     df = read_csvs(FLAGS.finetune_lm_csv_files.split(','))
     n_sample = min(df.shape[0], FLAGS.finetune_lm_sampling_size)
     df = df.sample(replace=False, n=n_sample)
@@ -679,7 +682,7 @@ def finetune_lm_params():
 
     stats = []
     for alpha in np.linspace(start=FLAGS.finetune_lm_alpha_min, stop=FLAGS.finetune_lm_alpha_max, num=FLAGS.finetune_lm_alpha_steps):
-        print('#### [FINETUNE LM] Test alpha = {} ####'.format(alpha))
+        print('\t>>>> [FINETUNE LM] Test alpha = {} <<<<'.format(alpha))
         FLAGS.lm_alpha = alpha
         tfv1.reset_default_graph()
         samples = evaluate([tmp_csv_path], create_model, try_loading)
@@ -690,12 +693,12 @@ def finetune_lm_params():
             })
 
     best_alpha = finetune_parabola(stats, FLAGS.finetune_lm_alpha_min, FLAGS.finetune_lm_alpha_max)
-    print('#### [FINETUNE LM] Set best alpha = {} ####'.format(best_alpha))
+    print('[FINETUNE LM] Set best alpha = {}'.format(best_alpha))
     FLAGS.lm_alpha = best_alpha
 
     stats = []
     for beta in np.linspace(start=FLAGS.finetune_lm_beta_min, stop=FLAGS.finetune_lm_beta_max, num=FLAGS.finetune_lm_beta_steps):
-        print('#### [FINETUNE LM] Test beta = {} ####'.format(beta))
+        print('\t>>>> [FINETUNE LM] Test beta = {} <<<<'.format(beta))
         FLAGS.lm_beta = beta
         tfv1.reset_default_graph()
         samples = evaluate([tmp_csv_path], create_model, try_loading)
@@ -704,13 +707,16 @@ def finetune_lm_params():
                 'param': beta,
                 'result': sample['wer'],
             })
-    best_beta = pick_lowest_param(stats)
-    print('#### [FINETUNE LM] Set best beta = {} ####'.format(best_beta))
+    # best_beta = pick_lowest_param(stats)
+    best_beta = finetune_parabola(stats, FLAGS.finetune_lm_beta_min, FLAGS.finetune_lm_beta_max)
+    print('[FINETUNE LM] Set best beta = {}'.format(best_beta))
     FLAGS.lm_beta = best_beta
 
+    # fine scan
     stats = []
-    for alpha in np.linspace(start=FLAGS.finetune_lm_alpha_min, stop=FLAGS.finetune_lm_alpha_max, num=FLAGS.finetune_lm_alpha_steps):
-        print('#### [FINETUNE LM] Test alpha = {} ####'.format(alpha))
+    alpha_width = (FLAGS.finetune_lm_alpha_max - FLAGS.finetune_lm_alpha_min) / 2.0
+    for alpha in np.linspace(start=best_alpha - alpha_width, stop=best_alpha + alpha_width, num=FLAGS.finetune_lm_alpha_steps):
+        print('\t>>>> [FINETUNE LM] Test alpha = {} <<<<'.format(alpha))
         FLAGS.lm_alpha = alpha
         tfv1.reset_default_graph()
         samples = evaluate([tmp_csv_path], create_model, try_loading)
@@ -721,23 +727,22 @@ def finetune_lm_params():
             })
 
     best_alpha = finetune_parabola(stats, FLAGS.finetune_lm_alpha_min, FLAGS.finetune_lm_alpha_max)
-    print('#### [FINETUNE LM] Set best alpha = {} ####'.format(best_alpha))
+    print('[FINETUNE LM] Set best alpha = {}'.format(best_alpha))
     FLAGS.lm_alpha = best_alpha
 
-    if FLAGS.finetune_output_file:
-        print('dump FINETUNE result at: {}'.format(FLAGS.finetune_output_file))
-        with open(FLAGS.finetune_output_file, 'w+') as file:
-            file.write('lm_alpha: {}\n'.format(best_alpha))
-            file.write('lm_beta: {}\n'.format(best_beta))
-
     os.remove(tmp_csv_path)
-    return best_alpha, best_beta
+
+    # restore
+    FLAGS.lm_alpha = original_alpha
+    FLAGS.lm_beta = original_beta
+    return original_alpha, original_beta, best_alpha, best_beta
 
 def test():
     samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
+    return samples
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
@@ -999,14 +1004,10 @@ def main(_):
         tfv1.set_random_seed(FLAGS.random_seed)
         train()
 
+    original_samples = []
     if FLAGS.test_files:
-        if FLAGS.finetune_lm_csv_files:
-            best_alpha, best_beta = finetune_lm_params()
-            print('#### [FINETUNE LM PARAMETERS] best alpha = {}, best beta = {} ####'.format(
-                best_alpha, best_beta
-            ))
         tfv1.reset_default_graph()
-        test()
+        original_samples = test()
 
     if FLAGS.export_dir and not FLAGS.export_zip:
         tfv1.reset_default_graph()
@@ -1026,6 +1027,54 @@ def main(_):
     if FLAGS.one_shot_infer:
         tfv1.reset_default_graph()
         do_single_file_inference(FLAGS.one_shot_infer)
+
+    if FLAGS.finetune_lm_csv_files:
+        original_report_count = FLAGS.report_count
+        FLAGS.report_count = 0
+        original_alpha, original_beta, best_alpha, best_beta = finetune_lm_params()
+        print('[FINETUNE LM PARAMETERS] best alpha = {}, best beta = {}'.format(
+            best_alpha, best_beta
+        ))
+        if FLAGS.test_files:
+            FLAGS.lm_alpha = best_alpha
+            FLAGS.lm_beta = best_beta
+            tfv1.reset_default_graph()
+            finetune_samples = test()
+
+        if FLAGS.finetune_output_file:
+            original_samples_wer, original_samples_cer = wer_cer_batch(original_samples)
+            finetune_samples_wer, finetune_samples_cer = wer_cer_batch(finetune_samples)
+
+            report = {
+                'origin_test_result': {
+                    'alpha': original_alpha,
+                    'beta': original_beta,
+                    'samples_wer': original_samples_wer,
+                    'samples_cer': original_samples_cer,
+                },
+                'finetune_test_result': {
+                    'alpha': best_alpha,
+                    'beta': best_beta,
+                    'samples_wer': finetune_samples_wer,
+                    'samples_cer': finetune_samples_cer,
+                },
+                'finetune_parameters': {
+                    'sample_size': FLAGS.finetune_lm_sampling_size,
+                    'alpha_min': FLAGS.finetune_lm_alpha_min,
+                    'alpha_max': FLAGS.finetune_lm_alpha_max,
+                    'alpha_steps': FLAGS.finetune_lm_alpha_steps,
+                    'beta_min': FLAGS.finetune_lm_beta_min,
+                    'beta_max': FLAGS.finetune_lm_beta_max,
+                    'beta_steps': FLAGS.finetune_lm_beta_steps,
+                    'csv_files': FLAGS.finetune_lm_csv_files,
+                }
+            }
+            open(FLAGS.finetune_output_file, 'w+', encoding='utf8').write(json.dumps(report, indent=4))
+
+        # restore
+        FLAGS.lm_alpha = original_alpha
+        FLAGS.lm_beta = original_beta
+        FLAGS.report_count = original_report_count
 
 if __name__ == '__main__':
     create_flags()
