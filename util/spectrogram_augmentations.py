@@ -105,14 +105,10 @@ def augment_sparse_warp(spectrogram, time_warping_para=80, interpolation_order=2
         source_min = tf.math.minimum(source_max - 1, time_warping_para)
         rand_source_time = tfv1.random_uniform(  # generate source points `t` of time axis between (W, tau-W)
             [], source_min, source_max, tf.int32)
-        rand_dest_time = tfv1.random_uniform(  # generate dest points `t'` of time axis between (t-W, t+W)
-            [], tf.math.maximum(tf.math.subtract(rand_source_time, time_warping_para), 0), tf.math.add(rand_source_time, time_warping_para), tf.int32)
+        rand_dest_time = tfv1.random_uniform(  # generate dest points `t'` of time axis between (t-W, t+W), !!! if rand_dest_time == 0, might raise invertible error
+            [], tf.math.maximum(tf.math.subtract(rand_source_time, time_warping_para), 1), tf.math.add(rand_source_time, time_warping_para), tf.int32)
 
-        # if choosen_freq == tau -1 => crash
-        choosen_freq = tf.cond(tf.equal(choosen_freqs[i], tau-1),
-                               lambda: choosen_freqs[i] + # pylint: disable=cell-var-from-loop
-                               1,  # pylint: disable=cell-var-from-loop
-                               lambda: choosen_freqs[i])  # pylint: disable=cell-var-from-loop
+        choosen_freq = choosen_freqs[i]
         sources.append([0, choosen_freq])
         sources.append([rand_source_time, choosen_freq])
         sources.append([tau, choosen_freq])
@@ -126,7 +122,7 @@ def augment_sparse_warp(spectrogram, time_warping_para=80, interpolation_order=2
     dest_control_point_locations = tf.cast([dests], tf.float32)
 
     # debug
-    # print('spectrogram', spectrogram)
+    # spectrogram = tf.Print(spectrogram, [tf.shape(spectrogram)], message='spectrogram', first_n=1000)
     # spectrogram = tf.Print(spectrogram, sources, message='sources', first_n=1000)
     # spectrogram = tf.Print(spectrogram, dests, message='dests', first_n=1000)
 
