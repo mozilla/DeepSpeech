@@ -94,28 +94,21 @@ def augment_sparse_warp(spectrogram, time_warping_para=80, interpolation_order=2
     time_warping_para = tf.math.minimum(
         time_warping_para, tf.math.subtract(tf.math.floordiv(tau, 2), 1))
 
-    choosen_freqs = tf.random.shuffle(tf.add(tf.range(freq_size), 1))[
-        0: num_control_points]
+    choosen_freqs = tf.random.shuffle(tf.add(tf.range(freq_size - 3), 1))[0: num_control_points]
 
     sources = []
     dests = []
     for i in range(num_control_points):
         source_max = tau - time_warping_para - 1
-        # to protect short audio
         source_min = tf.math.minimum(source_max - 1, time_warping_para)
         rand_source_time = tfv1.random_uniform(  # generate source points `t` of time axis between (W, tau-W)
             [], source_min, source_max, tf.int32)
-        rand_dest_time = tfv1.random_uniform(  # generate dest points `t'` of time axis between (t-W, t+W), !!! if rand_dest_time == 0, might raise invertible error
-            [], tf.math.maximum(tf.math.subtract(rand_source_time, time_warping_para), 1), tf.math.add(rand_source_time, time_warping_para), tf.int32)
+        rand_dest_time = tfv1.random_uniform(  # generate dest points `t'` of time axis between (t-W, t+W)
+            [], tf.math.maximum(tf.math.subtract(rand_source_time, time_warping_para), 0), tf.math.add(rand_source_time, time_warping_para), tf.int32)
 
         choosen_freq = choosen_freqs[i]
-        sources.append([0, choosen_freq])
         sources.append([rand_source_time, choosen_freq])
-        sources.append([tau, choosen_freq])
-
-        dests.append([0, choosen_freq])
         dests.append([rand_dest_time, choosen_freq])
-        dests.append([tau, choosen_freq])
 
     source_control_point_locations = tf.cast([sources], tf.float32)
 
