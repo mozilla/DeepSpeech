@@ -126,6 +126,7 @@ def rnn_impl_static_rnn(x, seq_length, previous_state, reuse):
     with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell'):
         # Forward direction cell:
         fw_cell = tfv1.nn.rnn_cell.LSTMCell(Config.n_cell_dim,
+                                            forget_bias=0,
                                             reuse=reuse,
                                             name='cudnn_compatible_lstm_cell')
 
