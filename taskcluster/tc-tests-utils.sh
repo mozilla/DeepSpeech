@@ -256,9 +256,19 @@ assert_correct_ldc93s1_prodmodel()
   assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
 }
 
+assert_correct_ldc93s1_prodtflitemodel()
+{
+  assert_correct_inference "$1" "she had educate in greasy wash were all year" "$2"
+}
+
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
   assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
+}
+
+assert_correct_ldc93s1_prodtflitemodel_stereo_44k()
+{
+  assert_correct_inference "$1" "she had educate in greasy wash were all year" "$2"
 }
 
 assert_correct_warning_upsampling()
@@ -458,6 +468,32 @@ run_prod_inference_tests()
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
+
+  set +e
+  phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+  set -e
+  assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
+}
+
+run_prodtflite_inference_tests()
+{
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status"
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status"
+
+  set +e
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_prodtflitemodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 
   set +e
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
