@@ -714,7 +714,7 @@ def finetune_lm_params():
 
     # fine scan
     stats = []
-    alpha_width = (FLAGS.finetune_lm_alpha_max - FLAGS.finetune_lm_alpha_min) / 2.0
+    alpha_width = (FLAGS.finetune_lm_alpha_max - FLAGS.finetune_lm_alpha_min) / 4.0
     for alpha in np.linspace(start=best_alpha - alpha_width, stop=best_alpha + alpha_width, num=FLAGS.finetune_lm_alpha_steps):
         print('\t>>>> [FINETUNE LM] Test alpha = {} <<<<'.format(alpha))
         FLAGS.lm_alpha = alpha
