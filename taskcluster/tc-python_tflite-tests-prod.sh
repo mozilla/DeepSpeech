@@ -2,6 +2,10 @@
 
 set -xe
 
+#TODO: Remove after 0.6.1
+export DEEPSPEECH_PROD_MODEL=https://github.com/lissyx/DeepSpeech/releases/download/v0.6.0/output_graph.tflite
+export DEEPSPEECH_PROD_MODEL_MMAP=https://github.com/lissyx/DeepSpeech/releases/download/v0.6.0/output_graph.tflite
+
 source $(dirname "$0")/tc-tests-utils.sh
 
 extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf" "pyalias"
@@ -46,6 +50,6 @@ LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-bin
 which deepspeech
 deepspeech --version
 
-run_prod_inference_tests
+run_prodtflite_inference_tests
 
 virtualenv_deactivate "${pyalias}" "${PYENV_NAME}"
