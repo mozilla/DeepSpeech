@@ -156,6 +156,7 @@ def create_flags():
     f.DEFINE_float('finetune_lm_beta_max', 2.0, 'pick lowest beta, but constraint the maximum value')
     f.DEFINE_integer('finetune_lm_beta_steps', 5, 'scan alpha from tune_lm_beta_min to tune_lm_beta_max by steps')
     f.DEFINE_string('finetune_output_file', '', 'path to a file to save best alphabet and beta')
+    f.DEFINE_string('finetune_temp_dir', '/tmp', 'to put temporary sampling csv file for scanning parameters')
 
     # Inference mode
 

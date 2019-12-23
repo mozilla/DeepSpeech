@@ -673,12 +673,11 @@ def train():
 
 def finetune_lm_params():
     original_alpha, original_beta = FLAGS.lm_alpha, FLAGS.lm_beta
-    csv_paths = FLAGS.finetune_lm_csv_files.split(',')
-    tmp_csv_path = os.path.join(os.path.dirname(csv_paths[0]), '__TMP_FINETUNE_SAMPLE__.csv')
+    tmp_csv_path = os.path.join(FLAGS.finetune_temp_dir, '__TMP_FINETUNE_SAMPLE__.csv')
     df = read_csvs(FLAGS.finetune_lm_csv_files.split(','))
     n_sample = min(df.shape[0], FLAGS.finetune_lm_sampling_size)
     df = df.sample(replace=False, n=n_sample)
-    df.to_csv(tmp_csv_path)
+    df.to_csv(tmp_csv_path, index=None)
 
     stats = []
     for alpha in np.linspace(start=FLAGS.finetune_lm_alpha_min, stop=FLAGS.finetune_lm_alpha_max, num=FLAGS.finetune_lm_alpha_steps):
