@@ -16,6 +16,7 @@ from util.text import text_to_char_array
 from util.flags import FLAGS
 from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
 from util.audio import read_frames_from_file, vad_split, DEFAULT_FORMAT
+from util.decoded_augmentation import augment_noise
 
 
 def read_csvs(csv_files):
@@ -67,8 +68,23 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
 def audiofile_to_features(wav_filename, train_phase=False):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate, train_phase=train_phase)
+    audio = decoded.audio
 
+    # augment decoded
+    if train_phase and FLAGS.decoded_aug_mix_noise_walk_dirs:
+        audio = augment_noise(
+            audio,
+            FLAGS.decoded_aug_mix_noise_walk_dirs.split(','),
+            change_audio_db_max=FLAGS.decoded_aug_mix_noise_max_audio_db,
+            change_audio_db_min=FLAGS.decoded_aug_mix_noise_min_audio_db,
+            change_noise_db_max=FLAGS.decoded_aug_mix_noise_max_noise_db,
+            change_noise_db_min=FLAGS.decoded_aug_mix_noise_min_noise_db,
+        )
+
+
+    features, features_len = samples_to_mfccs(audio, decoded.sample_rate, train_phase=train_phase)
+
+    # augment features
     if train_phase:
         if FLAGS.data_aug_features_multiplicative > 0:
             features = features*tf.random.normal(mean=1, stddev=FLAGS.data_aug_features_multiplicative, shape=tf.shape(features))

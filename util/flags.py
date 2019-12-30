@@ -24,6 +24,12 @@ def create_flags():
     # Data Augmentation
     # ================
 
+    f.DEFINE_string('decoded_aug_mix_noise_walk_dirs', '', 'walk through wav dir, then mix noise wav into decoded audio')
+    f.DEFINE_float('decoded_aug_mix_noise_max_noise_db', -25, 'limit noise max volume')
+    f.DEFINE_float('decoded_aug_mix_noise_min_noise_db', -50, 'limit noise min volume')
+    f.DEFINE_float('decoded_aug_mix_noise_max_audio_db', 0, 'limit noise max volume')
+    f.DEFINE_float('decoded_aug_mix_noise_min_audio_db', -10, 'limit noise min volume')
+
     f.DEFINE_float('data_aug_features_additive', 0, 'std of the Gaussian additive noise')
     f.DEFINE_float('data_aug_features_multiplicative', 0, 'std of normal distribution around 1 for multiplicative noise')
 
@@ -41,7 +47,6 @@ def create_flags():
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_min_pitch', 0.95, 'min value of pitch scaling')
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_max_pitch', 1.2, 'max value of pitch scaling')
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_max_tempo', 1.2, 'max vlaue of tempo scaling')
-
 
     # Global Constants
     # ================
