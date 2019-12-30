@@ -34,8 +34,10 @@ SWC_URL = "https://www2.informatik.uni-hamburg.de/nats/pub/SWC/SWC_{language}.ta
 SWC_ARCHIVE = "SWC_{language}.tar"
 LANGUAGES = ['dutch', 'english', 'german']
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
+FIELDNAMES_EXT = FIELDNAMES + ['article', 'speaker']
 CHANNELS = 1
 SAMPLE_RATE = 16000
+UNKNOWN = '<unknown>'
 AUDIO_PATTERN = 'audio*.ogg'
 WAV_NAME = 'audio.wav'
 ALIGNED_NAME = 'aligned.swc'
@@ -65,11 +67,12 @@ PRE_FILTER = str.maketrans(dict.fromkeys('/()[]{}<>:'))
 
 
 class Sample:
-    def __init__(self, wav_path, start, end, text, speaker, sub_set=None):
+    def __init__(self, wav_path, start, end, text, article, speaker, sub_set=None):
         self.wav_path = wav_path
         self.start = start
         self.end = end
         self.text = text
+        self.article = article
         self.speaker = speaker
         self.sub_set = sub_set
 
@@ -203,7 +206,7 @@ def collect_samples(base_dir, language):
     samples = []
     reasons = Counter()
 
-    def add_sample(p_wav_path, p_speaker, p_start, p_end, p_text, p_reason='complete'):
+    def add_sample(p_wav_path, p_article, p_speaker, p_start, p_end, p_text, p_reason='complete'):
         if p_start is not None and p_end is not None and p_text is not None:
             duration = p_end - p_start
             text, filter_reason = label_filter(p_text, language)
@@ -211,6 +214,12 @@ def collect_samples(base_dir, language):
             if filter_reason is not None:
                 skip = True
                 p_reason = filter_reason
+            elif CLI_ARGS.exclude_unknown_speakers and p_speaker == UNKNOWN:
+                skip = True
+                p_reason = 'unknown speaker'
+            elif CLI_ARGS.exclude_unknown_articles and p_article == UNKNOWN:
+                skip = True
+                p_reason = 'unknown article'
             elif duration > CLI_ARGS.max_duration > 0 and CLI_ARGS.ignore_too_long:
                 skip = True
                 p_reason = 'exceeded duration'
@@ -223,7 +232,7 @@ def collect_samples(base_dir, language):
             if skip:
                 reasons[p_reason] += 1
             else:
-                samples.append(Sample(p_wav_path, p_start, p_end, text, p_speaker))
+                samples.append(Sample(p_wav_path, p_start, p_end, text, p_article, p_speaker))
         elif p_start is None or p_end is None:
             reasons['missing timestamps'] += 1
         else:
@@ -234,12 +243,15 @@ def collect_samples(base_dir, language):
     for root in bar(roots):
         wav_path = path.join(root, WAV_NAME)
         aligned = ET.parse(path.join(root, ALIGNED_NAME))
-        speaker = '<unknown>'
+        article = UNKNOWN
+        speaker = UNKNOWN
         for prop in aligned.iter('prop'):
             attributes = prop.attrib
-            if 'key' in attributes and 'value' in attributes and attributes['key'] == 'reader.name':
-                speaker = attributes['value']
-                break
+            if 'key' in attributes and 'value' in attributes:
+                if attributes['key'] == 'DC.identifier':
+                    article = attributes['value']
+                elif attributes['key'] == 'reader.name':
+                    speaker = attributes['value']
         for sentence in aligned.iter('s'):
             if ignored(sentence):
                 continue
@@ -248,7 +260,7 @@ def collect_samples(base_dir, language):
             sample_start, sample_end, token_texts, sample_texts = None, None, [], []
             for token_start, token_end, token_text in tokens:
                 if CLI_ARGS.exclude_numbers and any(c.isdigit() for c in token_text):
-                    add_sample(wav_path, speaker, sample_start, sample_end, ' '.join(sample_texts),
+                    add_sample(wav_path, article, speaker, sample_start, sample_end, ' '.join(sample_texts),
                                p_reason='has numbers')
                     sample_start, sample_end, token_texts, sample_texts = None, None, [], []
                     continue
@@ -259,7 +271,7 @@ def collect_samples(base_dir, language):
                 token_texts.append(token_text)
                 if token_end is not None:
                     if token_start != sample_start and token_end - sample_start > CLI_ARGS.max_duration > 0:
-                        add_sample(wav_path, speaker, sample_start, sample_end, ' '.join(sample_texts),
+                        add_sample(wav_path, article, speaker, sample_start, sample_end, ' '.join(sample_texts),
                                    p_reason='split')
                         sample_start = sample_end
                         sample_texts = []
@@ -267,7 +279,7 @@ def collect_samples(base_dir, language):
                     sample_end = token_end
                     sample_texts.extend(token_texts)
                     token_texts = []
-            add_sample(wav_path, speaker, sample_start, sample_end, ' '.join(sample_texts),
+            add_sample(wav_path, article, speaker, sample_start, sample_end, ' '.join(sample_texts),
                        p_reason='split' if split else 'complete')
     print('Skipped samples:')
     for reason, n in reasons.most_common():
@@ -382,15 +394,19 @@ def write_csvs(samples, language):
         csv_path = path.join(base_dir, language + '-' + sub_set + '.csv')
         print('Writing "{}"...'.format(csv_path))
         with open(csv_path, 'w') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=FIELDNAMES)
+            writer = csv.DictWriter(csv_file, fieldnames=FIELDNAMES_EXT if CLI_ARGS.add_meta else FIELDNAMES)
             writer.writeheader()
             bar = progressbar.ProgressBar(max_value=len(set_samples), widgets=SIMPLE_BAR)
             for sample in bar(set_samples):
-                writer.writerow({
+                row = {
                     'wav_filename': path.relpath(sample.wav_path, base_dir),
                     'wav_filesize': path.getsize(sample.wav_path),
                     'transcript': sample.text
-                })
+                }
+                if CLI_ARGS.add_meta:
+                    row['article'] = sample.article
+                    row['speaker'] = sample.speaker
+                writer.writerow(row)
 
 
 def cleanup(archive, language):
@@ -428,6 +444,9 @@ def handle_args():
     for language in LANGUAGES:
         parser.add_argument('--{}_alphabet'.format(language),
                             help='Exclude {} samples with characters not in provided alphabet file'.format(language))
+    parser.add_argument('--add_meta', action='store_true', help='Adds article and speaker CSV columns')
+    parser.add_argument('--exclude_unknown_speakers', action='store_true', help='Exclude unknown speakers')
+    parser.add_argument('--exclude_unknown_articles', action='store_true', help='Exclude unknown articles')
     parser.add_argument('--keep_archive', type=bool, default=True,
                         help='If downloaded archives should be kept')
     parser.add_argument('--keep_intermediate', type=bool, default=False,
