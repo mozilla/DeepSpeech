@@ -16,7 +16,7 @@ from util.text import text_to_char_array
 from util.flags import FLAGS
 from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
 from util.audio import read_frames_from_file, vad_split, DEFAULT_FORMAT
-from util.decoded_augmentation import augment_noise
+from util.audio_augmentation import augment_noise, noise_file_to_audio, collect_noise_filenames
 
 
 def read_csvs(csv_files):
@@ -70,11 +70,22 @@ def audiofile_to_features(wav_filename, train_phase=False):
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
     audio = decoded.audio
 
-    # augment decoded
+    # augment audio
     if train_phase and FLAGS.decoded_aug_mix_noise_walk_dirs:
+        # because we have to determine the shuffle size, so we could not use generator
+        noise_filenames = tf.convert_to_tensor(
+            list(collect_noise_filenames(FLAGS.decoded_aug_mix_noise_walk_dirs.split(','))),
+            dtype=tf.string)
+        print(">>> Collect {} noise files for mixing audio".format(noise_filenames.shape[0]))
+        noise_dataset = (tf.data.Dataset.from_tensor_slices(noise_filenames)
+                         .map(noise_file_to_audio, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+                         .shuffle(noise_filenames.shape[0])
+                         .cache(FLAGS.decoded_aug_mix_noise_cache)
+                         .repeat())
+        iterator = tf.compat.v1.data.make_one_shot_iterator(noise_dataset)
         audio = augment_noise(
             audio,
-            FLAGS.decoded_aug_mix_noise_walk_dirs.split(','),
+            iterator.get_next(),
             change_audio_db_max=FLAGS.decoded_aug_mix_noise_max_audio_db,
             change_audio_db_min=FLAGS.decoded_aug_mix_noise_min_audio_db,
             change_noise_db_max=FLAGS.decoded_aug_mix_noise_max_noise_db,

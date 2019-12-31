@@ -3,29 +3,26 @@ import tensorflow.compat.v1 as tfv1
 from tensorflow.python.ops import gen_audio_ops as contrib_audio
 import os
 
-
-def augment_noise(audio,
-                  walk_dirs,
-                  change_audio_db_max=0,
-                  change_audio_db_min=-10,
-                  change_noise_db_max=-15,
-                  change_noise_db_min=-25):
+def collect_noise_filenames(walk_dirs):
     assert isinstance(walk_dirs, list)
-    noise_filenames = []
+
     for d in walk_dirs:
         for dirpath, _, filenames in os.walk(d):
             for filename in filenames:
                 if filename.endswith('.wav'):
-                    noise_filenames.append(os.path.join(dirpath, filename))
-    print('Collect {} noise filenames for augmentation'.format(len(noise_filenames)))
-    noise_filenames = tf.convert_to_tensor(noise_filenames, dtype=tf.string)
+                    yield os.path.join(dirpath, filename)
 
-    rand_int = tfv1.random_uniform(
-        [], dtype=tf.int32, minval=0, maxval=tf.shape(noise_filenames)[0])
-    noise_filename = noise_filenames[rand_int]
-    noise_samples = tf.io.read_file(noise_filename)
-    noise_decoded = contrib_audio.decode_wav(noise_samples, desired_channels=1)
-    noise_audio = noise_decoded.audio
+def noise_file_to_audio(noise_file):
+    samples = tf.io.read_file(noise_file)
+    decoded = contrib_audio.decode_wav(samples, desired_channels=1)
+    return decoded.audio
+
+def augment_noise(audio,
+                  noise_audio,
+                  change_audio_db_max=0,
+                  change_audio_db_min=-10,
+                  change_noise_db_max=-15,
+                  change_noise_db_min=-25):
 
     decoded_audio_len = tf.shape(audio)[0]
     noise_decoded_audio_len = tf.shape(noise_audio)[0]
@@ -62,7 +59,5 @@ def augment_noise(audio,
 
     choosen_noise_db = tfv1.random_uniform(
         [], minval=change_noise_db_min, maxval=change_noise_db_max)
-    # choosen_noise_db = tf.random.normal(
-    #     [], mean=change_noise_db_max, stddev=change_noise_db_min)
     noise_ratio = tf.math.pow(10.0, choosen_noise_db / 10)
     return tf.multiply(audio, audio_ratio) + tf.multiply(mixed_noise, noise_ratio)

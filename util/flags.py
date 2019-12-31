@@ -25,10 +25,11 @@ def create_flags():
     # ================
 
     f.DEFINE_string('decoded_aug_mix_noise_walk_dirs', '', 'walk through wav dir, then mix noise wav into decoded audio')
-    f.DEFINE_float('decoded_aug_mix_noise_max_noise_db', -25, 'limit noise max volume')
-    f.DEFINE_float('decoded_aug_mix_noise_min_noise_db', -50, 'limit noise min volume')
-    f.DEFINE_float('decoded_aug_mix_noise_max_audio_db', 0, 'limit noise max volume')
-    f.DEFINE_float('decoded_aug_mix_noise_min_audio_db', -10, 'limit noise min volume')
+    f.DEFINE_string('decoded_aug_mix_noise_cache', '', 'must cache noise audio data, or it will read audio file every training step')
+    f.DEFINE_float('decoded_aug_mix_noise_max_noise_db', -25, 'to limit noise max volume')
+    f.DEFINE_float('decoded_aug_mix_noise_min_noise_db', -50, 'to limit noise min volume')
+    f.DEFINE_float('decoded_aug_mix_noise_max_audio_db', 0, 'to limit audio max volume')
+    f.DEFINE_float('decoded_aug_mix_noise_min_audio_db', -10, 'to limit audio min volume')
 
     f.DEFINE_float('data_aug_features_additive', 0, 'std of the Gaussian additive noise')
     f.DEFINE_float('data_aug_features_multiplicative', 0, 'std of normal distribution around 1 for multiplicative noise')
