@@ -65,27 +65,16 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
     return mfccs, tf.shape(input=mfccs)[0]
 
 
-def audiofile_to_features(wav_filename, train_phase=False):
+def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
     audio = decoded.audio
 
     # augment audio
-    if train_phase and FLAGS.audio_aug_mix_noise_walk_dirs:
-        # because we have to determine the shuffle size, so we could not use generator
-        noise_filenames = tf.convert_to_tensor(
-            list(collect_noise_filenames(FLAGS.audio_aug_mix_noise_walk_dirs.split(','))),
-            dtype=tf.string)
-        print(">>> Collect {} noise files for mixing audio".format(noise_filenames.shape[0]))
-        noise_dataset = (tf.data.Dataset.from_tensor_slices(noise_filenames)
-                         .map(noise_file_to_audio, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-                         .shuffle(noise_filenames.shape[0])
-                         .cache(FLAGS.audio_aug_mix_noise_cache)
-                         .repeat())
-        iterator = tf.compat.v1.data.make_one_shot_iterator(noise_dataset)
+    if train_phase and noise_iterator:
         audio = augment_noise(
             audio,
-            iterator.get_next(),
+            noise_iterator.get_next(),
             change_audio_db_max=FLAGS.audio_aug_mix_noise_max_audio_db,
             change_audio_db_min=FLAGS.audio_aug_mix_noise_min_audio_db,
             change_noise_db_max=FLAGS.audio_aug_mix_noise_max_noise_db,
@@ -106,9 +95,9 @@ def audiofile_to_features(wav_filename, train_phase=False):
     return features, features_len
 
 
-def entry_to_features(wav_filename, transcript, train_phase):
+def entry_to_features(wav_filename, transcript, train_phase, noise_iterator=None):
     # https://bugs.python.org/issue32117
-    features, features_len = audiofile_to_features(wav_filename, train_phase=train_phase)
+    features, features_len = audiofile_to_features(wav_filename, train_phase=train_phase, noise_iterator=noise_iterator)
     return wav_filename, features, features_len, tf.SparseTensor(*transcript)
 
 
@@ -147,7 +136,22 @@ def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_
         return tf.data.Dataset.zip((wav_filenames, features, transcripts))
 
     num_gpus = len(Config.available_devices)
-    process_fn = partial(entry_to_features, train_phase=train_phase)
+
+    if train_phase and FLAGS.audio_aug_mix_noise_walk_dirs:
+        # because we have to determine the shuffle size, so we could not use generator
+        noise_filenames = tf.convert_to_tensor(
+            list(collect_noise_filenames(FLAGS.audio_aug_mix_noise_walk_dirs.split(','))),
+            dtype=tf.string)
+        print(">>> Collect {} noise files for mixing audio".format(noise_filenames.shape[0]))
+        noise_dataset = (tf.data.Dataset.from_tensor_slices(noise_filenames)
+                         .map(noise_file_to_audio, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+                         .shuffle(noise_filenames.shape[0])
+                         .cache(FLAGS.audio_aug_mix_noise_cache)
+                         .repeat())
+        noise_iterator = tf.compat.v1.data.make_one_shot_iterator(noise_dataset)
+    else:
+        noise_iterator = None
+    process_fn = partial(entry_to_features, train_phase=train_phase, noise_iterator=noise_iterator)
 
     dataset = (tf.data.Dataset.from_generator(generate_values,
                                               output_types=(tf.string, (tf.int64, tf.int32, tf.int64)))
