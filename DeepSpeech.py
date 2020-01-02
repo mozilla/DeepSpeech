@@ -22,6 +22,7 @@ from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from evaluate import evaluate
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph, strip_unused_lib
+from tensorflow.python.framework import errors_impl
 from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
@@ -594,9 +595,23 @@ def train():
             # Batch loop
             while True:
                 try:
-                    _, current_step, batch_loss, problem_files, step_summary = \
-                        session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
-                                    feed_dict=feed_dict)
+                    try:
+                        _, current_step, batch_loss, problem_files, step_summary = \
+                            session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
+                                        feed_dict=feed_dict)
+                    except errors_impl.InvalidArgumentError as err:
+                        if FLAGS.augmentation_sparse_warp:
+                            # recover twice for sparse warp, if still error, abort it!!!
+                            try:
+                                print('recovering the invertible error: {}'.format(err))
+                                _, current_step, batch_loss, problem_files, step_summary = \
+                                    session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
+                                                feed_dict=feed_dict)
+                            except errors_impl.InvalidArgumentError as err:
+                                print('recovering the invertible error `AGAIN`: {}'.format(err))
+                                _, current_step, batch_loss, problem_files, step_summary = \
+                                    session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
+                                                feed_dict=feed_dict)
                 except tf.errors.OutOfRangeError:
                     break
 
