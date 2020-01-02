@@ -169,9 +169,7 @@ DecoderState::decode() const
   if (ext_scorer_ != nullptr) {
     for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
       auto prefix = prefixes_copy[i];
-      if (prefix->is_empty()) {
-        scores[prefix] = OOV_SCORE;
-      } else if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
+      if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
         float score = 0.0;
         std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix);
         bool bos = ngram.size() < ext_scorer_->get_max_order();
