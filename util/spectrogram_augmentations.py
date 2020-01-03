@@ -117,11 +117,6 @@ def augment_sparse_warp(spectrogram, time_warping_para=20, interpolation_order=2
     source_control_point_locations = tf.cast([sources], tf.float32)
     dest_control_point_locations = tf.cast([dests], tf.float32)
 
-    # debug
-    # spectrogram = tf.Print(spectrogram, [tf.shape(spectrogram)], message='spectrogram', first_n=1000)
-    # spectrogram = tf.Print(spectrogram, sources, message='sources', first_n=1000)
-    # spectrogram = tf.Print(spectrogram, dests, message='dests', first_n=1000)
-
     warped_spectrogram, _ = sparse_image_warp(spectrogram,
                                               source_control_point_locations=source_control_point_locations,
                                               dest_control_point_locations=dest_control_point_locations,

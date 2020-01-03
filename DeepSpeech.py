@@ -595,23 +595,13 @@ def train():
             # Batch loop
             while True:
                 try:
-                    try:
-                        _, current_step, batch_loss, problem_files, step_summary = \
-                            session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
-                                        feed_dict=feed_dict)
-                    except errors_impl.InvalidArgumentError as err:
-                        if FLAGS.augmentation_sparse_warp:
-                            # recover twice for sparse warp, if still error, abort it!!!
-                            try:
-                                print('recovering the invertible error: {}'.format(err))
-                                _, current_step, batch_loss, problem_files, step_summary = \
-                                    session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
-                                                feed_dict=feed_dict)
-                            except errors_impl.InvalidArgumentError as err:
-                                print('recovering the invertible error `AGAIN`: {}'.format(err))
-                                _, current_step, batch_loss, problem_files, step_summary = \
-                                    session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
-                                                feed_dict=feed_dict)
+                    _, current_step, batch_loss, problem_files, step_summary = \
+                        session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
+                                    feed_dict=feed_dict)
+                except tf.errors.InvalidArgumentError as err:
+                    if FLAGS.augmentation_sparse_warp:
+                        log_info("skip sparse warp error: {}".format(err))
+                        continue
                 except tf.errors.OutOfRangeError:
                     break
 
