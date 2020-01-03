@@ -15,7 +15,8 @@ Running ``deepspeech`` might, see below, require some runtime dependencies to be
 * ``sox`` - The Python and Node.JS clients use SoX to resample files to 16kHz.
 * ``libgomp1`` - libsox (statically linked into the clients) depends on OpenMP. Some people have had to install this manually.
 * ``libstdc++`` - Standard C++ Library implementation. Some people have had to install this manually.
-* ``libpthread`` - On Linux, some people have had to install libpthread manually. On Ubuntu, ``libpthread`` is part of the `` ``libpthread-stubs0-dev`` package.  
+* ``libpthread`` - On Linux, some people have had to install libpthread manually. On Ubuntu, ``libpthread`` is part of the ``libpthread-stubs0-dev`` package.  
+* ``Redistribuable Visual C++ 2015 Update 3 (64-bits)`` - On Windows, it might be required to ensure this is installed. Please `download from Microsoft <https://www.microsoft.com/download/details.aspx?id=53587>`_.
 
 Please refer to your system's documentation on how to install these dependencies.
 
