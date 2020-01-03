@@ -22,6 +22,7 @@ from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from evaluate import evaluate
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph, strip_unused_lib
+from tensorflow.python.framework import errors_impl
 from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
@@ -428,7 +429,8 @@ def train():
             FLAGS.augmentation_spec_dropout_keeprate < 1 or
             FLAGS.augmentation_freq_and_time_masking or
             FLAGS.augmentation_pitch_and_tempo_scaling or
-            FLAGS.augmentation_speed_up_std > 0):
+            FLAGS.augmentation_speed_up_std > 0 or
+            FLAGS.augmentation_sparse_warp):
         do_cache_dataset = False
 
     # Create training and validation datasets
@@ -598,6 +600,10 @@ def train():
                     _, current_step, batch_loss, problem_files, step_summary = \
                         session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
                                     feed_dict=feed_dict)
+                except tf.errors.InvalidArgumentError as err:
+                    if FLAGS.augmentation_sparse_warp:
+                        log_info("skip sparse warp error: {}".format(err))
+                        continue
                 except tf.errors.OutOfRangeError:
                     break
 

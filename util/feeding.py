@@ -14,7 +14,7 @@ from tensorflow.python.ops import gen_audio_ops as contrib_audio
 from util.config import Config
 from util.text import text_to_char_array
 from util.flags import FLAGS
-from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
+from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up, augment_sparse_warp
 from util.audio import read_frames_from_file, vad_split, DEFAULT_FORMAT
 
 
@@ -41,6 +41,15 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
         if FLAGS.augmentation_spec_dropout_keeprate < 1:
             spectrogram = augment_dropout(spectrogram,
                                           keep_prob=FLAGS.augmentation_spec_dropout_keeprate)
+
+        # sparse warp must before freq/time masking
+        if FLAGS.augmentation_sparse_warp:
+            spectrogram = augment_sparse_warp(spectrogram,
+                                              time_warping_para=FLAGS.augmentation_sparse_warp_time_warping_para,
+                                              interpolation_order=FLAGS.augmentation_sparse_warp_interpolation_order,
+                                              regularization_weight=FLAGS.augmentation_sparse_warp_regularization_weight,
+                                              num_boundary_points=FLAGS.augmentation_sparse_warp_num_boundary_points,
+                                              num_control_points=FLAGS.augmentation_sparse_warp_num_control_points)
 
         if FLAGS.augmentation_freq_and_time_masking:
             spectrogram = augment_freq_time_mask(spectrogram,
