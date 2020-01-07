@@ -104,7 +104,8 @@ tf_cc_shared_object(
     }),
     copts = select({
         # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
-        "//tensorflow:windows": ["/w"],
+        # /MD to ensure no extra dep
+        "//tensorflow:windows": ["/w", "/MD"],
         # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
         # which makes it harder to see our own warnings
         "//conditions:default": [
