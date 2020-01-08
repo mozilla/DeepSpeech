@@ -17,6 +17,9 @@ if [ -z "${electronver}" ]; then
     exit 1
 fi;
 
+bitrate=$3
+set_ldc_sample_filename "${bitrate}"
+
 download_data
 
 node --version

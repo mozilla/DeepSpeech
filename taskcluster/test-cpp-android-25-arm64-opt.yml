@@ -2,9 +2,10 @@ build:
   template_file: test-android-opt-base.tyml
   dependencies:
     - "android-arm64-cpu-opt"
-    - "test-training_upstream-linux-amd64-py36m-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-ds-tests.sh arm64-v8a android-25"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-ds-tests.sh arm64-v8a android-25 16k"
   metadata:
     name: "DeepSpeech Android 7.1 ARM64 Google Pixel C++ tests"
     description: "Testing DeepSpeech C++ for Android 7.1 ARM64 Google Pixel, optimized version"

@@ -24,3 +24,4 @@ build:
   convert_graphdef: ''
   benchmark_model_bin: ''
   tensorflow_git_desc: 'TensorFlow: v1.14.0-21-ge77504a'
+  test_model_task: ''

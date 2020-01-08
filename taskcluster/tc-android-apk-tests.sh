@@ -7,6 +7,9 @@ api_level=$2
 
 source $(dirname "$0")/tc-tests-utils.sh
 
+# Android test code only supports 16kHz and hard-coded filename
+ldc93s1_sample_filename='LDC93S1.wav'
+
 model_source=${DEEPSPEECH_TEST_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
 

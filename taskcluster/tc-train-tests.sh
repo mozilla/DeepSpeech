@@ -5,7 +5,7 @@ set -xe
 source $(dirname "$0")/tc-tests-utils.sh
 
 pyver_full=$1
-ds=$2
+bitrate=$2
 
 if [ -z "${pyver_full}" ]; then
     echo "No python version given, aborting."
@@ -56,11 +56,28 @@ decoder_pkg_url=${DECODER_ARTIFACTS_ROOT}/${decoder_pkg}
 
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} ${decoder_pkg_url} | cat
 
+# Prepare correct arguments for training
+case "${bitrate}" in
+    8k)
+        sample_rate=8000
+        sample_name='LDC93S1_pcms16le_1_8000.wav'
+    ;;
+    16k)
+        sample_rate=16000
+        sample_name='LDC93S1_pcms16le_1_16000.wav'
+    ;;
+esac
+
+# Easier to rename to that we can exercize the LDC93S1 importer code to
+# generate the CSV file.
+echo "Moving ${sample_name} to LDC93S1.wav"
+mv "${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/${sample_name}" "${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/LDC93S1.wav"
+
 pushd ${HOME}/DeepSpeech/ds/
     # Run twice to test preprocessed features
-    time ./bin/run-tc-ldc93s1_new.sh 219
-    time ./bin/run-tc-ldc93s1_new.sh 1
-    time ./bin/run-tc-ldc93s1_tflite.sh
+    time ./bin/run-tc-ldc93s1_new.sh 219 "${sample_rate}"
+    time ./bin/run-tc-ldc93s1_new.sh 1 "${sample_rate}"
+    time ./bin/run-tc-ldc93s1_tflite.sh "${sample_rate}"
 popd
 
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}

@@ -2,12 +2,13 @@ build:
   template_file: test-win-opt-base.tyml
   dependencies:
     - "win-amd64-cpu-opt"
-    - "test-training_upstream-linux-amd64-py36m-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   system_setup:
     >
       ${system.sox_win} && ${nodejs.win.prep_12}
   args:
-    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 6.0.11"
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 6.0.11 16k"
   metadata:
     name: "DeepSpeech Windows AMD64 CPU ElectronJS v6.0 tests"
     description: "Testing DeepSpeech for Windows/AMD64 on ElectronJS v6.0, CPU only, optimized version"

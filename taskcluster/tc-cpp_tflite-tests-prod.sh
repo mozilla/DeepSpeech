@@ -8,6 +8,9 @@ export DEEPSPEECH_PROD_MODEL_MMAP=https://github.com/lissyx/DeepSpeech/releases/
 
 source $(dirname "$0")/tc-tests-utils.sh
 
+bitrate=$1
+set_ldc_sample_filename "${bitrate}"
+
 model_source=${DEEPSPEECH_PROD_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
 model_name_mmap=$(basename "${model_source}")
@@ -21,4 +24,4 @@ export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 
 check_tensorflow_version
 
-run_prodtflite_inference_tests
+run_prodtflite_inference_tests "${bitrate}"

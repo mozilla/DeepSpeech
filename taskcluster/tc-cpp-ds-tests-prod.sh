@@ -4,6 +4,9 @@ set -xe
 
 source $(dirname "$0")/tc-tests-utils.sh
 
+bitrate=$1
+set_ldc_sample_filename "${bitrate}"
+
 model_source=${DEEPSPEECH_PROD_MODEL}
 model_name=$(basename "${model_source}")
 
@@ -16,4 +19,4 @@ export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 
 check_tensorflow_version
 
-run_prod_inference_tests
+run_prod_inference_tests "${bitrate}"

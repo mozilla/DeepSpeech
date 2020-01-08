@@ -31,7 +31,7 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
+        training: { $eval: as_slugid(build.test_model_task) }
         linux_arm64_build: { $eval: as_slugid("linux-arm64-cpu-opt") }
       in:
         DEEPSPEECH_ARTIFACTS_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${linux_arm64_build}/artifacts/public

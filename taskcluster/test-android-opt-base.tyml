@@ -31,7 +31,7 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
+        training: { $eval: as_slugid(build.test_model_task) }
         android_arm64_build: { $eval: as_slugid("android-arm64-cpu-opt") }
         android_armv7_build: { $eval: as_slugid("android-armv7-cpu-opt") }
       in:

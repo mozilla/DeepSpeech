@@ -33,11 +33,7 @@ then:
     image: "ubuntu:14.04"
 
     env:
-      $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
-      in:
-        TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
-        DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
+      TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
 
     command:
       - "/bin/bash"
