@@ -7,7 +7,7 @@ Inference using a DeepSpeech pre-trained model can be done with a client/languag
 * `The Python package/language binding <#using-the-python-package>`_
 * `The Node.JS package/language binding <#using-the-nodejs-package>`_
 * `The Command-Line client <#using-the-command-line-client>`_
-* `The .NET client/language binding <native_client/dotnet/README.rst>`_
+* :github:`The .NET client/language binding <native_client/dotnet/README.rst>`
 
 Running ``deepspeech`` might, see below, require some runtime dependencies to be already installed on your system:
 
@@ -110,18 +110,20 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 The arguments ``--lm`` and ``--trie`` are optional, and represent a language model.
 
-See `client.py <native_client/python/client.py>`_ for an example of how to use the package programatically.
+See :github:`client.py <native_client/python/client.py>` for an example of how to use the package programatically.
 
-Using the Node.JS package
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Using the Node.JS / Electron.JS package
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can download the Node.JS bindings using ``npm``\ :
+You can download the JS bindings using ``npm``\ :
 
 .. code-block:: bash
 
    npm install deepspeech
 
-Please note that as of now, we only support Node.JS versions 4, 5 and 6. Once `SWIG has support <https://github.com/swig/swig/pull/968>`_ we can build for newer versions.
+Please note that as of now, we support:
+ - Node.JS versions 4 to 13.
+ - Electron.JS versions 1.6 to 7.1
 
 Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can install the GPU specific package as follows:
 
@@ -131,7 +133,7 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can in
 
 See the `release notes <https://github.com/mozilla/DeepSpeech/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
 
-See `client.js <native_client/javascript/client.js>`_ for an example of how to use the bindings. Or download the `wav example <examples/nodejs_wav>`_.
+See :github:`client.js <native_client/javascript/client.js>` for an example of how to use the bindings.
 
 Using the Command-Line client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -162,12 +164,12 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
    ./deepspeech --model models/output_graph.pbmm --lm models/lm.binary --trie models/trie --audio audio_input.wav
 
-See the help output with ``./deepspeech -h`` and the `native client README <native_client/README.rst>`_ for more details.
+See the help output with ``./deepspeech -h`` and the :github:`native client README <native_client/README.rst>` for more details.
 
 Installing bindings from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow these `\ ``native_client`` installation instructions <native_client/README.rst>`_.
+If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow these :github:`native client installation instructions <native_client/README.rst>`.
 
 Third party bindings
 ^^^^^^^^^^^^^^^^^^^^

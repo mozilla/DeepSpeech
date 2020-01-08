@@ -64,6 +64,7 @@ release = v
 # ones.
 extensions = [
   'sphinx.ext.autodoc',
+  'sphinx.ext.extlinks',
   'sphinx.ext.intersphinx',
   'sphinx.ext.mathjax',
   'sphinx.ext.viewcode',
@@ -194,3 +195,6 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+extlinks = {'github': ('https://github.com/mozilla/DeepSpeech/blob/v{}/%s'.format(release),
+                      '%s')}
