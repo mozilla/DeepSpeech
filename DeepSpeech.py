@@ -602,8 +602,10 @@ def train():
                                     feed_dict=feed_dict)
                 except tf.errors.InvalidArgumentError as err:
                     if FLAGS.augmentation_sparse_warp:
-                        log_info("skip sparse warp error: {}".format(err))
+                        log_info("Ignoring sparse warp error: {}".format(err))
                         continue
+                    else:
+                        raise
                 except tf.errors.OutOfRangeError:
                     break
 
