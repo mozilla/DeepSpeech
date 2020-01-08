@@ -54,7 +54,7 @@ You'll also need to install the ``ds_ctcdecoder`` Python package. ``ds_ctcdecode
 
    pip3 install $(python3 util/taskcluster.py --decoder)
 
-This command will download and install the ``ds_ctcdecoder`` package. You can override the platform with ``--arch`` if you want the package for ARM7 (\ ``--arch arm``\ ) or ARM64 (\ ``--arch arm64``\ ). If you prefer building the ``ds_ctcdecoder`` package from source, see the `native_client README file <native_client/README.rst>`_.
+This command will download and install the ``ds_ctcdecoder`` package. You can override the platform with ``--arch`` if you want the package for ARM7 (\ ``--arch arm``\ ) or ARM64 (\ ``--arch arm64``\ ). If you prefer building the ``ds_ctcdecoder`` package from source, see the :github:`native_client README file <native_client/README.rst>`.
 
 Recommendations
 ^^^^^^^^^^^^^^^
@@ -124,9 +124,9 @@ The central (Python) script is ``DeepSpeech.py`` in the project's root directory
 
    ./DeepSpeech.py --helpfull
 
-To get the output of this in a slightly better-formatted way, you can also look up the option definitions in `\ ``util/flags.py`` <util/flags.py>`_.
+To get the output of this in a slightly better-formatted way, you can also look up the option definitions in :github:`util/flags.py <util/flags.py>`.
 
-For executing pre-configured training scenarios, there is a collection of convenience scripts in the ``bin`` folder. Most of them are named after the corpora they are configured for. Keep in mind that most speech corpora are *very large*\ , on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series or newer recommended) takes even longer.
+For executing pre-configured training scenarios, there is a collection of convenience scripts in the ``bin`` folder. Most of them are named after the corpora they are configured for. Keep in mind that most speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series or newer recommended) takes even longer.
 
 **If you experience GPU OOM errors while training, try reducing the batch size with the ``--train_batch_size``\ , ``--dev_batch_size`` and ``--test_batch_size`` parameters.**
 
@@ -136,7 +136,7 @@ As a simple first example you can open a terminal, change to the directory of th
 
    ./bin/run-ldc93s1.sh
 
-This script will train on a small sample dataset composed of just a single audio file, the sample file for the `TIMIT Acoustic-Phonetic Continuous Speech Corpus <https://catalog.ldc.upenn.edu/LDC93S1>`_\ , which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters.
+This script will train on a small sample dataset composed of just a single audio file, the sample file for the `TIMIT Acoustic-Phonetic Continuous Speech Corpus <https://catalog.ldc.upenn.edu/LDC93S1>`_, which can be overfitted on a GPU in a few minutes for demonstration purposes. From here, you can alter any variables with regards to what dataset is used, how many training iterations are run and the default values of the network parameters.
 
 Feel also free to pass additional (or overriding) ``DeepSpeech.py`` parameters to these scripts. Then, just run the script to train the modified network.
 
@@ -168,7 +168,7 @@ Exporting a model for inference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the ``--export_dir`` parameter is provided, a model will have been exported to this directory during training.
-Refer to the corresponding `README.rst <native_client/README.rst>`_ for information on building and running a client that can use the exported model.
+Refer to the corresponding :github:`README.rst <native_client/README.rst>` for information on building and running a client that can use the exported model.
 
 Exporting a model for TFLite
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
