@@ -42,7 +42,10 @@ PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
+set -o pipefail
+pip install --upgrade pip setuptools wheel | cat
 pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
+set +o pipefail
 
 pushd ${HOME}/DeepSpeech/ds/
     verify_ctcdecoder_url
