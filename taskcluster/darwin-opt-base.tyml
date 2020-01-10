@@ -99,6 +99,7 @@ payload:
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
         cd $TASKCLUSTER_TASK_DIR &&
         sed -i '' -e 's/node@8/node@10/g' $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
+        sed -i '' -e 's/node@8/node@10/g' $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-vars.sh &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
         $TASKCLUSTER_TASK_DIR/homebrew/bin/brew reinstall swig &&
         ${swig.patch_nodejs.osx_v12} &&
