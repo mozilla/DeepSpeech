@@ -166,7 +166,7 @@ def main(_):
                   'the --test_files flag.')
         sys.exit(1)
 
-    from DeepSpeech import create_model, try_loading # pylint: disable=cyclic-import
+    from DeepSpeech import create_model, try_loading  # pylint: import-outside-toplevel
     samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading, FLAGS.lm_alpha, FLAGS.lm_beta, FLAGS.report_count)
 
     if FLAGS.test_output_file:
