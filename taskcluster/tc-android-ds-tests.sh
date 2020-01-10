@@ -7,6 +7,9 @@ api_level=$2
 
 source $(dirname "$0")/tc-tests-utils.sh
 
+bitrate=$3
+set_ldc_sample_filename "${bitrate}"
+
 model_source=${DEEPSPEECH_TEST_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
 export DATA_TMP_DIR=${ANDROID_TMP_DIR}/ds

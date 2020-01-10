@@ -36,15 +36,11 @@ payload:
           https://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-base-x86_64-20180531.tar.xz/download
 
   env:
-    $let:
-      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
-    in:
-      TC_MSYS_VERSION: 'MSYS_NT-6.3'
-      MSYS: 'winsymlinks:nativestrict'
-      TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
-      DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
-      EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
-      EXAMPLES_CHECKOUT_TARGET: "master"
+    TC_MSYS_VERSION: 'MSYS_NT-6.3'
+    MSYS: 'winsymlinks:nativestrict'
+    TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
+    EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
+    EXAMPLES_CHECKOUT_TARGET: "master"
 
   command:
     - >-

@@ -6,6 +6,9 @@ source $(dirname "$0")/tc-tests-utils.sh
 
 extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf" "pyalias"
 
+bitrate=$2
+set_ldc_sample_filename "${bitrate}"
+
 unset PYTHON_BIN_PATH
 unset PYTHONPATH
 
@@ -43,8 +46,8 @@ virtualenv_activate "${pyalias}" "${PYENV_NAME}"
 deepspeech_pkg_url=$(get_python_pkg_url ${pyver_pkg} ${py_unicode_type})
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${deepspeech_pkg_url} | cat
 
-run_prod_inference_tests
+run_prod_inference_tests "${bitrate}"
 
-run_prod_concurrent_stream_tests
+run_prod_concurrent_stream_tests "${bitrate}"
 
 virtualenv_deactivate "${pyalias}" "${PYENV_NAME}"

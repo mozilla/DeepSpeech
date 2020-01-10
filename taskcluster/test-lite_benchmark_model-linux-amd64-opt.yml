@@ -1,7 +1,8 @@
 build:
   template_file: test-linux-opt-base.tyml
   dependencies:
-    - "test-training_upstream-linux-amd64-py36m-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-lite_benchmark_model-ds-tests.sh"
   benchmark_model_bin: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.14.e77504ac6b941fd2af495b49a0bcd56f25ca0e1e.cpu/artifacts/public/lite_benchmark_model"

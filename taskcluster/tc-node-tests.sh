@@ -11,6 +11,9 @@ if [ -z "${nodever}" ]; then
     exit 1
 fi;
 
+bitrate=$2
+set_ldc_sample_filename "${bitrate}"
+
 download_data
 
 node --version

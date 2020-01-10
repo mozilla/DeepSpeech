@@ -11,6 +11,9 @@ if [ -z "${nodever}" ]; then
     exit 1
 fi;
 
+bitrate=$2
+set_ldc_sample_filename "${bitrate}"
+
 model_source=${DEEPSPEECH_PROD_MODEL}
 model_name=$(basename "${model_source}")
 
@@ -32,4 +35,4 @@ npm install --prefix ${NODE_ROOT} --cache ${NODE_CACHE} ${deepspeech_npm_url}
 
 check_runtime_nodejs
 
-run_prod_inference_tests
+run_prod_inference_tests "${bitrate}"

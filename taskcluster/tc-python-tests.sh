@@ -6,6 +6,9 @@ source $(dirname "$0")/tc-tests-utils.sh
 
 extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf" "pyalias"
 
+bitrate=$2
+set_ldc_sample_filename "${bitrate}"
+
 unset PYTHON_BIN_PATH
 unset PYTHONPATH
 
