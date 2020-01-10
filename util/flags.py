@@ -147,16 +147,20 @@ def create_flags():
 
     # Fine Tune Decoder: tune alpha -> tune beta -> tune alpha
 
-    f.DEFINE_string('finetune_lm_csv_files', '', 'specify csv files to enable tunning lm parameters before test')
-    f.DEFINE_integer('finetune_lm_sampling_size', 1024, 'sampling audio from `train_files` to evaluate wer')
-    f.DEFINE_float('finetune_lm_alpha_min', 0.5, 'fit alpha as parabola curve, but constraint the minimum value')
-    f.DEFINE_float('finetune_lm_alpha_max', 1.5, 'fit alpha as parabola curve, but constraint the maximum value')
-    f.DEFINE_integer('finetune_lm_alpha_steps', 7, 'scan alpha from tune_lm_alpha_min to tune_lm_alpha_max by steps')
-    f.DEFINE_float('finetune_lm_beta_min', 1.0, 'pick lowest beta, but constraint the minimum value')
-    f.DEFINE_float('finetune_lm_beta_max', 2.0, 'pick lowest beta, but constraint the maximum value')
-    f.DEFINE_integer('finetune_lm_beta_steps', 5, 'scan alpha from tune_lm_beta_min to tune_lm_beta_max by steps')
-    f.DEFINE_string('finetune_output_file', '', 'path to a file to save best alphabet and beta')
-    f.DEFINE_string('finetune_temp_dir', '/tmp', 'to put temporary sampling csv file for scanning parameters')
+    f.DEFINE_list('finetune_lm_csv_files', '', 'comma separated list of files specifing the dataset used for tuning.')
+    f.DEFINE_integer('finetune_lm_sample_size', 256, 'sampling audio from `finetune_lm_csv_files` to evaluate wer', lower_bound=1)
+    f.DEFINE_float('finetune_lm_alpha_min', 0.5, 'constraint the alpha minimum value', lower_bound=0.01)
+    f.DEFINE_float('finetune_lm_alpha_max', 1.5, 'constraint the alpha maximum value', lower_bound=0.01)
+    f.DEFINE_integer('finetune_lm_alpha_steps', 5, 'scan alpha from finetune_lm_alpha_min to finetune_lm_alpha_max by steps.', lower_bound=3)
+    f.DEFINE_float('finetune_lm_beta_min', 0.5, 'constraint the beta minimum value', lower_bound=0.01)
+    f.DEFINE_float('finetune_lm_beta_max', 1.5, 'constraint the beta maximum value', lower_bound=0.01)
+    f.DEFINE_integer('finetune_lm_beta_steps', 3, 'scan alpha from finetune_lm_beta_min to finetune_lm_beta_max by steps', lower_bound=3)
+    f.DEFINE_float('finetune_lm_alpha_radius', 0.05, 'set alpha radius for "random_search".', lower_bound=0.0001)
+    f.DEFINE_float('finetune_lm_beta_radius', 0.1, 'set beta radius for "random_search".', lower_bound=0.0001)
+    f.DEFINE_integer('finetune_lm_n_iterations', 10, 'set iterations for "random_search".', lower_bound=1)
+    f.DEFINE_enum('finetune_lm_target_mean_loss', 'word_distance', ['word_distance', 'char_distance', 'wer', 'cer'], 'specify target mean loss.')
+    f.DEFINE_enum('finetune_lm_method', 'random_search', ['parabola', 'random_search', 'parabola+random_search'], 'specify finetune method.')
+    f.DEFINE_string('finetune_lm_output_file', '', 'path to a file to save best alphabet and beta')
 
     # Inference mode
 
@@ -171,3 +175,7 @@ def create_flags():
     f.register_validator('one_shot_infer',
                          lambda value: not value or os.path.isfile(value),
                          message='The file pointed to by --one_shot_infer must exist and be readable.')
+
+    f.register_validator('finetune_lm_csv_files',
+                         lambda filenames: not filenames or all([os.path.isfile(filename) for filename in filenames]),
+                         message='The all --finetune_lm_csv_files must exist and be readable')
