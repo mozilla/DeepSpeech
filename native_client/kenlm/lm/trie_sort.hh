@@ -48,7 +48,7 @@ class EntryCompare : public std::binary_function<const void*, const void*, bool>
 
 class RecordReader {
   public:
-    RecordReader() : remains_(true) {}
+    RecordReader() : remains_(false) {}
 
     void Init(FILE *file, std::size_t entry_size);
 

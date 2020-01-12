@@ -97,7 +97,6 @@ template <class Search, class VocabularyT> void GenericModel<Search, VocabularyT
     // File counts do not include pruned trigrams that extend to quadgrams etc.   These will be fixed by search_.
     ReadARPACounts(f, counts);
     CheckCounts(counts);
-    if (counts.size() < 2) UTIL_THROW(FormatLoadException, "This ngram implementation assumes at least a bigram model.");
     if (config.probing_multiplier <= 1.0) UTIL_THROW(ConfigException, "probing multiplier must be > 1.0");
 
     std::size_t vocab_size = util::CheckOverflow(VocabularyT::Size(counts[0], config));

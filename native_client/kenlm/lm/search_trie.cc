@@ -198,9 +198,11 @@ class SRISucks {
       }
       messages_[0].Apply(it_, unigram_file);
       BackoffMessages *messages = messages_ + 1;
-      const RecordReader *end = reader + total_order - 2 /* exclude unigrams and longest order */;
-      for (; reader != end; ++messages, ++reader) {
-        messages->Apply(it_, *reader);
+      if (total_order >= 2) {
+        const RecordReader *end = reader + total_order - 2 /* exclude unigrams and longest order */;
+        for (; reader != end; ++messages, ++reader) {
+          messages->Apply(it_, *reader);
+        }
       }
     }
 
@@ -477,8 +479,10 @@ template <class Quant, class Bhiksha> void BuildTrie(SortedFiles &files, std::ve
     fixed_counts = finder.Counts();
   }
   unigram_file.reset(util::FDOpenOrThrow(unigram_fd));
-  for (const RecordReader *i = inputs; i != inputs + counts.size() - 2; ++i) {
-    if (*i) UTIL_THROW(FormatLoadException, "There's a bug in the trie implementation: the " << (i - inputs + 2) << "-gram table did not complete reading");
+  if (counts.size() > 1) {
+    for (const RecordReader *i = inputs; i != inputs + counts.size() - 2; ++i) {
+      if (*i) UTIL_THROW(FormatLoadException, "There's a bug in the trie implementation: the " << (i - inputs + 2) << "-gram table did not complete reading");
+    }
   }
   SanityCheckCounts(counts, fixed_counts);
   counts = fixed_counts;
@@ -511,7 +515,7 @@ template <class Quant, class Bhiksha> void BuildTrie(SortedFiles &files, std::ve
     inputs[i-2].Rewind();
   }
   // Fill entries except unigram probabilities.
-  {
+  if (counts.size() > 1) {
     WriteEntries<Quant, Bhiksha> writer(contexts, quant, unigrams, out.middle_begin_, out.longest_, counts.size(), sri);
     RecursiveInsert(counts.size(), counts[0], inputs, config.ProgressMessages(), "Writing trie", writer);
     // Write the last unigram entry, which is the end pointer for the bigrams.
@@ -549,9 +553,17 @@ template <class Quant, class Bhiksha> uint8_t *TrieSearch<Quant, Bhiksha>::Setup
   unigram_.Init(start);
   start += Unigram::Size(counts[0]);
   FreeMiddles();
-  middle_begin_ = static_cast<Middle*>(malloc(sizeof(Middle) * (counts.size() - 2)));
-  middle_end_ = middle_begin_ + (counts.size() - 2);
-  std::vector<uint8_t*> middle_starts(counts.size() - 2);
+  std::vector<uint8_t*> middle_starts;
+  if (counts.size() > 2) {
+      middle_begin_ = static_cast<Middle*>(malloc(sizeof(Middle) * (counts.size() - 2)));
+      middle_end_ = middle_begin_ + (counts.size() - 2);
+      middle_starts.resize(counts.size() - 2);
+  }
+  else {
+      middle_begin_ = NULL;
+      middle_end_ = NULL;
+  }
+
   for (unsigned char i = 2; i < counts.size(); ++i) {
     middle_starts[i-2] = start;
     start += Middle::Size(Quant::MiddleBits(config), counts[i-1], counts[0], counts[i], config);
