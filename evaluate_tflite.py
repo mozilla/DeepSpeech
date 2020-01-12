@@ -112,7 +112,7 @@ def main(args, _):
             print('Reference texts dumped to %s.txt' % args.dump)
             print('Transcription   dumped to %s.out' % args.dump)
 
-if __name__ == '__main__':
+def parse_args():
     parser = argparse.ArgumentParser(description='Computing TFLite accuracy')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
@@ -129,5 +129,8 @@ if __name__ == '__main__':
     args, unknown = parser.parse_known_args()
     # Reconstruct argv for absl.flags
     sys.argv = [sys.argv[0]] + unknown
+    return args
+
+if __name__ == '__main__':
     create_flags()
-    absl.app.run(partial(main, args))
+    absl.app.run(partial(main, parse_args()))
