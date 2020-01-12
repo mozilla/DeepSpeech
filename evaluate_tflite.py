@@ -93,6 +93,9 @@ def main():
         count = 0
         for row in csvreader:
             count += 1
+            # Relative paths are relative to the folder the CSV file is in
+            if not os.path.isabs(row['wav_filename']):
+                row['wav_filename'] = os.path.join(os.path.dirname(args.csv), row['wav_filename'])
             work_todo.put({'filename': row['wav_filename'], 'transcript': row['transcript']})
             wav_filenames.extend(row['wav_filename'])
 
