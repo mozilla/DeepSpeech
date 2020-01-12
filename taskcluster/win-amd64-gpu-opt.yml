@@ -6,7 +6,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.win-cuda.${event.head.sha}"
     - "notify.irc-channel.${notifications.irc}.on-exception"
     - "notify.irc-channel.${notifications.irc}.on-failed"
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.14.e77504ac6b941fd2af495b49a0bcd56f25ca0e1e.win-cuda/artifacts/public/home.tar.xz"
+  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.bd115ee104da3d6bedea16e3bede341d1d7d7a4b.win-cuda/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/win-build.sh --cuda"
     package: "taskcluster/win-package.sh"
