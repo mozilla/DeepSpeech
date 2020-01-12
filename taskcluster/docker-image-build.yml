@@ -1,6 +1,0 @@
-build:
-  template_file: docker-build-base.tyml
-  dockerfile: "Dockerfile"
-  metadata:
-    name: "DeepSpeech Docker build"
-    description: "Testing |docker build| of DeepSpeech"
