@@ -76,7 +76,7 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
   const char* filename = lm_path.c_str();
   bool has_lm = lm_path.size() && access(filename, R_OK) == 0;
   bool has_trie = trie_path.size() && access(trie_path.c_str(), R_OK) == 0;
-  VALID_CHECK(has_lm || has_trie, "Need either a LM or a trie.");
+  // VALID_CHECK(has_lm || has_trie, "Need either a LM or a trie.");
 
   lm::ngram::Config config;
 

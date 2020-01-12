@@ -106,6 +106,10 @@ public:
 
   // pointer to the dictionary of FST
   std::unique_ptr<FstType> dictionary;
+  bool is_utf8_mode_ = true;
+
+  // fill dictionary for FST
+  void fill_dictionary(const std::vector<std::string> &vocabulary);
 
 protected:
   // necessary setup: load language model, fill FST's dictionary
@@ -114,12 +118,8 @@ protected:
   // load language model from given path
   void load_lm(const std::string &lm_path);
 
-  // fill dictionary for FST
-  void fill_dictionary(const std::vector<std::string> &vocabulary);
-
 private:
   std::unique_ptr<lm::base::Model> language_model_;
-  bool is_utf8_mode_ = true;
   size_t max_order_ = 0;
 
   int SPACE_ID_;

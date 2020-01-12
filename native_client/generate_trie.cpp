@@ -8,23 +8,26 @@
 using namespace std;
 
 int generate_trie(const char* alphabet_path, const char* kenlm_path, const char* trie_path) {
+  string word;
+  vector<string> vocabulary;
+  ifstream fin(kenlm_path);
+  while (!fin.eof()) {
+    fin >> word;
+    vocabulary.push_back(word);
+  }
   Alphabet alphabet;
-  int err = alphabet.init(alphabet_path);
-  if (err != 0) {
-    return err;
-  }
+  alphabet.init(alphabet_path);
   Scorer scorer;
-  err = scorer.init(0.0, 0.0, kenlm_path, "", alphabet);
-  if (err != 0) {
-    return err;
-  }
+  scorer.init(1.0, 1.0, "", "", alphabet);
+  scorer.is_utf8_mode_ = false;
+  scorer.fill_dictionary(vocabulary);
   scorer.save_dictionary(trie_path);
   return 0;
 }
 
 int main(int argc, char** argv) {
   if (argc != 4) {
-    std::cerr << "Usage: " << argv[0] << " <alphabet> <lm_model> <trie_path>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <alphabet> <vocab_file_word_per_line> <trie_path>" << std::endl;
     return -1;
   }
 
