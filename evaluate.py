@@ -42,7 +42,7 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
 
 
 def evaluate(test_csvs, create_model, try_loading):
-    if FLAGS.lm_binary_path:
+    if FLAGS.lm_binary_path or FLAGS.lm_trie_path:
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.lm_binary_path, FLAGS.lm_trie_path,
                         Config.alphabet)

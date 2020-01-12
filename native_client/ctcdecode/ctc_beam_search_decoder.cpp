@@ -36,7 +36,7 @@ DecoderState::init(const Alphabet& alphabet,
   prefix_root_.reset(root);
   prefixes_.push_back(root);
 
-  if (ext_scorer != nullptr) {
+  if (ext_scorer != nullptr && ext_scorer->has_trie()) {
     // no need for std::make_shared<>() since Copy() does 'new' behind the doors
     auto dict_ptr = std::shared_ptr<PathTrie::FstType>(ext_scorer->dictionary->Copy(true));
     root->set_dictionary(dict_ptr);
@@ -58,7 +58,7 @@ DecoderState::next(const double *probs,
 
     float min_cutoff = -NUM_FLT_INF;
     bool full_beam = false;
-    if (ext_scorer_ != nullptr) {
+    if (ext_scorer_ != nullptr && ext_scorer_->has_lm()) {
       size_t num_prefixes = std::min(prefixes_.size(), beam_size_);
       std::partial_sort(prefixes_.begin(),
                         prefixes_.begin() + num_prefixes,
@@ -109,7 +109,7 @@ DecoderState::next(const double *probs,
             log_p = log_prob_c + prefix->score;
           }
 
-          if (ext_scorer_ != nullptr) {
+          if (ext_scorer_ != nullptr && ext_scorer_->has_lm()) {
             // skip scoring the space in word based LMs
             PathTrie* prefix_to_score;
             if (ext_scorer_->is_utf8_mode()) {
@@ -166,7 +166,7 @@ DecoderState::decode() const
   }
 
   // score the last word of each prefix that doesn't end with space
-  if (ext_scorer_ != nullptr) {
+  if (ext_scorer_ != nullptr && ext_scorer_->has_lm()) {
     for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
       auto prefix = prefixes_copy[i];
       if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
@@ -200,7 +200,7 @@ DecoderState::decode() const
     Output output;
     prefixes_copy[i]->get_path_vec(output.tokens, output.timesteps);
     double approx_ctc = scores[prefixes_copy[i]];
-    if (ext_scorer_ != nullptr) {
+    if (ext_scorer_ != nullptr && ext_scorer_->has_lm()) {
       auto words = ext_scorer_->split_labels_into_scored_units(output.tokens);
       // remove term insertion weight
       approx_ctc -= words.size() * ext_scorer_->beta;

@@ -95,6 +95,10 @@ public:
   // return weather this step represents a boundary where beam scoring should happen
   bool is_scoring_boundary(PathTrie* prefix, size_t new_label);
 
+  bool has_lm() const;
+
+  bool has_trie() const;
+
   // language model weight
   double alpha = 0.;
   // word insertion weight

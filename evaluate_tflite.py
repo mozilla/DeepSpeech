@@ -37,7 +37,8 @@ LM_BETA = 1.85
 def tflite_worker(model, lm, trie, queue_in, queue_out, gpu_mask):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_mask)
     ds = Model(model, BEAM_WIDTH)
-    ds.enableDecoderWithLM(lm, trie, LM_ALPHA, LM_BETA)
+    if lm or trie:
+        ds.enableDecoderWithLM(lm, trie, LM_ALPHA, LM_BETA)
 
     while True:
         try:
@@ -116,9 +117,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Computing TFLite accuracy')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('--lm', required=True,
+    parser.add_argument('--lm', default='',
                         help='Path to the language model binary file')
-    parser.add_argument('--trie', required=True,
+    parser.add_argument('--trie', default='',
                         help='Path to the language model trie file created with native_client/generate_trie')
     parser.add_argument('--csv', required=True,
                         help='Path to the CSV source file')
