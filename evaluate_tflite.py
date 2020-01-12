@@ -44,14 +44,13 @@ def tflite_worker(model, lm, trie, queue_in, queue_out, gpu_mask):
             msg = queue_in.get()
 
             filename = msg['filename']
-            wavname = os.path.splitext(os.path.basename(filename))[0]
             fin = wave.open(filename, 'rb')
             audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
             fin.close()
 
             decoded = ds.stt(audio)
 
-            queue_out.put({'wav': wavname, 'prediction': decoded, 'ground_truth': msg['transcript']})
+            queue_out.put({'wav': filename, 'prediction': decoded, 'ground_truth': msg['transcript']})
         except FileNotFoundError as ex:
             print('FileNotFoundError: ', ex)
 
