@@ -267,7 +267,7 @@ assert_correct_ldc93s1_prodmodel()
 assert_correct_ldc93s1_prodtflitemodel()
 {
   if [ -z "$3" -o "$3" = "16k" ]; then
-    assert_correct_inference "$1" "she had educate in greasy wash were all year" "$2"
+    assert_correct_inference "$1" "she had i do utterly was or all year" "$2"
   fi;
 
   if [ -o "$3" = "8k" ]; then
@@ -289,7 +289,7 @@ assert_correct_ldc93s1_prodmodel_stereo_44k()
 assert_correct_ldc93s1_prodtflitemodel_stereo_44k()
 {
   if [ -z "$3" -o "$3" = "16k" ]; then
-    assert_correct_inference "$1" "she had educate in greasy wash were all year" "$2"
+    assert_correct_inference "$1" "she headed grey was or all year" "$2"
   fi;
 
   if [ -o "$3" = "8k" ]; then
