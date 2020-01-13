@@ -130,7 +130,7 @@ public class BasicTest {
     @Test
     public void loadDeepSpeech_stt_withLM() {
         DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
-        m.enableDecoderWihLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
+        m.enableDecoderWithLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
 
         String decoded = doSTT(m, false);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
@@ -149,7 +149,7 @@ public class BasicTest {
     @Test
     public void loadDeepSpeech_sttWithMetadata_withLM() {
         DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
-        m.enableDecoderWihLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
+        m.enableDecoderWithLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
 
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);

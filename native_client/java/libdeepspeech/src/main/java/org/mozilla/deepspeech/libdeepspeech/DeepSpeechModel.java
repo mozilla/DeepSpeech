@@ -56,7 +56,7 @@ public class DeepSpeechModel {
     *
     * @return Zero on success, non-zero on failure (invalid arguments).
     */
-    public void enableDecoderWihLM(String lm, String trie, float lm_alpha, float lm_beta) {
+    public void enableDecoderWithLM(String lm, String trie, float lm_alpha, float lm_beta) {
         impl.EnableDecoderWithLM(this._msp, lm, trie, lm_alpha, lm_beta);
     }
 
