@@ -106,6 +106,10 @@ def finetune_lm(create_model, try_loading, original_samples, method='parabola'):
         original_samples_wer, original_samples_cer = wer_cer_batch(original_samples)
         finetune_samples_wer, finetune_samples_cer = wer_cer_batch(finetune_samples)
 
+        target_loss = FLAGS.finetune_lm_target_mean_loss
+        original_mean_loss = np.mean([sample[target_loss] for sample in original_samples])
+        finetune_mean_loss = np.mean([sample[target_loss] for sample in finetune_samples])
+
         finetune_result.update({
             'test_csv_files': FLAGS.test_files.split(','),
             'method': method,
@@ -118,12 +122,14 @@ def finetune_lm(create_model, try_loading, original_samples, method='parabola'):
                 'beta': FLAGS.lm_beta,
                 'samples_wer': original_samples_wer,
                 'samples_cer': original_samples_cer,
+                'target_mean_loss': original_mean_loss,
             },
             'finetune_test_result': {
                 'alpha': best_alpha,
                 'beta': best_beta,
                 'samples_wer': finetune_samples_wer,
                 'samples_cer': finetune_samples_cer,
+                'target_mean_loss': finetune_mean_loss,
             },
             'finetune_parameters': finetune_result,
         }
