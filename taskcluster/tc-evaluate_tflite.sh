@@ -40,6 +40,7 @@ virtualenv_activate "${pyalias}" "${PYENV_NAME}"
 deepspeech_pkg_url=$(get_python_pkg_url ${pyver_pkg} ${py_unicode_type})
 set -o pipefail
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} --upgrade ${deepspeech_pkg_url} | cat
+pip install --upgrade pip setuptools wheel | cat
 pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 set +o pipefail
 
