@@ -22,7 +22,7 @@ do_bazel_build
 
 do_deepspeech_binary_build
 
-export SUPPORTED_PYTHON_VERSIONS="3.7.3:ucs4"
+export SUPPORTED_PYTHON_VERSIONS="3.7.6:ucs4"
 do_deepspeech_python_build
 
 do_deepspeech_nodejs_build
