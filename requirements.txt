@@ -1,6 +1,6 @@
 # Main training requirements
-tensorflow == 1.14.0
-numpy == 1.15.4
+tensorflow == 1.15.0
+numpy == 1.18.1
 progressbar2
 pandas
 six

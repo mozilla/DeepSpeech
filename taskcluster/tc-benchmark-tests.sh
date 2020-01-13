@@ -93,7 +93,10 @@ pyenv install ${pyver}
 pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
+set -o pipefail
+pip install --upgrade pip setuptools wheel | cat
 pip install -r ${DS_ROOT_TASK}/DeepSpeech/ds/requirements.txt | cat
+set +o pipefail
 
 exec_benchmark "/tmp/test.frozen.e75.lstm494.ldc93s1.pb" "single-model"
 exec_benchmark "/tmp/test.frozen.e75.lstm100-900.ldc93s1.zip" "zipfile-model"

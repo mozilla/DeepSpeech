@@ -23,5 +23,5 @@ build:
     tests_cmdline: ''
   convert_graphdef: ''
   benchmark_model_bin: ''
-  tensorflow_git_desc: 'TensorFlow: v1.14.0-21-ge77504a'
+  tensorflow_git_desc: 'TensorFlow: v1.15.0-22-gbd115ee'
   test_model_task: ''
