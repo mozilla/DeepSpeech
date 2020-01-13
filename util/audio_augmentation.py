@@ -60,4 +60,5 @@ def augment_noise(audio,
     choosen_noise_db = tfv1.random_uniform(
         [], minval=change_noise_db_min, maxval=change_noise_db_max)
     noise_ratio = tf.math.pow(10.0, choosen_noise_db / 10)
-    return tf.multiply(audio, audio_ratio) + tf.multiply(mixed_noise, noise_ratio)
+    mixed_audio = tf.multiply(audio, audio_ratio) + tf.multiply(mixed_noise, noise_ratio)
+    return tf.maximum(tf.minimum(mixed_audio, 1.0), -1.0)
