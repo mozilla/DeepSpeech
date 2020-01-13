@@ -43,15 +43,15 @@ nodejs:
     # introduced by 0.33.5).
     setup: 'install_local_homebrew "node-ds-test" && install_pkg_local_homebrew "sox" && export NVM_DIR=$TASKCLUSTER_TASK_DIR/.nvm/ && mkdir -p $NVM_DIR  && curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh |  bash && source $NVM_DIR/nvm.sh'
     env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/node-ds-test.brew/bin/:$PATH"'
-    prep_10: 'nvm install 10.16.0 && nvm use 10.16.0'
+    prep_10: 'nvm install 10.18.1 && nvm use 10.18.1'
     prep_11: 'nvm install 11.15.0 && nvm use 11.15.0'
-    prep_12: 'nvm install 12.5.0 && nvm use 12.5.0'
-    prep_13: 'nvm install 13.0.1 && nvm use 13.0.1'
+    prep_12: 'nvm install 12.14.1 && nvm use 12.14.1'
+    prep_13: 'nvm install 13.6.0 && nvm use 13.6.0'
   win:
-    prep_10: '/usr/bin/wget.exe https://nodejs.org/dist/v10.16.0/node-v10.16.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v10.16.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v10.16.0-win-x64/:$PATH'
+    prep_10: '/usr/bin/wget.exe https://nodejs.org/dist/v10.18.1/node-v10.18.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v10.18.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v10.18.1-win-x64/:$PATH'
     prep_11: '/usr/bin/wget.exe https://nodejs.org/dist/v11.15.0/node-v11.15.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v11.15.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v11.15.0-win-x64/:$PATH'
-    prep_12: '/usr/bin/wget.exe https://nodejs.org/dist/v12.5.0/node-v12.5.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v12.5.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v12.5.0-win-x64/:$PATH'
-    prep_13: '/usr/bin/wget.exe https://nodejs.org/dist/v13.0.1/node-v13.0.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v13.0.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v13.0.1-win-x64/:$PATH'
+    prep_12: '/usr/bin/wget.exe https://nodejs.org/dist/v12.14.1/node-v12.14.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v12.14.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v12.14.1-win-x64/:$PATH'
+    prep_13: '/usr/bin/wget.exe https://nodejs.org/dist/v13.6.0/node-v13.6.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v13.6.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v13.6.0-win-x64/:$PATH'
 ## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
 ## force 3.0.10 for nodejs V8 API compatibility
 swig:

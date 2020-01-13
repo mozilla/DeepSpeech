@@ -40,7 +40,7 @@ export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin:'/c/Program Files/nodejs/'
 do_deepspeech_binary_build
 
 # Those are the versions available on NuGet.org
-export SUPPORTED_PYTHON_VERSIONS="3.5.4 3.6.7 3.7.1 3.8.0"
+export SUPPORTED_PYTHON_VERSIONS="3.5.4 3.6.8 3.7.6 3.8.1"
 if [ "${runtime}" = "tflite" ]; then
   do_deepspeech_python_build "--tflite"
 else

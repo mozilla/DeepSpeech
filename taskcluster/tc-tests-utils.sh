@@ -58,9 +58,9 @@ model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 ldc93s1_sample_filename=''
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.7:ucs4 3.6.8:ucs4 3.7.3:ucs4 3.8.0:ucs4}
-SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-10.16.0 11.15.0 12.5.0 13.0.1}
-SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-5.0.6 6.0.11 7.0.1 7.1.2}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.8:ucs4 3.6.10:ucs4 3.7.6:ucs4 3.8.1:ucs4}
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-10.18.1 11.15.0 12.8.1 13.1.0}
+SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-5.0.13 6.0.12 6.1.7 7.0.1 7.1.8}
 
 strip() {
   echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
@@ -709,7 +709,7 @@ install_pyenv()
   fi
 
   pushd ${PYENV_ROOT}
-    git checkout --quiet 0e7cfc3b3d4eca46ad83d632e1505f5932cd179b
+    git checkout --quiet 20a1f0cd7a3d2f95800d8e0d5863b4e98f25f4df
   popd
 
   if [ ! -d "${PYENV_ROOT}/plugins/pyenv-alias" ]; then
@@ -1387,16 +1387,18 @@ do_deepspeech_nodejs_build()
 {
   rename_to_gpu=$1
 
-  # Force node-gyp 4.x until https://github.com/nodejs/node-gyp/issues/1778 is fixed
-  npm update && npm install node-gyp@4.x node-pre-gyp
+  npm update
 
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     NPM_ROOT=$(cygpath -u "$(npm root)")
     PYTHON27=":/c/Python27"
+    # node-gyp@5.x behaves erratically with VS2015 and MSBuild.exe detection
+    npm install node-gyp@4.x node-pre-gyp
   else
     NPM_ROOT="$(npm root)"
+    npm install node-gyp@5.x node-pre-gyp
   fi
 
   export PATH="$NPM_ROOT/.bin/${PYTHON27}:$PATH"
@@ -1437,16 +1439,18 @@ do_deepspeech_npm_package()
 
   cd ${DS_DSDIR}
 
-  # Force node-gyp 4.x until https://github.com/nodejs/node-gyp/issues/1778 is fixed
-  npm update && npm install node-gyp@4.x node-pre-gyp
+  npm update
 
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     NPM_ROOT=$(cygpath -u "$(npm root)")
     PYTHON27=":/c/Python27"
+    # node-gyp@5.x behaves erratically with VS2015 and MSBuild.exe detection
+    npm install node-gyp@4.x node-pre-gyp
   else
     NPM_ROOT="$(npm root)"
+    npm install node-gyp@5.x node-pre-gyp
   fi
 
   export PATH="$NPM_ROOT/.bin/$PYTHON27:$PATH"

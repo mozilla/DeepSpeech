@@ -8,7 +8,7 @@ build:
     >
       apt-get -qq -y install ${python.packages_trusty.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.7.0:m 8k"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.7.6:m 8k"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU Python v3.7 tests (8kHz)"
     description: "Testing DeepSpeech for Linux/AMD64 on Python v3.7, CPU only, optimized version (8kHz)"

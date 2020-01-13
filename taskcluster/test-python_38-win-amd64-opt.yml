@@ -8,7 +8,7 @@ build:
     >
       ${system.sox_win}
   args:
-    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.8.0: 16k"
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.8.1: 16k"
   metadata:
     name: "DeepSpeech Windows AMD64 CPU Python v3.8 tests"
     description: "Testing DeepSpeech for Windows/AMD64 on Python v3.8, CPU only, optimized version"
