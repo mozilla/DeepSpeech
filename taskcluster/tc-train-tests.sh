@@ -43,7 +43,7 @@ pyenv virtualenv ${pyver} ${PYENV_NAME}
 source ${PYENV_ROOT}/versions/${pyver}/envs/${PYENV_NAME}/bin/activate
 
 set -o pipefail
-pip install --upgrade pip setuptools wheel | cat
+pip install --upgrade pip==19.3.1 setuptools==45.0.0 wheel==0.33.6 | cat
 pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
 set +o pipefail
 
