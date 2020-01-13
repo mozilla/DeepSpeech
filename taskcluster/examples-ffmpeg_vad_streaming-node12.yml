@@ -1,6 +1,6 @@
 build:
   template_file: examples-base.tyml
-  docker_image: "node:8"
+  docker_image: "node:12"
   dependencies:
     - "linux-amd64-cpu-opt"
   system_setup:
@@ -9,5 +9,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/ffmpeg_vad_streaming/test.sh"
   metadata:
-    name: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v8.x"
-    description: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v8.x"
+    name: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v12.x"
+    description: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v12.x"
