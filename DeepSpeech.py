@@ -579,7 +579,7 @@ def train():
             init_op = tfv1.variables_initializer(missing_variables)
             session.run(init_op)
             loaded = True
-
+            
         if not loaded and FLAGS.load in ['auto', 'last']:
             tf.initialize_all_variables().run()
             loaded = try_loading(session, checkpoint_saver, 'checkpoint', 'most recent')
@@ -612,7 +612,8 @@ def train():
             log_error('Unable to load %s model from specified checkpoint dir'
                       ' - consider using load option "auto" or "init".' % FLAGS.load)
             sys.exit(1)
-
+        
+        tfv1.get_default_graph().finalize()
 
         # TRANSFER LEARNING #
 
