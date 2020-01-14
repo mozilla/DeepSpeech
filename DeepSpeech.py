@@ -309,24 +309,19 @@ def get_tower_results(iterator, optimizer, dropout_rates, drop_source_layers):
                     tower_avg_losses.append(avg_loss)
 
                     # Compute gradients for model parameters using tower's mini-batch
-                    if FLAGS.load == "transfer":
-                        if not FLAGS.fine_tune:
-                            # train from source model and freeze old layers
-                            # aka - only update new layers
-                            gradients = optimizer.compute_gradients(
-                                avg_loss,
-                                var_list = [ v for v in tfv1.trainable_variables()
-                                             if any(
-                                                     layer in v.op.name
-                                                     for layer in drop_source_layers
-                                             )]
-                            )
-                        else:
-                            # Transfer learning, but update all layers
-                            # aka - fine tune all layers
-                            gradients = optimizer.compute_gradients(avg_loss)
+                    if FLAGS.load == "transfer" and not FLAGS.fine_tune:
+                        # train from source model and freeze old layers
+                        # aka - only update new layers
+                        gradients = optimizer.compute_gradients(
+                            avg_loss,
+                            var_list = [ v for v in tfv1.trainable_variables()
+                                         if any(
+                                                 layer in v.op.name
+                                                 for layer in drop_source_layers
+                                         )]
+                        )
                     else:
-                        # no Transfer Learning, and updating all layers 
+                        # fine tune all layers
                         gradients = optimizer.compute_gradients(avg_loss)
                         
                     # Retain tower's gradients
