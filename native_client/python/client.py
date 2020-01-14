@@ -42,6 +42,10 @@ def words_from_metadata(metadata):
         item = metadata.items[i]
         # Append character to word if it's not a space
         if item.character != " ":
+            if len(word) == 0:
+                # Log the start time of the new word
+                word_start_time = item.start_time
+
             word = word + item.character
         # Word boundary is either a space or the last character in the array
         if item.character == " " or i == metadata.num_items - 1:
@@ -59,10 +63,6 @@ def words_from_metadata(metadata):
             # Reset
             word = ""
             word_start_time = 0
-        else:
-            if len(word) == 1:
-                # Log the start time of the new word
-                word_start_time = item.start_time
 
     return word_list
 
