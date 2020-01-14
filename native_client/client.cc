@@ -302,8 +302,11 @@ WordsFromMetadata(Metadata* metadata)
     MetadataItem item = metadata->items[i];
 
     // Append character to word if it's not a space
-    if (strcmp(item.character, " ") != 0 
-        && strcmp(item.character, u8"　") != 0) {
+    if (strcmp(item.character, u8" ") != 0) {
+      // Log the start time of the new word
+      if (word.length() == 0) {
+        word_start_time = item.start_time;
+      }
       word.append(item.character);
     }
 
@@ -328,10 +331,6 @@ WordsFromMetadata(Metadata* metadata)
       // Reset
       word = "";
       word_start_time = 0;
-    } else {
-      if (word.length() == 1) {
-        word_start_time = item.start_time; // Log the start time of the new word
-      }
     }
   }
 
