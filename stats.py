@@ -3,7 +3,8 @@
 import argparse
 import os
 
-from util.feeding import read_csvs, secs_to_hours
+from util.helpers import secs_to_hours
+from util.feeding import read_csvs
 
 def main():
     parser = argparse.ArgumentParser()

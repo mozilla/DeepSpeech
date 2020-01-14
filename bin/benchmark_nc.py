@@ -9,7 +9,7 @@ import sys
 # To use util.tc
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0]))))
 import util.taskcluster as tcu
-from util.benchmark import keep_only_digits
+from util.helpers import keep_only_digits
 
 import paramiko
 import argparse
@@ -171,8 +171,8 @@ def all_files(models=[]):
         assert len(fa) == len(fb)
         assert len(fa) == 1
 
-        fa = keep_only_digits(fa[0])
-        fb = keep_only_digits(fb[0])
+        fa = int(keep_only_digits(fa[0]))
+        fb = int(keep_only_digits(fb[0]))
 
         if fa < fb:
             return -1

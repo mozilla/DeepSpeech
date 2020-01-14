@@ -28,7 +28,7 @@ from glob import glob
 
 from util.downloader import maybe_download
 from util.text import Alphabet, validate_label
-from util.feeding import secs_to_hours
+from util.helpers import secs_to_hours
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000
