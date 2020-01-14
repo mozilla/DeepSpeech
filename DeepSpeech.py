@@ -614,29 +614,8 @@ def train():
             sys.exit(1)
         
         tfv1.get_default_graph().finalize()
-
-        # TRANSFER LEARNING #
-
-        # Retrieving global_step from restored model and setting training parameters accordingly
-        model_feeder.set_data_set(no_dropout_feed_dict, train_set)
-        step = session.run(global_step, feed_dict=no_dropout_feed_dict)
-        num_gpus = len(Config.available_devices)
-        steps_per_epoch = max(1, train_set.total_batches // num_gpus)
-        steps_trained = step % steps_per_epoch
-        current_epoch = step // steps_per_epoch
-        target_epoch = current_epoch + abs(FLAGS.epoch) if FLAGS.epoch < 0 else FLAGS.epoch
-        train_index.index = steps_trained * num_gpus
-
-        log_debug('step: %d' % step)
-        log_debug('epoch: %d' % current_epoch)
-        log_debug('target epoch: %d' % target_epoch)
-        log_debug('steps per epoch: %d' % steps_per_epoch)
-        log_debug('batches per step (GPUs): %d' % num_gpus)
-        log_debug('number of batches in train set: %d' % train_set.total_batches)
-        log_debug('number of batches already trained in epoch: %d' % train_index.index)
-
-        def run_set(set_name):
-            data_set = getattr(model_feeder, set_name)
+        
+        def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
             train_op = apply_gradient_op if is_train else []
             feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
