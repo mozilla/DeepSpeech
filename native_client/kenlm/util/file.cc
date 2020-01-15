@@ -490,7 +490,7 @@ int
 mkstemp_and_unlink(char *tmpl) {
   int ret = mkstemp(tmpl);
   if (ret != -1) {
-    UTIL_THROW_IF(unlink(tmpl), ErrnoException, "while deleting delete " << tmpl);
+    UTIL_THROW_IF(unlink(tmpl), ErrnoException, "while deleting " << tmpl);
   }
   return ret;
 }

@@ -2,9 +2,9 @@
 
 Language model inference code by Kenneth Heafield (kenlm at kheafield.com)
 
-I do development in master on https://github.com/kpu/kenlm/.  Normally, it works, but I do not guarantee it will compile, give correct answers, or generate non-broken binary files.  For a more stable release, get http://kheafield.com/code/kenlm.tar.gz .  
+I do development in master on https://github.com/kpu/kenlm/.  Normally, it works, but I do not guarantee it will compile, give correct answers, or generate non-broken binary files.  For a more stable release, get https://kheafield.com/code/kenlm.tar.gz .
 
-The website http://kheafield.com/code/kenlm/ has more documentation.  If you're a decoder developer, please download the latest version from there instead of copying from another decoder.  
+The website https://kheafield.com/code/kenlm/ has more documentation.  If you're a decoder developer, please download the latest version from there instead of copying from another decoder.
 
 ## Compiling
 Use cmake, see [BUILDING](BUILDING) for more detail.
@@ -33,7 +33,7 @@ lmplz estimates unpruned language models with modified Kneser-Ney smoothing.  Af
 ```bash
 bin/lmplz -o 5 <text >text.arpa
 ```
-The algorithm is on-disk, using an amount of memory that you specify.  See http://kheafield.com/code/kenlm/estimation/ for more.  
+The algorithm is on-disk, using an amount of memory that you specify.  See https://kheafield.com/code/kenlm/estimation/ for more.
 
 MT Marathon 2012 team members Ivan Pouzyrevsky and Mohammed Mediani contributed to the computation design and early implementation. Jon Clark contributed to the design, clarified points about smoothing, and added logging. 
 
@@ -43,15 +43,15 @@ filter takes an ARPA or count file and removes entries that will never be querie
 ```bash
 bin/filter
 ```
-and see http://kheafield.com/code/kenlm/filter/ for more documentation.
+and see https://kheafield.com/code/kenlm/filter/ for more documentation.
 
 ## Querying
 
-Two data structures are supported: probing and trie.  Probing is a probing hash table with keys that are 64-bit hashes of n-grams and floats as values.  Trie is a fairly standard trie but with bit-level packing so it uses the minimum number of bits to store word indices and pointers.  The trie node entries are sorted by word index.  Probing is the fastest and uses the most memory.  Trie uses the least memory and a bit slower.  
+Two data structures are supported: probing and trie.  Probing is a probing hash table with keys that are 64-bit hashes of n-grams and floats as values.  Trie is a fairly standard trie but with bit-level packing so it uses the minimum number of bits to store word indices and pointers.  The trie node entries are sorted by word index.  Probing is the fastest and uses the most memory.  Trie uses the least memory and is a bit slower.
 
 As is the custom in language modeling, all probabilities are log base 10.
 
-With trie, resident memory is 58% of IRST's smallest version and 21% of SRI's compact version.  Simultaneously, trie CPU's use is 81% of IRST's fastest version and 84% of SRI's fast version.  KenLM's probing hash table implementation goes even faster at the expense of using more memory.  See http://kheafield.com/code/kenlm/benchmark/.  
+With trie, resident memory is 58% of IRST's smallest version and 21% of SRI's compact version.  Simultaneously, trie CPU's use is 81% of IRST's fastest version and 84% of SRI's fast version.  KenLM's probing hash table implementation goes even faster at the expense of using more memory.  See https://kheafield.com/code/kenlm/benchmark/.
 
 Binary format via mmap is supported.  Run `./build_binary` to make one then pass the binary file name to the appropriate Model constructor.   
 
@@ -71,7 +71,7 @@ Hideo Okuma and Tomoyuki Yoshimura from NICT contributed ports to ARM and MinGW.
 
 - Select the macros you want, listed in the previous section.  
 
-- There are two build systems: compile.sh and Jamroot+Jamfile.  They're pretty simple and are intended to be reimplemented in your build system.  
+- There are two build systems: compile.sh and cmake.  They're pretty simple and are intended to be reimplemented in your build system.  
 
 - Use either the interface in `lm/model.hh` or `lm/virtual_interface.hh`.  Interface documentation is in comments of `lm/virtual_interface.hh` and `lm/model.hh`.  
 
@@ -101,4 +101,4 @@ See [python/example.py](python/example.py) and [python/kenlm.pyx](python/kenlm.p
 
 ---
 
-The name was Hieu Hoang's idea, not mine.  
+The name was Hieu Hoang's idea, not mine.
