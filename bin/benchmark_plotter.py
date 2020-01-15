@@ -8,8 +8,7 @@ import sys
 
 # To use util.tc
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0]))))
-import util.taskcluster as tcu
-from util.benchmark import keep_only_digits
+from util.helpers import keep_only_digits
 
 import argparse
 import numpy
@@ -35,7 +34,7 @@ def reduce_filename(f):
     '''
 
     f = os.path.basename(f).split('.')
-    return keep_only_digits(f[-3])
+    return int(keep_only_digits(f[-3]))
 
 def ingest_csv(datasets=None, range=None):
     existing_files = filter(lambda x: os.path.isfile(x[1]), datasets)
