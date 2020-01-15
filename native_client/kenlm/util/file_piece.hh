@@ -103,7 +103,7 @@ class FilePiece {
         if (position_ == position_end_) {
           try {
             Shift();
-          } catch (const util::EndOfFileException &e) { return false; }
+          } catch (const util::EndOfFileException &) { return false; }
           // And break out at end of file.
           if (position_ == position_end_) return false;
         }
