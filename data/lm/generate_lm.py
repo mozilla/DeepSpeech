@@ -50,6 +50,7 @@ def main():
     subprocess.check_call([
       'build_binary', '-a', '255',
                       '-q', '8',
+                      '-v',
                       'trie',
                       filtered_path,
                       'lm.binary'
