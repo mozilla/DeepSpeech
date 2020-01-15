@@ -134,7 +134,7 @@ class OverflowException : public Exception {
 
 template <unsigned len> inline std::size_t CheckOverflowInternal(uint64_t value) {
   UTIL_THROW_IF(value > static_cast<uint64_t>(std::numeric_limits<std::size_t>::max()), OverflowException, "Integer overflow detected.  This model is too big for 32-bit code.");
-  return value;
+  return static_cast<std::size_t>(value);
 }
 
 template <> inline std::size_t CheckOverflowInternal<8>(uint64_t value) {

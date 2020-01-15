@@ -19,8 +19,8 @@
 
 namespace lm {
 
-// 1 for '\t', '\n', and ' '.  This is stricter than isspace.
-const bool kARPASpaces[256] = {0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+// 1 for '\t', '\n', '\r', and ' '.  This is stricter than isspace.  Apparently ARPA allows vertical tab inside a word.
+const bool kARPASpaces[256] = {0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 namespace {
 
@@ -85,6 +85,11 @@ void ReadNGramHeader(util::FilePiece &in, unsigned int length) {
   if (line != expected.str()) UTIL_THROW(FormatLoadException, "Was expecting n-gram header " << expected.str() << " but got " << line << " instead");
 }
 
+void ConsumeNewline(util::FilePiece &in) {
+  char follow = in.get();
+  UTIL_THROW_IF('\n' != follow, FormatLoadException, "Expected newline got '" << follow << "'");
+}
+
 void ReadBackoff(util::FilePiece &in, Prob &/*weights*/) {
   switch (in.get()) {
     case '\t':
@@ -94,6 +99,9 @@ void ReadBackoff(util::FilePiece &in, Prob &/*weights*/) {
           UTIL_THROW(FormatLoadException, "Non-zero backoff " << got << " provided for an n-gram that should have no backoff");
       }
       break;
+    case '\r':
+      ConsumeNewline(in);
+      // Intentionally no break.
     case '\n':
       break;
     default:
@@ -120,8 +128,18 @@ void ReadBackoff(util::FilePiece &in, float &backoff) {
         UTIL_THROW_IF(float_class == FP_NAN || float_class == FP_INFINITE, FormatLoadException, "Bad backoff " << backoff);
 #endif
       }
-      UTIL_THROW_IF(in.get() != '\n', FormatLoadException, "Expected newline after backoff");
+      switch (char got = in.get()) {
+        case '\r':
+          ConsumeNewline(in);
+        case '\n':
+          break;
+        default:
+          UTIL_THROW(FormatLoadException, "Expected newline after backoffs, got " << got);
+      }
       break;
+    case '\r':
+      ConsumeNewline(in);
+      // Intentionally no break.
     case '\n':
       backoff = ngram::kNoExtensionBackoff;
       break;
