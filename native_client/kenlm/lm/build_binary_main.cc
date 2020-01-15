@@ -10,7 +10,6 @@
 #include <iomanip>
 #include <limits>
 #include <cmath>
-#include <cstdlib>
 
 #ifdef WIN32
 #include "util/getopt.hh"
@@ -23,11 +22,12 @@ namespace ngram {
 namespace {
 
 void Usage(const char *name, const char *default_mem) {
-  std::cerr << "Usage: " << name << " [-u log10_unknown_probability] [-s] [-i] [-w mmap|after] [-p probing_multiplier] [-T trie_temporary] [-S trie_building_mem] [-q bits] [-b bits] [-a bits] [type] input.arpa [output.mmap]\n\n"
+  std::cerr << "Usage: " << name << " [-u log10_unknown_probability] [-s] [-i] [-v] [-w mmap|after] [-p probing_multiplier] [-T trie_temporary] [-S trie_building_mem] [-q bits] [-b bits] [-a bits] [type] input.arpa [output.mmap]\n\n"
 "-u sets the log10 probability for <unk> if the ARPA file does not have one.\n"
 "   Default is -100.  The ARPA file will always take precedence.\n"
 "-s allows models to be built even if they do not have <s> and </s>.\n"
 "-i allows buggy models from IRSTLM by mapping positive log probability to 0.\n"
+"-v disables inclusion of the vocabulary in the binary file.\n"
 "-w mmap|after determines how writing is done.\n"
 "   mmap maps the binary file and writes to it.  Default for trie.\n"
 "   after allocates anonymous memory, builds, and writes.  Default for probing.\n"
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     lm::ngram::Config config;
     config.building_memory = util::ParseSize(default_mem);
     int opt;
-    while ((opt = getopt(argc, argv, "q:b:a:u:p:t:T:m:S:w:sir:h")) != -1) {
+    while ((opt = getopt(argc, argv, "q:b:a:u:p:t:T:m:S:w:sir:vh")) != -1) {
       switch(opt) {
         case 'q':
           config.prob_bits = ParseBitCount(optarg);
@@ -164,6 +164,9 @@ int main(int argc, char *argv[]) {
           rest = true;
           ParseFileList(optarg, config.rest_lower_files);
           config.rest_function = Config::REST_LOWER;
+          break;
+        case 'v':
+          config.include_vocab = false;
           break;
         case 'h': // help
         default:

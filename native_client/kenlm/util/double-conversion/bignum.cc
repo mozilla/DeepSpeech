@@ -40,6 +40,7 @@ Bignum::Bignum()
 
 template<typename S>
 static int BitSize(S value) {
+  (void) value;  // Mark variable as used.
   return 8 * sizeof(value);
 }
 
@@ -103,7 +104,7 @@ void Bignum::AssignDecimalString(Vector<const char> value) {
   const int kMaxUint64DecimalDigits = 19;
   Zero();
   int length = value.length();
-  int pos = 0;
+  unsigned int pos = 0;
   // Let's just say that each digit needs 4 bits.
   while (length >= kMaxUint64DecimalDigits) {
     uint64_t digits = ReadUInt64(value, pos, kMaxUint64DecimalDigits);
@@ -122,9 +123,8 @@ void Bignum::AssignDecimalString(Vector<const char> value) {
 static int HexCharValue(char c) {
   if ('0' <= c && c <= '9') return c - '0';
   if ('a' <= c && c <= 'f') return 10 + c - 'a';
-  if ('A' <= c && c <= 'F') return 10 + c - 'A';
-  UNREACHABLE();
-  return 0;  // To make compiler happy.
+  ASSERT('A' <= c && c <= 'F');
+  return 10 + c - 'A';
 }
 
 
@@ -501,13 +501,14 @@ uint16_t Bignum::DivideModuloIntBignum(const Bignum& other) {
   // Start by removing multiples of 'other' until both numbers have the same
   // number of digits.
   while (BigitLength() > other.BigitLength()) {
-    // This naive approach is extremely inefficient if the this divided other
-    // might be big. This function is implemented for doubleToString where
+    // This naive approach is extremely inefficient if `this` divided by other
+    // is big. This function is implemented for doubleToString where
     // the result should be small (less than 10).
     ASSERT(other.bigits_[other.used_digits_ - 1] >= ((1 << kBigitSize) / 16));
+    ASSERT(bigits_[used_digits_ - 1] < 0x10000);
     // Remove the multiples of the first digit.
     // Example this = 23 and other equals 9. -> Remove 2 multiples.
-    result += bigits_[used_digits_ - 1];
+    result += static_cast<uint16_t>(bigits_[used_digits_ - 1]);
     SubtractTimes(other, bigits_[used_digits_ - 1]);
   }
 
@@ -523,13 +524,15 @@ uint16_t Bignum::DivideModuloIntBignum(const Bignum& other) {
     // Shortcut for easy (and common) case.
     int quotient = this_bigit / other_bigit;
     bigits_[used_digits_ - 1] = this_bigit - other_bigit * quotient;
-    result += quotient;
+    ASSERT(quotient < 0x10000);
+    result += static_cast<uint16_t>(quotient);
     Clamp();
     return result;
   }
 
   int division_estimate = this_bigit / (other_bigit + 1);
-  result += division_estimate;
+  ASSERT(division_estimate < 0x10000);
+  result += static_cast<uint16_t>(division_estimate);
   SubtractTimes(other, division_estimate);
 
   if (other_bigit * (division_estimate + 1) > this_bigit) {
@@ -560,8 +563,8 @@ static int SizeInHexChars(S number) {
 
 static char HexCharOfValue(int value) {
   ASSERT(0 <= value && value <= 16);
-  if (value < 10) return value + '0';
-  return value - 10 + 'A';
+  if (value < 10) return static_cast<char>(value + '0');
+  return static_cast<char>(value - 10 + 'A');
 }
 
 
@@ -755,7 +758,6 @@ void Bignum::SubtractTimes(const Bignum& other, int factor) {
     Chunk difference = bigits_[i] - borrow;
     bigits_[i] = difference & kBigitMask;
     borrow = difference >> (kChunkSize - 1);
-    ++i;
   }
   Clamp();
 }
