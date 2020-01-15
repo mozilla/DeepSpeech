@@ -77,62 +77,39 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
   VALID_CHECK_EQ(access(filename, R_OK), 0, "Invalid language model path");
 
   bool has_trie = trie_path.size() && access(trie_path.c_str(), R_OK) == 0;
+  VALID_CHECK(has_trie, "Invalid trie path");
 
   lm::ngram::Config config;
+  config.load_method = util::LoadMethod::LAZY;
+  language_model_.reset(lm::ngram::LoadVirtual(filename, config));
 
-  if (!has_trie) { // no trie was specified, build it now
-    RetrieveStrEnumerateVocab enumerate;
-    config.enumerate_vocab = &enumerate;
-    language_model_.reset(lm::ngram::LoadVirtual(filename, config));
-    auto vocab = enumerate.vocabulary;
-    for (size_t i = 0; i < vocab.size(); ++i) {
-      if (vocab[i] != UNK_TOKEN &&
-          vocab[i] != START_TOKEN &&
-          vocab[i] != END_TOKEN &&
-          get_utf8_str_len(vocab[i]) > 1) {
-        is_utf8_mode_ = false;
-        break;
-      }
-    }
+  // Read metadata and trie from file
+  std::ifstream fin(trie_path, std::ios::binary);
 
-    if (alphabet_.GetSize() != 255) {
-      is_utf8_mode_ = false;
-    }
-
-    // Add spaces only in word-based scoring
-    fill_dictionary(vocab);
-  } else {
-    config.load_method = util::LoadMethod::LAZY;
-    language_model_.reset(lm::ngram::LoadVirtual(filename, config));
-
-    // Read metadata and trie from file
-    std::ifstream fin(trie_path, std::ios::binary);
-
-    int magic;
-    fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
-    if (magic != MAGIC) {
-      std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
-                   "your trie file." << std::endl;
-      throw 1;
-    }
-
-    int version;
-    fin.read(reinterpret_cast<char*>(&version), sizeof(version));
-    if (version != FILE_VERSION) {
-      std::cerr << "Error: Trie file version mismatch (" << version
-                << " instead of expected " << FILE_VERSION
-                << "). Update your trie file."
-                << std::endl;
-      throw 1;
-    }
-
-    fin.read(reinterpret_cast<char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
-
-    fst::FstReadOptions opt;
-    opt.mode = fst::FstReadOptions::MAP;
-    opt.source = trie_path;
-    dictionary.reset(FstType::Read(fin, opt));
+  int magic;
+  fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
+  if (magic != MAGIC) {
+    std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
+                 "your trie file." << std::endl;
+    throw 1;
   }
+
+  int version;
+  fin.read(reinterpret_cast<char*>(&version), sizeof(version));
+  if (version != FILE_VERSION) {
+    std::cerr << "Error: Trie file version mismatch (" << version
+              << " instead of expected " << FILE_VERSION
+              << "). Update your trie file."
+              << std::endl;
+    throw 1;
+  }
+
+  fin.read(reinterpret_cast<char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
+
+  fst::FstReadOptions opt;
+  opt.mode = fst::FstReadOptions::MAP;
+  opt.source = trie_path;
+  dictionary_.reset(FstType::Read(fin, opt));
 
   max_order_ = language_model_->Order();
 }
