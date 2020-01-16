@@ -118,6 +118,8 @@ protected:
   // necessary setup after setting alphabet
   void setup_char_map();
 
+  void load_trie(std::ifstream& fin, const std::string& file_path);
+
 private:
   std::unique_ptr<lm::base::Model> language_model_;
   bool is_utf8_mode_ = true;
