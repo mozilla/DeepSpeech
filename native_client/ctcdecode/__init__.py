@@ -15,29 +15,28 @@ class Scorer(swigwrapper.Scorer):
     :alphabet: Alphabet
     :type model_path: basestring
     """
-    def __init__(self, alpha, beta, model_path, trie_path, alphabet):
+    def __init__(self, alpha=None, beta=None, model_path=None, trie_path=None, alphabet=None):
         super(Scorer, self).__init__()
-        serialized = alphabet.serialize()
-        native_alphabet = swigwrapper.Alphabet()
-        err = native_alphabet.deserialize(serialized, len(serialized))
-        if err != 0:
-            raise ValueError("Error when deserializing alphabet.")
+        # Allow bare initialization
+        if alphabet:
+            serialized = alphabet.serialize()
+            native_alphabet = swigwrapper.Alphabet()
+            err = native_alphabet.deserialize(serialized, len(serialized))
+            if err != 0:
+                raise ValueError("Error when deserializing alphabet.")
 
-        err = self.init(alpha, beta,
-                        model_path.encode('utf-8'),
-                        trie_path.encode('utf-8'),
-                        native_alphabet)
-        if err != 0:
-            raise ValueError("Scorer initialization failed with error code {}".format(err), err)
-
-    def __init__(self):
-        super(Scorer, self).__init__()
+            err = self.init(alpha, beta,
+                            model_path.encode('utf-8'),
+                            trie_path.encode('utf-8'),
+                            native_alphabet)
+            if err != 0:
+                raise ValueError("Scorer initialization failed with error code {}".format(err), err)
 
     def load_lm(self, lm_path, trie_path):
         super(Scorer, self).load_lm(lm_path.encode('utf-8'), trie_path.encode('utf-8'))
 
-    def save_dictionary(self, save_path):
-        super(Scorer, self).save_dictionary(save_path.encode('utf-8'))
+    def save_dictionary(self, save_path, *args, **kwargs):
+        super(Scorer, self).save_dictionary(save_path.encode('utf-8'), *args, **kwargs)
 
 
 def ctc_beam_search_decoder(probs_seq,
