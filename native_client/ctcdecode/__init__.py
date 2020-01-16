@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from . import swigwrapper # pylint: disable=import-self
+from .swigwrapper import Alphabet
 
 __version__ = swigwrapper.__version__
 
@@ -16,7 +17,6 @@ class Scorer(swigwrapper.Scorer):
     :alphabet: Alphabet
     :type model_path: basestring
     """
-
     def __init__(self, alpha, beta, model_path, trie_path, alphabet):
         super(Scorer, self).__init__()
         serialized = alphabet.serialize()
@@ -31,6 +31,15 @@ class Scorer(swigwrapper.Scorer):
                         native_alphabet)
         if err != 0:
             raise ValueError("Scorer initialization failed with error code {}".format(err), err)
+
+    def __init__(self):
+        super(Scorer, self).__init__()
+
+    def load_lm(self, lm_path, trie_path):
+        super(Scorer, self).load_lm(lm_path.encode('utf-8'), trie_path.encode('utf-8'))
+
+    def save_dictionary(self, save_path):
+        super(Scorer, self).save_dictionary(save_path.encode('utf-8'))
 
 
 def ctc_beam_search_decoder(probs_seq,

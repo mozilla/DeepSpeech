@@ -16,6 +16,10 @@
 import_array();
 %}
 
+namespace std {
+    %template(StringVector) vector<string>;
+}
+
 // Convert NumPy arrays to pointer+lengths
 %apply (double* IN_ARRAY2, int DIM1, int DIM2) {(const double *probs, int time_dim, int class_dim)};
 %apply (double* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(const double *probs, int batch_size, int time_dim, int class_dim)};

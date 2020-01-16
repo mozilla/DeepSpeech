@@ -40,9 +40,9 @@ public:
  *     scorer.get_sent_log_prob({ "WORD1", "WORD2", "WORD3" });
  */
 class Scorer {
+public:
   using FstType = PathTrie::FstType;
 
-public:
   Scorer() = default;
   ~Scorer() = default;
 
@@ -76,11 +76,14 @@ public:
   // return the max order
   size_t get_max_order() const { return max_order_; }
 
-  // retrun true if the language model is character based
+  // return true if the language model is character based
   bool is_utf8_mode() const { return is_utf8_mode_; }
 
   // reset params alpha & beta
   void reset_params(float alpha, float beta);
+
+  // force set UTF-8 mode, ignore value read from file
+  void set_utf8_mode(bool utf8) { is_utf8_mode_ = utf8; }
 
   // make ngram for a given prefix
   std::vector<std::string> make_ngram(PathTrie *prefix);
@@ -89,11 +92,19 @@ public:
   // the vector of characters (character based lm)
   std::vector<std::string> split_labels_into_scored_units(const std::vector<int> &labels);
 
+  void set_alphabet(const Alphabet& alphabet);
+
   // save dictionary in file
   void save_dictionary(const std::string &path);
 
   // return weather this step represents a boundary where beam scoring should happen
   bool is_scoring_boundary(PathTrie* prefix, size_t new_label);
+
+  // fill dictionary FST from a vocabulary
+  void fill_dictionary(const std::vector<std::string> &vocabulary);
+
+  // load language model from given path
+  void load_lm(const std::string &lm_path, const std::string &trie_path);
 
   // language model weight
   double alpha = 0.;
@@ -104,14 +115,8 @@ public:
   std::unique_ptr<FstType> dictionary;
 
 protected:
-  // necessary setup: load language model, fill FST's dictionary
-  void setup(const std::string &lm_path, const std::string &trie_path);
-
-  // load language model from given path
-  void load_lm(const std::string &lm_path);
-
-  // fill dictionary for FST
-  void fill_dictionary(const std::vector<std::string> &vocabulary);
+  // necessary setup after setting alphabet
+  void setup_char_map();
 
 private:
   std::unique_ptr<lm::base::Model> language_model_;

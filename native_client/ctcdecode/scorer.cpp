@@ -38,7 +38,8 @@ Scorer::init(double alpha,
 {
   reset_params(alpha, beta);
   alphabet_ = alphabet;
-  setup(lm_path, trie_path);
+  setup_char_map();
+  load_lm(lm_path, trie_path);
   return 0;
 }
 
@@ -54,11 +55,19 @@ Scorer::init(double alpha,
   if (err != 0) {
     return err;
   }
-  setup(lm_path, trie_path);
+  setup_char_map();
+  load_lm(lm_path, trie_path);
   return 0;
 }
 
-void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
+void
+Scorer::set_alphabet(const Alphabet& alphabet)
+{
+  alphabet_ = alphabet;
+  setup_char_map();
+}
+
+void Scorer::setup_char_map()
 {
   // (Re-)Initialize character map
   char_map_.clear();
@@ -71,52 +80,57 @@ void Scorer::setup(const std::string& lm_path, const std::string& trie_path)
     // state, otherwise wrong decoding results would be given.
     char_map_[alphabet_.StringFromLabel(i)] = i + 1;
   }
+}
 
+void Scorer::load_lm(const std::string& lm_path, const std::string& trie_path)
+{
   // load language model
   const char* filename = lm_path.c_str();
   VALID_CHECK_EQ(access(filename, R_OK), 0, "Invalid language model path");
 
   bool has_trie = trie_path.size() && access(trie_path.c_str(), R_OK) == 0;
-  VALID_CHECK(has_trie, "Invalid trie path");
+  // VALID_CHECK(has_trie, "Invalid trie path");
 
   lm::ngram::Config config;
   config.load_method = util::LoadMethod::LAZY;
   language_model_.reset(lm::ngram::LoadVirtual(filename, config));
 
-  // Read metadata and trie from file
-  std::ifstream fin(trie_path, std::ios::binary);
+  if (has_trie) {
+    // Read metadata and trie from file
+    std::ifstream fin(trie_path, std::ios::binary);
 
-  int magic;
-  fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
-  if (magic != MAGIC) {
-    std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
-                 "your trie file." << std::endl;
-    throw 1;
+    int magic;
+    fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
+    if (magic != MAGIC) {
+      std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
+                   "your trie file." << std::endl;
+      throw 1;
+    }
+
+    int version;
+    fin.read(reinterpret_cast<char*>(&version), sizeof(version));
+    if (version != FILE_VERSION) {
+      std::cerr << "Error: Trie file version mismatch (" << version
+                << " instead of expected " << FILE_VERSION
+                << "). Update your trie file."
+                << std::endl;
+      throw 1;
+    }
+
+    fin.read(reinterpret_cast<char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
+
+    fst::FstReadOptions opt;
+    opt.mode = fst::FstReadOptions::MAP;
+    opt.source = trie_path;
+    dictionary.reset(FstType::Read(fin, opt));
   }
-
-  int version;
-  fin.read(reinterpret_cast<char*>(&version), sizeof(version));
-  if (version != FILE_VERSION) {
-    std::cerr << "Error: Trie file version mismatch (" << version
-              << " instead of expected " << FILE_VERSION
-              << "). Update your trie file."
-              << std::endl;
-    throw 1;
-  }
-
-  fin.read(reinterpret_cast<char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
-
-  fst::FstReadOptions opt;
-  opt.mode = fst::FstReadOptions::MAP;
-  opt.source = trie_path;
-  dictionary_.reset(FstType::Read(fin, opt));
 
   max_order_ = language_model_->Order();
 }
 
 void Scorer::save_dictionary(const std::string& path)
 {
-  std::ofstream fout(path, std::ios::binary);
+  std::fstream fout(path, std::ios::in|std::ios::out|std::ios::binary|std::ios::ate);
   fout.write(reinterpret_cast<const char*>(&MAGIC), sizeof(MAGIC));
   fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
   fout.write(reinterpret_cast<const char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
