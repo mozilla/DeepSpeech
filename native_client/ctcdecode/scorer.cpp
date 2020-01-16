@@ -128,9 +128,15 @@ void Scorer::load_lm(const std::string& lm_path, const std::string& trie_path)
   max_order_ = language_model_->Order();
 }
 
-void Scorer::save_dictionary(const std::string& path)
+void Scorer::save_dictionary(const std::string& path, bool append_instead_of_overwrite)
 {
-  std::fstream fout(path, std::ios::in|std::ios::out|std::ios::binary|std::ios::ate);
+  std::ios::openmode om;
+  if (append_instead_of_overwrite) {
+    om = std::ios::in|std::ios::out|std::ios::binary|std::ios::ate;
+  } else {
+    om = std::ios::out|std::ios::binary;
+  }
+  std::fstream fout(path, om);
   fout.write(reinterpret_cast<const char*>(&MAGIC), sizeof(MAGIC));
   fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
   fout.write(reinterpret_cast<const char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
