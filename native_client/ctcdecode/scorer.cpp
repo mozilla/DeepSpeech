@@ -27,7 +27,7 @@
 using namespace lm::ngram;
 
 static const int32_t MAGIC = 'TRIE';
-static const int32_t FILE_VERSION = 5;
+static const int32_t FILE_VERSION = 6;
 
 int
 Scorer::init(double alpha,
@@ -125,12 +125,23 @@ void Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
   if (version != FILE_VERSION) {
     std::cerr << "Error: Trie file version mismatch (" << version
               << " instead of expected " << FILE_VERSION
-              << "). Update your trie file."
-              << std::endl;
+              << "). ";
+    if (version < FILE_VERSION) {
+      std::cerr << "Update your trie file.";
+    } else {
+      std::cerr << "Downgrade your trie file or update your version of DeepSpeech.";
+    }
+    std::cerr << std::endl;
     throw 1;
   }
 
   fin.read(reinterpret_cast<char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
+
+  // Read hyperparameters from header
+  double alpha, beta;
+  fin.read(reinterpret_cast<char*>(&alpha), sizeof(alpha));
+  fin.read(reinterpret_cast<char*>(&beta), sizeof(beta));
+  reset_params(alpha, beta);
 
   fst::FstReadOptions opt;
   opt.mode = fst::FstReadOptions::MAP;
@@ -150,6 +161,8 @@ void Scorer::save_dictionary(const std::string& path, bool append_instead_of_ove
   fout.write(reinterpret_cast<const char*>(&MAGIC), sizeof(MAGIC));
   fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
   fout.write(reinterpret_cast<const char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
+  fout.write(reinterpret_cast<const char*>(&alpha), sizeof(alpha));
+  fout.write(reinterpret_cast<const char*>(&beta), sizeof(beta));
   fst::FstWriteOptions opt;
   opt.align = true;
   opt.source = path;

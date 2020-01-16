@@ -14,7 +14,7 @@ from util.text import Alphabet, UTF8Alphabet
 from ds_ctcdecoder import Scorer, Alphabet as NativeAlphabet
 
 
-def create_bundle(alphabet_path, lm_path, vocab_path, package_path, force_utf8):
+def create_bundle(alphabet_path, lm_path, vocab_path, package_path, force_utf8, default_alpha, default_beta):
     words = set()
     vocab_looks_char_based = True
     with open(vocab_path) as fin:
@@ -49,6 +49,7 @@ def create_bundle(alphabet_path, lm_path, vocab_path, package_path, force_utf8):
     scorer = Scorer()
     scorer.set_alphabet(alphabet)
     scorer.set_utf8_mode(use_utf8)
+    scorer.reset_params(default_alpha, default_beta)
     scorer.load_lm(lm_path, "")
     scorer.fill_dictionary(list(words))
     shutil.copy(lm_path, package_path)
@@ -99,6 +100,8 @@ def main():
         help="Path of vocabulary file. Must contain words separated by whitespace.",
     )
     parser.add_argument("--package", required=True, help="Path to save scorer package.")
+    parser.add_argument("--default_alpha", type=float, required=True, help="Default value of alpha hyperparameter.")
+    parser.add_argument("--default_beta", type=float, required=True, help="Default value of beta hyperparameter.")
     parser.add_argument(
         "--force_utf8",
         default="",
@@ -113,7 +116,7 @@ def main():
     else:
         force_utf8 = Tristate(None)
 
-    create_bundle(args.alphabet, args.lm, args.vocab, args.package, force_utf8)
+    create_bundle(args.alphabet, args.lm, args.vocab, args.package, force_utf8, args.default_alpha, args.default_beta)
 
 
 if __name__ == "__main__":
