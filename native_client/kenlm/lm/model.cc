@@ -226,6 +226,10 @@ template <class Search, class VocabularyT> FullScoreReturn GenericModel<Search, 
   return ret;
 }
 
+template <class Search, class VocabularyT> uint64_t GenericModel<Search, VocabularyT>::GetEndOfSearchOffset() const {
+  return backing_.VocabStringReadingOffset();
+}
+
 namespace {
 // Do a paraonoid copy of history, assuming new_word has already been copied
 // (hence the -1).  out_state.length could be zero so I avoided using
