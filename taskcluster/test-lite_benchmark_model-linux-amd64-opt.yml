@@ -5,7 +5,7 @@ build:
   test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-lite_benchmark_model-ds-tests.sh"
-  benchmark_model_bin: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.bd115ee104da3d6bedea16e3bede341d1d7d7a4b.cpu/artifacts/public/lite_benchmark_model"
+  benchmark_model_bin: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.cpu/artifacts/public/lite_benchmark_model"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU TF Lite benchmark_model"
     description: "Testing DeepSpeech TF Lite benchmark_model for Linux/AMD64, CPU only, optimized version"
