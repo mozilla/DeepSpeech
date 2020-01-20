@@ -50,16 +50,10 @@ public:
   Scorer(const Scorer&) = delete;
   Scorer& operator=(const Scorer&) = delete;
 
-  int init(double alpha,
-           double beta,
-           const std::string &lm_path,
-           const std::string &trie_path,
+  int init(const std::string &lm_path,
            const Alphabet &alphabet);
 
-  int init(double alpha,
-           double beta,
-           const std::string &lm_path,
-           const std::string &trie_path,
+  int init(const std::string &lm_path,
            const std::string &alphabet_config_path);
 
   double get_log_cond_prob(const std::vector<std::string> &words,
@@ -104,7 +98,7 @@ public:
   void fill_dictionary(const std::vector<std::string> &vocabulary);
 
   // load language model from given path
-  void load_lm(const std::string &lm_path, const std::string &trie_path);
+  void load_lm(const std::string &lm_path);
 
   // language model weight
   double alpha = 0.;

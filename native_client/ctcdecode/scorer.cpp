@@ -24,39 +24,29 @@
 
 #include "decoder_utils.h"
 
-using namespace lm::ngram;
-
 static const int32_t MAGIC = 'TRIE';
 static const int32_t FILE_VERSION = 6;
 
 int
-Scorer::init(double alpha,
-             double beta,
-             const std::string& lm_path,
-             const std::string& trie_path,
+Scorer::init(const std::string& lm_path,
              const Alphabet& alphabet)
 {
-  reset_params(alpha, beta);
   alphabet_ = alphabet;
   setup_char_map();
-  load_lm(lm_path, trie_path);
+  load_lm(lm_path);
   return 0;
 }
 
 int
-Scorer::init(double alpha,
-             double beta,
-             const std::string& lm_path,
-             const std::string& trie_path,
+Scorer::init(const std::string& lm_path,
              const std::string& alphabet_config_path)
 {
-  reset_params(alpha, beta);
   int err = alphabet_.init(alphabet_config_path.c_str());
   if (err != 0) {
     return err;
   }
   setup_char_map();
-  load_lm(lm_path, trie_path);
+  load_lm(lm_path);
   return 0;
 }
 
@@ -82,7 +72,7 @@ void Scorer::setup_char_map()
   }
 }
 
-void Scorer::load_lm(const std::string& lm_path, const std::string& trie_path)
+void Scorer::load_lm(const std::string& lm_path)
 {
   // load language model
   const char* filename = lm_path.c_str();
