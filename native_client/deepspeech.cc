@@ -304,21 +304,36 @@ DS_FreeModel(ModelState* ctx)
 }
 
 int
-DS_EnableDecoderWithLM(ModelState* aCtx,
-                       const char* aLMPath,
-                       const char* aTriePath,
-                       float aLMAlpha,
-                       float aLMBeta)
+DS_EnableExternalScorer(ModelState* aCtx,
+                        const char* aScorerPath)
 {
   aCtx->scorer_.reset(new Scorer());
-  int err = aCtx->scorer_->init(aLMAlpha, aLMBeta,
-                                aLMPath ? aLMPath : "",
-                                aTriePath ? aTriePath : "",
-                                aCtx->alphabet_);
+  int err = aCtx->scorer_->init(aScorerPath, aCtx->alphabet_);
   if (err != 0) {
     return DS_ERR_INVALID_LM;
   }
   return DS_ERR_OK;
+}
+
+int
+DS_DisableExternalScorer(ModelState* aCtx)
+{
+  if (aCtx->scorer_) {
+    aCtx->scorer_.reset(nullptr);
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
+}
+
+int DS_SetScorerAlphaBeta(ModelState* aCtx,
+                          float aAlpha,
+                          float aBeta)
+{
+  if (aCtx->scorer_) {
+    aCtx->scorer_->reset_params(aAlpha, aBeta);
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
 }
 
 int
