@@ -182,21 +182,6 @@ genrule(
 )
 
 cc_binary(
-    name = "generate_trie",
-    srcs = [
-        "alphabet.h",
-        "generate_trie.cpp",
-    ],
-    copts = ["-std=c++11"],
-    linkopts = [
-        "-lm",
-        "-ldl",
-        "-pthread",
-    ],
-    deps = [":decoder"],
-)
-
-cc_binary(
     name = "trie_load",
     srcs = [
         "alphabet.h",
