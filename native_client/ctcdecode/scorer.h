@@ -12,6 +12,7 @@
 
 #include "path_trie.h"
 #include "alphabet.h"
+#include "deepspeech.h"
 
 const double OOV_SCORE = -1000.0;
 const std::string START_TOKEN = "<s>";
@@ -85,7 +86,7 @@ public:
   void fill_dictionary(const std::vector<std::string> &vocabulary);
 
   // load language model from given path
-  void load_lm(const std::string &lm_path);
+  int load_lm(const std::string &lm_path);
 
   // language model weight
   double alpha = 0.;
@@ -99,7 +100,7 @@ protected:
   // necessary setup after setting alphabet
   void setup_char_map();
 
-  void load_trie(std::ifstream& fin, const std::string& file_path);
+  int load_trie(std::ifstream& fin, const std::string& file_path);
 
 private:
   std::unique_ptr<lm::base::Model> language_model_;
