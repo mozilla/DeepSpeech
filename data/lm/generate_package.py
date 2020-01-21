@@ -50,7 +50,7 @@ def create_bundle(alphabet_path, lm_path, vocab_path, package_path, force_utf8, 
     scorer.set_alphabet(alphabet)
     scorer.set_utf8_mode(use_utf8)
     scorer.reset_params(default_alpha, default_beta)
-    scorer.load_lm(lm_path, "")
+    scorer.load_lm(lm_path)
     scorer.fill_dictionary(list(words))
     shutil.copy(lm_path, package_path)
     scorer.save_dictionary(package_path, True) # append, not overwrite

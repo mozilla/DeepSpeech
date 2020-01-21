@@ -29,7 +29,7 @@ def fail(message, code=1):
 def transcribe_file(audio_path, tlog_path):
     from DeepSpeech import create_model, try_loading  # pylint: disable=cyclic-import,import-outside-toplevel
     initialize_globals()
-    scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta, FLAGS.lm_binary_path, FLAGS.lm_trie_path, Config.alphabet)
+    scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta, FLAGS.scorer_path, Config.alphabet)
     try:
         num_processes = cpu_count()
     except NotImplementedError:

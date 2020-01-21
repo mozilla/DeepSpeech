@@ -10,7 +10,6 @@ source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
 
 BAZEL_TARGETS="
 //native_client:libdeepspeech.so
-//native_client:generate_trie
 "
 
 if [ "${runtime}" = "tflite" ]; then

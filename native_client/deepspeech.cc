@@ -310,7 +310,7 @@ DS_EnableExternalScorer(ModelState* aCtx,
   aCtx->scorer_.reset(new Scorer());
   int err = aCtx->scorer_->init(aScorerPath, aCtx->alphabet_);
   if (err != 0) {
-    return DS_ERR_INVALID_LM;
+    return DS_ERR_INVALID_SCORER;
   }
   return DS_ERR_OK;
 }

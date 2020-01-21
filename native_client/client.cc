@@ -374,15 +374,18 @@ main(int argc, char **argv)
     return 1;
   }
 
-  if (lm && (trie || load_without_trie)) {
-    int status = DS_EnableDecoderWithLM(ctx,
-                                        lm,
-                                        trie,
-                                        lm_alpha,
-                                        lm_beta);
+  if (scorer) {
+    int status = DS_EnableExternalScorer(ctx, scorer);
     if (status != 0) {
-      fprintf(stderr, "Could not enable CTC decoder with LM.\n");
+      fprintf(stderr, "Could not enable external scorer.\n");
       return 1;
+    }
+    if (set_alphabeta) {
+      status = DS_SetScorerAlphaBeta(ctx, lm_alpha, lm_beta);
+      if (status != 0) {
+        fprintf(stderr, "Error setting scorer alpha and beta.\n");
+        return 1;
+      }
     }
   }
 
