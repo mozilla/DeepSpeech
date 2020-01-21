@@ -12,12 +12,11 @@ class Scorer(swigwrapper.Scorer):
     :type alpha: float
     :param beta: Word insertion bonus.
     :type beta: float
-    :model_path: Path to load language model.
-    :trie_path: Path to trie file.
+    :model_path: Path to load scorer.
     :alphabet: Alphabet
     :type model_path: basestring
     """
-    def __init__(self, alpha=None, beta=None, model_path=None, trie_path=None, alphabet=None):
+    def __init__(self, alpha=None, beta=None, model_path=None, alphabet=None):
         super(Scorer, self).__init__()
         # Allow bare initialization
         if alphabet:
@@ -27,15 +26,15 @@ class Scorer(swigwrapper.Scorer):
             if err != 0:
                 raise ValueError("Error when deserializing alphabet.")
 
-            err = self.init(alpha, beta,
-                            model_path.encode('utf-8'),
-                            trie_path.encode('utf-8'),
+            err = self.init(model_path.encode('utf-8'),
                             native_alphabet)
             if err != 0:
                 raise ValueError("Scorer initialization failed with error code {}".format(err), err)
 
-    def load_lm(self, lm_path, trie_path):
-        super(Scorer, self).load_lm(lm_path.encode('utf-8'), trie_path.encode('utf-8'))
+            self.reset_params(alpha, beta)
+
+    def load_lm(self, lm_path):
+        super(Scorer, self).load_lm(lm_path.encode('utf-8'))
 
     def save_dictionary(self, save_path, *args, **kwargs):
         super(Scorer, self).save_dictionary(save_path.encode('utf-8'), *args, **kwargs)

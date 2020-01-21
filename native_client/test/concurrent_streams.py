@@ -14,21 +14,13 @@ from deepspeech import Model
 # Beam width used in the CTC decoder when building candidate transcriptions
 BEAM_WIDTH = 500
 
-# The alpha hyperparameter of the CTC decoder. Language Model weight
-LM_ALPHA = 0.75
-
-# The beta hyperparameter of the CTC decoder. Word insertion bonus.
-LM_BETA = 1.85
-
 
 def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('--lm', nargs='?',
-                        help='Path to the language model binary file')
-    parser.add_argument('--trie', nargs='?',
-                        help='Path to the language model trie file created with native_client/generate_trie')
+    parser.add_argument('--scorer', nargs='?',
+                        help='Path to the external scorer file')
     parser.add_argument('--audio1', required=True,
                         help='First audio file to use in interleaved streams')
     parser.add_argument('--audio2', required=True,
@@ -37,8 +29,8 @@ def main():
 
     ds = Model(args.model, BEAM_WIDTH)
 
-    if args.lm and args.trie:
-        ds.enableDecoderWithLM(args.lm, args.trie, LM_ALPHA, LM_BETA)
+    if args.scorer:
+        ds.enableExternalScorer(args.scorer)
 
     fin = wave.open(args.audio1, 'rb')
     fs1 = fin.getframerate()
@@ -57,11 +49,11 @@ def main():
     splits2 = np.array_split(audio2, 10)
 
     for part1, part2 in zip(splits1, splits2):
-        ds.feedAudioContent(stream1, part1)
-        ds.feedAudioContent(stream2, part2)
+        stream1.feedAudioContent(part1)
+        stream2.feedAudioContent(part2)
 
-    print(ds.finishStream(stream1))
-    print(ds.finishStream(stream2))
+    print(stream1.finishStream())
+    print(stream2.finishStream())
 
 if __name__ == '__main__':
     main()

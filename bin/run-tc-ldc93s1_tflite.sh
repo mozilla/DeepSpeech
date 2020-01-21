@@ -20,8 +20,7 @@ python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 100 \
   --checkpoint_dir '/tmp/ckpt' \
   --export_dir '/tmp/train_tflite' \
-  --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
-  --lm_trie_path 'data/smoke_test/vocab.trie' \
+  --scorer_path 'data/smoke_test/pruned_lm.scorer' \
   --audio_sample_rate ${audio_sample_rate} \
   --export_tflite
 
@@ -31,8 +30,7 @@ python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 100 \
   --checkpoint_dir '/tmp/ckpt' \
   --export_dir '/tmp/train_tflite/en-us' \
-  --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
-  --lm_trie_path 'data/smoke_test/vocab.trie' \
+  --scorer_path 'data/smoke_test/pruned_lm.scorer' \
   --audio_sample_rate ${audio_sample_rate} \
   --export_language 'Fake English (fk-FK)' \
   --export_zip

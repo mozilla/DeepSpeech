@@ -27,17 +27,18 @@ This module should be self-contained:
   - pip install native_client/python/dist/deepspeech*.whl
   - pip install -r requirements_eval_tflite.txt
 
-Then run with a TF Lite model, LM/trie and a CSV test file
+Then run with a TF Lite model, LM and a CSV test file
 '''
 
 BEAM_WIDTH = 500
 LM_ALPHA = 0.75
 LM_BETA = 1.85
 
-def tflite_worker(model, lm, trie, queue_in, queue_out, gpu_mask):
+def tflite_worker(model, scorer, queue_in, queue_out, gpu_mask):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_mask)
     ds = Model(model, BEAM_WIDTH)
-    ds.enableDecoderWithLM(lm, trie, LM_ALPHA, LM_BETA)
+    ds.enableExternalScorer(scorer)
+    ds.setScorerAlphaBeta(LM_ALPHA, LM_BETA)
 
     while True:
         try:
@@ -64,7 +65,7 @@ def main(args, _):
 
     processes = []
     for i in range(args.proc):
-        worker_process = Process(target=tflite_worker, args=(args.model, args.lm, args.trie, work_todo, work_done, i), daemon=True, name='tflite_process_{}'.format(i))
+        worker_process = Process(target=tflite_worker, args=(args.model, args.scorer, work_todo, work_done, i), daemon=True, name='tflite_process_{}'.format(i))
         worker_process.start()        # Launch reader() as a separate python process
         processes.append(worker_process)
 
@@ -113,10 +114,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Computing TFLite accuracy')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('--lm', required=True,
-                        help='Path to the language model binary file')
-    parser.add_argument('--trie', required=True,
-                        help='Path to the language model trie file created with native_client/generate_trie')
+    parser.add_argument('--scorer', required=True,
+                        help='Path to the external scorer file')
     parser.add_argument('--csv', required=True,
                         help='Path to the CSV source file')
     parser.add_argument('--proc', required=False, default=cpu_count(), type=int,

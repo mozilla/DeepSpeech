@@ -49,7 +49,7 @@ deepspeech --version
 
 pushd ${HOME}/DeepSpeech/ds/
     python bin/import_ldc93s1.py data/smoke_test
-    python evaluate_tflite.py --model "${TASKCLUSTER_TMP_DIR}/${model_name_mmap}" --lm data/smoke_test/vocab.pruned.lm --trie data/smoke_test/vocab.trie --csv data/smoke_test/ldc93s1.csv
+    python evaluate_tflite.py --model "${TASKCLUSTER_TMP_DIR}/${model_name_mmap}" --scorer data/smoke_test/pruned_lm.scorer --csv data/smoke_test/ldc93s1.csv
 popd
 
 virtualenv_deactivate "${pyalias}" "${PYENV_NAME}"

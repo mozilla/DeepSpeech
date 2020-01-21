@@ -8,7 +8,6 @@ source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
 
 BAZEL_TARGETS="
 //native_client:libdeepspeech.so
-//native_client:generate_trie
 "
 
 BAZEL_BUILD_FLAGS="${BAZEL_ARM_FLAGS} ${BAZEL_EXTRA_FLAGS}"
