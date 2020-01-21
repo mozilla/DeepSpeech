@@ -436,33 +436,33 @@ def produce_csv(input, output):
 def handle_args():
     parser = argparse.ArgumentParser(description='Benchmarking tooling for DeepSpeech native_client.')
     parser.add_argument('--target', required=False,
-                                 help='SSH user:pass@host string for remote benchmarking. This can also be a name of a matching \'Host\' in your SSH config.')
+                        help='SSH user:pass@host string for remote benchmarking. This can also be a name of a matching \'Host\' in your SSH config.')
     parser.add_argument('--autotrust', action='store_true', default=False,
-                                 help='SSH Paramiko policy to automatically trust unknown keys.')
+                        help='SSH Paramiko policy to automatically trust unknown keys.')
     parser.add_argument('--allowagent', action='store_true', dest='allowagent',
-                                 help='Allow the use of a SSH agent.')
+                        help='Allow the use of a SSH agent.')
     parser.add_argument('--no-allowagent', action='store_false', dest='allowagent',
-                                 help='Disallow the use of a SSH agent.')
+                        help='Disallow the use of a SSH agent.')
     parser.add_argument('--lookforkeys', action='store_true', dest='lookforkeys',
-                                 help='Allow to look for SSH keys in ~/.ssh/.')
+                        help='Allow to look for SSH keys in ~/.ssh/.')
     parser.add_argument('--no-lookforkeys', action='store_false', dest='lookforkeys',
-                                 help='Disallow to look for SSH keys in ~/.ssh/.')
+                        help='Disallow to look for SSH keys in ~/.ssh/.')
     parser.add_argument('--dir', required=False, default=None,
-                                 help='Local directory where to copy stuff. This will be mirrored to the remote system if needed (make sure to use path that will work on both).')
+                        help='Local directory where to copy stuff. This will be mirrored to the remote system if needed (make sure to use path that will work on both).')
     parser.add_argument('--models', nargs='+', required=False,
-                                 help='List of files (protocolbuffer) to work on. Might be a zip file.')
+                        help='List of files (protocolbuffer) to work on. Might be a zip file.')
     parser.add_argument('--wav', required=False,
-                                 help='WAV file to pass to native_client. Supply again in plotting mode to draw realine line.')
+                        help='WAV file to pass to native_client. Supply again in plotting mode to draw realine line.')
     parser.add_argument('--scorer', required=False,
-                                 help='Path to the external scorer file used by the decoder.')
+                        help='Path to the external scorer file used by the decoder.')
     parser.add_argument('--iters', type=int, required=False, default=5,
-                                 help='How many iterations to perfom on each model.')
+                        help='How many iterations to perfom on each model.')
     parser.add_argument('--keep', required=False, action='store_true',
-                                 help='Keeping run files (binaries & models).')
+                        help='Keeping run files (binaries & models).')
     parser.add_argument('--csv', type=argparse.FileType('w'), required=False,
-                                 help='Target CSV file where to dump data.')
+                        help='Target CSV file where to dump data.')
     parser.add_argument('--binaries', required=False, default=None,
-                                 help='Specify non TaskCluster native_client.tar.xz to use')
+                        help='Specify non TaskCluster native_client.tar.xz to use')
     return parser.parse_args()
 
 def do_main():
