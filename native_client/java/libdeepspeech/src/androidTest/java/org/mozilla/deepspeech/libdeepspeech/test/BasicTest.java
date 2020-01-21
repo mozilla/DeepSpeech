@@ -30,14 +30,10 @@ import java.nio.ByteBuffer;
 public class BasicTest {
 
     public static final String modelFile    = "/data/local/tmp/test/output_graph.tflite";
-    public static final String lmFile       = "/data/local/tmp/test/lm.binary";
-    public static final String trieFile     = "/data/local/tmp/test/trie";
+    public static final String scorerFile   = "/data/local/tmp/test/kenlm.scorer";
     public static final String wavFile      = "/data/local/tmp/test/LDC93S1.wav";
 
     public static final int BEAM_WIDTH = 50;
-
-    public static final float LM_ALPHA = 0.75f;
-    public static final float LM_BETA  = 1.85f;
 
     private char readLEChar(RandomAccessFile f) throws IOException {
         byte b1 = f.readByte();
@@ -130,7 +126,7 @@ public class BasicTest {
     @Test
     public void loadDeepSpeech_stt_withLM() {
         DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
-        m.enableDecoderWithLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
+        m.enableExternalScorer(scorerFile);
 
         String decoded = doSTT(m, false);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
@@ -149,7 +145,7 @@ public class BasicTest {
     @Test
     public void loadDeepSpeech_sttWithMetadata_withLM() {
         DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
-        m.enableDecoderWithLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
+        m.enableExternalScorer(scorerFile);
 
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);

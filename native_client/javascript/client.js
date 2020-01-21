@@ -29,12 +29,11 @@ VersionAction.prototype.call = function(parser) {
 
 var parser = new argparse.ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
 parser.addArgument(['--model'], {required: true, help: 'Path to the model (protocol buffer binary file)'});
-parser.addArgument(['--lm'], {help: 'Path to the language model binary file', nargs: '?'});
-parser.addArgument(['--trie'], {help: 'Path to the language model trie file created with native_client/generate_trie', nargs: '?'});
+parser.addArgument(['--scorer'], {help: 'Path to the external scorer file'});
 parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});
 parser.addArgument(['--beam_width'], {help: 'Beam width for the CTC decoder', defaultValue: 500, type: 'int'});
-parser.addArgument(['--lm_alpha'], {help: 'Language model weight (lm_alpha)', defaultValue: 0.75, type: 'float'});
-parser.addArgument(['--lm_beta'], {help: 'Word insertion bonus (lm_beta)', defaultValue: 1.85, type: 'float'});
+parser.addArgument(['--lm_alpha'], {help: 'Language model weight (lm_alpha). If not set, use default value from scorer.', type: 'float'});
+parser.addArgument(['--lm_beta'], {help: 'Word insertion bonus (lm_beta). If not set, use default value from scorer.', type: 'float'});
 parser.addArgument(['--version'], {action: VersionAction, help: 'Print version and exits'});
 parser.addArgument(['--extended'], {action: 'storeTrue', help: 'Output string from extended metadata'});
 var args = parser.parseArgs();
@@ -60,12 +59,16 @@ console.error('Loaded model in %ds.', totalTime(model_load_end));
 
 var desired_sample_rate = model.sampleRate();
 
-if (args['lm'] && args['trie']) {
-  console.error('Loading language model from files %s %s', args['lm'], args['trie']);
-  const lm_load_start = process.hrtime();
-  model.enableDecoderWithLM(args['lm'], args['trie'], args['lm_alpha'], args['lm_beta']);
-  const lm_load_end = process.hrtime(lm_load_start);
-  console.error('Loaded language model in %ds.', totalTime(lm_load_end));
+if (args['scorer']) {
+  console.error('Loading scorer from file %s', args['scorer']);
+  const scorer_load_start = process.hrtime();
+  model.enableExternalScorer(args['scorer']);
+  const scorer_load_end = process.hrtime(scorer_load_start);
+  console.error('Loaded scorer in %ds.', totalTime(scorer_load_end));
+
+  if (args['lm_alpha'] && args['lm_beta']) {
+    model.setScorerAlphaBeta(args['lm_alpha'], args['lm_beta']);
+  }
 }
 
 const buffer = Fs.readFileSync(args['audio']);

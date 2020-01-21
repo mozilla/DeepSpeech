@@ -239,7 +239,7 @@ def delete_tree(dir):
     except IOError:
         print('No remote directory: %s' % dir)
 
-def setup_tempdir(dir, models, wav, lm_binary, trie, binaries):
+def setup_tempdir(dir, models, wav, scorer, binaries):
     r'''
     Copy models, libs and binary to a directory (new one if dir is None)
     '''
@@ -268,7 +268,7 @@ def setup_tempdir(dir, models, wav, lm_binary, trie, binaries):
                 print('Copying %s to %s' % (f, dir))
                 shutil.copy2(f, dir)
 
-    for extra_file in [ wav, lm_binary, trie ]:
+    for extra_file in [wav, scorer]:
         if extra_file and not os.path.isfile(os.path.join(dir, os.path.basename(extra_file))):
             print('Copying %s to %s' % (extra_file, dir))
             shutil.copy2(extra_file, dir)
@@ -375,7 +375,7 @@ def establish_ssh(target=None, auto_trust=False, allow_agent=True, look_keys=Tru
 
     return ssh_conn
 
-def run_benchmarks(dir, models, wav, lm_binary=None, trie=None, iters=-1):
+def run_benchmarks(dir, models, wav, scorer=None, iters=-1):
     r'''
     Core of the running of the benchmarks. We will run on all of models, against
     the WAV file provided as wav.
@@ -395,8 +395,8 @@ def run_benchmarks(dir, models, wav, lm_binary=None, trie=None, iters=-1):
           'stddev': numpy.infty
         }
 
-        if lm_binary and trie:
-            cmdline = './deepspeech --model "%s" --lm "%s" --trie "%s" --audio "%s" -t' % (model_filename, lm_binary, trie, wav)
+        if scorer:
+            cmdline = './deepspeech --model "%s" --scorer "%s" --audio "%s" -t' % (model_filename, scorer, wav)
         else:
             cmdline = './deepspeech --model "%s" --audio "%s" -t' % (model_filename, wav)
 
@@ -453,10 +453,8 @@ def handle_args():
                                  help='List of files (protocolbuffer) to work on. Might be a zip file.')
     parser.add_argument('--wav', required=False,
                                  help='WAV file to pass to native_client. Supply again in plotting mode to draw realine line.')
-    parser.add_argument('--lm_binary', required=False,
-                                 help='Path to the LM binary file used by the decoder.')
-    parser.add_argument('--trie', required=False,
-                                 help='Path to the trie file used by the decoder.')
+    parser.add_argument('--scorer', required=False,
+                                 help='Path to the external scorer file used by the decoder.')
     parser.add_argument('--iters', type=int, required=False, default=5,
                                  help='How many iterations to perfom on each model.')
     parser.add_argument('--keep', required=False, action='store_true',
@@ -482,15 +480,14 @@ def do_main():
     global ssh_conn
     ssh_conn = establish_ssh(target=cli_args.target, auto_trust=cli_args.autotrust, allow_agent=cli_args.allowagent, look_keys=cli_args.lookforkeys)
 
-    tempdir, sorted_models = setup_tempdir(dir=cli_args.dir, models=cli_args.models, wav=cli_args.wav, lm_binary=cli_args.lm_binary, trie=cli_args.trie, binaries=cli_args.binaries)
+    tempdir, sorted_models = setup_tempdir(dir=cli_args.dir, models=cli_args.models, wav=cli_args.wav, scorer=cli_args.scorer, binaries=cli_args.binaries)
 
     dest_sorted_models = list(map(lambda x: os.path.join(tempdir, os.path.basename(x)), sorted_models))
     dest_wav = os.path.join(tempdir, os.path.basename(cli_args.wav))
 
-    if cli_args.lm_binary and cli_args.trie:
-        dest_lm_binary = os.path.join(tempdir, os.path.basename(cli_args.lm_binary))
-        dest_trie = os.path.join(tempdir, os.path.basename(cli_args.trie))
-        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, wav=dest_wav, lm_binary=dest_lm_binary, trie=dest_trie, iters=cli_args.iters)
+    if cli_args.scorer:
+        dest_scorer = os.path.join(tempdir, os.path.basename(cli_args.scorer))
+        inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, wav=dest_wav, scorer=dest_scorer, iters=cli_args.iters)
     else:
         inference_times = run_benchmarks(dir=tempdir, models=dest_sorted_models, wav=dest_wav, iters=cli_args.iters)
 

@@ -25,6 +25,5 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --n_hidden 100 --epochs $epoch_count \
   --max_to_keep 1 --checkpoint_dir '/tmp/ckpt' \
   --learning_rate 0.001 --dropout_rate 0.05  --export_dir '/tmp/train' \
-  --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
-  --lm_trie_path 'data/smoke_test/vocab.trie' \
+  --scorer_path 'data/smoke_test/pruned_lm.scorer' \
   --audio_sample_rate ${audio_sample_rate}

@@ -21,8 +21,7 @@ exec_benchmark()
         --dir /tmp/bench-ds/ \
         --models ${model_file} \
         --wav /tmp/LDC93S1.wav \
-        --lm_binary /tmp/lm.binary \
-        --trie /tmp/trie \
+        --scorer /tmp/kenlm.scorer \
         --csv ${csv}
 
     python ${DS_ROOT_TASK}/DeepSpeech/ds/bin/benchmark_nc.py \

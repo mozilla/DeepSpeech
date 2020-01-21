@@ -31,8 +31,6 @@ public class DeepSpeechActivity extends AppCompatActivity {
     Button _startInference;
 
     final int BEAM_WIDTH = 50;
-    final float LM_ALPHA = 0.75f;
-    final float LM_BETA = 1.85f;
 
     private char readLEChar(RandomAccessFile f) throws IOException {
         byte b1 = f.readByte();

@@ -52,31 +52,46 @@ Model.prototype.sampleRate = function() {
 }
 
 /**
- * Enable decoding using beam scoring with a KenLM language model.
+ * Enable decoding using an external scorer.
  *
- * @param {string} aLMPath The path to the language model binary file.
- * @param {string} aTriePath The path to the trie file build from the same vocabulary as the language model binary.
+ * @param {string} aScorerPath The path to the external scorer file.
+ *
+ * @return {number} Zero on success, non-zero on failure (invalid arguments).
+ */
+Model.prototype.enableExternalScorer = function(aScorerPath) {
+    return binding.EnableExternalScorer(this._impl, aScorerPath);
+}
+
+/**
+ * Disable decoding using an external scorer.
+ *
+ * @return {number} Zero on success, non-zero on failure (invalid arguments).
+ */
+Model.prototype.disableExternalScorer = function() {
+    return binding.EnableExternalScorer(this._impl);
+}
+
+/**
+ * Set hyperparameters alpha and beta of the external scorer.
+ *
  * @param {float} aLMAlpha The alpha hyperparameter of the CTC decoder. Language Model weight.
  * @param {float} aLMBeta The beta hyperparameter of the CTC decoder. Word insertion weight.
  *
  * @return {number} Zero on success, non-zero on failure (invalid arguments).
  */
-Model.prototype.enableDecoderWithLM = function() {
-    const args = [this._impl].concat(Array.prototype.slice.call(arguments));
-    return binding.EnableDecoderWithLM.apply(null, args);
+Model.prototype.setScorerAlphaBeta = function(aLMAlpha, aLMBeta) {
+    return binding.SetScorerAlphaBeta(this._impl, aLMAlpha, aLMBeta);
 }
 
 /**
  * Use the DeepSpeech model to perform Speech-To-Text.
  *
  * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
- * @param {number} aBufferSize The number of samples in the audio signal.
  *
  * @return {string} The STT result. Returns undefined on error.
  */
-Model.prototype.stt = function() {
-    const args = [this._impl].concat(Array.prototype.slice.call(arguments));
-    return binding.SpeechToText.apply(null, args);
+Model.prototype.stt = function(aBuffer) {
+    return binding.SpeechToText(this._impl, aBuffer);
 }
 
 /**
@@ -84,25 +99,22 @@ Model.prototype.stt = function() {
  * about the results.
  *
  * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
- * @param {number} aBufferSize The number of samples in the audio signal.
  *
  * @return {object} Outputs a :js:func:`Metadata` struct of individual letters along with their timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
-Model.prototype.sttWithMetadata = function() {
-    const args = [this._impl].concat(Array.prototype.slice.call(arguments));
-    return binding.SpeechToTextWithMetadata.apply(null, args);
+Model.prototype.sttWithMetadata = function(aBuffer) {
+    return binding.SpeechToTextWithMetadata(this._impl, aBuffer);
 }
 
 /**
- * Create a new streaming inference state. The streaming state returned by this function can then be passed to :js:func:`Model.feedAudioContent` and :js:func:`Model.finishStream`.
+ * Create a new streaming inference state. One can then call :js:func:`Stream.feedAudioContent` and :js:func:`Stream.finishStream` on the returned stream object.
  *
- * @return {object} an opaque object that represents the streaming state.
+ * @return {object} a :js:func:`Stream` object that represents the streaming state.
  *
  * @throws on error
  */
 Model.prototype.createStream = function() {
-    const args = [this._impl].concat(Array.prototype.slice.call(arguments));
-    const rets = binding.CreateStream.apply(null, args);
+    const rets = binding.CreateStream(this._impl);
     const status = rets[0];
     const ctx = rets[1];
     if (status !== 0) {
@@ -111,54 +123,55 @@ Model.prototype.createStream = function() {
     return ctx;
 }
 
+function Stream(nativeStream) {
+    this._impl = nativeStream;
+}
+
 /**
  * Feed audio samples to an ongoing streaming inference.
  *
- * @param {object} aSctx A streaming state returned by :js:func:`Model.setupStream`.
  * @param {buffer} aBuffer An array of 16-bit, mono raw audio samples at the
  *                 appropriate sample rate (matching what the model was trained on).
- * @param {number} aBufferSize The number of samples in @param aBuffer.
  */
-Model.prototype.feedAudioContent = function() {
-    binding.FeedAudioContent.apply(null, arguments);
+Stream.prototype.feedAudioContent = function(aBuffer) {
+    binding.FeedAudioContent(this._impl, aBuffer);
 }
 
 /**
  * Compute the intermediate decoding of an ongoing streaming inference.
  *
- * @param {object} aSctx A streaming state returned by :js:func:`Model.setupStream`.
- *
  * @return {string} The STT intermediate result.
  */
-Model.prototype.intermediateDecode = function() {
-    return binding.IntermediateDecode.apply(null, arguments);
+Stream.prototype.intermediateDecode = function() {
+    return binding.IntermediateDecode(this._impl);
 }
 
 /**
  * Signal the end of an audio signal to an ongoing streaming inference, returns the STT result over the whole audio signal.
  *
- * @param {object} aSctx A streaming state returned by :js:func:`Model.setupStream`.
- *
  * @return {string} The STT result.
  *
- * This method will free the state (@param aSctx).
+ * This method will free the stream, it must not be used after this method is called.
  */
-Model.prototype.finishStream = function() {
-    return binding.FinishStream.apply(null, arguments);
+Stream.prototype.finishStream = function() {
+    result = binding.FinishStream(this._impl);
+    this._impl = null;
+    return result;
 }
 
 /**
  * Signal the end of an audio signal to an ongoing streaming inference, returns per-letter metadata.
  *
- * @param {object} aSctx A streaming state pointer returned by :js:func:`Model.setupStream`.
- *
  * @return {object} Outputs a :js:func:`Metadata` struct of individual letters along with their timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`.
  *
- * This method will free the state pointer (@param aSctx).
+ * This method will free the stream, it must not be used after this method is called.
  */
-Model.prototype.finishStreamWithMetadata = function() {
-    return binding.FinishStreamWithMetadata.apply(null, arguments);
+Stream.prototype.finishStreamWithMetadata = function() {
+    result = binding.FinishStreamWithMetadata(this._impl);
+    this._impl = null;
+    return result;
 }
+
 
 /**
  * Frees associated resources and destroys model object.
@@ -184,10 +197,10 @@ function FreeMetadata(metadata) {
  * can be used if you no longer need the result of an ongoing streaming
  * inference and don't want to perform a costly decode operation.
  *
- * @param {Object} stream A streaming state pointer returned by :js:func:`Model.createStream`.
+ * @param {Object} stream A stream object returned by :js:func:`Model.createStream`.
  */
 function FreeStream(stream) {
-    return binding.FreeStream(stream);
+    return binding.FreeStream(stream._impl);
 }
 
 /**

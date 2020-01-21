@@ -23,11 +23,16 @@ namespace DeepSpeechClient
         internal unsafe static extern int DS_GetModelSampleRate(IntPtr** aCtx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern ErrorCodes DS_EnableDecoderWithLM(IntPtr** aCtx,
-                  string aLMPath,
-                  string aTriePath,
-                  float aLMAlpha,
-                  float aLMBeta);
+        internal static unsafe extern ErrorCodes DS_EnableExternalScorer(IntPtr** aCtx,
+                  string aScorerPath);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern ErrorCodes DS_DisableExternalScorer(IntPtr** aCtx);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern ErrorCodes DS_SetScorerAlphaBeta(IntPtr** aCtx,
+                  float aAlpha,
+                  float aBeta);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]
