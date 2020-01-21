@@ -59,7 +59,7 @@ enum DeepSpeech_Error_Codes
     // Invalid parameters
     DS_ERR_INVALID_ALPHABET   = 0x2000,
     DS_ERR_INVALID_SHAPE      = 0x2001,
-    DS_ERR_INVALID_LM         = 0x2002,
+    DS_ERR_INVALID_SCORER     = 0x2002,
     DS_ERR_MODEL_INCOMPATIBLE = 0x2003,
     DS_ERR_SCORER_NOT_ENABLED = 0x2004,
 
@@ -129,7 +129,7 @@ DEEPSPEECH_EXPORT
 int DS_DisableExternalScorer(ModelState* aCtx);
 
 /**
- * @brief Set hyperparameters alpha and beta of a KenLM external scorer.
+ * @brief Set hyperparameters alpha and beta of the external scorer.
  *
  * @param aCtx The ModelState pointer for the model being changed.
  * @param aAlpha The alpha hyperparameter of the decoder. Language model weight.

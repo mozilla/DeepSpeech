@@ -35,22 +35,18 @@ namespace CSharpExamples
         static void Main(string[] args)
         {
             string model = null;
-            string lm = null;
-            string trie = null;
+            string scorer = null;
             string audio = null;
             bool extended = false;
             if (args.Length > 0)
             {
                 model = GetArgument(args, "--model");
-                lm = GetArgument(args, "--lm");
-                trie = GetArgument(args, "--trie");
+                scorer = GetArgument(args, "--scorer");
                 audio = GetArgument(args, "--audio");
                 extended = !string.IsNullOrWhiteSpace(GetArgument(args, "--extended"));
             }
 
             const uint BEAM_WIDTH = 500;
-            const float LM_ALPHA = 0.75f;
-            const float LM_BETA = 1.85f;
 
             Stopwatch stopwatch = new Stopwatch();
             try
@@ -64,14 +60,10 @@ namespace CSharpExamples
 
                     Console.WriteLine($"Model loaded - {stopwatch.Elapsed.Milliseconds} ms");
                     stopwatch.Reset();
-                    if (lm != null)
+                    if (scorer != null)
                     {
-                        Console.WriteLine("Loadin LM...");
-                        sttClient.EnableDecoderWithLM(
-                            lm ?? "lm.binary",
-                            trie ?? "trie",
-                            LM_ALPHA, LM_BETA);
-
+                        Console.WriteLine("Loading scorer...");
+                        sttClient.EnableExternalScorer(scorer ?? "kenlm.scorer");
                     }
 
                     string audioFile = audio ?? "arctic_a0024.wav";
