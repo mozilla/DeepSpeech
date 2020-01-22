@@ -51,7 +51,7 @@ We need to clone ``mozilla/DeepSpeech`` and ``mozilla/tensorflow``.
 
 .. code-block:: bash
 
-   git clone --branch r1.14 https://github.com/mozilla/tensorflow
+   git clone --branch r1.15 https://github.com/mozilla/tensorflow
 
 Configuring the paths
 ---------------------
