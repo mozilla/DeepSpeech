@@ -36,7 +36,7 @@ DecoderState::init(const Alphabet& alphabet,
   prefix_root_.reset(root);
   prefixes_.push_back(root);
 
-  if (ext_scorer != nullptr && (bool)ext_scorer_->dictionary) {
+  if (ext_scorer != nullptr && (bool)(ext_scorer_->dictionary)) {
     // no need for std::make_shared<>() since Copy() does 'new' behind the doors
     auto dict_ptr = std::shared_ptr<PathTrie::FstType>(ext_scorer->dictionary->Copy(true));
     root->set_dictionary(dict_ptr);

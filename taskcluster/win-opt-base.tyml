@@ -40,7 +40,7 @@ payload:
     MSYS: 'winsymlinks:nativestrict'
     TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
     EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
-    EXAMPLES_CHECKOUT_TARGET: "f3dee7910d1642e14b1e3877568f8342c1c22e05"
+    EXAMPLES_CHECKOUT_TARGET: "4b97ac41d03ca0d23fa92526433db72a90f47d4a"
 
   command:
     - >-
