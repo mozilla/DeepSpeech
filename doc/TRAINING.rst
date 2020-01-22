@@ -64,7 +64,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 .. code-block:: bash
 
    pip3 uninstall tensorflow
-   pip3 install 'tensorflow-gpu==1.14.0'
+   pip3 install 'tensorflow-gpu==1.15.0'
 
 Please ensure you have the required `CUDA dependency <USING.rst#cuda-dependency>`_.
 
@@ -75,7 +75,7 @@ It has been reported for some people failure at training:
    tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution algorithm. This is probably because cuDNN failed to initialize, so try looking to see if a warning log message was printed above.
         [[{{node tower_0/conv1d/Conv2D}}]]
 
-Setting the ``TF_FORCE_GPU_ALLOW_GROWTH`` environment variable to ``true`` seems to help in such cases. This could also be due to an incorrect version of libcudnn. Double check your versions with the `TensorFlow 1.14 documentation <USING.rst#cuda-dependency>`_.
+Setting the ``TF_FORCE_GPU_ALLOW_GROWTH`` environment variable to ``true`` seems to help in such cases. This could also be due to an incorrect version of libcudnn. Double check your versions with the `TensorFlow 1.15 documentation <USING.rst#cuda-dependency>`_.
 
 Common Voice training data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -185,7 +185,7 @@ TensorFlow has tooling to achieve this: it requires building the target ``//tens
 
 .. code-block::
 
-   $ python3 util/taskcluster.py --source tensorflow --artifact convert_graphdef_memmapped_format --branch r1.14 --target .
+   $ python3 util/taskcluster.py --source tensorflow --artifact convert_graphdef_memmapped_format --branch r1.15 --target .
 
 Producing a mmap-able model is as simple as:
 
