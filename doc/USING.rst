@@ -106,9 +106,9 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   deepspeech --model models/output_graph.pbmm --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
+   deepspeech --model models/output_graph.pbmm --scorer models/kenlm.scorer --audio my_audio_file.wav
 
-The arguments ``--lm`` and ``--trie`` are optional, and represent a language model.
+The ``--scorer`` argument is optional, and represents an external language model to be used when transcribing the audio.
 
 See :github:`client.py <native_client/python/client.py>` for an example of how to use the package programatically.
 
@@ -162,7 +162,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   ./deepspeech --model models/output_graph.pbmm --lm models/lm.binary --trie models/trie --audio audio_input.wav
+   ./deepspeech --model models/output_graph.pbmm --scorer models/kenlm.scorer --audio audio_input.wav
 
 See the help output with ``./deepspeech -h`` and the :github:`native client README <native_client/README.rst>` for more details.
 

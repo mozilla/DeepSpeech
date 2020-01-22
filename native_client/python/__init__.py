@@ -131,6 +131,10 @@ class Model(object):
 
 
 class Stream(object):
+    """
+    Class wrapping a DeepSpeech stream. The constructor cannot be called directly.
+    Use :func:`Model.createStream()`
+    """
     def __init__(self, native_stream):
         self._impl = native_stream
 
