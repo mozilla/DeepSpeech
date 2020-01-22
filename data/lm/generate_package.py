@@ -41,6 +41,7 @@ def create_bundle(
 
     if force_utf8 != None:  # pylint: disable=singleton-comparison
         use_utf8 = force_utf8.value
+        print("Forcing UTF-8 mode = {}".format(use_utf8))
     else:
         use_utf8 = vocab_looks_char_based
 

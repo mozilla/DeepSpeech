@@ -1,8 +1,8 @@
 
-lm.binary was generated from the LibriSpeech normalized LM training text, available `here <http://www.openslr.org/11>`_\ , using the `generate_lm.py` script (will generate lm.binary in the folder it is run from). `KenLM <https://github.com/kpu/kenlm>`_'s built binaries must be in your PATH (lmplz, build_binary, filter).
+The LM binary was generated from the LibriSpeech normalized LM training text, available `here <http://www.openslr.org/11>`_\ , using the `generate_lm.py` script (will generate lm.binary in the folder it is run from). `KenLM <https://github.com/kpu/kenlm>`_'s built binaries must be in your PATH (lmplz, build_binary, filter).
 
-The trie was then generated from the vocabulary of the language model:
+The scorer package was then built using the `generate_package.py` script:
 
 .. code-block:: bash
 
-   ./generate_trie ../data/alphabet.txt lm.binary trie
+   python generate_package.py --alphabet ../alphabet.txt --lm lm.binary --vocab librispeech-vocab-500k.txt --default_alpha 0.75 --default_beta 1.85 --package kenlm.scorer

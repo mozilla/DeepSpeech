@@ -39,10 +39,13 @@ def main():
                '--prune', '0', '0', '1'
     ])
 
-    # Filter LM using vocabulary of top 500k words
-    filtered_path = os.path.join(tmp, 'lm_filtered.arpa')
     vocab_str = '\n'.join(word for word, count in counter.most_common(500000))
+    with open('librispeech-vocab-500k.txt', 'w') as fout:
+      fout.write(vocab_str)
+
+    # Filter LM using vocabulary of top 500k words
     print('Filtering ARPA file...')
+    filtered_path = os.path.join(tmp, 'lm_filtered.arpa')
     subprocess.run(['filter', 'single', 'model:{}'.format(lm_path), filtered_path], input=vocab_str.encode('utf-8'), check=True)
 
     # Quantize and produce trie binary.
