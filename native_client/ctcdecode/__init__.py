@@ -12,11 +12,11 @@ class Scorer(swigwrapper.Scorer):
     :type alpha: float
     :param beta: Word insertion bonus.
     :type beta: float
-    :model_path: Path to load scorer.
+    :scorer_path: Path to load scorer from.
     :alphabet: Alphabet
-    :type model_path: basestring
+    :type scorer_path: basestring
     """
-    def __init__(self, alpha=None, beta=None, model_path=None, alphabet=None):
+    def __init__(self, alpha=None, beta=None, scorer_path=None, alphabet=None):
         super(Scorer, self).__init__()
         # Allow bare initialization
         if alphabet:
@@ -26,7 +26,7 @@ class Scorer(swigwrapper.Scorer):
             if err != 0:
                 raise ValueError("Error when deserializing alphabet.")
 
-            err = self.init(model_path.encode('utf-8'),
+            err = self.init(scorer_path.encode('utf-8'),
                             native_alphabet)
             if err != 0:
                 raise ValueError("Scorer initialization failed with error code {}".format(err), err)

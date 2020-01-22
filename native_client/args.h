@@ -59,11 +59,11 @@ void PrintHelp(const char* bin)
 
 bool ProcessArgs(int argc, char** argv)
 {
-    const char* const short_opts = "m:a:s:r:w:c:d:b:tehv";
+    const char* const short_opts = "m:l:a:b:c:d:tejs:vh";
     const option long_opts[] = {
             {"model", required_argument, nullptr, 'm'},
             {"scorer", required_argument, nullptr, 'l'},
-            {"audio", required_argument, nullptr, 'w'},
+            {"audio", required_argument, nullptr, 'a'},
             {"beam_width", required_argument, nullptr, 'b'},
             {"lm_alpha", required_argument, nullptr, 'c'},
             {"lm_beta", required_argument, nullptr, 'd'},
@@ -71,8 +71,8 @@ bool ProcessArgs(int argc, char** argv)
             {"extended", no_argument, nullptr, 'e'},
             {"json", no_argument, nullptr, 'j'},
             {"stream", required_argument, nullptr, 's'},
-            {"help", no_argument, nullptr, 'h'},
             {"version", no_argument, nullptr, 'v'},
+            {"help", no_argument, nullptr, 'h'},
             {nullptr, no_argument, nullptr, 0}
     };
 
@@ -93,14 +93,14 @@ bool ProcessArgs(int argc, char** argv)
             scorer = optarg;
             break;
 
-        case 'w':
+        case 'a':
             audio = optarg;
             break;
 
         case 'b':
             beam_width = atoi(optarg);
             break;
-        
+
         case 'c':
             set_alphabeta = true;
             lm_alpha = atof(optarg);
@@ -115,10 +115,6 @@ bool ProcessArgs(int argc, char** argv)
             show_times = true;
             break;
 
-        case 'v':
-            has_versions = true;
-            break;
-
         case 'e':
             extended_metadata = true;
             break;
@@ -129,6 +125,10 @@ bool ProcessArgs(int argc, char** argv)
 
         case 's':
             stream_size = atoi(optarg);
+            break;
+
+        case 'v':
+            has_versions = true;
             break;
 
         case 'h': // -h or --help

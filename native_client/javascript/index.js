@@ -123,6 +123,11 @@ Model.prototype.createStream = function() {
     return ctx;
 }
 
+/**
+ * @class
+ * Provides an interface to a DeepSpeech stream. The constructor cannot be called
+ * directly, use :js:func:`Model.createStream`.
+ */
 function Stream(nativeStream) {
     this._impl = nativeStream;
 }
