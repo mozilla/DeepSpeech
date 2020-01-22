@@ -146,6 +146,9 @@ def main():
 
     maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(args.arch, args.artifact, args.branch))
 
+    if args.artifact == "convert_graphdef_memmapped_format":
+        subprocess.check_call(['chmod', '+x', os.path.join(args.target, args.artifact)])
+    
     if '.tar.' in args.artifact:
         subprocess.check_call(['tar', 'xvf', os.path.join(args.target, args.artifact), '-C', args.target])
 
