@@ -195,13 +195,6 @@ Producing a mmap-able model is as simple as:
 
 Upon sucessfull run, it should report about conversion of a non-zero number of nodes. If it reports converting ``0`` nodes, something is wrong: make sure your model is a frozen one, and that you have not applied any incompatible changes (this includes ``quantize_weights``\ ).
 
-If this command returns ``convert_graphdef_memmapped_format: command not found`` it is probably because this binary is not in the ``PATH``. In order to solve this:
-
-.. code-block:: bash
-
-   $ chmod +x convert_graphdef_memmapped_format
-   $ ./convert_graphdef_memmapped_format --in_graph=output_graph.pb --out_graph=output_graph.pbmm
-
 Continuing training from a release model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
