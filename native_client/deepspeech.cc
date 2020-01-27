@@ -257,7 +257,6 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 
 int
 DS_CreateModel(const char* aModelPath,
-               unsigned int aBeamWidth,
                ModelState** retval)
 {
   *retval = nullptr;
@@ -282,13 +281,26 @@ DS_CreateModel(const char* aModelPath,
     return DS_ERR_FAIL_CREATE_MODEL;
   }
 
-  int err = model->init(aModelPath, aBeamWidth);
+  int err = model->init(aModelPath);
   if (err != DS_ERR_OK) {
     return err;
   }
 
   *retval = model.release();
   return DS_ERR_OK;
+}
+
+unsigned int
+DS_GetModelBeamWidth(ModelState* aCtx)
+{
+  return aCtx->beam_width_;
+}
+
+int
+DS_SetModelBeamWidth(ModelState* aCtx, unsigned int aBeamWidth)
+{
+  aCtx->beam_width_ = aBeamWidth;
+  return 0;
 }
 
 int

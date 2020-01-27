@@ -18,8 +18,7 @@ struct TFModelState : public ModelState
   TFModelState();
   virtual ~TFModelState();
 
-  virtual int init(const char* model_path,
-                   unsigned int beam_width) override;
+  virtual int init(const char* model_path) override;
 
   virtual void infer(const std::vector<float>& mfcc,
                      unsigned int n_frames,
