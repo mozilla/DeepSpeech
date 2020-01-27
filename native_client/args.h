@@ -16,7 +16,9 @@ char* scorer = NULL;
 
 char* audio = NULL;
 
-int beam_width = 500;
+bool set_beamwidth = false;
+
+int beam_width = 0;
 
 bool set_alphabeta = false;
 
@@ -98,6 +100,7 @@ bool ProcessArgs(int argc, char** argv)
             break;
 
         case 'b':
+            set_beamwidth = true;
             beam_width = atoi(optarg);
             break;
 

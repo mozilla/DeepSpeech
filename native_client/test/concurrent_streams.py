@@ -9,12 +9,6 @@ import wave
 from deepspeech import Model
 
 
-# These constants control the beam search decoder
-
-# Beam width used in the CTC decoder when building candidate transcriptions
-BEAM_WIDTH = 500
-
-
 def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model', required=True,
@@ -27,7 +21,7 @@ def main():
                         help='Second audio file to use in interleaved streams')
     args = parser.parse_args()
 
-    ds = Model(args.model, BEAM_WIDTH)
+    ds = Model(args.model)
 
     if args.scorer:
         ds.enableExternalScorer(args.scorer)

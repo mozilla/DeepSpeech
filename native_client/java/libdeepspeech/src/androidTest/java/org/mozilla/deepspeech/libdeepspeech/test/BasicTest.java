@@ -59,7 +59,7 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_basic() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
         m.freeModel();
     }
 
@@ -116,7 +116,8 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_stt_noLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        m.setBeamWidth(BEAM_WIDTH);
 
         String decoded = doSTT(m, false);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
@@ -125,7 +126,8 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_stt_withLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        m.setBeamWidth(BEAM_WIDTH);
         m.enableExternalScorer(scorerFile);
 
         String decoded = doSTT(m, false);
@@ -135,7 +137,8 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_sttWithMetadata_noLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        m.setBeamWidth(BEAM_WIDTH);
 
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
@@ -144,7 +147,8 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_sttWithMetadata_withLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        m.setBeamWidth(BEAM_WIDTH);
         m.enableExternalScorer(scorerFile);
 
         String decoded = doSTT(m, true);

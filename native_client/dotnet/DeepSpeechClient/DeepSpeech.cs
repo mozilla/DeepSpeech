@@ -19,11 +19,10 @@ namespace DeepSpeechClient
         /// Initializes a new instance of <see cref="DeepSpeech"/> class and creates a new acoustic model.
         /// </summary>
         /// <param name="aModelPath">The path to the frozen model graph.</param>
-        /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
-        public DeepSpeech(string aModelPath, uint aBeamWidth)
+        public DeepSpeech(string aModelPath)
         {
-            CreateModel(aModelPath, aBeamWidth);
+            CreateModel(aModelPath);
         }
 
         #region IDeepSpeech
@@ -32,10 +31,8 @@ namespace DeepSpeechClient
         /// Create an object providing an interface to a trained DeepSpeech model.
         /// </summary>
         /// <param name="aModelPath">The path to the frozen model graph.</param>
-        /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
-        private unsafe void CreateModel(string aModelPath,
-            uint aBeamWidth)
+        private unsafe void CreateModel(string aModelPath)
         {
             string exceptionMessage = null;
             if (string.IsNullOrWhiteSpace(aModelPath))
@@ -52,8 +49,28 @@ namespace DeepSpeechClient
                 throw new FileNotFoundException(exceptionMessage);
             }
             var resultCode = NativeImp.DS_CreateModel(aModelPath,
-                            aBeamWidth,
                             ref _modelStatePP);
+            EvaluateResultCode(resultCode);
+        }
+
+        /// <summary>
+        /// Get beam width value used by the model. If SetModelBeamWidth was not
+        /// called before, will return the default value loaded from the model file.
+        /// </summary>
+        /// <returns>Beam width value used by the model.</returns>
+        public unsafe uint GetModelBeamWidth()
+        {
+            return NativeImp.DS_GetModelBeamWidth(_modelStatePP);
+        }
+
+        /// <summary>
+        /// Set beam width value used by the model.
+        /// </summary>
+        /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width value generates better results at the cost of decoding time.</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        private unsafe void SetModelBeamWidth(uint aBeamWidth)
+        {
+            var resultCode = NativeImp.DS_SetModelBeamWidth(_modelStatePP, aBeamWidth);
             EvaluateResultCode(resultCode);
         }
 

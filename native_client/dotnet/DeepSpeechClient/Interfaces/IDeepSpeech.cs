@@ -21,6 +21,21 @@ namespace DeepSpeechClient.Interfaces
         unsafe int GetModelSampleRate();
 
         /// <summary>
+        /// Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
+        /// was not called before, will return the default value loaded from the
+        /// model file.
+        /// </summary>
+        /// <returns>Beam width value used by the model.</returns>
+        public unsafe uint GetModelBeamWidth();
+
+        /// <summary>
+        /// Set beam width value used by the model.
+        /// </summary>
+        /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width value generates better results at the cost of decoding time.</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        private unsafe void SetBeamWidth(uint aBeamWidth);
+
+        /// <summary>
         /// Enable decoding using an external scorer.
         /// </summary>
         /// <param name="aScorerPath">The path to the external scorer file.</param>

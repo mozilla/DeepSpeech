@@ -36,7 +36,8 @@ LM_BETA = 1.85
 
 def tflite_worker(model, scorer, queue_in, queue_out, gpu_mask):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_mask)
-    ds = Model(model, BEAM_WIDTH)
+    ds = Model(model)
+    ds.setBeamWidth(BEAM_WIDTH)
     ds.enableExternalScorer(scorer)
     ds.setScorerAlphaBeta(LM_ALPHA, LM_BETA)
 
