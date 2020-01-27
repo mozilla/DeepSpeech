@@ -812,7 +812,7 @@ def export():
     checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
     checkpoint_path = checkpoint.model_checkpoint_path
 
-    output_filename = 'output_graph.pb'
+    output_filename = FLAGS.export_name + '.pb'
     if FLAGS.remove_export:
         if os.path.isdir(FLAGS.export_dir):
             log_info('Removing old export')
