@@ -23,10 +23,9 @@ TFModelState::~TFModelState()
 }
 
 int
-TFModelState::init(const char* model_path,
-                   unsigned int beam_width)
+TFModelState::init(const char* model_path)
 {
-  int err = ModelState::init(model_path, beam_width);
+  int err = ModelState::init(model_path);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -104,6 +103,7 @@ TFModelState::init(const char* model_path,
     "metadata_feature_win_len",
     "metadata_feature_win_step",
     "metadata_alphabet",
+    "metadata_beam_width",
   }, {}, &metadata_outputs);
   if (!status.ok()) {
     std::cout << "Unable to fetch metadata: " << status << std::endl;
@@ -122,9 +122,14 @@ TFModelState::init(const char* model_path,
     return DS_ERR_INVALID_ALPHABET;
   }
 
+  int beam_width = metadata_outputs[4].scalar<int>()();
+  beam_width_ = (unsigned int)(beam_width);
+
   assert(sample_rate_ > 0);
   assert(audio_win_len_ > 0);
   assert(audio_win_step_ > 0);
+  assert(alphabet_.GetSize() > 0);
+  assert(beam_width_ > 0);
 
   for (int i = 0; i < graph_def_.node_size(); ++i) {
     NodeDef node = graph_def_.node(i);

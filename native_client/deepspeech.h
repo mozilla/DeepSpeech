@@ -78,17 +78,38 @@ enum DeepSpeech_Error_Codes
  * @brief An object providing an interface to a trained DeepSpeech model.
  *
  * @param aModelPath The path to the frozen model graph.
- * @param aBeamWidth The beam width used by the decoder. A larger beam
- *                   width generates better results at the cost of decoding
- *                   time.
  * @param[out] retval a ModelState pointer
  *
  * @return Zero on success, non-zero on failure.
  */
 DEEPSPEECH_EXPORT
 int DS_CreateModel(const char* aModelPath,
-                   unsigned int aBeamWidth,
                    ModelState** retval);
+
+/**
+ * @brief Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
+ *        was not called before, will return the default value loaded from the
+ *        model file.
+ *
+ * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ *
+ * @return Beam width value used by the model.
+ */
+DEEPSPEECH_EXPORT
+unsigned int DS_GetModelBeamWidth(ModelState* aCtx);
+
+/**
+ * @brief Set beam width value used by the model.
+ *
+ * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ * @param aBeamWidth The beam width used by the model. A larger beam width value
+ *                   generates better results at the cost of decoding time.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_SetModelBeamWidth(ModelState* aCtx,
+                         unsigned int aBeamWidth);
 
 /**
  * @brief Return the sample rate expected by a model.
