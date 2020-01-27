@@ -49,7 +49,8 @@ public class DeepSpeechActivity extends AppCompatActivity {
     private void newModel(String tfliteModel) {
         this._tfliteStatus.setText("Creating model");
         if (this._m == null) {
-            this._m = new DeepSpeechModel(tfliteModel, BEAM_WIDTH);
+            this._m = new DeepSpeechModel(tfliteModel);
+            this._m.setBeamWidth(BEAM_WIDTH);
         }
     }
 

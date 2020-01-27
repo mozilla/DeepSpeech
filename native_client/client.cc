@@ -368,14 +368,22 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
-  int status = DS_CreateModel(model, beam_width, &ctx);
+  int status = DS_CreateModel(model, &ctx);
   if (status != 0) {
     fprintf(stderr, "Could not create model.\n");
     return 1;
   }
 
+  if (set_beamwidth) {
+    status = DS_SetModelBeamWidth(ctx, beam_width);
+    if (status != 0) {
+      fprintf(stderr, "Could not set model beam width.\n");
+      return 1;
+    }
+  }
+
   if (scorer) {
-    int status = DS_EnableExternalScorer(ctx, scorer);
+    status = DS_EnableExternalScorer(ctx, scorer);
     if (status != 0) {
       fprintf(stderr, "Could not enable external scorer.\n");
       return 1;

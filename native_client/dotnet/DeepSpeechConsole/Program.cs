@@ -46,15 +46,12 @@ namespace CSharpExamples
                 extended = !string.IsNullOrWhiteSpace(GetArgument(args, "--extended"));
             }
 
-            const uint BEAM_WIDTH = 500;
-
             Stopwatch stopwatch = new Stopwatch();
             try
             {
                 Console.WriteLine("Loading model...");
                 stopwatch.Start();
-                using (IDeepSpeech sttClient = new DeepSpeech(model ?? "output_graph.pbmm",
-                    BEAM_WIDTH))
+                using (IDeepSpeech sttClient = new DeepSpeech(model ?? "output_graph.pbmm"))
                 {
                     stopwatch.Stop();
 

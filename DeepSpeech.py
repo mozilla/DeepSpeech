@@ -877,7 +877,7 @@ def package_zip():
         json.dump({
             'name': FLAGS.export_language,
             'parameters': {
-                'beamWidth': FLAGS.beam_width,
+                'beamWidth': FLAGS.export_beam_width,
                 'lmAlpha': FLAGS.lm_alpha,
                 'lmBeta': FLAGS.lm_beta
             }

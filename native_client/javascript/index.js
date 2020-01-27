@@ -25,14 +25,13 @@ if (process.platform === 'win32') {
  * An object providing an interface to a trained DeepSpeech model.
  *
  * @param {string} aModelPath The path to the frozen model graph.
- * @param {number} aBeamWidth The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.
  *
  * @throws on error
  */
-function Model() {
+function Model(aModelPath) {
     this._impl = null;
 
-    const rets = binding.CreateModel.apply(null, arguments);
+    const rets = binding.CreateModel(aModelPath);
     const status = rets[0];
     const impl = rets[1];
     if (status !== 0) {
@@ -41,6 +40,38 @@ function Model() {
 
     this._impl = impl;
 }
+
+/**
+ * Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
+ * was not called before, will return the default value loaded from the
+ * model file.
+ *
+ * @return {number} Beam width value used by the model.
+ */
+Model.prototype.beamWidth = function() {
+    return binding.GetModelBeamWidth(this._impl);
+}
+
+/**
+ * Set beam width value used by the model.
+ *
+ * @param {number} The beam width used by the model. A larger beam width value generates better results at the cost of decoding time.
+ *
+ * @return {number} Zero on success, non-zero on failure.
+ */
+Model.prototype.setBeamWidth = function(aBeamWidth) {
+    return binding.SetModelBeamWidth(this._impl, aBeamWidth);
+}
+
+/**
+ * Return the sample rate expected by the model.
+ *
+ * @return {number} Sample rate.
+ */
+Model.prototype.beamWidth = function() {
+    return binding.GetModelBeamWidth(this._impl);
+}
+
 
 /**
  * Return the sample rate expected by the model.
