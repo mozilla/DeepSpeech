@@ -18,8 +18,12 @@ using namespace node;
   char* bufferData = Buffer::Data(bufferObj);
   size_t bufferLength = Buffer::Length(bufferObj);
 
+  if (bufferLength % 2 != 0) {
+    SWIG_exception_fail(SWIG_ERROR, "Buffer length must be even. Make sure your input audio is 16-bits per sample.");
+  }
+
   $1 = ($1_ltype)bufferData;
-  $2 = ($2_ltype)bufferLength;
+  $2 = ($2_ltype)(bufferLength / 2);
 }
 
 // apply to DS_FeedAudioContent and DS_SpeechToText
