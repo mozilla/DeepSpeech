@@ -19,6 +19,7 @@ TFModelState::~TFModelState()
     if (!status.ok()) {
       std::cerr << "Error closing TensorFlow session: " << status << std::endl;
     }
+    delete session_;
   }
   delete mmap_env_;
 }
