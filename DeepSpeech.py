@@ -454,7 +454,6 @@ def train():
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True)
-    
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
                                                  output_classes=tfv1.data.get_output_classes(train_set))
@@ -499,7 +498,6 @@ def train():
 
     # Building the graph
     optimizer = create_optimizer()
-    
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info('Enabling automatic mixed precision training.')
