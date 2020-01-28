@@ -22,13 +22,14 @@ from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from evaluate import evaluate
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph, strip_unused_lib
-from tensorflow.python.framework import errors_impl
 from util.config import Config, initialize_globals
+from util.checkpoints import load_or_init_graph
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
+from util.helpers import check_ctcdecoder_version
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
-from util.helpers import check_ctcdecoder_version; check_ctcdecoder_version()
 
+check_ctcdecoder_version()
 
 # Graph Creation
 # ==============
@@ -222,7 +223,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     # Obtain the next batch of data
     batch_filenames, (batch_x, batch_seq_len), batch_y = iterator.get_next()
 
-    if FLAGS.use_cudnn_rnn:
+    if FLAGS.train_cudnn:
         rnn_impl = rnn_impl_cudnn_rnn
     else:
         rnn_impl = rnn_impl_lstmblockfusedcell
@@ -397,30 +398,6 @@ def log_grads_and_vars(grads_and_vars):
         log_variable(variable, gradient=gradient)
 
 
-def try_loading(session, saver, checkpoint_filename, caption, load_step=True, log_success=True):
-    try:
-        checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir, checkpoint_filename)
-        if not checkpoint:
-            return False
-        checkpoint_path = checkpoint.model_checkpoint_path
-        saver.restore(session, checkpoint_path)
-        if load_step:
-            restored_step = session.run(tfv1.train.get_global_step())
-            if log_success:
-                log_info('Restored variables from %s checkpoint at %s, step %d' %
-                         (caption, checkpoint_path, restored_step))
-        elif log_success:
-            log_info('Restored variables from %s checkpoint at %s' % (caption, checkpoint_path))
-        return True
-    except tf.errors.InvalidArgumentError as e:
-        log_error(str(e))
-        log_error('The checkpoint in {0} does not match the shapes of the model.'
-                  ' Did you change alphabet.txt or the --n_hidden parameter'
-                  ' between train runs using the same checkpoint dir? Try moving'
-                  ' or removing the contents of {0}.'.format(checkpoint_path))
-        sys.exit(1)
-
-
 def train():
     do_cache_dataset = True
 
@@ -494,76 +471,29 @@ def train():
 
     # Checkpointing
     checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
-    checkpoint_path = os.path.join(FLAGS.checkpoint_dir, 'train')
+    checkpoint_path = os.path.join(FLAGS.save_checkpoint_dir, 'train')
 
     best_dev_saver = tfv1.train.Saver(max_to_keep=1)
-    best_dev_path = os.path.join(FLAGS.checkpoint_dir, 'best_dev')
+    best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
 
     # Save flags next to checkpoints
-    os.makedirs(FLAGS.checkpoint_dir, exist_ok=True)
-
-    flags_file = os.path.join(FLAGS.checkpoint_dir, 'flags.txt')
+    os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
+    flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
     with open(flags_file, 'w') as fout:
         fout.write(FLAGS.flags_into_string())
-
-    initializer = tfv1.global_variables_initializer()
 
     with tfv1.Session(config=Config.session_config) as session:
         log_debug('Session opened.')
 
-        # Loading or initializing
-        loaded = False
-
-        # Initialize training from a CuDNN RNN checkpoint
-        if FLAGS.cudnn_checkpoint:
-            if FLAGS.use_cudnn_rnn:
-                log_error('Trying to use --cudnn_checkpoint but --use_cudnn_rnn '
-                          'was specified. The --cudnn_checkpoint flag is only '
-                          'needed when converting a CuDNN RNN checkpoint to '
-                          'a CPU-capable graph. If your system is capable of '
-                          'using CuDNN RNN, you can just specify the CuDNN RNN '
-                          'checkpoint normally with --checkpoint_dir.')
-                sys.exit(1)
-
-            log_info('Converting CuDNN RNN checkpoint from {}'.format(FLAGS.cudnn_checkpoint))
-            ckpt = tfv1.train.load_checkpoint(FLAGS.cudnn_checkpoint)
-            missing_variables = []
-
-            # Load compatible variables from checkpoint
-            for v in tfv1.global_variables():
-                try:
-                    v.load(ckpt.get_tensor(v.op.name), session=session)
-                except tf.errors.NotFoundError:
-                    missing_variables.append(v)
-
-            # Check that the only missing variables are the Adam moment tensors
-            if any('Adam' not in v.op.name for v in missing_variables):
-                log_error('Tried to load a CuDNN RNN checkpoint but there were '
-                          'more missing variables than just the Adam moment '
-                          'tensors.')
-                sys.exit(1)
-
-            # Initialize Adam moment tensors from scratch to allow use of CuDNN
-            # RNN checkpoints.
-            log_info('Initializing missing Adam moment tensors.')
-            init_op = tfv1.variables_initializer(missing_variables)
-            session.run(init_op)
-            loaded = True
-
+        # Prevent further graph changes
         tfv1.get_default_graph().finalize()
 
-        if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, checkpoint_saver, 'checkpoint', 'most recent')
-        if not loaded and FLAGS.load in ['auto', 'best']:
-            loaded = try_loading(session, best_dev_saver, 'best_dev_checkpoint', 'best validation')
-        if not loaded:
-            if FLAGS.load in ['auto', 'init']:
-                log_info('Initializing variables...')
-                session.run(initializer)
-            else:
-                log_error('Unable to load %s model from specified checkpoint dir'
-                          ' - consider using load option "auto" or "init".' % FLAGS.load)
-                sys.exit(1)
+        # Load checkpoint or initialize variables
+        if FLAGS.load == 'auto':
+            method_order = ['best', 'last', 'init']
+        else:
+            method_order = [FLAGS.load]
+        load_or_init_graph(session, method_order)
 
         def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
@@ -682,7 +612,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    samples = evaluate(FLAGS.test_files.split(','), create_model)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
@@ -811,7 +741,7 @@ def export():
     saver = tfv1.train.Saver()
 
     # Restore variables from training checkpoint
-    checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+    checkpoint = tf.train.get_checkpoint_state(FLAGS.save_checkpoint_dir)
     checkpoint_path = checkpoint.model_checkpoint_path
 
     output_filename = FLAGS.export_name + '.pb'
@@ -891,14 +821,11 @@ def do_single_file_inference(input_file_path):
         saver = tfv1.train.Saver()
 
         # Restore variables from training checkpoint
-        loaded = False
-        if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
-        if not loaded and FLAGS.load in ['auto', 'best']:
-            loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
-        if not loaded:
-            print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
-            sys.exit(1)
+        if FLAGS.load == 'auto':
+            method_order = ['best', 'last']
+        else:
+            method_order = [FLAGS.load]
+        load_or_init_graph(session, method_order)
 
         features, features_len = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
