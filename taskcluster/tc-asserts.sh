@@ -252,10 +252,10 @@ assert_deepspeech_version()
   assert_not_present "$1" "DeepSpeech: unknown"
 }
 
-check_tensorflow_version()
+check_versions()
 {
   set +e
-  ds_help=$(${DS_BINARY_PREFIX}deepspeech 2>&1 1>/dev/null)
+  ds_help=$(${DS_BINARY_PREFIX}deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>&1 1>/dev/null)
   set -e
 
   assert_tensorflow_version "${ds_help}"

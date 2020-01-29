@@ -219,11 +219,12 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
-        /// Prints the versions of Tensorflow and DeepSpeech.
+        /// Return version of this library. The returned version is a semantic version
+        /// (SemVer 2.0.0).
         /// </summary>
-        public unsafe void PrintVersions()
+        public unsafe string Version()
         {
-            NativeImp.DS_PrintVersions();
+            return NativeImp.DS_Version().PtrToString();
         }
 
         /// <summary>

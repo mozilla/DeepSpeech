@@ -20,7 +20,7 @@ if platform.system().lower() == "windows":
 import deepspeech
 
 # rename for backwards compatibility
-from deepspeech.impl import PrintVersions as printVersions
+from deepspeech.impl import Version as version
 
 class Model(object):
     """
