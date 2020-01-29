@@ -33,7 +33,7 @@ public class DeepSpeechModel {
     *
     * @return Beam width value used by the model.
     */
-    public int beamWidth() {
+    public long beamWidth() {
         return impl.GetModelBeamWidth(this._msp);
     }
 
@@ -45,7 +45,7 @@ public class DeepSpeechModel {
      *
      * @return Zero on success, non-zero on failure.
      */
-    public int setBeamWidth(int beamWidth) {
+    public int setBeamWidth(long beamWidth) {
         return impl.SetModelBeamWidth(this._msp, beamWidth);
     }
 

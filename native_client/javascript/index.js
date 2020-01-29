@@ -42,9 +42,8 @@ function Model(aModelPath) {
 }
 
 /**
- * Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
- * was not called before, will return the default value loaded from the
- * model file.
+ * Get beam width value used by the model. If :js:func:Model.setBeamWidth was
+ * not called before, will return the default value loaded from the model file.
  *
  * @return {number} Beam width value used by the model.
  */
@@ -62,16 +61,6 @@ Model.prototype.beamWidth = function() {
 Model.prototype.setBeamWidth = function(aBeamWidth) {
     return binding.SetModelBeamWidth(this._impl, aBeamWidth);
 }
-
-/**
- * Return the sample rate expected by the model.
- *
- * @return {number} Sample rate.
- */
-Model.prototype.beamWidth = function() {
-    return binding.GetModelBeamWidth(this._impl);
-}
-
 
 /**
  * Return the sample rate expected by the model.

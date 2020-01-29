@@ -111,7 +111,7 @@ def create_flags():
     f.DEFINE_string('export_language', '', 'language the model was trained on e.g. "en" or "English". Gets embedded into exported model.')
     f.DEFINE_boolean('export_zip', False, 'export a TFLite model and package with LM and info.json')
     f.DEFINE_string('export_name', 'output_graph', 'name for the export model')
-    f.DEFINE_string('export_beam_width', 500, 'default beam width to embed into exported graph')
+    f.DEFINE_integer('export_beam_width', 500, 'default beam width to embed into exported graph')
 
     # Reporting
 

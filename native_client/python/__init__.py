@@ -45,9 +45,8 @@ class Model(object):
 
     def beamWidth(self):
         """
-        Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
-        was not called before, will return the default value loaded from the
-        model file.
+        Get beam width value used by the model. If setModelBeamWidth was not
+        called before, will return the default value loaded from the model file.
 
         :return: Beam width value used by the model.
         :type: int
