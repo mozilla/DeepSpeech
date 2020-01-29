@@ -667,6 +667,13 @@ download_data()
   cp -R ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
 }
 
+download_checkpoint()
+{
+  local _checkpoint_source=$1
+  local _checkpoint_dest=$2
+  ${WGET} -O - "${_checkpoint_source}" | tar --strip-components=1 -C "${_checkpoint_dest}" -xz
+}
+
 download_material()
 {
   target_dir=$1

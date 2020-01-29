@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 set -xe
+set -o pipefail
 
 ru_dir="./data/ru"
 ru_csv="${ru_dir}/ru.csv"
@@ -18,6 +19,8 @@ export CUDA_VISIBLE_DEVICES=0
 
 # WORKS: #
 
+mkdir -p /tmp/ckpt/transfer_cudnn_fine/ /tmp/ckpt/transfer_cudnn_frozen/ /tmp/ckpt/transfer_rnn_fine/ /tmp/ckpt/transfer_rnn_frozen/ || true
+
 echo "# CUDNN FINE"
 python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
        --fine_tune \
@@ -26,8 +29,8 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
        --train_files  "${ru_dir}/ru.csv" --train_batch_size 1  \
        --dev_files  "${ru_dir}/ru.csv" --dev_batch_size 1 \
        --test_files  "${ru_dir}/ru.csv" --test_batch_size 1 \
-       --checkpoint_dir '/tmp/ckpt/transfer' --epochs 5 \
-       --cudnn_source_model_checkpoint_dir "/home/josh/Downloads/deepspeech-0.6.1-checkpoint/" | tee /tmp/transfer.log
+       --checkpoint_dir '/tmp/ckpt/transfer_cudnn_fine/' --epochs ${epoch_count} \
+       --cudnn_source_model_checkpoint_dir "/tmp/ckpt_source/" | tee /tmp/transfer.log
 
 echo "# CUDNN FROZEN"
 python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
@@ -36,8 +39,8 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
        --train_files  "${ru_dir}/ru.csv" --train_batch_size 1  \
        --dev_files  "${ru_dir}/ru.csv" --dev_batch_size 1 \
        --test_files  "${ru_dir}/ru.csv" --test_batch_size 1 \
-       --checkpoint_dir '/tmp/ckpt/transfer' --epochs 5 \
-       --cudnn_source_model_checkpoint_dir "/home/josh/Downloads/deepspeech-0.6.1-checkpoint/" | tee /tmp/transfer.log
+       --checkpoint_dir '/tmp/ckpt/transfer_cudnn_frozen/' --epochs ${epoch_count} \
+       --cudnn_source_model_checkpoint_dir "/tmp/ckpt_source/" | tee /tmp/transfer.log
 
 echo "# REG RNN FINE"
 python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
@@ -47,8 +50,8 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
        --train_files  "${ru_dir}/ru.csv" --train_batch_size 1  \
        --dev_files  "${ru_dir}/ru.csv" --dev_batch_size 1 \
        --test_files  "${ru_dir}/ru.csv" --test_batch_size 1 \
-       --checkpoint_dir '/tmp/ckpt/transfer' --epochs 5 \
-       --source_model_checkpoint_dir "/home/josh/Downloads/deepspeech-0.6.1-checkpoint/" | tee /tmp/transfer.log
+       --checkpoint_dir '/tmp/ckpt/transfer_rnn_fine/' --epochs ${epoch_count} \
+       --source_model_checkpoint_dir "/tmp/ckpt_source/" | tee /tmp/transfer.log
 
 
 echo "# REG RNN FROZEN"
@@ -58,5 +61,5 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
        --train_files  "${ru_dir}/ru.csv" --train_batch_size 1  \
        --dev_files  "${ru_dir}/ru.csv" --dev_batch_size 1 \
        --test_files  "${ru_dir}/ru.csv" --test_batch_size 1 \
-       --checkpoint_dir '/tmp/ckpt/transfer' --epochs 5 \
-       --source_model_checkpoint_dir "/home/josh/Downloads/deepspeech-0.6.1-checkpoint/" | tee /tmp/transfer.log
+       --checkpoint_dir '/tmp/ckpt/transfer_rnn_frozen/' --epochs ${epoch_count} \
+       --source_model_checkpoint_dir "/tmp/ckpt_source/" | tee /tmp/transfer.log
