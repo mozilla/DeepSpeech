@@ -397,18 +397,17 @@ def log_grads_and_vars(grads_and_vars):
 
 
 def load_model(session, saver, checkpoint_filename, caption, drop_source_layers, load_step=True, log_success=True, use_cudnn):
+    '''
+    load+list = [put all vars here first]
+    init_list=[]
 
-'''
-load+list = [put all vars here first]
-init_list=[]
-
-if use_cudnn:
-     move all adam vars to init_list
-if drop_souce_layers>0:
-     move all drop layers to init_list
-if init:
-   override! initialize all vars
-'''
+    if use_cudnn:
+         move all adam vars to init_list
+    if drop_souce_layers>0:
+         move all drop layers to init_list
+    if init:
+       override! initialize all vars
+    '''
 
     if FLAGS.load == 'init':
         session.run(tfv1.global_variables_initializer())
@@ -458,8 +457,6 @@ if init:
         v.load(ckpt.get_tensor(v.op.name), session=session)
     session.run(init_op)
 
-def try_model
-    
 def find_model(session, load_flag):
     if load_flag in ['auto', 'last']:
         checkpoint_path = find_model(session, checkpoint_saver, 'checkpoint', 'most recent')
