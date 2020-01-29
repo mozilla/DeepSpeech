@@ -28,7 +28,7 @@ android_setup_emulator "${arm_flavor}" "${api_level}"
 
 android_setup_ndk_data
 
-check_tensorflow_version
+check_deepspeech_version
 
 run_tflite_basic_inference_tests
 

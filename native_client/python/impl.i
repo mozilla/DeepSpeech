@@ -62,6 +62,7 @@ import_array();
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
+%newobject DS_Version;
 
 %rename ("%(strip:[DS_])s") "";
 

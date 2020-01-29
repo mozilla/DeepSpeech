@@ -267,10 +267,13 @@ DEEPSPEECH_EXPORT
 void DS_FreeString(char* str);
 
 /**
- * @brief Print version of this library and of the linked TensorFlow library.
+ * @brief Return version of this library. The returned version is a semantic version
+ *        (SemVer 2.0.0). The string returned must be freed with {@link DS_FreeString()}.
+ *
+ * @return The version string.
  */
 DEEPSPEECH_EXPORT
-void DS_PrintVersions();
+char* DS_Version();
 
 #undef DEEPSPEECH_EXPORT
 

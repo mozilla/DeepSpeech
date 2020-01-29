@@ -306,24 +306,13 @@ assert_correct_warning_upsampling()
   assert_shows_something "$1" "erratic speech recognition"
 }
 
-assert_tensorflow_version()
-{
-  assert_shows_something "$1" "${EXPECTED_TENSORFLOW_VERSION}"
-}
-
-assert_deepspeech_version()
-{
-  assert_not_present "$1" "DeepSpeech: unknown"
-}
-
-check_tensorflow_version()
+check_deepspeech_version()
 {
   set +e
   ds_help=$(${DS_BINARY_PREFIX}deepspeech 2>&1 1>/dev/null)
   set -e
 
-  assert_tensorflow_version "${ds_help}"
-  assert_deepspeech_version "${ds_help}"
+  assert_not_present "${ds_help}" "DeepSpeech: unknown"
 }
 
 assert_deepspeech_runtime()

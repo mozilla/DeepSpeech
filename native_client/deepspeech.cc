@@ -262,7 +262,14 @@ DS_CreateModel(const char* aModelPath,
 {
   *retval = nullptr;
 
-  DS_PrintVersions();
+  std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
+  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
+#ifdef __ANDROID__
+  LOGE("TensorFlow: %s", tf_local_git_version());
+  LOGD("TensorFlow: %s", tf_local_git_version());
+  LOGE("DeepSpeech: %s", ds_git_version());
+  LOGD("DeepSpeech: %s", ds_git_version());
+#endif
 
   if (!aModelPath || strlen(aModelPath) < 1) {
     std::cerr << "No model specified, cannot continue." << std::endl;
@@ -455,14 +462,7 @@ DS_FreeString(char* str)
   free(str);
 }
 
-void
-DS_PrintVersions() {
-  std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
-  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
-#ifdef __ANDROID__
-  LOGE("TensorFlow: %s", tf_local_git_version());
-  LOGD("TensorFlow: %s", tf_local_git_version());
-  LOGE("DeepSpeech: %s", ds_git_version());
-  LOGD("DeepSpeech: %s", ds_git_version());
-#endif
+char*
+DS_Version() {
+  return strdup(ds_version());
 }

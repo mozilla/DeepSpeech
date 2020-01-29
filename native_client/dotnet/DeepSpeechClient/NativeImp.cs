@@ -11,8 +11,9 @@ namespace DeepSpeechClient
     internal static class NativeImp
     {
         #region Native Implementation
-        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void DS_PrintVersions();
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi, SetLastError = true)]
+        internal static extern IntPtr DS_Version();
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal unsafe static extern ErrorCodes DS_CreateModel(string aModelPath,
