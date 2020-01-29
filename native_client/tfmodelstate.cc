@@ -20,7 +20,6 @@ TFModelState::~TFModelState()
       std::cerr << "Error closing TensorFlow session: " << status << std::endl;
     }
   }
-  delete mmap_env_;
 }
 
 int
@@ -35,7 +34,7 @@ TFModelState::init(const char* model_path,
   Status status;
   SessionOptions options;
 
-  mmap_env_ = new MemmappedEnv(Env::Default());
+  mmap_env_.reset(new MemmappedEnv(Env::Default()));
 
   bool is_mmap = std::string(model_path).find(".pbmm") != std::string::npos;
   if (!is_mmap) {
@@ -50,17 +49,19 @@ TFModelState::init(const char* model_path,
     options.config.mutable_graph_options()
       ->mutable_optimizer_options()
       ->set_opt_level(::OptimizerOptions::L0);
-    options.env = mmap_env_;
+    options.env = mmap_env_.get();
   }
 
-  status = NewSession(options, &session_);
+  Session* session;
+  status = NewSession(options, &session);
   if (!status.ok()) {
     std::cerr << status << std::endl;
     return DS_ERR_FAIL_INIT_SESS;
   }
+  session_.reset(session);
 
   if (is_mmap) {
-    status = ReadBinaryProto(mmap_env_,
+    status = ReadBinaryProto(mmap_env_.get(),
                              MemmappedFileSystem::kMemmappedPackageDefaultGraphDef,
                              &graph_def_);
   } else {
