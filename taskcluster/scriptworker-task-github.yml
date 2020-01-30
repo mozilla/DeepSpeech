@@ -11,6 +11,7 @@ build:
     - "linux-rpi3-cpu-opt"
     - "node-package-gpu"
     - "node-package-cpu"
+    - "node-package-tflite"
     - "android-arm64-cpu-opt"
     - "android-armv7-cpu-opt"
     - "android-java-opt"
@@ -41,6 +42,8 @@ build:
       - "node-package-gpu"
       # CPU package with all archs
       - "node-package-cpu"
+      # tflite package for non-default tflite archs
+      - "node-package-tflite"
     cpp:
       - "darwin-amd64-cpu-opt"
       - "linux-amd64-cpu-opt"
