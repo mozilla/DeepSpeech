@@ -18,7 +18,6 @@ def load_model(session, checkpoint_filename, drop_source_layers, use_cudnn):
     ckpt = tfv1.train.load_checkpoint(checkpoint_filename)
     load_vars = set(tfv1.global_variables())
     init_vars = set()
-    print("HERE 2")
     if use_cudnn:
         # Identify the variables which we cannot load, and set them
         # for initialization
@@ -26,9 +25,11 @@ def load_model(session, checkpoint_filename, drop_source_layers, use_cudnn):
             try:
                 ckpt.get_tensor(v.op.name)
             except tf.errors.NotFoundError:
-                load_vars -= v
+                print("CUDNN variable not found:", v.op.name)
                 init_vars.add(v)
 
+        load_vars -= init_vars
+        
         # Check that the only missing variables (i.e. those to be initialised)
         # are the Adam moment tensors, if they aren't then we have an issue
         if any('Adam' not in v.op.name for v in init_vars):
@@ -37,7 +38,6 @@ def load_model(session, checkpoint_filename, drop_source_layers, use_cudnn):
                       'tensors.')
             sys.exit(1)
 
-    print("HERE 1")
     if drop_source_layers>0:
         '''
         The transfer learning approach here needs us to supply
@@ -59,11 +59,14 @@ def load_model(session, checkpoint_filename, drop_source_layers, use_cudnn):
         for v in load_vars:
             if any(layer in v.op.name for layer in dropped_layers):
                 init_vars.add(v)
-                load_vars -= v
+                
+        load_vars -= init_vars
 
-    print("HERE 0")
-    print(init_vars)
-    print(load_vars)
+    for v in init_vars:
+        print("Initializing variable from scratch:", v.op.name)
+    for v in load_vars:
+        print("Loading variable from model:", v.op.name)
+        
     init_op = tfv1.variables_initializer(list(init_vars))
     for v in list(load_vars):
         v.load(ckpt.get_tensor(v.op.name), session=session)
@@ -98,20 +101,16 @@ def try_model(session, load_flag):
         return True
     
     def try_auto():
-        print("AUTO==LAST")
         res = try_last()
         if not res:
-            print("AUTO==BEST")
             res = try_best()
             if not res:
-                print("AUTO==INIT")
                 res = try_init()
         return res
     
     checkpoint_path = False
     if load_flag == 'last':
         # returns false or a checkpoint_path
-        print('LAST !!!')
         checkpoint_path = try_last()
         if not checkpoint_path:
             log_error('Unable to load LAST model from specified checkpoint dir'
@@ -120,7 +119,6 @@ def try_model(session, load_flag):
             
     if load_flag == 'best':
         # returns false or a checkpoint path
-        print('BEST !!!')
         checkpoint_path = try_best()
         if not checkpoint_path:
             log_error('Unable to load BEST model from specified checkpoint dir'
@@ -129,12 +127,10 @@ def try_model(session, load_flag):
             
     if load_flag == 'init':
         # no return
-        print('INIT !!!')
         try_init()
         
     if load_flag == 'auto':
         # returns true or a checkpoint path
-        print('AUTO !!!')
         checkpoint_path = try_auto()
 
     if not checkpoint_path in [True,False]:
