@@ -27,6 +27,7 @@ from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
+from util.helpers import load_model, check_model, try_model
 
 
 # Graph Creation
@@ -395,90 +396,6 @@ def log_grads_and_vars(grads_and_vars):
         log_variable(variable, gradient=gradient)
 
 
-
-def load_model(session, saver, checkpoint_filename, caption, drop_source_layers, load_step=True, log_success=True, use_cudnn):
-
-'''
-load+list = [put all vars here first]
-init_list=[]
-
-if use_cudnn:
-     move all adam vars to init_list
-if drop_souce_layers>0:
-     move all drop layers to init_list
-if init:
-   override! initialize all vars
-'''
-
-    if FLAGS.load == 'init':
-        session.run(tfv1.global_variables_initializer())
-        return
-    
-    ckpt = tfv1.train.load_checkpoint(checkpoint_filename)
-    load_vars = set(tfv1.global_variables())
-    init_vars = set()
-
-    if use_cudnn:
-        # Load compatible variables from checkpoint    
-        for v in load_vars:
-            try:
-                ckpt.get_tensor(v.op.name)
-            except tf.errors.NotFoundError:
-                load_vars -= v
-                init_vars.add(v)
-
-        # Check that the only missing variables (i.e. those to be initialised)
-        # are the Adam moment tensors
-        if any('Adam' not in v.op.name for v in init_vars):
-            log_error('Tried to load a CuDNN RNN checkpoint but there were '
-                      'more missing variables than just the Adam moment '
-                      'tensors.')
-            sys.exit(1)
-
-    if drop_source_layers>0:
-        '''
-        The transfer learning approach here need us to supply the layers which we
-        want to exclude from the source model.
-        Say we want to exclude all layers except for the first one, we can use this:
-        drop_source_layers=['2', '3', 'lstm', '5', '6']
-        If we want to use all layers from the source model except the last one, we use this:
-        drop_source_layers=['6']
-        '''
-        # FIXME -- if someone tries to drop 6+ layers, this will return an empty list
-        dropped_layers = ['2', '3', 'lstm', '5', '6'][-int(drop_source_layers):]
-
-        # Initialize all variables needed for DS, but not loaded from ckpt
-        for v in load_vars:
-            if any(layer in v.op.name for layer in dropped_layers):
-                init_vars.add(v)
-                load_vars -= v
-                    
-    init_op = tfv1.variables_initializer(init_vars)
-    for v in load_vars:
-        v.load(ckpt.get_tensor(v.op.name), session=session)
-    session.run(init_op)
-
-def try_model
-    
-def find_model(session, load_flag):
-    if load_flag in ['auto', 'last']:
-        checkpoint_path = find_model(session, checkpoint_saver, 'checkpoint', 'most recent')
-    elif load_flag in ['auto', 'best']:
-        checkpoint_path = find_model(session, best_dev_saver, 'best_dev_checkpoint', 'best validation')       
-    elif FLAGS.load in ['auto', 'init']:
-        log_info('Initializing variables...')
-        session.run(initializer)
-    else:
-        log_error('Unable to load %s model from specified checkpoint dir'
-                  ' - consider using load option "auto" or "init".' % FLAGS.load)
-        sys.exit(1)
-
-    checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir, checkpoint_filename)
-    if not checkpoint:
-        return False
-    checkpoint_path = checkpoint.model_checkpoint_path
-    return checkpoint_path
-
 def train():
     do_cache_dataset = True
 
@@ -531,7 +448,7 @@ def train():
         log_info('Enabling automatic mixed precision training.')
         optimizer = tfv1.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
 
-    gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates, drop_source_layers)
+    gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates)
 
     # Average tower gradients across GPUs
     avg_tower_gradients = average_gradients(gradients)
@@ -562,8 +479,6 @@ def train():
     with open(flags_file, 'w') as fout:
         fout.write(FLAGS.flags_into_string())
 
-    initializer = tfv1.global_variables_initializer()
-
     with tfv1.Session(config=Config.session_config) as session:
         log_debug('Session opened.')
 
@@ -581,9 +496,7 @@ def train():
                           'checkpoint normally with --checkpoint_dir.')
                 sys.exit(1)
 
-        checkpoint_path = find_model(session, FLAGS.load)
-    
-        
+        try_model(session, FLAGS.load)
         tfv1.get_default_graph().finalize()
         
         def run_set(set_name, epoch, init_op, dataset=None):
@@ -703,7 +616,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    samples = evaluate(FLAGS.test_files.split(','), create_model, try_model)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
@@ -917,14 +830,15 @@ def do_single_file_inference(input_file_path):
         saver = tfv1.train.Saver()
 
         # Restore variables from training checkpoint
-        loaded = False
-        if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
-        if not loaded and FLAGS.load in ['auto', 'best']:
-            loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
-        if not loaded:
-            print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
-            sys.exit(1)
+        try_model(session, FLAGS.load)
+        # loaded = False
+        # if not loaded and FLAGS.load in ['auto', 'last']:
+        #     loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
+        # if not loaded and FLAGS.load in ['auto', 'best']:
+        #     loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
+        # if not loaded:
+        #     print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
+        #     sys.exit(1)
 
         features, features_len = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])

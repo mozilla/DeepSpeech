@@ -20,12 +20,93 @@ fi
 # and when trying to run on multiple devices (like GPUs), this will break
 export CUDA_VISIBLE_DEVICES=0
 
+# echo "################## INIT HERE ##############################"
+# python -u DeepSpeech.py --noshow_progressbar \
+#        --load 'init' \
+#        --train_files data/ldc93s1/ldc93s1.csv \
+#        --test_files data/ldc93s1/ldc93s1.csv \
+#        --train_batch_size 1 \
+#        --test_batch_size 1 \
+#        --n_hidden 100 \
+#        --epochs 200 \
+#        --checkpoint_dir "$checkpoint_dir" \
+#        "$@"
+
+# echo "################## LAST HERE ##############################"
+# python -u DeepSpeech.py --noshow_progressbar \
+#        --load 'last' \
+#        --train_files data/ldc93s1/ldc93s1.csv \
+#        --test_files data/ldc93s1/ldc93s1.csv \
+#        --train_batch_size 1 \
+#        --test_batch_size 1 \
+#        --n_hidden 100 \
+#        --epochs 200 \
+#        --checkpoint_dir "$checkpoint_dir" \
+#        "$@"
+
+# echo "################## AUTO HERE ##############################"
+# python -u DeepSpeech.py --noshow_progressbar \
+#        --load 'auto' \
+#        --train_files data/ldc93s1/ldc93s1.csv \
+#        --test_files data/ldc93s1/ldc93s1.csv \
+#        --train_batch_size 1 \
+#        --test_batch_size 1 \
+#        --n_hidden 100 \
+#        --epochs 200 \
+#        --checkpoint_dir "$checkpoint_dir" \
+#        "$@"
+
+
+echo "################## INIT CUDNN ##############################"
+
 python -u DeepSpeech.py --noshow_progressbar \
-  --train_files data/ldc93s1/ldc93s1.csv \
-  --test_files data/ldc93s1/ldc93s1.csv \
-  --train_batch_size 1 \
-  --test_batch_size 1 \
-  --n_hidden 100 \
-  --epochs 200 \
-  --checkpoint_dir "$checkpoint_dir" \
-  "$@"
+       --load 'init' \
+       --train_files data/ldc93s1/ldc93s1.csv \
+       --test_files data/ldc93s1/ldc93s1.csv \
+       --train_batch_size 1 \
+       --test_batch_size 1 \
+       --n_hidden 100 \
+       --epochs 200 \
+       --cudnn_checkpoint "$checkpoint_dir" \
+       "$@"
+
+
+echo "################## BEST CUDNN ##############################"
+
+python -u DeepSpeech.py --noshow_progressbar \
+       --load 'last' \
+       --train_files data/ldc93s1/ldc93s1.csv \
+       --test_files data/ldc93s1/ldc93s1.csv \
+       --train_batch_size 1 \
+       --test_batch_size 1 \
+       --n_hidden 100 \
+       --epochs 200 \
+       --cudnn_checkpoint "$checkpoint_dir" \
+       "$@"
+
+echo "################## AUTO CUDNN ##############################"
+
+python -u DeepSpeech.py --noshow_progressbar \
+       --load 'auto' \
+       --train_files data/ldc93s1/ldc93s1.csv \
+       --test_files data/ldc93s1/ldc93s1.csv \
+       --train_batch_size 1 \
+       --test_batch_size 1 \
+       --n_hidden 100 \
+       --epochs 200 \
+       --cudnn_checkpoint "$checkpoint_dir" \
+       "$@"
+
+
+echo "################## BEST CUDNN ##############################"
+
+python -u DeepSpeech.py --noshow_progressbar \
+       --load 'best' \
+       --train_files data/ldc93s1/ldc93s1.csv \
+       --test_files data/ldc93s1/ldc93s1.csv \
+       --train_batch_size 1 \
+       --test_batch_size 1 \
+       --n_hidden 100 \
+       --epochs 200 \
+       --cudnn_checkpoint "$checkpoint_dir" \
+       "$@"

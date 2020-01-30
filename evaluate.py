@@ -22,6 +22,7 @@ from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
 from util.logging import log_error, log_progress, create_progressbar
+from util.helpers import load_model, check_model, try_model
 
 
 def sparse_tensor_value_to_texts(value, alphabet):
@@ -86,15 +87,17 @@ def evaluate(test_csvs, create_model, try_loading):
 
     with tfv1.Session(config=Config.session_config) as session:
         # Restore variables from training checkpoint
-        loaded = False
-        if not loaded and FLAGS.load in ['auto', 'best']:
-            loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
-        if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, saver, 'checkpoint', 'most recent')
-        if not loaded:
-            print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
-            sys.exit(1)
+        # loaded = False
+        # if not loaded and FLAGS.load in ['auto', 'best']:
+        #     loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
+        # if not loaded and FLAGS.load in ['auto', 'last']:
+        #     loaded = try_loading(session, saver, 'checkpoint', 'most recent')
+        # if not loaded:
+        #     print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
+        #     sys.exit(1)
 
+        try_model(session, FLAGS.load)
+                
         def run_test(init_op, dataset):
             wav_filenames = []
             losses = []
