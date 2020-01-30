@@ -614,8 +614,11 @@ install_nuget()
   mkdir -p "${TASKCLUSTER_TMP_DIR}/repo/"
   mkdir -p "${TASKCLUSTER_TMP_DIR}/ds/"
 
-  ${WGET} -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/${nuget}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
-  ${WGET} -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/DeepSpeechConsole.exe" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
+  nuget_pkg_url=$(get_dep_nuget_pkg_url "${nuget}")
+  console_pkg_url=$(get_dep_nuget_pkg_url "DeepSpeechConsole.exe")
+
+  ${WGET} -O - "${nuget_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
+  ${WGET} -O - "${console_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
 
   nuget sources add -Name repo -Source $(cygpath -w "${TASKCLUSTER_TMP_DIR}/repo/")
 
@@ -1193,6 +1196,25 @@ get_dep_npm_pkg_url()
 {
   local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
   local deepspeech_pkg="deepspeech-${DS_VERSION}.tgz"
+
+  for dep in ${all_deps}; do
+    local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${deepspeech_pkg}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
+    if [ "${has_artifact}" = "True" ]; then
+      echo "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/${deepspeech_pkg}"
+      exit 0
+    fi;
+  done;
+
+  echo ""
+  # This should not be reached, otherwise it means we could not find a matching nodejs package
+  exit 1
+}
+
+# Will inspect this task's dependencies for one that provides a matching NuGet package
+get_dep_nuget_pkg_url()
+{
+  local deepspeech_pkg=$1
+  local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
 
   for dep in ${all_deps}; do
     local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${deepspeech_pkg}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
