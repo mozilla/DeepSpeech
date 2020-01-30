@@ -20,8 +20,3 @@ bs4
 requests
 librosa
 soundfile
-
-# Miscellaneous scripts
-paramiko >= 2.1
-scipy
-matplotlib
