@@ -1,4 +1,4 @@
-.PHONY: bindings clean
+.PHONY: bindings clean workspace_status.cc
 
 include ../definitions.mk
 
@@ -23,15 +23,22 @@ clean-keep-common:
 
 clean: clean-keep-common
 	rm -f common.a
+	rm workspace_status.cc
+	rm -fr bazel-out/
 
-bindings: clean-keep-common
+workspace_status.cc:
+	mkdir -p bazel-out/ && \
+		../bazel_workspace_status_cmd.sh > bazel-out/stable-status.txt && \
+		../gen_workspace_status.sh > $@
+
+bindings: clean-keep-common workspace_status.cc
 	pip install --quiet $(PYTHON_PACKAGES) wheel==0.33.6 setuptools==39.1.0
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS) $(CXXFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py build_ext --num_processes $(NUM_PROCESSES) $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
 	find temp_build -type f -name "*.o" -delete
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS) $(CXXFLAGS)" LDFLAGS="$(LDFLAGS_NEEDED)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py bdist_wheel $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
 	rm -rf temp_build
 
-bindings-debug: clean-keep-common
+bindings-debug: clean-keep-common workspace_status.cc
 	pip install --quiet $(PYTHON_PACKAGES) wheel==0.33.6 setuptools==39.1.0
 	AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS) $(CXXFLAGS) -DDEBUG" LDFLAGS="$(LDFLAGS_NEEDED)" $(PYTHON_PATH) $(NUMPY_INCLUDE) python ./setup.py build_ext --debug --num_processes $(NUM_PROCESSES) $(PYTHON_PLATFORM_NAME) $(SETUP_FLAGS)
 	$(GENERATE_DEBUG_SYMS)

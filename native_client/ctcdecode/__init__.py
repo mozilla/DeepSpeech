@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function
 
-from . import swigwrapper
+from . import swigwrapper # pylint: disable=import-self
 
+__version__ = swigwrapper.__version__
 
 class Scorer(swigwrapper.Scorer):
     """Wrapper for Scorer.
