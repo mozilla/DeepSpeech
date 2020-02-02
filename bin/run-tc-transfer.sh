@@ -22,10 +22,27 @@ export CUDA_VISIBLE_DEVICES=0
 
 
 
+
+
+
 echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
 echo "##### while iterating over loading logic #####"
 
 for LOAD in 'init' 'last' 'auto'; do
+
+    echo "#### Train ENGLISH model from scratch with just --checkpoint_dir ####"
+
+    python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
+       --alphabet_config_path "./data/alphabet.txt" \
+       --load "$LOAD" \
+       --train_files  "./data/ldc93s1/ldc93s1.csv" --train_batch_size 1  \
+       --dev_files  "./data/ldc93s1/ldc93s1.csv" --dev_batch_size 1 \
+       --test_files  "./data/ldc93s1/ldc93s1.csv" --test_batch_size 1 \
+       --checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
+       --n_hidden 100 \
+       --epochs 10 \
+       "$@"
+    
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
            --alphabet_config_path "./data/alphabet.txt" \
            --load "$LOAD" \
@@ -57,6 +74,21 @@ echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
 echo "##### while iterating over loading logic with CUDNN #####"
 
 for LOAD in 'init' 'last' 'auto'; do
+
+    echo "#### Train ENGLISH model from scratch with just --checkpoint_dir ####"
+
+    python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
+       --train_cudnn\
+       --alphabet_config_path "./data/alphabet.txt" \
+       --load "$LOAD" \
+       --train_files  "./data/ldc93s1/ldc93s1.csv" --train_batch_size 1  \
+       --dev_files  "./data/ldc93s1/ldc93s1.csv" --dev_batch_size 1 \
+       --test_files  "./data/ldc93s1/ldc93s1.csv" --test_batch_size 1 \
+       --checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
+       --n_hidden 100 \
+       --epochs 10 \
+       "$@"
+    
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
            --train_cudnn\
            --alphabet_config_path "./data/alphabet.txt" \

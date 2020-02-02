@@ -468,15 +468,26 @@ def train():
 
     # Checkpointing
     checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
+    if not FLAGS.save_checkpoint_dir:
+        # TODO - better handle saving / loading checkpoint flags
+        # for now, only allow separate dirs if save_checkpoint_dir
+        # has been specified, otherwise, use one dir
+        FLAGS.save_checkpoint_dir = FLAGS.checkpoint_dir
+    
+    if not FLAGS.load_checkpoint_dir:
+        # TODO - better handle saving / loading checkpoint flags
+        # for now, only allow separate dirs if save_checkpoint_dir
+        # has been specified, otherwise, use one dir
+        FLAGS.load_checkpoint_dir = FLAGS.checkpoint_dir
+   
     checkpoint_path = os.path.join(FLAGS.save_checkpoint_dir, 'train')
-
-    best_dev_saver = tfv1.train.Saver(max_to_keep=1)
     best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
-
+    best_dev_saver = tfv1.train.Saver(max_to_keep=1)
+    
     # Save flags next to checkpoints
     os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
-
     flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
+    
     with open(flags_file, 'w') as fout:
         fout.write(FLAGS.flags_into_string())
 
@@ -493,10 +504,10 @@ def train():
                       'needed when converting a CuDNN RNN checkpoint to '
                       'a CPU-capable graph. If your system is capable of '
                       'using CuDNN RNN, you can just specify the CuDNN RNN '
-                      'checkpoint normally with --save_checkpoint_dir.')
+                      'checkpoint normally with --(save_)checkpoint_dir.')
             sys.exit(1)
 
-        try_model(session, FLAGS.load)
+        try_model(session, FLAGS.load_checkpoint_dir, FLAGS.load)
         tfv1.get_default_graph().finalize()
         
         def run_set(set_name, epoch, init_op, dataset=None):
@@ -616,7 +627,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_model)
+    samples = evaluate(FLAGS.test_files.split(','), create_model)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
@@ -744,6 +755,8 @@ def export():
     saver = tfv1.train.Saver()
 
     # Restore variables from training checkpoint
+    if not FLAGS.load_checkpoint_dir:
+        FLAGS.load_checkpoint_dir = FLAGS.checkpoint_dir
     checkpoint = tf.train.get_checkpoint_state(FLAGS.load_checkpoint_dir)
     checkpoint_path = checkpoint.model_checkpoint_path
 
@@ -830,7 +843,7 @@ def do_single_file_inference(input_file_path):
         saver = tfv1.train.Saver()
 
         # Restore variables from training checkpoint
-        try_model(session, FLAGS.load)
+        try_model(session, FLAGS.load_checkpoint_dir, FLAGS.load)
 
         features, features_len = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])

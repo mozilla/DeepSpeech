@@ -63,23 +63,23 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn):
     session.run(init_op)
 
 
-def check_model(checkpoint_filename):
-    checkpoint = tf.train.get_checkpoint_state(FLAGS.load_checkpoint_dir, checkpoint_filename)
+def check_model(checkpoint_dir, checkpoint_filename):
+    checkpoint = tf.train.get_checkpoint_state(checkpoint_dir, checkpoint_filename)
     if not checkpoint:
         return None
     return checkpoint.model_checkpoint_path
 
 
-def try_model(session, load_flag):
+def try_model(session, checkpoint_dir, load_flag, test=False):
     r'''
     if auto, cascasde from last --> best --> init
     if last, try last, if not found, break 
     '''
     def try_last():
-        return check_model('checkpoint')
+        return check_model(checkpoint_dir, 'checkpoint')
     
     def try_best():
-        return check_model('best_dev_checkpoint')
+        return check_model(checkpoint_dir, 'best_dev_checkpoint')
     
     def try_init():
         log_info('Initializing variables...')

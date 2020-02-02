@@ -43,7 +43,7 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
     return [alphabet.decode(res) for res in results]
 
 
-def evaluate(test_csvs, create_model, try_loading):
+def evaluate(test_csvs, create_model):
     if FLAGS.lm_binary_path:
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.lm_binary_path, FLAGS.lm_trie_path,
@@ -86,17 +86,8 @@ def evaluate(test_csvs, create_model, try_loading):
     saver = tfv1.train.Saver()
 
     with tfv1.Session(config=Config.session_config) as session:
-        # Restore variables from training checkpoint
-        # loaded = False
-        # if not loaded and FLAGS.load in ['auto', 'best']:
-        #     loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation')
-        # if not loaded and FLAGS.load in ['auto', 'last']:
-        #     loaded = try_loading(session, saver, 'checkpoint', 'most recent')
-        # if not loaded:
-        #     print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
-        #     sys.exit(1)
 
-        try_model(session, FLAGS.load)
+        try_model(session, FLAGS.load_checkpoint_dir, FLAGS.load)
                 
         def run_test(init_op, dataset):
             wav_filenames = []
@@ -168,8 +159,8 @@ def main(_):
                   'the --test_files flag.')
         sys.exit(1)
 
-    from DeepSpeech import create_model, try_loading # pylint: disable=cyclic-import
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    from DeepSpeech import create_model # pylint: disable=cyclic-import
+    samples = evaluate(FLAGS.test_files.split(','), create_model)
 
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
