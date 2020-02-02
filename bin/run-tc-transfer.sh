@@ -22,7 +22,8 @@ export CUDA_VISIBLE_DEVICES=0
 
 
 
-echo "################## INIT ENG MODEL ##############################"
+echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
+echo "##### while iterating over loading logic #####"
 
 for LOAD in 'init' 'last' 'auto'; do
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
@@ -51,6 +52,9 @@ for LOAD in 'init' 'last' 'auto'; do
            "$@"
 done
 
+
+echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
+echo "##### while iterating over loading logic with CUDNN #####"
 
 for LOAD in 'init' 'last' 'auto'; do
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\

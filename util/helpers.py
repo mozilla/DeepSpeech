@@ -5,13 +5,6 @@ from util.logging import log_info, log_error, log_debug, log_progress, create_pr
 import sys
 
 def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn):
-    r'''
-    if load_cudnn:
-        move all Adam vars to init_vars
-    if drop_souce_layers>0:
-        move all dropped layers to init_vars
-    '''
-    
     # Load the checkpoint and put all variables into loading list
     # we will exclude variables we do not wish to load and then
     # we will initialize them instead
@@ -39,28 +32,24 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn):
                       'tensors.')
             sys.exit(1)
 
-    if drop_source_layers>0:
-        '''
-        The transfer learning approach here needs us to supply
-        the layers which we will to exclude from the source model.
-        Say we want to exclude all layers except for the first one,
-        we are dropping five layers total, so:
-        drop_source_layers=5
-        If we want to use all layers from the source model except the last one, we use this:
-        drop_source_layers=1
-        '''
+    if drop_source_layers > 0:
+        # This transfer learning approach requires supplying
+        # the layers which we exclude from the source model.
+        # Say we want to exclude all layers except for the first one,
+        # then we are dropping five layers total, so: drop_source_layers=5
+        # If we want to use all layers from the source model except
+        # the last one, we use this: drop_source_layers=1
         if drop_source_layers>=6:
             log_error('The model only has 6 layers, but you are trying to drop '
                       'all of them or more than all of them. Continuing and '
                       'dropping only 5 layers')
+            drop_source_layers=5
         
-        dropped_layers = ['2', '3', 'lstm', '5', '6'][-1 * min(5, int(drop_source_layers)):]
-
+        dropped_layers = ['2', '3', 'lstm', '5', '6'][-1 * int(drop_source_layers):]
         # Initialize all variables needed for DS, but not loaded from ckpt
         for v in load_vars:
             if any(layer in v.op.name for layer in dropped_layers):
                 init_vars.add(v)
-                
         load_vars -= init_vars
 
     for v in init_vars:
@@ -77,29 +66,26 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn):
 def check_model(checkpoint_filename):
     checkpoint = tf.train.get_checkpoint_state(FLAGS.load_checkpoint_dir, checkpoint_filename)
     if not checkpoint:
-        return False
+        return None
     return checkpoint.model_checkpoint_path
 
 
 def try_model(session, load_flag):
-
-    '''
+    r'''
     if auto, cascasde from last --> best --> init
-  
-    if last, try last, if not found , break
-    
+    if last, try last, if not found, break 
     '''
     def try_last():
         return check_model('checkpoint')
-        
+    
     def try_best():
         return check_model('best_dev_checkpoint')
-        
+    
     def try_init():
         log_info('Initializing variables...')
         # Initialize a new model from scratch
         session.run(tfv1.global_variables_initializer())
-        return True
+        return None
     
     def try_auto():
         res = try_last()
@@ -109,7 +95,7 @@ def try_model(session, load_flag):
                 res = try_init()
         return res
     
-    checkpoint_path = False
+    checkpoint_path = None
     if load_flag == 'last':
         # returns false or a checkpoint_path
         checkpoint_path = try_last()
@@ -117,7 +103,7 @@ def try_model(session, load_flag):
             log_error('Unable to load LAST model from specified checkpoint dir'
                       ' - consider using load option "auto" or "init".')
             sys.exit(1)
-            
+    
     if load_flag == 'best':
         # returns false or a checkpoint path
         checkpoint_path = try_best()
@@ -125,21 +111,22 @@ def try_model(session, load_flag):
             log_error('Unable to load BEST model from specified checkpoint dir'
                       ' - consider using load option "auto" or "init".')
             sys.exit(1)
-            
+    
     if load_flag == 'init':
         # no return
         try_init()
-        
+    
     if load_flag == 'auto':
         # returns true or a checkpoint path
         checkpoint_path = try_auto()
-
-    if not checkpoint_path in [True,False]:
+    
+    if checkpoint_path:
         load_model(session, checkpoint_path, FLAGS.drop_source_layers, FLAGS.load_cudnn)
 
 
 def keep_only_digits(txt):
     return ''.join(filter(lambda c: c.isdigit(), txt))
+
 
 def secs_to_hours(secs):
     hours, remainder = divmod(secs, 3600)

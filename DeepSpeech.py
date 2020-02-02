@@ -415,6 +415,7 @@ def train():
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True)
+    
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
                                                  output_classes=tfv1.data.get_output_classes(train_set))
@@ -830,14 +831,6 @@ def do_single_file_inference(input_file_path):
 
         # Restore variables from training checkpoint
         try_model(session, FLAGS.load)
-        # loaded = False
-        # if not loaded and FLAGS.load in ['auto', 'last']:
-        #     loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
-        # if not loaded and FLAGS.load in ['auto', 'best']:
-        #     loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
-        # if not loaded:
-        #     print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
-        #     sys.exit(1)
 
         features, features_len = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
