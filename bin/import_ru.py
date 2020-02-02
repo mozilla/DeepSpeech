@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+'''
+Note -- This script is made for importing a single audio file
+        and a single csv file (transcript) for the sole purposes
+        of running the continuous integration tests on taskcluster.
+'''
 from __future__ import absolute_import, division, print_function
-
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
 import sys

@@ -4,9 +4,9 @@ from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 import sys
 
-def load_model(session, checkpoint_filename, drop_source_layers, use_cudnn):
+def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn):
     r'''
-    if use_cudnn:
+    if load_cudnn:
         move all Adam vars to init_vars
     if drop_souce_layers>0:
         move all dropped layers to init_vars
@@ -18,7 +18,8 @@ def load_model(session, checkpoint_filename, drop_source_layers, use_cudnn):
     ckpt = tfv1.train.load_checkpoint(checkpoint_filename)
     load_vars = set(tfv1.global_variables())
     init_vars = set()
-    if use_cudnn:
+    if load_cudnn:
+        # Initialize training from a CuDNN RNN checkpoint
         # Identify the variables which we cannot load, and set them
         # for initialization
         for v in load_vars:
@@ -74,7 +75,7 @@ def load_model(session, checkpoint_filename, drop_source_layers, use_cudnn):
 
 
 def check_model(checkpoint_filename):
-    checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir, checkpoint_filename)
+    checkpoint = tf.train.get_checkpoint_state(FLAGS.load_checkpoint_dir, checkpoint_filename)
     if not checkpoint:
         return False
     return checkpoint.model_checkpoint_path
@@ -134,9 +135,7 @@ def try_model(session, load_flag):
         checkpoint_path = try_auto()
 
     if not checkpoint_path in [True,False]:
-        load_model(session, checkpoint_path, FLAGS.drop_source_layers, FLAGS.use_cudnn_rnn)
-
-
+        load_model(session, checkpoint_path, FLAGS.drop_source_layers, FLAGS.load_cudnn)
 
 
 def keep_only_digits(txt):

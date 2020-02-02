@@ -222,7 +222,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     # Obtain the next batch of data
     batch_filenames, (batch_x, batch_seq_len), batch_y = iterator.get_next()
 
-    if FLAGS.use_cudnn_rnn:
+    if FLAGS.train_cudnn:
         rnn_impl = rnn_impl_cudnn_rnn
     else:
         rnn_impl = rnn_impl_lstmblockfusedcell
@@ -310,7 +310,7 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                     tower_avg_losses.append(avg_loss)
 
                     gradients = optimizer.compute_gradients(avg_loss)
-                        
+
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
 
@@ -467,15 +467,15 @@ def train():
 
     # Checkpointing
     checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
-    checkpoint_path = os.path.join(FLAGS.checkpoint_dir, 'train')
+    checkpoint_path = os.path.join(FLAGS.save_checkpoint_dir, 'train')
 
     best_dev_saver = tfv1.train.Saver(max_to_keep=1)
-    best_dev_path = os.path.join(FLAGS.checkpoint_dir, 'best_dev')
+    best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
 
     # Save flags next to checkpoints
-    os.makedirs(FLAGS.checkpoint_dir, exist_ok=True)
+    os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
 
-    flags_file = os.path.join(FLAGS.checkpoint_dir, 'flags.txt')
+    flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
     with open(flags_file, 'w') as fout:
         fout.write(FLAGS.flags_into_string())
 
@@ -486,15 +486,14 @@ def train():
         loaded = False
 
         # Initialize training from a CuDNN RNN checkpoint
-        if FLAGS.cudnn_checkpoint:
-            if FLAGS.use_cudnn_rnn:
-                log_error('Trying to use --cudnn_checkpoint but --use_cudnn_rnn '
-                          'was specified. The --cudnn_checkpoint flag is only '
-                          'needed when converting a CuDNN RNN checkpoint to '
-                          'a CPU-capable graph. If your system is capable of '
-                          'using CuDNN RNN, you can just specify the CuDNN RNN '
-                          'checkpoint normally with --checkpoint_dir.')
-                sys.exit(1)
+        if FLAGS.train_cudnn and FLAGS.load_cudnn:
+            log_error('Trying to use --train_cudnn, but --load_cudnn '
+                      'was also specified. The --load_cudnn flag is only '
+                      'needed when converting a CuDNN RNN checkpoint to '
+                      'a CPU-capable graph. If your system is capable of '
+                      'using CuDNN RNN, you can just specify the CuDNN RNN '
+                      'checkpoint normally with --save_checkpoint_dir.')
+            sys.exit(1)
 
         try_model(session, FLAGS.load)
         tfv1.get_default_graph().finalize()
@@ -744,7 +743,7 @@ def export():
     saver = tfv1.train.Saver()
 
     # Restore variables from training checkpoint
-    checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+    checkpoint = tf.train.get_checkpoint_state(FLAGS.load_checkpoint_dir)
     checkpoint_path = checkpoint.model_checkpoint_path
 
     output_filename = FLAGS.export_name + '.pb'
