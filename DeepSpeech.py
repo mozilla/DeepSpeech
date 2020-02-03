@@ -727,6 +727,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
 
     return inputs, outputs, layers
 
+
 def file_relative_read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
@@ -768,7 +769,7 @@ def export():
             method_order = [FLAGS.load]
         load_or_init_graph(session, method_order)
 
-        output_filename = FLAGS.export_name + '.pb'
+        output_filename = FLAGS.export_file_name + '.pb'
         if FLAGS.remove_export:
             if os.path.isdir(FLAGS.export_dir):
                 log_info('Removing old export')
@@ -805,20 +806,41 @@ def export():
 
         log_info('Models exported at %s' % (FLAGS.export_dir))
 
+    metadata_fname = os.path.join(FLAGS.export_dir, '{}_{}_{}.md'.format(
+        FLAGS.export_author_id,
+        FLAGS.export_model_name,
+        FLAGS.export_model_version))
+
+    model_runtime = 'tflite' if FLAGS.export_tflite else 'tensorflow'
+    with open(metadata_fname, 'w') as f:
+        f.write('---\n')
+        f.write('author: {}\n'.format(FLAGS.export_author_id))
+        f.write('model_name: {}\n'.format(FLAGS.export_model_name))
+        f.write('model_version: {}\n'.format(FLAGS.export_model_version))
+        f.write('contact_info: {}\n'.format(FLAGS.export_contact_info))
+        f.write('license: {}\n'.format(FLAGS.export_license))
+        f.write('language: {}\n'.format(FLAGS.export_language))
+        f.write('runtime: {}\n'.format(model_runtime))
+        f.write('min_ds_version: {}\n'.format(FLAGS.export_min_ds_version))
+        f.write('max_ds_version: {}\n'.format(FLAGS.export_max_ds_version))
+        f.write('acoustic_model_url: <replace this with a publicly available URL of the acoustic model>\n')
+        f.write('scorer_url: <replace this with a publicly available URL of the scorer, if present>\n')
+        f.write('---\n')
+        f.write('{}\n'.format(FLAGS.export_description))
+
+    log_info('Model metadata file saved to {}. Before submitting the exported model for publishing make sure all information in the metadata file is correct, and complete the URL fields.'.format(metadata_fname))
+
+
 def package_zip():
     # --export_dir path/to/export/LANG_CODE/ => path/to/export/LANG_CODE.zip
     export_dir = os.path.join(os.path.abspath(FLAGS.export_dir), '') # Force ending '/'
     zip_filename = os.path.dirname(export_dir)
 
-    with open(os.path.join(export_dir, 'info.json'), 'w') as f:
-        json.dump({
-            'name': FLAGS.export_language,
-        }, f)
-
     shutil.copy(FLAGS.scorer_path, export_dir)
 
     archive = shutil.make_archive(zip_filename, 'zip', export_dir)
     log_info('Exported packaged model {}'.format(archive))
+
 
 def do_single_file_inference(input_file_path):
     with tfv1.Session(config=Config.session_config) as session:
@@ -894,6 +916,7 @@ def main(_):
     if FLAGS.one_shot_infer:
         tfv1.reset_default_graph()
         do_single_file_inference(FLAGS.one_shot_infer)
+
 
 if __name__ == '__main__':
     create_flags()
