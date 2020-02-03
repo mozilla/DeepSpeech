@@ -43,7 +43,7 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
     return [alphabet.decode(res) for res in results]
 
 
-def evaluate(test_csvs, create_model):
+def evaluate(test_csvs, create_model, checkpoint_dir):
     if FLAGS.lm_binary_path:
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.lm_binary_path, FLAGS.lm_trie_path,
@@ -87,7 +87,7 @@ def evaluate(test_csvs, create_model):
 
     with tfv1.Session(config=Config.session_config) as session:
 
-        try_model(session, FLAGS.load_checkpoint_dir, FLAGS.load)
+        try_model(session, checkpoint_dir, FLAGS.load, test=True)
                 
         def run_test(init_op, dataset):
             wav_filenames = []

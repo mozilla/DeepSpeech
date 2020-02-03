@@ -4,7 +4,7 @@ from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 import sys
 
-def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn):
+def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn, test=False):
     # Load the checkpoint and put all variables into loading list
     # we will exclude variables we do not wish to load and then
     # we will initialize them instead
@@ -32,7 +32,7 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn):
                       'tensors.')
             sys.exit(1)
 
-    if drop_source_layers > 0:
+    if not test and drop_source_layers > 0:
         # This transfer learning approach requires supplying
         # the layers which we exclude from the source model.
         # Say we want to exclude all layers except for the first one,
@@ -121,7 +121,7 @@ def try_model(session, checkpoint_dir, load_flag, test=False):
         checkpoint_path = try_auto()
     
     if checkpoint_path:
-        load_model(session, checkpoint_path, FLAGS.drop_source_layers, FLAGS.load_cudnn)
+        load_model(session, checkpoint_path, FLAGS.drop_source_layers, FLAGS.load_cudnn, test)
 
 
 def keep_only_digits(txt):

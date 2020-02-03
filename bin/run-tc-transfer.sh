@@ -20,17 +20,14 @@ fi;
 # and when trying to run on multiple devices (like GPUs), this will break
 export CUDA_VISIBLE_DEVICES=0
 
-
-
-
-
-
 echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
 echo "##### while iterating over loading logic #####"
 
 for LOAD in 'init' 'last' 'auto'; do
 
-    echo "#### Train ENGLISH model from scratch with just --checkpoint_dir ####"
+    echo "########################################################"
+    echo "#### Train ENGLISH model with just --checkpoint_dir ####"
+    echo "########################################################"
 
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
        --alphabet_config_path "./data/alphabet.txt" \
@@ -40,8 +37,12 @@ for LOAD in 'init' 'last' 'auto'; do
        --test_files  "./data/ldc93s1/ldc93s1.csv" --test_batch_size 1 \
        --checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
        --n_hidden 100 \
-       --epochs 10 \
+       --epochs 200 \
        "$@"
+
+    echo "##############################################################################"
+    echo "#### Train ENGLISH model with --save_checkpoint_dir --load_checkpoint_dir ####"
+    echo "##############################################################################"
     
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
            --alphabet_config_path "./data/alphabet.txt" \
@@ -52,9 +53,13 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 10 \
+           --epochs 200 \
            "$@"
 
+    echo "#################################################################################"
+    echo "#### Transfer Russian model with --save_checkpoint_dir --load_checkpoint_dir ####"
+    echo "#################################################################################"
+        
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
            --drop_source_layers 1 \
            --alphabet_config_path "${ru_dir}/alphabet.ru" \
@@ -65,17 +70,20 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/ru-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 10 \
+           --epochs 200 \
            "$@"
 done
 
-
+echo "#######################################################"
 echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
-echo "##### while iterating over loading logic with CUDNN #####"
+echo "##### while iterating over loading logic with CUDNN ###"
+echo "#######################################################"
 
 for LOAD in 'init' 'last' 'auto'; do
 
-    echo "#### Train ENGLISH model from scratch with just --checkpoint_dir ####"
+    echo "########################################################"
+    echo "#### Train ENGLISH model with just --checkpoint_dir ####"
+    echo "########################################################"
 
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
        --train_cudnn\
@@ -86,9 +94,14 @@ for LOAD in 'init' 'last' 'auto'; do
        --test_files  "./data/ldc93s1/ldc93s1.csv" --test_batch_size 1 \
        --checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
        --n_hidden 100 \
-       --epochs 10 \
+       --epochs 200 \
        "$@"
     
+
+    echo "##############################################################################"
+    echo "#### Train ENGLISH model with --save_checkpoint_dir --load_checkpoint_dir ####"
+    echo "##############################################################################"
+
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
            --train_cudnn\
            --alphabet_config_path "./data/alphabet.txt" \
@@ -99,9 +112,13 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 10 \
+           --epochs 200 \
            "$@"
 
+    echo "####################################################################################"
+    echo "#### Transfer to RUSSIAN model with --save_checkpoint_dir --load_checkpoint_dir ####"
+    echo "####################################################################################"
+    
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop\
            --load_cudnn\
            --drop_source_layers 1 \
@@ -113,6 +130,6 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/ru-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 10 \
+           --epochs 200 \
            "$@"
 done
