@@ -408,7 +408,7 @@ def train():
             FLAGS.augmentation_speed_up_std > 0 or
             FLAGS.augmentation_sparse_warp):
         do_cache_dataset = False
-    
+
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
@@ -444,7 +444,7 @@ def train():
 
     # Building the graph
     optimizer = create_optimizer()
-    
+
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info('Enabling automatic mixed precision training.')
