@@ -37,7 +37,7 @@ for LOAD in 'init' 'last' 'auto'; do
        --test_files  "./data/ldc93s1/ldc93s1.csv" --test_batch_size 1 \
        --checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
        --n_hidden 100 \
-       --epochs 200 \
+       --epochs 10 \
        "$@"
 
     echo "##############################################################################"
@@ -53,7 +53,7 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 200 \
+           --epochs 10 \
            "$@"
 
     echo "#################################################################################"
@@ -70,7 +70,7 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/ru-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 200 \
+           --epochs 10 \
            "$@"
 done
 
@@ -94,7 +94,7 @@ for LOAD in 'init' 'last' 'auto'; do
        --test_files  "./data/ldc93s1/ldc93s1.csv" --test_batch_size 1 \
        --checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
        --n_hidden 100 \
-       --epochs 200 \
+       --epochs 10 \
        "$@"
     
 
@@ -112,7 +112,7 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 200 \
+           --epochs 10 \
            "$@"
 
     echo "####################################################################################"
@@ -130,6 +130,6 @@ for LOAD in 'init' 'last' 'auto'; do
            --save_checkpoint_dir '/tmp/ckpt/transfer/ru-cudnn' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng-cudnn' \
            --n_hidden 100 \
-           --epochs 200 \
+           --epochs 10 \
            "$@"
 done

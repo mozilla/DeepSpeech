@@ -4,13 +4,14 @@ from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 import sys
 
-def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn, test=False):
+def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn, train=True):
     # Load the checkpoint and put all variables into loading list
     # we will exclude variables we do not wish to load and then
     # we will initialize them instead
     ckpt = tfv1.train.load_checkpoint(checkpoint_filename)
     load_vars = set(tfv1.global_variables())
     init_vars = set()
+    
     if load_cudnn:
         # Initialize training from a CuDNN RNN checkpoint
         # Identify the variables which we cannot load, and set them
@@ -19,7 +20,7 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn, tes
             try:
                 ckpt.get_tensor(v.op.name)
             except tf.errors.NotFoundError:
-                print("CUDNN variable not found:", v.op.name)
+                log_error('CUDNN variable not found: %s' % (v.op.name))
                 init_vars.add(v)
 
         load_vars -= init_vars
@@ -32,18 +33,18 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn, tes
                       'tensors.')
             sys.exit(1)
 
-    if not test and drop_source_layers > 0:
+    if train and drop_source_layers > 0:
         # This transfer learning approach requires supplying
         # the layers which we exclude from the source model.
         # Say we want to exclude all layers except for the first one,
         # then we are dropping five layers total, so: drop_source_layers=5
         # If we want to use all layers from the source model except
         # the last one, we use this: drop_source_layers=1
-        if drop_source_layers>=6:
-            log_error('The model only has 6 layers, but you are trying to drop '
+        if drop_source_layers >= 6:
+            log_error('The checkpoint only has 6 layers, but you are trying to drop '
                       'all of them or more than all of them. Continuing and '
                       'dropping only 5 layers')
-            drop_source_layers=5
+            drop_source_layers = 5
         
         dropped_layers = ['2', '3', 'lstm', '5', '6'][-1 * int(drop_source_layers):]
         # Initialize all variables needed for DS, but not loaded from ckpt
@@ -53,9 +54,9 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn, tes
         load_vars -= init_vars
 
     for v in init_vars:
-        print("Initializing variable from scratch:", v.op.name)
+        log_info('Initializing variable from scratch: %s' % (v.op.name))
     for v in load_vars:
-        print("Loading variable from model:", v.op.name)
+        log_info('Loading variable from checkpoint: %s' % (v.op.name))
         
     init_op = tfv1.variables_initializer(list(init_vars))
     for v in list(load_vars):
@@ -64,64 +65,63 @@ def load_model(session, checkpoint_filename, drop_source_layers, load_cudnn, tes
 
 
 def check_model(checkpoint_dir, checkpoint_filename):
+    r'''
+    returns None or a checkpoint path
+    '''
     checkpoint = tf.train.get_checkpoint_state(checkpoint_dir, checkpoint_filename)
     if not checkpoint:
         return None
     return checkpoint.model_checkpoint_path
 
 
-def try_model(session, checkpoint_dir, load_flag, test=False):
-    r'''
-    if auto, cascasde from last --> best --> init
-    if last, try last, if not found, break 
-    '''
+def try_model(session, checkpoint_dir, load_flag, train=True):
+    
     def try_last():
+        log_info('Trying to load last saved checkpoint')
         return check_model(checkpoint_dir, 'checkpoint')
     
     def try_best():
+        log_info('Trying to load best saved checkpoint')
         return check_model(checkpoint_dir, 'best_dev_checkpoint')
     
     def try_init():
-        log_info('Initializing variables...')
-        # Initialize a new model from scratch
+        log_info('Initializing variables from scratch.')
         session.run(tfv1.global_variables_initializer())
         return None
     
-    def try_auto():
+    def try_auto(train):
         res = try_last()
         if not res:
             res = try_best()
-            if not res:
+            if train and not res:
                 res = try_init()
+            else:
+                log_error('Tried to load a checkpoint (for something other than training) '
+                          'but could not find it. Exiting now. ')
+                sys.exit(1)
         return res
     
     checkpoint_path = None
     if load_flag == 'last':
-        # returns false or a checkpoint_path
         checkpoint_path = try_last()
         if not checkpoint_path:
-            log_error('Unable to load LAST model from specified checkpoint dir'
-                      ' - consider using load option "auto" or "init".')
+            log_error('Unable to load LAST model from specified checkpoint directory %s.' % (checkpoint_dir))
             sys.exit(1)
     
     if load_flag == 'best':
-        # returns false or a checkpoint path
         checkpoint_path = try_best()
         if not checkpoint_path:
-            log_error('Unable to load BEST model from specified checkpoint dir'
-                      ' - consider using load option "auto" or "init".')
+            log_error('Unable to load BEST model from specified checkpoint directory %s.' % (checkpoint_dir))
             sys.exit(1)
     
     if load_flag == 'init':
-        # no return
         try_init()
     
     if load_flag == 'auto':
-        # returns true or a checkpoint path
-        checkpoint_path = try_auto()
+        checkpoint_path = try_auto(train)
     
     if checkpoint_path:
-        load_model(session, checkpoint_path, FLAGS.drop_source_layers, FLAGS.load_cudnn, test)
+        load_model(session, checkpoint_path, FLAGS.drop_source_layers, FLAGS.load_cudnn, train)
 
 
 def keep_only_digits(txt):

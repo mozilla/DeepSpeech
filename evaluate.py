@@ -22,7 +22,7 @@ from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
 from util.logging import log_error, log_progress, create_progressbar
-from util.helpers import load_model, check_model, try_model
+from util.helpers import try_model
 
 
 def sparse_tensor_value_to_texts(value, alphabet):
@@ -87,7 +87,7 @@ def evaluate(test_csvs, create_model, checkpoint_dir):
 
     with tfv1.Session(config=Config.session_config) as session:
 
-        try_model(session, checkpoint_dir, FLAGS.load, test=True)
+        try_model(session, checkpoint_dir, FLAGS.load, train=False)
                 
         def run_test(init_op, dataset):
             wav_filenames = []

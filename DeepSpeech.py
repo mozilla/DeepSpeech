@@ -27,7 +27,7 @@ from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
-from util.helpers import load_model, check_model, try_model
+from util.helpers import try_model
 
 
 # Graph Creation
@@ -444,6 +444,7 @@ def train():
 
     # Building the graph
     optimizer = create_optimizer()
+    
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info('Enabling automatic mixed precision training.')
