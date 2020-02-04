@@ -102,8 +102,8 @@ TFModelState::init(const char* model_path)
     "metadata_sample_rate",
     "metadata_feature_win_len",
     "metadata_feature_win_step",
-    "metadata_alphabet",
     "metadata_beam_width",
+    "metadata_alphabet",
   }, {}, &metadata_outputs);
   if (!status.ok()) {
     std::cout << "Unable to fetch metadata: " << status << std::endl;
@@ -115,21 +115,20 @@ TFModelState::init(const char* model_path)
   int win_step_ms = metadata_outputs[2].scalar<int>()();
   audio_win_len_ = sample_rate_ * (win_len_ms / 1000.0);
   audio_win_step_ = sample_rate_ * (win_step_ms / 1000.0);
+  int beam_width = metadata_outputs[3].scalar<int>()();
+  beam_width_ = (unsigned int)(beam_width);
 
-  string serialized_alphabet = metadata_outputs[3].scalar<string>()();
+  string serialized_alphabet = metadata_outputs[4].scalar<string>()();
   err = alphabet_.deserialize(serialized_alphabet.data(), serialized_alphabet.size());
   if (err != 0) {
     return DS_ERR_INVALID_ALPHABET;
   }
 
-  int beam_width = metadata_outputs[4].scalar<int>()();
-  beam_width_ = (unsigned int)(beam_width);
-
   assert(sample_rate_ > 0);
   assert(audio_win_len_ > 0);
   assert(audio_win_step_ > 0);
-  assert(alphabet_.GetSize() > 0);
   assert(beam_width_ > 0);
+  assert(alphabet_.GetSize() > 0);
 
   for (int i = 0; i < graph_def_.node_size(); ++i) {
     NodeDef node = graph_def_.node(i);
