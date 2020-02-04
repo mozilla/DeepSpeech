@@ -18,9 +18,12 @@ set -ex
 tf_git_rev=$(git describe --long --tags)
 echo "STABLE_TF_GIT_VERSION ${tf_git_rev}"
 
-pushd native_client
+# use this trick to be able to use the script from anywhere
+pushd $(dirname "$0")
 ds_git_rev=$(git describe --long --tags)
 echo "STABLE_DS_GIT_VERSION ${ds_git_rev}"
+ds_version=$(cat ../VERSION)
+echo "STABLE_DS_VERSION ${ds_version}"
 ds_graph_version=$(cat ../GRAPH_VERSION)
 echo "STABLE_DS_GRAPH_VERSION ${ds_graph_version}"
 popd

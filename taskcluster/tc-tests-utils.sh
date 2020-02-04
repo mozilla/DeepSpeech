@@ -614,8 +614,11 @@ install_nuget()
   mkdir -p "${TASKCLUSTER_TMP_DIR}/repo/"
   mkdir -p "${TASKCLUSTER_TMP_DIR}/ds/"
 
-  ${WGET} -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/${nuget}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
-  ${WGET} -O - "${DEEPSPEECH_ARTIFACTS_ROOT}/DeepSpeechConsole.exe" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
+  nuget_pkg_url=$(get_dep_nuget_pkg_url "${nuget}")
+  console_pkg_url=$(get_dep_nuget_pkg_url "DeepSpeechConsole.exe")
+
+  ${WGET} -O - "${nuget_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
+  ${WGET} -O - "${console_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
 
   nuget sources add -Name repo -Source $(cygpath -w "${TASKCLUSTER_TMP_DIR}/repo/")
 
@@ -1192,7 +1195,29 @@ get_python_pkg_url()
 get_dep_npm_pkg_url()
 {
   local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
-  local deepspeech_pkg="deepspeech-${DS_VERSION}.tgz"
+
+  # We try "deepspeech-tflite" first and if we don't find it we try "deepspeech"
+  for pkg_basename in "deepspeech-tflite" "deepspeech"; do
+    local deepspeech_pkg="${pkg_basename}-${DS_VERSION}.tgz"
+    for dep in ${all_deps}; do
+      local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${deepspeech_pkg}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
+      if [ "${has_artifact}" = "True" ]; then
+        echo "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/${deepspeech_pkg}"
+        exit 0
+      fi;
+    done;
+  done;
+
+  echo ""
+  # This should not be reached, otherwise it means we could not find a matching nodejs package
+  exit 1
+}
+
+# Will inspect this task's dependencies for one that provides a matching NuGet package
+get_dep_nuget_pkg_url()
+{
+  local deepspeech_pkg=$1
+  local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
 
   for dep in ${all_deps}; do
     local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${deepspeech_pkg}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
@@ -1435,7 +1460,7 @@ do_deepspeech_nodejs_build()
 
 do_deepspeech_npm_package()
 {
-  rename_to_gpu=$1
+  package_option=$1
 
   cd ${DS_DSDIR}
 
@@ -1461,8 +1486,10 @@ do_deepspeech_npm_package()
     curl -L https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/wrapper.tar.gz | tar -C native_client/javascript -xzvf -
   done;
 
-  if [ "${rename_to_gpu}" = "--cuda" ]; then
+  if [ "${package_option}" = "--cuda" ]; then
     make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
+  elif [ "${package_option}" = "--tflite" ]; then
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-tflite
   else
     make -C native_client/javascript clean npm-pack
   fi

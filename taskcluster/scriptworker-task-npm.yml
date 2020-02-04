@@ -4,6 +4,7 @@ build:
     # Make sure builds are ready
     - "node-package-gpu"
     - "node-package-cpu"
+    - "node-package-tflite"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -21,6 +22,8 @@ build:
       - "node-package-gpu"
       # CPU package with all archs
       - "node-package-cpu"
+      # tflite package for non-default tflite archs
+      - "node-package-tflite"
     nuget: []
   metadata:
     name: "DeepSpeech NPM Packages"

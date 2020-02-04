@@ -8,7 +8,7 @@ build:
     - "notify.irc-channel.${notifications.irc}.on-failed"
   tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.win/artifacts/public/home.tar.xz"
   scripts:
-    build: "taskcluster/win-build.sh tflite"
+    build: "taskcluster/win-build.sh --tflite"
     package: "taskcluster/win-package.sh"
   nc_asset_name: "native_client.amd64.tflite.win.tar.xz"
   maxRunTime: 14400

@@ -7,6 +7,7 @@ six
 pyxdg
 attrdict
 absl-py
+semver
 
 # Requirements for building native_client files
 setuptools
@@ -20,8 +21,3 @@ bs4
 requests
 librosa
 soundfile
-
-# Miscellaneous scripts
-paramiko >= 2.1
-scipy
-matplotlib

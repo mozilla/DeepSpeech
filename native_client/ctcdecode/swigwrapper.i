@@ -4,6 +4,7 @@
 #include "ctc_beam_search_decoder.h"
 #define SWIG_FILE_WITH_INIT
 #define SWIG_PYTHON_STRICT_BYTE_CHAR
+#include "workspace_status.h"
 %}
 
 %include "pyabc.i"
@@ -26,6 +27,9 @@ import_array();
 %include "output.h"
 %include "scorer.h"
 %include "ctc_beam_search_decoder.h"
+
+%constant const char* __version__ = ds_version();
+%constant const char* __git_version__ = ds_git_version();
 
 %template(IntVector) std::vector<int>;
 %template(OutputVector) std::vector<Output>;

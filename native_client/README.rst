@@ -108,6 +108,35 @@ The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>
 Install Node.JS bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+Unfortunately, JavaScript support on SWIG is a bit behind, and while there are
+pending patches proposed to upstream, it is not yet merged.
+
+You would need to patch SWIG, either from your distribution's setup, or do a
+local-patched build of SWIG.
+
+If you patch from a v3.0 SWIG, you will need to apply those:
+
+.. code-block::
+
+   native_client/swig_node_v7x-v8x-v9x_0001.patch
+   native_client/swig_node_v7x-v8x-v9x_0002.patch
+   native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch
+
+If you patch from a v4.0 SWIG, you can just apply this:
+
+.. code-block::
+
+   native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch
+
+On a Debian/Ubuntu system, you would need:
+
+.. code-block::
+
+   for patch_file in native_client/swig_node_v7x-v8x-v9x_0001.patch native_client/swig_node_v7x-v8x-v9x_0002.patch native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch;
+   do
+       patch -d /usr/share/swig3.0/ -p2 < $patch_file
+   done;
+
 After following the above build and installation instructions, the Node.JS bindings can be built:
 
 .. code-block::

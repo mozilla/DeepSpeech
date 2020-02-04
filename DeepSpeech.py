@@ -28,6 +28,7 @@ from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 from util.helpers import try_model
+from util.helpers import check_ctcdecoder_version; check_ctcdecoder_version()
 
 
 # Graph Creation
