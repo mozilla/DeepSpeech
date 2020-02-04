@@ -61,11 +61,14 @@ public:
 
   /* Get transcription from current decoder state
    *
+   * Parameters:
+   *     top_paths: The number of results to return.
+   * 
    * Return:
    *     A vector where each element is a pair of score and decoding result,
    *     in descending order.
   */
-  std::vector<Output> decode() const;
+  std::vector<Output> decode(size_t top_paths) const;
 };
 
 
@@ -77,6 +80,7 @@ public:
  *     class_dim: Alphabet length (plus 1 for space character).
  *     alphabet: The alphabet.
  *     beam_size: The width of beam search.
+ *     top_paths: The number of results to return.
  *     cutoff_prob: Cutoff probability for pruning.
  *     cutoff_top_n: Cutoff number for pruning.
  *     ext_scorer: External scorer to evaluate a prefix, which consists of
@@ -93,6 +97,7 @@ std::vector<Output> ctc_beam_search_decoder(
     int class_dim,
     const Alphabet &alphabet,
     size_t beam_size,
+    size_t top_paths,
     double cutoff_prob,
     size_t cutoff_top_n,
     Scorer *ext_scorer);
@@ -103,6 +108,7 @@ std::vector<Output> ctc_beam_search_decoder(
  *                by ctc_beam_search_decoder().
  *     alphabet: The alphabet.
  *     beam_size: The width of beam search.
+ *     top_paths: The number of results to return.
  *     num_processes: Number of threads for beam search.
  *     cutoff_prob: Cutoff probability for pruning.
  *     cutoff_top_n: Cutoff number for pruning.
@@ -123,6 +129,7 @@ ctc_beam_search_decoder_batch(
     int seq_lengths_size,
     const Alphabet &alphabet,
     size_t beam_size,
+    size_t top_paths,
     size_t num_processes,
     double cutoff_prob,
     size_t cutoff_top_n,

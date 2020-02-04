@@ -48,6 +48,16 @@ typedef struct Metadata {
   double confidence;
 } Metadata;
 
+/**
+ * @brief Stores Metadata structs for each alternative transcription
+ */
+typedef struct Result {
+  /** List of transcriptions */
+  Metadata* transcriptions;
+  /** Size of the list of transcriptions */
+  int num_transcriptions;
+} Result;
+
 enum DeepSpeech_Error_Codes
 {
     // OK
@@ -155,9 +165,10 @@ char* DS_SpeechToText(ModelState* aCtx,
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
-Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
+Result* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                                       const short* aBuffer,
-                                      unsigned int aBufferSize);
+                                      unsigned int aBufferSize,
+                                      unsigned int numResults);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -224,7 +235,8 @@ char* DS_FinishStream(StreamingState* aSctx);
  * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
-Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx);
+Result* DS_FinishStreamWithMetadata(StreamingState* aSctx, 
+                                    unsigned int numResults);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This
@@ -243,6 +255,12 @@ void DS_FreeStream(StreamingState* aSctx);
  */
 DEEPSPEECH_EXPORT
 void DS_FreeMetadata(Metadata* m);
+
+/**
+ * @brief Free memory allocated for result information.
+ */
+DEEPSPEECH_EXPORT
+void DS_FreeResult(Result* r);
 
 /**
  * @brief Free a char* string returned by the DeepSpeech API.
