@@ -756,9 +756,9 @@ def export():
     saver = tfv1.train.Saver()
 
     # Restore variables from training checkpoint
-    if not FLAGS.load_checkpoint_dir:
-        FLAGS.load_checkpoint_dir = FLAGS.checkpoint_dir
-    checkpoint = tf.train.get_checkpoint_state(FLAGS.load_checkpoint_dir)
+    if not FLAGS.save_checkpoint_dir:
+        FLAGS.save_checkpoint_dir = FLAGS.checkpoint_dir
+    checkpoint = tf.train.get_checkpoint_state(FLAGS.save_checkpoint_dir)
     checkpoint_path = checkpoint.model_checkpoint_path
 
     output_filename = FLAGS.export_name + '.pb'
