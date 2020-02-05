@@ -80,7 +80,7 @@ struct StreamingState {
   char* intermediateDecode();
   void finalizeStream();
   char* finishStream();
-  Metadata* finishStreamWithMetadata();
+  Result* finishStreamWithMetadata(unsigned int numResults);
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
@@ -143,11 +143,26 @@ StreamingState::finishStream()
   return model_->decode(decoder_state_);
 }
 
-Metadata*
-StreamingState::finishStreamWithMetadata()
+Result*
+StreamingState::finishStreamWithMetadata(unsigned int numResults)
 {
   finalizeStream();
-  return model_->decode_metadata(decoder_state_);
+
+  vector<Metadata*> metadata = model_->decode_metadata(decoder_state_, numResults);
+
+  std::unique_ptr<Result> result(new Result());
+  result->num_transcriptions = metadata.size();
+
+  std::unique_ptr<Metadata[]> items(new Metadata[result->num_transcriptions]);
+
+  for (int i = 0; i < result->num_transcriptions; ++i) {
+      std::unique_ptr<Metadata> pointer(new Metadata(*metadata[i]));
+      items[i] = *pointer.release();
+  }
+
+  result->transcriptions = items.release();
+
+  return result.release();
 }
 
 void
@@ -376,12 +391,13 @@ DS_FinishStream(StreamingState* aSctx)
   return str;
 }
 
-Metadata*
-DS_FinishStreamWithMetadata(StreamingState* aSctx)
+Result*
+DS_FinishStreamWithMetadata(StreamingState* aSctx, 
+                            unsigned int numResults)
 {
-  Metadata* metadata = aSctx->finishStreamWithMetadata();
+  Result* result = aSctx->finishStreamWithMetadata(numResults);
   DS_FreeStream(aSctx);
-  return metadata;
+  return result;
 }
 
 StreamingState*
@@ -407,13 +423,14 @@ DS_SpeechToText(ModelState* aCtx,
   return DS_FinishStream(ctx);
 }
 
-Metadata*
+Result*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
-                            unsigned int aBufferSize)
+                            unsigned int aBufferSize,
+                            unsigned int numResults)
 {
   StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
-  return DS_FinishStreamWithMetadata(ctx);
+  return DS_FinishStreamWithMetadata(ctx, numResults);
 }
 
 void
@@ -431,6 +448,25 @@ DS_FreeMetadata(Metadata* m)
     }
     delete[] m->items;
     delete m;
+  }
+}
+
+void
+DS_FreeResult(Result* r)
+{
+  if (r) {
+    for (int i = 0; i < r->num_transcriptions; ++i) {
+      Metadata* m = &r->transcriptions[i];
+
+      for (int j = 0; j < m->num_items; ++j) {
+        free(m->items[j].character);
+      }
+
+      delete[] m->items;
+    }
+
+    delete[] r->transcriptions;
+    delete r;
   }
 }
 
