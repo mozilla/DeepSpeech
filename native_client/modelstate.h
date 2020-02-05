@@ -16,7 +16,7 @@ struct ModelState {
   static constexpr unsigned int BATCH_SIZE = 1;
 
   Alphabet alphabet_;
-  std::unique_ptr<Scorer> scorer_;
+  std::shared_ptr<Scorer> scorer_;
   unsigned int beam_width_;
   unsigned int n_steps_;
   unsigned int n_context_;

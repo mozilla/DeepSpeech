@@ -319,7 +319,7 @@ int
 DS_DisableExternalScorer(ModelState* aCtx)
 {
   if (aCtx->scorer_) {
-    aCtx->scorer_.reset(nullptr);
+    aCtx->scorer_.reset();
     return DS_ERR_OK;
   }
   return DS_ERR_SCORER_NOT_ENABLED;
@@ -363,7 +363,7 @@ DS_CreateStream(ModelState* aCtx,
                            aCtx->beam_width_,
                            cutoff_prob,
                            cutoff_top_n,
-                           aCtx->scorer_.get());
+                           aCtx->scorer_);
 
   *retval = ctx.release();
   return DS_ERR_OK;

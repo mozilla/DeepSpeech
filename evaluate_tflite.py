@@ -27,7 +27,7 @@ This module should be self-contained:
   - pip install native_client/python/dist/deepspeech*.whl
   - pip install -r requirements_eval_tflite.txt
 
-Then run with a TF Lite model, LM and a CSV test file
+Then run with a TF Lite model, a scorer and a CSV test file
 '''
 
 BEAM_WIDTH = 500
