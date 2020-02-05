@@ -66,11 +66,14 @@ struct ModelState {
    * @brief Return character-level metadata including letter timings.
    *
    * @param state Decoder state to use when decoding.
+   * @param top_paths Number of alternate results to return.   
    *
-   * @return Metadata struct containing MetadataItem structs for each character.
-   * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
+   * @return Vector of Metadata structs containing MetadataItem structs for each character.
+   * Each represents an alternate transcription, with the first ranked most probable.
+   * The user is responsible for freeing Metadata by calling DS_FreeMetadata() on each item.
    */
-  virtual Metadata* decode_metadata(const DecoderState& state);
+  virtual std::vector<Metadata*> decode_metadata(const DecoderState& state, 
+                                                 size_t top_paths);
 };
 
 #endif // MODELSTATE_H

@@ -32,32 +32,41 @@ ModelState::init(const char* model_path)
 char*
 ModelState::decode(const DecoderState& state) const
 {
-  vector<Output> out = state.decode();
+  vector<Output> out = state.decode(1);
   return strdup(alphabet_.LabelsToString(out[0].tokens).c_str());
 }
 
-Metadata*
-ModelState::decode_metadata(const DecoderState& state)
+vector<Metadata*>
+ModelState::decode_metadata(const DecoderState& state, 
+                            size_t top_paths)
 {
-  vector<Output> out = state.decode();
+  vector<Output> out = state.decode(top_paths);
 
-  std::unique_ptr<Metadata> metadata(new Metadata());
-  metadata->num_items = out[0].tokens.size();
-  metadata->confidence = out[0].confidence;
+  vector<Metadata*> meta_out;
 
-  std::unique_ptr<MetadataItem[]> items(new MetadataItem[metadata->num_items]());
+  size_t max_results = std::min(top_paths, out.size());
 
-  // Loop through each character
-  for (int i = 0; i < out[0].tokens.size(); ++i) {
-    items[i].character = strdup(alphabet_.StringFromLabel(out[0].tokens[i]).c_str());
-    items[i].timestep = out[0].timesteps[i];
-    items[i].start_time = out[0].timesteps[i] * ((float)audio_win_step_ / sample_rate_);
+  for (int j = 0; j < max_results; ++j) {
+    std::unique_ptr<Metadata> metadata(new Metadata());
+    metadata->num_items = out[j].tokens.size();
+    metadata->confidence = out[j].confidence;
 
-    if (items[i].start_time < 0) {
-      items[i].start_time = 0;
+    std::unique_ptr<MetadataItem[]> items(new MetadataItem[metadata->num_items]());
+
+    // Loop through each character
+    for (int i = 0; i < out[j].tokens.size(); ++i) {
+      items[i].character = strdup(alphabet_.StringFromLabel(out[j].tokens[i]).c_str());
+      items[i].timestep = out[j].timesteps[i];
+      items[i].start_time = out[j].timesteps[i] * ((float)audio_win_step_ / sample_rate_);
+
+      if (items[i].start_time < 0) {
+        items[i].start_time = 0;
+      }
     }
+
+    metadata->items = items.release();
+    meta_out.push_back(metadata.release());
   }
 
-  metadata->items = items.release();
-  return metadata.release();
+  return meta_out;
 }
