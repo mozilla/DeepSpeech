@@ -46,7 +46,7 @@ struct meta_word {
 
 char* metadataToString(Metadata* metadata);
 std::vector<meta_word> WordsFromMetadata(Metadata* metadata);
-char* JSONOutput(Metadata* metadata);
+char* JSONOutput(Result* result);
 
 ds_result
 LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
@@ -57,13 +57,13 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
   clock_t ds_start_time = clock();
 
   if (extended_output) {
-    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize);
-    res.string = metadataToString(metadata);
-    DS_FreeMetadata(metadata);
+    Result *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, 1);
+    res.string = metadataToString(&result->transcriptions[0]);
+    DS_FreeResult(result);
   } else if (json_output) {
-    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize);
-    res.string = JSONOutput(metadata);
-    DS_FreeMetadata(metadata);
+    Result *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, 3);
+    res.string = JSONOutput(result);
+    DS_FreeResult(result);
   } else if (stream_size > 0) {
     StreamingState* ctx;
     int status = DS_CreateStream(aCtx, &ctx);
@@ -338,23 +338,34 @@ WordsFromMetadata(Metadata* metadata)
 }
 
 char* 
-JSONOutput(Metadata* metadata)
+JSONOutput(Result* result)
 {
-  std::vector<meta_word> words = WordsFromMetadata(metadata);
-
   std::ostringstream out_string;
-  out_string << R"({"metadata":{"confidence":)" << metadata->confidence << R"(},"words":[)";
+  out_string << "[\n";
 
-  for (int i = 0; i < words.size(); i++) {
-    meta_word w = words[i];
-    out_string << R"({"word":")" << w.word << R"(","time":)" << w.start_time << R"(,"duration":)" << w.duration << "}";
+  for (int j=0; j < result->num_transcriptions; ++j) {
+    Metadata *metadata = &result->transcriptions[j];
+    std::vector<meta_word> words = WordsFromMetadata(metadata);
 
-    if (i < words.size() - 1) {
-      out_string << ",";
+    out_string << R"({"metadata":{"confidence":)" << metadata->confidence << R"(},"words":[)";
+
+    for (int i = 0; i < words.size(); i++) {
+      meta_word w = words[i];
+      out_string << R"({"word":")" << w.word << R"(","time":)" << w.start_time << R"(,"duration":)" << w.duration << "}";
+
+      if (i < words.size() - 1) {
+        out_string << ",";
+      }
+    }
+
+    out_string << "]}";
+
+    if (j < result->num_transcriptions - 1) {
+      out_string << ",\n";
     }
   }
   
-  out_string << "]}\n";
+  out_string << "\n]\n";
 
   return strdup(out_string.str().c_str());
 }
