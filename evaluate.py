@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
-import itertools
 import json
 import sys
 
@@ -135,19 +134,26 @@ def evaluate(test_csvs, create_model, try_loading):
             wer, cer, samples = calculate_report(wav_filenames, ground_truths, predictions, losses)
             mean_loss = np.mean(losses)
 
-            # Take only the first report_count items
-            report_samples = itertools.islice(samples, FLAGS.report_count)
+            # Take only the first and last report_count items
+            best_samples = samples[-FLAGS.report_count:]
+            worst_samples = samples[:FLAGS.report_count]
+            report_samples = best_samples
+            report_samples.extend(reversed(worst_samples))
 
             print('Test on %s - WER: %f, CER: %f, loss: %f' %
                   (dataset, wer, cer, mean_loss))
             print('-' * 80)
-            for sample in report_samples:
+            for i, sample in enumerate(report_samples):
                 print('WER: %f, CER: %f, loss: %f' %
                       (sample.wer, sample.cer, sample.loss))
                 print(' - wav: file://%s' % sample.wav_filename)
                 print(' - src: "%s"' % sample.src)
                 print(' - res: "%s"' % sample.res)
                 print('-' * 80)
+
+                if (i == FLAGS.report_count - 1):
+                    print('[...]')
+                    print('-' * 80)
 
             return samples
 
