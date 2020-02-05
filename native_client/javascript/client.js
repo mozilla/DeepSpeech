@@ -32,8 +32,8 @@ parser.addArgument(['--model'], {required: true, help: 'Path to the model (proto
 parser.addArgument(['--scorer'], {help: 'Path to the external scorer file'});
 parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});
 parser.addArgument(['--beam_width'], {help: 'Beam width for the CTC decoder', defaultValue: 500, type: 'int'});
-parser.addArgument(['--lm_alpha'], {help: 'Language model weight (lm_alpha). If not set, use default value from scorer.', type: 'float'});
-parser.addArgument(['--lm_beta'], {help: 'Word insertion bonus (lm_beta). If not set, use default value from scorer.', type: 'float'});
+parser.addArgument(['--lm_alpha'], {help: 'Language model weight (lm_alpha). If not specified, use default from the scorer package.', type: 'float'});
+parser.addArgument(['--lm_beta'], {help: 'Word insertion bonus (lm_beta). If not specified, use default from the scorer package.', type: 'float'});
 parser.addArgument(['--version'], {action: VersionAction, help: 'Print version and exits'});
 parser.addArgument(['--extended'], {action: 'storeTrue', help: 'Output string from extended metadata'});
 var args = parser.parseArgs();

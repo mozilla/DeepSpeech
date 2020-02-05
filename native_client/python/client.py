@@ -95,9 +95,9 @@ def main():
     parser.add_argument('--beam_width', type=int, default=500,
                         help='Beam width for the CTC decoder')
     parser.add_argument('--lm_alpha', type=float,
-                        help='Language model weight (lm_alpha)')
+                        help='Language model weight (lm_alpha). If not specified, use default from the scorer package.')
     parser.add_argument('--lm_beta', type=float,
-                        help='Word insertion bonus (lm_beta)')
+                        help='Word insertion bonus (lm_beta). If not specified, use default from the scorer package.')
     parser.add_argument('--version', action=VersionAction,
                         help='Print version and exits')
     parser.add_argument('--extended', required=False, action='store_true',

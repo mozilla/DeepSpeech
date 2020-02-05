@@ -20,16 +20,20 @@ class Scorer(swigwrapper.Scorer):
         super(Scorer, self).__init__()
         # Allow bare initialization
         if alphabet:
+            assert alpha is not None, 'alpha parameter is required'
+            assert beta is not None, 'beta parameter is required'
+            assert scorer_path, 'scorer_path parameter is required'
+
             serialized = alphabet.serialize()
             native_alphabet = swigwrapper.Alphabet()
             err = native_alphabet.deserialize(serialized, len(serialized))
             if err != 0:
-                raise ValueError("Error when deserializing alphabet.")
+                raise ValueError('Error when deserializing alphabet.')
 
             err = self.init(scorer_path.encode('utf-8'),
                             native_alphabet)
             if err != 0:
-                raise ValueError("Scorer initialization failed with error code {}".format(err), err)
+                raise ValueError('Scorer initialization failed with error code {}'.format(err))
 
             self.reset_params(alpha, beta)
 

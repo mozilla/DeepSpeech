@@ -71,8 +71,19 @@ void Scorer::setup_char_map()
 
 int Scorer::load_lm(const std::string& lm_path)
 {
-  // load language model
+  // Check if file is readable to avoid KenLM throwing an exception
   const char* filename = lm_path.c_str();
+  if (access(filename, R_OK) != 0) {
+    return 1;
+  }
+
+  // Check if the file format is valid to avoid KenLM throwing an exception
+  lm::ngram::ModelType model_type;
+  if (!lm::ngram::RecognizeBinary(filename, model_type)) {
+    return 1;
+  }
+
+  // Load the LM
   lm::ngram::Config config;
   config.load_method = util::LoadMethod::LAZY;
   language_model_.reset(lm::ngram::LoadVirtual(filename, config));
@@ -100,21 +111,21 @@ int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
   int magic;
   fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
   if (magic != MAGIC) {
-    std::cerr << "Error: Can't parse trie file, invalid header. Try updating "
-                 "your trie file." << std::endl;
+    std::cerr << "Error: Can't parse scorer file, invalid header. Try updating "
+                 "your scorer file." << std::endl;
     return 1;
   }
 
   int version;
   fin.read(reinterpret_cast<char*>(&version), sizeof(version));
   if (version != FILE_VERSION) {
-    std::cerr << "Error: Trie file version mismatch (" << version
+    std::cerr << "Error: Scorer file version mismatch (" << version
               << " instead of expected " << FILE_VERSION
               << "). ";
     if (version < FILE_VERSION) {
-      std::cerr << "Update your trie file.";
+      std::cerr << "Update your scorer file.";
     } else {
-      std::cerr << "Downgrade your trie file or update your version of DeepSpeech.";
+      std::cerr << "Downgrade your scorer file or update your version of DeepSpeech.";
     }
     std::cerr << std::endl;
     return 1;
