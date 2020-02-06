@@ -17,10 +17,8 @@ from util.config import Config, initialize_globals
 from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
-from util.helpers import check_ctcdecoder_version
 from util.logging import create_progressbar, log_error, log_progress
-
-check_ctcdecoder_version()
+from util.helpers import check_ctcdecoder_version; check_ctcdecoder_version()
 
 
 def sparse_tensor_value_to_texts(value, alphabet):
