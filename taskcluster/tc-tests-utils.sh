@@ -271,7 +271,7 @@ assert_correct_ldc93s1_prodtflitemodel()
   fi;
 
   if [ "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had conduct suit in greasy wash water all year" "$2"
+    assert_correct_inference "$1" "she had up a out and we wash or a" "$2"
   fi;
 }
 
@@ -282,7 +282,7 @@ assert_correct_ldc93s1_prodmodel_stereo_44k()
   fi;
 
   if [ "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had conduct suit in greasy wash water all year" "$2"
+    assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
   fi;
 }
 
@@ -293,7 +293,7 @@ assert_correct_ldc93s1_prodtflitemodel_stereo_44k()
   fi;
 
   if [ "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had conduct suit in greasy wash water all year" "$2"
+    assert_correct_inference "$1" "she headed grey was or all year" "$2"
   fi;
 }
 
