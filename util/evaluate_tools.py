@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function
 
 from multiprocessing.dummy import Pool
+import numpy as np
 
 from attrdict import AttrDict
 
@@ -54,9 +55,9 @@ def process_decode_result(item):
     })
 
 
-def calculate_report(wav_filenames, labels, decodings, losses):
+def calculate_and_print_report(wav_filenames, labels, decodings, losses, dataset):
     r'''
-    This routine will calculate a WER report.
+    This routine will calculate and print a WER report.
     It'll compute the `mean` WER and create ``Sample`` objects of the ``report_count`` top lowest
     loss items from the provided WER results tuple (only items with WER!=0 and ordered by their WER).
     '''
@@ -75,11 +76,19 @@ def calculate_report(wav_filenames, labels, decodings, losses):
     else:
         samples.sort(key=lambda s: s.wer)
 
-    return samples_wer, samples_cer, samples
+    # Print the report
+    print_report(samples, losses, samples_wer, samples_cer, dataset)
+
+    return samples
 
 
-def print_report(samples):
-    """ Print a report with samples of best, median and worst results """
+def print_report(samples, losses, wer, cer, dataset):
+    """ Print a report summary and samples of best, median and worst results """
+
+    # Print summary
+    mean_loss = np.mean(losses)
+    print('Test on %s - WER: %f, CER: %f, loss: %f' % (dataset, wer, cer, mean_loss))
+    print('-' * 80)
 
     best_samples = samples[:FLAGS.report_count]
     worst_samples = samples[-FLAGS.report_count:]

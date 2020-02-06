@@ -8,7 +8,6 @@ import sys
 from multiprocessing import cpu_count
 
 import absl.app
-import numpy as np
 import progressbar
 import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
@@ -17,7 +16,7 @@ from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from six.moves import zip
 
 from util.config import Config, initialize_globals
-from util.evaluate_tools import calculate_report, print_report
+from util.evaluate_tools import calculate_and_print_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
 from util.logging import create_progressbar, log_error, log_progress
@@ -132,15 +131,8 @@ def evaluate(test_csvs, create_model, try_loading):
             bar.finish()
 
             # Print test summary
-            wer, cer, samples = calculate_report(wav_filenames, ground_truths, predictions, losses)
-            mean_loss = np.mean(losses)
-            print('Test on %s - WER: %f, CER: %f, loss: %f' % (dataset, wer, cer, mean_loss))
-            print('-' * 80)
-
-            # Print some examples
-            print_report(samples)
-
-            return samples
+            test_samples = calculate_and_print_report(wav_filenames, ground_truths, predictions, losses, dataset)
+            return test_samples
 
         samples = []
         for csv, init_op in zip(test_csvs, test_init_ops):
