@@ -5,7 +5,6 @@ from __future__ import absolute_import, division, print_function
 from multiprocessing.dummy import Pool
 
 from attrdict import AttrDict
-
 from util.flags import FLAGS
 from util.text import levenshtein
 
@@ -68,10 +67,10 @@ def calculate_report(wav_filenames, labels, decodings, losses):
     # Order the remaining items by their loss (lowest loss on top)
     samples.sort(key=lambda s: s.loss)
 
-    # Then order by descending WER/CER
+    # Then order by ascending WER/CER
     if FLAGS.utf8:
-        samples.sort(key=lambda s: s.cer, reverse=True)
+        samples.sort(key=lambda s: s.cer)
     else:
-        samples.sort(key=lambda s: s.wer, reverse=True)
+        samples.sort(key=lambda s: s.wer)
 
     return samples_wer, samples_cer, samples

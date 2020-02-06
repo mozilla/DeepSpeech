@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import sys
-
 from multiprocessing import cpu_count
 
 import absl.app
@@ -12,16 +11,16 @@ import numpy as np
 import progressbar
 import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
-
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from six.moves import zip
-
 from util.config import Config, initialize_globals
 from util.evaluate_tools import calculate_report
 from util.feeding import create_dataset
 from util.flags import create_flags, FLAGS
-from util.logging import log_error, log_progress, create_progressbar
-from util.helpers import check_ctcdecoder_version; check_ctcdecoder_version()
+from util.helpers import check_ctcdecoder_version;
+from util.logging import create_progressbar, log_error, log_progress
+
+check_ctcdecoder_version()
 
 
 def sparse_tensor_value_to_texts(value, alphabet):
@@ -131,29 +130,37 @@ def evaluate(test_csvs, create_model, try_loading):
 
             bar.finish()
 
+            # Print test summary
             wer, cer, samples = calculate_report(wav_filenames, ground_truths, predictions, losses)
             mean_loss = np.mean(losses)
-
-            # Take only the first and last report_count items
-            best_samples = samples[-FLAGS.report_count:]
-            worst_samples = samples[:FLAGS.report_count]
-            report_samples = best_samples
-            report_samples.extend(reversed(worst_samples))
-
-            print('Test on %s - WER: %f, CER: %f, loss: %f' %
-                  (dataset, wer, cer, mean_loss))
+            print('Test on %s - WER: %f, CER: %f, loss: %f' % (dataset, wer, cer, mean_loss))
             print('-' * 80)
-            for i, sample in enumerate(report_samples):
-                print('WER: %f, CER: %f, loss: %f' %
-                      (sample.wer, sample.cer, sample.loss))
+
+            # Take only the first, median and last report_count items
+            best_samples = samples[:FLAGS.report_count]
+            worst_samples = samples[-FLAGS.report_count:]
+            median_index = int(len(samples) / 1.5)
+            median_left = int(FLAGS.report_count / 2)
+            median_right = FLAGS.report_count - median_left
+            median_samples = samples[median_index - median_left:median_index + median_right]
+
+            def print_single_sample(sample):
+                print('WER: %f, CER: %f, loss: %f' % (sample.wer, sample.cer, sample.loss))
                 print(' - wav: file://%s' % sample.wav_filename)
                 print(' - src: "%s"' % sample.src)
                 print(' - res: "%s"' % sample.res)
                 print('-' * 80)
 
-                if (i == FLAGS.report_count - 1):
-                    print('[...]')
-                    print('-' * 80)
+            for s in best_samples:
+                print_single_sample(s)
+            print('[...]', '\n' + '-' * 80)
+
+            for s in median_samples:
+                print_single_sample(s)
+            print('[...]', '\n' + '-' * 80)
+
+            for s in worst_samples:
+                print_single_sample(s)
 
             return samples
 
