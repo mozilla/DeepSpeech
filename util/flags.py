@@ -118,7 +118,7 @@ def create_flags():
     f.DEFINE_boolean('show_progressbar', True, 'Show progress for training, validation and testing processes. Log level should be > 0.')
 
     f.DEFINE_boolean('log_placement', False, 'whether to log device placement of the operators to the console')
-    f.DEFINE_integer('report_count', 5, 'number of phrases with best WER, median WER and with worst WER to print out during a WER report')
+    f.DEFINE_integer('report_count', 5, 'number of phrases for each of best WER, median WER and worst WER to print out during a WER report')
 
     f.DEFINE_string('summary_dir', '', 'target directory for TensorBoard summaries - defaults to directory "deepspeech/summaries" within user\'s data home specified by the XDG Base Directory Specification')
 

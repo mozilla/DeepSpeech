@@ -74,3 +74,32 @@ def calculate_report(wav_filenames, labels, decodings, losses):
         samples.sort(key=lambda s: s.wer)
 
     return samples_wer, samples_cer, samples
+
+
+def print_report(samples):
+    """ Print a report with samples of best, median and worst results """
+
+    best_samples = samples[:FLAGS.report_count]
+    worst_samples = samples[-FLAGS.report_count:]
+    median_index = int(len(samples) / 2)
+    median_left = int(FLAGS.report_count / 2)
+    median_right = FLAGS.report_count - median_left
+    median_samples = samples[median_index - median_left:median_index + median_right]
+
+    def print_single_sample(sample):
+        print('WER: %f, CER: %f, loss: %f' % (sample.wer, sample.cer, sample.loss))
+        print(' - wav: file://%s' % sample.wav_filename)
+        print(' - src: "%s"' % sample.src)
+        print(' - res: "%s"' % sample.res)
+        print('-' * 80)
+
+    for s in best_samples:
+        print_single_sample(s)
+    print('[...]', '\n' + '-' * 80)
+
+    for s in median_samples:
+        print_single_sample(s)
+    print('[...]', '\n' + '-' * 80)
+
+    for s in worst_samples:
+        print_single_sample(s)
