@@ -63,7 +63,7 @@ namespace DeepSpeechClient
                     uint aBufferSize);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern string DS_IntermediateDecode(IntPtr** aSctx);
+        internal static unsafe extern IntPtr DS_IntermediateDecode(IntPtr** aSctx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi, SetLastError = true)]
