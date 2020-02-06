@@ -65,8 +65,9 @@ def calculate_report(wav_filenames, labels, decodings, losses):
     # Getting the WER and CER from the accumulated edit distances and lengths
     samples_wer, samples_cer = wer_cer_batch(samples)
 
-    # Order the remaining items by their loss (lowest loss on top)
-    samples.sort(key=lambda s: s.loss)
+    # Reversed because the worst WER with the best loss is to identify systemic issues, where the acoustic model is confident,
+    # yet the result is completely off the mark. This can point to transcription errors and stuff like that.
+    samples.sort(key=lambda s: s.loss, reverse=True)
 
     # Then order by ascending WER/CER
     if FLAGS.utf8:
