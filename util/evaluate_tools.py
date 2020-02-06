@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 from multiprocessing.dummy import Pool
 
 from attrdict import AttrDict
+
 from util.flags import FLAGS
 from util.text import levenshtein
 
