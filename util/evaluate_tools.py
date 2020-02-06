@@ -55,7 +55,7 @@ def process_decode_result(item):
     })
 
 
-def calculate_and_print_report(wav_filenames, labels, decodings, losses, dataset):
+def calculate_and_print_report(wav_filenames, labels, decodings, losses, dataset_name):
     r'''
     This routine will calculate and print a WER report.
     It'll compute the `mean` WER and create ``Sample`` objects of the ``report_count`` top lowest
@@ -77,17 +77,17 @@ def calculate_and_print_report(wav_filenames, labels, decodings, losses, dataset
         samples.sort(key=lambda s: s.wer)
 
     # Print the report
-    print_report(samples, losses, samples_wer, samples_cer, dataset)
+    print_report(samples, losses, samples_wer, samples_cer, dataset_name)
 
     return samples
 
 
-def print_report(samples, losses, wer, cer, dataset):
+def print_report(samples, losses, wer, cer, dataset_name):
     """ Print a report summary and samples of best, median and worst results """
 
     # Print summary
     mean_loss = np.mean(losses)
-    print('Test on %s - WER: %f, CER: %f, loss: %f' % (dataset, wer, cer, mean_loss))
+    print('Test on %s - WER: %f, CER: %f, loss: %f' % (dataset_name, wer, cer, mean_loss))
     print('-' * 80)
 
     best_samples = samples[:FLAGS.report_count]
