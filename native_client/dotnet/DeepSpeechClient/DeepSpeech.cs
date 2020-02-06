@@ -193,7 +193,7 @@ namespace DeepSpeechClient
         /// <returns>The STT intermediate result.</returns>
         public unsafe string IntermediateDecode(DeepSpeechStream stream)
         {
-            return NativeImp.DS_IntermediateDecode(stream.GetNativePointer());
+            return NativeImp.DS_IntermediateDecode(stream.GetNativePointer()).PtrToString();
         }
 
         /// <summary>
