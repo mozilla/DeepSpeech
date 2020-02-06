@@ -95,13 +95,14 @@ def print_report(samples):
         print(' - res: "%s"' % sample.res)
         print('-' * 80)
 
+    print('Best WER:', '\n' + '-' * 80)
     for s in best_samples:
         print_single_sample(s)
-    print('[...]', '\n' + '-' * 80)
 
+    print('Median WER:', '\n' + '-' * 80)
     for s in median_samples:
         print_single_sample(s)
-    print('[...]', '\n' + '-' * 80)
 
+    print('Worst WER:', '\n' + '-' * 80)
     for s in worst_samples:
         print_single_sample(s)
