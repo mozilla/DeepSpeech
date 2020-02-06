@@ -16,7 +16,7 @@ from multiprocessing import JoinableQueue, Process, cpu_count, Manager
 from deepspeech import Model
 
 from util.evaluate_tools import calculate_report, print_report
-from util.flags import create_flags, FLAGS
+from util.flags import create_flags
 
 r'''
 This module should be self-contained:
