@@ -15,7 +15,7 @@ from six.moves import zip, range
 from multiprocessing import JoinableQueue, Process, cpu_count, Manager
 from deepspeech import Model
 
-from util.evaluate_tools import calculate_report
+from util.evaluate_tools import calculate_and_print_report
 from util.flags import create_flags
 
 r'''
@@ -98,11 +98,8 @@ def main(args, _):
         predictions.append(msg['prediction'])
         wavlist.append(msg['wav'])
 
-    wer, cer, samples = calculate_report(wav_filenames, ground_truths, predictions, losses)
-    mean_loss = np.mean(losses)
-
-    print('Test - WER: %f, CER: %f, loss: %f' %
-          (wer, cer, mean_loss))
+    # Print test summary
+    _ = calculate_and_print_report(wav_filenames, ground_truths, predictions, losses, args.csv)
 
     if args.dump:
         with open(args.dump + '.txt', 'w') as ftxt, open(args.dump + '.out', 'w') as fout:

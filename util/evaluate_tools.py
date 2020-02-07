@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function
 
 from multiprocessing.dummy import Pool
+import numpy as np
 
 from attrdict import AttrDict
 
@@ -54,9 +55,9 @@ def process_decode_result(item):
     })
 
 
-def calculate_report(wav_filenames, labels, decodings, losses):
+def calculate_and_print_report(wav_filenames, labels, decodings, losses, dataset_name):
     r'''
-    This routine will calculate a WER report.
+    This routine will calculate and print a WER report.
     It'll compute the `mean` WER and create ``Sample`` objects of the ``report_count`` top lowest
     loss items from the provided WER results tuple (only items with WER!=0 and ordered by their WER).
     '''
@@ -65,13 +66,52 @@ def calculate_report(wav_filenames, labels, decodings, losses):
     # Getting the WER and CER from the accumulated edit distances and lengths
     samples_wer, samples_cer = wer_cer_batch(samples)
 
-    # Order the remaining items by their loss (lowest loss on top)
-    samples.sort(key=lambda s: s.loss)
+    # Reversed because the worst WER with the best loss is to identify systemic issues, where the acoustic model is confident,
+    # yet the result is completely off the mark. This can point to transcription errors and stuff like that.
+    samples.sort(key=lambda s: s.loss, reverse=True)
 
-    # Then order by descending WER/CER
+    # Then order by ascending WER/CER
     if FLAGS.utf8:
-        samples.sort(key=lambda s: s.cer, reverse=True)
+        samples.sort(key=lambda s: s.cer)
     else:
-        samples.sort(key=lambda s: s.wer, reverse=True)
+        samples.sort(key=lambda s: s.wer)
 
-    return samples_wer, samples_cer, samples
+    # Print the report
+    print_report(samples, losses, samples_wer, samples_cer, dataset_name)
+
+    return samples
+
+
+def print_report(samples, losses, wer, cer, dataset_name):
+    """ Print a report summary and samples of best, median and worst results """
+
+    # Print summary
+    mean_loss = np.mean(losses)
+    print('Test on %s - WER: %f, CER: %f, loss: %f' % (dataset_name, wer, cer, mean_loss))
+    print('-' * 80)
+
+    best_samples = samples[:FLAGS.report_count]
+    worst_samples = samples[-FLAGS.report_count:]
+    median_index = int(len(samples) / 2)
+    median_left = int(FLAGS.report_count / 2)
+    median_right = FLAGS.report_count - median_left
+    median_samples = samples[median_index - median_left:median_index + median_right]
+
+    def print_single_sample(sample):
+        print('WER: %f, CER: %f, loss: %f' % (sample.wer, sample.cer, sample.loss))
+        print(' - wav: file://%s' % sample.wav_filename)
+        print(' - src: "%s"' % sample.src)
+        print(' - res: "%s"' % sample.res)
+        print('-' * 80)
+
+    print('Best WER:', '\n' + '-' * 80)
+    for s in best_samples:
+        print_single_sample(s)
+
+    print('Median WER:', '\n' + '-' * 80)
+    for s in median_samples:
+        print_single_sample(s)
+
+    print('Worst WER:', '\n' + '-' * 80)
+    for s in worst_samples:
+        print_single_sample(s)
