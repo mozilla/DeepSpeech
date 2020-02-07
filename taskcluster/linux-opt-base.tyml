@@ -45,10 +45,10 @@ then:
         in: >
           apt-get -qq -y remove --purge ubuntu-advantage-tools &&
           ${aptEc2Mirrors} &&
-          apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
+          apt-get -qq update && apt-get -qq -y install git pixz wget pkg-config libsox-dev && ${extraSystemSetup} &&
           cd ${system.homedir.linux}/ &&
-          echo -e "#!/bin/bash\nset -xe\n env && id && (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | tar -C ${system.homedir.linux}/ -xf - ) && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client && mkdir -p ${system.homedir.linux}/.cache/node-gyp/ && wget -O - ${system.node_gyp_cache} | tar -C ${system.homedir.linux}/.cache/node-gyp/ -xzf -" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          echo -e "#!/bin/bash\nset -xe\n env && id && (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | tar -C ${system.homedir.linux}/ -xf - ) && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client && mkdir -p ${system.homedir.linux}/.cache/node-gyp/ && wget -O - ${system.node_gyp_cache} | tar -C ${system.homedir.linux}/.cache/node-gyp/ -xzf - && mkdir -p ${system.homedir.linux}/ds-swig/bin/ && wget -O - ${system.swig.cache.linux_amd64} | tar -C ${system.homedir.linux}/ds-swig/ -xzf -" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u ${system.username} /bin/bash /tmp/clone.sh &&
           ${system.homedir.linux}/DeepSpeech/tf/tc-apt.sh && ${extraSystemConfig} &&
           sudo -H -u ${system.username} --preserve-env /bin/bash ${system.homedir.linux}/DeepSpeech/ds/${build.scripts.build} &&

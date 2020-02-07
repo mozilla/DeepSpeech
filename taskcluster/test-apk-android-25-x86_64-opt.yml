@@ -1,12 +1,13 @@
 build:
   template_file: test-android-opt-base.tyml
   dependencies:
+    - "swig-linux-amd64"
     - "android-x86_64-cpu-opt"
     - "test-training_16k-linux-amd64-py36m-opt"
   test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   system_setup:
     >
-      apt-get -qq -y install curl make python && ${swig.packages.install_script}
+      apt-get -qq -y install curl make python
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-apk-tests.sh x86_64 android-25 16k"
   metadata:
