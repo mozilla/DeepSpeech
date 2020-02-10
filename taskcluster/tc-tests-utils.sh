@@ -765,7 +765,7 @@ setup_pyenv_virtualenv()
 
     echo "should setup virtualenv ${name} for ${version}"
     mkdir ${PYENV_ROOT}/versions/${version}/envs
-    PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH virtualenv ${PYENV_ROOT}/versions/${version}/envs/${name}
+    PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH virtualenv $(cygpath -w  ${PYENV_ROOT}/versions/${version}/envs/${name})
   else
     ls -hal "${PYENV_ROOT}/versions/"
 
@@ -1414,16 +1414,15 @@ do_deepspeech_nodejs_build()
 
   npm update
 
+  npm install node-gyp@6.x node-pre-gyp
+
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     NPM_ROOT=$(cygpath -u "$(npm root)")
     PYTHON27=":/c/Python27"
-    # node-gyp@5.x behaves erratically with VS2015 and MSBuild.exe detection
-    npm install node-gyp@4.x node-pre-gyp
   else
     NPM_ROOT="$(npm root)"
-    npm install node-gyp@5.x node-pre-gyp
   fi
 
   export PATH="$NPM_ROOT/.bin/${PYTHON27}:$PATH"
@@ -1466,16 +1465,15 @@ do_deepspeech_npm_package()
 
   npm update
 
+  npm install node-gyp@6.x node-pre-gyp
+
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     NPM_ROOT=$(cygpath -u "$(npm root)")
     PYTHON27=":/c/Python27"
-    # node-gyp@5.x behaves erratically with VS2015 and MSBuild.exe detection
-    npm install node-gyp@4.x node-pre-gyp
   else
     NPM_ROOT="$(npm root)"
-    npm install node-gyp@5.x node-pre-gyp
   fi
 
   export PATH="$NPM_ROOT/.bin/$PYTHON27:$PATH"
