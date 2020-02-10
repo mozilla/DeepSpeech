@@ -80,6 +80,7 @@ cpp:
     packages: 'install_pkg_local_homebrew "sox"'
     env: 'export EXTRA_ENV="DYLD_LIBRARY_PATH=$LOCAL_HOMEBREW_DIRECTORY/lib/:$DYLD_LIBRARY_PATH"'
 system:
+  node_gyp_cache: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.0/artifacts/public/node-gyp-cache.tar.gz'
   username: 'build-user'
   homedir:
     linux: '/home/build-user'

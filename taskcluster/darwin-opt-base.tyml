@@ -112,6 +112,8 @@ payload:
         then: { $fromNow: '6 months' }
         else: { $fromNow: '7 days' }
 
+  # Define node gyp cache mount twice because we cannot have it separated
+  # from the if/then without the parser to break
   mounts:
     $if: '(event.event != "push") && (event.event != "tag")'
     then:
@@ -121,6 +123,15 @@ payload:
         directory: homebrew.cache/
       - cacheName: deepspeech-macos-pyenv
         directory: pyenv.cache/
+      - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
+        format: tar.gz
+        content:
+          url: ${system.node_gyp_cache}
+    else:
+      - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
+        format: tar.gz
+        content:
+          url: ${system.node_gyp_cache}
 
 metadata:
   name: ${build.metadata.name}
