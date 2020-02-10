@@ -259,7 +259,7 @@ assert_correct_ldc93s1_prodmodel()
     assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
   fi;
 
-  if [ -o "$3" = "8k" ]; then
+  if [ "$3" = "8k" ]; then
     assert_correct_inference "$1" "she had conduct suit in greasy wash water all year" "$2"
   fi;
 }
@@ -270,8 +270,8 @@ assert_correct_ldc93s1_prodtflitemodel()
     assert_correct_inference "$1" "she had i do utterly was or all year" "$2"
   fi;
 
-  if [ -o "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had conduct suit in greasy wash water all year" "$2"
+  if [ "$3" = "8k" ]; then
+    assert_correct_inference "$1" "she had up a out and we wash or a" "$2"
   fi;
 }
 
@@ -281,8 +281,8 @@ assert_correct_ldc93s1_prodmodel_stereo_44k()
     assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
   fi;
 
-  if [ -o "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had conduct suit in greasy wash water all year" "$2"
+  if [ "$3" = "8k" ]; then
+    assert_correct_inference "$1" "she had reduce and greasy wash water all year" "$2"
   fi;
 }
 
@@ -292,8 +292,8 @@ assert_correct_ldc93s1_prodtflitemodel_stereo_44k()
     assert_correct_inference "$1" "she headed grey was or all year" "$2"
   fi;
 
-  if [ -o "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had conduct suit in greasy wash water all year" "$2"
+  if [ "$3" = "8k" ]; then
+    assert_correct_inference "$1" "she headed grey was or all year" "$2"
   fi;
 }
 
@@ -468,7 +468,7 @@ run_prod_concurrent_stream_tests()
              --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} \
              --lm ${TASKCLUSTER_TMP_DIR}/lm.binary \
              --trie ${TASKCLUSTER_TMP_DIR}/trie \
-             --audio1 ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} \
+             --audio1 ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_16000.wav \
              --audio2 ${TASKCLUSTER_TMP_DIR}/new-home-in-the-stars-16k.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
@@ -476,7 +476,7 @@ run_prod_concurrent_stream_tests()
   output1=$(echo "${output}" | head -n 1)
   output2=$(echo "${output}" | tail -n 1)
 
-  assert_correct_ldc93s1_prodmodel "${output1}" "${status}" "${_bitrate}"
+  assert_correct_ldc93s1_prodmodel "${output1}" "${status}" "16k"
   assert_correct_inference "${output2}" "we must find a new home in the stars" "${status}"
 }
 
