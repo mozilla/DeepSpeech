@@ -468,7 +468,7 @@ run_prod_concurrent_stream_tests()
              --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} \
              --lm ${TASKCLUSTER_TMP_DIR}/lm.binary \
              --trie ${TASKCLUSTER_TMP_DIR}/trie \
-             --audio1 ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} \
+             --audio1 ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_16000.wav \
              --audio2 ${TASKCLUSTER_TMP_DIR}/new-home-in-the-stars-16k.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
@@ -476,7 +476,7 @@ run_prod_concurrent_stream_tests()
   output1=$(echo "${output}" | head -n 1)
   output2=$(echo "${output}" | tail -n 1)
 
-  assert_correct_ldc93s1_prodmodel "${output1}" "${status}" "${_bitrate}"
+  assert_correct_ldc93s1_prodmodel "${output1}" "${status}" "16k"
   assert_correct_inference "${output2}" "we must find a new home in the stars" "${status}"
 }
 
