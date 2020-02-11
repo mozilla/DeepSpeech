@@ -6,30 +6,18 @@
 #include <unordered_map>
 #include <vector>
 
-#include "lm/enumerate_vocab.hh"
 #include "lm/virtual_interface.hh"
 #include "lm/word_index.hh"
 #include "util/string_piece.hh"
 
 #include "path_trie.h"
 #include "alphabet.h"
+#include "deepspeech.h"
 
 const double OOV_SCORE = -1000.0;
 const std::string START_TOKEN = "<s>";
 const std::string UNK_TOKEN = "<unk>";
 const std::string END_TOKEN = "</s>";
-
-// Implement a callback to retrieve the dictionary of language model.
-class RetrieveStrEnumerateVocab : public lm::EnumerateVocab {
-public:
-  RetrieveStrEnumerateVocab() {}
-
-  void Add(lm::WordIndex index, const StringPiece &str) {
-    vocabulary.push_back(std::string(str.data(), str.length()));
-  }
-
-  std::vector<std::string> vocabulary;
-};
 
 /* External scorer to query score for n-gram or sentence, including language
  * model scoring and word insertion.
@@ -40,9 +28,9 @@ public:
  *     scorer.get_sent_log_prob({ "WORD1", "WORD2", "WORD3" });
  */
 class Scorer {
+public:
   using FstType = PathTrie::FstType;
 
-public:
   Scorer() = default;
   ~Scorer() = default;
 
@@ -50,16 +38,10 @@ public:
   Scorer(const Scorer&) = delete;
   Scorer& operator=(const Scorer&) = delete;
 
-  int init(double alpha,
-           double beta,
-           const std::string &lm_path,
-           const std::string &trie_path,
+  int init(const std::string &lm_path,
            const Alphabet &alphabet);
 
-  int init(double alpha,
-           double beta,
-           const std::string &lm_path,
-           const std::string &trie_path,
+  int init(const std::string &lm_path,
            const std::string &alphabet_config_path);
 
   double get_log_cond_prob(const std::vector<std::string> &words,
@@ -76,11 +58,14 @@ public:
   // return the max order
   size_t get_max_order() const { return max_order_; }
 
-  // retrun true if the language model is character based
+  // return true if the language model is character based
   bool is_utf8_mode() const { return is_utf8_mode_; }
 
   // reset params alpha & beta
   void reset_params(float alpha, float beta);
+
+  // force set UTF-8 mode, ignore value read from file
+  void set_utf8_mode(bool utf8) { is_utf8_mode_ = utf8; }
 
   // make ngram for a given prefix
   std::vector<std::string> make_ngram(PathTrie *prefix);
@@ -89,11 +74,19 @@ public:
   // the vector of characters (character based lm)
   std::vector<std::string> split_labels_into_scored_units(const std::vector<int> &labels);
 
+  void set_alphabet(const Alphabet& alphabet);
+
   // save dictionary in file
-  void save_dictionary(const std::string &path);
+  void save_dictionary(const std::string &path, bool append_instead_of_overwrite=false);
 
   // return weather this step represents a boundary where beam scoring should happen
   bool is_scoring_boundary(PathTrie* prefix, size_t new_label);
+
+  // fill dictionary FST from a vocabulary
+  void fill_dictionary(const std::vector<std::string> &vocabulary);
+
+  // load language model from given path
+  int load_lm(const std::string &lm_path);
 
   // language model weight
   double alpha = 0.;
@@ -104,14 +97,10 @@ public:
   std::unique_ptr<FstType> dictionary;
 
 protected:
-  // necessary setup: load language model, fill FST's dictionary
-  void setup(const std::string &lm_path, const std::string &trie_path);
+  // necessary setup after setting alphabet
+  void setup_char_map();
 
-  // load language model from given path
-  void load_lm(const std::string &lm_path);
-
-  // fill dictionary for FST
-  void fill_dictionary(const std::vector<std::string> &vocabulary);
+  int load_trie(std::ifstream& fin, const std::string& file_path);
 
 private:
   std::unique_ptr<lm::base::Model> language_model_;

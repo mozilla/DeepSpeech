@@ -72,7 +72,7 @@ def metadata_json_output(metadata):
     json_result["words"] = words_from_metadata(metadata)
     json_result["confidence"] = metadata.confidence
     return json.dumps(json_result)
-	
+
 
 
 class VersionAction(argparse.Action):
@@ -88,18 +88,16 @@ def main():
     parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
-    parser.add_argument('--lm', nargs='?',
-                        help='Path to the language model binary file')
-    parser.add_argument('--trie', nargs='?',
-                        help='Path to the language model trie file created with native_client/generate_trie')
+    parser.add_argument('--scorer', required=False,
+                        help='Path to the external scorer file')
     parser.add_argument('--audio', required=True,
                         help='Path to the audio file to run (WAV format)')
     parser.add_argument('--beam_width', type=int, default=500,
                         help='Beam width for the CTC decoder')
-    parser.add_argument('--lm_alpha', type=float, default=0.75,
-                        help='Language model weight (lm_alpha)')
-    parser.add_argument('--lm_beta', type=float, default=1.85,
-                        help='Word insertion bonus (lm_beta)')
+    parser.add_argument('--lm_alpha', type=float,
+                        help='Language model weight (lm_alpha). If not specified, use default from the scorer package.')
+    parser.add_argument('--lm_beta', type=float,
+                        help='Word insertion bonus (lm_beta). If not specified, use default from the scorer package.')
     parser.add_argument('--version', action=VersionAction,
                         help='Print version and exits')
     parser.add_argument('--extended', required=False, action='store_true',
@@ -116,12 +114,15 @@ def main():
 
     desired_sample_rate = ds.sampleRate()
 
-    if args.lm and args.trie:
-        print('Loading language model from files {} {}'.format(args.lm, args.trie), file=sys.stderr)
-        lm_load_start = timer()
-        ds.enableDecoderWithLM(args.lm, args.trie, args.lm_alpha, args.lm_beta)
-        lm_load_end = timer() - lm_load_start
-        print('Loaded language model in {:.3}s.'.format(lm_load_end), file=sys.stderr)
+    if args.scorer:
+        print('Loading scorer from files {}'.format(args.scorer), file=sys.stderr)
+        scorer_load_start = timer()
+        ds.enableExternalScorer(args.scorer)
+        scorer_load_end = timer() - scorer_load_start
+        print('Loaded scorer in {:.3}s.'.format(scorer_load_end), file=sys.stderr)
+
+        if args.lm_alpha and args.lm_beta:
+            ds.setScorerAlphaBeta(args.lm_alpha, args.lm_beta)
 
     fin = wave.open(args.audio, 'rb')
     fs = fin.getframerate()

@@ -12,3 +12,7 @@ If you only want the query code and do not care about compression (.gz, .bz2, an
 Windows:
   The windows directory has visual studio files.  Note that you need to compile
   the kenlm project before build_binary and ngram_query projects.  
+
+OSX:
+  Missing dependencies can be remedied with brew.
+  brew install cmake boost eigen

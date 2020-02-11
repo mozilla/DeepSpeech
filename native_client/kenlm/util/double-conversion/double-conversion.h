@@ -415,9 +415,10 @@ class StringToDoubleConverter {
   //          junk, too.
   //  - ALLOW_TRAILING_JUNK: ignore trailing characters that are not part of
   //      a double literal.
-  //  - ALLOW_LEADING_SPACES: skip over leading spaces.
-  //  - ALLOW_TRAILING_SPACES: ignore trailing spaces.
-  //  - ALLOW_SPACES_AFTER_SIGN: ignore spaces after the sign.
+  //  - ALLOW_LEADING_SPACES: skip over leading whitespace, including spaces,
+  //                          new-lines, and tabs.
+  //  - ALLOW_TRAILING_SPACES: ignore trailing whitespace.
+  //  - ALLOW_SPACES_AFTER_SIGN: ignore whitespace after the sign.
   //       Ex: StringToDouble("-   123.2") -> -123.2.
   //           StringToDouble("+   123.2") -> 123.2
   //
@@ -502,19 +503,24 @@ class StringToDoubleConverter {
   // in the 'processed_characters_count'. Trailing junk is never included.
   double StringToDouble(const char* buffer,
                         int length,
-                        int* processed_characters_count) const {
-    return StringToIeee(buffer, length, processed_characters_count, true);
-  }
+                        int* processed_characters_count) const;
+
+  // Same as StringToDouble above but for 16 bit characters.
+  double StringToDouble(const uc16* buffer,
+                        int length,
+                        int* processed_characters_count) const;
 
   // Same as StringToDouble but reads a float.
   // Note that this is not equivalent to static_cast<float>(StringToDouble(...))
   // due to potential double-rounding.
   float StringToFloat(const char* buffer,
                       int length,
-                      int* processed_characters_count) const {
-    return static_cast<float>(StringToIeee(buffer, length,
-                                           processed_characters_count, false));
-  }
+                      int* processed_characters_count) const;
+
+  // Same as StringToFloat above but for 16 bit characters.
+  float StringToFloat(const uc16* buffer,
+                      int length,
+                      int* processed_characters_count) const;
 
  private:
   const int flags_;
@@ -523,10 +529,11 @@ class StringToDoubleConverter {
   const char* const infinity_symbol_;
   const char* const nan_symbol_;
 
-  double StringToIeee(const char* buffer,
+  template <class Iterator>
+  double StringToIeee(Iterator start_pointer,
                       int length,
-                      int* processed_characters_count,
-                      bool read_as_double) const;
+                      bool read_as_double,
+                      int* processed_characters_count) const;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringToDoubleConverter);
 };

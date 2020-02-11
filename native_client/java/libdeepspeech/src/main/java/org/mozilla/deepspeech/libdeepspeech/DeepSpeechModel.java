@@ -47,17 +47,35 @@ public class DeepSpeechModel {
     }
 
    /**
-    * @brief Enable decoding using beam scoring with a KenLM language model.
+    * @brief Enable decoding using an external scorer.
     *
-    * @param lm The path to the language model binary file.
-    * @param trie The path to the trie file build from the same vocabulary as the language model binary.
-    * @param lm_alpha The alpha hyperparameter of the CTC decoder. Language Model weight.
-    * @param lm_beta The beta hyperparameter of the CTC decoder. Word insertion weight.
+    * @param scorer The path to the external scorer file.
     *
     * @return Zero on success, non-zero on failure (invalid arguments).
     */
-    public void enableDecoderWithLM(String lm, String trie, float lm_alpha, float lm_beta) {
-        impl.EnableDecoderWithLM(this._msp, lm, trie, lm_alpha, lm_beta);
+    public void enableExternalScorer(String scorer) {
+        impl.EnableExternalScorer(this._msp, scorer);
+    }
+
+    /**
+    * @brief Disable decoding using an external scorer.
+    *
+    * @return Zero on success, non-zero on failure (invalid arguments).
+    */
+    public void disableExternalScorer() {
+        impl.DisableExternalScorer(this._msp);
+    }
+
+    /**
+    * @brief Enable decoding using beam scoring with a KenLM language model.
+    *
+    * @param alpha The alpha hyperparameter of the decoder. Language model weight.
+    * @param beta The beta hyperparameter of the decoder. Word insertion weight.
+    *
+    * @return Zero on success, non-zero on failure (invalid arguments).
+    */
+    public void setScorerAlphaBeta(float alpha, float beta) {
+        impl.SetScorerAlphaBeta(this._msp, alpha, beta);
     }
 
    /*

@@ -59,8 +59,9 @@ enum DeepSpeech_Error_Codes
     // Invalid parameters
     DS_ERR_INVALID_ALPHABET   = 0x2000,
     DS_ERR_INVALID_SHAPE      = 0x2001,
-    DS_ERR_INVALID_LM         = 0x2002,
+    DS_ERR_INVALID_SCORER     = 0x2002,
     DS_ERR_MODEL_INCOMPATIBLE = 0x2003,
+    DS_ERR_SCORER_NOT_ENABLED = 0x2004,
 
     // Runtime failures
     DS_ERR_FAIL_INIT_MMAP     = 0x3000,
@@ -106,25 +107,40 @@ DEEPSPEECH_EXPORT
 void DS_FreeModel(ModelState* ctx);
 
 /**
- * @brief Enable decoding using beam scoring with a KenLM language model.
+ * @brief Enable decoding using an external scorer.
  *
  * @param aCtx The ModelState pointer for the model being changed.
- * @param aLMPath The path to the language model binary file.
- * @param aTriePath The path to the trie file build from the same vocabu-
- *                  lary as the language model binary.
- * @param aLMAlpha The alpha hyperparameter of the CTC decoder. Language Model
-                   weight.
- * @param aLMBeta The beta hyperparameter of the CTC decoder. Word insertion
-                  weight.
+ * @param aScorerPath The path to the external scorer file.
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
 DEEPSPEECH_EXPORT
-int DS_EnableDecoderWithLM(ModelState* aCtx,
-                           const char* aLMPath,
-                           const char* aTriePath,
-                           float aLMAlpha,
-                           float aLMBeta);
+int DS_EnableExternalScorer(ModelState* aCtx,
+                            const char* aScorerPath);
+
+/**
+ * @brief Disable decoding using an external scorer.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_DisableExternalScorer(ModelState* aCtx);
+
+/**
+ * @brief Set hyperparameters alpha and beta of the external scorer.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param aAlpha The alpha hyperparameter of the decoder. Language model weight.
+ * @param aLMBeta The beta hyperparameter of the decoder. Word insertion weight.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_SetScorerAlphaBeta(ModelState* aCtx,
+                          float aAlpha,
+                          float aBeta);
 
 /**
  * @brief Use the DeepSpeech model to perform Speech-To-Text.

@@ -51,11 +51,10 @@ Please push DeepSpeech data to ``/sdcard/deepspeech/``\ , including:
 
 
 * ``output_graph.tflite`` which is the TF Lite model
-* ``lm.binary`` and ``trie`` files, if you want to use the language model ; please
-  be aware that too big language model will make the device run out of memory
+* ``kenlm.scorer``, if you want to use the scorer; please be aware that too big
+  scorer will make the device run out of memory
 
 Then, push binaries from ``native_client.tar.xz`` to ``/data/local/tmp/ds``\ :
-
 
 * ``deepspeech``
 * ``libdeepspeech.so``

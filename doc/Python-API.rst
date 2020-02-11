@@ -9,6 +9,12 @@ Model
 .. autoclass:: Model
    :members:
 
+Stream
+------
+
+.. autoclass:: Stream
+   :members:
+
 Metadata
 --------
 

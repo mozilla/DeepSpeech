@@ -27,20 +27,6 @@ genrule(
     tools = [":gen_workspace_status.sh"],
 )
 
-KENLM_SOURCES = glob(
-    [
-        "kenlm/lm/*.cc",
-        "kenlm/util/*.cc",
-        "kenlm/util/double-conversion/*.cc",
-        "kenlm/lm/*.hh",
-        "kenlm/util/*.hh",
-        "kenlm/util/double-conversion/*.h",
-    ],
-    exclude = [
-        "kenlm/*/*test.cc",
-        "kenlm/*/*main.cc",
-    ],
-)
 
 OPENFST_SOURCES_PLATFORM = select({
     "//tensorflow:windows": glob(["ctcdecode/third_party/openfst-1.6.9-win/src/lib/*.cc"]),
@@ -61,6 +47,27 @@ LINUX_LINKOPTS = [
 ]
 
 cc_library(
+    name = "kenlm",
+    srcs = glob([
+        "kenlm/lm/*.cc",
+        "kenlm/util/*.cc",
+        "kenlm/util/double-conversion/*.cc",
+        "kenlm/util/double-conversion/*.h",
+    ],
+    exclude = [
+        "kenlm/*/*test.cc",
+        "kenlm/*/*main.cc",
+    ],),
+    hdrs = glob([
+        "kenlm/lm/*.hh",
+        "kenlm/util/*.hh",
+    ]),
+    copts = ["-std=c++11"],
+    defines = ["KENLM_MAX_ORDER=6"],
+    includes = ["kenlm"],
+)
+
+cc_library(
     name = "decoder",
     srcs = [
         "ctcdecode/ctc_beam_search_decoder.cpp",
@@ -69,17 +76,16 @@ cc_library(
         "ctcdecode/scorer.cpp",
         "ctcdecode/path_trie.cpp",
         "ctcdecode/path_trie.h",
-    ] + KENLM_SOURCES + OPENFST_SOURCES_PLATFORM,
+    ] + OPENFST_SOURCES_PLATFORM,
     hdrs = [
         "ctcdecode/ctc_beam_search_decoder.h",
         "ctcdecode/scorer.h",
     ],
-    defines = ["KENLM_MAX_ORDER=6"],
     includes = [
         ".",
         "ctcdecode/third_party/ThreadPool",
-        "kenlm",
     ] + OPENFST_INCLUDES_PLATFORM,
+    deps = [":kenlm"]
 )
 
 tf_cc_shared_object(
@@ -182,18 +188,12 @@ genrule(
 )
 
 cc_binary(
-    name = "generate_trie",
+    name = "enumerate_kenlm_vocabulary",
     srcs = [
-        "alphabet.h",
-        "generate_trie.cpp",
+        "enumerate_kenlm_vocabulary.cpp",
     ],
+    deps = [":kenlm"],
     copts = ["-std=c++11"],
-    linkopts = [
-        "-lm",
-        "-ldl",
-        "-pthread",
-    ],
-    deps = [":decoder"],
 )
 
 cc_binary(
