@@ -22,7 +22,6 @@ from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from evaluate import evaluate
 from six.moves import zip, range
 from tensorflow.python.tools import freeze_graph, strip_unused_lib
-from tensorflow.python.framework import errors_impl
 from util.config import Config, initialize_globals
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
@@ -687,7 +686,7 @@ def train():
                             current_learning_rate = current_learning_rate * FLAGS.plateau_reduction
                             log_info('Encountered a plateau, reducing learning rate to {}'.format(
                                 current_learning_rate))
-                    
+
         except KeyboardInterrupt:
             pass
         log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
