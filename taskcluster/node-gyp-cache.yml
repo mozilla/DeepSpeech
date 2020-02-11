@@ -1,0 +1,10 @@
+build:
+  template_file: node-gyp-cache-base.tyml
+  routes:
+    - "index.project.deepspeech.node-gyp-cache.0"
+  scripts:
+    build: "taskcluster/node-gyp-populate.sh"
+    package: "taskcluster/node-gyp-package.sh"
+  metadata:
+    name: "Cache for node-gyp headers"
+    description: "Building cache for node-gyp headers"
