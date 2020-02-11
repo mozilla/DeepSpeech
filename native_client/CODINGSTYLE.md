@@ -25,4 +25,4 @@ File naming
 Doubts
 ======
 
-If in doubt, please ask on our IRC channel, `#machinelearning` on `irc.mozilla.org`.
+If in doubt, please ask on our Matrix chat channel: https://chat.mozilla.org/#/room/#machinelearning:mozilla.org
