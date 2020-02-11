@@ -67,7 +67,10 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
         if FLAGS.augmentation_speed_up_std > 0:
             spectrogram = augment_speed_up(spectrogram, speed_std=FLAGS.augmentation_speed_up_std)
 
-    mfccs = contrib_audio.mfcc(spectrogram, sample_rate, dct_coefficient_count=Config.n_input)
+    mfccs = contrib_audio.mfcc(spectrogram=spectrogram,
+                               sample_rate=sample_rate,
+                               dct_coefficient_count=Config.n_input,
+                               upper_frequency_limit=FLAGS.audio_sample_rate/2)
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
 
     return mfccs, tf.shape(input=mfccs)[0]
