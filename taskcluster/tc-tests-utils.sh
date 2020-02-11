@@ -760,12 +760,9 @@ setup_pyenv_virtualenv()
   fi;
 
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    echo "installing virtualenv"
-    PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH pip install virtualenv
-
     echo "should setup virtualenv ${name} for ${version}"
     mkdir ${PYENV_ROOT}/versions/${version}/envs
-    PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH virtualenv ${PYENV_ROOT}/versions/${version}/envs/${name}
+    PATH=${PYENV_ROOT}/versions/${version}/tools:${PYENV_ROOT}/versions/${version}/tools/Scripts:$PATH python -m venv ${PYENV_ROOT}/versions/${version}/envs/${name}
   else
     ls -hal "${PYENV_ROOT}/versions/"
 
