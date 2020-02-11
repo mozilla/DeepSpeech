@@ -1438,7 +1438,7 @@ do_deepspeech_nodejs_build()
       RASPBIAN=${SYSTEM_RASPBIAN} \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$electron \
-      NODE_DIST_URL=--disturl=https://electronjs.org/headers \
+      NODE_DIST_URL=--disturl=https://reuben.github.io/electronjs_headers \
       NODE_RUNTIME=--runtime=electron \
       clean node-wrapper
   done;
