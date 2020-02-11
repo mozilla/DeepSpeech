@@ -252,8 +252,8 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
 # (www.cs.toronto.edu/~fritz/absps/momentum.pdf) was used,
 # we will use the Adam method for optimization (http://arxiv.org/abs/1412.6980),
 # because, generally, it requires less fine-tuning.
-def create_optimizer():
-    optimizer = tfv1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate,
+def create_optimizer(learning_rate_tensor):
+    optimizer = tfv1.train.AdamOptimizer(learning_rate=learning_rate_tensor,
                                          beta1=FLAGS.beta1,
                                          beta2=FLAGS.beta2,
                                          epsilon=FLAGS.epsilon)
@@ -423,6 +423,7 @@ def try_loading(session, saver, checkpoint_filename, caption, load_step=True, lo
 
 def train():
     do_cache_dataset = True
+    current_learning_rate = FLAGS.learning_rate
 
     # pylint: disable=too-many-boolean-expressions
     if (FLAGS.data_aug_features_multiplicative > 0 or
@@ -468,7 +469,8 @@ def train():
     }
 
     # Building the graph
-    optimizer = create_optimizer()
+    learning_rate_tensor = tf.placeholder(tf.float32, shape=[])
+    optimizer = create_optimizer(learning_rate_tensor)
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
@@ -570,6 +572,9 @@ def train():
             train_op = apply_gradient_op if is_train else []
             feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
 
+            # Add the current learning rate to feed_dict
+            feed_dict[learning_rate_tensor] = current_learning_rate
+
             total_loss = 0.0
             step_count = 0
 
@@ -662,19 +667,27 @@ def train():
                         log_info("Saved new best validating model with loss %f to: %s" % (best_dev_loss, save_path))
 
                     # Early stopping
-                    if FLAGS.early_stop and len(dev_losses) >= FLAGS.es_steps:
-                        mean_loss = np.mean(dev_losses[-FLAGS.es_steps:-1])
-                        std_loss = np.std(dev_losses[-FLAGS.es_steps:-1])
-                        dev_losses = dev_losses[-FLAGS.es_steps:]
-                        log_debug('Checking for early stopping (last %d steps) validation loss: '
-                                  '%f, with standard deviation: %f and mean: %f' %
-                                  (FLAGS.es_steps, dev_losses[-1], std_loss, mean_loss))
-                        if dev_losses[-1] > np.max(dev_losses[:-1]) or \
-                           (abs(dev_losses[-1] - mean_loss) < FLAGS.es_mean_th and std_loss < FLAGS.es_std_th):
-                            log_info('Early stop triggered as (for last %d steps) validation loss:'
-                                     ' %f with standard deviation: %f and mean: %f' %
-                                     (FLAGS.es_steps, dev_losses[-1], std_loss, mean_loss))
+                    if FLAGS.early_stop and len(dev_losses) >= FLAGS.es_epochs:
+                        # Stop training if the loss did not improve the last FLAGS.es_epochs
+                        # or if the improvement is smaller than FLAGS.es_min_delta
+                        if (np.argmin(dev_losses) < (len(dev_losses) - FLAGS.es_epochs) or
+                                min(dev_losses) < min(dev_losses[-FLAGS.es_epochs:]) - FLAGS.es_min_delta):
+
+                            log_info('Early stop triggered as the loss did not improve the last {} epochs'.format(
+                                FLAGS.es_epochs))
                             break
+
+                    # Reduce learning rate on plateau
+                    if FLAGS.reduce_lr_on_plateau and len(dev_losses) >= FLAGS.plateau_epochs:
+                        # Reduce if the loss did not improve the last FLAGS.plateau_epochs
+                        # or if the improvement is smaller than FLAGS.es_min_delta
+                        if (np.argmin(dev_losses) < (len(dev_losses) - FLAGS.plateau_epochs) or
+                                min(dev_losses) < min(dev_losses[-FLAGS.plateau_epochs:]) - FLAGS.plateau_min_delta):
+
+                            current_learning_rate = current_learning_rate * FLAGS.plateau_reduction
+                            log_info('Encountered a plateau, reducing learning rate to {}'.format(
+                                current_learning_rate))
+                    
         except KeyboardInterrupt:
             pass
         log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))

@@ -135,9 +135,15 @@ def create_flags():
     # Early Stopping
 
     f.DEFINE_boolean('early_stop', True, 'enable early stopping mechanism over validation dataset. If validation is not being run, early stopping is disabled.')
-    f.DEFINE_integer('es_steps', 4, 'number of validations to consider for early stopping. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
-    f.DEFINE_float('es_mean_th', 0.5, 'mean threshold for loss to determine the condition if early stopping is required')
-    f.DEFINE_float('es_std_th', 0.5, 'standard deviation threshold for loss to determine the condition if early stopping is required')
+    f.DEFINE_integer('es_epochs', 4, 'Number of epochs with no improvement after which training will be stopped. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
+    f.DEFINE_float('es_min_delta', 0.05, 'Minimum change in loss to qualify as an improvement.')
+
+    # Reduce learning rate on plateau
+
+    f.DEFINE_boolean('reduce_lr_on_plateau', True, 'Enable reducing the learning rate if a plateau is reached. This is the case if the validation loss did not improve for some epochs.')
+    f.DEFINE_integer('plateau_epochs', 2, 'Number of validations to consider for RLROP. Has to be smaller than the steps for early stopping')
+    f.DEFINE_float('plateau_reduction', 0.1, 'Factor to reduce the current learing rate if a plateau has occured.')
+    f.DEFINE_float('plateau_min_delta', 0.05, 'Minimum change in loss to qualify as an improvement.')
 
     # Decoder
 
