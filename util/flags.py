@@ -25,7 +25,6 @@ def create_flags():
     # ================
 
     f.DEFINE_string('audio_aug_mix_noise_walk_dirs', '', 'walk through wav dir, then mix noise wav into decoded audio')
-    f.DEFINE_string('audio_aug_mix_noise_cache', '', 'must cache noise audio data, or it will read audio file every training step')
     f.DEFINE_float('audio_aug_mix_noise_max_noise_db', -25, 'to limit noise max volume')
     f.DEFINE_float('audio_aug_mix_noise_min_noise_db', -50, 'to limit noise min volume')
     f.DEFINE_float('audio_aug_mix_noise_max_audio_db', 0, 'to limit audio max volume')

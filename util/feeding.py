@@ -17,6 +17,7 @@ from util.flags import FLAGS
 from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up
 from util.audio import read_frames_from_file, vad_split, DEFAULT_FORMAT
 from util.audio_augmentation import augment_noise, noise_file_to_audio, collect_noise_filenames
+from util.logging import log_info
 
 
 def read_csvs(csv_files):
@@ -139,14 +140,15 @@ def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_
 
     if train_phase and FLAGS.audio_aug_mix_noise_walk_dirs:
         # because we have to determine the shuffle size, so we could not use generator
+        log_info("Enable Mixing Noise Augmentation")
         noise_filenames = tf.convert_to_tensor(
             list(collect_noise_filenames(FLAGS.audio_aug_mix_noise_walk_dirs.split(','))),
             dtype=tf.string)
-        print(">>> Collect {} noise files for mixing audio".format(noise_filenames.shape[0]))
+        log_info("Collect {} noise files for mixing audio".format(noise_filenames.shape[0]))
         noise_dataset = (tf.data.Dataset.from_tensor_slices(noise_filenames)
-                         .map(noise_file_to_audio, num_parallel_calls=tf.data.experimental.AUTOTUNE)
                          .shuffle(noise_filenames.shape[0])
-                         .cache(FLAGS.audio_aug_mix_noise_cache)
+                         .map(noise_file_to_audio, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+                         .prefetch(tf.compat.v1.data.experimental.AUTOTUNE)
                          .repeat())
         noise_iterator = tf.compat.v1.data.make_one_shot_iterator(noise_dataset)
     else:
