@@ -31,7 +31,7 @@ var parser = new argparse.ArgumentParser({addHelp: true, description: 'Running D
 parser.addArgument(['--model'], {required: true, help: 'Path to the model (protocol buffer binary file)'});
 parser.addArgument(['--scorer'], {help: 'Path to the external scorer file'});
 parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});
-parser.addArgument(['--beam_width'], {help: 'Beam width for the CTC decoder', defaultValue: 500, type: 'int'});
+parser.addArgument(['--beam_width'], {help: 'Beam width for the CTC decoder', type: 'int'});
 parser.addArgument(['--lm_alpha'], {help: 'Language model weight (lm_alpha). If not specified, use default from the scorer package.', type: 'float'});
 parser.addArgument(['--lm_beta'], {help: 'Word insertion bonus (lm_beta). If not specified, use default from the scorer package.', type: 'float'});
 parser.addArgument(['--version'], {action: VersionAction, help: 'Print version and exits'});
@@ -53,9 +53,13 @@ function metadataToString(metadata) {
 
 console.error('Loading model from file %s', args['model']);
 const model_load_start = process.hrtime();
-var model = new Ds.Model(args['model'], args['beam_width']);
+var model = new Ds.Model(args['model']);
 const model_load_end = process.hrtime(model_load_start);
 console.error('Loaded model in %ds.', totalTime(model_load_end));
+
+if (args['beam_width']) {
+  model.setBeamWidth(args['beam_width']);
+}
 
 var desired_sample_rate = model.sampleRate();
 

@@ -20,14 +20,33 @@ public class DeepSpeechModel {
     * @constructor
     *
     * @param modelPath The path to the frozen model graph.
-    * @param beam_width The beam width used by the decoder. A larger beam
-    *                   width generates better results at the cost of decoding
-    *                   time.
     */
-    public DeepSpeechModel(String modelPath, int beam_width) {
+    public DeepSpeechModel(String modelPath) {
         this._mspp = impl.new_modelstatep();
-        impl.CreateModel(modelPath, beam_width, this._mspp);
+        impl.CreateModel(modelPath, this._mspp);
         this._msp  = impl.modelstatep_value(this._mspp);
+    }
+
+   /**
+    * @brief Get beam width value used by the model. If setModelBeamWidth was not
+    *        called before, will return the default value loaded from the model file.
+    *
+    * @return Beam width value used by the model.
+    */
+    public long beamWidth() {
+        return impl.GetModelBeamWidth(this._msp);
+    }
+
+    /**
+     * @brief Set beam width value used by the model.
+     *
+     * @param aBeamWidth The beam width used by the model. A larger beam width value
+     *                   generates better results at the cost of decoding time.
+     *
+     * @return Zero on success, non-zero on failure.
+     */
+    public int setBeamWidth(long beamWidth) {
+        return impl.SetModelBeamWidth(this._msp, beamWidth);
     }
 
    /**

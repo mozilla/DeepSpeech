@@ -92,7 +92,7 @@ def main():
                         help='Path to the external scorer file')
     parser.add_argument('--audio', required=True,
                         help='Path to the audio file to run (WAV format)')
-    parser.add_argument('--beam_width', type=int, default=500,
+    parser.add_argument('--beam_width', type=int,
                         help='Beam width for the CTC decoder')
     parser.add_argument('--lm_alpha', type=float,
                         help='Language model weight (lm_alpha). If not specified, use default from the scorer package.')
@@ -108,9 +108,12 @@ def main():
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
-    ds = Model(args.model, args.beam_width)
+    ds = Model(args.model)
     model_load_end = timer() - model_load_start
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
+
+    if args.beam_width:
+        ds.setModelBeamWidth(args.beam_width)
 
     desired_sample_rate = ds.sampleRate()
 

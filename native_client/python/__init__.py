@@ -28,15 +28,12 @@ class Model(object):
 
     :param aModelPath: Path to model file to load
     :type aModelPath: str
-
-    :param aBeamWidth: Decoder beam width
-    :type aBeamWidth: int
     """
-    def __init__(self,  *args, **kwargs):
+    def __init__(self, model_path):
         # make sure the attribute is there if CreateModel fails
         self._impl = None
 
-        status, impl = deepspeech.impl.CreateModel(*args, **kwargs)
+        status, impl = deepspeech.impl.CreateModel(model_path)
         if status != 0:
             raise RuntimeError("CreateModel failed with error code {}".format(status))
         self._impl = impl
@@ -45,6 +42,28 @@ class Model(object):
         if self._impl:
             deepspeech.impl.FreeModel(self._impl)
             self._impl = None
+
+    def beamWidth(self):
+        """
+        Get beam width value used by the model. If setModelBeamWidth was not
+        called before, will return the default value loaded from the model file.
+
+        :return: Beam width value used by the model.
+        :type: int
+        """
+        return deepspeech.impl.GetModelBeamWidth(self._impl)
+
+    def setBeamWidth(self, beam_width):
+        """
+        Set beam width value used by the model.
+
+        :param beam_width: The beam width used by the model. A larger beam width value generates better results at the cost of decoding time.
+        :type beam_width: int
+
+        :return: Zero on success, non-zero on failure.
+        :type: int
+        """
+        return deepspeech.impl.SetModelBeamWidth(self._impl, beam_width)
 
     def sampleRate(self):
         """

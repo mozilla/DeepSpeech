@@ -91,10 +91,9 @@ TFLiteModelState::~TFLiteModelState()
 }
 
 int
-TFLiteModelState::init(const char* model_path,
-                       unsigned int beam_width)
+TFLiteModelState::init(const char* model_path)
 {
-  int err = ModelState::init(model_path, beam_width);
+  int err = ModelState::init(model_path);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -129,6 +128,7 @@ TFLiteModelState::init(const char* model_path,
   int metadata_sample_rate_idx      = get_output_tensor_by_name("metadata_sample_rate");
   int metadata_feature_win_len_idx  = get_output_tensor_by_name("metadata_feature_win_len");
   int metadata_feature_win_step_idx = get_output_tensor_by_name("metadata_feature_win_step");
+  int metadata_beam_width_idx = get_output_tensor_by_name("metadata_beam_width");
   int metadata_alphabet_idx = get_output_tensor_by_name("metadata_alphabet");
 
   std::vector<int> metadata_exec_plan;
@@ -136,6 +136,7 @@ TFLiteModelState::init(const char* model_path,
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_sample_rate_idx)[0]);
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_feature_win_len_idx)[0]);
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_feature_win_step_idx)[0]);
+  metadata_exec_plan.push_back(find_parent_node_ids(metadata_beam_width_idx)[0]);
   metadata_exec_plan.push_back(find_parent_node_ids(metadata_alphabet_idx)[0]);
 
   for (int i = 0; i < metadata_exec_plan.size(); ++i) {
@@ -201,6 +202,9 @@ TFLiteModelState::init(const char* model_path,
   audio_win_len_  = sample_rate_ * (*win_len_ms / 1000.0);
   audio_win_step_ = sample_rate_ * (*win_step_ms / 1000.0);
 
+  int* const beam_width = interpreter_->typed_tensor<int>(metadata_beam_width_idx);
+  beam_width_ = (unsigned int)(*beam_width);
+
   tflite::StringRef serialized_alphabet = tflite::GetString(interpreter_->tensor(metadata_alphabet_idx), 0);
   err = alphabet_.deserialize(serialized_alphabet.str, serialized_alphabet.len);
   if (err != 0) {
@@ -210,6 +214,8 @@ TFLiteModelState::init(const char* model_path,
   assert(sample_rate_ > 0);
   assert(audio_win_len_ > 0);
   assert(audio_win_step_ > 0);
+  assert(beam_width_ > 0);
+  assert(alphabet_.GetSize() > 0);
 
   TfLiteIntArray* dims_input_node = interpreter_->tensor(input_node_idx_)->dims;
 
