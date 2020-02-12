@@ -30,16 +30,9 @@ This module should be self-contained:
 Then run with a TF Lite model, a scorer and a CSV test file
 '''
 
-BEAM_WIDTH = 500
-LM_ALPHA = 0.75
-LM_BETA = 1.85
-
 def tflite_worker(model, scorer, queue_in, queue_out, gpu_mask):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_mask)
     ds = Model(model)
-    ds.setBeamWidth(BEAM_WIDTH)
-    ds.enableExternalScorer(scorer)
-    ds.setScorerAlphaBeta(LM_ALPHA, LM_BETA)
 
     while True:
         try:
