@@ -7,7 +7,7 @@ Creating a model instance and loading model
 .. literalinclude:: ../native_client/client.cc
    :language: c
    :linenos:
-   :lines: 370-390
+   :lines: 370-375,386-390
 
 Performing inference
 --------------------
