@@ -44,7 +44,7 @@ payload:
     MSYS: 'winsymlinks:nativestrict'
     TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
     EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
-    EXAMPLES_CHECKOUT_TARGET: "embedded-beam-width"
+    EXAMPLES_CHECKOUT_TARGET: "master"
 
   command:
     - >-
