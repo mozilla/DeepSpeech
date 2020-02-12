@@ -14,7 +14,7 @@ It is required to use our fork of TensorFlow since it includes fixes for common 
 If you'd like to build the language bindings or the decoder package, you'll also need:
 
 
-* `SWIG >= 3.0.12 <http://www.swig.org/>`_
+* `SWIG >= 3.0.12 <http://www.swig.org/>`_. If you intend to build NodeJS / ElectronJS bindings you will need a patched version of SWIG. Please refer to the matching section below.
 * `node-pre-gyp <https://github.com/mapbox/node-pre-gyp>`_ (for Node.JS bindings only)
 
 Dependencies
@@ -105,37 +105,12 @@ Included are a set of generated Python bindings. After following the above build
 
 The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to `deepspeech.h <deepspeech.h>`_ for documentation.
 
-Install Node.JS bindings
-^^^^^^^^^^^^^^^^^^^^^^^^
+Install NodeJS / ElectronJS bindings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Unfortunately, JavaScript support on SWIG is a bit behind, and while there are
-pending patches proposed to upstream, it is not yet merged.
-
-You would need to patch SWIG, either from your distribution's setup, or do a
-local-patched build of SWIG.
-
-If you patch from a v3.0 SWIG, you will need to apply those:
-
-.. code-block::
-
-   native_client/swig_node_v7x-v8x-v9x_0001.patch
-   native_client/swig_node_v7x-v8x-v9x_0002.patch
-   native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch
-
-If you patch from a v4.0 SWIG, you can just apply this:
-
-.. code-block::
-
-   native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch
-
-On a Debian/Ubuntu system, you would need:
-
-.. code-block::
-
-   for patch_file in native_client/swig_node_v7x-v8x-v9x_0001.patch native_client/swig_node_v7x-v8x-v9x_0002.patch native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch;
-   do
-       patch -d /usr/share/swig3.0/ -p2 < $patch_file
-   done;
+Unfortunately, JavaScript support on SWIG is a bit behind, and while there are pending patches proposed to upstream, it is not yet merged.
+You should be able to build from `our fork <https://github.com/lissyx/swig/tree/taskcluster>`_, and you can find pre-built binaries on `TaskCluster <https://community-tc.services.mozilla.com/tasks/index/project.deepspeech.swig>`_ (please look for swig fork sha1).
+Extract the `ds-swig.tar.gz` to some place in your `$HOME`, then update `$PATH` accordingly. You might need to symlink `ds-swig` as `swig`, and you will have to `export SWIG_LIB=<path/to/swig/share>` so that it contains path to `share/swig/<VERSION>/`.
 
 After following the above build and installation instructions, the Node.JS bindings can be built:
 
