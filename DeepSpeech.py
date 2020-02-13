@@ -251,14 +251,12 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
 # (www.cs.toronto.edu/~fritz/absps/momentum.pdf) was used,
 # we will use the Adam method for optimization (http://arxiv.org/abs/1412.6980),
 # because, generally, it requires less fine-tuning.
-def create_optimizer():
-    learning_rate_var = tf.Variable(FLAGS.learning_rate, trainable=False)
+def create_optimizer(learning_rate_var):
     optimizer = tfv1.train.AdamOptimizer(learning_rate=learning_rate_var,
                                          beta1=FLAGS.beta1,
                                          beta2=FLAGS.beta2,
                                          epsilon=FLAGS.epsilon)
-
-    return optimizer, learning_rate_var
+    return optimizer
 
 
 # Towers
@@ -469,8 +467,9 @@ def train():
     }
 
     # Building the graph
-    optimizer, learning_rate_var = create_optimizer()
+    learning_rate_var = tfv1.get_variable('learning_rate', initializer=FLAGS.learning_rate, trainable=False)
     reduce_learning_rate_op = learning_rate_var.assign(tf.multiply(learning_rate_var, FLAGS.plateau_reduction))
+    optimizer = create_optimizer(learning_rate_var)
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
@@ -683,7 +682,6 @@ def train():
                             epochs_without_improvement % FLAGS.plateau_epochs == 0 and epochs_without_improvement > 0):
                         # If the learning rate was reduced and there is still no improvement
                         # wait FLAGS.plateau_epochs before the learning rate is reduced again
-
                         session.run(reduce_learning_rate_op)
                         current_learning_rate = learning_rate_var.eval()
                         log_info('Encountered a plateau, reducing learning rate to {}'.format(
