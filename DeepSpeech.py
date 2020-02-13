@@ -684,7 +684,6 @@ def train():
                         # If the learning rate was reduced and there is still no improvement
                         # wait FLAGS.plateau_epochs before the learning rate is reduced again
 
-                        # current_learning_rate = current_learning_rate * FLAGS.plateau_reduction
                         session.run(reduce_learning_rate_op)
                         current_learning_rate = learning_rate_var.eval()
                         log_info('Encountered a plateau, reducing learning rate to {}'.format(
