@@ -251,12 +251,14 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
 # (www.cs.toronto.edu/~fritz/absps/momentum.pdf) was used,
 # we will use the Adam method for optimization (http://arxiv.org/abs/1412.6980),
 # because, generally, it requires less fine-tuning.
-def create_optimizer(learning_rate_tensor):
-    optimizer = tfv1.train.AdamOptimizer(learning_rate=learning_rate_tensor,
+def create_optimizer():
+    learning_rate_var = tf.Variable(FLAGS.learning_rate, trainable=False)
+    optimizer = tfv1.train.AdamOptimizer(learning_rate=learning_rate_var,
                                          beta1=FLAGS.beta1,
                                          beta2=FLAGS.beta2,
                                          epsilon=FLAGS.epsilon)
-    return optimizer
+
+    return optimizer, learning_rate_var
 
 
 # Towers
@@ -468,8 +470,8 @@ def train():
     }
 
     # Building the graph
-    learning_rate_tensor = tf.placeholder(tf.float32, shape=[])
-    optimizer = create_optimizer(learning_rate_tensor)
+    optimizer, learning_rate_var = create_optimizer()
+    reduce_learning_rate_op = learning_rate_var.assign(tf.multiply(learning_rate_var, FLAGS.plateau_reduction))
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
@@ -638,6 +640,7 @@ def train():
         train_start_time = datetime.utcnow()
         best_dev_loss = float('inf')
         dev_losses = []
+        epochs_without_improvement = 0
         try:
             for epoch in range(FLAGS.epochs):
                 # Training
@@ -656,36 +659,40 @@ def train():
                         dev_loss += set_loss * steps
                         total_steps += steps
                         log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, csv, set_loss))
-                    dev_loss = dev_loss / total_steps
 
+                    dev_loss = dev_loss / total_steps
                     dev_losses.append(dev_loss)
 
+                    # Count epochs without an improvement for early stopping and reduction of learning rate on a plateau
+                    # the improvement has to be greater than FLAGS.es_min_delta
+                    if dev_loss > best_dev_loss - FLAGS.es_min_delta:
+                        epochs_without_improvement += 1
+                    else:
+                        epochs_without_improvement = 0
+
+                    # Save new best model
                     if dev_loss < best_dev_loss:
                         best_dev_loss = dev_loss
                         save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step, latest_filename='best_dev_checkpoint')
                         log_info("Saved new best validating model with loss %f to: %s" % (best_dev_loss, save_path))
 
                     # Early stopping
-                    if FLAGS.early_stop and len(dev_losses) >= FLAGS.es_epochs:
-                        # Stop training if the loss did not improve the last FLAGS.es_epochs
-                        # or if the improvement is smaller than FLAGS.es_min_delta
-                        if (np.argmin(dev_losses) < (len(dev_losses) - FLAGS.es_epochs) or
-                                min(dev_losses) < min(dev_losses[-FLAGS.es_epochs:]) - FLAGS.es_min_delta):
-
-                            log_info('Early stop triggered as the loss did not improve the last {} epochs'.format(
-                                FLAGS.es_epochs))
-                            break
+                    if FLAGS.early_stop and epochs_without_improvement == FLAGS.es_epochs:
+                        log_info('Early stop triggered as the loss did not improve the last {} epochs'.format(
+                            epochs_without_improvement))
+                        break
 
                     # Reduce learning rate on plateau
-                    if FLAGS.reduce_lr_on_plateau and len(dev_losses) >= FLAGS.plateau_epochs:
-                        # Reduce if the loss did not improve the last FLAGS.plateau_epochs
-                        # or if the improvement is smaller than FLAGS.es_min_delta
-                        if (np.argmin(dev_losses) < (len(dev_losses) - FLAGS.plateau_epochs) or
-                                min(dev_losses) < min(dev_losses[-FLAGS.plateau_epochs:]) - FLAGS.plateau_min_delta):
+                    if (FLAGS.reduce_lr_on_plateau and
+                            epochs_without_improvement % FLAGS.plateau_epochs == 0 and epochs_without_improvement > 0):
+                        # If the learning rate was reduced and there is still no improvement
+                        # wait FLAGS.plateau_epochs before the learning rate is reduced again
 
-                            current_learning_rate = current_learning_rate * FLAGS.plateau_reduction
-                            log_info('Encountered a plateau, reducing learning rate to {}'.format(
-                                current_learning_rate))
+                        # current_learning_rate = current_learning_rate * FLAGS.plateau_reduction
+                        session.run(reduce_learning_rate_op)
+                        current_learning_rate = learning_rate_var.eval()
+                        log_info('Encountered a plateau, reducing learning rate to {}'.format(
+                            current_learning_rate))
 
         except KeyboardInterrupt:
             pass
