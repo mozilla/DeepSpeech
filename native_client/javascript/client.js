@@ -18,7 +18,7 @@ var VersionAction = function VersionAction(options) {
 util.inherits(VersionAction, argparse.Action);
 
 VersionAction.prototype.call = function(parser) {
-  Ds.printVersions();
+  console.log('DeepSpeech ' + Ds.Version());
   let runtime = 'Node';
   if (process.versions.electron) {
     runtime = 'Electron';

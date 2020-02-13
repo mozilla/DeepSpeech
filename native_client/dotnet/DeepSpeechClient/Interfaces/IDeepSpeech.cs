@@ -10,9 +10,10 @@ namespace DeepSpeechClient.Interfaces
     public interface IDeepSpeech : IDisposable
     {
         /// <summary>
-        /// Prints the versions of Tensorflow and DeepSpeech.
+        /// Return version of this library. The returned version is a semantic version
+        /// (SemVer 2.0.0).
         /// </summary>
-        void PrintVersions();
+        unsafe string Version();
 
         /// <summary>
         /// Return the sample rate expected by the model.

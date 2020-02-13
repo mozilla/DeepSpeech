@@ -55,7 +55,9 @@ void PrintHelp(const char* bin)
     "\t--stream size\t\tRun in stream mode, output intermediate results\n"
     "\t--help\t\t\tShow help\n"
     "\t--version\t\tPrint version and exits\n";
-    DS_PrintVersions();
+    char* version = DS_Version();
+    std::cerr << "DeepSpeech " << version << "\n";
+    DS_FreeString(version);
     exit(1);
 }
 
@@ -143,7 +145,9 @@ bool ProcessArgs(int argc, char** argv)
     }
 
     if (has_versions) {
-        DS_PrintVersions();
+        char* version = DS_Version();
+        std::cout << "DeepSpeech " << version << "\n";
+        DS_FreeString(version);
         return false;
     }
 

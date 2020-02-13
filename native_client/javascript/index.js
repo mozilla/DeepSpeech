@@ -231,8 +231,8 @@ function FreeStream(stream) {
 /**
  * Print version of this library and of the linked TensorFlow library on standard output.
  */
-function printVersions() {
-    return binding.PrintVersions();
+function Version() {
+    return binding.Version();
 }
 
 
@@ -300,7 +300,7 @@ module.exports = {
     Model: Model,
     Metadata: Metadata,
     MetadataItem: MetadataItem,
-    printVersions: printVersions,
+    Version: Version,
     FreeModel: FreeModel,
     FreeStream: FreeStream,
     FreeMetadata: FreeMetadata

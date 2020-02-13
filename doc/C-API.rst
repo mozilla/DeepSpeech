@@ -49,5 +49,5 @@ C
 .. doxygenfunction:: DS_FreeString
    :project: deepspeech-c
 
-.. doxygenfunction:: DS_PrintVersions
+.. doxygenfunction:: DS_Version
    :project: deepspeech-c

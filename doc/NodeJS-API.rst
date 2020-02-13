@@ -22,7 +22,7 @@ Module exported methods
 
 .. js:autofunction:: FreeMetadata
 
-.. js:autofunction:: printVersions
+.. js:autofunction:: Version
 
 Metadata
 --------
