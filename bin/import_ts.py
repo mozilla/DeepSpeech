@@ -34,7 +34,7 @@ SAMPLE_RATE = 16000
 MAX_SECS = 15
 ARCHIVE_NAME = '2019-04-11_fr_FR'
 ARCHIVE_DIR_NAME = 'ts_' + ARCHIVE_NAME
-ARCHIVE_URL = 'https://s3.eu-west-3.amazonaws.com/audiocorp/releases/' + ARCHIVE_NAME + '.zip'
+ARCHIVE_URL = 'https://deepspeech-storage-mirror.s3.fr-par.scw.cloud/' + ARCHIVE_NAME + '.zip'
 
 
 def _download_and_preprocess_data(target_dir, english_compatible=False):
