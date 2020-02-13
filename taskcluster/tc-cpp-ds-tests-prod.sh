@@ -17,6 +17,6 @@ download_material "${TASKCLUSTER_TMP_DIR}/ds"
 
 export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 
-check_deepspeech_version
+check_versions
 
 run_prod_inference_tests "${bitrate}"
