@@ -1,0 +1,8 @@
+build:
+  template_file: dockerSave_prep-linux-opt-base.tyml
+  dependencies:
+    - "swig-linux-amd64"
+    - "node-gyp-cache"
+  metadata:
+    name: "Basesystem Linux AMD64"
+    description: "Building Docker basesystem for Linux/AMD64"

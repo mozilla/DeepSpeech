@@ -15,26 +15,26 @@ nodejs:
   packages_trusty:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
-    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x trusty main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_xenial:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
-    prep_10: 'echo "deb http://deb.nodesource.com/node_10.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_11: 'echo "deb http://deb.nodesource.com/node_11.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_10: 'echo "deb http://deb.nodesource.com/node_10.x xenial main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_11: 'echo "deb http://deb.nodesource.com/node_11.x xenial main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x xenial main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x xenial main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_docs_bionic:
     apt: 'nodejs'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
-    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x bionic main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x bionic main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x bionic main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x bionic main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_buster:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
-    prep_10: 'echo "deb http://deb.nodesource.com/node_10.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_11: 'echo "deb http://deb.nodesource.com/node_11.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
-    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_10: 'echo "deb http://deb.nodesource.com/node_10.x buster main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_11: 'echo "deb http://deb.nodesource.com/node_11.x buster main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x buster main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_13: 'echo "deb http://deb.nodesource.com/node_13.x buster main" > /etc/apt/sources.list.d/nodesource.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   brew:
     # Using 'nvm' from homebrew results in installing v0.33.6 which seems to
     # suffer from a bug making it unable to work as of now:
@@ -62,6 +62,12 @@ system:
   node_gyp_cache:
     url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.1/artifacts/public/node-gyp-cache.tar.gz'
     namespace: 'project.deepspeech.node-gyp-cache.1'
+  docker_image:
+    url_tar: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tc-docker.3/artifacts/public/dockerImage.tar'
+    namespace_tar: 'project.deepspeech.tc-docker.3'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tc-docker_szt.3/artifacts/public/dockerImage.tar.zst'
+    name: 'public/dockerImage.tar.zst'
+    namespace: 'project.deepspeech.tc-docker_zst.3'
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"

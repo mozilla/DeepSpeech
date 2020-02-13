@@ -1,8 +1,7 @@
 build:
   template_file: linux-opt-base.tyml
   dependencies:
-    - "swig-linux-amd64"
-    - "node-gyp-cache"
+    - "dockerSave_zst-linux-opt"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-arm64"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-arm64"

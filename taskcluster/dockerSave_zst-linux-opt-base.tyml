@@ -1,0 +1,45 @@
+$if: 'event.event in build.allowed'
+then:
+  taskId: ${taskcluster.taskId}
+  provisionerId: ${taskcluster.docker.provisionerId}
+  workerType: ${taskcluster.docker.workerType}
+  taskGroupId: ${taskcluster.taskGroupId}
+  schedulerId: ${taskcluster.schedulerId}
+  created: { $fromNow: '0 sec' }
+  deadline: { $fromNow: '1 day' }
+  expires: { $fromNow: '6 months' }
+  dependencies:
+    $map: { $eval: build.dependencies }
+    each(b):
+      $eval: as_slugid(b)
+  routes:
+    - "index.${system.docker_image.namespace}"
+
+  payload:
+    maxRunTime: { $eval: to_int(build.maxRunTime) }
+    image: "ubuntu:18.04"
+
+    command:
+      - "/bin/bash"
+      - "--login"
+      - "-cxe"
+      - >-
+          apt-get -qq update && apt-get -qq -y install curl zstd && mkdir -p /tmp/artifacts/;
+          swig_bin=`curl -sSIL -o /dev/null -w "%{http_code}" ${system.docker_image.url}` &&
+          if [ "$swig_bin" != "200" ]; then
+            curl -sSL --fail ${system.docker_image.url_tar} | gunzip | zstd - -o /tmp/artifacts/dockerImage.tar.zst
+          else
+            curl -sSL --fail -o /tmp/artifacts/dockerImage.tar.zst ${system.docker_image.url}
+          fi;
+
+    artifacts:
+      "public":
+        type: "directory"
+        path: "/tmp/artifacts/"
+        expires: { $fromNow: '6 months' }
+
+  metadata:
+    name: ${build.metadata.name}
+    description: ${build.metadata.description}
+    owner: ${event.head.user.email}
+    source: ${event.head.repo.url}

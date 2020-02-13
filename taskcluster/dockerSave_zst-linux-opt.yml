@@ -1,0 +1,7 @@
+build:
+  template_file: dockerSave_zst-linux-opt-base.tyml
+  dependencies:
+    - "dockerSave_prep-linux-opt"
+  metadata:
+    name: "Zst basesystem Linux AMD64"
+    description: "Recompress Docker basesystem as Zst for Linux/AMD64"
