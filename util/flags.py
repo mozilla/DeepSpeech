@@ -134,7 +134,7 @@ def create_flags():
 
     # Early Stopping
 
-    f.DEFINE_boolean('early_stop', True, 'enable early stopping mechanism over validation dataset. If validation is not being run, early stopping is disabled.')
+    f.DEFINE_boolean('early_stop', True, 'Enable early stopping mechanism over validation dataset. If validation is not being run, early stopping is disabled.')
     f.DEFINE_integer('es_epochs', 25, 'Number of epochs with no improvement after which training will be stopped. Loss is not stored in the checkpoint so when checkpoint is revived it starts the loss calculation from start at that point')
     f.DEFINE_float('es_min_delta', 0.05, 'Minimum change in loss to qualify as an improvement. This value will also be used in Reduce learning rate on plateau')
 
