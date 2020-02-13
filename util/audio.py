@@ -89,7 +89,7 @@ def vad_split(audio_frames,
               num_padding_frames=10,
               threshold=0.5,
               aggressiveness=3):
-from webrtcvad import Vad
+    from webrtcvad import Vad
     sample_rate, channels, width = audio_format
     if channels != 1:
         raise ValueError('VAD-splitting requires mono samples')
