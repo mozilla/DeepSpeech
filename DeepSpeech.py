@@ -424,7 +424,6 @@ def try_loading(session, saver, checkpoint_filename, caption, load_step=True, lo
 
 def train():
     do_cache_dataset = True
-    current_learning_rate = FLAGS.learning_rate
 
     # pylint: disable=too-many-boolean-expressions
     if (FLAGS.data_aug_features_multiplicative > 0 or
@@ -572,9 +571,6 @@ def train():
             is_train = set_name == 'train'
             train_op = apply_gradient_op if is_train else []
             feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
-
-            # Add the current learning rate to feed_dict
-            feed_dict[learning_rate_tensor] = current_learning_rate
 
             total_loss = 0.0
             step_count = 0
