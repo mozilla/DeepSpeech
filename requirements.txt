@@ -21,3 +21,6 @@ bs4
 requests
 librosa
 soundfile
+
+# Requirements for optimizer
+optuna

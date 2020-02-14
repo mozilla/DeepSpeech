@@ -165,6 +165,12 @@ def create_flags():
 
     f.DEFINE_string('one_shot_infer', '', 'one-shot inference mode: specify a wav file and the script will load the checkpoint and perform inference on it.')
 
+    # Optimizer mode
+
+    f.DEFINE_float('lm_alpha_max', 5, 'the maximum of the alpha hyperparameter of the CTC decoder explored during hyperparameter optimization. Language Model weight.')
+    f.DEFINE_float('lm_beta_max', 5, 'the maximum beta hyperparameter of the CTC decoder explored during hyperparameter optimization. Word insertion weight.')
+    f.DEFINE_float('n_trials', 10000, 'the number of trials to run during hyperparameter optimization.')
+
     # Register validators for paths which require a file to be specified
 
     f.register_validator('alphabet_config_path',
