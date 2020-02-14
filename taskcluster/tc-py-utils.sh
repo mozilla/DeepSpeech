@@ -142,6 +142,11 @@ pyenv_install()
     exit 1;
   fi;
 
+  if [ -z "${DS_CPU_COUNT}" ]; then
+    echo "No idea of parallelism";
+    exit 1;
+  fi;
+
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     PATH=$(cygpath ${ChocolateyInstall})/bin:$PATH nuget install python -Version ${version} -OutputDirectory ${PYENV_ROOT}/versions/
 
@@ -159,7 +164,7 @@ pyenv_install()
     # otherwise, pyenv install will force-rebuild
     ls -hal "${PYENV_ROOT}/versions/${version_alias}/" || true
     if [ ! -d "${PYENV_ROOT}/versions/${version_alias}/" ]; then
-      VERSION_ALIAS=${version_alias} pyenv install ${version}
+      VERSION_ALIAS=${version_alias} MAKEOPTS=-j${DS_CPU_COUNT} pyenv install ${version}
     fi;
   fi
 }
