@@ -6,17 +6,20 @@ export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=${HOME}
     export SWIG_ROOT="${HOME}/ds-swig"
+    export DS_CPU_COUNT=$(nproc)
 fi;
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export SWIG_ROOT="$(cygpath ${USERPROFILE})/ds-swig"
     export PLATFORM_EXE_SUFFIX=.exe
+    export DS_CPU_COUNT=$(nproc)
 fi;
 
 if [ "${OS}" = "Darwin" ]; then
     export SWIG_ROOT="${TASKCLUSTER_ORIG_TASKDIR}/ds-swig"
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
+    export DS_CPU_COUNT=$(sysctl hw.ncpu |cut -d' ' -f2)
 
     # It seems chaining |export DYLD_LIBRARY_PATH=...| does not work, maybe
     # because of SIP? Who knows ...

@@ -126,11 +126,12 @@ do_deepspeech_decoder_build()
         TARGET=${SYSTEM_TARGET} \
         RASPBIAN=${SYSTEM_RASPBIAN} \
         TFDIR=${DS_TFDIR} \
+        NUM_PROCESSES=${DS_CPU_COUNT} \
         bindings
 
     cp native_client/ctcdecode/dist/*.whl wheels
 
-    make -C native_client/ctcdecode clean-keep-common
+    make -C native_client/ctcdecode clean-keep-third-party
 
     unset NUMPY_BUILD_VERSION
     unset NUMPY_DEP_VERSION
