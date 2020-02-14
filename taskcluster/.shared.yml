@@ -59,14 +59,16 @@ cpp:
     packages: 'install_pkg_local_homebrew "sox"'
     env: 'export EXTRA_ENV="DYLD_LIBRARY_PATH=$LOCAL_HOMEBREW_DIRECTORY/lib/:$DYLD_LIBRARY_PATH"'
 system:
-  node_gyp_cache: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.0/artifacts/public/node-gyp-cache.tar.gz'
+  node_gyp_cache:
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.1/artifacts/public/node-gyp-cache.tar.gz'
+    namespace: 'project.deepspeech.node-gyp-cache.1'
   swig:
     repo: "https://github.com/lissyx/swig"
-    sha1: "04baa423c41008712e811cd5c1ee94e9e90894aa"
+    sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
     cache:
-      linux_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.04baa423c41008712e811cd5c1ee94e9e90894aa/artifacts/public/ds-swig.tar.gz'
-      darwin_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.darwin.amd64.04baa423c41008712e811cd5c1ee94e9e90894aa/artifacts/public/ds-swig.tar.gz'
-      win_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.04baa423c41008712e811cd5c1ee94e9e90894aa/artifacts/public/ds-swig.tar.gz'
+      linux_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz'
+      darwin_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.darwin.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz'
+      win_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz'
   username: 'build-user'
   homedir:
     linux: '/home/build-user'

@@ -125,7 +125,7 @@ payload:
       - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
         format: tar.gz
         content:
-          url: ${system.node_gyp_cache}
+          url: ${system.node_gyp_cache.url}
       - directory: ds-swig
         format: tar.gz
         content:
@@ -134,7 +134,7 @@ payload:
       - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
         format: tar.gz
         content:
-          url: ${system.node_gyp_cache}
+          url: ${system.node_gyp_cache.url}
       - directory: ds-swig
         format: tar.gz
         content:
