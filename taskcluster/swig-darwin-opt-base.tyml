@@ -10,8 +10,8 @@ dependencies:
 created: { $fromNow: '0 sec' }
 deadline: { $fromNow: '1 day' }
 expires: { $fromNow: '6 months' }
-routes:
-  - "index.project.deepspeech.swig.${build.swig_system}.${build.swig_arch}.${system.swig.sha1}"
+scopes:
+  - "index:insert-task:project.deepspeech.*"
 
 payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }
@@ -20,24 +20,29 @@ payload:
     - - "/bin/bash"
       - "--login"
       - "-cxe"
-      - >
-        export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
-        export TASKCLUSTER_TASKDIR="$(pwd)" &&
-        export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
-        export LC_ALL=C &&
-        export MACOSX_DEPLOYMENT_TARGET=10.10 &&
-        export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
-        export HOMEBREW_NO_AUTO_UPDATE=1 &&
-        env &&
-        swig_bin=`curl -sSIL -o /dev/null -w "%{http_code}" https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.${build.swig_system}.${build.swig_arch}.${system.swig.sha1}/artifacts/public/ds-swig.tar.gz` &&
-        if [ "$swig_bin" != "200" ]; then
-          git clone --quiet ${system.swig.repo} $TASKCLUSTER_TASKDIR/swig/ &&
-          cd $TASKCLUSTER_TASKDIR/swig/ && git checkout --quiet ${system.swig.sha1} &&
-          $TASKCLUSTER_TASKDIR/swig/${build.scripts.build} &&
-          $TASKCLUSTER_TASKDIR/swig/${build.scripts.package}
-        else
-          mkdir -p $TASKCLUSTER_ARTIFACTS/ && curl -sSL -o $TASKCLUSTER_ARTIFACTS/ds-swig.tar.gz https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.${build.swig_system}.${build.swig_arch}.${system.swig.sha1}/artifacts/public/ds-swig.tar.gz
-        fi;
+      - $let:
+          taskIndexExpire: { $fromNow: '6 months' }
+        in: >
+          export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
+          export TASKCLUSTER_TASKDIR="$(pwd)" &&
+          export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
+          export LC_ALL=C &&
+          export MACOSX_DEPLOYMENT_TARGET=10.10 &&
+          export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
+          export HOMEBREW_NO_AUTO_UPDATE=1 &&
+          env &&
+          mkdir -p $TASKCLUSTER_ARTIFACTS/ &&
+          swig_bin=`curl -sSIL -o /dev/null -w "%{http_code}" https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.${build.swig_system}.${build.swig_arch}.${system.swig.sha1}/artifacts/public/ds-swig.tar.gz` &&
+          if [ "$swig_bin" != "200" ]; then
+            git clone --quiet ${system.swig.repo} $TASKCLUSTER_TASKDIR/swig/ &&
+            cd $TASKCLUSTER_TASKDIR/swig/ && git checkout --quiet ${system.swig.sha1} &&
+            $TASKCLUSTER_TASKDIR/swig/${build.scripts.build} &&
+            $TASKCLUSTER_TASKDIR/swig/${build.scripts.package} &&
+            curl -sSL --fail -X PUT \
+                -H "Content-Type: application/json" \
+                -d "{\"taskId\":\"$TASK_ID\",\"rank\":0,\"expires\":\"${taskIndexExpire}\",\"data\":{}}" \
+                "http://taskcluster/index/v1/task/project.deepspeech.swig.${build.swig_system}.${build.swig_arch}.${system.swig.sha1}"
+          fi;
 
   artifacts:
     - type: "directory"

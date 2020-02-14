@@ -8,11 +8,15 @@ then:
   created: { $fromNow: '0 sec' }
   deadline: { $fromNow: '1 day' }
   expires: { $fromNow: '6 months' }
-  routes: { $eval: build.routes }
+  scopes:
+    - "index:insert-task:project.deepspeech.*"
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
     image: "node:12"
+
+    features:
+      taskclusterProxy: true
 
     # This task will inspect system.node_gyp_cache taskcluster index existence:
     #  - if the artifact does not exists, it will build it
@@ -24,18 +28,20 @@ then:
       - "-cxe"
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
-          extraSystemConfig: { $eval: strip(str(build.system_config)) }
+          taskIndexExpire: { $fromNow: '6 months' }
         in: >
           apt-get -qq update && apt-get -qq -y install curl git && ${extraSystemSetup};
-          cache_file=`curl -sSIL -o /dev/null -w "%{http_code}" ${system.node_gyp_cache}` &&
+          cache_file=`curl -sSIL -o /dev/null -w "%{http_code}" ${system.node_gyp_cache.url}` &&
           if [ "$cache_file" != "200" ]; then
             mkdir -p ~/DeepSpeech/ds/ &&
             git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ &&
             cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
             ~/DeepSpeech/ds/${build.scripts.build} &&
-            ~/DeepSpeech/ds/${build.scripts.package}
-          else
-            mkdir -p /tmp/artifacts/ && curl -sSL -o /tmp/artifacts/node-gyp-cache.tar.gz ${system.node_gyp_cache}
+            ~/DeepSpeech/ds/${build.scripts.package} &&
+            curl -sSL --fail -X PUT \
+                -H "Content-Type: application/json" \
+                -d "{\"taskId\":\"$TASK_ID\",\"rank\":0,\"expires\":\"${taskIndexExpire}\",\"data\":{}}" \
+                "http://taskcluster/index/v1/task/${system.node_gyp_cache.namespace}"
           fi;
 
     artifacts:
