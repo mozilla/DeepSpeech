@@ -80,7 +80,7 @@ struct StreamingState {
   char* intermediateDecode();
   void finalizeStream();
   char* finishStream();
-  Result* finishStreamWithMetadata(unsigned int numResults);
+  Result* finishStreamWithMetadata(unsigned int num_results);
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
@@ -144,7 +144,7 @@ StreamingState::finishStream()
 }
 
 Result*
-StreamingState::finishStreamWithMetadata(unsigned int numResults)
+StreamingState::finishStreamWithMetadata(unsigned int num_results)
 {
   finalizeStream();
 
@@ -393,9 +393,9 @@ DS_FinishStream(StreamingState* aSctx)
 
 Result*
 DS_FinishStreamWithMetadata(StreamingState* aSctx, 
-                            unsigned int numResults)
+                            unsigned int aNumResults)
 {
-  Result* result = aSctx->finishStreamWithMetadata(numResults);
+  Result* result = aSctx->finishStreamWithMetadata(aNumResults);
   DS_FreeStream(aSctx);
   return result;
 }
@@ -427,10 +427,10 @@ Result*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
                             unsigned int aBufferSize,
-                            unsigned int numResults)
+                            unsigned int aNumResults)
 {
   StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
-  return DS_FinishStreamWithMetadata(ctx, numResults);
+  return DS_FinishStreamWithMetadata(ctx, aNumResults);
 }
 
 void
