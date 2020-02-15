@@ -47,6 +47,7 @@ struct meta_word {
 char* metadataToString(Metadata* metadata);
 std::vector<meta_word> WordsFromMetadata(Metadata* metadata);
 char* JSONOutput(Result* result);
+std::string MetadataOutput(Metadata* metadata);
 
 ds_result
 LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
@@ -341,33 +342,54 @@ char*
 JSONOutput(Result* result)
 {
   std::ostringstream out_string;
-  out_string << "[\n";
+  out_string << "{\n";
 
   for (int j=0; j < result->num_transcriptions; ++j) {
     Metadata *metadata = &result->transcriptions[j];
-    std::vector<meta_word> words = WordsFromMetadata(metadata);
 
-    out_string << R"({"metadata":{"confidence":)" << metadata->confidence << R"(},"words":[)";
+    if (j == 0) {
+      out_string << MetadataOutput(metadata);
 
-    for (int i = 0; i < words.size(); i++) {
-      meta_word w = words[i];
-      out_string << R"({"word":")" << w.word << R"(","time":)" << w.start_time << R"(,"duration":)" << w.duration << "}";
-
-      if (i < words.size() - 1) {
-        out_string << ",";
+      if (result->num_transcriptions > 1) {
+        out_string << ",\n" << R"("alternatives")" << ":[\n";
       }
-    }
+    } else {
+      out_string << "{" << MetadataOutput(metadata) << "}";
 
-    out_string << "]}";
-
-    if (j < result->num_transcriptions - 1) {
-      out_string << ",\n";
+      if (j < result->num_transcriptions - 1) {
+        out_string << ",\n";
+      } else {
+        out_string << "\n]";
+      }
     }
   }
   
-  out_string << "\n]\n";
+  out_string << "\n}\n";
 
   return strdup(out_string.str().c_str());
+}
+
+std::string 
+MetadataOutput(Metadata *metadata)
+{
+  std::ostringstream out_string;
+
+  std::vector<meta_word> words = WordsFromMetadata(metadata);
+
+  out_string << R"("metadata":{"confidence":)" << metadata->confidence << R"(},"words":[)";
+
+  for (int i = 0; i < words.size(); i++) {
+    meta_word w = words[i];
+    out_string << R"({"word":")" << w.word << R"(","time":)" << w.start_time << R"(,"duration":)" << w.duration << "}";
+
+    if (i < words.size() - 1) {
+      out_string << ",";
+    }
+  }
+
+  out_string << "]";
+
+  return out_string.str();
 }
 
 int
