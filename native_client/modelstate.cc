@@ -32,22 +32,25 @@ ModelState::init(const char* model_path)
 char*
 ModelState::decode(const DecoderState& state) const
 {
-  vector<Output> out = state.decode(1);
+  vector<Output> out = state.decode();
   return strdup(alphabet_.LabelsToString(out[0].tokens).c_str());
 }
 
-vector<Metadata*>
+Result*
 ModelState::decode_metadata(const DecoderState& state, 
-                            size_t top_paths)
+                            size_t num_results)
 {
-  vector<Output> out = state.decode(top_paths);
+  vector<Output> out = state.decode();
 
-  vector<Metadata*> meta_out;
+  size_t max_results = std::min(num_results, out.size());
 
-  size_t max_results = std::min(top_paths, out.size());
+  std::unique_ptr<Result> result(new Result());
+  result->num_transcriptions = max_results;
+
+  std::unique_ptr<Metadata[]> transcripts(new Metadata[max_results]());
 
   for (int j = 0; j < max_results; ++j) {
-    std::unique_ptr<Metadata> metadata(new Metadata());
+    Metadata* metadata = &transcripts[j];
     metadata->num_items = out[j].tokens.size();
     metadata->confidence = out[j].confidence;
 
@@ -65,8 +68,9 @@ ModelState::decode_metadata(const DecoderState& state,
     }
 
     metadata->items = items.release();
-    meta_out.push_back(metadata.release());
   }
 
-  return meta_out;
+  result->transcriptions = transcripts.release();
+
+  return result.release();
 }
