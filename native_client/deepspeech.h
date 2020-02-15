@@ -197,6 +197,7 @@ char* DS_SpeechToText(ModelState* aCtx,
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
+ * @param aNumResults The number of alternative transcriptions to return.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
@@ -205,7 +206,7 @@ DEEPSPEECH_EXPORT
 Result* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                                     const short* aBuffer,
                                     unsigned int aBufferSize,
-                                    unsigned int numResults);
+                                    unsigned int aNumResults);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -265,6 +266,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  *        inference, returns per-letter metadata.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aNumResults The number of alternative transcriptions to return.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
@@ -273,7 +275,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  */
 DEEPSPEECH_EXPORT
 Result* DS_FinishStreamWithMetadata(StreamingState* aSctx, 
-                                    unsigned int numResults);
+                                    unsigned int aNumResults);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This
