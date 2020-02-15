@@ -148,21 +148,7 @@ StreamingState::finishStreamWithMetadata(unsigned int num_results)
 {
   finalizeStream();
 
-  vector<Metadata*> metadata = model_->decode_metadata(decoder_state_, numResults);
-
-  std::unique_ptr<Result> result(new Result());
-  result->num_transcriptions = metadata.size();
-
-  std::unique_ptr<Metadata[]> items(new Metadata[result->num_transcriptions]);
-
-  for (int i = 0; i < result->num_transcriptions; ++i) {
-      std::unique_ptr<Metadata> pointer(new Metadata(*metadata[i]));
-      items[i] = *pointer.release();
-  }
-
-  result->transcriptions = items.release();
-
-  return result.release();
+  return model_->decode_metadata(decoder_state_, num_results);
 }
 
 void

@@ -157,7 +157,7 @@ DecoderState::next(const double *probs,
 }
 
 std::vector<Output>
-DecoderState::decode(size_t top_paths) const
+DecoderState::decode() const
 {
   std::vector<PathTrie*> prefixes_copy = prefixes_;
   std::unordered_map<const PathTrie*, float> scores;
@@ -167,7 +167,7 @@ DecoderState::decode(size_t top_paths) const
 
   // score the last word of each prefix that doesn't end with space
   if (ext_scorer_ != nullptr) {
-    for (size_t i = 0; i < top_paths && i < prefixes_copy.size(); ++i) {
+    for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
       auto prefix = prefixes_copy[i];
       if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
         float score = 0.0;
@@ -181,13 +181,13 @@ DecoderState::decode(size_t top_paths) const
   }
 
   using namespace std::placeholders;
-  size_t num_prefixes = std::min(prefixes_copy.size(), top_paths);
+  size_t num_prefixes = std::min(prefixes_copy.size(), beam_size_);
   std::partial_sort(prefixes_copy.begin(),
                     prefixes_copy.begin() + num_prefixes,
                     prefixes_copy.end(),
                     std::bind(prefix_compare_external, _1, _2, scores));
 
-  size_t num_returned = std::min(num_prefixes, top_paths);
+  size_t num_returned = std::min(num_prefixes, beam_size_);
 
   std::vector<Output> outputs;
   outputs.reserve(num_returned);
@@ -218,7 +218,6 @@ std::vector<Output> ctc_beam_search_decoder(
     int class_dim,
     const Alphabet &alphabet,
     size_t beam_size,
-    size_t top_paths,
     double cutoff_prob,
     size_t cutoff_top_n,
     Scorer *ext_scorer)
@@ -226,7 +225,7 @@ std::vector<Output> ctc_beam_search_decoder(
   DecoderState state;
   state.init(alphabet, beam_size, cutoff_prob, cutoff_top_n, ext_scorer);
   state.next(probs, time_dim, class_dim);
-  return state.decode(top_paths);
+  return state.decode();
 }
 
 std::vector<std::vector<Output>>
@@ -239,7 +238,6 @@ ctc_beam_search_decoder_batch(
     int seq_lengths_size,
     const Alphabet &alphabet,
     size_t beam_size,
-    size_t top_paths,
     size_t num_processes,
     double cutoff_prob,
     size_t cutoff_top_n,
@@ -259,7 +257,6 @@ ctc_beam_search_decoder_batch(
                                   class_dim,
                                   alphabet,
                                   beam_size,
-                                  top_paths,
                                   cutoff_prob,
                                   cutoff_top_n,
                                   ext_scorer));
