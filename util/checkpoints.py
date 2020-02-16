@@ -56,11 +56,11 @@ def _load_checkpoint(session, checkpoint_path):
                 init_vars.add(v)
         load_vars -= init_vars
 
-    for v in load_vars:
+    for v in sorted(load_vars, key=lambda v: v.op.name):
         log_info('Loading variable from checkpoint: %s' % (v.op.name))
         v.load(ckpt.get_tensor(v.op.name), session=session)
 
-    for v in init_vars:
+    for v in sorted(init_vars, key=lambda v: v.op.name):
         log_info('Initializing variable: %s' % (v.op.name))
         session.run(v.initializer)
 
