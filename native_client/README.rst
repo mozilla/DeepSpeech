@@ -52,7 +52,7 @@ After you have installed the correct version of Bazel, configure TensorFlow:
 Compile DeepSpeech
 ------------------
 
-Compile ``libdeepspeech.so`` & ``generate_trie``
+Compile ``libdeepspeech.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Within your TensorFlow checkout, create a symbolic link to the DeepSpeech ``native_client`` directory. Assuming DeepSpeech and TensorFlow checkouts are in the same directory, do:
@@ -62,11 +62,11 @@ Within your TensorFlow checkout, create a symbolic link to the DeepSpeech ``nati
    cd tensorflow
    ln -s ../DeepSpeech/native_client ./
 
-You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``\ , as well as the ``generate_trie`` binary. Add ``--config=cuda`` if you want a CUDA build.
+You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``\ . Add ``--config=cuda`` if you want a CUDA build.
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -149,13 +149,13 @@ So your command line for ``RPi3`` and ``ARMv7`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 And your command line for ``LePotato`` and ``ARM64`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 While we test only on RPi3 Raspbian Buster and LePotato ARMBian Buster, anything compatible with ``armv7-a cortex-a53`` or ``armv8-a cortex-a53`` should be fine.
 
