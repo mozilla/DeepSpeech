@@ -193,6 +193,14 @@ TensorFlow has tooling to achieve this: it requires building the target ``//tens
 
    $ python3 util/taskcluster.py --source tensorflow --artifact convert_graphdef_memmapped_format --branch r1.15 --target .
 
+You will need to rename the artifact to decompress it and then mark it as an executable:
+
+.. code-block::
+
+   $ mv convert_graphdef_memmapped_format convert_graphdef_memmapped_format.gz
+   $ gzip -d convert_graphdef_memmapped_format.gz
+   $ chmod +x convert_graphdef_memmapped_format
+
 Producing a mmap-able model is as simple as:
 
 .. code-block::
