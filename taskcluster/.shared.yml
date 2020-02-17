@@ -60,8 +60,8 @@ cpp:
     env: 'export EXTRA_ENV="DYLD_LIBRARY_PATH=$LOCAL_HOMEBREW_DIRECTORY/lib/:$DYLD_LIBRARY_PATH"'
 system:
   node_gyp_cache:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.1/artifacts/public/node-gyp-cache.tar.gz'
-    namespace: 'project.deepspeech.node-gyp-cache.1'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.2/artifacts/public/node-gyp-cache.tar.gz'
+    namespace: 'project.deepspeech.node-gyp-cache.2'
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
