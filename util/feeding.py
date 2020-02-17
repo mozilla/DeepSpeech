@@ -146,7 +146,7 @@ def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_
             dtype=tf.string)
         log_info("Collect {} noise files for mixing audio".format(noise_filenames.shape[0]))
         noise_dataset = (tf.data.Dataset.from_tensor_slices(noise_filenames)
-                         .shuffle(noise_filenames.shape[0])
+                         .shuffle(min(noise_filenames.shape[0], 102400))
                          .map(noise_file_to_audio, num_parallel_calls=tf.data.experimental.AUTOTUNE)
                          .prefetch(tf.compat.v1.data.experimental.AUTOTUNE)
                          .repeat())
