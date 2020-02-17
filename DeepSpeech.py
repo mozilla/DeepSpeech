@@ -811,9 +811,6 @@ def do_single_file_inference(input_file_path):
     with tfv1.Session(config=Config.session_config) as session:
         inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=-1)
 
-        # Create a saver using variables from the above newly created graph
-        saver = tfv1.train.Saver()
-
         # Restore variables from training checkpoint
         if FLAGS.load == 'auto':
             method_order = ['best', 'last']

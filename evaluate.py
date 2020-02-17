@@ -81,9 +81,6 @@ def evaluate(test_csvs, create_model):
     except NotImplementedError:
         num_processes = 1
 
-    # Create a saver using variables from the above newly created graph
-    saver = tfv1.train.Saver()
-
     with tfv1.Session(config=Config.session_config) as session:
         if FLAGS.load == 'auto':
             method_order = ['best', 'last']
