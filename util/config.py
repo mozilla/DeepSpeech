@@ -124,4 +124,21 @@ def initialize_globals():
             log_error('Path specified in --one_shot_infer is not a valid file.')
             sys.exit(1)
 
+    if FLAGS.train_cudnn and FLAGS.load_cudnn:
+        log_error('Trying to use --train_cudnn, but --load_cudnn '
+                  'was also specified. The --load_cudnn flag is only '
+                  'needed when converting a CuDNN RNN checkpoint to '
+                  'a CPU-capable graph. If your system is capable of '
+                  'using CuDNN RNN, you can just specify the CuDNN RNN '
+                  'checkpoint normally with --save_checkpoint_dir.')
+        sys.exit(1)
+
+    # If separate save and load flags were not specified, default to load and save
+    # from the same dir.
+    if not FLAGS.save_checkpoint_dir:
+        FLAGS.save_checkpoint_dir = FLAGS.checkpoint_dir
+
+    if not FLAGS.load_checkpoint_dir:
+        FLAGS.load_checkpoint_dir = FLAGS.checkpoint_dir
+
     ConfigSingleton._config = c # pylint: disable=protected-access

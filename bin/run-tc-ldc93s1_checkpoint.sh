@@ -23,7 +23,7 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --learning_rate 0.001 --dropout_rate 0.05 \
   --scorer_path 'data/smoke_test/pruned_lm.scorer' | tee /tmp/resume.log
 
-if ! grep "Restored variables from most recent checkpoint" /tmp/resume.log; then
+if ! grep "Loading best validating checkpoint from" /tmp/resume.log; then
   echo "Did not resume training from checkpoint"
   exit 1
 else
