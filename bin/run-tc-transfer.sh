@@ -19,6 +19,9 @@ fi;
 # and when trying to run on multiple devices (like GPUs), this will break
 export CUDA_VISIBLE_DEVICES=0
 
+# Force UTF-8 output
+export PYTHONIOENCODING=utf-8
+
 echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
 echo "##### while iterating over loading logic #####"
 
