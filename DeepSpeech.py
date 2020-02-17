@@ -6,7 +6,8 @@ import os
 import sys
 
 LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
+DESIRED_LOG_LEVEL = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = DESIRED_LOG_LEVEL
 
 import absl.app
 import json
@@ -16,6 +17,13 @@ import shutil
 import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
 import time
+
+tfv1.logging.set_verbosity({
+    '0': tfv1.logging.DEBUG,
+    '1': tfv1.logging.INFO,
+    '2': tfv1.logging.WARN,
+    '3': tfv1.logging.ERROR
+}.get(DESIRED_LOG_LEVEL))
 
 from datetime import datetime
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer

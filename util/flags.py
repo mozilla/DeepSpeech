@@ -119,7 +119,7 @@ def create_flags():
 
     # Reporting
 
-    f.DEFINE_integer('log_level', 1, 'log level for console logs - 0: INFO, 1: WARN, 2: ERROR, 3: FATAL')
+    f.DEFINE_integer('log_level', 1, 'log level for console logs - 0: DEBUG, 1: INFO, 2: WARN, 3: ERROR')
     f.DEFINE_boolean('show_progressbar', True, 'Show progress for training, validation and testing processes. Log level should be > 0.')
 
     f.DEFINE_boolean('log_placement', False, 'whether to log device placement of the operators to the console')
