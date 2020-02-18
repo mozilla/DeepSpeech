@@ -248,10 +248,7 @@ static void BiggestPowerTen(uint32_t number,
   // Note: kPowersOf10[i] == 10^(i-1).
   exponent_plus_one_guess++;
   // We don't have any guarantees that 2^number_bits <= number.
-  // TODO(floitsch): can we change the 'while' into an 'if'? We definitely see
-  // number < (2^number_bits - 1), but I haven't encountered
-  // number < (2^number_bits - 2) yet.
-  while (number < kSmallPowersOfTen[exponent_plus_one_guess]) {
+  if (number < kSmallPowersOfTen[exponent_plus_one_guess]) {
     exponent_plus_one_guess--;
   }
   *power = kSmallPowersOfTen[exponent_plus_one_guess];
@@ -350,7 +347,8 @@ static bool DigitGen(DiyFp low,
   // that is smaller than integrals.
   while (*kappa > 0) {
     int digit = integrals / divisor;
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     integrals %= divisor;
     (*kappa)--;
@@ -379,13 +377,14 @@ static bool DigitGen(DiyFp low,
   ASSERT(one.e() >= -60);
   ASSERT(fractionals < one.f());
   ASSERT(UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF) / 10 >= one.f());
-  while (true) {
+  for (;;) {
     fractionals *= 10;
     unit *= 10;
     unsafe_interval.set_f(unsafe_interval.f() * 10);
     // Integer division by one.
     int digit = static_cast<int>(fractionals >> -one.e());
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     fractionals &= one.f() - 1;  // Modulo by one.
     (*kappa)--;
@@ -459,7 +458,8 @@ static bool DigitGenCounted(DiyFp w,
   // that is smaller than 'integrals'.
   while (*kappa > 0) {
     int digit = integrals / divisor;
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     requested_digits--;
     integrals %= divisor;
@@ -492,7 +492,8 @@ static bool DigitGenCounted(DiyFp w,
     w_error *= 10;
     // Integer division by one.
     int digit = static_cast<int>(fractionals >> -one.e());
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     requested_digits--;
     fractionals &= one.f() - 1;  // Modulo by one.

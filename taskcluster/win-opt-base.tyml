@@ -34,6 +34,14 @@ payload:
         sha256: 4e799b5c3efcf9efcb84923656b7bcff16f75a666911abd6620ea8e5e1e9870c
         url: >-
           https://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-base-x86_64-20180531.tar.xz/download
+    - directory: .node-gyp
+      format: tar.gz
+      content:
+        url: ${system.node_gyp_cache.url}
+    - directory: ds-swig
+      format: tar.gz
+      content:
+        url: ${system.swig.cache.win_amd64}
 
   env:
     TC_MSYS_VERSION: 'MSYS_NT-6.3'
@@ -66,9 +74,6 @@ payload:
       pacman --noconfirm -R bsdtar &&
       pacman --noconfirm -S tar make &&
       pacman --noconfirm -S zip &&
-      (pacman --noconfirm -S patch swig &&
-        (for patch_file in $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_*.patch ; do patch -d /usr/share/swig/*/ -p2 < $patch_file; done)
-      ) &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
       echo \"export TASKCLUSTER_TASK_EXIT_CODE=$?\" > $USERPROFILE/tc-exit.sh &&

@@ -166,7 +166,7 @@ On a Volta generation V100 GPU, automatic mixed precision speeds up DeepSpeech t
 Checkpointing
 ^^^^^^^^^^^^^
 
-During training of a model so-called checkpoints will get stored on disk. This takes place at a configurable time interval. The purpose of checkpoints is to allow interruption (also in the case of some unexpected failure) and later continuation of training without losing hours of training time. Resuming from checkpoints happens automatically by just (re)starting training with the same ``--checkpoint_dir`` of the former run.
+During training of a model so-called checkpoints will get stored on disk. This takes place at a configurable time interval. The purpose of checkpoints is to allow interruption (also in the case of some unexpected failure) and later continuation of training without losing hours of training time. Resuming from checkpoints happens automatically by just (re)starting training with the same ``--checkpoint_dir`` of the former run. Alternatively, you can specify more fine grained options with ``--load_checkpoint_dir`` and ``--save_checkpoint_dir``, which specify separate locations to use for loading and saving checkpoints respectively. If not specified these flags use the same value as ``--checkpoint_dir``, ie. load from and save to the same directory.
 
 Be aware however that checkpoints are only valid for the same model geometry they had been generated from. In other words: If there are error messages of certain ``Tensors`` having incompatible dimensions, this is most likely due to an incompatible model change. One usual way out would be to wipe all checkpoint files in the checkpoint directory or changing it before starting the training.
 
@@ -213,7 +213,7 @@ For example, if you want to fine tune the entire graph using your own data in ``
    mkdir fine_tuning_checkpoints
    python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder --epochs 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
 
-Note: the released models were trained with ``--n_hidden 2048``\ , so you need to use that same value when initializing from the release models. Since v0.6.0, the release models are also trained with ``--use_cudnn_rnn``\ , so you'll need to specify that as well. If you don't have a CUDA compatible GPU, then you can workaround it by using the ``--cudnn_checkpoint`` flag. Use ``--helpfull`` to get more information on how the flags work. If you try to load a release model without following these steps, you'll get an error similar to this:
+Note: the released models were trained with ``--n_hidden 2048``\ , so you need to use that same value when initializing from the release models. Since v0.6.0, the release models are also trained with ``--train_cudnn``\ , so you'll need to specify that as well. If you don't have a CUDA compatible GPU, then you can workaround it by using the ``--load_cudnn`` flag. Use ``--helpfull`` to get more information on how the flags work. If you try to load a release model without following these steps, you'll get an error similar to this:
 
 .. code-block::
 

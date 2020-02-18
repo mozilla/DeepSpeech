@@ -6,7 +6,8 @@ import os
 import sys
 
 LOG_LEVEL_INDEX = sys.argv.index('--log_level') + 1 if '--log_level' in sys.argv else 0
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
+DESIRED_LOG_LEVEL = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.argv) else '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = DESIRED_LOG_LEVEL
 
 import absl.app
 import json
@@ -17,17 +18,25 @@ import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
 import time
 
+tfv1.logging.set_verbosity({
+    '0': tfv1.logging.DEBUG,
+    '1': tfv1.logging.INFO,
+    '2': tfv1.logging.WARN,
+    '3': tfv1.logging.ERROR
+}.get(DESIRED_LOG_LEVEL))
+
 from datetime import datetime
 from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from evaluate import evaluate
 from six.moves import zip, range
-from tensorflow.python.tools import freeze_graph, strip_unused_lib
 from util.config import Config, initialize_globals
+from util.checkpoints import load_or_init_graph
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
+from util.helpers import check_ctcdecoder_version
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
-from util.helpers import check_ctcdecoder_version; check_ctcdecoder_version()
 
+check_ctcdecoder_version()
 
 # Graph Creation
 # ==============
@@ -221,7 +230,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     # Obtain the next batch of data
     batch_filenames, (batch_x, batch_seq_len), batch_y = iterator.get_next()
 
-    if FLAGS.use_cudnn_rnn:
+    if FLAGS.train_cudnn:
         rnn_impl = rnn_impl_cudnn_rnn
     else:
         rnn_impl = rnn_impl_lstmblockfusedcell
@@ -396,30 +405,6 @@ def log_grads_and_vars(grads_and_vars):
         log_variable(variable, gradient=gradient)
 
 
-def try_loading(session, saver, checkpoint_filename, caption, load_step=True, log_success=True):
-    try:
-        checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir, checkpoint_filename)
-        if not checkpoint:
-            return False
-        checkpoint_path = checkpoint.model_checkpoint_path
-        saver.restore(session, checkpoint_path)
-        if load_step:
-            restored_step = session.run(tfv1.train.get_global_step())
-            if log_success:
-                log_info('Restored variables from %s checkpoint at %s, step %d' %
-                         (caption, checkpoint_path, restored_step))
-        elif log_success:
-            log_info('Restored variables from %s checkpoint at %s' % (caption, checkpoint_path))
-        return True
-    except tf.errors.InvalidArgumentError as e:
-        log_error(str(e))
-        log_error('The checkpoint in {0} does not match the shapes of the model.'
-                  ' Did you change alphabet.txt or the --n_hidden parameter'
-                  ' between train runs using the same checkpoint dir? Try moving'
-                  ' or removing the contents of {0}.'.format(checkpoint_path))
-        sys.exit(1)
-
-
 def train():
     do_cache_dataset = True
 
@@ -495,76 +480,29 @@ def train():
 
     # Checkpointing
     checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
-    checkpoint_path = os.path.join(FLAGS.checkpoint_dir, 'train')
+    checkpoint_path = os.path.join(FLAGS.save_checkpoint_dir, 'train')
 
     best_dev_saver = tfv1.train.Saver(max_to_keep=1)
-    best_dev_path = os.path.join(FLAGS.checkpoint_dir, 'best_dev')
+    best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
 
     # Save flags next to checkpoints
-    os.makedirs(FLAGS.checkpoint_dir, exist_ok=True)
-
-    flags_file = os.path.join(FLAGS.checkpoint_dir, 'flags.txt')
+    os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
+    flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
     with open(flags_file, 'w') as fout:
         fout.write(FLAGS.flags_into_string())
-
-    initializer = tfv1.global_variables_initializer()
 
     with tfv1.Session(config=Config.session_config) as session:
         log_debug('Session opened.')
 
-        # Loading or initializing
-        loaded = False
-
-        # Initialize training from a CuDNN RNN checkpoint
-        if FLAGS.cudnn_checkpoint:
-            if FLAGS.use_cudnn_rnn:
-                log_error('Trying to use --cudnn_checkpoint but --use_cudnn_rnn '
-                          'was specified. The --cudnn_checkpoint flag is only '
-                          'needed when converting a CuDNN RNN checkpoint to '
-                          'a CPU-capable graph. If your system is capable of '
-                          'using CuDNN RNN, you can just specify the CuDNN RNN '
-                          'checkpoint normally with --checkpoint_dir.')
-                sys.exit(1)
-
-            log_info('Converting CuDNN RNN checkpoint from {}'.format(FLAGS.cudnn_checkpoint))
-            ckpt = tfv1.train.load_checkpoint(FLAGS.cudnn_checkpoint)
-            missing_variables = []
-
-            # Load compatible variables from checkpoint
-            for v in tfv1.global_variables():
-                try:
-                    v.load(ckpt.get_tensor(v.op.name), session=session)
-                except tf.errors.NotFoundError:
-                    missing_variables.append(v)
-
-            # Check that the only missing variables are the Adam moment tensors
-            if any('Adam' not in v.op.name for v in missing_variables):
-                log_error('Tried to load a CuDNN RNN checkpoint but there were '
-                          'more missing variables than just the Adam moment '
-                          'tensors.')
-                sys.exit(1)
-
-            # Initialize Adam moment tensors from scratch to allow use of CuDNN
-            # RNN checkpoints.
-            log_info('Initializing missing Adam moment tensors.')
-            init_op = tfv1.variables_initializer(missing_variables)
-            session.run(init_op)
-            loaded = True
-
+        # Prevent further graph changes
         tfv1.get_default_graph().finalize()
 
-        if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, checkpoint_saver, 'checkpoint', 'most recent')
-        if not loaded and FLAGS.load in ['auto', 'best']:
-            loaded = try_loading(session, best_dev_saver, 'best_dev_checkpoint', 'best validation')
-        if not loaded:
-            if FLAGS.load in ['auto', 'init']:
-                log_info('Initializing variables...')
-                session.run(initializer)
-            else:
-                log_error('Unable to load %s model from specified checkpoint dir'
-                          ' - consider using load option "auto" or "init".' % FLAGS.load)
-                sys.exit(1)
+        # Load checkpoint or initialize variables
+        if FLAGS.load == 'auto':
+            method_order = ['best', 'last', 'init']
+        else:
+            method_order = [FLAGS.load]
+        load_or_init_graph(session, method_order)
 
         def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
@@ -694,7 +632,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    samples = evaluate(FLAGS.test_files.split(','), create_model)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
@@ -809,54 +747,46 @@ def export():
     outputs['metadata_sample_rate'] = tf.constant([FLAGS.audio_sample_rate], name='metadata_sample_rate')
     outputs['metadata_feature_win_len'] = tf.constant([FLAGS.feature_win_len], name='metadata_feature_win_len')
     outputs['metadata_feature_win_step'] = tf.constant([FLAGS.feature_win_step], name='metadata_feature_win_step')
+    outputs['metadata_beam_width'] = tf.constant([FLAGS.export_beam_width], name='metadata_beam_width')
     outputs['metadata_alphabet'] = tf.constant([Config.alphabet.serialize()], name='metadata_alphabet')
 
     if FLAGS.export_language:
         outputs['metadata_language'] = tf.constant([FLAGS.export_language.encode('utf-8')], name='metadata_language')
 
+    # Prevent further graph changes
+    tfv1.get_default_graph().finalize()
+
     output_names_tensors = [tensor.op.name for tensor in outputs.values() if isinstance(tensor, Tensor)]
     output_names_ops = [op.name for op in outputs.values() if isinstance(op, Operation)]
-    output_names = ",".join(output_names_tensors + output_names_ops)
+    output_names = output_names_tensors + output_names_ops
 
-    # Create a saver using variables from the above newly created graph
-    saver = tfv1.train.Saver()
+    with tf.Session() as session:
+        # Restore variables from checkpoint
+        if FLAGS.load == 'auto':
+            method_order = ['best', 'last']
+        else:
+            method_order = [FLAGS.load]
+        load_or_init_graph(session, method_order)
 
-    # Restore variables from training checkpoint
-    checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
-    checkpoint_path = checkpoint.model_checkpoint_path
+        output_filename = FLAGS.export_name + '.pb'
+        if FLAGS.remove_export:
+            if os.path.isdir(FLAGS.export_dir):
+                log_info('Removing old export')
+                shutil.rmtree(FLAGS.export_dir)
 
-    output_filename = FLAGS.export_name + '.pb'
-    if FLAGS.remove_export:
-        if os.path.isdir(FLAGS.export_dir):
-            log_info('Removing old export')
-            shutil.rmtree(FLAGS.export_dir)
-    try:
         output_graph_path = os.path.join(FLAGS.export_dir, output_filename)
 
         if not os.path.isdir(FLAGS.export_dir):
             os.makedirs(FLAGS.export_dir)
 
-        def do_graph_freeze(output_file=None, output_node_names=None, variables_blacklist=''):
-            frozen = freeze_graph.freeze_graph_with_def_protos(
-                input_graph_def=tfv1.get_default_graph().as_graph_def(),
-                input_saver_def=saver.as_saver_def(),
-                input_checkpoint=checkpoint_path,
-                output_node_names=output_node_names,
-                restore_op_name=None,
-                filename_tensor_name=None,
-                output_graph=output_file,
-                clear_devices=False,
-                variable_names_blacklist=variables_blacklist,
-                initializer_nodes='')
+        frozen_graph = tfv1.graph_util.convert_variables_to_constants(
+            sess=session,
+            input_graph_def=tfv1.get_default_graph().as_graph_def(),
+            output_node_names=output_names)
 
-            input_node_names = []
-            return strip_unused_lib.strip_unused(
-                input_graph_def=frozen,
-                input_node_names=input_node_names,
-                output_node_names=output_node_names.split(','),
-                placeholder_type_enum=tf.float32.as_datatype_enum)
-
-        frozen_graph = do_graph_freeze(output_node_names=output_names)
+        frozen_graph = tfv1.graph_util.extract_sub_graph(
+            graph_def=frozen_graph,
+            dest_nodes=output_names)
 
         if not FLAGS.export_tflite:
             with open(output_graph_path, 'wb') as fout:
@@ -865,7 +795,7 @@ def export():
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
 
             converter = tf.lite.TFLiteConverter(frozen_graph, input_tensors=inputs.values(), output_tensors=outputs.values())
-            converter.optimizations = [ tf.lite.Optimize.DEFAULT ]
+            converter.optimizations = [tf.lite.Optimize.DEFAULT]
             # AudioSpectrogram and Mfcc ops are custom but have built-in kernels in TFLite
             converter.allow_custom_ops = True
             tflite_model = converter.convert()
@@ -873,11 +803,7 @@ def export():
             with open(output_tflite_path, 'wb') as fout:
                 fout.write(tflite_model)
 
-            log_info('Exported model for TF Lite engine as {}'.format(os.path.basename(output_tflite_path)))
-
         log_info('Models exported at %s' % (FLAGS.export_dir))
-    except RuntimeError as e:
-        log_error(str(e))
 
 def package_zip():
     # --export_dir path/to/export/LANG_CODE/ => path/to/export/LANG_CODE.zip
@@ -887,15 +813,9 @@ def package_zip():
     with open(os.path.join(export_dir, 'info.json'), 'w') as f:
         json.dump({
             'name': FLAGS.export_language,
-            'parameters': {
-                'beamWidth': FLAGS.beam_width,
-                'lmAlpha': FLAGS.lm_alpha,
-                'lmBeta': FLAGS.lm_beta
-            }
         }, f)
 
-    shutil.copy(FLAGS.lm_binary_path, export_dir)
-    shutil.copy(FLAGS.lm_trie_path, export_dir)
+    shutil.copy(FLAGS.scorer_path, export_dir)
 
     archive = shutil.make_archive(zip_filename, 'zip', export_dir)
     log_info('Exported packaged model {}'.format(archive))
@@ -904,18 +824,12 @@ def do_single_file_inference(input_file_path):
     with tfv1.Session(config=Config.session_config) as session:
         inputs, outputs, _ = create_inference_graph(batch_size=1, n_steps=-1)
 
-        # Create a saver using variables from the above newly created graph
-        saver = tfv1.train.Saver()
-
         # Restore variables from training checkpoint
-        loaded = False
-        if not loaded and FLAGS.load in ['auto', 'last']:
-            loaded = try_loading(session, saver, 'checkpoint', 'most recent', load_step=False)
-        if not loaded and FLAGS.load in ['auto', 'best']:
-            loaded = try_loading(session, saver, 'best_dev_checkpoint', 'best validation', load_step=False)
-        if not loaded:
-            print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
-            sys.exit(1)
+        if FLAGS.load == 'auto':
+            method_order = ['best', 'last']
+        else:
+            method_order = [FLAGS.load]
+        load_or_init_graph(session, method_order)
 
         features, features_len = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
@@ -938,10 +852,9 @@ def do_single_file_inference(input_file_path):
 
         logits = np.squeeze(logits)
 
-        if FLAGS.lm_binary_path:
+        if FLAGS.scorer_path:
             scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
-                            FLAGS.lm_binary_path, FLAGS.lm_trie_path,
-                            Config.alphabet)
+                            FLAGS.scorer_path, Config.alphabet)
         else:
             scorer = None
         decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width,

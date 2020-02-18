@@ -257,12 +257,18 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 
 int
 DS_CreateModel(const char* aModelPath,
-               unsigned int aBeamWidth,
                ModelState** retval)
 {
   *retval = nullptr;
 
-  DS_PrintVersions();
+  std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
+  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
+#ifdef __ANDROID__
+  LOGE("TensorFlow: %s", tf_local_git_version());
+  LOGD("TensorFlow: %s", tf_local_git_version());
+  LOGE("DeepSpeech: %s", ds_git_version());
+  LOGD("DeepSpeech: %s", ds_git_version());
+#endif
 
   if (!aModelPath || strlen(aModelPath) < 1) {
     std::cerr << "No model specified, cannot continue." << std::endl;
@@ -282,13 +288,26 @@ DS_CreateModel(const char* aModelPath,
     return DS_ERR_FAIL_CREATE_MODEL;
   }
 
-  int err = model->init(aModelPath, aBeamWidth);
+  int err = model->init(aModelPath);
   if (err != DS_ERR_OK) {
     return err;
   }
 
   *retval = model.release();
   return DS_ERR_OK;
+}
+
+unsigned int
+DS_GetModelBeamWidth(ModelState* aCtx)
+{
+  return aCtx->beam_width_;
+}
+
+int
+DS_SetModelBeamWidth(ModelState* aCtx, unsigned int aBeamWidth)
+{
+  aCtx->beam_width_ = aBeamWidth;
+  return 0;
 }
 
 int
@@ -304,21 +323,36 @@ DS_FreeModel(ModelState* ctx)
 }
 
 int
-DS_EnableDecoderWithLM(ModelState* aCtx,
-                       const char* aLMPath,
-                       const char* aTriePath,
-                       float aLMAlpha,
-                       float aLMBeta)
+DS_EnableExternalScorer(ModelState* aCtx,
+                        const char* aScorerPath)
 {
   aCtx->scorer_.reset(new Scorer());
-  int err = aCtx->scorer_->init(aLMAlpha, aLMBeta,
-                                aLMPath ? aLMPath : "",
-                                aTriePath ? aTriePath : "",
-                                aCtx->alphabet_);
+  int err = aCtx->scorer_->init(aScorerPath, aCtx->alphabet_);
   if (err != 0) {
-    return DS_ERR_INVALID_LM;
+    return DS_ERR_INVALID_SCORER;
   }
   return DS_ERR_OK;
+}
+
+int
+DS_DisableExternalScorer(ModelState* aCtx)
+{
+  if (aCtx->scorer_) {
+    aCtx->scorer_.reset();
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
+}
+
+int DS_SetScorerAlphaBeta(ModelState* aCtx,
+                          float aAlpha,
+                          float aBeta)
+{
+  if (aCtx->scorer_) {
+    aCtx->scorer_->reset_params(aAlpha, aBeta);
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
 }
 
 int
@@ -348,7 +382,7 @@ DS_CreateStream(ModelState* aCtx,
                            aCtx->beam_width_,
                            cutoff_prob,
                            cutoff_top_n,
-                           aCtx->scorer_.get());
+                           aCtx->scorer_);
 
   *retval = ctx.release();
   return DS_ERR_OK;
@@ -440,14 +474,7 @@ DS_FreeString(char* str)
   free(str);
 }
 
-void
-DS_PrintVersions() {
-  std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
-  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
-#ifdef __ANDROID__
-  LOGE("TensorFlow: %s", tf_local_git_version());
-  LOGD("TensorFlow: %s", tf_local_git_version());
-  LOGE("DeepSpeech: %s", ds_git_version());
-  LOGD("DeepSpeech: %s", ds_git_version());
-#endif
+char*
+DS_Version() {
+  return strdup(ds_version());
 }

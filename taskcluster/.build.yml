@@ -21,7 +21,5 @@ build:
   nc_asset_name: 'native_client.tar.xz'
   args:
     tests_cmdline: ''
-  convert_graphdef: ''
-  benchmark_model_bin: ''
   tensorflow_git_desc: 'TensorFlow: v1.15.0-24-gceb46aa'
   test_model_task: ''

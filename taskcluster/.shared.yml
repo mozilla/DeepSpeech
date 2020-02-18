@@ -53,33 +53,22 @@ nodejs:
     prep_11: '/usr/bin/wget.exe https://nodejs.org/dist/v11.15.0/node-v11.15.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v11.15.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v11.15.0-win-x64/:$PATH'
     prep_12: '/usr/bin/wget.exe https://nodejs.org/dist/v12.14.1/node-v12.14.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v12.14.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v12.14.1-win-x64/:$PATH'
     prep_13: '/usr/bin/wget.exe https://nodejs.org/dist/v13.6.0/node-v13.6.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v13.6.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v13.6.0-win-x64/:$PATH'
-## swig -javascript requires swig >= 3.0.7 (14.04 provides 2.0.11)
-## force 3.0.10 for nodejs V8 API compatibility
-swig:
-  packages:
-    install_script: 'wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig_3.0.12-1_amd64.deb -O /tmp/swig_3.0.12-1_amd64.deb && wget http://mirrors.kernel.org/ubuntu/pool/universe/s/swig/swig3.0_3.0.12-1_amd64.deb -O /tmp/swig3.0_3.0.12-1_amd64.deb && dpkg -i /tmp/swig_3.0.12-1_amd64.deb /tmp/swig3.0_3.0.12-1_amd64.deb'
-  patch_nodejs:
-    linux: '(for patch_file in /home/build-user/DeepSpeech/ds/native_client/swig_node_v7x-v8x-v9x_*.patch /home/build-user/DeepSpeech/ds/native_client/swig_node_v10.12.patch /home/build-user/DeepSpeech/ds/native_client/swig_node_v12_*.patch /home/build-user/DeepSpeech/ds/native_client/swig_py38_untrack.patch ; do patch -d /usr/share/swig3.0/ -p2 < $patch_file; done)'
-    # Test if we can reverse patch #2:
-    #   - if yes, likely we are in a good state, patch _0001 and _0002 have
-    #     been applied
-    #   - if no, then we need to apply both
-    #
-    # We cannot test reverse patch of _0002 AND of_0001 since testing reverse
-    # patch of _0001 would require the reverse patch of _0002 to be already
-    # applied, and we don't want to. So just test that reversing _0002 in
-    # dry-run.
-    osx_v12: '(if ! patch -R -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 -s -f --dry-run < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch ; then
-patch -d $TASKCLUSTER_TASK_DIR/homebrew/Cellar/swig/*/share/swig/*/ -p2 < $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch ;
-else
-echo "NO NODEJS v12 PATCH NEEDED";
-fi)'
 cpp:
   brew:
     setup: 'install_local_homebrew "cpp-ds-test"'
     packages: 'install_pkg_local_homebrew "sox"'
     env: 'export EXTRA_ENV="DYLD_LIBRARY_PATH=$LOCAL_HOMEBREW_DIRECTORY/lib/:$DYLD_LIBRARY_PATH"'
 system:
+  node_gyp_cache:
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.2/artifacts/public/node-gyp-cache.tar.gz'
+    namespace: 'project.deepspeech.node-gyp-cache.2'
+  swig:
+    repo: "https://github.com/lissyx/swig"
+    sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
+    cache:
+      linux_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz'
+      darwin_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.darwin.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz'
+      win_amd64: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz'
   username: 'build-user'
   homedir:
     linux: '/home/build-user'

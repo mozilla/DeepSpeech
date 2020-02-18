@@ -19,8 +19,8 @@ void Usage(const char *name) {
     "Each word in the output is formatted as:\n"
     "  word=vocab_id ngram_length log10(p(word|context))\n"
     "where ngram_length is the length of n-gram matched.  A vocab_id of 0 indicates\n"
-    "indicates the unknown word. Sentence-level output includes log10 probability of\n"
-    "the sentence and OOV count.\n";
+    "the unknown word. Sentence-level output includes log10 probability of the\n"
+    "sentence and OOV count.\n";
   exit(1);
 }
 

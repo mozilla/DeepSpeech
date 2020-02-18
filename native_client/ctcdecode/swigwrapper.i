@@ -7,14 +7,21 @@
 #include "workspace_status.h"
 %}
 
-%include "pyabc.i"
-%include "std_string.i"
-%include "std_vector.i"
+%include <pyabc.i>
+%include <std_string.i>
+%include <std_vector.i>
+%include <std_shared_ptr.i>
 %include "numpy.i"
 
 %init %{
 import_array();
 %}
+
+namespace std {
+    %template(StringVector) vector<string>;
+}
+
+%shared_ptr(Scorer);
 
 // Convert NumPy arrays to pointer+lengths
 %apply (double* IN_ARRAY2, int DIM1, int DIM2) {(const double *probs, int time_dim, int class_dim)};

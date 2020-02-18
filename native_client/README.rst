@@ -14,7 +14,7 @@ It is required to use our fork of TensorFlow since it includes fixes for common 
 If you'd like to build the language bindings or the decoder package, you'll also need:
 
 
-* `SWIG >= 3.0.12 <http://www.swig.org/>`_
+* `SWIG >= 3.0.12 <http://www.swig.org/>`_. If you intend to build NodeJS / ElectronJS bindings you will need a patched version of SWIG. Please refer to the matching section below.
 * `node-pre-gyp <https://github.com/mapbox/node-pre-gyp>`_ (for Node.JS bindings only)
 
 Dependencies
@@ -52,7 +52,7 @@ After you have installed the correct version of Bazel, configure TensorFlow:
 Compile DeepSpeech
 ------------------
 
-Compile ``libdeepspeech.so`` & ``generate_trie``
+Compile ``libdeepspeech.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Within your TensorFlow checkout, create a symbolic link to the DeepSpeech ``native_client`` directory. Assuming DeepSpeech and TensorFlow checkouts are in the same directory, do:
@@ -62,11 +62,11 @@ Within your TensorFlow checkout, create a symbolic link to the DeepSpeech ``nati
    cd tensorflow
    ln -s ../DeepSpeech/native_client ./
 
-You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``\ , as well as the ``generate_trie`` binary. Add ``--config=cuda`` if you want a CUDA build.
+You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``\ . Add ``--config=cuda`` if you want a CUDA build.
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -105,37 +105,12 @@ Included are a set of generated Python bindings. After following the above build
 
 The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to `deepspeech.h <deepspeech.h>`_ for documentation.
 
-Install Node.JS bindings
-^^^^^^^^^^^^^^^^^^^^^^^^
+Install NodeJS / ElectronJS bindings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Unfortunately, JavaScript support on SWIG is a bit behind, and while there are
-pending patches proposed to upstream, it is not yet merged.
-
-You would need to patch SWIG, either from your distribution's setup, or do a
-local-patched build of SWIG.
-
-If you patch from a v3.0 SWIG, you will need to apply those:
-
-.. code-block::
-
-   native_client/swig_node_v7x-v8x-v9x_0001.patch
-   native_client/swig_node_v7x-v8x-v9x_0002.patch
-   native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch
-
-If you patch from a v4.0 SWIG, you can just apply this:
-
-.. code-block::
-
-   native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch
-
-On a Debian/Ubuntu system, you would need:
-
-.. code-block::
-
-   for patch_file in native_client/swig_node_v7x-v8x-v9x_0001.patch native_client/swig_node_v7x-v8x-v9x_0002.patch native_client/swig_node_v12_0001-Upgrade-SWIG-to-support-NodeJS-v12-V8-v7.6-v8-v7.8-r.patch;
-   do
-       patch -d /usr/share/swig3.0/ -p2 < $patch_file
-   done;
+Unfortunately, JavaScript support on SWIG is a bit behind, and while there are pending patches proposed to upstream, it is not yet merged.
+You should be able to build from `our fork <https://github.com/lissyx/swig/tree/taskcluster>`_, and you can find pre-built binaries on `TaskCluster <https://community-tc.services.mozilla.com/tasks/index/project.deepspeech.swig>`_ (please look for swig fork sha1).
+Extract the `ds-swig.tar.gz` to some place in your `$HOME`, then update `$PATH` accordingly. You might need to symlink `ds-swig` as `swig`, and you will have to `export SWIG_LIB=<path/to/swig/share>` so that it contains path to `share/swig/<VERSION>/`.
 
 After following the above build and installation instructions, the Node.JS bindings can be built:
 
@@ -174,13 +149,13 @@ So your command line for ``RPi3`` and ``ARMv7`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 And your command line for ``LePotato`` and ``ARM64`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 While we test only on RPi3 Raspbian Buster and LePotato ARMBian Buster, anything compatible with ``armv7-a cortex-a53`` or ``armv8-a cortex-a53`` should be fine.
 

@@ -1,5 +1,8 @@
 build:
   template_file: darwin-opt-base.tyml
+  dependencies:
+    - "swig-darwin-amd64"
+    - "node-gyp-cache"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx-ctc"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx-ctc"

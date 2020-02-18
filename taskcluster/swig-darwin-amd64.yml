@@ -1,0 +1,10 @@
+build:
+  template_file: swig-darwin-opt-base.tyml
+  swig_system: "darwin"
+  swig_arch: "amd64"
+  scripts:
+    build: "taskcluster/build.sh"
+    package: "taskcluster/package.sh"
+  metadata:
+    name: "SWIG macOS AMD64"
+    description: "Building SWIG for macOS/AMD64"

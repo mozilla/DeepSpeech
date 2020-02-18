@@ -106,9 +106,9 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   deepspeech --model models/output_graph.pbmm --lm models/lm.binary --trie models/trie --audio my_audio_file.wav
+   deepspeech --model models/output_graph.pbmm --scorer models/kenlm.scorer --audio my_audio_file.wav
 
-The arguments ``--lm`` and ``--trie`` are optional, and represent a language model.
+The ``--scorer`` argument is optional, and represents an external language model to be used when transcribing the audio.
 
 See :github:`client.py <native_client/python/client.py>` for an example of how to use the package programatically.
 
@@ -156,13 +156,13 @@ also, if you need some binaries different than current master, like ``v0.2.0-alp
 
    python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
 
-The script ``taskcluster.py`` will download ``native_client.tar.xz`` (which includes the ``deepspeech`` binary, ``generate_trie`` and associated libraries) and extract it into the current folder. Also, ``taskcluster.py`` will download binaries for Linux/x86_64 by default, but you can override that behavior with the ``--arch`` parameter. See the help info with ``python util/taskcluster.py -h`` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
+The script ``taskcluster.py`` will download ``native_client.tar.xz`` (which includes the ``deepspeech`` binary and associated libraries) and extract it into the current folder. Also, ``taskcluster.py`` will download binaries for Linux/x86_64 by default, but you can override that behavior with the ``--arch`` parameter. See the help info with ``python util/taskcluster.py -h`` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
 
 Note: the following command assumes you `downloaded the pre-trained model <#getting-the-pre-trained-model>`_.
 
 .. code-block:: bash
 
-   ./deepspeech --model models/output_graph.pbmm --lm models/lm.binary --trie models/trie --audio audio_input.wav
+   ./deepspeech --model models/output_graph.pbmm --scorer models/kenlm.scorer --audio audio_input.wav
 
 See the help output with ``./deepspeech -h`` and the :github:`native client README <native_client/README.rst>` for more details.
 

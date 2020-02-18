@@ -142,7 +142,7 @@ void UnmapOrThrow(void *start, size_t length) {
 #if defined(_WIN32) || defined(_WIN64)
   UTIL_THROW_IF(!::UnmapViewOfFile(start), ErrnoException, "Failed to unmap a file");
 #else
-  UTIL_THROW_IF(munmap(start, length), ErrnoException, "munmap failed");
+  UTIL_THROW_IF(munmap(start, length), ErrnoException, "munmap failed with " << start << " for length " << length);
 #endif
 }
 

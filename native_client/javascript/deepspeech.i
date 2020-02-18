@@ -36,6 +36,7 @@ using namespace node;
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
+%newobject DS_Version;
 
 // convert double pointer retval in CreateModel to an output
 %typemap(in, numinputs=0) ModelState **retval (ModelState *ret) {

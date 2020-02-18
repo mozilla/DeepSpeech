@@ -368,21 +368,32 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
-  int status = DS_CreateModel(model, beam_width, &ctx);
+  int status = DS_CreateModel(model, &ctx);
   if (status != 0) {
     fprintf(stderr, "Could not create model.\n");
     return 1;
   }
 
-  if (lm && (trie || load_without_trie)) {
-    int status = DS_EnableDecoderWithLM(ctx,
-                                        lm,
-                                        trie,
-                                        lm_alpha,
-                                        lm_beta);
+  if (set_beamwidth) {
+    status = DS_SetModelBeamWidth(ctx, beam_width);
     if (status != 0) {
-      fprintf(stderr, "Could not enable CTC decoder with LM.\n");
+      fprintf(stderr, "Could not set model beam width.\n");
       return 1;
+    }
+  }
+
+  if (scorer) {
+    status = DS_EnableExternalScorer(ctx, scorer);
+    if (status != 0) {
+      fprintf(stderr, "Could not enable external scorer.\n");
+      return 1;
+    }
+    if (set_alphabeta) {
+      status = DS_SetScorerAlphaBeta(ctx, lm_alpha, lm_beta);
+      if (status != 0) {
+        fprintf(stderr, "Error setting scorer alpha and beta.\n");
+        return 1;
+      }
     }
   }
 

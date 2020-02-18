@@ -108,7 +108,7 @@ typedef union { float f; uint32_t i; } FloatEnc;
 
 inline float ReadFloat32(const void *base, uint64_t bit_off) {
   FloatEnc encoded;
-  encoded.i = ReadOff(base, bit_off) >> BitPackShift(bit_off & 7, 32);
+  encoded.i = static_cast<uint32_t>(ReadOff(base, bit_off) >> BitPackShift(bit_off & 7, 32));
   return encoded.f;
 }
 inline void WriteFloat32(void *base, uint64_t bit_off, float value) {
@@ -135,7 +135,7 @@ inline void UnsetSign(float &to) {
 
 inline float ReadNonPositiveFloat31(const void *base, uint64_t bit_off) {
   FloatEnc encoded;
-  encoded.i = ReadOff(base, bit_off) >> BitPackShift(bit_off & 7, 31);
+  encoded.i = static_cast<uint32_t>(ReadOff(base, bit_off) >> BitPackShift(bit_off & 7, 31));
   // Sign bit set means negative.
   encoded.i |= kSignBit;
   return encoded.f;

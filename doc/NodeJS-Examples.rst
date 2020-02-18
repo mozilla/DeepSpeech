@@ -7,7 +7,7 @@ Creating a model instance and loading model
 .. literalinclude:: ../native_client/javascript/client.js
    :language: javascript
    :linenos:
-   :lines: 57-66
+   :lines: 56,69
 
 Performing inference
 --------------------
@@ -15,7 +15,7 @@ Performing inference
 .. literalinclude:: ../native_client/javascript/client.js
    :language: javascript
    :linenos:
-   :lines: 115-117
+   :lines: 122
 
 Full source code
 ----------------

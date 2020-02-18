@@ -1,0 +1,8 @@
+build:
+  template_file: node-gyp-cache-base.tyml
+  scripts:
+    build: "taskcluster/node-gyp-populate.sh"
+    package: "taskcluster/node-gyp-package.sh"
+  metadata:
+    name: "Cache for node-gyp headers"
+    description: "Building cache for node-gyp headers"

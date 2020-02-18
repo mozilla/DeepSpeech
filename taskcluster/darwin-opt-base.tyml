@@ -99,8 +99,7 @@ payload:
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
         cd $TASKCLUSTER_TASK_DIR &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
-        $TASKCLUSTER_TASK_DIR/homebrew/bin/brew reinstall swig &&
-        ${swig.patch_nodejs.osx_v12} &&
+        $TASKCLUSTER_TASK_DIR/homebrew/bin/brew uninstall swig &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package}
 
@@ -112,6 +111,8 @@ payload:
         then: { $fromNow: '6 months' }
         else: { $fromNow: '7 days' }
 
+  # Define node gyp cache and swig mount twice because we cannot have it
+  # separated from the if/then without the parser to break
   mounts:
     $if: '(event.event != "push") && (event.event != "tag")'
     then:
@@ -121,6 +122,23 @@ payload:
         directory: homebrew.cache/
       - cacheName: deepspeech-macos-pyenv
         directory: pyenv.cache/
+      - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
+        format: tar.gz
+        content:
+          url: ${system.node_gyp_cache.url}
+      - directory: ds-swig
+        format: tar.gz
+        content:
+          url: ${system.swig.cache.darwin_amd64}
+    else:
+      - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
+        format: tar.gz
+        content:
+          url: ${system.node_gyp_cache.url}
+      - directory: ds-swig
+        format: tar.gz
+        content:
+          url: ${system.swig.cache.darwin_amd64}
 
 metadata:
   name: ${build.metadata.name}

@@ -172,7 +172,7 @@ RUN ./configure
 
 
 # Build DeepSpeech
-RUN bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+RUN bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=cuda -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-mtune=generic --copt=-march=x86-64 --copt=-msse --copt=-msse2 --copt=-msse3 --copt=-msse4.1 --copt=-msse4.2 --copt=-mavx --copt=-fvisibility=hidden //native_client:libdeepspeech.so --verbose_failures --action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 ###
 ### Using TensorFlow upstream should work
@@ -187,8 +187,7 @@ RUN bazel build --workspace_status_command="bash native_client/bazel_workspace_s
 # RUN pip3 install /tmp/tensorflow_pkg/*.whl
 
 # Copy built libs to /DeepSpeech/native_client
-RUN cp /tensorflow/bazel-bin/native_client/generate_trie /DeepSpeech/native_client/ \
-    && cp /tensorflow/bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/
+RUN cp /tensorflow/bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/
 
 # Install TensorFlow
 WORKDIR /DeepSpeech/

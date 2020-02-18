@@ -24,10 +24,8 @@ ModelState::~ModelState()
 }
 
 int
-ModelState::init(const char* model_path,
-                 unsigned int beam_width)
+ModelState::init(const char* model_path)
 {
-  beam_width_ = beam_width;
   return DS_ERR_OK;
 }
 

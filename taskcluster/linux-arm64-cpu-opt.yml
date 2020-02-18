@@ -1,5 +1,8 @@
 build:
   template_file: linux-opt-base.tyml
+  dependencies:
+    - "swig-linux-amd64"
+    - "node-gyp-cache"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.arm64"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.arm64"
@@ -13,11 +16,10 @@ build:
       echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
       ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
       && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
+      apt-get -qq -y install ${python.packages_trusty.apt}
   system_config:
     >
-      multistrap -d /tmp/multistrap-armbian64-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_armbian64_buster.conf &&
-      ${swig.patch_nodejs.linux}
+      multistrap -d /tmp/multistrap-armbian64-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_armbian64_buster.conf
   scripts:
     build: "taskcluster/arm64-build.sh"
     package: "taskcluster/package.sh"

@@ -7,6 +7,12 @@ Model
 .. js:autoclass:: Model
    :members:
 
+Stream
+------
+
+.. js:autoclass:: Stream
+   :members:
+
 Module exported methods
 -----------------------
 
@@ -16,7 +22,7 @@ Module exported methods
 
 .. js:autofunction:: FreeMetadata
 
-.. js:autofunction:: printVersions
+.. js:autofunction:: Version
 
 Metadata
 --------

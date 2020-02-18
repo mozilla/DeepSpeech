@@ -7,7 +7,13 @@ C
 .. doxygenfunction:: DS_FreeModel
    :project: deepspeech-c
 
-.. doxygenfunction:: DS_EnableDecoderWithLM
+.. doxygenfunction:: DS_EnableExternalScorer
+   :project: deepspeech-c
+
+.. doxygenfunction:: DS_DisableExternalScorer
+   :project: deepspeech-c
+
+.. doxygenfunction:: DS_SetScorerAlphaBeta
    :project: deepspeech-c
 
 .. doxygenfunction:: DS_GetModelSampleRate
@@ -43,5 +49,5 @@ C
 .. doxygenfunction:: DS_FreeString
    :project: deepspeech-c
 
-.. doxygenfunction:: DS_PrintVersions
+.. doxygenfunction:: DS_Version
    :project: deepspeech-c

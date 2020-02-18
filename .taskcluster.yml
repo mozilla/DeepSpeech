@@ -27,6 +27,7 @@ tasks:
     scopes: [
       "queue:create-task:highest:proj-deepspeech/*",
       "queue:route:index.project.deepspeech.*",
+      "index:insert-task:project.deepspeech.*",
       "queue:route:notify.irc-channel.*",
       "queue:scheduler-id:taskcluster-github",
       "generic-worker:cache:deepspeech-homebrew-bin",

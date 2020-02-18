@@ -86,17 +86,15 @@ popd
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
 cp /tmp/train_tflite/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}
 
-if [ ! -z "${CONVERT_GRAPHDEF_MEMMAPPED}" ]; then
-  convert_graphdef=$(basename "${CONVERT_GRAPHDEF_MEMMAPPED}")
-  wget -P "/tmp/" "${CONVERT_GRAPHDEF_MEMMAPPED}" && chmod +x "/tmp/${convert_graphdef}"
+pushd ${HOME}/DeepSpeech/ds/
+    python util/taskcluster.py --source tensorflow --artifact convert_graphdef_memmapped_format --branch r1.15 --target /tmp/
+popd
 
-  /tmp/${convert_graphdef} --in_graph=/tmp/train/output_graph.pb --out_graph=/tmp/train/output_graph.pbmm
-  cp /tmp/train/output_graph.pbmm ${TASKCLUSTER_ARTIFACTS}
-fi;
+/tmp/convert_graphdef_memmapped_format --in_graph=/tmp/train/output_graph.pb --out_graph=/tmp/train/output_graph.pbmm
+cp /tmp/train/output_graph.pbmm ${TASKCLUSTER_ARTIFACTS}
 
 pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1_checkpoint.sh
 popd
 
 deactivate
-pyenv uninstall --force ${PYENV_NAME}

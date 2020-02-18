@@ -10,9 +10,10 @@ namespace DeepSpeechClient.Interfaces
     public interface IDeepSpeech : IDisposable
     {
         /// <summary>
-        /// Prints the versions of Tensorflow and DeepSpeech.
+        /// Return version of this library. The returned version is a semantic version
+        /// (SemVer 2.0.0).
         /// </summary>
-        void PrintVersions();
+        unsafe string Version();
 
         /// <summary>
         /// Return the sample rate expected by the model.
@@ -21,18 +22,41 @@ namespace DeepSpeechClient.Interfaces
         unsafe int GetModelSampleRate();
 
         /// <summary>
-        /// Enable decoding using beam scoring with a KenLM language model.
+        /// Get beam width value used by the model. If SetModelBeamWidth was not
+        /// called before, will return the default value loaded from the model
+        /// file.
         /// </summary>
-        /// <param name="aLMPath">The path to the language model binary file.</param>
-        /// <param name="aTriePath">The path to the trie file build from the same vocabulary as the language model binary.</param>
-        /// <param name="aLMAlpha">The alpha hyperparameter of the CTC decoder. Language Model weight.</param>
-        /// <param name="aLMBeta">The beta hyperparameter of the CTC decoder. Word insertion weight.</param>
-        /// <exception cref="ArgumentException">Thrown when the native binary failed to enable decoding with a language model.</exception>
-        /// <exception cref="FileNotFoundException">Thrown when cannot find the language model or trie file.</exception>
-        unsafe void EnableDecoderWithLM(string aLMPath,
-                  string aTriePath,
-                  float aLMAlpha,
-                  float aLMBeta);
+        /// <returns>Beam width value used by the model.</returns>
+        unsafe uint GetModelBeamWidth();
+
+        /// <summary>
+        /// Set beam width value used by the model.
+        /// </summary>
+        /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width value generates better results at the cost of decoding time.</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        unsafe void SetModelBeamWidth(uint aBeamWidth);
+
+        /// <summary>
+        /// Enable decoding using an external scorer.
+        /// </summary>
+        /// <param name="aScorerPath">The path to the external scorer file.</param>
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to enable decoding with an external scorer.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when cannot find the scorer file.</exception>
+        unsafe void EnableExternalScorer(string aScorerPath);
+
+        /// <summary>
+        /// Disable decoding using an external scorer.
+        /// </summary>
+        /// <exception cref="ArgumentException">Thrown when an external scorer is not enabled.</exception>
+        unsafe void DisableExternalScorer();
+
+        /// <summary>
+        /// Set hyperparameters alpha and beta of the external scorer.
+        /// </summary>
+        /// <param name="aAlpha">The alpha hyperparameter of the decoder. Language model weight.</param>
+        /// <param name="aBeta">The beta hyperparameter of the decoder. Word insertion weight.</param>
+        /// <exception cref="ArgumentException">Thrown when an external scorer is not enabled.</exception>
+        unsafe void SetScorerAlphaBeta(float aAlpha, float aBeta);
 
         /// <summary>
         /// Use the DeepSpeech model to perform Speech-To-Text.
