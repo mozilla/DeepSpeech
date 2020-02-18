@@ -78,7 +78,7 @@ mv "${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/${sample_name}" "${DS_ROOT_TAS
 
 pushd ${HOME}/DeepSpeech/ds/
     # Run twice to test preprocessed features
-    time ./bin/run-tc-ldc93s1_new.sh 219 "${sample_rate}"
+    time ./bin/run-tc-ldc93s1_new.sh 249 "${sample_rate}"
     time ./bin/run-tc-ldc93s1_new.sh 1 "${sample_rate}"
     time ./bin/run-tc-ldc93s1_tflite.sh "${sample_rate}"
 popd
