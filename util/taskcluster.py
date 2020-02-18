@@ -9,6 +9,7 @@ import sys
 import os
 import errno
 import stat
+import gzip
 
 import six.moves.urllib as urllib
 
@@ -52,11 +53,20 @@ def maybe_download_tc(target_dir, tc_url, progress=True):
 
     tc_filename = os.path.basename(tc_url)
     target_file = os.path.join(target_dir, tc_filename)
+    is_gzip = False
     if not os.path.isfile(target_file):
         print('Downloading %s ...' % tc_url)
-        urllib.request.urlretrieve(tc_url, target_file, reporthook=(report_progress if progress else None))
+        _, headers = urllib.request.urlretrieve(tc_url, target_file, reporthook=(report_progress if progress else None))
+        is_gzip = headers.get('Content-Encoding') == 'gzip'
     else:
         print('File already exists: %s' % target_file)
+
+    if is_gzip:
+        with open(target_file, "r+b") as frw:
+            decompressed = gzip.decompress(frw.read())
+            frw.seek(0)
+            frw.write(decompressed)
+            frw.truncate()
 
     return target_file
 
