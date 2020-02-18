@@ -52,6 +52,10 @@ do_deepspeech_python_build()
     setup_pyenv_virtualenv "${pyalias}" "deepspeech"
     virtualenv_activate "${pyalias}" "deepspeech"
 
+    python --version
+    which pip
+    which pip3
+
     # Set LD path because python ssl might require it
     LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
@@ -116,6 +120,10 @@ do_deepspeech_decoder_build()
 
     setup_pyenv_virtualenv "${pyalias}" "deepspeech"
     virtualenv_activate "${pyalias}" "deepspeech"
+
+    python --version
+    which pip
+    which pip3
 
     # Set LD path because python ssl might require it
     LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \

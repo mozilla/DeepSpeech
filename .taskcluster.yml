@@ -26,9 +26,6 @@ tasks:
       "queue:route:index.project.deepspeech.*",
       "index:insert-task:project.deepspeech.*",
       "queue:scheduler-id:taskcluster-github",
-      "generic-worker:cache:deepspeech-homebrew-bin",
-      "generic-worker:cache:deepspeech-homebrew-cache",
-      "generic-worker:cache:deepspeech-homebrew-local",
       "generic-worker:cache:deepspeech-macos-pyenv",
     ]
 

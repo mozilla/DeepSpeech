@@ -21,10 +21,21 @@ if [ "${OS}" = "Darwin" ]; then
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export DS_CPU_COUNT=$(sysctl hw.ncpu |cut -d' ' -f2)
 
-    # It seems chaining |export DYLD_LIBRARY_PATH=...| does not work, maybe
-    # because of SIP? Who knows ...
-    if [ ! -z "${EXTRA_ENV}" ]; then
-        eval "export ${EXTRA_ENV}"
+    export HOMEBREW_NO_AUTO_UPDATE=1
+    export BREW_URL=https://github.com/Homebrew/brew/tarball/2.1.14
+
+    export BUILDS_BREW="${TASKCLUSTER_TASK_DIR}/homebrew-builds"
+    export TESTS_BREW="${TASKCLUSTER_TASK_DIR}/homebrew-tests"
+
+    export NVM_DIR=$TESTS_BREW/.nvm/ && mkdir -p $NVM_DIR
+    export PKG_CONFIG_PATH="${BUILDS_BREW}/lib/pkgconfig"
+
+    if [ -f "${BUILDS_BREW}/bin/brew" ]; then
+        export PATH=${BUILDS_BREW}/bin/:${BUILDS_BREW}/opt/node@12/bin:$PATH
+    fi;
+
+    if [ -f "${TESTS_BREW}/bin/brew" ]; then
+        export PATH=${TESTS_BREW}/bin/:$PATH
     fi;
 fi;
 

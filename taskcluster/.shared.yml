@@ -3,9 +3,6 @@ python:
     apt: 'make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev liblzma-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libpng-dev libsox-dev libmagic-dev libgsm1-dev libltdl-dev'
   packages_buster:
     apt: 'make build-essential libssl-dev libffi-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
-  brew:
-    setup: 'install_local_homebrew "python-ds-test" && install_pkg_local_homebrew "sox" && install_pkg_local_homebrew "readline" && install_pkg_local_homebrew "openssl" && install_pkg_local_homebrew "pkg-config"'
-    env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/python-ds-test.brew/bin/:$PATH"'
   packages_docs_bionic:
     apt: 'python3 python3-pip zip doxygen'
 electronjs:
@@ -36,32 +33,25 @@ nodejs:
     prep_12: 'echo "deb http://deb.nodesource.com/node_12.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
     prep_13: 'echo "deb http://deb.nodesource.com/node_13.x buster main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   brew:
-    # Using 'nvm' from homebrew results in installing v0.33.6 which seems to
-    # suffer from a bug making it unable to work as of now:
-    # https://github.com/creationix/nvm/issues/1652
-    #
-    # Documented workaround is to rely on 0.33.4 (bug seems to have been
-    # introduced by 0.33.5).
-    setup: 'install_local_homebrew "node-ds-test" && install_pkg_local_homebrew "sox" && export NVM_DIR=$TASKCLUSTER_TASK_DIR/.nvm/ && mkdir -p $NVM_DIR  && curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh |  bash && source $NVM_DIR/nvm.sh'
-    env: 'export EXTRA_ENV="PATH=$TASKCLUSTER_TASK_DIR/node-ds-test.brew/bin/:$PATH"'
-    prep_10: 'nvm install 10.18.1 && nvm use 10.18.1'
-    prep_11: 'nvm install 11.15.0 && nvm use 11.15.0'
-    prep_12: 'nvm install 12.14.1 && nvm use 12.14.1'
-    prep_13: 'nvm install 13.6.0 && nvm use 13.6.0'
+    prep_10: 'export NVM_DIR=$TASKCLUSTER_TASK_DIR/homebrew-tests/.nvm/ && source "$TASKCLUSTER_TASK_DIR/homebrew-tests/opt/nvm/nvm.sh" && nvm use 10.18.1'
+    prep_11: 'export NVM_DIR=$TASKCLUSTER_TASK_DIR/homebrew-tests/.nvm/ && source "$TASKCLUSTER_TASK_DIR/homebrew-tests/opt/nvm/nvm.sh" && nvm use 11.15.0'
+    prep_12: 'export NVM_DIR=$TASKCLUSTER_TASK_DIR/homebrew-tests/.nvm/ && source "$TASKCLUSTER_TASK_DIR/homebrew-tests/opt/nvm/nvm.sh" && nvm use 12.8.1'
+    prep_13: 'export NVM_DIR=$TASKCLUSTER_TASK_DIR/homebrew-tests/.nvm/ && source "$TASKCLUSTER_TASK_DIR/homebrew-tests/opt/nvm/nvm.sh" && nvm use 13.1.0'
   win:
     prep_10: '/usr/bin/wget.exe https://nodejs.org/dist/v10.18.1/node-v10.18.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v10.18.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v10.18.1-win-x64/:$PATH'
     prep_11: '/usr/bin/wget.exe https://nodejs.org/dist/v11.15.0/node-v11.15.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v11.15.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v11.15.0-win-x64/:$PATH'
     prep_12: '/usr/bin/wget.exe https://nodejs.org/dist/v12.14.1/node-v12.14.1-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v12.14.1-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v12.14.1-win-x64/:$PATH'
     prep_13: '/usr/bin/wget.exe https://nodejs.org/dist/v13.6.0/node-v13.6.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v13.6.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v13.6.0-win-x64/:$PATH'
-cpp:
-  brew:
-    setup: 'install_local_homebrew "cpp-ds-test"'
-    packages: 'install_pkg_local_homebrew "sox"'
-    env: 'export EXTRA_ENV="DYLD_LIBRARY_PATH=$LOCAL_HOMEBREW_DIRECTORY/lib/:$DYLD_LIBRARY_PATH"'
 system:
   node_gyp_cache:
     url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.2/artifacts/public/node-gyp-cache.tar.gz'
     namespace: 'project.deepspeech.node-gyp-cache.2'
+  homebrew_builds:
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_builds.4/artifacts/public/homebrew_builds.tar.gz'
+    namespace: 'project.deepspeech.homebrew_builds.4'
+  homebrew_tests:
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_tests.4/artifacts/public/homebrew_tests.tar.gz'
+    namespace: 'project.deepspeech.homebrew_tests.4'
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"

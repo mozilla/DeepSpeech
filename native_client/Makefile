@@ -21,7 +21,7 @@ clean:
 $(DEEPSPEECH_BIN): client.cc
 	$(CXX) $(CFLAGS) $(CFLAGS_DEEPSPEECH) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS)
 ifeq ($(OS),Darwin)
-	install_name_tool -change $$TASKCLUSTER_TASK_DIR/homebrew/opt/sox/lib/libsox.3.dylib @rpath/libsox.3.dylib deepspeech
+	install_name_tool -change $$TASKCLUSTER_TASK_DIR/homebrew-builds/opt/sox/lib/libsox.3.dylib @rpath/libsox.3.dylib deepspeech
 	install_name_tool -change bazel-out/local-opt/bin/native_client/libdeepspeech.so @rpath/libdeepspeech.so deepspeech
 endif
 

@@ -1,0 +1,11 @@
+build:
+  template_file: homebrew-darwin-opt-base.tyml
+  homebrew:
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_builds.4/artifacts/public/homebrew_builds.tar.gz'
+    namespace: 'project.deepspeech.homebrew_builds.4'
+  scripts:
+    build: "taskcluster/homebrew-build.sh --builds"
+    package: "taskcluster/homebrew-package.sh --builds"
+  metadata:
+    name: "Builds Homebrew macOS AMD64"
+    description: "Setup a buildsl Homebrew for macOS/AMD64"
