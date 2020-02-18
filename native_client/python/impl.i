@@ -46,6 +46,23 @@ import_array();
   }
 %}
 
+%extend struct MetadataItem {
+%pythoncode %{
+  def __repr__(self):
+    return 'MetadataItem(character=\'{}\', timestep={}, start_time={})'.format(self.character, self.timestep, self.start_time)
+%}
+}
+
+%extend struct Metadata {
+%pythoncode %{
+  def __repr__(self):
+    items_repr = ', \n'.join('  ' + repr(i) for i in self.items)
+    return 'Metadata(confidence={}, items=[\n{}\n])'.format(self.confidence, items_repr)
+%}
+}
+
+%ignore Metadata::num_items;
+
 %extend struct Metadata {
   ~Metadata() {
     DS_FreeMetadata($self);
