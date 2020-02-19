@@ -35,7 +35,7 @@ function Model(aModelPath) {
     const status = rets[0];
     const impl = rets[1];
     if (status !== 0) {
-        throw "CreateModel failed with error code " + status;
+        throw "CreateModel failed with error code 0x" + status.toString(16);
     }
 
     this._impl = impl;
@@ -138,7 +138,7 @@ Model.prototype.createStream = function() {
     const status = rets[0];
     const ctx = rets[1];
     if (status !== 0) {
-        throw "CreateStream failed with error code " + status;
+        throw "CreateStream failed with error code 0x" + status.toString(16);
     }
     return ctx;
 }
