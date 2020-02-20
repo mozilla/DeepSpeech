@@ -3,9 +3,6 @@ build:
   dependencies:
     - "linux-amd64-gpu-opt"
     - "win-amd64-gpu-opt"
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}

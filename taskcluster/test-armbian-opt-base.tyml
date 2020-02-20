@@ -17,14 +17,6 @@ then:
     github:
       { $eval: taskcluster.github_events.pull_request }
 
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
-
-  scopes: [
-    "queue:route:notify.irc-channel.*"
-  ]
-
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
     image: "arm64v8/debian:buster-20190812"

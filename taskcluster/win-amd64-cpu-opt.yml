@@ -4,8 +4,6 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win"
     - "index.project.deepspeech.deepspeech.native_client.win.${event.head.sha}"
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   dependencies:
     - "node-gyp-cache"
     - "swig-win-amd64"

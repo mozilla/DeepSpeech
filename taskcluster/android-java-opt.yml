@@ -4,8 +4,6 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.android-apk.${event.head.sha}"
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   dependencies:
      - "android-arm64-cpu-opt"
      - "android-armv7-cpu-opt"

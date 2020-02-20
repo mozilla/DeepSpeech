@@ -17,12 +17,7 @@ then:
     github:
       { $eval: taskcluster.github_events.pull_request }
 
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
-
   scopes: [
-    "queue:route:notify.irc-channel.*",
     "generic-worker:cache:deepspeech-homebrew-bin",
     "generic-worker:cache:deepspeech-homebrew-cache",
     "generic-worker:cache:deepspeech-homebrew-local",
