@@ -26,11 +26,6 @@ routes:
   then:
     { $eval: build.routes }
 
-scopes:
-  $if: '(event.event != "push") && (event.event != "tag")'
-  then:
-    - generic-worker:cache:deepspeech-macos-pyenv
-
 payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }
 
@@ -53,8 +48,8 @@ payload:
       - "-cxe"
       - >
         export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
-        export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" && cd ../tc-workdir/ &&
-        (mv $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ pyenv.cache/ || true) &&
+        export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
+        (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
         export TASKCLUSTER_TASK_DIR="$(pwd)" &&
         export LC_ALL=C &&
         export MACOSX_DEPLOYMENT_TARGET=10.10 &&
@@ -62,7 +57,6 @@ payload:
         export HOMEBREW_NO_AUTO_UPDATE=1 &&
         env &&
         trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-        (mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ || true) &&
         cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
         exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
         (pixz -d < $TASKCLUSTER_ORIG_TASKDIR/home.tar.xz | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
@@ -70,6 +64,8 @@ payload:
         cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
         cd $TASKCLUSTER_TASK_DIR &&
+        (mkdir pyenv-root/ && gtar -C pyenv-root/ -xf $TASKCLUSTER_ORIG_TASKDIR/pyenv.tar.gz) &&
+        (mkdir homebrew-builds/ && gtar -C homebrew-builds/ -xf $TASKCLUSTER_ORIG_TASKDIR/homebrew-builds.tar.gz) &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package}
 
@@ -82,41 +78,23 @@ payload:
         else: { $fromNow: '7 days' }
 
   mounts:
-    $if: '(event.event != "push") && (event.event != "tag")'
-    then:
-      - cacheName: deepspeech-macos-pyenv
-        directory: pyenv.cache/
-      - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
-        format: tar.gz
-        content:
-          url: ${system.node_gyp_cache.url}
-      - directory: ds-swig
-        format: tar.gz
-        content:
-          url: ${system.swig.cache.darwin_amd64}
-      - file: home.tar.xz
-        content:
-          url: ${build.tensorflow}
-      - directory: ../tc-workdir/homebrew-builds
-        format: tar.gz
-        content:
-          url: ${system.homebrew_builds.url}
-    else:
-      - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
-        format: tar.gz
-        content:
-          url: ${system.node_gyp_cache.url}
-      - directory: ds-swig
-        format: tar.gz
-        content:
-          url: ${system.swig.cache.darwin_amd64}
-      - file: home.tar.xz
-        content:
-          url: ${build.tensorflow}
-      - directory: ../tc-workdir/homebrew-builds
-        format: tar.gz
-        content:
-          url: ${system.homebrew_builds.url}
+    - file: pyenv.tar.gz
+      content:
+        url: ${system.pyenv.osx.url}
+    - file: homebrew-builds.tar.gz
+      content:
+        url: ${system.homebrew_builds.url}
+    - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
+      format: tar.gz
+      content:
+        url: ${system.node_gyp_cache.url}
+    - directory: ds-swig
+      format: tar.gz
+      content:
+        url: ${system.swig.cache.darwin_amd64}
+    - file: home.tar.xz
+      content:
+        url: ${build.tensorflow}
 
 metadata:
   name: ${build.metadata.name}

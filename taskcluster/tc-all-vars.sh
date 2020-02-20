@@ -5,12 +5,14 @@ set -xe
 export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=${HOME}
+    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
     export SWIG_ROOT="${HOME}/ds-swig"
     export DS_CPU_COUNT=$(nproc)
 fi;
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
+    export PYENV_ROOT="${TASKCLUSTER_TASK_DIR}/pyenv-root"
     export SWIG_ROOT="$(cygpath ${USERPROFILE})/ds-swig"
     export PLATFORM_EXE_SUFFIX=.exe
     export DS_CPU_COUNT=$(nproc)
@@ -20,6 +22,7 @@ if [ "${OS}" = "Darwin" ]; then
     export SWIG_ROOT="${TASKCLUSTER_ORIG_TASKDIR}/ds-swig"
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export DS_CPU_COUNT=$(sysctl hw.ncpu |cut -d' ' -f2)
+    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
 
     export HOMEBREW_NO_AUTO_UPDATE=1
     export BREW_URL=https://github.com/Homebrew/brew/tarball/2.1.14
@@ -51,6 +54,10 @@ if [ -f "${SWIG_ROOT}/bin/${DS_SWIG_BIN}" ]; then
     swig -version
     swig -swiglib
 fi;
+
+PY37_OPENSSL_DIR="${PYENV_ROOT}/ssl-xenial"
+export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
+export LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH
 
 export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
 export TASKCLUSTER_TMP_DIR=${TASKCLUSTER_TMP_DIR:-/tmp}

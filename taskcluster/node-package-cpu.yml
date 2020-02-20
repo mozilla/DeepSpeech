@@ -1,5 +1,5 @@
 build:
-  template_file: linux-opt-base.tyml
+  template_file: node-package-opt-base.tyml
   dependencies:
     - "darwin-amd64-cpu-opt"
     - "linux-amd64-cpu-opt"
@@ -9,9 +9,7 @@ build:
   system_setup:
     >
       ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
-      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install ${python.packages_trusty.apt}
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.cpu/artifacts/public/home.tar.xz"
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   scripts:
     build: "taskcluster/node-build.sh"
     package: "taskcluster/node-package.sh"

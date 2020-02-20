@@ -1,0 +1,8 @@
+build:
+  template_file: pyenv-darwin-opt-base.tyml
+  scripts:
+    build: "taskcluster/pyenv-build.sh"
+    package: "taskcluster/pyenv-package.sh"
+  metadata:
+    name: "Builds Pyenv macOS AMD64"
+    description: "Setup a builds Pyenv for macOS/AMD64"

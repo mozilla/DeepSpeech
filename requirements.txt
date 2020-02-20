@@ -13,7 +13,7 @@ semver
 setuptools
 
 # Requirements for transcribe.py
-webrtcvad
+webrtcvad[transcribe]
 
 # Requirements for importers
 sox

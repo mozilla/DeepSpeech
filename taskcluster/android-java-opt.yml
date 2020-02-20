@@ -1,16 +1,20 @@
 build:
   template_file: linux-opt-base.tyml
+  dependencies:
+    - "android-arm64-cpu-opt"
+    - "android-armv7-cpu-opt"
+    - "android-x86_64-cpu-opt"
+    - "pyenv-linux-amd64"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.android-apk.${event.head.sha}"
-  dependencies:
-     - "android-arm64-cpu-opt"
-     - "android-armv7-cpu-opt"
-     - "android-x86_64-cpu-opt"
   system_setup:
     >
-      apt-get -qq -y install curl
+      apt-get -qq -y install curl software-properties-common &&
+      add-apt-repository --yes ppa:openjdk-r/ppa && apt-get -qq update &&
+      DEBIAN_FRONTEND=noninteractive apt-get -qq -y --force-yes install openjdk-8-jdk &&
+      java -version && update-ca-certificates -f
   tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.android-armv7/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/android-apk-build.sh"

@@ -11,17 +11,7 @@ do_deepspeech_python_build()
   unset PYTHON_BIN_PATH
   unset PYTHONPATH
 
-  if [ -d "${DS_ROOT_TASK}/pyenv.cache/" ]; then
-    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv.cache/DeepSpeech/.pyenv"
-  else
-    export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
-  fi;
-
-  export PATH_WITHOUT_PYENV=${PATH}
   export PATH="${PYENV_ROOT}/bin:$PATH"
-
-  install_pyenv "${PYENV_ROOT}"
-  install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
   mkdir -p wheels
 
@@ -38,26 +28,14 @@ do_deepspeech_python_build()
 
     pyalias="${pyver}_${pyconf}"
 
-    export NUMPY_BUILD_VERSION="==1.7.0"
-    export NUMPY_DEP_VERSION=">=1.7.0"
+    maybe_numpy_min_version ${pyver}
 
-    maybe_ssl102_py37 ${pyver}
-
-    maybe_numpy_min_version_winamd64 ${pyver}
-
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
-        PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" \
-        pyenv_install ${pyver} ${pyalias}
-
-    setup_pyenv_virtualenv "${pyalias}" "deepspeech"
     virtualenv_activate "${pyalias}" "deepspeech"
 
     python --version
     which pip
     which pip3
 
-    # Set LD path because python ssl might require it
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
     EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
     EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
@@ -72,15 +50,8 @@ do_deepspeech_python_build()
 
     make -C native_client/python/ bindings-clean
 
-    unset NUMPY_BUILD_VERSION
-    unset NUMPY_DEP_VERSION
-
     virtualenv_deactivate "${pyalias}" "deepspeech"
   done;
-
-  # If not, and if virtualenv_deactivate does not call "pyenv uninstall ${version}"
-  # we get stale python2 in PATH that blocks NodeJS builds
-  export PATH=${PATH_WITHOUT_PYENV}
 }
 
 do_deepspeech_decoder_build()
@@ -90,43 +61,23 @@ do_deepspeech_decoder_build()
   unset PYTHON_BIN_PATH
   unset PYTHONPATH
 
-  if [ -d "${DS_ROOT_TASK}/pyenv.cache/" ]; then
-    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv.cache/DeepSpeech/.pyenv"
-  else
-    export PYENV_ROOT="${DS_ROOT_TASK}/DeepSpeech/.pyenv"
-  fi;
-
   export PATH="${PYENV_ROOT}/bin:$PATH"
-
-  install_pyenv "${PYENV_ROOT}"
-  install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 
   mkdir -p wheels
 
   for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do
     pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
     pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
-
     pyalias="${pyver}_${pyconf}"
 
-    export NUMPY_BUILD_VERSION="==1.7.0"
-    export NUMPY_DEP_VERSION=">=1.7.0"
+    maybe_numpy_min_version ${pyver}
 
-    maybe_ssl102_py37 ${pyver}
-
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
-        PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" \
-        pyenv_install ${pyver} "${pyalias}"
-
-    setup_pyenv_virtualenv "${pyalias}" "deepspeech"
     virtualenv_activate "${pyalias}" "deepspeech"
 
     python --version
     which pip
     which pip3
 
-    # Set LD path because python ssl might require it
-    LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
     EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
     EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
@@ -141,15 +92,8 @@ do_deepspeech_decoder_build()
 
     make -C native_client/ctcdecode clean-keep-third-party
 
-    unset NUMPY_BUILD_VERSION
-    unset NUMPY_DEP_VERSION
-
     virtualenv_deactivate "${pyalias}" "deepspeech"
   done;
-
-  # If not, and if virtualenv_deactivate does not call "pyenv uninstall ${version}"
-  # we get stale python2 in PATH that blocks NodeJS builds
-  export PATH=${PATH_WITHOUT_PYENV}
 }
 
 do_deepspeech_nodejs_build()

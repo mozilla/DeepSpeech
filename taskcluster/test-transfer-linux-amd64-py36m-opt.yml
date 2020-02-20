@@ -2,11 +2,8 @@ build:
   template_file: test-linux-opt-base.tyml
   dependencies:
     - "linux-amd64-ctc-opt"
-  system_setup:
-    >
-      apt-get -qq -y install ${python.packages_trusty.apt}
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-transfer-tests.sh 3.6.4:m"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-transfer-tests.sh 3.6.10:m"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU transfer learning Py3.6"
     description: "Training a DeepSpeech LDC93S1 model with transfer learning for Linux/AMD64 16kHz Python 3.6, CPU only, optimized version"

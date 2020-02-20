@@ -61,6 +61,34 @@ install_pyenv_virtualenv()
   eval "$(pyenv virtualenv-init -)"
 }
 
+maybe_setup_virtualenv_cross_arm()
+{
+  local version=$1
+  local name=$2
+
+  if [ -z "${PYENV_ROOT}" ]; then
+    echo "No PYENV_ROOT set";
+    exit 1;
+  fi;
+
+  if [ "${OS}" != "Linux" ]; then
+    echo "Only for Linux";
+    exit 1;
+  fi;
+
+  ARCH=$(uname -m)
+
+  if [ "${ARCH}" = "x86_64" ]; then
+    echo "Not for Linux/AMD64";
+    exit 0;
+  fi;
+
+  mkdir -p ${PYENV_ROOT}/versions/${version}/envs/
+
+  PIP_EXTRA_INDEX_URL="" python3 -m virtualenv -p python3 ${PYENV_ROOT}/versions/${version}/envs/${name}/
+  source ${PYENV_ROOT}/versions/${version}/envs/${name}/bin/activate
+}
+
 setup_pyenv_virtualenv()
 {
   local version=$1
@@ -119,12 +147,6 @@ virtualenv_deactivate()
   fi;
 
   deactivate
-
-  if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    rm -fr ${PYENV_ROOT}/versions/${version}/
-  else
-    pyenv uninstall --force ${name}
-  fi
 }
 
 pyenv_install()
@@ -179,16 +201,11 @@ maybe_ssl102_py37()
     pyver=$1
 
     unset PY37_OPENSSL
-    unset PY37_LDPATH
-    unset PY37_SOURCE_PACKAGE
 
     ARCH=$(uname -m)
-
     case "${pyver}" in
         3.7*|3.8*)
             if [ "${OS}" = "Linux" -a "${ARCH}" = "x86_64" ]; then
-                PY37_OPENSSL_DIR=${DS_ROOT_TASK}/ssl-xenial
-
                 if [ -d "${PY37_OPENSSL_DIR}" ]; then
                   rm -rf "${PY37_OPENSSL_DIR}"
                 fi
@@ -210,9 +227,24 @@ maybe_ssl102_py37()
                 ln -sfn libssl.so.1.0.0 ${PY37_OPENSSL_DIR}/usr/lib/libssl.so
 
                 export PY37_OPENSSL="--with-openssl=${PY37_OPENSSL_DIR}/usr"
-                export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
             fi;
+        ;;
+    esac
+}
 
+maybe_numpy_min_version()
+{
+    local pyver=$1
+
+    unset NUMPY_BUILD_VERSION
+    unset NUMPY_DEP_VERSION
+
+    # We set >= and < to make sure we have no numpy incompatibilities
+    # otherwise, `from deepspeech.impl` throws with "illegal instruction"
+
+    ARCH=$(uname -m)
+    case "${OS}:${ARCH}" in
+        Linux:x86_64)
             case "${pyver}" in
                 3.7*)
                     export NUMPY_BUILD_VERSION="==1.14.5"
@@ -224,35 +256,48 @@ maybe_ssl102_py37()
                 ;;
             esac
         ;;
-    esac
-}
 
-maybe_numpy_min_version_winamd64()
-{
-    local pyver=$1
+        Darwin:*)
+            case "${pyver}" in
+                3.5*|3.6)
+                    export NUMPY_BUILD_VERSION="==1.9.0"
+                    export NUMPY_DEP_VERSION=">=1.9.0"
+                ;;
+                3.7*)
+                    export NUMPY_BUILD_VERSION="==1.14.5"
+                    export NUMPY_DEP_VERSION=">=1.14.5,<=1.17.0"
+                ;;
+                3.8*)
+                    export NUMPY_BUILD_VERSION="==1.17.3"
+                    export NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
+                ;;
+            esac
+        ;;
 
-    if [ "${OS}" != "${TC_MSYS_VERSION}" ]; then
-        return;
-    fi
+        ${TC_MSYS_VERSION}:x86_64)
+            case "${pyver}" in
+                3.5*)
+                    export NUMPY_BUILD_VERSION="==1.11.0"
+                    export NUMPY_DEP_VERSION=">=1.11.0,<1.12.0"
+                ;;
+                3.6*)
+                    export NUMPY_BUILD_VERSION="==1.12.0"
+                    export NUMPY_DEP_VERSION=">=1.12.0,<1.14.5"
+                ;;
+                3.7*)
+                    export NUMPY_BUILD_VERSION="==1.14.5"
+                    export NUMPY_DEP_VERSION=">=1.14.5,<=1.17.0"
+                ;;
+                3.8*)
+                    export NUMPY_BUILD_VERSION="==1.17.3"
+                    export NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
+                ;;
+            esac
+        ;;
 
-    # We set >= and < to make sure we have no numpy incompatibilities
-    # otherwise, `from deepspeech.impl` throws with "illegal instruction"
-    case "${pyver}" in
-        3.5*)
-            export NUMPY_BUILD_VERSION="==1.11.0"
-            export NUMPY_DEP_VERSION=">=1.11.0,<1.12.0"
-        ;;
-        3.6*)
-            export NUMPY_BUILD_VERSION="==1.12.0"
-            export NUMPY_DEP_VERSION=">=1.12.0,<1.14.5"
-        ;;
-        3.7*)
-            export NUMPY_BUILD_VERSION="==1.14.5"
-            export NUMPY_DEP_VERSION=">=1.14.5,<=1.17.0"
-        ;;
-        3.8*)
-            export NUMPY_BUILD_VERSION="==1.17.3"
-            export NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
+        *)
+            export NUMPY_BUILD_VERSION="==1.7.0"
+            export NUMPY_DEP_VERSION=">=1.7.0"
         ;;
     esac
 }
@@ -294,8 +339,9 @@ extract_python_versions()
   # 3.8.x => 38
   local _pyver_pkg=$(echo "${_pyver}" | cut -d'.' -f1,2 | tr -d '.')
 
-  # UCS2 => narrow unicode
-  # UCS4 => wide unicode
+  # https://www.python.org/dev/peps/pep-3149/#proposal
+  # 'm' => pymalloc
+  # 'u' => wide unicode
   local _py_unicode_type=$(echo "${_pyver_full}" | cut -d':' -f2)
   if [ "${_py_unicode_type}" = "m" ]; then
     local _pyconf="ucs2"
