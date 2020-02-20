@@ -7,8 +7,6 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-x86_64"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-x86_64"
     - "index.project.deepspeech.deepspeech.native_client.android-x86_64.${event.head.sha}"
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.android-arm64/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/android-build.sh x86_64"

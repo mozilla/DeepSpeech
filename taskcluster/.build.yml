@@ -7,6 +7,7 @@ build:
     - "tag"
   ref_match: "invalid-refs-should-not-work"
   dependencies: []
+  routes: []
   maxRunTime: 3600
   docker_image: "ubuntu:14.04"
   system_setup:

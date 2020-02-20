@@ -7,8 +7,6 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.cpu"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.cpu"
     - "index.project.deepspeech.deepspeech.native_client.cpu.${event.head.sha}"
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}

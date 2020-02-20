@@ -4,9 +4,6 @@ build:
     - "darwin-amd64-tflite-opt"
     - "linux-amd64-tflite-opt"
     - "win-amd64-tflite-opt"
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   system_setup:
     >
       ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}

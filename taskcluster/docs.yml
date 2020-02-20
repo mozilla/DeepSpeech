@@ -4,8 +4,6 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.docs"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.docs"
     - "index.project.deepspeech.deepspeech.native_client.docs.${event.head.sha}"
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   system_setup:
     >
       ${nodejs.packages_docs_bionic.prep_12} && ${nodejs.packages_docs_bionic.apt_pinning}

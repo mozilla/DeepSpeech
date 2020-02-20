@@ -8,9 +8,6 @@ build:
   allowed:
     - "tag"
   ref_match: "refs/tags/"
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   upload_targets:
     - "nuget"
   artifacts_deps:
