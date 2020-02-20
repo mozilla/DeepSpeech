@@ -3,10 +3,11 @@ build:
   dependencies:
     - "darwin-amd64-cpu-opt"
     - "test-training_16k-linux-amd64-py36m-opt"
+    - "homebrew_tests-darwin-amd64"
   test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   system_setup:
     >
-      ${nodejs.brew.setup} && ${nodejs.brew.prep_12} && ${nodejs.brew.env}
+      ${nodejs.brew.prep_12}
   args:
     tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 8.0.1 16k"
   metadata:
