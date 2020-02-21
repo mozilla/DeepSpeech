@@ -148,6 +148,7 @@ def create_flags():
     f.DEFINE_boolean('reduce_lr_on_plateau', False, 'Enable reducing the learning rate if a plateau is reached. This is the case if the validation loss did not improve for some epochs.')
     f.DEFINE_integer('plateau_epochs', 10, 'Number of epochs to consider for RLROP. Has to be smaller than es_epochs from early stopping')
     f.DEFINE_float('plateau_reduction', 0.1, 'Multiplicative factor to apply to the current learning rate if a plateau has occurred.')
+    f.DEFINE_float('force_initialize_learning_rate', False, 'Force re-initialization of learning rate which was previously reduced.')
 
     # Decoder
 
