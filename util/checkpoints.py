@@ -18,7 +18,7 @@ def _load_checkpoint(session, checkpoint_path):
     # We explicitly allow the learning rate variable to be missing for backwards
     # compatibility with older checkpoints.
     lr_var = set(v for v in load_vars if v.op.name == 'learning_rate')
-    if lr_var and 'learning_rate' not in vars_in_ckpt:
+    if lr_var and ('learning_rate' not in vars_in_ckpt or FLAGS.force_initialize_learning_rate):
         assert len(lr_var) <= 1
         load_vars -= lr_var
         init_vars |= lr_var
