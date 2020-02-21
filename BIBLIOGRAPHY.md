@@ -39,7 +39,7 @@ Published
 ```
 
 
-* Yihong Theis (2019) "Learning to detect named entities in bilingual code-mixed open speech corpora". MA Thesis. Kansas State University
+* Yihong Theis (2019) "Learning to detect named entities in bilingual code-mixed open speech corpora". MA Thesis. Kansas State University.
 
 ```
 @mastersthesis{theis:2019,
@@ -50,7 +50,7 @@ Published
 }
 ```
 
-* Ruswan Efendi (2019) "Automatic Speech Recognition Bahasa Indonesia Menggunakan Bidirectional Long Short-Term Memory dan Connectionist Temporal Classification". MA Thesis. 
+* Ruswan Efendi (2019) "Automatic Speech Recognition Bahasa Indonesia Menggunakan Bidirectional Long Short-Term Memory dan Connectionist Temporal Classification". MA Thesis. Universitas Sumatera Utara.
 
 ```
 @mastersthesis{theis:2019,
