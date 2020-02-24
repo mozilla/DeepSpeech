@@ -3,6 +3,10 @@ build:
   dependencies:
     - "android-arm64-cpu-opt"
     - "test-training_16k-linux-amd64-py36m-opt"
+    - "android-cache-arm64-v8a-android-25"
+  cache:
+    url: ${system.android_cache.arm64_v8a.android_25.url}
+    namespace: ${system.android_cache.arm64_v8a.android_25.namespace}
   test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-ds-tests.sh arm64-v8a android-25 16k"

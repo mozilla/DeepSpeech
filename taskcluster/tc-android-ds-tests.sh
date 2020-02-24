@@ -24,7 +24,7 @@ fi
 
 download_material "${TASKCLUSTER_TMP_DIR}/ds"
 
-android_setup_emulator "${arm_flavor}" "${api_level}"
+android_start_emulator "${arm_flavor}" "${api_level}"
 
 android_setup_ndk_data
 

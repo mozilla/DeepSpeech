@@ -43,9 +43,9 @@ do_deepspeech_java_apk_build()
     fi;
   done;
 
-  make -C native_client/java/
+  make GRADLE="./gradlew " -C native_client/java/
 
-  make -C native_client/java/ maven-bundle
+  make GRADLE="./gradlew " -C native_client/java/ maven-bundle
 }
 
 android_run_tests()
@@ -100,8 +100,6 @@ android_install_ndk()
 
 android_setup_emulator()
 {
-  android_install_sdk
-
   if [ -z "${ANDROID_SDK_HOME}" ]; then
     echo "No Android SDK home available, aborting."
     exit 1
@@ -112,8 +110,30 @@ android_setup_emulator()
     exit 1
   fi;
 
-  flavor=$1
-  api_level=${2:-android-25}
+  local _flavor=$1
+  local _api_level=${2:-android-25}
+
+  export PATH=${ANDROID_SDK_HOME}/tools/bin/:${ANDROID_SDK_HOME}/platform-tools/:$PATH
+  export DS_BINARY_PREFIX="adb shell LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
+
+  # Pipe yes in case of license being shown
+  yes | sdkmanager --update
+  yes | sdkmanager --install "emulator"
+
+  android_install_sdk_platform "${_api_level}"
+
+  # Same, yes in case of license
+  yes | sdkmanager --install "system-images;${_api_level};google_apis;${_flavor}"
+
+  android_sdk_accept_licenses
+
+  avdmanager create avd --name "${_flavor}-ds-pixel-${_api_level}" --device 17 --package "system-images;${_api_level};google_apis;${_flavor}"
+}
+
+android_start_emulator()
+{
+  local _flavor=$1
+  local _api_level=${2:-android-25}
 
   export PATH=${ANDROID_SDK_HOME}/tools/bin/:${ANDROID_SDK_HOME}/platform-tools/:$PATH
   export DS_BINARY_PREFIX="adb shell LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
@@ -121,25 +141,11 @@ android_setup_emulator()
   # minutes (2 minutes by default)
   export ADB_INSTALL_TIMEOUT=8
 
-  # Pipe yes in case of license being shown
-  yes | sdkmanager --update
-  yes | sdkmanager --install "emulator"
-
-  android_install_sdk_platform "${api_level}"
-
-  # Same, yes in case of license
-  yes | sdkmanager --install "system-images;${api_level};google_apis;${flavor}"
-
-  android_sdk_accept_licenses
-
-  avdmanager create avd --name "ds-pixel" --device 17 --package "system-images;${api_level};google_apis;${flavor}"
-
   # Use xvfb because:
   #  > emulator: INFO: QtLogger.cpp:68: Warning: could not connect to display  ((null):0, (null))
-
   # -accel on is needed otherwise it is too slow, but it will require KVM support exposed
   pushd ${ANDROID_SDK_HOME}
-    xvfb-run ./tools/emulator -verbose -avd ds-pixel -no-skin -no-audio -no-window -no-boot-anim -accel off &
+    xvfb-run ./tools/emulator -verbose -avd "${_flavor}-ds-pixel-${_api_level}" -no-skin -no-audio -no-window -no-boot-anim -accel off &
     emulator_rc=$?
     export ANDROID_DEVICE_EMULATOR=$!
   popd
@@ -159,7 +165,7 @@ android_setup_emulator()
 
 android_install_sdk_platform()
 {
-  api_level=${1:-android-27}
+  local _api_level=${1:-android-27}
 
   if [ -z "${ANDROID_SDK_HOME}" ]; then
     echo "No Android SDK home available, aborting."
@@ -170,8 +176,10 @@ android_install_sdk_platform()
 
   # Pipe yes in case of license being shown
   yes | sdkmanager --update
+  yes | sdkmanager --install "build-tools;28.0.3"
+  yes | sdkmanager --install "cmake;3.6.4111459"
   yes | sdkmanager --install "platform-tools"
-  yes | sdkmanager --install "platforms;${api_level}"
+  yes | sdkmanager --install "platforms;${_api_level}"
 
   android_sdk_accept_licenses
 }

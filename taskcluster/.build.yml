@@ -27,3 +27,12 @@ build:
   homebrew:
     url: ''
     namespace: ''
+  cache:
+    url: ''
+    namespace: ''
+  android_cache:
+    url: ''
+    namespace: ''
+  gradle_cache:
+    url: ''
+    namespace: ''

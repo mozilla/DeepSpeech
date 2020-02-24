@@ -15,11 +15,9 @@ model_name=$(basename "${model_source}")
 
 download_data
 
-android_install_ndk
-
-android_setup_emulator "${arm_flavor}" "${api_level}"
-
 force_java_apk_x86_64
+
+android_start_emulator "${arm_flavor}" "${api_level}"
 
 # Required, because of "gradle connectedAndroidTest" deps
 do_deepspeech_java_apk_build
