@@ -348,7 +348,7 @@ extract_python_versions()
   elif [ "${_py_unicode_type}" = "mu" ]; then
     local _pyconf="ucs4"
   elif [ "${_py_unicode_type}" = "" ]; then # valid for Python 3.8
-    local _pyconf="ucs4"
+    local _pyconf="ucs2"
   fi;
 
   local _pyalias="${_pyver}_${_pyconf}"

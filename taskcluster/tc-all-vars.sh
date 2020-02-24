@@ -16,6 +16,9 @@ if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export SWIG_ROOT="$(cygpath ${USERPROFILE})/ds-swig"
     export PLATFORM_EXE_SUFFIX=.exe
     export DS_CPU_COUNT=$(nproc)
+
+    # Those are the versions available on NuGet.org
+    export SUPPORTED_PYTHON_VERSIONS="3.5.4:ucs2 3.6.8:ucs2 3.7.6:ucs2 3.8.1:ucs2"
 fi;
 
 if [ "${OS}" = "Darwin" ]; then
@@ -94,7 +97,7 @@ model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 ldc93s1_sample_filename=''
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.8:ucs4 3.6.10:ucs4 3.7.6:ucs4 3.8.1:ucs4}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.8:ucs2 3.6.10:ucs2 3.7.6:ucs2 3.8.1:ucs2}
 
 # When updating NodeJS / ElectronJS supported versions, do not forget to increment
 # deepspeech.node-gyp-cache.<X> in both `system.node_gyp_cache` (taskcluster/.shared.yml)
