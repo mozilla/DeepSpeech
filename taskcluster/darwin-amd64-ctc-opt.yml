@@ -4,6 +4,7 @@ build:
     - "swig-darwin-amd64"
     - "node-gyp-cache"
     - "homebrew_builds-darwin-amd64"
+    - "pyenv-darwin-amd64"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx-ctc"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx-ctc"

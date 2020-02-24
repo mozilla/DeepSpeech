@@ -4,9 +4,6 @@ build:
     - "linux-amd64-cpu-opt"
     - "test-training_16k-linux-amd64-py36m-opt"
   test_model_task: "test-training_16k-linux-amd64-py36m-opt"
-  system_setup:
-    >
-      apt-get -qq -y install ${python.packages_trusty.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.8.1: 16k"
   metadata:

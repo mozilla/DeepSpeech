@@ -3,6 +3,7 @@ build:
   dependencies:
     - "swig-linux-amd64"
     - "node-gyp-cache"
+    - "pyenv-linux-amd64"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-arm64"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-arm64"

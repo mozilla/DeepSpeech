@@ -19,12 +19,6 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-    mounts:
-      - file: msys2-base-x86_64.tar.xz
-        content:
-          sha256: 4e799b5c3efcf9efcb84923656b7bcff16f75a666911abd6620ea8e5e1e9870c
-          url: >-
-            https://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-base-x86_64-20180531.tar.xz/download
 
     env:
       $let:
@@ -63,12 +57,23 @@ then:
           git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
           cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
           cd $TASKCLUSTER_TASK_DIR &&
+          (mkdir pyenv-root/ && 7z x -so $USERPROFILE/pyenv.tar.gz | 7z x -opyenv-root/ -aoa -ttar -si ) &&
           pacman --noconfirm -R bsdtar &&
           pacman --noconfirm -S tar vim &&
           ${extraSystemSetup} &&
           /bin/bash ${build.args.tests_cmdline} ;
           export TASKCLUSTER_TASK_EXIT_CODE=$? &&
           cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE"
+
+    mounts:
+      - file: msys2-base-x86_64.tar.xz
+        content:
+          sha256: 4e799b5c3efcf9efcb84923656b7bcff16f75a666911abd6620ea8e5e1e9870c
+          url: >-
+            https://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-base-x86_64-20180531.tar.xz/download
+      - file: pyenv.tar.gz
+        content:
+          url: ${system.pyenv.win.url}
 
   metadata:
     name: ${build.metadata.name}

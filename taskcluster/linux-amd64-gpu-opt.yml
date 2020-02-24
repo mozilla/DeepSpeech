@@ -3,6 +3,7 @@ build:
   dependencies:
     - "swig-linux-amd64"
     - "node-gyp-cache"
+    - "pyenv-linux-amd64"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.gpu"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.gpu"
@@ -10,8 +11,7 @@ build:
   system_setup:
     >
       ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
-      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install ${python.packages_trusty.apt}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.gpu/artifacts/public/home.tar.xz"
   maxRunTime: 14400
   scripts:

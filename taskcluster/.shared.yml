@@ -2,9 +2,12 @@ python:
   packages_trusty:
     apt: 'make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev liblzma-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libpng-dev libsox-dev libmagic-dev libgsm1-dev libltdl-dev'
   packages_buster:
-    apt: 'make build-essential libssl-dev libffi-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev'
+    apt: 'python3-virtualenv python3-setuptools python3-pip python3-wheel python3-pkg-resources'
   packages_docs_bionic:
     apt: 'python3 python3-pip zip doxygen'
+tensorflow:
+  packages_trusty:
+    apt: 'make build-essential gfortran git libblas-dev liblapack-dev libsox-dev libmagic-dev libgsm1-dev libltdl-dev libpng-dev python zlib1g-dev'
 electronjs:
   packages_xenial:
     apt: 'libatk1.0-0 libatk-bridge2.0-0 libcairo2 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 xvfb'
@@ -52,6 +55,16 @@ system:
   homebrew_tests:
     url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_tests.4/artifacts/public/homebrew_tests.tar.gz'
     namespace: 'project.deepspeech.homebrew_tests.4'
+  pyenv:
+    linux:
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.5/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.linux.5'
+    osx:
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.5/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.osx.5'
+    win:
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.5/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.win.5'
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"

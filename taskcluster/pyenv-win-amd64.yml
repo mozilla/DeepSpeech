@@ -1,0 +1,8 @@
+build:
+  template_file: pyenv-win-opt-base.tyml
+  scripts:
+    build: "taskcluster/pyenv-build.sh"
+    package: "taskcluster/pyenv-package.sh"
+  metadata:
+    name: "Builds Pyenv Windows AMD64"
+    description: "Setup a builds Pyenv for Windows/AMD64"
