@@ -4,8 +4,10 @@ build:
     # Make sure builds are ready
     - "linux-arm64-cpu-opt"
     - "darwin-amd64-cpu-opt"
+    - "darwin-amd64-ctc-opt"
     - "darwin-amd64-tflite-opt"
     - "linux-amd64-cpu-opt"
+    - "linux-amd64-ctc-opt"
     - "linux-amd64-tflite-opt"
     - "linux-amd64-gpu-opt"
     - "linux-rpi3-cpu-opt"
@@ -25,9 +27,11 @@ build:
   artifacts_deps:
     python:
       - "darwin-amd64-cpu-opt"
+      - "darwin-amd64-ctc-opt"
       - "darwin-amd64-tflite-opt"
       - "linux-amd64-cpu-opt"
       - "linux-amd64-tflite-opt"
+      - "linux-amd64-ctc-opt"
       - "linux-amd64-gpu-opt"
       - "linux-rpi3-cpu-opt"
       - "linux-arm64-cpu-opt"
