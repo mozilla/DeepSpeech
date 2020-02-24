@@ -12,9 +12,6 @@ semver
 # Requirements for building native_client files
 setuptools
 
-# Requirements for transcribe.py
-webrtcvad[transcribe]
-
 # Requirements for importers
 sox
 bs4
