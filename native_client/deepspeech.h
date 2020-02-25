@@ -96,7 +96,7 @@ int DS_CreateModel(const char* aModelPath,
  * @return Beam width value used by the model.
  */
 DEEPSPEECH_EXPORT
-unsigned int DS_GetModelBeamWidth(ModelState* aCtx);
+unsigned int DS_GetModelBeamWidth(const ModelState* aCtx);
 
 /**
  * @brief Set beam width value used by the model.
@@ -119,7 +119,7 @@ int DS_SetModelBeamWidth(ModelState* aCtx,
  * @return Sample rate expected by the model for its input.
  */
 DEEPSPEECH_EXPORT
-int DS_GetModelSampleRate(ModelState* aCtx);
+int DS_GetModelSampleRate(const ModelState* aCtx);
 
 /**
  * @brief Frees associated resources and destroys model object.
@@ -233,7 +233,7 @@ void DS_FeedAudioContent(StreamingState* aSctx,
  *         string using {@link DS_FreeString()}.
  */
 DEEPSPEECH_EXPORT
-char* DS_IntermediateDecode(StreamingState* aSctx);
+char* DS_IntermediateDecode(const StreamingState* aSctx);
 
 /**
  * @brief Signal the end of an audio signal to an ongoing streaming

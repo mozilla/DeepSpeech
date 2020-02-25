@@ -30,7 +30,7 @@ ModelState::init(const char* model_path)
 }
 
 char*
-ModelState::decode(const DecoderState& state)
+ModelState::decode(const DecoderState& state) const
 {
   vector<Output> out = state.decode();
   return strdup(alphabet_.LabelsToString(out[0].tokens).c_str());
