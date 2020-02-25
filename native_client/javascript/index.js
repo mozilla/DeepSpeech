@@ -122,8 +122,9 @@ Model.prototype.stt = function(aBuffer) {
  *
  * @return {object} Outputs a :js:func:`Metadata` struct of individual letters along with their timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
-Model.prototype.sttWithMetadata = function(aBuffer) {
-    return binding.SpeechToTextWithMetadata(this._impl, aBuffer);
+Model.prototype.sttWithMetadata = function(aBuffer, aNumResults) {
+    aNumResults = aNumResults || 1;
+    return binding.SpeechToTextWithMetadata(this._impl, aBuffer, aNumResults);
 }
 
 /**
@@ -172,6 +173,16 @@ Stream.prototype.intermediateDecode = function() {
 }
 
 /**
+ * Compute the intermediate decoding of an ongoing streaming inference.
+ *
+ * @return {string} The STT intermediate result.
+ */
+Stream.prototype.intermediateDecodeWithMetadata = function(aNumResults) {
+    aNumResults = aNumResults || 1;
+    return binding.IntermediateDecode(this._impl, aNumResults);
+}
+
+/**
  * Signal the end of an audio signal to an ongoing streaming inference, returns the STT result over the whole audio signal.
  *
  * @return {string} The STT result.
@@ -191,8 +202,9 @@ Stream.prototype.finishStream = function() {
  *
  * This method will free the stream, it must not be used after this method is called.
  */
-Stream.prototype.finishStreamWithMetadata = function() {
-    result = binding.FinishStreamWithMetadata(this._impl);
+Stream.prototype.finishStreamWithMetadata = function(aNumResults) {
+    aNumResults = aNumResults || 1;
+    result = binding.FinishStreamWithMetadata(this._impl, aNumResults);
     this._impl = null;
     return result;
 }
@@ -236,35 +248,58 @@ function Version() {
 }
 
 
-//// Metadata and MetadataItem are here only for documentation purposes
+//// Metadata, CandidateTranscript and TokenMetadata are here only for documentation purposes
 
 /**
  * @class
  * 
  * Stores each individual character, along with its timing information
  */
-function MetadataItem() {}
+function TokenMetadata() {}
 
 /** 
  * The character generated for transcription
  *
  * @return {string} The character generated
  */
-MetadataItem.prototype.character = function() {}
+TokenMetadata.prototype.text = function() {}
 
 /**
  * Position of the character in units of 20ms
  *
  * @return {int} The position of the character
  */
-MetadataItem.prototype.timestep = function() {};
+TokenMetadata.prototype.timestep = function() {};
 
 /**
  * Position of the character in seconds
  *
  * @return {float} The position of the character
  */
-MetadataItem.prototype.start_time = function() {};
+TokenMetadata.prototype.start_time = function() {};
+
+/**
+ * @class
+ *
+ * Stores the entire CTC output as an array of character metadata objects
+ */
+function CandidateTranscript () {}
+
+/**
+ * List of items
+ *
+ * @return {array} List of :js:func:`TokenMetadata`
+ */
+CandidateTranscript.prototype.items = function() {}
+
+/**
+ * Approximated confidence value for this transcription. This is roughly the
+ * sum of the acoustic model logit values for each timestep/character that
+ * contributed to the creation of this transcription.
+ *
+ * @return {float} Confidence value
+ */
+CandidateTranscript.prototype.confidence = function() {}
 
 /**
  * @class
@@ -276,30 +311,16 @@ function Metadata () {}
 /**
  * List of items
  *
- * @return {array} List of :js:func:`MetadataItem`
+ * @return {array} List of :js:func:`CandidateTranscript` objects
  */
-Metadata.prototype.items = function() {}
+Metadata.prototype.transcripts = function() {}
 
-/**
- * Size of the list of items
- *
- * @return {int} Number of items
- */
-Metadata.prototype.num_items = function() {}
-
-/**
- * Approximated confidence value for this transcription. This is roughly the
- * sum of the acoustic model logit values for each timestep/character that
- * contributed to the creation of this transcription.
- *
- * @return {float} Confidence value
- */
-Metadata.prototype.confidence = function() {}
 
 module.exports = {
     Model: Model,
     Metadata: Metadata,
-    MetadataItem: MetadataItem,
+    CandidateTranscript: CandidateTranscript,
+    TokenMetadata: TokenMetadata,
     Version: Version,
     FreeModel: FreeModel,
     FreeStream: FreeStream,

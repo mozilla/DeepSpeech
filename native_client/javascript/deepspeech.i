@@ -47,8 +47,8 @@ using namespace node;
 %typemap(argout) ModelState **retval {
   $result = SWIGV8_ARRAY_NEW();
   SWIGV8_AppendOutput($result, SWIG_From_int(result));
-  // owned by SWIG, ModelState destructor gets called when the JavaScript object is finalized (see below)
-  %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, SWIG_POINTER_OWN));
+  // owned by the application. NodeJS does not guarantee the finalizer will be called so applications must call FreeMetadata themselves.
+  %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
 
@@ -68,27 +68,33 @@ using namespace node;
 %nodefaultctor ModelState;
 %nodefaultdtor ModelState;
 
-%typemap(out) MetadataItem* %{
+%typemap(out) TokenMetadata* %{
   $result = SWIGV8_ARRAY_NEW();
-  for (int i = 0; i < arg1->num_items; ++i) {
-    SWIGV8_AppendOutput($result, SWIG_NewPointerObj(SWIG_as_voidptr(&result[i]), SWIGTYPE_p_MetadataItem, SWIG_POINTER_OWN));
+  for (int i = 0; i < arg1->num_tokens; ++i) {
+    SWIGV8_AppendOutput($result, SWIG_NewPointerObj(SWIG_as_voidptr(&result[i]), SWIGTYPE_p_TokenMetadata, 0));
   }
 %}
 
-%nodefaultdtor Metadata;
-%nodefaultctor Metadata;
-%nodefaultctor MetadataItem;
-%nodefaultdtor MetadataItem;
-
-%extend struct Metadata {
-  ~Metadata() {
-    DS_FreeMetadata($self);
+%typemap(out) CandidateTranscript* %{
+  $result = SWIGV8_ARRAY_NEW();
+  for (int i = 0; i < arg1->num_transcripts; ++i) {
+    SWIGV8_AppendOutput($result, SWIG_NewPointerObj(SWIG_as_voidptr(&result[i]), SWIGTYPE_p_CandidateTranscript, 0));
   }
-}
+%}
 
-%extend struct MetadataItem {
-  ~MetadataItem() { }
-}
+%ignore Metadata::num_transcripts;
+%ignore CandidateTranscript::num_tokens;
+
+%immutable Metadata::transcripts;
+%immutable CandidateTranscripts::tokens;
+%immutable TokenMetadata::text;
+
+%nodefaultctor Metadata;
+%nodefaultdtor Metadata;
+%nodefaultctor CandidateTranscript;
+%nodefaultdtor CandidateTranscript;
+%nodefaultctor TokenMetadata;
+%nodefaultdtor TokenMetadata;
 
 %rename ("%(strip:[DS_])s") "";
 
