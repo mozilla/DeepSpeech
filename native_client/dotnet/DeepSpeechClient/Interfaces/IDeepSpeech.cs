@@ -68,11 +68,11 @@ namespace DeepSpeechClient.Interfaces
                 uint aBufferSize);
 
         /// <summary>
-        /// Use the DeepSpeech model to perform Speech-To-Text.
+        /// Use the DeepSpeech model to perform Speech-To-Text, return results including metadata.
         /// </summary>
         /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
-        /// <param name="aNumResults">Number of candidate transcripts to return.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
         /// <returns>The extended metadata. Returns NULL on error.</returns>
         unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer,
                 uint aBufferSize,
@@ -105,10 +105,10 @@ namespace DeepSpeechClient.Interfaces
         unsafe string IntermediateDecode(DeepSpeechStream stream);
 
         /// <summary>
-        /// Computes the intermediate decoding of an ongoing streaming inference.
+        /// Computes the intermediate decoding of an ongoing streaming inference, including metadata.
         /// </summary>
         /// <param name="stream">Instance of the stream to decode.</param>
-        /// <param name="aNumResults">Number of candidate transcripts to return.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
         /// <returns>The extended metadata result.</returns>
         unsafe Metadata IntermediateDecodeWithMetadata(DeepSpeechStream stream, uint aNumResults);
 
@@ -120,10 +120,10 @@ namespace DeepSpeechClient.Interfaces
         unsafe string FinishStream(DeepSpeechStream stream);
 
         /// <summary>
-        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal.
+        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal, including metadata.
         /// </summary>
         /// <param name="stream">Instance of the stream to finish.</param>
-        /// <param name="aNumResults">Number of candidate transcripts to return.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
         /// <returns>The extended metadata result.</returns>
         unsafe Metadata FinishStreamWithMetadata(DeepSpeechStream stream, uint aNumResults);
     }

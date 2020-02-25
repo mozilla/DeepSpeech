@@ -30,8 +30,14 @@ Metadata
 .. js:autoclass:: Metadata
    :members:
 
-MetadataItem
-------------
+CandidateTranscript
+-------------------
 
-.. js:autoclass:: MetadataItem
+.. js:autoclass:: CandidateTranscript
+   :members:
+
+TokenMetadata
+-------------
+
+.. js:autoclass:: TokenMetadata
    :members:

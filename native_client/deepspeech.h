@@ -42,20 +42,20 @@ typedef struct CandidateTranscript {
   TokenMetadata* tokens;
   /** Size of the tokens array */
   int num_tokens;
-  /** Approximated confidence value for this transcription. This is roughly the
+  /** Approximated confidence value for this transcript. This is roughly the
    * sum of the acoustic model logit values for each timestep/character that
-   * contributed to the creation of this transcription.
+   * contributed to the creation of this transcript.
    */
   double confidence;
 } CandidateTranscript;
 
 /**
- * @brief An array of CandidateTranscript objects computed by the model
+ * @brief An array of CandidateTranscript objects computed by the model.
  */
 typedef struct Metadata {
   /** Array of CandidateTranscript objects */
   CandidateTranscript* transcripts;
-  /** Size of the transcriptions array */
+  /** Size of the transcripts array */
   int num_transcripts;
 } Metadata;
 
@@ -191,14 +191,14 @@ char* DS_SpeechToText(ModelState* aCtx,
                       unsigned int aBufferSize);
 
 /**
- * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata 
- * about the results.
+ * @brief Use the DeepSpeech model to perform Speech-To-Text and output results
+ * including metadata.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
- * @param aNumResults The number of candidate transcripts to return.
+ * @param aNumResults The maximum number of candidate transcripts to return. Returned value might be smaller than this.
  *
  * @return Metadata struct containing multiple candidate transcripts. Each transcript
  *         has per-token metadata including timing information. The user is
@@ -252,7 +252,7 @@ char* DS_IntermediateDecode(const StreamingState* aSctx);
 
 /**
  * @brief Compute the intermediate decoding of an ongoing streaming inference,
- *        returns per-letter metadata.
+ *        return results including metadata.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  * @param aNumResults The number of candidate transcripts to return.
@@ -267,8 +267,8 @@ Metadata* DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
                                             unsigned int aNumResults);
 
 /**
- * @brief Signal the end of an audio signal to an ongoing streaming
- *        inference, returns the STT result over the whole audio signal.
+ * @brief Compute the final decoding of an ongoing streaming inference and return
+ *        the result. Signals the end of an ongoing streaming inference.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
@@ -281,8 +281,9 @@ DEEPSPEECH_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
 
 /**
- * @brief Signal the end of an audio signal to an ongoing streaming
- *        inference, returns per-letter metadata.
+ * @brief Compute the final decoding of an ongoing streaming inference and return
+ *        results including metadata. Signals the end of an ongoing streaming
+ *        inference.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  * @param aNumResults The number of candidate transcripts to return.
@@ -295,7 +296,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
-Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx, 
+Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx,
                                       unsigned int aNumResults);
 
 /**

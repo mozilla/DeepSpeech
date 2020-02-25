@@ -123,15 +123,15 @@ class Model(object):
 
     def sttWithMetadata(self, audio_buffer, num_results=1):
         """
-        Use the DeepSpeech model to perform Speech-To-Text and output metadata about the results.
+        Use the DeepSpeech model to perform Speech-To-Text and return results including metadata.
 
         :param audio_buffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type audio_buffer: numpy.int16 array
 
-        :param num_results: Number of candidate transcripts to return.
+        :param num_results: Maximum number of candidate transcripts to return. Returned list might be smaller than this.
         :type num_results: int
 
-        :return: Outputs a struct of individual letters along with their timing information.
+        :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
         :type: :func:`Metadata`
         """
         return deepspeech.impl.SpeechToTextWithMetadata(self._impl, audio_buffer, num_results)
@@ -192,10 +192,13 @@ class Stream(object):
 
     def intermediateDecodeWithMetadata(self, num_results=1):
         """
-        Compute the intermediate decoding of an ongoing streaming inference.
+        Compute the intermediate decoding of an ongoing streaming inference and return results including metadata.
 
-        :return: The STT intermediate result.
-        :type: str
+        :param num_results: Maximum number of candidate transcripts to return. Returned list might be smaller than this.
+        :type num_results: int
+
+        :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
+        :type: :func:`Metadata`
 
         :throws: RuntimeError if the stream object is not valid
         """
@@ -205,8 +208,9 @@ class Stream(object):
 
     def finishStream(self):
         """
-        Signal the end of an audio signal to an ongoing streaming inference,
-        returns the STT result over the whole audio signal.
+        Compute the final decoding of an ongoing streaming inference and return
+        the result. Signals the end of an ongoing streaming inference. The underlying
+        stream object must not be used after this method is called.
 
         :return: The STT result.
         :type: str
@@ -221,13 +225,15 @@ class Stream(object):
 
     def finishStreamWithMetadata(self, num_results=1):
         """
-        Signal the end of an audio signal to an ongoing streaming inference,
-        returns per-letter metadata.
+        Compute the final decoding of an ongoing streaming inference and return
+        results including metadata. Signals the end of an ongoing streaming
+        inference. The underlying stream object must not be used after this
+        method is called.
 
-        :param num_results: Number of candidate transcripts to return.
+        :param num_results: Maximum number of candidate transcripts to return. Returned list might be smaller than this.
         :type num_results: int
 
-        :return: Outputs a struct of individual letters along with their timing information.
+        :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
         :type: :func:`Metadata`
 
         :throws: RuntimeError if the stream object is not valid

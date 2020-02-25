@@ -115,12 +115,12 @@ Model.prototype.stt = function(aBuffer) {
 }
 
 /**
- * Use the DeepSpeech model to perform Speech-To-Text and output metadata
- * about the results.
+ * Use the DeepSpeech model to perform Speech-To-Text and output results including metadata.
  *
  * @param {object} aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
+ * @param {number} aNumResults Maximum number of candidate transcripts to return. Returned list might be smaller than this. Default value is 1 if not specified.
  *
- * @return {object} Outputs a :js:func:`Metadata` struct of individual letters along with their timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
+ * @return {object} :js:func:`Metadata` object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
 Model.prototype.sttWithMetadata = function(aBuffer, aNumResults) {
     aNumResults = aNumResults || 1;
@@ -173,9 +173,11 @@ Stream.prototype.intermediateDecode = function() {
 }
 
 /**
- * Compute the intermediate decoding of an ongoing streaming inference.
+ * Compute the intermediate decoding of an ongoing streaming inference, return results including metadata.
  *
- * @return {string} The STT intermediate result.
+ * @param {number} aNumResults Maximum number of candidate transcripts to return. Returned list might be smaller than this. Default value is 1 if not specified.
+ *
+ * @return {object} :js:func:`Metadata` object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
 Stream.prototype.intermediateDecodeWithMetadata = function(aNumResults) {
     aNumResults = aNumResults || 1;
@@ -183,7 +185,7 @@ Stream.prototype.intermediateDecodeWithMetadata = function(aNumResults) {
 }
 
 /**
- * Signal the end of an audio signal to an ongoing streaming inference, returns the STT result over the whole audio signal.
+ * Compute the final decoding of an ongoing streaming inference and return the result. Signals the end of an ongoing streaming inference.
  *
  * @return {string} The STT result.
  *
@@ -196,7 +198,9 @@ Stream.prototype.finishStream = function() {
 }
 
 /**
- * Signal the end of an audio signal to an ongoing streaming inference, returns per-letter metadata.
+ * Compute the final decoding of an ongoing streaming inference and return the results including metadata. Signals the end of an ongoing streaming inference.
+ *
+ * @param {number} aNumResults Maximum number of candidate transcripts to return. Returned list might be smaller than this. Default value is 1 if not specified.
  *
  * @return {object} Outputs a :js:func:`Metadata` struct of individual letters along with their timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`.
  *
@@ -253,48 +257,49 @@ function Version() {
 /**
  * @class
  * 
- * Stores each individual character, along with its timing information
+ * Stores text of an individual token, along with its timing information
  */
 function TokenMetadata() {}
 
 /** 
- * The character generated for transcription
+ * The text corresponding to this token
  *
- * @return {string} The character generated
+ * @return {string} The text generated
  */
 TokenMetadata.prototype.text = function() {}
 
 /**
- * Position of the character in units of 20ms
+ * Position of the token in units of 20ms
  *
- * @return {int} The position of the character
+ * @return {int} The position of the token
  */
 TokenMetadata.prototype.timestep = function() {};
 
 /**
- * Position of the character in seconds
+ * Position of the token in seconds
  *
- * @return {float} The position of the character
+ * @return {float} The position of the token
  */
 TokenMetadata.prototype.start_time = function() {};
 
 /**
  * @class
  *
- * Stores the entire CTC output as an array of character metadata objects
+ * A single transcript computed by the model, including a confidence value and
+ * the metadata for its constituent tokens.
  */
 function CandidateTranscript () {}
 
 /**
- * List of items
+ * Array of tokens
  *
- * @return {array} List of :js:func:`TokenMetadata`
+ * @return {array} Array of :js:func:`TokenMetadata`
  */
-CandidateTranscript.prototype.items = function() {}
+CandidateTranscript.prototype.tokens = function() {}
 
 /**
  * Approximated confidence value for this transcription. This is roughly the
- * sum of the acoustic model logit values for each timestep/character that
+ * sum of the acoustic model logit values for each timestep/token that
  * contributed to the creation of this transcription.
  *
  * @return {float} Confidence value
@@ -304,14 +309,14 @@ CandidateTranscript.prototype.confidence = function() {}
 /**
  * @class
  *
- * Stores the entire CTC output as an array of character metadata objects
+ * An array of CandidateTranscript objects computed by the model.
  */
 function Metadata () {}
 
 /**
- * List of items
+ * Array of transcripts
  *
- * @return {array} List of :js:func:`CandidateTranscript` objects
+ * @return {array} Array of :js:func:`CandidateTranscript` objects
  */
 Metadata.prototype.transcripts = function() {}
 
