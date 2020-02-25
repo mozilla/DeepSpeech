@@ -78,6 +78,7 @@ struct StreamingState {
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
   char* intermediateDecode() const;
+  Metadata* intermediateDecodeWithMetadata(unsigned int num_results) const;
   void finalizeStream();
   char* finishStream();
   Metadata* finishStreamWithMetadata(unsigned int num_results);
@@ -136,6 +137,12 @@ StreamingState::intermediateDecode() const
   return model_->decode(decoder_state_);
 }
 
+Metadata*
+StreamingState::intermediateDecodeWithMetadata(unsigned int num_results) const
+{
+  return model_->decode_metadata(decoder_state_, num_results);
+}
+
 char*
 StreamingState::finishStream()
 {
@@ -147,7 +154,6 @@ Metadata*
 StreamingState::finishStreamWithMetadata(unsigned int num_results)
 {
   finalizeStream();
-
   return model_->decode_metadata(decoder_state_, num_results);
 }
 
@@ -401,6 +407,13 @@ char*
 DS_IntermediateDecode(const StreamingState* aSctx)
 {
   return aSctx->intermediateDecode();
+}
+
+Metadata*
+DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
+                                  unsigned int aNumResults)
+{
+  return aSctx->intermediateDecodeWithMetadata(aNumResults);
 }
 
 char*

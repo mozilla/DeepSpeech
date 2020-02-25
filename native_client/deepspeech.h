@@ -200,8 +200,10 @@ char* DS_SpeechToText(ModelState* aCtx,
  * @param aBufferSize The number of samples in the audio signal.
  * @param aNumResults The number of candidate transcripts to return.
  *
- * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ * @return Metadata struct containing multiple candidate transcripts. Each transcript
+ *         has per-token metadata including timing information. The user is
+ *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
@@ -249,6 +251,22 @@ DEEPSPEECH_EXPORT
 char* DS_IntermediateDecode(const StreamingState* aSctx);
 
 /**
+ * @brief Compute the intermediate decoding of an ongoing streaming inference,
+ *        returns per-letter metadata.
+ *
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aNumResults The number of candidate transcripts to return.
+ *
+ * @return Metadata struct containing multiple candidate transcripts. Each transcript
+ *         has per-token metadata including timing information. The user is
+ *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
+ */
+DEEPSPEECH_EXPORT
+Metadata* DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
+                                            unsigned int aNumResults);
+
+/**
  * @brief Signal the end of an audio signal to an ongoing streaming
  *        inference, returns the STT result over the whole audio signal.
  *
@@ -269,8 +287,10 @@ char* DS_FinishStream(StreamingState* aSctx);
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  * @param aNumResults The number of candidate transcripts to return.
  *
- * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ * @return Metadata struct containing multiple candidate transcripts. Each transcript
+ *         has per-token metadata including timing information. The user is
+ *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
