@@ -20,43 +20,44 @@ typedef struct ModelState ModelState;
 typedef struct StreamingState StreamingState;
 
 /**
- * @brief Stores each individual character, along with its timing information
+ * @brief Stores text of an individual token, along with its timing information
  */
-typedef struct MetadataItem {
-  /** The character generated for transcription */
-  char* character;
+typedef struct TokenMetadata {
+  /** The text corresponding to this token */
+  char* text;
 
-  /** Position of the character in units of 20ms */
+  /** Position of the token in units of 20ms */
   int timestep;
 
-  /** Position of the character in seconds */
+  /** Position of the token in seconds */
   float start_time;
-} MetadataItem;
+} TokenMetadata;
 
 /**
- * @brief Stores the entire CTC output as an array of character metadata objects
+ * @brief A single transcript computed by the model, including a confidence
+ *        value and the metadata for its constituent tokens.
  */
-typedef struct Metadata {
-  /** List of items */
-  MetadataItem* items;
-  /** Size of the list of items */
-  int num_items;
+typedef struct CandidateTranscript {
+  /** Array of TokenMetadata objects */
+  TokenMetadata* tokens;
+  /** Size of the tokens array */
+  int num_tokens;
   /** Approximated confidence value for this transcription. This is roughly the
    * sum of the acoustic model logit values for each timestep/character that
    * contributed to the creation of this transcription.
    */
   double confidence;
-} Metadata;
+} CandidateTranscript;
 
 /**
- * @brief Stores Metadata structs for each alternative transcription
+ * @brief An array of CandidateTranscript objects computed by the model
  */
-typedef struct Result {
-  /** List of transcriptions */
-  Metadata* transcriptions;
-  /** Size of the list of transcriptions */
-  int num_transcriptions;
-} Result;
+typedef struct Metadata {
+  /** Array of CandidateTranscript objects */
+  CandidateTranscript* transcripts;
+  /** Size of the transcriptions array */
+  int num_transcripts;
+} Metadata;
 
 enum DeepSpeech_Error_Codes
 {
@@ -197,16 +198,16 @@ char* DS_SpeechToText(ModelState* aCtx,
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
- * @param aNumResults The number of alternative transcriptions to return.
+ * @param aNumResults The number of candidate transcripts to return.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
-Result* DS_SpeechToTextWithMetadata(ModelState* aCtx,
-                                    const short* aBuffer,
-                                    unsigned int aBufferSize,
-                                    unsigned int aNumResults);
+Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
+                                      const short* aBuffer,
+                                      unsigned int aBufferSize,
+                                      unsigned int aNumResults);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -266,7 +267,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  *        inference, returns per-letter metadata.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
- * @param aNumResults The number of alternative transcriptions to return.
+ * @param aNumResults The number of candidate transcripts to return.
  *
  * @return Outputs a struct of individual letters along with their timing information. 
  *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
@@ -274,8 +275,8 @@ char* DS_FinishStream(StreamingState* aSctx);
  * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
-Result* DS_FinishStreamWithMetadata(StreamingState* aSctx, 
-                                    unsigned int aNumResults);
+Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx, 
+                                      unsigned int aNumResults);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This
@@ -294,12 +295,6 @@ void DS_FreeStream(StreamingState* aSctx);
  */
 DEEPSPEECH_EXPORT
 void DS_FreeMetadata(Metadata* m);
-
-/**
- * @brief Free memory allocated for result information.
- */
-DEEPSPEECH_EXPORT
-void DS_FreeResult(Result* r);
 
 /**
  * @brief Free a char* string returned by the DeepSpeech API.

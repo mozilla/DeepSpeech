@@ -60,7 +60,7 @@ using std::vector;
    When batch_buffer is full, we do a single step through the acoustic model
    and accumulate the intermediate decoding state in the DecoderState structure.
 
-   When finishStream() is called, we return the corresponding transcription from
+   When finishStream() is called, we return the corresponding transcript from
    the current decoder state.
 */
 struct StreamingState {
@@ -80,7 +80,7 @@ struct StreamingState {
   char* intermediateDecode() const;
   void finalizeStream();
   char* finishStream();
-  Result* finishStreamWithMetadata(unsigned int num_results);
+  Metadata* finishStreamWithMetadata(unsigned int num_results);
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
@@ -143,7 +143,7 @@ StreamingState::finishStream()
   return model_->decode(decoder_state_);
 }
 
-Result*
+Metadata*
 StreamingState::finishStreamWithMetadata(unsigned int num_results)
 {
   finalizeStream();
@@ -411,11 +411,11 @@ DS_FinishStream(StreamingState* aSctx)
   return str;
 }
 
-Result*
+Metadata*
 DS_FinishStreamWithMetadata(StreamingState* aSctx, 
                             unsigned int aNumResults)
 {
-  Result* result = aSctx->finishStreamWithMetadata(aNumResults);
+  Metadata* result = aSctx->finishStreamWithMetadata(aNumResults);
   DS_FreeStream(aSctx);
   return result;
 }
@@ -443,7 +443,7 @@ DS_SpeechToText(ModelState* aCtx,
   return DS_FinishStream(ctx);
 }
 
-Result*
+Metadata*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
                             unsigned int aBufferSize,
@@ -463,30 +463,16 @@ void
 DS_FreeMetadata(Metadata* m)
 {
   if (m) {
-    for (int i = 0; i < m->num_items; ++i) {
-      free(m->items[i].character);
-    }
-    delete[] m->items;
-    delete m;
-  }
-}
-
-void
-DS_FreeResult(Result* r)
-{
-  if (r) {
-    for (int i = 0; i < r->num_transcriptions; ++i) {
-      Metadata* m = &r->transcriptions[i];
-
-      for (int j = 0; j < m->num_items; ++j) {
-        free(m->items[j].character);
+    for (int i = 0; i < m->num_transcripts; ++i) {
+      for (int j = 0; j < m->transcripts[i].num_tokens; ++j) {
+        free(m->transcripts[i].tokens[j].text);
       }
 
-      delete[] m->items;
+      delete[] m->transcripts[i].tokens;
     }
 
-    delete[] r->transcriptions;
-    delete r;
+    delete[] m->transcripts;
+    delete m;
   }
 }
 

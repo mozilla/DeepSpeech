@@ -62,11 +62,14 @@ public:
 
   /* Get transcription from current decoder state
    *
+   * Parameters:
+   *     num_results: Number of beams to return.
+   *
    * Return:
    *     A vector where each element is a pair of score and decoding result,
    *     in descending order.
   */
-  std::vector<Output> decode() const;
+  std::vector<Output> decode(size_t num_results=1) const;
 };
 
 

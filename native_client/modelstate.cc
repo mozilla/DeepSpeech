@@ -36,41 +36,38 @@ ModelState::decode(const DecoderState& state) const
   return strdup(alphabet_.LabelsToString(out[0].tokens).c_str());
 }
 
-Result*
+Metadata*
 ModelState::decode_metadata(const DecoderState& state, 
                             size_t num_results)
 {
-  vector<Output> out = state.decode();
+  vector<Output> out = state.decode(num_results);
+  size_t num_returned = out.size();
 
-  size_t max_results = std::min(num_results, out.size());
+  std::unique_ptr<Metadata> metadata(new Metadata);
+  metadata->num_transcripts = num_returned;
 
-  std::unique_ptr<Result> result(new Result());
-  result->num_transcriptions = max_results;
+  std::unique_ptr<CandidateTranscript[]> transcripts(new CandidateTranscript[num_returned]);
 
-  std::unique_ptr<Metadata[]> transcripts(new Metadata[max_results]());
+  for (int i = 0; i < num_returned; ++i) {
+    transcripts[i].num_tokens = out[i].tokens.size();
+    transcripts[i].confidence = out[i].confidence;
 
-  for (int j = 0; j < max_results; ++j) {
-    Metadata* metadata = &transcripts[j];
-    metadata->num_items = out[j].tokens.size();
-    metadata->confidence = out[j].confidence;
+    std::unique_ptr<TokenMetadata[]> tokens(new TokenMetadata[transcripts[i].num_tokens]);
 
-    std::unique_ptr<MetadataItem[]> items(new MetadataItem[metadata->num_items]());
+    // Loop through each token
+    for (int j = 0; j < out[i].tokens.size(); ++j) {
+      tokens[j].text = strdup(alphabet_.StringFromLabel(out[i].tokens[j]).c_str());
+      tokens[j].timestep = out[i].timesteps[j];
+      tokens[j].start_time = out[i].timesteps[j] * ((float)audio_win_step_ / sample_rate_);
 
-    // Loop through each character
-    for (int i = 0; i < out[j].tokens.size(); ++i) {
-      items[i].character = strdup(alphabet_.StringFromLabel(out[j].tokens[i]).c_str());
-      items[i].timestep = out[j].timesteps[i];
-      items[i].start_time = out[j].timesteps[i] * ((float)audio_win_step_ / sample_rate_);
-
-      if (items[i].start_time < 0) {
-        items[i].start_time = 0;
+      if (tokens[j].start_time < 0) {
+        tokens[j].start_time = 0;
       }
     }
 
-    metadata->items = items.release();
+    transcripts[i].tokens = tokens.release();
   }
 
-  result->transcriptions = transcripts.release();
-
-  return result.release();
+  metadata->transcripts = transcripts.release();
+  return metadata.release();
 }
