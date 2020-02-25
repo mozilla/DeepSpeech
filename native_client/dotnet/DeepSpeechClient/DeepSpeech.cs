@@ -202,10 +202,11 @@ namespace DeepSpeechClient
         /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal.
         /// </summary>
         /// <param name="stream">Instance of the stream to finish.</param>
+        /// <param name="aNumResults">Number of candidate transcripts to return.</param>
         /// <returns>The extended metadata result.</returns>
-        public unsafe Metadata FinishStreamWithMetadata(DeepSpeechStream stream)
+        public unsafe Metadata FinishStreamWithMetadata(DeepSpeechStream stream, uint aNumResults)
         {
-            return NativeImp.DS_FinishStreamWithMetadata(stream.GetNativePointer()).PtrToMetadata();
+            return NativeImp.DS_FinishStreamWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
         }
 
         /// <summary>
@@ -216,6 +217,17 @@ namespace DeepSpeechClient
         public unsafe string IntermediateDecode(DeepSpeechStream stream)
         {
             return NativeImp.DS_IntermediateDecode(stream.GetNativePointer()).PtrToString();
+        }
+
+        /// <summary>
+        /// Computes the intermediate decoding of an ongoing streaming inference.
+        /// </summary>
+        /// <param name="stream">Instance of the stream to decode.</param>
+        /// <param name="aNumResults">Number of candidate transcripts to return.</param>
+        /// <returns>The STT intermediate result.</returns>
+        public unsafe Metadata IntermediateDecodeWithMetadata(DeepSpeechStream stream, uint aNumResults)
+        {
+            return NativeImp.DS_IntermediateDecodeWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
         }
 
         /// <summary>
@@ -265,10 +277,11 @@ namespace DeepSpeechClient
         /// </summary>
         /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
+        /// <param name="aNumResults">Number of candidate transcripts to return.</param>
         /// <returns>The extended metadata. Returns NULL on error.</returns>
-        public unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize)
+        public unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize, uint aNumResults)
         {
-            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize).PtrToMetadata();
+            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize, aNumResults).PtrToMetadata();
         }
 
         #endregion
