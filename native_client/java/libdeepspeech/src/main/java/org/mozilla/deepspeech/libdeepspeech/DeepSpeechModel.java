@@ -117,11 +117,12 @@ public class DeepSpeechModel {
     * @param buffer A 16-bit, mono raw audio signal at the appropriate
     *                sample rate (matching what the model was trained on).
     * @param buffer_size The number of samples in the audio signal.
+    * @param num_results Number of candidate transcripts to return.
     *
     * @return Outputs a Metadata object of individual letters along with their timing information.
     */
-    public Metadata sttWithMetadata(short[] buffer, int buffer_size) {
-        return impl.SpeechToTextWithMetadata(this._msp, buffer, buffer_size);
+    public Metadata sttWithMetadata(short[] buffer, int buffer_size, int num_results) {
+        return impl.SpeechToTextWithMetadata(this._msp, buffer, buffer_size, num_results);
     }
 
    /**
@@ -161,6 +162,18 @@ public class DeepSpeechModel {
     }
 
    /**
+    * @brief Compute the intermediate decoding of an ongoing streaming inference.
+    *
+    * @param ctx A streaming state pointer returned by createStream().
+    * @param num_results Number of candidate transcripts to return.
+    *
+    * @return The STT intermediate result.
+    */
+    public Metadata intermediateDecodeWithMetadata(DeepSpeechStreamingState ctx, int num_results) {
+        return impl.IntermediateDecodeWithMetadata(ctx.get(), num_results);
+    }
+
+   /**
     * @brief Signal the end of an audio signal to an ongoing streaming
     *        inference, returns the STT result over the whole audio signal.
     *
@@ -179,12 +192,13 @@ public class DeepSpeechModel {
     *        inference, returns per-letter metadata.
     *
     * @param ctx A streaming state pointer returned by createStream().
+    * @param num_results Number of candidate transcripts to return.
     *
     * @return Outputs a Metadata object of individual letters along with their timing information.
     *
     * @note This method will free the state pointer (@p ctx).
     */
-    public Metadata finishStreamWithMetadata(DeepSpeechStreamingState ctx) {
-        return impl.FinishStreamWithMetadata(ctx.get());
+    public Metadata finishStreamWithMetadata(DeepSpeechStreamingState ctx, int num_results) {
+        return impl.FinishStreamWithMetadata(ctx.get(), num_results);
     }
 }

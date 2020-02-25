@@ -18,18 +18,32 @@
 %typemap(newfree) char* "DS_FreeString($1);";
 
 %include "carrays.i"
-%array_functions(struct MetadataItem, metadataItem_array);
+%array_functions(struct TokenMetadata, TokenMetadata_array);
+%array_functions(struct CandidateTranscript, CandidateTranscript_array);
+
+%extend struct CandidateTranscript {
+  /**
+   * Retrieve one TokenMetadata element
+   * 
+   * @param i Array index of the TokenMetadata to get
+   *
+   * @return The TokenMetadata requested or null
+   */
+  TokenMetadata getToken(int i) {
+    return TokenMetadata_array_getitem(self->tokens, i);
+  }
+}
 
 %extend struct Metadata {
   /**
-   * Retrieve one MetadataItem element
+   * Retrieve one CandidateTranscript element
    * 
-   * @param i Array index of the MetadataItem to get
+   * @param i Array index of the CandidateTranscript to get
    *
-   * @return The MetadataItem requested or null
+   * @return The CandidateTranscript requested or null
    */
-  MetadataItem getItem(int i) {
-    return metadataItem_array_getitem(self->items, i);
+  CandidateTranscript getTranscript(int i) {
+    return CandidateTranscript_array_getitem(self->transcripts, i);
   }
 
   ~Metadata() {
@@ -37,10 +51,12 @@
   }
 }
 
-%nodefaultdtor Metadata;
 %nodefaultctor Metadata;
-%nodefaultctor MetadataItem;
-%nodefaultdtor MetadataItem;
+%nodefaultdtor Metadata;
+%nodefaultctor CandidateTranscript;
+%nodefaultdtor CandidateTranscript;
+%nodefaultctor TokenMetadata;
+%nodefaultdtor TokenMetadata;
 
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
