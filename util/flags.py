@@ -118,16 +118,16 @@ def create_flags():
 
     # Model metadata
 
-    f.DEFINE_string('export_author_id', 'author', 'author of the exported model. This is a unique handle used for identifying and collating models per author. Suggestion: use your GitHub username or organization name')
-    f.DEFINE_string('export_model_name', 'model', 'name of the exported model')
-    f.DEFINE_string('export_model_version', '1', 'version of the exported model. This is fully controlled by you as author of the model and has no required connection with DeepSpeech versions')
+    f.DEFINE_string('export_author_id', 'author', 'author of the exported model. GitHub user or organization name used to uniquely identify the author of this model')
+    f.DEFINE_string('export_model_name', 'model', 'name of the exported model. Must not contain forward slashes.')
+    f.DEFINE_string('export_model_version', '0.0.1', 'semantic version of the exported model. See https://semver.org/. This is fully controlled by you as author of the model and has no required connection with DeepSpeech versions')
 
     def str_val_equals_help(name, val_desc):
         f.DEFINE_string(name, '<{}>'.format(val_desc), val_desc)
 
-    str_val_equals_help('export_contact_info', 'public contact information of the author. Free form, could be an email address, a repository URL, a company website, etc.')
-    str_val_equals_help('export_license', 'license of the exported model')
-    str_val_equals_help('export_language', 'language the model was trained on - IETF BCP 47 language tag, e.g. "de-DE" or "zh-cmn-Hans-CN"')
+    str_val_equals_help('export_contact_info', 'public contact information of the author. Can be an email address, or a link to a contact form, issue tracker, or discussion forum. Must provide a way to reach the model authors')
+    str_val_equals_help('export_license', 'SPDX identifier of the license of the exported model. See https://spdx.org/licenses/. If the license does not have an SPDX identifier, use the license name.')
+    str_val_equals_help('export_language', 'language the model was trained on - IETF BCP 47 language tag including at least language, script and region subtags. E.g. "en-Latn-UK" or "de-Latn-DE" or "cmn-Hans-CN". Include as much info as you can without loss of precision. For example, if a model is trained on Scottish English, include the variant subtag: "en-Latn-GB-Scotland".')
     str_val_equals_help('export_min_ds_version', 'minimum DeepSpeech version (inclusive) the exported model is compatible with')
     str_val_equals_help('export_max_ds_version', 'maximum DeepSpeech version (inclusive) the exported model is compatible with')
     str_val_equals_help('export_description', 'Freeform description of the model being exported. Markdown accepted. You can also leave this flag unchanged and edit the generated .md file directly. Useful things to describe are demographic and acoustic characteristics of the data used to train the model, any architectural changes, names of public datasets that were used when applicable, hyperparameters used for training, evaluation results on standard benchmark datasets, etc.')
