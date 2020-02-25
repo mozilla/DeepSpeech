@@ -77,7 +77,7 @@ struct StreamingState {
   ~StreamingState();
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
-  char* intermediateDecode();
+  char* intermediateDecode() const;
   void finalizeStream();
   char* finishStream();
   Metadata* finishStreamWithMetadata();
@@ -131,7 +131,7 @@ StreamingState::feedAudioContent(const short* buffer,
 }
 
 char*
-StreamingState::intermediateDecode()
+StreamingState::intermediateDecode() const
 {
   return model_->decode(decoder_state_);
 }
@@ -298,7 +298,7 @@ DS_CreateModel(const char* aModelPath,
 }
 
 unsigned int
-DS_GetModelBeamWidth(ModelState* aCtx)
+DS_GetModelBeamWidth(const ModelState* aCtx)
 {
   return aCtx->beam_width_;
 }
@@ -311,7 +311,7 @@ DS_SetModelBeamWidth(ModelState* aCtx, unsigned int aBeamWidth)
 }
 
 int
-DS_GetModelSampleRate(ModelState* aCtx)
+DS_GetModelSampleRate(const ModelState* aCtx)
 {
   return aCtx->sample_rate_;
 }
@@ -397,7 +397,7 @@ DS_FeedAudioContent(StreamingState* aSctx,
 }
 
 char*
-DS_IntermediateDecode(StreamingState* aSctx)
+DS_IntermediateDecode(const StreamingState* aSctx)
 {
   return aSctx->intermediateDecode();
 }
