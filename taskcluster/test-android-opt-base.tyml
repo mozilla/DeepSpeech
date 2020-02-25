@@ -12,6 +12,8 @@ then:
   created: { $fromNow: '0 sec' }
   deadline: { $fromNow: '1 day' }
   expires: { $fromNow: '7 days' }
+  scopes:
+    - "docker-worker:capability:device:kvm"
 
   extra:
     github:
@@ -20,6 +22,10 @@ then:
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
     image: "ubuntu:18.04"
+
+    capabilities:
+      devices:
+        kvm: true
 
     env:
       $let:
@@ -41,7 +47,7 @@ then:
         in: >
           apt-get -qq update && apt-get -qq -y install git gnupg pixz sox sudo wget unzip software-properties-common xvfb &&
           add-apt-repository --yes ppa:openjdk-r/ppa && apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y --force-yes install openjdk-8-jdk && java -version && update-ca-certificates -f &&
-          ${extraSystemSetup} &&
+          ${extraSystemSetup} && chmod 777 /dev/kvm &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
           cd ${system.homedir.linux} &&
           echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && mkdir -p ${system.homedir.linux}/ds-swig/bin/ && wget -O - ${system.swig.cache.linux_amd64} | tar -C ${system.homedir.linux}/ds-swig/ -xzf - && wget -O - ${build.cache.url} | tar -C ${system.homedir.linux} -xzf - && if [ ! -z "${build.gradle_cache.url}" ]; then wget -O - ${build.gradle_cache.url} | tar -C ${system.homedir.linux}/ -xzf - ; fi;" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&

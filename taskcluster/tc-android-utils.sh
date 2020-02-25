@@ -145,7 +145,7 @@ android_start_emulator()
   #  > emulator: INFO: QtLogger.cpp:68: Warning: could not connect to display  ((null):0, (null))
   # -accel on is needed otherwise it is too slow, but it will require KVM support exposed
   pushd ${ANDROID_SDK_HOME}
-    xvfb-run ./tools/emulator -verbose -avd "${_flavor}-ds-pixel-${_api_level}" -no-skin -no-audio -no-window -no-boot-anim -accel off &
+    xvfb-run ./tools/emulator -verbose -avd "${_flavor}-ds-pixel-${_api_level}" -no-skin -no-audio -no-window -no-boot-anim -accel on &
     emulator_rc=$?
     export ANDROID_DEVICE_EMULATOR=$!
   popd
