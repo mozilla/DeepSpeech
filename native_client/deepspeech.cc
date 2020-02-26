@@ -475,6 +475,45 @@ DS_FreeString(char* str)
 }
 
 char*
-DS_Version() {
+DS_Version()
+{
   return strdup(ds_version());
+}
+
+char*
+DS_ErrorCodeToErrorMessage(int aErrorCode)
+{
+  switch(aErrorCode)
+  {
+    case DS_ERR_OK:
+      return strdup("No error.");
+    case DS_ERR_NO_MODEL:
+      return strdup("Missing model information.");
+    case DS_ERR_INVALID_ALPHABET:
+      return strdup("Invalid alphabet embedded in model. (Data corruption?)");
+    case DS_ERR_INVALID_SHAPE:
+      return strdup("Invalid model shape.");
+    case DS_ERR_INVALID_SCORER:
+      return strdup("Invalid scorer file.");
+    case DS_ERR_FAIL_INIT_MMAP:
+      return strdup("Failed to initialize memory mapped model.");
+    case DS_ERR_FAIL_INIT_SESS:
+      return strdup("Failed to initialize the session.");
+    case DS_ERR_FAIL_INTERPRETER:
+      return strdup("Interpreter failed.");
+    case DS_ERR_FAIL_RUN_SESS:
+      return strdup("Failed to run the session.");
+    case DS_ERR_FAIL_CREATE_STREAM:
+      return strdup("Error creating the stream.");
+    case DS_ERR_FAIL_READ_PROTOBUF:
+      return strdup("Error reading the proto buffer model file.");
+    case DS_ERR_FAIL_CREATE_SESS:
+      return strdup("Failed to create session.");
+    case DS_ERR_MODEL_INCOMPATIBLE:
+      return strdup("Incompatible model.");
+    case DS_ERR_SCORER_NOT_ENABLED:
+      return strdup("External scorer is not enabled.");
+    default:
+      return strdup("Unknown error, please make sure you are using the correct native binary.");
+  }
 }
