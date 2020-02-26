@@ -299,7 +299,7 @@ char* DS_Version();
 /**
  * @brief This method shows the textual descriptions of error codes so applications can show
  *          something meaningful to users in error messages.
- *          And returned pointers are read only and  must not be deallocated or modified.
+ *          Use DS_FreeString() on the returned pointer.
  *
  * @return The error string.
  */
