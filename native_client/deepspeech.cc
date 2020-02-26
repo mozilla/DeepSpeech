@@ -478,3 +478,41 @@ char*
 DS_Version() {
   return strdup(ds_version());
 }
+
+// Returned pointers are read only and  MUST not be deallocated or modified
+char*
+DS_ErrorCodeToErrorMessage(int aErrorCode){
+  switch(aErrorCode)
+  {
+    case DS_ERR_OK:
+      break;
+    case DS_ERR_NO_MODEL:
+      return "Missing model information.";
+    case DS_ERR_INVALID_ALPHABET:
+      return "Invalid alphabet embedded in model. (Data corruption?)";
+    case DS_ERR_INVALID_SHAPE:
+      return "Invalid model shape.";
+    case DS_ERR_INVALID_SCORER:
+      return "Invalid scorer file.";
+    case DS_ERR_FAIL_INIT_MMAP:
+      return "Failed to initialize memory mapped model.";
+    case DS_ERR_FAIL_INIT_SESS:
+      return "Failed to initialize the session.";
+    case DS_ERR_FAIL_INTERPRETER:
+      return "Interpreter failed.";
+    case DS_ERR_FAIL_RUN_SESS:
+      return "Failed to run the session.";
+    case DS_ERR_FAIL_CREATE_STREAM:
+      return "Error creating the stream.";
+    case DS_ERR_FAIL_READ_PROTOBUF:
+      return "Error reading the proto buffer model file.";
+    case DS_ERR_FAIL_CREATE_SESS:
+      return "Error failed to create session.";
+    case DS_ERR_MODEL_INCOMPATIBLE:
+      return "Error incompatible model.";
+    case DS_ERR_SCORER_NOT_ENABLED:
+      return "External scorer is not enabled.";
+    default:
+      return "Unknown error, please make sure you are using the correct native binary.";
+  }
+}

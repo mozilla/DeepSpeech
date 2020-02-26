@@ -296,6 +296,9 @@ void DS_FreeString(char* str);
 DEEPSPEECH_EXPORT
 char* DS_Version();
 
+DEEPSPEECH_EXPORT
+char* DS_ErrorCodeToErrorMessage(int aErrorCode);
+
 #undef DEEPSPEECH_EXPORT
 
 #ifdef __cplusplus
