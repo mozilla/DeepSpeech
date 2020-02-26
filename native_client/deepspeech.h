@@ -296,6 +296,13 @@ void DS_FreeString(char* str);
 DEEPSPEECH_EXPORT
 char* DS_Version();
 
+/**
+ * @brief This method shows the textual descriptions of error codes so applications can show
+ *          something meaningful to users in error messages.
+ *          And returned pointers are read only and  must not be deallocated or modified.
+ *
+ * @return The error string.
+ */
 DEEPSPEECH_EXPORT
 char* DS_ErrorCodeToErrorMessage(int aErrorCode);
 

@@ -485,7 +485,7 @@ DS_ErrorCodeToErrorMessage(int aErrorCode){
   switch(aErrorCode)
   {
     case DS_ERR_OK:
-      break;
+      return "No Error.";
     case DS_ERR_NO_MODEL:
       return "Missing model information.";
     case DS_ERR_INVALID_ALPHABET:
@@ -507,9 +507,9 @@ DS_ErrorCodeToErrorMessage(int aErrorCode){
     case DS_ERR_FAIL_READ_PROTOBUF:
       return "Error reading the proto buffer model file.";
     case DS_ERR_FAIL_CREATE_SESS:
-      return "Error failed to create session.";
+      return "Failed to create session.";
     case DS_ERR_MODEL_INCOMPATIBLE:
-      return "Error incompatible model.";
+      return "Incompatible model.";
     case DS_ERR_SCORER_NOT_ENABLED:
       return "External scorer is not enabled.";
     default:
