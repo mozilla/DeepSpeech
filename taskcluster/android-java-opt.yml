@@ -5,17 +5,22 @@ build:
     - "android-armv7-cpu-opt"
     - "android-x86_64-cpu-opt"
     - "pyenv-linux-amd64"
+    - "gradle-cache"
+    - "android-cache-sdk-android-27"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.android-apk.${event.head.sha}"
   system_setup:
     >
-      apt-get -qq -y install curl software-properties-common &&
-      add-apt-repository --yes ppa:openjdk-r/ppa && apt-get -qq update &&
-      DEBIAN_FRONTEND=noninteractive apt-get -qq -y --force-yes install openjdk-8-jdk &&
-      java -version && update-ca-certificates -f
+      ${java.packages_trusty.apt}
   tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.android-armv7/artifacts/public/home.tar.xz"
+  gradle_cache:
+    url: ${system.gradle_cache.url}
+    namespace: ${system.gradle_cache.namespace}
+  android_cache:
+    url: ${system.android_cache.sdk.android_27.url}
+    namespace: ${system.android_cache.sdk.android_27.namespace}
   scripts:
     build: "taskcluster/android-apk-build.sh"
     package: "taskcluster/android-apk-package.sh"

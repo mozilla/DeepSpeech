@@ -3,6 +3,7 @@
 include ../definitions.mk
 
 ARCHS := $(shell grep 'ABI_FILTERS' libdeepspeech/gradle.properties | cut -d'=' -f2 | sed -e 's/;/ /g')
+GRADLE ?= ./gradlew
 
 all: apk
 
@@ -10,7 +11,7 @@ clean: apk-clean
 	rm -rf *.java jni/deepspeech_wrap.cpp
 
 apk-clean:
-	./gradlew clean
+	$(GRADLE) clean
 
 libs-clean:
 	rm -fr libdeepspeech/libs/*/libdeepspeech.so
@@ -20,11 +21,11 @@ libdeepspeech/libs/%/libdeepspeech.so:
 	cp ${TFDIR}/bazel-out/$*-*/bin/native_client/libdeepspeech.so libdeepspeech/libs/$*/
 
 apk: apk-clean bindings $(patsubst %,libdeepspeech/libs/%/libdeepspeech.so,$(ARCHS))
-	./gradlew build
+	$(GRADLE) build
 
 maven-bundle: apk
-	./gradlew uploadArchives
-	./gradlew zipMavenArtifacts
+	$(GRADLE) uploadArchives
+	$(GRADLE) zipMavenArtifacts
 
 bindings: clean
 	swig -c++ -java -package org.mozilla.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/mozilla/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i
