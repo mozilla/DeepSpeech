@@ -288,8 +288,8 @@ DEEPSPEECH_EXPORT
 void DS_FreeString(char* str);
 
 /**
- * @brief Return version of this library. The returned version is a semantic version
- *        (SemVer 2.0.0). The string returned must be freed with {@link DS_FreeString()}.
+ * @brief Returns the version of this library. The returned version is a semantic
+ *        version (SemVer 2.0.0). The string returned must be freed with {@link DS_FreeString()}.
  *
  * @return The version string.
  */
@@ -297,11 +297,10 @@ DEEPSPEECH_EXPORT
 char* DS_Version();
 
 /**
- * @brief This method shows the textual descriptions of error codes so applications can show
- *          something meaningful to users in error messages.
- *          Use DS_FreeString() on the returned pointer.
+ * @brief Returns a textual description corresponding to an error code.
+ *        The string returned must be freed with @{link DS_FreeString()}.
  *
- * @return The error string.
+ * @return The error description.
  */
 DEEPSPEECH_EXPORT
 char* DS_ErrorCodeToErrorMessage(int aErrorCode);

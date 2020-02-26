@@ -475,73 +475,45 @@ DS_FreeString(char* str)
 }
 
 char*
-DS_Version() {
+DS_Version()
+{
   return strdup(ds_version());
 }
 
 char*
-DS_ErrorCodeToErrorMessage(int aErrorCode){
+DS_ErrorCodeToErrorMessage(int aErrorCode)
+{
   switch(aErrorCode)
   {
     case DS_ERR_OK:
-      char message[] = "No Error.";
-      char* error = strdup(message);
-      return error;
+      return strdup("No error.");
     case DS_ERR_NO_MODEL:
-      char message[] = "Missing model information.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Missing model information.");
     case DS_ERR_INVALID_ALPHABET:
-      char message[] = "Invalid alphabet embedded in model. (Data corruption?)";
-      char* error = strdup(message);
-      return error;
+      return strdup("Invalid alphabet embedded in model. (Data corruption?)");
     case DS_ERR_INVALID_SHAPE:
-      char message[] = "Invalid model shape.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Invalid model shape.");
     case DS_ERR_INVALID_SCORER:
-      char message[] = "Invalid scorer file.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Invalid scorer file.");
     case DS_ERR_FAIL_INIT_MMAP:
-      char message[] = "Failed to initialize memory mapped model.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Failed to initialize memory mapped model.");
     case DS_ERR_FAIL_INIT_SESS:
-      char message[] = "Failed to initialize the session.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Failed to initialize the session.");
     case DS_ERR_FAIL_INTERPRETER:
-      char message[] = "Interpreter failed.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Interpreter failed.");
     case DS_ERR_FAIL_RUN_SESS:
-      char message[] = "Failed to run the session.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Failed to run the session.");
     case DS_ERR_FAIL_CREATE_STREAM:
-      char message[] = "Error creating the stream.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Error creating the stream.");
     case DS_ERR_FAIL_READ_PROTOBUF:
-      char message[] = "Error reading the proto buffer model file.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Error reading the proto buffer model file.");
     case DS_ERR_FAIL_CREATE_SESS:
-      char message[] = "Failed to create session.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Failed to create session.");
     case DS_ERR_MODEL_INCOMPATIBLE:
-      char message[] = "Incompatible model.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Incompatible model.");
     case DS_ERR_SCORER_NOT_ENABLED:
-      char message[] = "External scorer is not enabled.";
-      char* error = strdup(message);
-      return error;
+      return strdup("External scorer is not enabled.");
     default:
-      char message[] = "Unknown error, please make sure you are using the correct native binary.";
-      char* error = strdup(message);
-      return error;
+      return strdup("Unknown error, please make sure you are using the correct native binary.");
   }
 }
