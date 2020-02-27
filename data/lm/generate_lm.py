@@ -17,6 +17,7 @@ def convert_and_filter_topk(args):
     counter = Counter()
     data_lower = os.path.join(args.output_dir, 'lower.txt.gz')
 
+    # Convert and count words
     print('\nConverting to lowercase and counting word occurrences ...')
     with io.TextIOWrapper(io.BufferedWriter(gzip.open(data_lower, 'w+')), encoding='utf-8') as lower:
         with open(args.input_txt, encoding='utf8') as upper:
@@ -39,6 +40,9 @@ def convert_and_filter_topk(args):
 # ======================================================================================================================
 
 def build_lm(args, data_lower, vocab_str):
+    """ Create the lm.binary file """
+
+    # Calculate n-grams for the lm.arpa file
     print('\nCreating ARPA file ...')
     lm_path = os.path.join(args.output_dir, 'lm.arpa')
     subprocess.check_call([
@@ -50,14 +54,14 @@ def build_lm(args, data_lower, vocab_str):
         '--prune', '0', '0', '1'
     ])
 
-    # Filter LM using vocabulary of top 500k words
+    # Filter lm.arpa using vocabulary of top-k words
     print('\nFiltering ARPA file using vocabulary of top-k words ...')
     filtered_path = os.path.join(args.output_dir, 'lm_filtered.arpa')
     subprocess.run([args.kenlm_bins + 'filter', 'single', 'model:{}'.format(lm_path), filtered_path],
                    input=vocab_str.encode('utf-8'),
                    check=True)
 
-    # Quantize and produce trie binary.
+    # Quantize, produce trie and save to lm.binary
     print('\nBuilding lm.binary ...')
     binary_path = os.path.join(args.output_dir, 'lm.binary')
     subprocess.check_call([
