@@ -1,8 +1,16 @@
+| Generate vocab-500000.txt and lm.binary files
+| Add '--download_librispeech' to download the librispeech text corpus (will be downloaded to '--input_txt')
+| Optional change the path of the kenlm binaries with '--kenlm_bins path/to/bins/'
+| Optional change the number of most frequent words with  '--top_k 300000'
 
-The LM binary was generated from the LibriSpeech normalized LM training text, available `here <http://www.openslr.org/11>`_\ , using the `generate_lm.py` script (will generate `lm.binary` and `librispeech-vocab-500k.txt` in the folder it is run from). `KenLM <https://github.com/kpu/kenlm>`_'s built binaries must be in your PATH (lmplz, build_binary, filter).
-
-The scorer package was then built using the `generate_package.py` script:
 
 .. code-block:: bash
-    python generate_lm.py # this will create lm.binary and librispeech-vocab-500k.txt
+
+    python3 data/lm/generate_lm.py --input_txt path/to/vocab_sentences.txt --output_dir path/lm/
+
+
+| Generate scorer package with the above vocab-500000.txt and lm.binary files
+
+.. code-block:: bash
+
     python generate_package.py --alphabet ../alphabet.txt --lm lm.binary --vocab librispeech-vocab-500k.txt --default_alpha 0.75 --default_beta 1.85 --package kenlm.scorer
