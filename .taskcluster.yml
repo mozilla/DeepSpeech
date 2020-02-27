@@ -27,6 +27,7 @@ tasks:
       "index:insert-task:project.deepspeech.*",
       "queue:scheduler-id:taskcluster-github",
       "generic-worker:cache:deepspeech-macos-pyenv",
+      "docker-worker:capability:device:kvm"
     ]
 
     payload:
