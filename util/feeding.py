@@ -31,8 +31,13 @@ def read_csvs(csv_files):
 
 
 def samples_to_mfccs(samples, sample_rate, train_phase=False, wav_filename=None):
-    if train_phase and sample_rate != FLAGS.audio_sample_rate:
-        tf.print('WARNING: sample rate of file', wav_filename, '(', sample_rate, ') does not match FLAGS.audio_sample_rate. This can lead to incorrect results.')
+    if train_phase:
+        # We need the lambdas to make TensorFlow happy.
+        # pylint: disable=unnecessary-lambda
+        tf.cond(tf.math.not_equal(sample_rate, FLAGS.audio_sample_rate),
+                lambda: tf.print('WARNING: sample rate of file', wav_filename, '(', sample_rate, ') does not match FLAGS.audio_sample_rate. This can lead to incorrect results.'),
+                lambda: tf.no_op(),
+                name='matching_sample_rate')
 
     spectrogram = contrib_audio.audio_spectrogram(samples,
                                                   window_size=Config.audio_window_samples,
