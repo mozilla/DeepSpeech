@@ -80,6 +80,7 @@ import_array();
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
 %newobject DS_Version;
+%newobject DS_ErrorCodeToErrorMessage;
 
 %rename ("%(strip:[DS_])s") "";
 

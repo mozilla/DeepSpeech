@@ -35,7 +35,8 @@ class Model(object):
 
         status, impl = deepspeech.impl.CreateModel(model_path)
         if status != 0:
-            raise RuntimeError("CreateModel failed with error code 0x{:X}".format(status))
+            error_message = deepspeech.impl.ErrorCodeToErrorMessage(status)
+            raise RuntimeError("CreateModel failed with error message {} with error code 0x{:X}".format(error_message,status))
         self._impl = impl
 
     def __del__(self):
@@ -145,7 +146,8 @@ class Model(object):
         """
         status, ctx = deepspeech.impl.CreateStream(self._impl)
         if status != 0:
-            raise RuntimeError("CreateStream failed with error code 0x{:X}".format(status))
+            error_message = deepspeech.impl.ErrorCodeToErrorMessage(status)
+            raise RuntimeError("CreateStream failed with error message {} with error code 0x{:X}".format(error_message,status))
         return Stream(ctx)
 
 
