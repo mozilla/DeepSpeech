@@ -45,6 +45,7 @@
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
+%newobject DS_ErrorCodeToErrorMessage;
 
 %rename ("%(strip:[DS_])s") "";
 
