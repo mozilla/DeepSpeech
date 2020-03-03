@@ -87,40 +87,40 @@ namespace DeepSpeechClient
         /// Evaluate the result code and will raise an exception if necessary.
         /// </summary>
         /// <param name="resultCode">Native result code.</param>
-        private void EvaluateResultCode(ErrorCodes resultCode)
+        private string EvaluateResultCode(ErrorCodes resultCode)
         {
             switch (resultCode)
             {
                 case ErrorCodes.DS_ERR_OK:
-                    break;
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_NO_MODEL:
-                    throw new ArgumentException("Missing model information.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_INVALID_ALPHABET:
-                    throw new ArgumentException("Invalid alphabet embedded in model. (Data corruption?)");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_INVALID_SHAPE:
-                    throw new ArgumentException("Invalid model shape.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_INVALID_SCORER:
-                    throw new ArgumentException("Invalid scorer file.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_FAIL_INIT_MMAP:
-                    throw new ArgumentException("Failed to initialize memory mapped model.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_FAIL_INIT_SESS:
-                    throw new ArgumentException("Failed to initialize the session.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_FAIL_INTERPRETER:
-                    throw new ArgumentException("Interpreter failed.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_FAIL_RUN_SESS:
-                    throw new ArgumentException("Failed to run the session.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_FAIL_CREATE_STREAM:
-                    throw new ArgumentException("Error creating the stream.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_FAIL_READ_PROTOBUF:
-                    throw new ArgumentException("Error reading the proto buffer model file.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_FAIL_CREATE_SESS:
-                    throw new ArgumentException("Error failed to create session.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_MODEL_INCOMPATIBLE:
-                    throw new ArgumentException("Error incompatible model.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 case ErrorCodes.DS_ERR_SCORER_NOT_ENABLED:
-                    throw new ArgumentException("External scorer is not enabled.");
+                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
                 default:
-                    throw new ArgumentException("Unknown error, please make sure you are using the correct native binary.");
+                    return ("Unknown error, please make sure you are using the correct native binary.");
             }
         }
 

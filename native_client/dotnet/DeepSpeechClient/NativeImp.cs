@@ -20,6 +20,9 @@ namespace DeepSpeechClient
                    ref IntPtr** pint);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal unsafe static extern IntPtr DS_ErrorCodeToErrorMessage(int aErrorCode);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal unsafe static extern uint DS_GetModelBeamWidth(IntPtr** aCtx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
