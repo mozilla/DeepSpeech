@@ -24,12 +24,28 @@ def convert_and_filter_topk(args):
                 file_out.write(line_lower)
 
     # Save top-k words
-    print('\nSaving top {} words'.format(args.top_k))
-    vocab_str = '\n'.join(word for word, count in counter.most_common(args.top_k))
+    print('\nSaving top {} words ...'.format(args.top_k))
+    top_counter = counter.most_common(args.top_k)
+    vocab_str = '\n'.join(word for word, count in top_counter)
     vocab_path = 'vocab-{}.txt'.format(args.top_k)
     vocab_path = os.path.join(args.output_dir, vocab_path)
     with open(vocab_path, 'w+') as file:
         file.write(vocab_str)
+
+    print('\nCalculating word statistics ...'.format(args.top_k))
+    total_words = sum(counter.values())
+    print('  Your text file has {} words in total'.format(total_words))
+    print('  It has {} unique words'.format(len(counter)))
+    top_words_sum = sum(count for word, count in top_counter)
+    word_fraction = (top_words_sum / total_words) * 100
+    print('  Your top-{} words are {:.4f} percent of all words'.format(args.top_k, word_fraction))
+    print('  Your most common word "{}" occurred {} times'.format(*top_counter[0]))
+    last_word, last_count = top_counter[-1]
+    print('  The least common word in your top-k is "{}" with {} times'.format(last_word, last_count))
+    for i, (w, c) in enumerate(reversed(top_counter)):
+        if c > last_count:
+            print('  The first word with {} occurrences is "{}" at place {}'.format(c, w, len(top_counter) - 1 - i))
+            break
 
     return data_lower, vocab_str
 
