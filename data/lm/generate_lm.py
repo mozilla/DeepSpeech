@@ -32,7 +32,7 @@ def convert_and_filter_topk(args):
     with open(vocab_path, 'w+') as file:
         file.write(vocab_str)
 
-    print('\nCalculating word statistics ...'.format(args.top_k))
+    print('\nCalculating word statistics ...')
     total_words = sum(counter.values())
     print('  Your text file has {} words in total'.format(total_words))
     print('  It has {} unique words'.format(len(counter)))
