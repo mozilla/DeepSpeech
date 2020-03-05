@@ -5,6 +5,9 @@ python:
     apt: 'python3-virtualenv python3-setuptools python3-pip python3-wheel python3-pkg-resources'
   packages_docs_bionic:
     apt: 'python3 python3-pip zip doxygen'
+training:
+  packages_trusty:
+    apt: 'libopus0'
 tensorflow:
   packages_trusty:
     apt: 'make build-essential gfortran git libblas-dev liblapack-dev libsox-dev libmagic-dev libgsm1-dev libltdl-dev libpng-dev python zlib1g-dev'

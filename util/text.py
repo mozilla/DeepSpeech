@@ -4,7 +4,6 @@ import numpy as np
 import re
 import struct
 
-from util.flags import FLAGS
 from six.moves import range
 
 class Alphabet(object):
@@ -120,19 +119,22 @@ class UTF8Alphabet(object):
         return ''
 
 
-def text_to_char_array(series, alphabet):
+def text_to_char_array(transcript, alphabet, context=''):
     r"""
-    Given a Pandas Series containing transcript string, map characters to
+    Given a transcript string, map characters to
     integers and return a numpy array representing the processed string.
+    Use a string in `context` for adding text to raised exceptions.
     """
     try:
-        transcript = np.asarray(alphabet.encode(series['transcript']))
+        transcript = alphabet.encode(transcript)
         if len(transcript) == 0:
-            raise ValueError('While processing: {}\nFound an empty transcript! You must include a transcript for all training data.'.format(series['wav_filename']))
+            raise ValueError('While processing {}: Found an empty transcript! '
+                             'You must include a transcript for all training data.'
+                             .format(context))
         return transcript
     except KeyError as e:
         # Provide the row context (especially wav_filename) for alphabet errors
-        raise ValueError('While processing: {}\n{}'.format(series['wav_filename'], e))
+        raise ValueError('While processing: {}\n{}'.format(context, e))
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py

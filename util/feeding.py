@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
-import os
-
 from functools import partial
 
 import numpy as np
-import pandas
 import tensorflow as tf
 
 from tensorflow.python.ops import gen_audio_ops as contrib_audio
@@ -15,27 +12,18 @@ from util.config import Config
 from util.text import text_to_char_array
 from util.flags import FLAGS
 from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up, augment_sparse_warp
-from util.audio import read_frames_from_file, vad_split, DEFAULT_FORMAT
+from util.audio import change_audio_types, read_frames_from_file, vad_split, pcm_to_np, DEFAULT_FORMAT, AUDIO_TYPE_NP
+from util.sample_collections import samples_from_files
+from util.helpers import remember_exception, MEGABYTE
 
 
-def read_csvs(csv_files):
-    sets = []
-    for csv in csv_files:
-        file = pandas.read_csv(csv, encoding='utf-8', na_filter=False)
-        #FIXME: not cross-platform
-        csv_dir = os.path.dirname(os.path.abspath(csv))
-        file['wav_filename'] = file['wav_filename'].str.replace(r'(^[^/])', lambda m: os.path.join(csv_dir, m.group(1))) # pylint: disable=cell-var-from-loop
-        sets.append(file)
-    # Concat all sets, drop any extra columns, re-index the final result as 0..N
-    return pandas.concat(sets, join='inner', ignore_index=True)
-
-
-def samples_to_mfccs(samples, sample_rate, train_phase=False, wav_filename=None):
+def samples_to_mfccs(samples, sample_rate, train_phase=False, sample_id=None):
     if train_phase:
         # We need the lambdas to make TensorFlow happy.
         # pylint: disable=unnecessary-lambda
         tf.cond(tf.math.not_equal(sample_rate, FLAGS.audio_sample_rate),
-                lambda: tf.print('WARNING: sample rate of file', wav_filename, '(', sample_rate, ') does not match FLAGS.audio_sample_rate. This can lead to incorrect results.'),
+                lambda: tf.print('WARNING: sample rate of sample', sample_id, '(', sample_rate, ') '
+                                 'does not match FLAGS.audio_sample_rate. This can lead to incorrect results.'),
                 lambda: tf.no_op(),
                 name='matching_sample_rate')
 
@@ -84,10 +72,8 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False, wav_filename=None)
     return mfccs, tf.shape(input=mfccs)[0]
 
 
-def audiofile_to_features(wav_filename, train_phase=False):
-    samples = tf.io.read_file(wav_filename)
-    decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    features, features_len = samples_to_mfccs(decoded.audio, decoded.sample_rate, train_phase=train_phase, wav_filename=wav_filename)
+def audio_to_features(audio, sample_rate, train_phase=False, sample_id=None):
+    features, features_len = samples_to_mfccs(audio, sample_rate, train_phase=train_phase, sample_id=sample_id)
 
     if train_phase:
         if FLAGS.data_aug_features_multiplicative > 0:
@@ -99,10 +85,17 @@ def audiofile_to_features(wav_filename, train_phase=False):
     return features, features_len
 
 
-def entry_to_features(wav_filename, transcript, train_phase):
+def audiofile_to_features(wav_filename, train_phase=False):
+    samples = tf.io.read_file(wav_filename)
+    decoded = contrib_audio.decode_wav(samples, desired_channels=1)
+    return audio_to_features(decoded.audio, decoded.sample_rate, train_phase=train_phase, sample_id=wav_filename)
+
+
+def entry_to_features(sample_id, audio, sample_rate, transcript, train_phase=False):
     # https://bugs.python.org/issue32117
-    features, features_len = audiofile_to_features(wav_filename, train_phase=train_phase)
-    return wav_filename, features, features_len, tf.SparseTensor(*transcript)
+    features, features_len = audio_to_features(audio, sample_rate, train_phase=train_phase, sample_id=sample_id)
+    sparse_transcript = tf.SparseTensor(*transcript)
+    return sample_id, features, features_len, sparse_transcript
 
 
 def to_sparse_tuple(sequence):
@@ -114,15 +107,22 @@ def to_sparse_tuple(sequence):
     return indices, sequence, shape
 
 
-def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_phase=False):
-    df = read_csvs(csvs)
-    df.sort_values(by='wav_filesize', inplace=True)
-
-    df['transcript'] = df.apply(text_to_char_array, alphabet=Config.alphabet, result_type='reduce', axis=1)
-
+def create_dataset(sources,
+                   batch_size,
+                   enable_cache=False,
+                   cache_path=None,
+                   train_phase=False,
+                   exception_box=None,
+                   process_ahead=None,
+                   buffering=1 * MEGABYTE):
     def generate_values():
-        for _, row in df.iterrows():
-            yield row.wav_filename, to_sparse_tuple(row.transcript)
+        samples = samples_from_files(sources, buffering=buffering)
+        for sample in change_audio_types(samples,
+                                         AUDIO_TYPE_NP,
+                                         process_ahead=2 * batch_size if process_ahead is None else process_ahead):
+            transcript = text_to_char_array(sample.transcript, Config.alphabet, context=sample.sample_id)
+            transcript = to_sparse_tuple(transcript)
+            yield sample.sample_id, sample.audio, sample.audio_format[0], transcript
 
     # Batching a dataset of 2D SparseTensors creates 3D batches, which fail
     # when passed to tf.nn.ctc_loss, so we reshape them to remove the extra
@@ -131,27 +131,23 @@ def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_
         shape = sparse.dense_shape
         return tf.sparse.reshape(sparse, [shape[0], shape[2]])
 
-    def batch_fn(wav_filenames, features, features_len, transcripts):
+    def batch_fn(sample_ids, features, features_len, transcripts):
         features = tf.data.Dataset.zip((features, features_len))
-        features = features.padded_batch(batch_size,
-                                         padded_shapes=([None, Config.n_input], []))
+        features = features.padded_batch(batch_size, padded_shapes=([None, Config.n_input], []))
         transcripts = transcripts.batch(batch_size).map(sparse_reshape)
-        wav_filenames = wav_filenames.batch(batch_size)
-        return tf.data.Dataset.zip((wav_filenames, features, transcripts))
+        sample_ids = sample_ids.batch(batch_size)
+        return tf.data.Dataset.zip((sample_ids, features, transcripts))
 
-    num_gpus = len(Config.available_devices)
     process_fn = partial(entry_to_features, train_phase=train_phase)
 
-    dataset = (tf.data.Dataset.from_generator(generate_values,
-                                              output_types=(tf.string, (tf.int64, tf.int32, tf.int64)))
+    dataset = (tf.data.Dataset.from_generator(remember_exception(generate_values, exception_box),
+                                              output_types=(tf.string, tf.float32, tf.int32,
+                                                            (tf.int64, tf.int32, tf.int64)))
                               .map(process_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE))
-
     if enable_cache:
         dataset = dataset.cache(cache_path)
-
     dataset = (dataset.window(batch_size, drop_remainder=True).flat_map(batch_fn)
-                      .prefetch(num_gpus))
-
+                      .prefetch(len(Config.available_devices)))
     return dataset
 
 
@@ -160,27 +156,24 @@ def split_audio_file(audio_path,
                      batch_size=1,
                      aggressiveness=3,
                      outlier_duration_ms=10000,
-                     outlier_batch_size=1):
-    sample_rate, _, sample_width = audio_format
-    multiplier = 1.0 / (1 << (8 * sample_width - 1))
-
+                     outlier_batch_size=1,
+                     exception_box=None):
     def generate_values():
         frames = read_frames_from_file(audio_path)
         segments = vad_split(frames, aggressiveness=aggressiveness)
         for segment in segments:
             segment_buffer, time_start, time_end = segment
-            samples = np.frombuffer(segment_buffer, dtype=np.int16)
-            samples = samples * multiplier
-            samples = np.expand_dims(samples, axis=1)
+            samples = pcm_to_np(audio_format, segment_buffer)
             yield time_start, time_end, samples
 
     def to_mfccs(time_start, time_end, samples):
-        features, features_len = samples_to_mfccs(samples, sample_rate)
+        features, features_len = samples_to_mfccs(samples, audio_format[0])
         return time_start, time_end, features, features_len
 
     def create_batch_set(bs, criteria):
         return (tf.data.Dataset
-                .from_generator(generate_values, output_types=(tf.int32, tf.int32, tf.float32))
+                .from_generator(remember_exception(generate_values, exception_box),
+                                output_types=(tf.int32, tf.int32, tf.float32))
                 .map(to_mfccs, num_parallel_calls=tf.data.experimental.AUTOTUNE)
                 .filter(criteria)
                 .padded_batch(bs, padded_shapes=([], [], [None, Config.n_input], [])))
@@ -192,9 +185,3 @@ def split_audio_file(audio_path,
     dataset = nds.concatenate(ods)
     dataset = dataset.prefetch(len(Config.available_devices))
     return dataset
-
-
-def secs_to_hours(secs):
-    hours, remainder = divmod(secs, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    return '%d:%02d:%02d' % (hours, minutes, seconds)
