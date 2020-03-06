@@ -436,7 +436,8 @@ def train():
                                batch_size=FLAGS.train_batch_size,
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
-                               train_phase=True)
+                               train_phase=True,
+                               noise_dirs=FLAGS.audio_aug_mix_noise_walk_train_dirs)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -447,7 +448,7 @@ def train():
 
     if FLAGS.dev_files:
         dev_csvs = FLAGS.dev_files.split(',')
-        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False) for csv in dev_csvs]
+        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False, noise_dirs=FLAGS.audio_aug_mix_noise_walk_dev_dirs) for csv in dev_csvs]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
@@ -673,7 +674,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading)
+    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading, noise_dirs=FLAGS.audio_aug_mix_noise_walk_test_dirs)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
@@ -896,7 +897,7 @@ def do_single_file_inference(input_file_path):
             print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
             sys.exit(1)
 
-        features, features_len = audiofile_to_features(input_file_path)
+        features, features_len = audiofile_to_features(input_file_path, 0.0)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 

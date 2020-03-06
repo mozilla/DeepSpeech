@@ -24,11 +24,13 @@ def create_flags():
     # Data Augmentation
     # ================
 
-    f.DEFINE_string('audio_aug_mix_noise_walk_dirs', '', 'walk through wav dir, then mix noise wav into decoded audio')
-    f.DEFINE_float('audio_aug_mix_noise_max_noise_db', -25, 'to limit noise max volume')
-    f.DEFINE_float('audio_aug_mix_noise_min_noise_db', -50, 'to limit noise min volume')
-    f.DEFINE_float('audio_aug_mix_noise_max_audio_db', 0, 'to limit audio max volume')
-    f.DEFINE_float('audio_aug_mix_noise_min_audio_db', -10, 'to limit audio min volume')
+    f.DEFINE_string('audio_aug_mix_noise_walk_train_dirs', '', 'walk through wav dir, then mix noise wav into decoded audio')
+    f.DEFINE_string('audio_aug_mix_noise_walk_dev_dirs', '', 'walk through wav dir, then mix noise wav into decoded audio')
+    f.DEFINE_string('audio_aug_mix_noise_walk_test_dirs', '', 'walk through wav dir, then mix noise wav into decoded audio')
+    f.DEFINE_float('audio_aug_mix_noise_max_snr_db', 20, 'to limit noise max volume', lower_bound=0.0)
+    f.DEFINE_float('audio_aug_mix_noise_min_snr_db', 3, 'to limit noise min volume', lower_bound=0.0)
+    f.DEFINE_float('audio_aug_mix_noise_max_audio_gain_db', 5, 'to limit audio max volume')
+    f.DEFINE_float('audio_aug_mix_noise_min_audio_gain_db', -10, 'to limit audio min volume')
 
     f.DEFINE_float('data_aug_features_additive', 0, 'std of the Gaussian additive noise')
     f.DEFINE_float('data_aug_features_multiplicative', 0, 'std of normal distribution around 1 for multiplicative noise')
