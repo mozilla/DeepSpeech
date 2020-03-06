@@ -8,7 +8,6 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 # Get basic packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-utils \
-        ca-certificates \
         build-essential \
         curl \
         wget \
