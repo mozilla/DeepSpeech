@@ -35,7 +35,7 @@ class Alphabet(object):
             raise KeyError(
                 'ERROR: Your transcripts contain characters (e.g. \'{}\') which do not occur in \'{}\'! Use ' \
                 'util/check_characters.py to see what characters are in your [train,dev,test].csv transcripts, and ' \
-                'then add all these to \'{}\'.'.format(self._config_file, string, self._config_file)
+                'then add all these to \'{}\'.'.format(string, self._config_file, self._config_file)
             ).with_traceback(e.__traceback__)
 
     def has_char(self, char):
