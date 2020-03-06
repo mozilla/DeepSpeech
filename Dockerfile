@@ -7,6 +7,8 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
 # Get basic packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        apt-utils \
+        ca-certificates \
         build-essential \
         curl \
         wget \
@@ -44,14 +46,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN ln -s -f /usr/bin/python3 /usr/bin/python
 
 # Install NCCL 2.2
-RUN apt-get install -qq -y --allow-downgrades --allow-change-held-packages libnccl2=2.3.7-1+cuda10.0 libnccl-dev=2.3.7-1+cuda10.0
+RUN apt-get --no-install-recommends install -qq -y --allow-downgrades --allow-change-held-packages libnccl2=2.3.7-1+cuda10.0 libnccl-dev=2.3.7-1+cuda10.0
 
 # Install Bazel
 RUN curl -LO "https://github.com/bazelbuild/bazel/releases/download/0.24.1/bazel_0.24.1-linux-x86_64.deb"
 RUN dpkg -i bazel_*.deb
 
 # Install CUDA CLI Tools
-RUN apt-get install -qq -y cuda-command-line-tools-10-0
+RUN apt-get --no-install-recommends install -qq -y cuda-command-line-tools-10-0
 
 # Install pip
 RUN wget https://bootstrap.pypa.io/get-pip.py && \
