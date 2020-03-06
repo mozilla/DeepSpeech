@@ -35,8 +35,7 @@ function Model(aModelPath) {
     const status = rets[0];
     const impl = rets[1];
     if (status !== 0) {
-        error_message = binding.ErrorCodeToErrorMessage(status);
-        throw "CreateModel failed with error message "+error_message+" with error code 0x" + status.toString(16);
+        throw "CreateModel failed "+binding.ErrorCodeToErrorMessage(status)+" 0x" + status.toString(16);
     }
 
     this._impl = impl;
@@ -139,8 +138,7 @@ Model.prototype.createStream = function() {
     const status = rets[0];
     const ctx = rets[1];
     if (status !== 0) {
-        error_message = binding.ErrorCodeToErrorMessage(status);
-        throw "CreateStream failed with error message "+error_message+" with error code 0x" + status.toString(16);
+        throw "CreateStream failed "+binding.ErrorCodeToErrorMessage(status)+" 0x" + status.toString(16);
     }
     return ctx;
 }

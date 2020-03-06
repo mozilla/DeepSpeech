@@ -84,47 +84,6 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
-        /// Evaluate the result code and will raise an exception if necessary.
-        /// </summary>
-        /// <param name="resultCode">Native result code.</param>
-        private string EvaluateResultCode(ErrorCodes resultCode)
-        {
-            switch (resultCode)
-            {
-                case ErrorCodes.DS_ERR_OK:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_NO_MODEL:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_INVALID_ALPHABET:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_INVALID_SHAPE:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_INVALID_SCORER:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_FAIL_INIT_MMAP:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_FAIL_INIT_SESS:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_FAIL_INTERPRETER:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_FAIL_RUN_SESS:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_FAIL_CREATE_STREAM:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_FAIL_READ_PROTOBUF:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_FAIL_CREATE_SESS:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_MODEL_INCOMPATIBLE:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                case ErrorCodes.DS_ERR_SCORER_NOT_ENABLED:
-                    return DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString();
-                default:
-                    return ("Unknown error, please make sure you are using the correct native binary.");
-            }
-        }
-
-        /// <summary>
         /// Frees associated resources and destroys models objects.
         /// </summary>
         public unsafe void Dispose()
