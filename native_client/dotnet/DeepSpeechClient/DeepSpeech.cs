@@ -84,6 +84,18 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
+        /// Evaluate the result code and will raise an exception if necessary.
+        /// </summary>
+        /// <param name="resultCode">Native result code.</param>
+        private void EvaluateResultCode(ErrorCodes resultCode)
+        {
+            if (resultCode != ErrorCodes.DS_ERR_OK)
+            {
+                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString());
+            }
+        }
+
+        /// <summary>
         /// Frees associated resources and destroys models objects.
         /// </summary>
         public unsafe void Dispose()
