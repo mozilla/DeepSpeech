@@ -16,13 +16,13 @@ from ds_ctcdecoder import Scorer, Alphabet as NativeAlphabet
 
 
 def create_bundle(
-    alphabet_path,
-    lm_path,
-    vocab_path,
-    package_path,
-    force_utf8,
-    default_alpha,
-    default_beta,
+        alphabet_path,
+        lm_path,
+        vocab_path,
+        package_path,
+        force_utf8,
+        default_alpha,
+        default_beta,
 ):
     words = set()
     vocab_looks_char_based = True
@@ -112,23 +112,26 @@ def main():
         required=True,
         help="Path of vocabulary file. Must contain words separated by whitespace.",
     )
-    parser.add_argument("--package", required=True, help="Path to save scorer package.")
+    parser.add_argument(
+        "--package",
+        required=True,
+        help="Path to save scorer package.")
     parser.add_argument(
         "--default_alpha",
         type=float,
-        required=True,
+        default=0.75,
         help="Default value of alpha hyperparameter.",
     )
     parser.add_argument(
         "--default_beta",
         type=float,
-        required=True,
+        default=1.85,
         help="Default value of beta hyperparameter.",
     )
     parser.add_argument(
         "--force_utf8",
         default="",
-        help="Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary.",
+        help="Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. Using this wrong can result in a 'Segmentation fault' error at the model evaluation.",
     )
     args = parser.parse_args()
 
