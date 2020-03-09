@@ -115,7 +115,8 @@ def main():
     parser.add_argument(
         "--package",
         required=True,
-        help="Path to save scorer package.")
+        help="Path to save scorer package."
+    )
     parser.add_argument(
         "--default_alpha",
         type=float,
