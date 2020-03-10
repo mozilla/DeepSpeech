@@ -19,7 +19,7 @@ import unicodedata
 import librosa
 import soundfile # <= Has an external dependency on libsndfile
 
-from util.text import validate_label
+from util.importers import validate_label_eng as validate_label
 
 def _download_and_preprocess_data(data_dir):
     # Assume data_dir contains extracted LDC2004S13, LDC2004T19, LDC2005S13, LDC2005T19

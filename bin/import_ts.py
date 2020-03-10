@@ -8,7 +8,7 @@ import re
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from util.importers import get_importers_parser
+from util.importers import get_importers_parser, get_validate_label
 
 import csv
 import unidecode
@@ -25,7 +25,6 @@ from util.downloader import SIMPLE_BAR
 from os import path
 
 from util.downloader import maybe_download
-from util.text import validate_label
 from util.helpers import secs_to_hours
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
@@ -193,4 +192,5 @@ def handle_args():
 
 if __name__ == "__main__":
     cli_args = handle_args()
+    validate_label = get_validate_label(cli_args)
     _download_and_preprocess_data(cli_args.target_dir, cli_args.english_compatible)
