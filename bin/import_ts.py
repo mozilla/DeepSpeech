@@ -3,13 +3,12 @@ from __future__ import absolute_import, division, print_function
 
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
-import argparse
 import os
 import re
 import sys
-
-
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+from util.importers import get_importers_parser
 
 import csv
 import unidecode
@@ -186,7 +185,7 @@ def cleanup_transcript(text, english_compatible=False):
 
 
 def handle_args():
-    parser = argparse.ArgumentParser(description='Importer for TrainingSpeech dataset.')
+    parser = get_importers_parser(description='Importer for TrainingSpeech dataset.')
     parser.add_argument(dest='target_dir')
     parser.add_argument('--english-compatible', action='store_true', dest='english_compatible', help='Remove diactrics and other non-ascii chars.')
     return parser.parse_args()

@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+# Make sure we can import stuff from util/
+# This script needs to be run from the root of the DeepSpeech repository
 import os
-import csv
 import sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+import csv
 import math
 import urllib
 import logging
-import argparse
+from util.importers import get_importers_parser
 import subprocess
 from os import path
 from pathlib import Path
@@ -38,7 +42,7 @@ def parse_args(args):
     Returns:
       :obj:`argparse.Namespace`: command line parameters namespace
     """
-    parser = argparse.ArgumentParser(
+    parser = get_importers_parser(
         description="Imports GramVaani data for Deep Speech"
     )
     parser.add_argument(
