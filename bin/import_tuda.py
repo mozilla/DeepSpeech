@@ -21,7 +21,8 @@ import xml.etree.cElementTree as ET
 
 from os import path
 from collections import Counter
-from util.text import Alphabet, validate_label
+from util.text import Alphabet
+from util.importers import validate_label_eng as validate_label
 from util.downloader import maybe_download, SIMPLE_BAR
 
 TUDA_VERSION = 'v2'

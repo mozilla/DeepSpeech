@@ -7,8 +7,9 @@ import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from util.importers import get_importers_parser
+from util.importers import get_importers_parser, get_validate_label
 
+import argparse
 import csv
 import re
 import sox
@@ -26,7 +27,7 @@ from os import path
 from glob import glob
 
 from util.downloader import maybe_download
-from util.text import Alphabet, validate_label
+from util.text import Alphabet
 from util.helpers import secs_to_hours
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
@@ -185,6 +186,7 @@ def handle_args():
 if __name__ == "__main__":
     CLI_ARGS = handle_args()
     ALPHABET = Alphabet(CLI_ARGS.filter_alphabet) if CLI_ARGS.filter_alphabet else None
+    validate_label = get_validate_label(CLI_ARGS)
 
     bogus_regexes = []
     if CLI_ARGS.bogus_records:

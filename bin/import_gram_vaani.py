@@ -10,7 +10,7 @@ import csv
 import math
 import urllib
 import logging
-from util.importers import get_importers_parser
+from util.importers import get_importers_parser, get_validate_label
 import subprocess
 from os import path
 from pathlib import Path
@@ -18,8 +18,6 @@ from pathlib import Path
 import swifter
 import pandas as pd
 from sox import Transformer
-
-from util.text import validate_label
 
 
 __version__ = "0.1.0"
@@ -290,6 +288,7 @@ def main(args):
       args ([str]): command line parameter list
     """
     args = parse_args(args)
+    validate_label = get_validate_label(args)
     setup_logging(args.loglevel)
     _logger.info("Starting GramVaani importer...")
     _logger.info("Starting loading GramVaani csv...")

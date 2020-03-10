@@ -26,7 +26,7 @@ from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
 from util.downloader import SIMPLE_BAR
 from util.text import Alphabet
-from util.importers import get_importers_parser, validate_label_eng as validate_label
+from util.importers import get_importers_parser, get_validate_label
 from util.helpers import secs_to_hours
 
 
@@ -144,6 +144,7 @@ if __name__ == "__main__":
     PARSER.add_argument('--space_after_every_character', action='store_true', help='To help transcript join by white space')
 
     PARAMS = PARSER.parse_args()
+    validate_label = get_validate_label(PARAMS)
 
     AUDIO_DIR = PARAMS.audio_dir if PARAMS.audio_dir else os.path.join(PARAMS.tsv_dir, 'clips')
     ALPHABET = Alphabet(PARAMS.filter_alphabet) if PARAMS.filter_alphabet else None

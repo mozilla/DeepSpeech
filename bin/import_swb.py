@@ -20,7 +20,7 @@ import wave
 import codecs
 import tarfile
 import requests
-from util.text import validate_label
+from util.importers import validate_label_eng as validate_label
 import librosa
 import soundfile # <= Has an external dependency on libsndfile
 
