@@ -4,11 +4,12 @@ from __future__ import absolute_import, division, print_function
 
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
-import argparse
 import os
 import sys
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+from util.importers import get_importers_parser
 
 import csv
 import subprocess
@@ -168,7 +169,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
 
 
 def handle_args():
-    parser = argparse.ArgumentParser(description='Importer for M-AILABS dataset. https://www.caito.de/2019/01/the-m-ailabs-speech-dataset/.')
+    parser = get_importers_parser(description='Importer for M-AILABS dataset. https://www.caito.de/2019/01/the-m-ailabs-speech-dataset/.')
     parser.add_argument(dest='target_dir')
     parser.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
     parser.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')

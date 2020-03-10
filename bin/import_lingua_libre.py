@@ -3,12 +3,11 @@ from __future__ import absolute_import, division, print_function
 
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
-import argparse
 import os
 import sys
-
-
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+from util.importers import get_importers_parser
 
 import csv
 import re
@@ -173,7 +172,7 @@ def _maybe_convert_wav(ogg_filename, wav_filename):
             print('SoX processing error', ex, ogg_filename, wav_filename)
 
 def handle_args():
-    parser = argparse.ArgumentParser(description='Importer for LinguaLibre dataset. Check https://lingualibre.fr/wiki/Help:Download_from_LinguaLibre for details.')
+    parser = get_importers_parser(description='Importer for LinguaLibre dataset. Check https://lingualibre.fr/wiki/Help:Download_from_LinguaLibre for details.')
     parser.add_argument(dest='target_dir')
     parser.add_argument('--qId', type=int, required=True, help='LinguaLibre language qId')
     parser.add_argument('--iso639-3', type=str, required=True, help='ISO639-3 language code')

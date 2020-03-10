@@ -7,7 +7,7 @@ import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import argparse
+from util.importers import get_importers_parser
 import glob
 import json
 import numpy as np
@@ -93,7 +93,7 @@ def preprocess_data(tgz_file, target_dir):
 
 def main():
     # https://www.openslr.org/47/
-    parser = argparse.ArgumentParser(description='Import Primewords Chinese corpus set 1')
+    parser = get_importers_parser(description='Import Primewords Chinese corpus set 1')
     parser.add_argument('tgz_file', help='Path to primewords_md_2018_set1.tar.gz')
     parser.add_argument('--target_dir', default='', help='Target folder to extract files into and put the resulting CSVs. Defaults to same folder as the main archive.')
     params = parser.parse_args()

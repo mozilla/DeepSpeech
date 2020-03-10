@@ -16,7 +16,6 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import csv
 import sox
-import argparse
 import subprocess
 import progressbar
 import unicodedata
@@ -26,7 +25,8 @@ from threading import RLock
 from multiprocessing.dummy import Pool
 from multiprocessing import cpu_count
 from util.downloader import SIMPLE_BAR
-from util.text import Alphabet, validate_label
+from util.text import Alphabet
+from util.importers import get_importers_parser, validate_label_eng as validate_label
 from util.helpers import secs_to_hours
 
 
@@ -136,7 +136,7 @@ def _maybe_convert_wav(mp3_filename, wav_filename):
 
 
 if __name__ == "__main__":
-    PARSER = argparse.ArgumentParser(description='Import CommonVoice v2.0 corpora')
+    PARSER = get_importers_parser(description='Import CommonVoice v2.0 corpora')
     PARSER.add_argument('tsv_dir', help='Directory containing tsv files')
     PARSER.add_argument('--audio_dir', help='Directory containing the audio clips - defaults to "<tsv_dir>/clips"')
     PARSER.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')

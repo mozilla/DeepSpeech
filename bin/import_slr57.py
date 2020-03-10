@@ -3,12 +3,11 @@ from __future__ import absolute_import, division, print_function
 
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
-import argparse
 import os
 import sys
-
-
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+from util.importers import get_importers_parser
 
 import csv
 import re
@@ -195,7 +194,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
     print('Final amount of imported audio: %s.' % secs_to_hours(counter['total_time'] / SAMPLE_RATE))
 
 def handle_args():
-    parser = argparse.ArgumentParser(description='Importer for African Accented French dataset. More information on http://www.openslr.org/57/.')
+    parser = get_importers_parser(description='Importer for African Accented French dataset. More information on http://www.openslr.org/57/.')
     parser.add_argument(dest='target_dir')
     parser.add_argument('--filter_alphabet', help='Exclude samples with characters not in provided alphabet')
     parser.add_argument('--normalize', action='store_true', help='Converts diacritic characters to their base ones')

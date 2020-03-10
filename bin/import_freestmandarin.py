@@ -7,7 +7,7 @@ import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import argparse
+from util.importers import get_importers_parser
 import glob
 import numpy as np
 import pandas
@@ -81,7 +81,7 @@ def preprocess_data(tgz_file, target_dir):
 
 def main():
     # https://www.openslr.org/38/
-    parser = argparse.ArgumentParser(description='Import Free ST Chinese Mandarin corpus')
+    parser = get_importers_parser(description='Import Free ST Chinese Mandarin corpus')
     parser.add_argument('tgz_file', help='Path to ST-CMDS-20170001_1-OS.tar.gz')
     parser.add_argument('--target_dir', default='', help='Target folder to extract files into and put the resulting CSVs. Defaults to same folder as the main archive.')
     params = parser.parse_args()
