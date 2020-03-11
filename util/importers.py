@@ -4,6 +4,27 @@ import os
 import re
 import sys
 
+from util.helpers import secs_to_hours
+from collections import Counter
+
+def get_counter():
+    return Counter({'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0, 'total_time': 0})
+
+def get_imported_samples(counter):
+    return counter['all'] - counter['failed'] - counter['too_short'] - counter['too_long'] - counter['invalid_label']
+
+def print_import_report(counter, sample_rate, max_secs):
+    print('Imported %d samples.' % (get_imported_samples(counter)))
+    if counter['failed'] > 0:
+        print('Skipped %d samples that failed upon conversion.' % counter['failed'])
+    if counter['invalid_label'] > 0:
+        print('Skipped %d samples that failed on transcript validation.' % counter['invalid_label'])
+    if counter['too_short'] > 0:
+        print('Skipped %d samples that were too short to match the transcript.' % counter['too_short'])
+    if counter['too_long'] > 0:
+        print('Skipped %d samples that were longer than %d seconds.' % (counter['too_long'], max_secs))
+    print('Final amount of imported audio: %s.' % secs_to_hours(counter['total_time'] / sample_rate))
+
 def get_importers_parser(description):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--validate_label_locale', help='Path to a Python file defining a |validate_label| function for your locale. WARNING: THIS WILL ADD THIS FILE\'s DIRECTORY INTO PYTHONPATH.')

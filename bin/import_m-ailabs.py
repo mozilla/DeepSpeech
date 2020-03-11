@@ -9,7 +9,7 @@ import sys
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from util.importers import get_importers_parser, get_validate_label
+from util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
 
 import csv
 import subprocess
@@ -17,9 +17,7 @@ import progressbar
 import unicodedata
 import tarfile
 
-from threading import RLock
-from multiprocessing.dummy import Pool
-from multiprocessing import cpu_count
+from multiprocessing import Pool
 from util.downloader import SIMPLE_BAR
 
 from os import path
@@ -27,7 +25,6 @@ from glob import glob
 
 from util.downloader import maybe_download
 from util.text import Alphabet
-from util.helpers import secs_to_hours
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000
@@ -63,6 +60,38 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
         print('Found directory "%s" - not extracting it from archive.' % archive_path)
 
 
+def one_sample(sample):
+    """ Take a audio file, and optionally convert it to 16kHz WAV """
+    wav_filename = sample[0]
+    file_size = -1
+    frames = 0
+    if path.exists(wav_filename):
+        file_size = path.getsize(wav_filename)
+        frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
+    label = label_filter(sample[1])
+    counter = get_counter()
+    rows = []
+
+    if file_size == -1:
+        # Excluding samples that failed upon conversion
+        print("conversion failure", wav_filename)
+        counter['failed'] += 1
+    elif label is None:
+        # Excluding samples that failed on label validation
+        counter['invalid_label'] += 1
+    elif int(frames/SAMPLE_RATE*1000/15/2) < len(str(label)):
+        # Excluding samples that are too short to fit the transcript
+        counter['too_short'] += 1
+    elif frames/SAMPLE_RATE > MAX_SECS:
+        # Excluding very long samples to keep a reasonable batch-size
+        counter['too_long'] += 1
+    else:
+        # This one is good - keep it for the target CSV
+        rows.append((wav_filename, file_size, label))
+    counter['all'] += 1
+    counter['total_time'] += frames
+    return (counter, rows)
+
 def _maybe_convert_sets(target_dir, extracted_data):
     extracted_dir = path.join(target_dir, extracted_data)
     # override existing CSV with normalized one
@@ -85,44 +114,16 @@ def _maybe_convert_sets(target_dir, extracted_data):
                 transcript = re[2]
                 samples.append((audio, transcript))
 
-    # Keep track of how many samples are good vs. problematic
-    counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0, 'total_time': 0}
-    lock = RLock()
+    counter = get_counter()
     num_samples = len(samples)
     rows = []
 
-    def one_sample(sample):
-        """ Take a audio file, and optionally convert it to 16kHz WAV """
-        wav_filename = sample[0]
-        file_size = -1
-        frames = 0
-        if path.exists(wav_filename):
-            file_size = path.getsize(wav_filename)
-            frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
-        label = label_filter(sample[1])
-        with lock:
-            if file_size == -1:
-                # Excluding samples that failed upon conversion
-                counter['failed'] += 1
-            elif label is None:
-                # Excluding samples that failed on label validation
-                counter['invalid_label'] += 1
-            elif int(frames/SAMPLE_RATE*1000/15/2) < len(str(label)):
-                # Excluding samples that are too short to fit the transcript
-                counter['too_short'] += 1
-            elif frames/SAMPLE_RATE > MAX_SECS:
-                # Excluding very long samples to keep a reasonable batch-size
-                counter['too_long'] += 1
-            else:
-                # This one is good - keep it for the target CSV
-                rows.append((wav_filename, file_size, label))
-            counter['all'] += 1
-            counter['total_time'] += frames
-
     print("Importing WAV files...")
-    pool = Pool(cpu_count())
+    pool = Pool()
     bar = progressbar.ProgressBar(max_value=num_samples, widgets=SIMPLE_BAR)
-    for i, _ in enumerate(pool.imap_unordered(one_sample, samples), start=1):
+    for i, processed in enumerate(pool.imap_unordered(one_sample, samples), start=1):
+        counter += processed[0]
+        rows += processed[1]
         bar.update(i)
     bar.update(num_samples)
     pool.close()
@@ -156,17 +157,11 @@ def _maybe_convert_sets(target_dir, extracted_data):
                         transcript=transcript,
                     ))
 
-    print('Imported %d samples.' % (counter['all'] - counter['failed'] - counter['too_short'] - counter['too_long']))
-    if counter['failed'] > 0:
-        print('Skipped %d samples that failed upon conversion.' % counter['failed'])
-    if counter['invalid_label'] > 0:
-        print('Skipped %d samples that failed on transcript validation.' % counter['invalid_label'])
-    if counter['too_short'] > 0:
-        print('Skipped %d samples that were too short to match the transcript.' % counter['too_short'])
-    if counter['too_long'] > 0:
-        print('Skipped %d samples that were longer than %d seconds.' % (counter['too_long'], MAX_SECS))
-    print('Final amount of imported audio: %s.' % secs_to_hours(counter['total_time'] / SAMPLE_RATE))
+    imported_samples = get_imported_samples(counter)
+    assert counter['all'] == num_samples
+    assert len(rows) == imported_samples
 
+    print_import_report(counter, SAMPLE_RATE, MAX_SECS)
 
 def handle_args():
     parser = get_importers_parser(description='Importer for M-AILABS dataset. https://www.caito.de/2019/01/the-m-ailabs-speech-dataset/.')

@@ -14,13 +14,14 @@ import sys
 
 sys.path.insert(1, os.path.join(sys.path[0], ".."))
 
+from util.importers import get_counter, get_imported_samples, print_import_report
+
 import re
 import librosa
 import progressbar
 
 from os import path
-from multiprocessing.dummy import Pool
-from multiprocessing import cpu_count
+from multiprocessing import Pool
 from util.downloader import maybe_download, SIMPLE_BAR
 from zipfile import ZipFile
 
@@ -61,47 +62,46 @@ def _maybe_convert_sets(target_dir, extracted_data):
     extracted_dir = path.join(target_dir, extracted_data, "wav48")
     txt_dir = path.join(target_dir, extracted_data, "txt")
 
-    cnt = 1
     directory = os.path.expanduser(extracted_dir)
     srtd = len(sorted(os.listdir(directory)))
+    all_samples = []
 
     for target in sorted(os.listdir(directory)):
-        print(f"\nSpeaker {cnt} of {srtd}")
-        _maybe_convert_set(path.join(extracted_dir, os.path.split(target)[-1]))
-        cnt += 1
+        all_samples += _maybe_prepare_set(path.join(extracted_dir, os.path.split(target)[-1]))
 
-    _write_csv(extracted_dir, txt_dir, target_dir)
-
-
-def _maybe_convert_set(target_csv):
-    def one_sample(sample):
-        if is_audio_file(sample):
-            sample = os.path.join(target_csv, sample)
-
-            y, sr = librosa.load(sample, sr=16000)
-
-            # Trim the beginning and ending silence
-            yt, index = librosa.effects.trim(y)  # pylint: disable=unused-variable
-
-            duration = librosa.get_duration(yt, sr)
-            if duration > MAX_SECS or duration < MIN_SECS:
-                os.remove(sample)
-            else:
-                librosa.output.write_wav(sample, yt, sr)
-
-    samples = sorted(os.listdir(target_csv))
-
-    num_samples = len(samples)
-
+    num_samples = len(all_samples)
     print(f"Converting wav files to {SAMPLE_RATE}hz...")
-    pool = Pool(cpu_count())
+    pool = Pool()
     bar = progressbar.ProgressBar(max_value=num_samples, widgets=SIMPLE_BAR)
-    for i, _ in enumerate(pool.imap_unordered(one_sample, samples), start=1):
+    for i, _ in enumerate(pool.imap_unordered(one_sample, all_samples), start=1):
         bar.update(i)
     bar.update(num_samples)
     pool.close()
     pool.join()
 
+    _write_csv(extracted_dir, txt_dir, target_dir)
+
+def one_sample(sample):
+    if is_audio_file(sample):
+        y, sr = librosa.load(sample, sr=16000)
+
+        # Trim the beginning and ending silence
+        yt, index = librosa.effects.trim(y)  # pylint: disable=unused-variable
+
+        duration = librosa.get_duration(yt, sr)
+        if duration > MAX_SECS or duration < MIN_SECS:
+            os.remove(sample)
+        else:
+            librosa.output.write_wav(sample, yt, sr)
+
+
+def _maybe_prepare_set(target_csv):
+    samples = sorted(os.listdir(target_csv))
+    new_samples = []
+    for s in samples:
+        new_samples.append(os.path.join(target_csv, s))
+    samples = new_samples
+    return samples
 
 def _write_csv(extracted_dir, txt_dir, target_dir):
     print(f"Writing CSV file")
@@ -196,8 +196,8 @@ def load_txts(directory):
 AUDIO_EXTENSIONS = [".wav", "WAV"]
 
 
-def is_audio_file(filename):
-    return any(filename.endswith(extension) for extension in AUDIO_EXTENSIONS)
+def is_audio_file(filepath):
+    return any(os.path.basename(filepath).endswith(extension) for extension in AUDIO_EXTENSIONS)
 
 
 if __name__ == "__main__":

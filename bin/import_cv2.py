@@ -21,13 +21,10 @@ import progressbar
 import unicodedata
 
 from os import path
-from threading import RLock
-from multiprocessing.dummy import Pool
-from multiprocessing import cpu_count
+from multiprocessing import Pool
 from util.downloader import SIMPLE_BAR
 from util.text import Alphabet
-from util.importers import get_importers_parser, get_validate_label
-from util.helpers import secs_to_hours
+from util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
 
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
@@ -35,15 +32,50 @@ SAMPLE_RATE = 16000
 MAX_SECS = 10
 
 
-def _preprocess_data(tsv_dir, audio_dir, label_filter, space_after_every_character=False):
+def _preprocess_data(tsv_dir, audio_dir, space_after_every_character=False):
     for dataset in ['train', 'test', 'dev', 'validated', 'other']:
         input_tsv = path.join(path.abspath(tsv_dir), dataset+".tsv")
         if os.path.isfile(input_tsv):
             print("Loading TSV file: ", input_tsv)
-            _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character)
+            _maybe_convert_set(input_tsv, audio_dir, space_after_every_character)
 
+def one_sample(sample):
+    """ Take a audio file, and optionally convert it to 16kHz WAV """
+    mp3_filename = sample[0]
+    if not path.splitext(mp3_filename.lower())[1] == '.mp3':
+        mp3_filename += ".mp3"
+    # Storing wav files next to the mp3 ones - just with a different suffix
+    wav_filename = path.splitext(mp3_filename)[0] + ".wav"
+    _maybe_convert_wav(mp3_filename, wav_filename)
+    file_size = -1
+    frames = 0
+    if path.exists(wav_filename):
+        file_size = path.getsize(wav_filename)
+        frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
+    label = label_filter_fun(sample[1])
+    rows = []
+    counter = get_counter()
+    if file_size == -1:
+        # Excluding samples that failed upon conversion
+        counter['failed'] += 1
+    elif label is None:
+        # Excluding samples that failed on label validation
+        counter['invalid_label'] += 1
+    elif int(frames/SAMPLE_RATE*1000/10/2) < len(str(label)):
+        # Excluding samples that are too short to fit the transcript
+        counter['too_short'] += 1
+    elif frames/SAMPLE_RATE > MAX_SECS:
+        # Excluding very long samples to keep a reasonable batch-size
+        counter['too_long'] += 1
+    else:
+        # This one is good - keep it for the target CSV
+        rows.append((os.path.split(wav_filename)[-1], file_size, label))
+    counter['all'] += 1
+    counter['total_time'] += frames
 
-def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_character=None):
+    return (counter, rows)
+
+def _maybe_convert_set(input_tsv, audio_dir, space_after_every_character=None):
     output_csv = path.join(audio_dir, os.path.split(input_tsv)[-1].replace('tsv', 'csv'))
     print("Saving new DeepSpeech-formatted CSV file to: ", output_csv)
 
@@ -52,51 +84,18 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
     with open(input_tsv, encoding='utf-8') as input_tsv_file:
         reader = csv.DictReader(input_tsv_file, delimiter='\t')
         for row in reader:
-            samples.append((row['path'], row['sentence']))
+            samples.append((path.join(audio_dir, row['path']), row['sentence']))
 
-    # Keep track of how many samples are good vs. problematic
-    counter = {'all': 0, 'failed': 0, 'invalid_label': 0, 'too_short': 0, 'too_long': 0, 'total_time': 0}
-    lock = RLock()
+    counter = get_counter()
     num_samples = len(samples)
     rows = []
 
-    def one_sample(sample):
-        """ Take a audio file, and optionally convert it to 16kHz WAV """
-        mp3_filename = path.join(audio_dir, sample[0])
-        if not path.splitext(mp3_filename.lower())[1] == '.mp3':
-            mp3_filename += ".mp3"
-        # Storing wav files next to the mp3 ones - just with a different suffix
-        wav_filename = path.splitext(mp3_filename)[0] + ".wav"
-        _maybe_convert_wav(mp3_filename, wav_filename)
-        file_size = -1
-        frames = 0
-        if path.exists(wav_filename):
-            file_size = path.getsize(wav_filename)
-            frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
-        label = label_filter(sample[1])
-        with lock:
-            if file_size == -1:
-                # Excluding samples that failed upon conversion
-                counter['failed'] += 1
-            elif label is None:
-                # Excluding samples that failed on label validation
-                counter['invalid_label'] += 1
-            elif int(frames/SAMPLE_RATE*1000/10/2) < len(str(label)):
-                # Excluding samples that are too short to fit the transcript
-                counter['too_short'] += 1
-            elif frames/SAMPLE_RATE > MAX_SECS:
-                # Excluding very long samples to keep a reasonable batch-size
-                counter['too_long'] += 1
-            else:
-                # This one is good - keep it for the target CSV
-                rows.append((os.path.split(wav_filename)[-1], file_size, label))
-            counter['all'] += 1
-            counter['total_time'] += frames
-
     print("Importing mp3 files...")
-    pool = Pool(cpu_count())
+    pool = Pool()
     bar = progressbar.ProgressBar(max_value=num_samples, widgets=SIMPLE_BAR)
-    for i, _ in enumerate(pool.imap_unordered(one_sample, samples), start=1):
+    for i, processed in enumerate(pool.imap_unordered(one_sample, samples), start=1):
+        counter += processed[0]
+        rows += processed[1]
         bar.update(i)
     bar.update(num_samples)
     pool.close()
@@ -113,16 +112,11 @@ def _maybe_convert_set(input_tsv, audio_dir, label_filter, space_after_every_cha
             else:
                 writer.writerow({'wav_filename': filename, 'wav_filesize': file_size, 'transcript': transcript})
 
-    print('Imported %d samples.' % (counter['all'] - counter['failed'] - counter['too_short'] - counter['too_long']))
-    if counter['failed'] > 0:
-        print('Skipped %d samples that failed upon conversion.' % counter['failed'])
-    if counter['invalid_label'] > 0:
-        print('Skipped %d samples that failed on transcript validation.' % counter['invalid_label'])
-    if counter['too_short'] > 0:
-        print('Skipped %d samples that were too short to match the transcript.' % counter['too_short'])
-    if counter['too_long'] > 0:
-        print('Skipped %d samples that were longer than %d seconds.' % (counter['too_long'], MAX_SECS))
-    print('Final amount of imported audio: %s.' % secs_to_hours(counter['total_time'] / SAMPLE_RATE))
+    imported_samples = get_imported_samples(counter)
+    assert counter['all'] == num_samples
+    assert len(rows) == imported_samples
+
+    print_import_report(counter, SAMPLE_RATE, MAX_SECS)
 
 
 def _maybe_convert_wav(mp3_filename, wav_filename):
@@ -162,4 +156,4 @@ if __name__ == "__main__":
                 label = None
         return label
 
-    _preprocess_data(PARAMS.tsv_dir, AUDIO_DIR, label_filter_fun, PARAMS.space_after_every_character)
+    _preprocess_data(PARAMS.tsv_dir, AUDIO_DIR, PARAMS.space_after_every_character)
