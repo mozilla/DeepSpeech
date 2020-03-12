@@ -92,12 +92,15 @@ class Sample:
         self.audio_type = new_audio_type
 
 
+def _change_audio_type(sample_and_audio_type):
+    sample, audio_type = sample_and_audio_type
+    sample.change_audio_type(audio_type)
+    return sample
+
+
 def change_audio_types(samples, audio_type=AUDIO_TYPE_PCM, processes=None, process_ahead=None):
-    def change_audio_type(sample):
-        sample.change_audio_type(audio_type)
-        return sample
     with LimitingPool(processes=processes, process_ahead=process_ahead) as pool:
-        yield from pool.imap(change_audio_type, samples)
+        yield from pool.imap(_change_audio_type, map(lambda s: (s, audio_type), samples))
 
 
 def read_audio_format_from_wav_file(wav_file):

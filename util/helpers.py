@@ -4,7 +4,7 @@ import time
 import heapq
 import semver
 
-from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing import Pool
 
 KILO = 1024
 KILOBYTE = 1 * KILO
@@ -83,7 +83,7 @@ class LimitingPool:
         self.process_ahead = os.cpu_count() if process_ahead is None else process_ahead
         self.sleeping_for = sleeping_for
         self.processed = 0
-        self.pool = ThreadPool(processes=processes)
+        self.pool = Pool(processes=processes)
 
     def __enter__(self):
         return self
