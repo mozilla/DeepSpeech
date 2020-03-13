@@ -5,6 +5,7 @@ taskcluster:
     workerType: ci
     workerTypeKvm: kvm
     workerTypeWin: win-b
+    workerTypeCuda: win-gpu
   dockerrpi3:
     provisionerId: proj-deepspeech
     workerType: ds-rpi3

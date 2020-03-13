@@ -59,6 +59,8 @@ node --version
 
 check_runtime_electronjs
 
+ensure_cuda_usage "$4"
+
 run_electronjs_inference_tests
 
 if [ "${OS}" = "Linux" ]; then

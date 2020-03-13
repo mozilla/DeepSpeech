@@ -252,6 +252,25 @@ assert_deepspeech_version()
   assert_not_present "$1" "DeepSpeech: unknown"
 }
 
+# We need to ensure that running on inference really leverages GPU because
+# it might default back to CPU
+ensure_cuda_usage()
+{
+  local _maybe_cuda=$1
+  DS_BINARY_FILE=${DS_BINARY_FILE:-"deepspeech"}
+
+  if [ "${_maybe_cuda}" = "cuda" ]; then
+    set +e
+    export TF_CPP_MIN_VLOG_LEVEL=1
+    ds_cuda=$(${DS_BINARY_PREFIX}${DS_BINARY_FILE} --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>&1 1>/dev/null)
+    export TF_CPP_MIN_VLOG_LEVEL=
+    set -e
+
+    assert_shows_something "${ds_cuda}" "Successfully opened dynamic library nvcuda.dll"
+    assert_not_present "${ds_cuda}" "Skipping registering GPU devices"
+  fi;
+}
+
 check_versions()
 {
   set +e
