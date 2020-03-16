@@ -14,18 +14,22 @@ Project DeepSpeech
 
 DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
 
-**NOTE:** This documentation applies to the **MASTER version** of DeepSpeech only. **Documentation for the latest stable version** is published on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
+To install and use the **latest stable version**, please see the `DeepSpeech install guide <http://deepspeech.readthedocs.io/?badge=latest>`_  available at `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 
-To install and use deepspeech all you have to do is:
+To install the current release:
+
+.. code-block:: bash
+
+   # Install DeepSpeech
+   pip3 install deepspeech
+
+If you're using the **MASTER version** of DeepSpeech, you can get started using a pre-trained model:
 
 .. code-block:: bash
 
    # Create and activate a virtualenv
    virtualenv -p python3 $HOME/tmp/deepspeech-venv/
    source $HOME/tmp/deepspeech-venv/bin/activate
-
-   # Install DeepSpeech
-   pip3 install deepspeech
 
    # Download pre-trained English model and extract
    curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.6.1/deepspeech-0.6.1-models.tar.gz
@@ -61,7 +65,7 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 ----
 
 **Table of Contents**
-  
+
 * `Using a Pre-trained Model <doc/USING.rst#using-a-pre-trained-model>`_
 
   * `CUDA dependency <doc/USING.rst#cuda-dependency>`_
