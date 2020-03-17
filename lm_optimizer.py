@@ -28,12 +28,12 @@ def objective(trial):
     FLAGS.lm_alpha = trial.suggest_uniform('lm_alpha', 0, FLAGS.lm_alpha_max)
     FLAGS.lm_beta = trial.suggest_uniform('lm_beta', 0, FLAGS.lm_beta_max)
 
-    tfv1.reset_default_graph()
-
     is_character_based = trial.study.user_attrs['is_character_based']
 
     samples = []
     for step, test_file in enumerate(FLAGS.test_files.split(',')):
+        tfv1.reset_default_graph()
+
         current_samples = evaluate([test_file], create_model, try_loading)
         samples += current_samples
 
