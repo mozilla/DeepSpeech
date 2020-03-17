@@ -19,3 +19,6 @@ pandas
 requests
 librosa
 soundfile
+
+# Requirements for optimizer
+optuna
