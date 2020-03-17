@@ -31,20 +31,20 @@ ErrorCodes
 Metadata
 --------
 
-.. doxygenstruct:: DeepSpeechClient::Models::Metadata
+.. doxygenclass:: DeepSpeechClient::Models::Metadata
    :project: deepspeech-dotnet
    :members: Transcripts
 
 CandidateTranscript
 -------------------
 
-.. doxygenstruct:: DeepSpeechClient::Models::CandidateTranscript
+.. doxygenclass:: DeepSpeechClient::Models::CandidateTranscript
    :project: deepspeech-dotnet
    :members: Tokens, Confidence
 
 TokenMetadata
 -------------
 
-.. doxygenstruct:: DeepSpeechClient::Models::TokenMetadata
+.. doxygenclass:: DeepSpeechClient::Models::TokenMetadata
    :project: deepspeech-dotnet
    :members: Text, Timestep, StartTime

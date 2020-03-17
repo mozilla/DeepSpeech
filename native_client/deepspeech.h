@@ -27,7 +27,7 @@ typedef struct TokenMetadata {
   char* text;
 
   /** Position of the token in units of 20ms */
-  int timestep;
+  unsigned int timestep;
 
   /** Position of the token in seconds */
   float start_time;
@@ -41,7 +41,7 @@ typedef struct CandidateTranscript {
   /** Array of TokenMetadata objects */
   TokenMetadata* tokens;
   /** Size of the tokens array */
-  int num_tokens;
+  unsigned int num_tokens;
   /** Approximated confidence value for this transcript. This is roughly the
    * sum of the acoustic model logit values for each timestep/character that
    * contributed to the creation of this transcript.
@@ -56,7 +56,7 @@ typedef struct Metadata {
   /** Array of CandidateTranscript objects */
   CandidateTranscript* transcripts;
   /** Size of the transcripts array */
-  int num_transcripts;
+  unsigned int num_transcripts;
 } Metadata;
 
 enum DeepSpeech_Error_Codes
@@ -175,7 +175,7 @@ int DS_SetScorerAlphaBeta(ModelState* aCtx,
                           float aBeta);
 
 /**
- * @brief Use the DeepSpeech model to perform Speech-To-Text.
+ * @brief Use the DeepSpeech model to convert speech to text.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
@@ -191,18 +191,18 @@ char* DS_SpeechToText(ModelState* aCtx,
                       unsigned int aBufferSize);
 
 /**
- * @brief Use the DeepSpeech model to perform Speech-To-Text and output results
+ * @brief Use the DeepSpeech model to convert speech to text and output results
  * including metadata.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
- * @param aNumResults The maximum number of candidate transcripts to return. Returned value might be smaller than this.
+ * @param aNumResults The maximum number of CandidateTranscript structs to return. Returned value might be smaller than this.
  *
- * @return Metadata struct containing multiple candidate transcripts. Each transcript
- *         has per-token metadata including timing information. The user is
- *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ * @return Metadata struct containing multiple CandidateTranscript structs. Each
+ *         transcript has per-token metadata including timing information. The
+ *         user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
  *         Returns NULL on error.
  */
 DEEPSPEECH_EXPORT

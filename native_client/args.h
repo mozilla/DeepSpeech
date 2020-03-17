@@ -34,6 +34,8 @@ bool extended_metadata = false;
 
 bool json_output = false;
 
+int json_candidate_transcripts = 3;
+
 int stream_size = 0;
 
 void PrintHelp(const char* bin)
@@ -43,18 +45,19 @@ void PrintHelp(const char* bin)
     "\n"
     "Running DeepSpeech inference.\n"
     "\n"
-    "\t--model MODEL\t\tPath to the model (protocol buffer binary file)\n"
-    "\t--scorer SCORER\t\tPath to the external scorer file\n"
-    "\t--audio AUDIO\t\tPath to the audio file to run (WAV format)\n"
-    "\t--beam_width BEAM_WIDTH\tValue for decoder beam width (int)\n"
-    "\t--lm_alpha LM_ALPHA\tValue for language model alpha param (float)\n"
-    "\t--lm_beta LM_BETA\tValue for language model beta param (float)\n"
-    "\t-t\t\t\tRun in benchmark mode, output mfcc & inference time\n"
-    "\t--extended\t\tOutput string from extended metadata\n"
-    "\t--json\t\t\tExtended output, shows word timings as JSON\n"
-    "\t--stream size\t\tRun in stream mode, output intermediate results\n"
-    "\t--help\t\t\tShow help\n"
-    "\t--version\t\tPrint version and exits\n";
+    "\t--model MODEL\t\t\tPath to the model (protocol buffer binary file)\n"
+    "\t--scorer SCORER\t\t\tPath to the external scorer file\n"
+    "\t--audio AUDIO\t\t\tPath to the audio file to run (WAV format)\n"
+    "\t--beam_width BEAM_WIDTH\t\tValue for decoder beam width (int)\n"
+    "\t--lm_alpha LM_ALPHA\t\tValue for language model alpha param (float)\n"
+    "\t--lm_beta LM_BETA\t\tValue for language model beta param (float)\n"
+    "\t-t\t\t\t\tRun in benchmark mode, output mfcc & inference time\n"
+    "\t--extended\t\t\tOutput string from extended metadata\n"
+    "\t--json\t\t\t\tExtended output, shows word timings as JSON\n"
+    "\t--candidate_transcripts NUMBER\tNumber of candidate transcripts to include in output\n"
+    "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
+    "\t--help\t\t\t\tShow help\n"
+    "\t--version\t\t\tPrint version and exits\n";
     char* version = DS_Version();
     std::cerr << "DeepSpeech " << version << "\n";
     DS_FreeString(version);
@@ -74,6 +77,7 @@ bool ProcessArgs(int argc, char** argv)
             {"t", no_argument, nullptr, 't'},
             {"extended", no_argument, nullptr, 'e'},
             {"json", no_argument, nullptr, 'j'},
+            {"candidate_transcripts", required_argument, nullptr, 150},
             {"stream", required_argument, nullptr, 's'},
             {"version", no_argument, nullptr, 'v'},
             {"help", no_argument, nullptr, 'h'},
@@ -126,6 +130,10 @@ bool ProcessArgs(int argc, char** argv)
 
         case 'j':
             json_output = true;
+            break;
+
+        case 150:
+            json_candidate_transcripts = atoi(optarg);
             break;
 
         case 's':

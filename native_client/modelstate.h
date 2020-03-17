@@ -66,7 +66,7 @@ struct ModelState {
    * @brief Return character-level metadata including letter timings.
    *
    * @param state Decoder state to use when decoding.
-   * @param num_results Number of candidate results to return.
+   * @param num_results Maximum number of candidate results to return.
    *
    * @return A Metadata struct containing CandidateTranscript structs.
    * Each represents an candidate transcript, with the first ranked most probable.

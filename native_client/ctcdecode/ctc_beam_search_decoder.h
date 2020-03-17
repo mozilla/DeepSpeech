@@ -60,7 +60,7 @@ public:
             int time_dim,
             int class_dim);
 
-  /* Get transcription from current decoder state
+  /* Get up to num_results transcriptions from current decoder state.
    *
    * Parameters:
    *     num_results: Number of beams to return.

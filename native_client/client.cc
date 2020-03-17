@@ -49,7 +49,7 @@ CandidateTranscriptToString(CandidateTranscript* transcript)
 {
   std::string retval = "";
   for (int i = 0; i < transcript->num_tokens; i++) {
-    TokenMetadata token = transcript->tokens[i];
+    const TokenMetadata& token = transcript->tokens[i];
     retval += token.text;
   }
   return strdup(retval.c_str());
@@ -65,7 +65,7 @@ CandidateTranscriptToWords(CandidateTranscript* transcript)
 
   // Loop through each token
   for (int i = 0; i < transcript->num_tokens; i++) {
-    TokenMetadata token = transcript->tokens[i];
+    const TokenMetadata& token = transcript->tokens[i];
 
     // Append token to word if it's not a space
     if (strcmp(token.text, u8" ") != 0) {
@@ -167,7 +167,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
     res.string = CandidateTranscriptToString(&result->transcripts[0]);
     DS_FreeMetadata(result);
   } else if (json_output) {
-    Metadata *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, 3);
+    Metadata *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, json_candidate_transcripts);
     res.string = MetadataToJSON(result);
     DS_FreeMetadata(result);
   } else if (stream_size > 0) {
