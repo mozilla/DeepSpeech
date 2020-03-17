@@ -16,7 +16,7 @@ DeepSpeech is an open source Speech-To-Text engine, using a model trained by mac
 
 To install and use the **latest stable version**, please see the `DeepSpeech install guide <http://deepspeech.readthedocs.io/?badge=latest>`_  available at `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 
-To install the current release:
+To install the current stable release:
 
 .. code-block:: bash
 
