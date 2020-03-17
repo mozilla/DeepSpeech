@@ -75,7 +75,7 @@ def create_overlapping_windows(batch_x):
 
 
 def dense(name, x, units, dropout_rate=None, relu=True):
-    with tfv1.variable_scope(name):
+    with tfv1.variable_scope(name, reuse=tf.AUTO_REUSE):
         bias = variable_on_cpu('bias', [units], tfv1.zeros_initializer())
         weights = variable_on_cpu('weights', [x.shape[-1], units], tfv1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"))
 
@@ -91,7 +91,7 @@ def dense(name, x, units, dropout_rate=None, relu=True):
 
 
 def rnn_impl_lstmblockfusedcell(x, seq_length, previous_state, reuse):
-    with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell/cell_0'):
+    with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell/cell_0', reuse=tf.AUTO_REUSE):
         fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim,
                                                     forget_bias=0,
                                                     reuse=reuse,
@@ -133,7 +133,7 @@ rnn_impl_cudnn_rnn.cell = None
 
 
 def rnn_impl_static_rnn(x, seq_length, previous_state, reuse):
-    with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell'):
+    with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell', reuse=tf.AUTO_REUSE):
         # Forward direction cell:
         fw_cell = tfv1.nn.rnn_cell.LSTMCell(Config.n_cell_dim,
                                             forget_bias=0,
