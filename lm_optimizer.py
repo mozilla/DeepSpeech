@@ -34,7 +34,7 @@ def objective(trial):
     for step, test_file in enumerate(FLAGS.test_files.split(',')):
         tfv1.reset_default_graph()
 
-        current_samples = evaluate([test_file], create_model, try_loading)
+        current_samples = evaluate([test_file], create_model)
         samples += current_samples
 
         # Report intermediate objective value.
