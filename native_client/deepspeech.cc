@@ -478,14 +478,14 @@ DS_FreeMetadata(Metadata* m)
   if (m) {
     for (int i = 0; i < m->num_transcripts; ++i) {
       for (int j = 0; j < m->transcripts[i].num_tokens; ++j) {
-        free(m->transcripts[i].tokens[j].text);
+        free((void*)m->transcripts[i].tokens[j].text);
       }
 
-      delete[] m->transcripts[i].tokens;
+      free((void*)m->transcripts[i].tokens);
     }
 
-    delete[] m->transcripts;
-    delete m;
+    free((void*)m->transcripts);
+    free(m);
   }
 }
 

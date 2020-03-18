@@ -45,7 +45,7 @@ struct meta_word {
 };
 
 char*
-CandidateTranscriptToString(CandidateTranscript* transcript)
+CandidateTranscriptToString(const CandidateTranscript* transcript)
 {
   std::string retval = "";
   for (int i = 0; i < transcript->num_tokens; i++) {
@@ -56,7 +56,7 @@ CandidateTranscriptToString(CandidateTranscript* transcript)
 }
 
 std::vector<meta_word>
-CandidateTranscriptToWords(CandidateTranscript* transcript)
+CandidateTranscriptToWords(const CandidateTranscript* transcript)
 {
   std::vector<meta_word> word_list;
 
@@ -101,7 +101,7 @@ CandidateTranscriptToWords(CandidateTranscript* transcript)
 }
 
 std::string
-CandidateTranscriptToJSON(CandidateTranscript *transcript)
+CandidateTranscriptToJSON(const CandidateTranscript *transcript)
 {
   std::ostringstream out_string;
 
@@ -130,7 +130,7 @@ MetadataToJSON(Metadata* result)
   out_string << "{\n";
 
   for (int j=0; j < result->num_transcripts; ++j) {
-    CandidateTranscript *transcript = &result->transcripts[j];
+    const CandidateTranscript *transcript = &result->transcripts[j];
 
     if (j == 0) {
       out_string << CandidateTranscriptToJSON(transcript);

@@ -85,10 +85,6 @@ using namespace node;
 %ignore Metadata::num_transcripts;
 %ignore CandidateTranscript::num_tokens;
 
-%immutable Metadata::transcripts;
-%immutable CandidateTranscripts::tokens;
-%immutable TokenMetadata::text;
-
 %nodefaultctor Metadata;
 %nodefaultdtor Metadata;
 %nodefaultctor CandidateTranscript;

@@ -24,13 +24,13 @@ typedef struct StreamingState StreamingState;
  */
 typedef struct TokenMetadata {
   /** The text corresponding to this token */
-  char* text;
+  const char* const text;
 
   /** Position of the token in units of 20ms */
-  unsigned int timestep;
+  const unsigned int timestep;
 
   /** Position of the token in seconds */
-  float start_time;
+  const float start_time;
 } TokenMetadata;
 
 /**
@@ -39,14 +39,14 @@ typedef struct TokenMetadata {
  */
 typedef struct CandidateTranscript {
   /** Array of TokenMetadata objects */
-  TokenMetadata* tokens;
+  const TokenMetadata* const tokens;
   /** Size of the tokens array */
-  unsigned int num_tokens;
+  const unsigned int num_tokens;
   /** Approximated confidence value for this transcript. This is roughly the
    * sum of the acoustic model logit values for each timestep/character that
    * contributed to the creation of this transcript.
    */
-  double confidence;
+  const double confidence;
 } CandidateTranscript;
 
 /**
@@ -54,9 +54,9 @@ typedef struct CandidateTranscript {
  */
 typedef struct Metadata {
   /** Array of CandidateTranscript objects */
-  CandidateTranscript* transcripts;
+  const CandidateTranscript* const transcripts;
   /** Size of the transcripts array */
-  unsigned int num_transcripts;
+  const unsigned int num_transcripts;
 } Metadata;
 
 enum DeepSpeech_Error_Codes

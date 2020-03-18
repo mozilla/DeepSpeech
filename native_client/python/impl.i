@@ -108,10 +108,6 @@ static PyObject *parent_reference() {
   }
 }
 
-%immutable Metadata::transcripts;
-%immutable CandidateTranscript::tokens;
-%immutable TokenMetadata::text;
-
 %nodefaultctor Metadata;
 %nodefaultdtor Metadata;
 %nodefaultctor CandidateTranscript;

@@ -41,33 +41,35 @@ ModelState::decode_metadata(const DecoderState& state,
                             size_t num_results)
 {
   vector<Output> out = state.decode(num_results);
-  size_t num_returned = out.size();
+  unsigned int num_returned = out.size();
 
-  std::unique_ptr<Metadata> metadata(new Metadata);
-  metadata->num_transcripts = num_returned;
-
-  std::unique_ptr<CandidateTranscript[]> transcripts(new CandidateTranscript[num_returned]);
+  CandidateTranscript* transcripts = (CandidateTranscript*)malloc(sizeof(CandidateTranscript)*num_returned);
 
   for (int i = 0; i < num_returned; ++i) {
-    transcripts[i].num_tokens = out[i].tokens.size();
-    transcripts[i].confidence = out[i].confidence;
+    TokenMetadata* tokens = (TokenMetadata*)malloc(sizeof(TokenMetadata)*out[i].tokens.size());
 
-    std::unique_ptr<TokenMetadata[]> tokens(new TokenMetadata[transcripts[i].num_tokens]);
-
-    // Loop through each token
     for (int j = 0; j < out[i].tokens.size(); ++j) {
-      tokens[j].text = strdup(alphabet_.StringFromLabel(out[i].tokens[j]).c_str());
-      tokens[j].timestep = out[i].timesteps[j];
-      tokens[j].start_time = out[i].timesteps[j] * ((float)audio_win_step_ / sample_rate_);
-
-      if (tokens[j].start_time < 0) {
-        tokens[j].start_time = 0;
-      }
+      TokenMetadata token {
+        strdup(alphabet_.StringFromLabel(out[i].tokens[j]).c_str()),   // text
+        static_cast<unsigned int>(out[i].timesteps[j]),                // timestep
+        out[i].timesteps[j] * ((float)audio_win_step_ / sample_rate_), // start_time
+      };
+      memcpy(&tokens[j], &token, sizeof(TokenMetadata));
     }
 
-    transcripts[i].tokens = tokens.release();
+    CandidateTranscript transcript {
+      tokens,                                          // tokens
+      static_cast<unsigned int>(out[i].tokens.size()), // num_tokens
+      out[i].confidence,                               // confidence
+    };
+    memcpy(&transcripts[i], &transcript, sizeof(CandidateTranscript));
   }
 
-  metadata->transcripts = transcripts.release();
-  return metadata.release();
+  Metadata* ret = (Metadata*)malloc(sizeof(Metadata));
+  Metadata metadata {
+    transcripts,  // transcripts
+    num_returned, // num_transcripts
+  };
+  memcpy(ret, &metadata, sizeof(Metadata));
+  return ret;
 }
