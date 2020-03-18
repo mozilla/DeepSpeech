@@ -9,8 +9,8 @@
 package org.mozilla.deepspeech.libdeepspeech;
 
 /**
- * A single transcript computed by the model, including a confidence value and
- * the metadata for its constituent tokens.
+ * A single transcript computed by the model, including a confidence<br>
+ *        value and the metadata for its constituent tokens.
  */
 public class CandidateTranscript {
   private transient long swigCPtr;
@@ -36,14 +36,7 @@ public class CandidateTranscript {
   }
 
   /**
-   * Array of TokenMetadata objects
-   */
-  public void setTokens(TokenMetadata value) {
-    implJNI.CandidateTranscript_tokens_set(swigCPtr, this, TokenMetadata.getCPtr(value), value);
-  }
-
-  /**
-   * Array of TokenMetadata objects
+   *  Array of TokenMetadata objects 
    */
   public TokenMetadata getTokens() {
     long cPtr = implJNI.CandidateTranscript_tokens_get(swigCPtr, this);
@@ -51,31 +44,15 @@ public class CandidateTranscript {
   }
 
   /**
-   * Size of the tokens array
+   *  Size of the tokens array 
    */
-  public void setNum_tokens(int value) {
-    implJNI.CandidateTranscript_num_tokens_set(swigCPtr, this, value);
-  }
-
-  /**
-   * Size of the tokens array
-   */
-  public int getNum_tokens() {
+  public long getNum_tokens() {
     return implJNI.CandidateTranscript_num_tokens_get(swigCPtr, this);
   }
 
   /**
-   * Approximated confidence value for this transcript. This is roughly the
-   * sum of the acoustic model logit values for each timestep/character that
-   * contributed to the creation of this transcript.
-   */
-  public void setConfidence(double value) {
-    implJNI.CandidateTranscript_confidence_set(swigCPtr, this, value);
-  }
-
-  /**
-   * Approximated confidence value for this transcript. This is roughly the
-   * sum of the acoustic model logit values for each timestep/character that
+   *  Approximated confidence value for this transcript. This is roughly the<br>
+   * sum of the acoustic model logit values for each timestep/character that<br>
    * contributed to the creation of this transcript.
    */
   public double getConfidence() {
@@ -83,14 +60,14 @@ public class CandidateTranscript {
   }
 
   /**
-   * Retrieve one TokenMetadata element
-   *
-   * @param i Array index of the TokenMetadata to get
-   *
+   * Retrieve one TokenMetadata element<br>
+   * <br>
+   * @param i Array index of the TokenMetadata to get<br>
+   * <br>
    * @return The TokenMetadata requested or null
    */
   public TokenMetadata getToken(int i) {
-    return new TokenMetadata(implJNI.CandidateTranscript_getToken(swigCPtr, this, i), true);
+    return new TokenMetadata(implJNI.CandidateTranscript_getToken(swigCPtr, this, i), false);
   }
 
 }

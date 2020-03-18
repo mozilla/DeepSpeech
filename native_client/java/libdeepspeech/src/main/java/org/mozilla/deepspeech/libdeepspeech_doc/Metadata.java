@@ -40,14 +40,7 @@ public class Metadata {
   }
 
   /**
-   * Array of CandidateTranscript objects
-   */
-  public void setTranscripts(CandidateTranscript value) {
-    implJNI.Metadata_transcripts_set(swigCPtr, this, CandidateTranscript.getCPtr(value), value);
-  }
-
-  /**
-   * Array of CandidateTranscript objects
+   *  Array of CandidateTranscript objects 
    */
   public CandidateTranscript getTranscripts() {
     long cPtr = implJNI.Metadata_transcripts_get(swigCPtr, this);
@@ -55,28 +48,21 @@ public class Metadata {
   }
 
   /**
-   * Size of the transcripts array
+   *  Size of the transcripts array 
    */
-  public void setNum_transcripts(int value) {
-    implJNI.Metadata_num_transcripts_set(swigCPtr, this, value);
-  }
-
-  /**
-   * Size of the transcripts array
-   */
-  public int getNum_transcripts() {
+  public long getNum_transcripts() {
     return implJNI.Metadata_num_transcripts_get(swigCPtr, this);
   }
 
   /**
-   * Retrieve one CandidateTranscript element
-   *
-   * @param i Array index of the CandidateTranscript to get
-   *
+   * Retrieve one CandidateTranscript element<br>
+   * <br>
+   * @param i Array index of the CandidateTranscript to get<br>
+   * <br>
    * @return The CandidateTranscript requested or null
    */
   public CandidateTranscript getTranscript(int i) {
-    return new CandidateTranscript(implJNI.Metadata_getTranscript(swigCPtr, this, i), true);
+    return new CandidateTranscript(implJNI.Metadata_getTranscript(swigCPtr, this, i), false);
   }
 
 }

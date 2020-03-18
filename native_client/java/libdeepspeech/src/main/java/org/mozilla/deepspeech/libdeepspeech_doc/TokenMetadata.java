@@ -35,42 +35,21 @@ public class TokenMetadata {
   }
 
   /**
-   * The text corresponding to this token
-   */
-  public void setText(String value) {
-    implJNI.TokenMetadata_text_set(swigCPtr, this, value);
-  }
-
-  /**
-   * The text corresponding to this token
+   *  The text corresponding to this token 
    */
   public String getText() {
     return implJNI.TokenMetadata_text_get(swigCPtr, this);
   }
 
   /**
-   * Position of the token in units of 20ms
+   *  Position of the token in units of 20ms 
    */
-  public void setTimestep(int value) {
-    implJNI.TokenMetadata_timestep_set(swigCPtr, this, value);
-  }
-
-  /**
-   * Position of the token in units of 20ms
-   */
-  public int getTimestep() {
+  public long getTimestep() {
     return implJNI.TokenMetadata_timestep_get(swigCPtr, this);
   }
 
   /**
-   * Position of the token in seconds
-   */
-  public void setStart_time(float value) {
-    implJNI.TokenMetadata_start_time_set(swigCPtr, this, value);
-  }
-
-  /**
-   * Position of the token in seconds
+   *  Position of the token in seconds 
    */
   public float getStart_time() {
     return implJNI.TokenMetadata_start_time_get(swigCPtr, this);

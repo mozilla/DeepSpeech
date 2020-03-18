@@ -11,8 +11,15 @@ public class DeepSpeechModel {
     }
 
     // FIXME: We should have something better than those SWIGTYPE_*
-    SWIGTYPE_p_p_ModelState _mspp;
-    SWIGTYPE_p_ModelState   _msp;
+    private SWIGTYPE_p_p_ModelState _mspp;
+    private SWIGTYPE_p_ModelState   _msp;
+
+    private void evaluateErrorCode(int errorCode) {
+        DeepSpeech_Error_Codes code = DeepSpeech_Error_Codes.swigToEnum(errorCode);
+        if (code != DeepSpeech_Error_Codes.ERR_OK) {
+            throw new RuntimeException("Error: " + impl.ErrorCodeToErrorMessage(errorCode) + " (0x" + Integer.toHexString(errorCode) + ").");
+        }
+    }
 
    /**
     * @brief An object providing an interface to a trained DeepSpeech model.
@@ -20,10 +27,12 @@ public class DeepSpeechModel {
     * @constructor
     *
     * @param modelPath The path to the frozen model graph.
+    *
+    * @throws RuntimeException on failure.
     */
     public DeepSpeechModel(String modelPath) {
         this._mspp = impl.new_modelstatep();
-        impl.CreateModel(modelPath, this._mspp);
+        evaluateErrorCode(impl.CreateModel(modelPath, this._mspp));
         this._msp  = impl.modelstatep_value(this._mspp);
     }
 
@@ -43,10 +52,10 @@ public class DeepSpeechModel {
      * @param aBeamWidth The beam width used by the model. A larger beam width value
      *                   generates better results at the cost of decoding time.
      *
-     * @return Zero on success, non-zero on failure.
+     * @throws RuntimeException on failure.
      */
-    public int setBeamWidth(long beamWidth) {
-        return impl.SetModelBeamWidth(this._msp, beamWidth);
+    public void setBeamWidth(long beamWidth) {
+        evaluateErrorCode(impl.SetModelBeamWidth(this._msp, beamWidth));
     }
 
    /**
@@ -70,19 +79,19 @@ public class DeepSpeechModel {
     *
     * @param scorer The path to the external scorer file.
     *
-    * @return Zero on success, non-zero on failure (invalid arguments).
+    * @throws RuntimeException on failure.
     */
     public void enableExternalScorer(String scorer) {
-        impl.EnableExternalScorer(this._msp, scorer);
+        evaluateErrorCode(impl.EnableExternalScorer(this._msp, scorer));
     }
 
     /**
     * @brief Disable decoding using an external scorer.
     *
-    * @return Zero on success, non-zero on failure (invalid arguments).
+    * @throws RuntimeException on failure.
     */
     public void disableExternalScorer() {
-        impl.DisableExternalScorer(this._msp);
+        evaluateErrorCode(impl.DisableExternalScorer(this._msp));
     }
 
     /**
@@ -91,10 +100,10 @@ public class DeepSpeechModel {
     * @param alpha The alpha hyperparameter of the decoder. Language model weight.
     * @param beta The beta hyperparameter of the decoder. Word insertion weight.
     *
-    * @return Zero on success, non-zero on failure (invalid arguments).
+    * @throws RuntimeException on failure.
     */
     public void setScorerAlphaBeta(float alpha, float beta) {
-        impl.SetScorerAlphaBeta(this._msp, alpha, beta);
+        evaluateErrorCode(impl.SetScorerAlphaBeta(this._msp, alpha, beta));
     }
 
    /*
@@ -132,10 +141,12 @@ public class DeepSpeechModel {
     *        and finishStream().
     *
     * @return An opaque object that represents the streaming state.
+    *
+    * @throws RuntimeException on failure.
     */
     public DeepSpeechStreamingState createStream() {
         SWIGTYPE_p_p_StreamingState ssp = impl.new_streamingstatep();
-        impl.CreateStream(this._msp, ssp);
+        evaluateErrorCode(impl.CreateStream(this._msp, ssp));
         return new DeepSpeechStreamingState(impl.streamingstatep_value(ssp));
     }
 

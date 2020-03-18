@@ -6,6 +6,8 @@
 %}
 
 %include "typemaps.i"
+%include "enums.swg"
+%javaconst(1);
 
 %include "arrays_java.i"
 // apply to DS_FeedAudioContent and DS_SpeechToText
@@ -15,12 +17,6 @@
 %pointer_functions(ModelState*, modelstatep);
 %pointer_functions(StreamingState*, streamingstatep);
 
-%typemap(newfree) char* "DS_FreeString($1);";
-
-%include "carrays.i"
-%array_functions(struct TokenMetadata, TokenMetadata_array);
-%array_functions(struct CandidateTranscript, CandidateTranscript_array);
-
 %extend struct CandidateTranscript {
   /**
    * Retrieve one TokenMetadata element
@@ -29,8 +25,8 @@
    *
    * @return The TokenMetadata requested or null
    */
-  TokenMetadata getToken(int i) {
-    return TokenMetadata_array_getitem(self->tokens, i);
+  const TokenMetadata& getToken(int i) {
+    return self->tokens[i];
   }
 }
 
@@ -42,8 +38,8 @@
    *
    * @return The CandidateTranscript requested or null
    */
-  CandidateTranscript getTranscript(int i) {
-    return CandidateTranscript_array_getitem(self->transcripts, i);
+  const CandidateTranscript& getTranscript(int i) {
+    return self->transcripts[i];
   }
 
   ~Metadata() {
@@ -58,9 +54,11 @@
 %nodefaultctor TokenMetadata;
 %nodefaultdtor TokenMetadata;
 
+%typemap(newfree) char* "DS_FreeString($1);";
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
+%newobject DS_ErrorCodeToErrorMessage;
 
 %rename ("%(strip:[DS_])s") "";
 
