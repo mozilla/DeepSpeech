@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+# Make sure we can import stuff from util/
+# This script needs to be run from the root of the DeepSpeech repository
 import os
-import csv
 import sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+import csv
 import math
 import urllib
 import logging
-import argparse
+from util.importers import get_importers_parser, get_validate_label
 import subprocess
 from os import path
 from pathlib import Path
@@ -14,8 +18,6 @@ from pathlib import Path
 import swifter
 import pandas as pd
 from sox import Transformer
-
-from util.text import validate_label
 
 
 __version__ = "0.1.0"
@@ -38,7 +40,7 @@ def parse_args(args):
     Returns:
       :obj:`argparse.Namespace`: command line parameters namespace
     """
-    parser = argparse.ArgumentParser(
+    parser = get_importers_parser(
         description="Imports GramVaani data for Deep Speech"
     )
     parser.add_argument(
@@ -286,6 +288,7 @@ def main(args):
       args ([str]): command line parameter list
     """
     args = parse_args(args)
+    validate_label = get_validate_label(args)
     setup_logging(args.loglevel)
     _logger.info("Starting GramVaani importer...")
     _logger.info("Starting loading GramVaani csv...")

@@ -27,7 +27,8 @@ from os import path
 from glob import glob
 from collections import Counter
 from multiprocessing.pool import ThreadPool
-from util.text import Alphabet, validate_label
+from util.text import Alphabet
+from util.importers import validate_label_eng as validate_label
 from util.downloader import maybe_download, SIMPLE_BAR
 
 SWC_URL = "https://www2.informatik.uni-hamburg.de/nats/pub/SWC/SWC_{language}.tar"

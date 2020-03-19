@@ -7,7 +7,7 @@ import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import argparse
+from util.importers import get_importers_parser
 import glob
 import pandas
 import tarfile
@@ -99,7 +99,7 @@ def preprocess_data(folder_with_archives, target_dir):
 
 def main():
     # https://openslr.org/68/
-    parser = argparse.ArgumentParser(description='Import MAGICDATA corpus')
+    parser = get_importers_parser(description='Import MAGICDATA corpus')
     parser.add_argument('folder_with_archives', help='Path to folder containing magicdata_{train,dev,test}.tar.gz')
     parser.add_argument('--target_dir', default='', help='Target folder to extract files into and put the resulting CSVs. Defaults to a folder called magicdata next to the archives')
     params = parser.parse_args()

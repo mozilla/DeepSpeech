@@ -7,7 +7,7 @@ import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import argparse
+from util.importers import get_importers_parser
 import glob
 import tarfile
 import pandas
@@ -80,7 +80,7 @@ def preprocess_data(tgz_file, target_dir):
 
 def main():
     # http://www.openslr.org/33/
-    parser = argparse.ArgumentParser(description='Import AISHELL corpus')
+    parser = get_importers_parser(description='Import AISHELL corpus')
     parser.add_argument('aishell_tgz_file', help='Path to data_aishell.tgz')
     parser.add_argument('--target_dir', default='', help='Target folder to extract files into and put the resulting CSVs. Defaults to same folder as the main archive.')
     params = parser.parse_args()
