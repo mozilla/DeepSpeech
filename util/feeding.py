@@ -63,7 +63,7 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
     mfccs = tf.reshape(mfccs, [-1, Config.n_input])
 
     review_audio = samples
-    if FLAGS.augmentation_review_audio_steps and train_phase and any([
+    if FLAGS.review_audio_steps and train_phase and any([
                 FLAGS.augmentation_spec_dropout_keeprate < 1,
                 FLAGS.augmentation_freq_and_time_masking,
                 FLAGS.augmentation_pitch_and_tempo_scaling,
@@ -84,12 +84,12 @@ def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None):
         audio = augment_noise(
             audio,
             noise,
-            min_audio_dbfs=FLAGS.audio_aug_mix_noise_min_audio_dbfs,
-            max_audio_dbfs=FLAGS.audio_aug_mix_noise_max_audio_dbfs,
-            min_snr_db=FLAGS.audio_aug_mix_noise_min_snr_db,
-            max_snr_db=FLAGS.audio_aug_mix_noise_max_snr_db,
-            limit_audio_peak_dbfs=FLAGS.audio_aug_mix_noise_limit_audio_peak_dbfs,
-            limit_noise_peak_dbfs=FLAGS.audio_aug_mix_noise_limit_noise_peak_dbfs,
+            min_audio_dbfs=FLAGS.audio_aug_min_audio_dbfs,
+            max_audio_dbfs=FLAGS.audio_aug_max_audio_dbfs,
+            min_snr_db=FLAGS.audio_aug_min_snr_db,
+            max_snr_db=FLAGS.audio_aug_max_snr_db,
+            limit_audio_peak_dbfs=FLAGS.audio_aug_limit_audio_peak_dbfs,
+            limit_noise_peak_dbfs=FLAGS.audio_aug_limit_noise_peak_dbfs,
             sample_rate=FLAGS.audio_sample_rate,
         )
 
@@ -121,7 +121,7 @@ def to_sparse_tuple(sequence):
     return indices, sequence, shape
 
 
-def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_phase=False, noise_dirs_or_files=None):
+def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_phase=False, noise_sources=None):
     df = read_csvs(csvs)
     df.sort_values(by='wav_filesize', inplace=True)
 
@@ -146,7 +146,7 @@ def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_
         wav_filenames = wav_filenames.batch(batch_size)
 
         # In order not to waste too much prefetch performance, randomly extract only `one` audio for each step
-        if FLAGS.augmentation_review_audio_steps and batch_size > 1:
+        if FLAGS.review_audio_steps and batch_size > 1:
             skip_size = tf.random.uniform(shape=[], minval=0, maxval=batch_size - 1, dtype=tf.int64)
             review_audio = review_audios.skip(skip_size).batch(1)
         else:
@@ -156,8 +156,8 @@ def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_
 
     num_gpus = len(Config.available_devices)
 
-    if noise_dirs_or_files:
-        noise_iterator = create_noise_iterator(noise_dirs_or_files, read_csvs)
+    if noise_sources:
+        noise_iterator = create_noise_iterator(noise_sources, read_csvs)
     else:
         noise_iterator = None
 

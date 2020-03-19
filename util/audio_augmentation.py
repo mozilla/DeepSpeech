@@ -57,7 +57,7 @@ def audio_to_dbfs(audio, sample_rate=16000, chunk_ms=100, reduce_funcs=tf.reduce
     return [DBFS_COEF * tf.math.log(reduce + 1e-8) for reduce in reduces]
 
 
-def create_noise_iterator(noise_dirs_or_files, read_csvs_func):
+def create_noise_iterator(noise_sources, read_csvs_func):
     r"""Create an iterator to yield audio
 
     Args:
@@ -67,10 +67,10 @@ def create_noise_iterator(noise_dirs_or_files, read_csvs_func):
     Returns:
         An one shot iterator of audio with 2-D Tensor of shape [`time-step`, 1], use `<iter>.get_next()` to get the Tensor.
     """
-    if isinstance(noise_dirs_or_files, str):
-        noise_dirs_or_files = noise_dirs_or_files.split(',')
+    if isinstance(noise_sources, str):
+        noise_sources = noise_sources.split(',')
 
-    noise_filenames = tf.convert_to_tensor(list(collect_noise_filenames(noise_dirs_or_files, read_csvs_func)), dtype=tf.string)
+    noise_filenames = tf.convert_to_tensor(list(collect_noise_filenames(noise_sources, read_csvs_func)), dtype=tf.string)
     log_info("Collect {} noise files for mixing audio".format(noise_filenames.shape[0]))
 
     noise_dataset = (tf.data.Dataset.from_tensor_slices(noise_filenames)
@@ -82,7 +82,7 @@ def create_noise_iterator(noise_dirs_or_files, read_csvs_func):
     return noise_iterator
 
 
-def collect_noise_filenames(dirs_or_files, read_csvs_func):
+def collect_noise_filenames(sources, read_csvs_func):
     r"""Collect wav filenames from directories or csv files
 
     Args:
@@ -93,17 +93,17 @@ def collect_noise_filenames(dirs_or_files, read_csvs_func):
         An iterator of str, yield every filename suffix with `.wav` or under `wav_filename` column of DataFrame
     """
 
-    assert isinstance(dirs_or_files, (list, tuple))
+    assert isinstance(sources, (list, tuple))
 
-    for dir_or_file in dirs_or_files:
-        assert os.path.exists(dir_or_file)
-        if os.path.isdir(dir_or_file):
-            for dirpath, _, filenames in os.walk(dir_or_file):
+    for source in sources:
+        assert os.path.exists(source)
+        if os.path.isdir(source):
+            for dirpath, _, filenames in os.walk(source):
                 for filename in filenames:
                     if filename.endswith('.wav'):
                         yield os.path.join(dirpath, filename)
-        elif os.path.isfile(dir_or_file):
-            df = read_csvs_func([dir_or_file])
+        elif os.path.isfile(source):
+            df = read_csvs_func([source])
             for filename in df['wav_filename']:
                 yield filename
 

@@ -316,8 +316,8 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                     tower_non_finite_files.append(non_finite_files)
 
     avg_loss_across_towers = tf.reduce_mean(input_tensor=tower_avg_losses, axis=0)
-    if FLAGS.augmentation_review_audio_steps:
-        tfv1.summary.audio(name='step_audio', tensor=review_audio, sample_rate=16000, collections=['step_audio_summaries'])
+    if FLAGS.review_audio_steps:
+        tfv1.summary.audio(name='step_audio', tensor=review_audio, sample_rate=FLAGS.audio_sample_rate, collections=['step_audio_summaries'])
     tfv1.summary.scalar(name='step_loss', tensor=avg_loss_across_towers, collections=['step_summaries'])
 
     all_non_finite_files = tf.concat(tower_non_finite_files, axis=0)
@@ -430,7 +430,8 @@ def train():
             FLAGS.augmentation_spec_dropout_keeprate < 1 or
             FLAGS.augmentation_freq_and_time_masking or
             FLAGS.augmentation_pitch_and_tempo_scaling or
-            FLAGS.augmentation_speed_up_std > 0):
+            FLAGS.augmentation_speed_up_std > 0 or
+            FLAGS.train_augmentation_files):
         do_cache_dataset = False
 
     # Create training and validation datasets
@@ -439,7 +440,7 @@ def train():
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True,
-                               noise_dirs_or_files=FLAGS.audio_aug_mix_noise_train_dirs_or_files)
+                               noise_sources=FLAGS.train_augmentation_files)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -450,7 +451,7 @@ def train():
 
     if FLAGS.dev_files:
         dev_csvs = FLAGS.dev_files.split(',')
-        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False, noise_dirs_or_files=FLAGS.audio_aug_mix_noise_dev_dirs_or_files) for csv in dev_csvs]
+        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False, noise_sources=FLAGS.dev_augmentation_files) for csv in dev_csvs]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
@@ -598,15 +599,15 @@ def train():
 
             # Batch loop
 
-            i_audio_steps = 0
+            audio_summary_steps = 0
             while True:
                 try:
                     step_audio_summary = None
-                    if i_audio_steps < FLAGS.augmentation_review_audio_steps and epoch == 0:
+                    if audio_summary_steps < FLAGS.review_audio_steps and epoch == 0:
                         _, current_step, batch_loss, problem_files, step_summary, step_audio_summary = \
                             session.run([train_op, global_step, loss, non_finite_files, step_summaries_op, step_audio_summaries_op],
                                         feed_dict=feed_dict)
-                        i_audio_steps += 1
+                        audio_summary_steps += 1
                     else:
                         _, current_step, batch_loss, problem_files, step_summary = \
                             session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
@@ -689,7 +690,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading, noise_dirs_or_files=FLAGS.audio_aug_mix_noise_test_dirs_or_files)
+    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading, noise_sources=FLAGS.test_augmentation_files)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
@@ -701,7 +702,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Create feature computation graph
     input_samples = tfv1.placeholder(tf.float32, [Config.audio_window_samples], 'input_samples')
     samples = tf.expand_dims(input_samples, -1)
-    mfccs, _ = samples_to_mfccs(samples, FLAGS.audio_sample_rate)
+    mfccs, _, _ = samples_to_mfccs(samples, FLAGS.audio_sample_rate)
     mfccs = tf.identity(mfccs, name='mfccs')
 
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
@@ -912,7 +913,7 @@ def do_single_file_inference(input_file_path):
             print('Could not load checkpoint from {}'.format(FLAGS.checkpoint_dir))
             sys.exit(1)
 
-        features, features_len = audiofile_to_features(input_file_path, 0.0)
+        features, features_len, _ = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 
