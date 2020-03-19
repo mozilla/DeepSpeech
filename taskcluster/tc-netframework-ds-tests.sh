@@ -10,7 +10,7 @@ source $(dirname "$0")/tc-tests-utils.sh
 bitrate=$1
 set_ldc_sample_filename "${bitrate}"
 
-if [ "${package_option}" = "--cuda" ]; then
+if [ "${package_option}" = "cuda" ]; then
     PROJECT_NAME="DeepSpeech-GPU"
 elif [ "${package_option}" = "--tflite" ]; then
     PROJECT_NAME="DeepSpeech-TFLite"
@@ -24,5 +24,8 @@ fi
 download_data
 
 install_nuget "${PROJECT_NAME}"
+
+DS_BINARY_FILE="DeepSpeechConsole.exe"
+ensure_cuda_usage "$2"
 
 run_netframework_inference_tests

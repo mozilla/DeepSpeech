@@ -13,4 +13,6 @@ export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 
 check_versions
 
+ensure_cuda_usage "$2"
+
 run_basic_inference_tests

@@ -1,0 +1,14 @@
+build:
+  template_file: test-win-cuda-opt-base.tyml
+  dependencies:
+    - "win-amd64-gpu-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
+  system_setup:
+    >
+      ${system.sox_win}
+  args:
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.8.1: 16k cuda"
+  metadata:
+    name: "DeepSpeech Windows AMD64 CUDA Python v3.8 tests"
+    description: "Testing DeepSpeech for Windows/AMD64 on Python v3.8, CUDA, optimized version"
