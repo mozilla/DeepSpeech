@@ -87,7 +87,7 @@ namespace DeepSpeechClient
         /// Evaluate the result code and will raise an exception if necessary.
         /// </summary>
         /// <param name="resultCode">Native result code.</param>
-        private void EvaluateResultCode(ErrorCodes resultCode)
+        private void EvaluateResultCode(int resultCode)
         {
             if (resultCode != ErrorCodes.DS_ERR_OK)
             {
