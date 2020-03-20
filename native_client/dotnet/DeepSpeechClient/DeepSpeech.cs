@@ -87,11 +87,11 @@ namespace DeepSpeechClient
         /// Evaluate the result code and will raise an exception if necessary.
         /// </summary>
         /// <param name="resultCode">Native result code.</param>
-        private void EvaluateResultCode(int resultCode)
+        private void EvaluateResultCode(ErrorCodes resultCode)
         {
             if (resultCode != ErrorCodes.DS_ERR_OK)
             {
-                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage(resultCode).IntPtrToString());
+                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage((int)resultCode).IntPtrToString());
             }
         }
 
@@ -111,7 +111,6 @@ namespace DeepSpeechClient
         /// <exception cref="FileNotFoundException">Thrown when cannot find the scorer file.</exception>
         public unsafe void EnableExternalScorer(string aScorerPath)
         {
-            string exceptionMessage = null;
             if (string.IsNullOrWhiteSpace(aScorerPath))
             {
                 throw new FileNotFoundException("Path to the scorer file cannot be empty.");
