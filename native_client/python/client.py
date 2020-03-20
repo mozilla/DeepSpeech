@@ -18,6 +18,7 @@ try:
 except ImportError:
     from pipes import quote
 
+
 def convert_samplerate(audio_path, desired_sample_rate):
     sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate {} --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path), desired_sample_rate)
     try:
@@ -31,25 +32,25 @@ def convert_samplerate(audio_path, desired_sample_rate):
 
 
 def metadata_to_string(metadata):
-    return ''.join(item.character for item in metadata.items)
+    return ''.join(token.text for token in metadata.tokens)
 
-def words_from_metadata(metadata):
+
+def words_from_candidate_transcript(metadata):
     word = ""
     word_list = []
     word_start_time = 0
     # Loop through each character
-    for i in range(0, metadata.num_items):
-        item = metadata.items[i]
+    for i, token in enumerate(metadata.tokens):
         # Append character to word if it's not a space
-        if item.character != " ":
+        if token.text != " ":
             if len(word) == 0:
                 # Log the start time of the new word
-                word_start_time = item.start_time
+                word_start_time = token.start_time
 
-            word = word + item.character
+            word = word + token.text
         # Word boundary is either a space or the last character in the array
-        if item.character == " " or i == metadata.num_items - 1:
-            word_duration = item.start_time - word_start_time
+        if token.text == " " or i == len(metadata.tokens) - 1:
+            word_duration = token.start_time - word_start_time
 
             if word_duration < 0:
                 word_duration = 0
@@ -69,9 +70,11 @@ def words_from_metadata(metadata):
 
 def metadata_json_output(metadata):
     json_result = dict()
-    json_result["words"] = words_from_metadata(metadata)
-    json_result["confidence"] = metadata.confidence
-    return json.dumps(json_result)
+    json_result["transcripts"] = [{
+        "confidence": transcript.confidence,
+        "words": words_from_candidate_transcript(transcript),
+    } for transcript in metadata.transcripts]
+    return json.dumps(json_result, indent=2)
 
 
 
@@ -141,9 +144,9 @@ def main():
     print('Running inference.', file=sys.stderr)
     inference_start = timer()
     if args.extended:
-        print(metadata_to_string(ds.sttWithMetadata(audio)))
+        print(metadata_to_string(ds.sttWithMetadata(audio, 1).transcripts[0]))
     elif args.json:
-        print(metadata_json_output(ds.sttWithMetadata(audio)))
+        print(metadata_json_output(ds.sttWithMetadata(audio, 3)))
     else:
         print(ds.stt(audio))
     inference_end = timer() - inference_start

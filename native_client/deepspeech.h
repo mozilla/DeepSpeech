@@ -20,32 +20,43 @@ typedef struct ModelState ModelState;
 typedef struct StreamingState StreamingState;
 
 /**
- * @brief Stores each individual character, along with its timing information
+ * @brief Stores text of an individual token, along with its timing information
  */
-typedef struct MetadataItem {
-  /** The character generated for transcription */
-  char* character;
+typedef struct TokenMetadata {
+  /** The text corresponding to this token */
+  const char* const text;
 
-  /** Position of the character in units of 20ms */
-  int timestep;
+  /** Position of the token in units of 20ms */
+  const unsigned int timestep;
 
-  /** Position of the character in seconds */
-  float start_time;
-} MetadataItem;
+  /** Position of the token in seconds */
+  const float start_time;
+} TokenMetadata;
 
 /**
- * @brief Stores the entire CTC output as an array of character metadata objects
+ * @brief A single transcript computed by the model, including a confidence
+ *        value and the metadata for its constituent tokens.
+ */
+typedef struct CandidateTranscript {
+  /** Array of TokenMetadata objects */
+  const TokenMetadata* const tokens;
+  /** Size of the tokens array */
+  const unsigned int num_tokens;
+  /** Approximated confidence value for this transcript. This is roughly the
+   * sum of the acoustic model logit values for each timestep/character that
+   * contributed to the creation of this transcript.
+   */
+  const double confidence;
+} CandidateTranscript;
+
+/**
+ * @brief An array of CandidateTranscript objects computed by the model.
  */
 typedef struct Metadata {
-  /** List of items */
-  MetadataItem* items;
-  /** Size of the list of items */
-  int num_items;
-  /** Approximated confidence value for this transcription. This is roughly the
-   * sum of the acoustic model logit values for each timestep/character that
-   * contributed to the creation of this transcription.
-   */
-  double confidence;
+  /** Array of CandidateTranscript objects */
+  const CandidateTranscript* const transcripts;
+  /** Size of the transcripts array */
+  const unsigned int num_transcripts;
 } Metadata;
 
 enum DeepSpeech_Error_Codes
@@ -164,7 +175,7 @@ int DS_SetScorerAlphaBeta(ModelState* aCtx,
                           float aBeta);
 
 /**
- * @brief Use the DeepSpeech model to perform Speech-To-Text.
+ * @brief Use the DeepSpeech model to convert speech to text.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
@@ -180,21 +191,25 @@ char* DS_SpeechToText(ModelState* aCtx,
                       unsigned int aBufferSize);
 
 /**
- * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata 
- * about the results.
+ * @brief Use the DeepSpeech model to convert speech to text and output results
+ * including metadata.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
+ * @param aNumResults The maximum number of CandidateTranscript structs to return. Returned value might be smaller than this.
  *
- * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ * @return Metadata struct containing multiple CandidateTranscript structs. Each
+ *         transcript has per-token metadata including timing information. The
+ *         user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                                       const short* aBuffer,
-                                      unsigned int aBufferSize);
+                                      unsigned int aBufferSize,
+                                      unsigned int aNumResults);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -236,8 +251,24 @@ DEEPSPEECH_EXPORT
 char* DS_IntermediateDecode(const StreamingState* aSctx);
 
 /**
- * @brief Signal the end of an audio signal to an ongoing streaming
- *        inference, returns the STT result over the whole audio signal.
+ * @brief Compute the intermediate decoding of an ongoing streaming inference,
+ *        return results including metadata.
+ *
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aNumResults The number of candidate transcripts to return.
+ *
+ * @return Metadata struct containing multiple candidate transcripts. Each transcript
+ *         has per-token metadata including timing information. The user is
+ *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
+ */
+DEEPSPEECH_EXPORT
+Metadata* DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
+                                            unsigned int aNumResults);
+
+/**
+ * @brief Compute the final decoding of an ongoing streaming inference and return
+ *        the result. Signals the end of an ongoing streaming inference.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
@@ -250,18 +281,23 @@ DEEPSPEECH_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
 
 /**
- * @brief Signal the end of an audio signal to an ongoing streaming
- *        inference, returns per-letter metadata.
+ * @brief Compute the final decoding of an ongoing streaming inference and return
+ *        results including metadata. Signals the end of an ongoing streaming
+ *        inference.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aNumResults The number of candidate transcripts to return.
  *
- * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ * @return Metadata struct containing multiple candidate transcripts. Each transcript
+ *         has per-token metadata including timing information. The user is
+ *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
-Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx);
+Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx,
+                                      unsigned int aNumResults);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This

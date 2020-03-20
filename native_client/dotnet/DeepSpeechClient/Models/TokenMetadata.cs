@@ -3,12 +3,12 @@
     /// <summary>
     /// Stores each individual character, along with its timing information.
     /// </summary>
-    public class MetadataItem
+    public class TokenMetadata
     {
         /// <summary>
         /// Char of the current timestep.
         /// </summary>
-        public string Character;
+        public string Text;
         /// <summary>
         /// Position of the character in units of 20ms.
         /// </summary>

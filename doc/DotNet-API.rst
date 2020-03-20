@@ -31,13 +31,20 @@ ErrorCodes
 Metadata
 --------
 
-.. doxygenstruct:: DeepSpeechClient::Structs::Metadata
+.. doxygenclass:: DeepSpeechClient::Models::Metadata
    :project: deepspeech-dotnet
-   :members: items, num_items, confidence
+   :members: Transcripts
 
-MetadataItem
-------------
+CandidateTranscript
+-------------------
 
-.. doxygenstruct:: DeepSpeechClient::Structs::MetadataItem
+.. doxygenclass:: DeepSpeechClient::Models::CandidateTranscript
    :project: deepspeech-dotnet
-   :members: character, timestep, start_time
+   :members: Tokens, Confidence
+
+TokenMetadata
+-------------
+
+.. doxygenclass:: DeepSpeechClient::Models::TokenMetadata
+   :project: deepspeech-dotnet
+   :members: Text, Timestep, StartTime

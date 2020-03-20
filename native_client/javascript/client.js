@@ -42,12 +42,11 @@ function totalTime(hrtimeValue) {
   return (hrtimeValue[0] + hrtimeValue[1] / 1000000000).toPrecision(4);
 }
 
-function metadataToString(metadata) {
+function candidateTranscriptToString(transcript) {
   var retval = ""
-  for (var i = 0; i < metadata.num_items; ++i) {
-    retval += metadata.items[i].character;
+  for (var i = 0; i < transcript.tokens.length; ++i) {
+    retval += transcript.tokens[i].text;
   }
-  Ds.FreeMetadata(metadata);
   return retval;
 }
 
@@ -117,7 +116,9 @@ audioStream.on('finish', () => {
   const audioLength = (audioBuffer.length / 2) * (1 / desired_sample_rate);
 
   if (args['extended']) {
-    console.log(metadataToString(model.sttWithMetadata(audioBuffer)));
+    let metadata = model.sttWithMetadata(audioBuffer, 1);
+    console.log(candidateTranscriptToString(metadata.transcripts[0]));
+    Ds.FreeMetadata(metadata);
   } else {
     console.log(model.stt(audioBuffer));
   }

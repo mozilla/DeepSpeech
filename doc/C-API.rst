@@ -34,6 +34,9 @@ C
 .. doxygenfunction:: DS_IntermediateDecode
    :project: deepspeech-c
 
+.. doxygenfunction:: DS_IntermediateDecodeWithMetadata
+   :project: deepspeech-c
+
 .. doxygenfunction:: DS_FinishStream
    :project: deepspeech-c
 

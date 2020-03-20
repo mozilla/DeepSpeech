@@ -44,9 +44,115 @@ struct meta_word {
   float duration;
 };
 
-char* metadataToString(Metadata* metadata);
-std::vector<meta_word> WordsFromMetadata(Metadata* metadata);
-char* JSONOutput(Metadata* metadata);
+char*
+CandidateTranscriptToString(const CandidateTranscript* transcript)
+{
+  std::string retval = "";
+  for (int i = 0; i < transcript->num_tokens; i++) {
+    const TokenMetadata& token = transcript->tokens[i];
+    retval += token.text;
+  }
+  return strdup(retval.c_str());
+}
+
+std::vector<meta_word>
+CandidateTranscriptToWords(const CandidateTranscript* transcript)
+{
+  std::vector<meta_word> word_list;
+
+  std::string word = "";
+  float word_start_time = 0;
+
+  // Loop through each token
+  for (int i = 0; i < transcript->num_tokens; i++) {
+    const TokenMetadata& token = transcript->tokens[i];
+
+    // Append token to word if it's not a space
+    if (strcmp(token.text, u8" ") != 0) {
+      // Log the start time of the new word
+      if (word.length() == 0) {
+        word_start_time = token.start_time;
+      }
+      word.append(token.text);
+    }
+
+    // Word boundary is either a space or the last token in the array
+    if (strcmp(token.text, u8" ") == 0 || i == transcript->num_tokens-1) {
+      float word_duration = token.start_time - word_start_time;
+
+      if (word_duration < 0) {
+        word_duration = 0;
+      }
+
+      meta_word w;
+      w.word = word;
+      w.start_time = word_start_time;
+      w.duration = word_duration;
+
+      word_list.push_back(w);
+
+      // Reset
+      word = "";
+      word_start_time = 0;
+    }
+  }
+
+  return word_list;
+}
+
+std::string
+CandidateTranscriptToJSON(const CandidateTranscript *transcript)
+{
+  std::ostringstream out_string;
+
+  std::vector<meta_word> words = CandidateTranscriptToWords(transcript);
+
+  out_string << R"("metadata":{"confidence":)" << transcript->confidence << R"(},"words":[)";
+
+  for (int i = 0; i < words.size(); i++) {
+    meta_word w = words[i];
+    out_string << R"({"word":")" << w.word << R"(","time":)" << w.start_time << R"(,"duration":)" << w.duration << "}";
+
+    if (i < words.size() - 1) {
+      out_string << ",";
+    }
+  }
+
+  out_string << "]";
+
+  return out_string.str();
+}
+
+char*
+MetadataToJSON(Metadata* result)
+{
+  std::ostringstream out_string;
+  out_string << "{\n";
+
+  for (int j=0; j < result->num_transcripts; ++j) {
+    const CandidateTranscript *transcript = &result->transcripts[j];
+
+    if (j == 0) {
+      out_string << CandidateTranscriptToJSON(transcript);
+
+      if (result->num_transcripts > 1) {
+        out_string << ",\n" << R"("alternatives")" << ":[\n";
+      }
+    } else {
+      out_string << "{" << CandidateTranscriptToJSON(transcript) << "}";
+
+      if (j < result->num_transcripts - 1) {
+        out_string << ",\n";
+      } else {
+        out_string << "\n]";
+      }
+    }
+  }
+  
+  out_string << "\n}\n";
+
+  return strdup(out_string.str().c_str());
+}
 
 ds_result
 LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
@@ -57,13 +163,13 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
   clock_t ds_start_time = clock();
 
   if (extended_output) {
-    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize);
-    res.string = metadataToString(metadata);
-    DS_FreeMetadata(metadata);
+    Metadata *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, 1);
+    res.string = CandidateTranscriptToString(&result->transcripts[0]);
+    DS_FreeMetadata(result);
   } else if (json_output) {
-    Metadata *metadata = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize);
-    res.string = JSONOutput(metadata);
-    DS_FreeMetadata(metadata);
+    Metadata *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, json_candidate_transcripts);
+    res.string = MetadataToJSON(result);
+    DS_FreeMetadata(result);
   } else if (stream_size > 0) {
     StreamingState* ctx;
     int status = DS_CreateStream(aCtx, &ctx);
@@ -276,87 +382,6 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
     printf("cpu_time_overall=%.05f\n",
            result.cpu_time_overall);
   }
-}
-
-char*
-metadataToString(Metadata* metadata)
-{
-  std::string retval = "";
-  for (int i = 0; i < metadata->num_items; i++) {
-    MetadataItem item = metadata->items[i];
-    retval += item.character;
-  }
-  return strdup(retval.c_str());
-}
-
-std::vector<meta_word>
-WordsFromMetadata(Metadata* metadata)
-{
-  std::vector<meta_word> word_list;
-
-  std::string word = "";
-  float word_start_time = 0;
-
-  // Loop through each character
-  for (int i = 0; i < metadata->num_items; i++) {
-    MetadataItem item = metadata->items[i];
-
-    // Append character to word if it's not a space
-    if (strcmp(item.character, u8" ") != 0) {
-      // Log the start time of the new word
-      if (word.length() == 0) {
-        word_start_time = item.start_time;
-      }
-      word.append(item.character);
-    }
-
-    // Word boundary is either a space or the last character in the array
-    if (strcmp(item.character, " ") == 0
-        || strcmp(item.character, u8" ") == 0
-        || i == metadata->num_items-1) {
-
-      float word_duration = item.start_time - word_start_time;
-
-      if (word_duration < 0) {
-        word_duration = 0;
-      }
-
-      meta_word w;
-      w.word = word;
-      w.start_time = word_start_time;
-      w.duration = word_duration;
-
-      word_list.push_back(w);
-
-      // Reset
-      word = "";
-      word_start_time = 0;
-    }
-  }
-
-  return word_list;
-}
-
-char* 
-JSONOutput(Metadata* metadata)
-{
-  std::vector<meta_word> words = WordsFromMetadata(metadata);
-
-  std::ostringstream out_string;
-  out_string << R"({"metadata":{"confidence":)" << metadata->confidence << R"(},"words":[)";
-
-  for (int i = 0; i < words.size(); i++) {
-    meta_word w = words[i];
-    out_string << R"({"word":")" << w.word << R"(","time":)" << w.start_time << R"(,"duration":)" << w.duration << "}";
-
-    if (i < words.size() - 1) {
-      out_string << ",";
-    }
-  }
-  
-  out_string << "]}\n";
-
-  return strdup(out_string.str().c_str());
 }
 
 int

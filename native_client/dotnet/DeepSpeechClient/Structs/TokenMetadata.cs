@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 namespace DeepSpeechClient.Structs
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct MetadataItem
+    internal unsafe struct TokenMetadata
     {
         /// <summary>
-        /// Native character.
+        /// Native text.
         /// </summary>
-        internal unsafe IntPtr character;
+        internal unsafe IntPtr text;
         /// <summary>
         /// Position of the character in units of 20ms.
         /// </summary>
