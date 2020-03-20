@@ -83,6 +83,18 @@ system:
       android_25:
         url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-25.4/artifacts/public/android_cache.tar.gz'
         namespace: 'project.deepspeech.android_cache.x86_64.android-25.4'
+      android_26:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-26.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-26.0'
+      android_27:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-27.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-27.0'
+      android_28:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-28.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-28.0'
+      android_29:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-29.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-29.0'
     sdk:
       android_27:
         url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.sdk.android-27.4/artifacts/public/android_cache.tar.gz'

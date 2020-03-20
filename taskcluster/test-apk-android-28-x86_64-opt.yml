@@ -1,12 +1,21 @@
-# disabled because too intermittent to be reliable until we have some KVM-backed infra
 build:
   template_file: test-android-opt-base.tyml
   dependencies:
     - "android-x86_64-cpu-opt"
     - "test-training_16k-linux-amd64-py36m-opt"
+    - "swig-linux-amd64"
+    - "gradle-cache"
+    - "android-cache-x86_64-android-28"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   system_setup:
     >
       apt-get -qq -y install curl make python
+  cache:
+    url: ${system.android_cache.x86_64.android_28.url}
+    namespace: ${system.android_cache.x86_64.android_28.namespace}
+  gradle_cache:
+    url: ${system.gradle_cache.url}
+    namespace: ${system.gradle_cache.namespace}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-apk-tests.sh x86_64 android-28"
   metadata:
