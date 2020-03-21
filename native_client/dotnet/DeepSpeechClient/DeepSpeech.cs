@@ -91,7 +91,7 @@ namespace DeepSpeechClient
         {
             if (resultCode != ErrorCodes.DS_ERR_OK)
             {
-                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage((int)resultCode).IntPtrToString());
+                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage((int)resultCode).ToString());
             }
         }
 
