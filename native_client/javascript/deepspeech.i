@@ -37,6 +37,7 @@ using namespace node;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
 %newobject DS_Version;
+%newobject DS_ErrorCodeToErrorMessage;
 
 // convert double pointer retval in CreateModel to an output
 %typemap(in, numinputs=0) ModelState **retval (ModelState *ret) {

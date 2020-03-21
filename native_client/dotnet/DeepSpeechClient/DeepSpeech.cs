@@ -89,38 +89,9 @@ namespace DeepSpeechClient
         /// <param name="resultCode">Native result code.</param>
         private void EvaluateResultCode(ErrorCodes resultCode)
         {
-            switch (resultCode)
+            if (resultCode != ErrorCodes.DS_ERR_OK)
             {
-                case ErrorCodes.DS_ERR_OK:
-                    break;
-                case ErrorCodes.DS_ERR_NO_MODEL:
-                    throw new ArgumentException("Missing model information.");
-                case ErrorCodes.DS_ERR_INVALID_ALPHABET:
-                    throw new ArgumentException("Invalid alphabet embedded in model. (Data corruption?)");
-                case ErrorCodes.DS_ERR_INVALID_SHAPE:
-                    throw new ArgumentException("Invalid model shape.");
-                case ErrorCodes.DS_ERR_INVALID_SCORER:
-                    throw new ArgumentException("Invalid scorer file.");
-                case ErrorCodes.DS_ERR_FAIL_INIT_MMAP:
-                    throw new ArgumentException("Failed to initialize memory mapped model.");
-                case ErrorCodes.DS_ERR_FAIL_INIT_SESS:
-                    throw new ArgumentException("Failed to initialize the session.");
-                case ErrorCodes.DS_ERR_FAIL_INTERPRETER:
-                    throw new ArgumentException("Interpreter failed.");
-                case ErrorCodes.DS_ERR_FAIL_RUN_SESS:
-                    throw new ArgumentException("Failed to run the session.");
-                case ErrorCodes.DS_ERR_FAIL_CREATE_STREAM:
-                    throw new ArgumentException("Error creating the stream.");
-                case ErrorCodes.DS_ERR_FAIL_READ_PROTOBUF:
-                    throw new ArgumentException("Error reading the proto buffer model file.");
-                case ErrorCodes.DS_ERR_FAIL_CREATE_SESS:
-                    throw new ArgumentException("Error failed to create session.");
-                case ErrorCodes.DS_ERR_MODEL_INCOMPATIBLE:
-                    throw new ArgumentException("Error incompatible model.");
-                case ErrorCodes.DS_ERR_SCORER_NOT_ENABLED:
-                    throw new ArgumentException("External scorer is not enabled.");
-                default:
-                    throw new ArgumentException("Unknown error, please make sure you are using the correct native binary.");
+                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage((int)resultCode).PtrToString());
             }
         }
 
@@ -140,7 +111,6 @@ namespace DeepSpeechClient
         /// <exception cref="FileNotFoundException">Thrown when cannot find the scorer file.</exception>
         public unsafe void EnableExternalScorer(string aScorerPath)
         {
-            string exceptionMessage = null;
             if (string.IsNullOrWhiteSpace(aScorerPath))
             {
                 throw new FileNotFoundException("Path to the scorer file cannot be empty.");

@@ -2,7 +2,7 @@
 
 const binary = require('node-pre-gyp');
 const path = require('path')
-// 'lib', 'binding', 'v0.1.1', ['node', 'v' + process.versions.modules, process.platform, process.arch].join('-'), 'deepspeech-bingings.node')
+// 'lib', 'binding', 'v0.1.1', ['node', 'v' + process.versions.modules, process.platform, process.arch].join('-'), 'deepspeech-bindings.node')
 const binding_path = binary.find(path.resolve(path.join(__dirname, 'package.json')));
 
 // On Windows, we can't rely on RPATH being set to $ORIGIN/../ or on
@@ -35,7 +35,7 @@ function Model(aModelPath) {
     const status = rets[0];
     const impl = rets[1];
     if (status !== 0) {
-        throw "CreateModel failed with error code 0x" + status.toString(16);
+        throw "CreateModel failed "+binding.ErrorCodeToErrorMessage(status)+" 0x" + status.toString(16);
     }
 
     this._impl = impl;
@@ -139,7 +139,7 @@ Model.prototype.createStream = function() {
     const status = rets[0];
     const ctx = rets[1];
     if (status !== 0) {
-        throw "CreateStream failed with error code 0x" + status.toString(16);
+        throw "CreateStream failed "+binding.ErrorCodeToErrorMessage(status)+" 0x" + status.toString(16);
     }
     return ctx;
 }
