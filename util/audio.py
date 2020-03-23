@@ -26,31 +26,45 @@ OPUS_CHUNK_LEN_SIZE = 2
 
 
 class Sample:
-    """Represents in-memory audio data of a certain (convertible) representation.
-    Attributes:
-        audio_type (str): See `__init__`.
-        audio_format (tuple:(int, int, int)): See `__init__`.
-        audio (obj): Audio data represented as indicated by `audio_type`
-        duration (float): Audio duration of the sample in seconds
     """
-    def __init__(self, audio_type, raw_data, audio_format=None):
+    Represents in-memory audio data of a certain (convertible) representation.
+
+    Attributes
+    ----------
+    audio_type : str
+        See `__init__`.
+    audio_format : tuple:(int, int, int)
+        See `__init__`.
+    audio : binary
+        Audio data represented as indicated by `audio_type`
+    duration : float
+        Audio duration of the sample in seconds
+    """
+    def __init__(self, audio_type, raw_data, audio_format=None, sample_id=None):
         """
-        Creates a Sample from a raw audio representation.
-        :param audio_type: Audio data representation type
+        Parameters
+        ----------
+        audio_type : str
+            Audio data representation type
             Supported types:
-                - AUDIO_TYPE_OPUS: Memory file representation (BytesIO) of Opus encoded audio
+                - util.audio.AUDIO_TYPE_OPUS: Memory file representation (BytesIO) of Opus encoded audio
                     wrapped by a custom container format (used in SDBs)
-                - AUDIO_TYPE_WAV: Memory file representation (BytesIO) of a Wave file
-                - AUDIO_TYPE_PCM: Binary representation (bytearray) of PCM encoded audio data (Wave file without header)
-                - AUDIO_TYPE_NP: NumPy representation of audio data (np.float32) - typically used for GPU feeding
-        :param raw_data: Audio data in the form of the provided representation type (see audio_type).
-            For types AUDIO_TYPE_OPUS or AUDIO_TYPE_WAV data can also be passed as a bytearray.
-        :param audio_format: Tuple of sample-rate, number of channels and sample-width.
-            Required in case of audio_type = AUDIO_TYPE_PCM or AUDIO_TYPE_NP,
+                - util.audio.AUDIO_TYPE_WAV: Memory file representation (BytesIO) of a Wave file
+                - util.audio.AUDIO_TYPE_PCM: Binary representation (bytearray) of PCM encoded audio data (Wave file without header)
+                - util.audio.AUDIO_TYPE_NP: NumPy representation of audio data (np.float32) - typically used for GPU feeding
+        raw_data : binary
+            Audio data in the form of the provided representation type (see audio_type).
+            For types util.audio.AUDIO_TYPE_OPUS or util.audio.AUDIO_TYPE_WAV data can also be passed as a bytearray.
+        audio_format : tuple
+            Tuple of sample-rate, number of channels and sample-width.
+            Required in case of audio_type = util.audio.AUDIO_TYPE_PCM or util.audio.AUDIO_TYPE_NP,
             as this information cannot be derived from raw audio data.
+        sample_id : str
+            Tracking ID - should indicate sample's origin as precisely as possible
         """
         self.audio_type = audio_type
         self.audio_format = audio_format
+        self.sample_id = sample_id
         if audio_type in SERIALIZABLE_AUDIO_TYPES:
             self.audio = raw_data if isinstance(raw_data, io.BytesIO) else io.BytesIO(raw_data)
             self.duration = read_duration(audio_type, self.audio)
@@ -68,7 +82,11 @@ class Sample:
     def change_audio_type(self, new_audio_type):
         """
         In-place conversion of audio data into a different representation.
-        :param new_audio_type: New audio-type - see `__init__`.
+
+        Parameters
+        ----------
+        new_audio_type : str
+            New audio-type - see `__init__`.
             Not supported: Converting from AUDIO_TYPE_NP into any other type.
         """
         if self.audio_type == new_audio_type:
