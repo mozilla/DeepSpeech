@@ -15,14 +15,22 @@ else
 GENERATE_DEBUG_SYMS :=
 endif
 
+ifeq ($(findstring _NT,$(OS)),_NT)
+	FIRST_PARTY := first_party.lib
+	THIRD_PARTY := third_party.lib
+else
+	FIRST_PARTY := first_party.a
+	THIRD_PARTY := third_party.a
+endif
+
 all: bindings
 
 clean-keep-third-party:
 	rm -rf dist temp_build ds_ctcdecoder.egg-info
-	rm -f swigwrapper_wrap.cpp swigwrapper.py first_party.a
+	rm -f swigwrapper_wrap.cpp swigwrapper.py $(FIRST_PARTY)
 
 clean: clean-keep-third-party
-	rm -f third_party.a
+	rm -f $(THIRD_PARTY)
 	rm workspace_status.cc
 	rm -fr bazel-out/
 
