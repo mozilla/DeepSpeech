@@ -14,7 +14,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import random
 import argparse
 
-from util.sample_collections import samples_from_file
+from util.sample_collections import samples_from_file, LabeledSample
 from util.audio import AUDIO_TYPE_PCM
 
 
@@ -28,7 +28,8 @@ def play_sample(samples, index):
         sys.exit(1)
     sample = samples[index]
     print('Sample "{}"'.format(sample.sample_id))
-    print('  "{}"'.format(sample.transcript))
+    if isinstance(sample, LabeledSample):
+        print('  "{}"'.format(sample.transcript))
     sample.change_audio_type(AUDIO_TYPE_PCM)
     rate, channels, width = sample.audio_format
     wave_obj = simpleaudio.WaveObject(sample.audio, channels, width, rate)
