@@ -10,6 +10,7 @@ TOOL_CC   := gcc
 TOOL_CXX  := c++
 TOOL_LD   := ld
 TOOL_LDD  := ldd
+TOOL_LIBEXE :=
 
 DEEPSPEECH_BIN       := deepspeech
 CFLAGS_DEEPSPEECH    := -std=c++11 -o $(DEEPSPEECH_BIN)
@@ -37,9 +38,10 @@ endif
 ifeq ($(TARGET),host-win)
 DEEPSPEECH_BIN  := deepspeech.exe
 TOOLCHAIN := '$(VCINSTALLDIR)\bin\amd64\'
-TOOL_CC   := cl.exe
-TOOL_CXX  := cl.exe
-TOOL_LD   := link.exe
+TOOL_CC     := cl.exe
+TOOL_CXX    := cl.exe
+TOOL_LD     := link.exe
+TOOL_LIBEXE := lib.exe
 LINK_DEEPSPEECH      := $(TFDIR)\bazel-bin\native_client\libdeepspeech.so.if.lib
 LINK_PATH_DEEPSPEECH :=
 CFLAGS_DEEPSPEECH    := -nologo -Fe$(DEEPSPEECH_BIN)
@@ -113,6 +115,7 @@ CC      := $(TOOLCHAIN)$(TOOL_CC)
 CXX     := $(TOOLCHAIN)$(TOOL_CXX)
 LD      := $(TOOLCHAIN)$(TOOL_LD)
 LDD     := $(TOOLCHAIN)$(TOOL_LDD) $(TOOLCHAIN_LDD_OPTS)
+LIBEXE  := $(TOOLCHAIN)$(TOOL_LIBEXE)
 
 RPATH_PYTHON         := '-Wl,-rpath,\$$ORIGIN/lib/' $(LDFLAGS_RPATH)
 RPATH_NODEJS         := '-Wl,-rpath,$$\$$ORIGIN/../'
