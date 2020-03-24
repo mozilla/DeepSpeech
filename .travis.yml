@@ -24,3 +24,10 @@ jobs:
         - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
             python -m unittest;
           fi
+    - stage: python integration tests
+      install:
+        - pip install --upgrade -r requirements.txt
+      script:
+        - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+            python feeding_test.py;
+          fi

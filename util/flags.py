@@ -90,9 +90,9 @@ def create_flags():
 
     # Sample limits
 
-    f.DEFINE_integer('limit_train', 0, 'maximum number of elements to use from train set - 0 means no limit')
-    f.DEFINE_integer('limit_dev', 0, 'maximum number of elements to use from validation set- 0 means no limit')
-    f.DEFINE_integer('limit_test', 0, 'maximum number of elements to use from test set- 0 means no limit')
+    f.DEFINE_integer('limit_train', None, 'maximum number of elements to use from train set - 0 means no limit')
+    f.DEFINE_integer('limit_dev', None, 'maximum number of elements to use from validation set - 0 means no limit')
+    f.DEFINE_integer('limit_test', None, 'maximum number of elements to use from test set - 0 means no limit')
 
     # Checkpointing
 

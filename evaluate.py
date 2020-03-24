@@ -51,7 +51,7 @@ def evaluate(test_csvs, create_model):
         scorer = None
 
     test_csvs = FLAGS.test_files.split(',')
-    test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size, train_phase=False) for csv in test_csvs]
+    test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size, limit=FLAGS.limit_test, train_phase=False) for csv in test_csvs]
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(test_sets[0]),
                                                  tfv1.data.get_output_shapes(test_sets[0]),
                                                  output_classes=tfv1.data.get_output_classes(test_sets[0]))

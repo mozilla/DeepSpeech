@@ -5,6 +5,7 @@ from functools import partial
 
 import numpy as np
 import tensorflow as tf
+import itertools
 
 from tensorflow.python.ops import gen_audio_ops as contrib_audio
 
@@ -109,14 +110,23 @@ def to_sparse_tuple(sequence):
 
 def create_dataset(sources,
                    batch_size,
+                   limit=None,
                    enable_cache=False,
                    cache_path=None,
                    train_phase=False,
                    exception_box=None,
                    process_ahead=None,
                    buffering=1 * MEGABYTE):
+
+    maybe_reverse = False
+    if limit and limit < 0:
+        limit *= -1
+        maybe_reverse = True
+
     def generate_values():
-        samples = samples_from_files(sources, buffering=buffering, labeled=True)
+        samples = samples_from_files(sources, buffering=buffering, labeled=True, reverse=maybe_reverse)
+        if limit and limit > 0:
+            samples = itertools.islice(samples, limit)
         for sample in change_audio_types(samples,
                                          AUDIO_TYPE_NP,
                                          process_ahead=2 * batch_size if process_ahead is None else process_ahead):

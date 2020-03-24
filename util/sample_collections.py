@@ -339,7 +339,7 @@ def samples_from_file(filename, buffering=BUFFER_SIZE, labeled=None):
     raise ValueError('Unknown file type: "{}"'.format(ext))
 
 
-def samples_from_files(filenames, buffering=BUFFER_SIZE, labeled=None):
+def samples_from_files(filenames, buffering=BUFFER_SIZE, labeled=None, reverse=False):
     """
     Returns an iterable of util.sample_collections.LabeledSample or util.audio.Sample instances
     loaded from a collection of sample source files.
@@ -355,6 +355,8 @@ def samples_from_files(filenames, buffering=BUFFER_SIZE, labeled=None):
         If False: Ignores transcripts (if available) and always reads (unlabeled) util.audio.Sample instances.
         If None: Reads util.sample_collections.LabeledSample instances from sources with transcripts and
         util.audio.Sample instances from sources with no transcripts.
+    reverse : bool
+        If True, perform Interleaved ordering in the reverse duration order
     """
     filenames = list(filenames)
     if len(filenames) == 0:
@@ -362,4 +364,5 @@ def samples_from_files(filenames, buffering=BUFFER_SIZE, labeled=None):
     if len(filenames) == 1:
         return samples_from_file(filenames[0], buffering=buffering, labeled=labeled)
     cols = list(map(partial(samples_from_file, buffering=buffering, labeled=labeled), filenames))
-    return Interleaved(*cols, key=lambda s: s.duration)
+    duration_reverse = -1 if reverse else 1
+    return Interleaved(*cols, key=lambda s: duration_reverse * s.duration)

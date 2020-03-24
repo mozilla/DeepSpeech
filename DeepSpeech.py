@@ -423,6 +423,7 @@ def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
+                               limit=FLAGS.limit_train,
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True,
@@ -441,6 +442,7 @@ def train():
         dev_sources = FLAGS.dev_files.split(',')
         dev_sets = [create_dataset([source],
                                    batch_size=FLAGS.dev_batch_size,
+                                   limit=FLAGS.limit_dev,
                                    train_phase=False,
                                    exception_box=exception_box,
                                    process_ahead=len(Config.available_devices) * FLAGS.dev_batch_size * 2,
