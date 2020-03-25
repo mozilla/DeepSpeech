@@ -54,6 +54,7 @@ def build_archive(srcs=[], out_name='', build_dir='temp_build/temp_build', debug
     if sys.platform.startswith('win'):
         compiler = '"{}"'.format(compiler)
     ar = os.environ.get('AR', 'ar')
+    libexe = os.environ.get('LIBEXE', 'lib.exe')
     libtool = os.environ.get('LIBTOOL', 'libtool')
     cflags = os.environ.get('CFLAGS', '') + os.environ.get('CXXFLAGS', '')
     args = ARGS + (DBG_ARGS if debug else OPT_ARGS)
@@ -100,7 +101,8 @@ def build_archive(srcs=[], out_name='', build_dir='temp_build/temp_build', debug
         print(cmd)
         subprocess.check_call(shlex.split(cmd))
     elif sys.platform.startswith('win'):
-        cmd = '"lib.exe" /OUT:"{outfile}" {infiles} /MACHINE:X64 /NOLOGO'.format(
+        cmd = '"{libexe}" /OUT:"{outfile}" {infiles} /MACHINE:X64 /NOLOGO'.format(
+            libexe=libexe,
             outfile=out_name,
             infiles=' '.join(obj_files))
         cmd = cmd.replace('\\', '/')
