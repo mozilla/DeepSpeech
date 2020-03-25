@@ -15,7 +15,7 @@ if sys.platform.startswith('win'):
     DBG_ARGS = ['/Od', '/MTd', '/Zi', '/U NDEBUG', '/D DEBUG']
     OPENFST_DIR = 'third_party/openfst-1.6.9-win'
 else:
-    ARGS = ['fPIC', '-DKENLM_MAX_ORDER=6', '-std=c++11', '-Wno-unused-local-typedefs', '-Wno-sign-compare']
+    ARGS = ['-fPIC', '-DKENLM_MAX_ORDER=6', '-std=c++11', '-Wno-unused-local-typedefs', '-Wno-sign-compare']
     OPT_ARGS = ['-O3', '-DNDEBUG']
     DBG_ARGS = ['-O0', '-g', '-UNDEBUG', '-DDEBUG']
     OPENFST_DIR = 'third_party/openfst-1.6.7'
