@@ -15,7 +15,7 @@ if sys.platform.startswith('win'):
     DBG_ARGS = ['/Od', '/MTd', '/Zi', '/U NDEBUG', '/D DEBUG']
     OPENFST_DIR = 'third_party/openfst-1.6.9-win'
 else:
-    ARGS = ['-DKENLM_MAX_ORDER=6', '-std=c++11', '-Wno-unused-local-typedefs', '-Wno-sign-compare']
+    ARGS = ['fPIC', '-DKENLM_MAX_ORDER=6', '-std=c++11', '-Wno-unused-local-typedefs', '-Wno-sign-compare']
     OPT_ARGS = ['-O3', '-DNDEBUG']
     DBG_ARGS = ['-O0', '-g', '-UNDEBUG', '-DDEBUG']
     OPENFST_DIR = 'third_party/openfst-1.6.7'
@@ -51,6 +51,8 @@ CTC_DECODER_FILES = [
 
 def build_archive(srcs=[], out_name='', build_dir='temp_build/temp_build', debug=False, num_parallel=1):
     compiler = os.environ.get('CXX', 'g++')
+    if sys.platform.startswith('win'):
+        compiler = '"{}"'.format(compiler)
     ar = os.environ.get('AR', 'ar')
     libtool = os.environ.get('LIBTOOL', 'libtool')
     cflags = os.environ.get('CFLAGS', '') + os.environ.get('CXXFLAGS', '')
@@ -69,24 +71,19 @@ def build_archive(srcs=[], out_name='', build_dir='temp_build/temp_build', debug
             return
 
         if sys.platform.startswith('win'):
-            cmd = '"{cc}" -c {cflags} {args} {includes} {infile} -Fo"{outfile}"'.format(
-                cc=compiler,
-                cflags=cflags,
-                args=' '.join(args),
-                includes=' '.join('-I' + i for i in INCLUDES),
-                infile=file,
-                outfile=outfile,
-            )
-            cmd = cmd.replace('\\', '/')
+            file = '"{}"'.format(file.replace('\\', '/'))
+            output = '/Fo"{}"'.format(outfile.replace('\\', '/'))
         else:
-            cmd = '{cc} -fPIC -c {cflags} {args} {includes} {infile} -o {outfile}'.format(
-                cc=compiler,
-                cflags=cflags,
-                args=' '.join(args),
-                includes=' '.join('-I' + i for i in INCLUDES),
-                infile=file,
-                outfile=outfile,
-            )
+            output = '-o ' + outfile
+
+        cmd = '{cc} -c {cflags} {args} {includes} {infile} {output}'.format(
+            cc=compiler,
+            cflags=cflags,
+            args=' '.join(args),
+            includes=' '.join('-I' + i for i in INCLUDES),
+            infile=file,
+            output=output,
+        )
         print(cmd)
         subprocess.check_call(shlex.split(cmd))
         return outfile
@@ -103,9 +100,7 @@ def build_archive(srcs=[], out_name='', build_dir='temp_build/temp_build', debug
         print(cmd)
         subprocess.check_call(shlex.split(cmd))
     elif sys.platform.startswith('win'):
-        obj_files = [s for s in obj_files if s != None]
         cmd = '"lib.exe" /OUT:"{outfile}" {infiles} /MACHINE:X64 /NOLOGO'.format(
-            ar=ar,
             outfile=out_name,
             infiles=' '.join(obj_files))
         cmd = cmd.replace('\\', '/')

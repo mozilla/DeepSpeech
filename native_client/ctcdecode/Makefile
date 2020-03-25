@@ -16,12 +16,14 @@ GENERATE_DEBUG_SYMS :=
 endif
 
 ifeq ($(findstring _NT,$(OS)),_NT)
-	FIRST_PARTY := first_party.lib
-	THIRD_PARTY := third_party.lib
+	ARCHIVE_EXT := lib
 else
-	FIRST_PARTY := first_party.a
-	THIRD_PARTY := third_party.a
+	ARCHIVE_EXT := a
 endif
+
+FIRST_PARTY := first_party.$(ARCHIVE_EXT)
+THIRD_PARTY := third_party.$(ARCHIVE_EXT)
+
 
 all: bindings
 
