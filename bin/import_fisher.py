@@ -4,22 +4,17 @@ from __future__ import absolute_import, division, print_function
 # Prerequisite: Having the sph2pipe tool in your PATH:
 # https://www.ldc.upenn.edu/language-resources/tools/sphere-conversion-tools
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import sys
-import os
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 import codecs
 import fnmatch
+import librosa
 import os
 import pandas
-import subprocess
-import unicodedata
-import librosa
 import soundfile # <= Has an external dependency on libsndfile
+import subprocess
+import sys
+import unicodedata
 
-from util.importers import validate_label_eng as validate_label
+from deepspeech_training.util.importers import validate_label_eng as validate_label
 
 def _download_and_preprocess_data(data_dir):
     # Assume data_dir contains extracted LDC2004S13, LDC2004T19, LDC2005S13, LDC2005T19

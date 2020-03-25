@@ -5,17 +5,12 @@ Use "python3 build_sdb.py -h" for help
 """
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-import random
 import argparse
+import random
+import sys
 
-from util.sample_collections import samples_from_file, LabeledSample
-from util.audio import AUDIO_TYPE_PCM
+from deepspeech_training.util.audio import AUDIO_TYPE_PCM
+from deepspeech_training.util.sample_collections import samples_from_file, LabeledSample
 
 
 def play_sample(samples, index):

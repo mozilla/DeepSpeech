@@ -5,31 +5,26 @@ Use "python3 import_swc.py -h" for help
 '''
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-import re
-import csv
-import sox
-import wave
-import shutil
-import random
-import tarfile
 import argparse
+import csv
+import os
 import progressbar
+import random
+import re
+import shutil
+import sox
+import sys
+import tarfile
 import unicodedata
+import wave
 import xml.etree.cElementTree as ET
 
-from os import path
 from glob import glob
 from collections import Counter
 from multiprocessing.pool import ThreadPool
-from util.text import Alphabet
-from util.importers import validate_label_eng as validate_label
-from util.downloader import maybe_download, SIMPLE_BAR
+from deepspeech_training.util.text import Alphabet
+from deepspeech_training.util.importers import validate_label_eng as validate_label
+from deepspeech_training.util.downloader import maybe_download, SIMPLE_BAR
 
 SWC_URL = "https://www2.informatik.uni-hamburg.de/nats/pub/SWC/SWC_{language}.tar"
 SWC_ARCHIVE = "SWC_{language}.tar"
@@ -117,8 +112,8 @@ def maybe_download_language(language):
 
 
 def maybe_extract(data_dir, extracted_data, archive):
-    extracted = path.join(data_dir, extracted_data)
-    if path.isdir(extracted):
+    extracted = os.path.join(data_dir, extracted_data)
+    if os.path.isdir(extracted):
         print('Found directory "{}" - not extracting.'.format(extracted))
     else:
         print('Extracting "{}"...'.format(archive))
@@ -242,7 +237,7 @@ def collect_samples(base_dir, language):
     print('Collecting samples...')
     bar = progressbar.ProgressBar(max_value=len(roots), widgets=SIMPLE_BAR)
     for root in bar(roots):
-        wav_path = path.join(root, WAV_NAME)
+        wav_path = os.path.join(root, WAV_NAME)
         aligned = ET.parse(path.join(root, ALIGNED_NAME))
         article = UNKNOWN
         speaker = UNKNOWN
@@ -294,8 +289,8 @@ def maybe_convert_one_to_wav(entry):
     transformer.convert(samplerate=SAMPLE_RATE, n_channels=CHANNELS)
     combiner = sox.Combiner()
     combiner.convert(samplerate=SAMPLE_RATE, n_channels=CHANNELS)
-    output_wav = path.join(root, WAV_NAME)
-    if path.isfile(output_wav):
+    output_wav = os.path.join(root, WAV_NAME)
+    if os.path.isfile(output_wav):
         return
     files = sorted(glob(path.join(root, AUDIO_PATTERN)))
     try:
@@ -304,7 +299,7 @@ def maybe_convert_one_to_wav(entry):
         elif len(files) > 1:
             wav_files = []
             for i, file in enumerate(files):
-                wav_path = path.join(root, 'audio{}.wav'.format(i))
+                wav_path = os.path.join(root, 'audio{}.wav'.format(i))
                 transformer.build(file, wav_path)
                 wav_files.append(wav_path)
             combiner.set_input_format(file_type=['wav'] * len(wav_files))
@@ -358,8 +353,8 @@ def assign_sub_sets(samples):
 def create_sample_dirs(language):
     print('Creating sample directories...')
     for set_name in ['train', 'dev', 'test']:
-        dir_path = path.join(CLI_ARGS.base_dir, language + '-' + set_name)
-        if not path.isdir(dir_path):
+        dir_path = os.path.join(CLI_ARGS.base_dir, language + '-' + set_name)
+        if not os.path.isdir(dir_path):
             os.mkdir(dir_path)
 
 
@@ -374,7 +369,7 @@ def split_audio_files(samples, language):
             rate = src_wav_file.getframerate()
             for sample in file_samples:
                 index = sub_sets[sample.sub_set]
-                sample_wav_path = path.join(CLI_ARGS.base_dir,
+                sample_wav_path = os.path.join(CLI_ARGS.base_dir,
                                             language + '-' + sample.sub_set,
                                             'sample-{0:06d}.wav'.format(index))
                 sample.wav_path = sample_wav_path
@@ -391,8 +386,8 @@ def split_audio_files(samples, language):
 def write_csvs(samples, language):
     for sub_set, set_samples in group(samples, lambda s: s.sub_set).items():
         set_samples = sorted(set_samples, key=lambda s: s.wav_path)
-        base_dir = path.abspath(CLI_ARGS.base_dir)
-        csv_path = path.join(base_dir, language + '-' + sub_set + '.csv')
+        base_dir = os.path.abspath(CLI_ARGS.base_dir)
+        csv_path = os.path.join(base_dir, language + '-' + sub_set + '.csv')
         print('Writing "{}"...'.format(csv_path))
         with open(csv_path, 'w') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=FIELDNAMES_EXT if CLI_ARGS.add_meta else FIELDNAMES)
@@ -400,8 +395,8 @@ def write_csvs(samples, language):
             bar = progressbar.ProgressBar(max_value=len(set_samples), widgets=SIMPLE_BAR)
             for sample in bar(set_samples):
                 row = {
-                    'wav_filename': path.relpath(sample.wav_path, base_dir),
-                    'wav_filesize': path.getsize(sample.wav_path),
+                    'wav_filename': os.path.relpath(sample.wav_path, base_dir),
+                    'wav_filesize': os.path.getsize(sample.wav_path),
                     'transcript': sample.text
                 }
                 if CLI_ARGS.add_meta:
@@ -414,8 +409,8 @@ def cleanup(archive, language):
     if not CLI_ARGS.keep_archive:
         print('Removing archive "{}"...'.format(archive))
         os.remove(archive)
-    language_dir = path.join(CLI_ARGS.base_dir, language)
-    if not CLI_ARGS.keep_intermediate and path.isdir(language_dir):
+    language_dir = os.path.join(CLI_ARGS.base_dir, language)
+    if not CLI_ARGS.keep_intermediate and os.path.isdir(language_dir):
         print('Removing intermediate files in "{}"...'.format(language_dir))
         shutil.rmtree(language_dir)
 

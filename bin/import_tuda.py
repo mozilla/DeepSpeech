@@ -5,25 +5,19 @@ Use "python3 import_tuda.py -h" for help
 '''
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-import csv
-import wave
-import tarfile
 import argparse
+import csv
+import os
 import progressbar
+import tarfile
 import unicodedata
+import wave
 import xml.etree.cElementTree as ET
 
-from os import path
 from collections import Counter
-from util.text import Alphabet
-from util.importers import validate_label_eng as validate_label
-from util.downloader import maybe_download, SIMPLE_BAR
+from deepspeech_training.util.downloader import maybe_download, SIMPLE_BAR
+from deepspeech_training.util.importers import validate_label_eng as validate_label
+from deepspeech_training.util.text import Alphabet
 
 TUDA_VERSION = 'v2'
 TUDA_PACKAGE = 'german-speechdata-package-{}'.format(TUDA_VERSION)
@@ -38,8 +32,8 @@ FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 
 
 def maybe_extract(archive):
-    extracted = path.join(CLI_ARGS.base_dir, TUDA_PACKAGE)
-    if path.isdir(extracted):
+    extracted = os.path.join(CLI_ARGS.base_dir, TUDA_PACKAGE)
+    if os.path.isdir(extracted):
         print('Found directory "{}" - not extracting.'.format(extracted))
     else:
         print('Extracting "{}"...'.format(archive))
@@ -92,7 +86,7 @@ def write_csvs(extracted):
     sample_counter = 0
     reasons = Counter()
     for sub_set in ['train', 'dev', 'test']:
-        set_path = path.join(extracted, sub_set)
+        set_path = os.path.join(extracted, sub_set)
         set_files = os.listdir(set_path)
         recordings = {}
         for file in set_files:
@@ -104,15 +98,15 @@ def write_csvs(extracted):
                 if prefix in recordings:
                     recordings[prefix].append(file)
         recordings = recordings.items()
-        csv_path = path.join(CLI_ARGS.base_dir, 'tuda-{}-{}.csv'.format(TUDA_VERSION, sub_set))
+        csv_path = os.path.join(CLI_ARGS.base_dir, 'tuda-{}-{}.csv'.format(TUDA_VERSION, sub_set))
         print('Writing "{}"...'.format(csv_path))
         with open(csv_path, 'w') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=FIELDNAMES)
             writer.writeheader()
-            set_dir = path.join(extracted, sub_set)
+            set_dir = os.path.join(extracted, sub_set)
             bar = progressbar.ProgressBar(max_value=len(recordings), widgets=SIMPLE_BAR)
             for prefix, wav_names in bar(recordings):
-                xml_path = path.join(set_dir, prefix + '.xml')
+                xml_path = os.path.join(set_dir, prefix + '.xml')
                 meta = ET.parse(xml_path).getroot()
                 sentence = list(meta.iter('cleaned_sentence'))[0].text
                 sentence = check_and_prepare_sentence(sentence)
@@ -120,12 +114,12 @@ def write_csvs(extracted):
                     continue
                 for wav_name in wav_names:
                     sample_counter += 1
-                    wav_path = path.join(set_path, wav_name)
+                    wav_path = os.path.join(set_path, wav_name)
                     keep, reason = check_wav_file(wav_path, sentence)
                     if keep:
                         writer.writerow({
-                            'wav_filename': path.relpath(wav_path, CLI_ARGS.base_dir),
-                            'wav_filesize': path.getsize(wav_path),
+                            'wav_filename': os.path.relpath(wav_path, CLI_ARGS.base_dir),
+                            'wav_filesize': os.path.getsize(wav_path),
                             'transcript': sentence.lower()
                         })
                     else:

@@ -1,28 +1,20 @@
 #!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import re
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-from util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
-
 import csv
-import unidecode
-import zipfile
+import os
+import progressbar
+import re
 import sox
 import subprocess
-import progressbar
+import unidecode
+import zipfile
 
+from deepspeech_training.util.downloader import maybe_download
+from deepspeech_training.util.downloader import SIMPLE_BAR
+from deepspeech_training.util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
 from multiprocessing import Pool
-from util.downloader import SIMPLE_BAR
 
-from os import path
-
-from util.downloader import maybe_download
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000
@@ -34,7 +26,7 @@ ARCHIVE_URL = 'https://deepspeech-storage-mirror.s3.fr-par.scw.cloud/' + ARCHIVE
 
 def _download_and_preprocess_data(target_dir, english_compatible=False):
     # Making path absolute
-    target_dir = path.abspath(target_dir)
+    target_dir = os.path.abspath(target_dir)
     # Conditionally download data
     archive_path = maybe_download('ts_' + ARCHIVE_NAME + '.zip', target_dir, ARCHIVE_URL)
     # Conditionally extract archive data
@@ -45,8 +37,8 @@ def _download_and_preprocess_data(target_dir, english_compatible=False):
 
 def _maybe_extract(target_dir, extracted_data, archive_path):
     # If target_dir/extracted_data does not exist, extract archive in target_dir
-    extracted_path = path.join(target_dir, extracted_data)
-    if not path.exists(extracted_path):
+    extracted_path = os.path.join(target_dir, extracted_data)
+    if not os.path.exists(extracted_path):
         print('No directory "%s" - extracting archive...' % extracted_path)
         if not os.path.isdir(extracted_path):
             os.mkdir(extracted_path)
@@ -60,12 +52,12 @@ def one_sample(sample):
     """ Take a audio file, and optionally convert it to 16kHz WAV """
     orig_filename = sample['path']
     # Storing wav files next to the wav ones - just with a different suffix
-    wav_filename = path.splitext(orig_filename)[0] + ".converted.wav"
+    wav_filename = os.path.splitext(orig_filename)[0] + ".converted.wav"
     _maybe_convert_wav(orig_filename, wav_filename)
     file_size = -1
     frames = 0
-    if path.exists(wav_filename):
-        file_size = path.getsize(wav_filename)
+    if os.path.exists(wav_filename):
+        file_size = os.path.getsize(wav_filename)
         frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
     label = sample['text']
 
@@ -95,7 +87,7 @@ def one_sample(sample):
 
 
 def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
-    extracted_dir = path.join(target_dir, extracted_data)
+    extracted_dir = os.path.join(target_dir, extracted_data)
     # override existing CSV with normalized one
     target_csv_template = os.path.join(target_dir, 'ts_' + ARCHIVE_NAME + '_{}.csv')
     if os.path.isfile(target_csv_template):
@@ -160,7 +152,7 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
     print_import_report(counter, SAMPLE_RATE, MAX_SECS)
 
 def _maybe_convert_wav(orig_filename, wav_filename):
-    if not path.exists(wav_filename):
+    if not os.path.exists(wav_filename):
         transformer = sox.Transformer()
         transformer.convert(samplerate=SAMPLE_RATE)
         try:

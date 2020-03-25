@@ -8,23 +8,17 @@ Use "python3 import_cv2.py -h" for help
 '''
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 import csv
+import os
+import progressbar
 import sox
 import subprocess
-import progressbar
 import unicodedata
 
-from os import path
 from multiprocessing import Pool
-from util.downloader import SIMPLE_BAR
-from util.text import Alphabet
-from util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
+from deepspeech_training.util.downloader import SIMPLE_BAR
+from deepspeech_training.util.text import Alphabet
+from deepspeech_training.util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
 
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
@@ -34,7 +28,7 @@ MAX_SECS = 10
 
 def _preprocess_data(tsv_dir, audio_dir, space_after_every_character=False):
     for dataset in ['train', 'test', 'dev', 'validated', 'other']:
-        input_tsv = path.join(path.abspath(tsv_dir), dataset+".tsv")
+        input_tsv = os.path.join(os.path.abspath(tsv_dir), dataset+".tsv")
         if os.path.isfile(input_tsv):
             print("Loading TSV file: ", input_tsv)
             _maybe_convert_set(input_tsv, audio_dir, space_after_every_character)
@@ -42,15 +36,15 @@ def _preprocess_data(tsv_dir, audio_dir, space_after_every_character=False):
 def one_sample(sample):
     """ Take a audio file, and optionally convert it to 16kHz WAV """
     mp3_filename = sample[0]
-    if not path.splitext(mp3_filename.lower())[1] == '.mp3':
+    if not os.path.splitext(mp3_filename.lower())[1] == '.mp3':
         mp3_filename += ".mp3"
     # Storing wav files next to the mp3 ones - just with a different suffix
-    wav_filename = path.splitext(mp3_filename)[0] + ".wav"
+    wav_filename = os.path.splitext(mp3_filename)[0] + ".wav"
     _maybe_convert_wav(mp3_filename, wav_filename)
     file_size = -1
     frames = 0
-    if path.exists(wav_filename):
-        file_size = path.getsize(wav_filename)
+    if os.path.exists(wav_filename):
+        file_size = os.path.getsize(wav_filename)
         frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
     label = label_filter_fun(sample[1])
     rows = []
@@ -76,7 +70,7 @@ def one_sample(sample):
     return (counter, rows)
 
 def _maybe_convert_set(input_tsv, audio_dir, space_after_every_character=None):
-    output_csv = path.join(audio_dir, os.path.split(input_tsv)[-1].replace('tsv', 'csv'))
+    output_csv = os.path.join(audio_dir, os.path.split(input_tsv)[-1].replace('tsv', 'csv'))
     print("Saving new DeepSpeech-formatted CSV file to: ", output_csv)
 
     # Get audiofile path and transcript for each sentence in tsv
@@ -84,7 +78,7 @@ def _maybe_convert_set(input_tsv, audio_dir, space_after_every_character=None):
     with open(input_tsv, encoding='utf-8') as input_tsv_file:
         reader = csv.DictReader(input_tsv_file, delimiter='\t')
         for row in reader:
-            samples.append((path.join(audio_dir, row['path']), row['sentence']))
+            samples.append((os.path.join(audio_dir, row['path']), row['sentence']))
 
     counter = get_counter()
     num_samples = len(samples)
@@ -120,7 +114,7 @@ def _maybe_convert_set(input_tsv, audio_dir, space_after_every_character=None):
 
 
 def _maybe_convert_wav(mp3_filename, wav_filename):
-    if not path.exists(wav_filename):
+    if not os.path.exists(wav_filename):
         transformer = sox.Transformer()
         transformer.convert(samplerate=SAMPLE_RATE)
         try:

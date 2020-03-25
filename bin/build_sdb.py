@@ -5,18 +5,12 @@ Use "python3 build_sdb.py -h" for help
 '''
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 import argparse
 import progressbar
 
-from util.downloader import SIMPLE_BAR
-from util.audio import change_audio_types, AUDIO_TYPE_WAV, AUDIO_TYPE_OPUS
-from util.sample_collections import samples_from_files, DirectSDBWriter
+from deepspeech_training.util.downloader import SIMPLE_BAR
+from deepspeech_training.util.audio import change_audio_types, AUDIO_TYPE_WAV, AUDIO_TYPE_OPUS
+from deepspeech_training.util.sample_collections import samples_from_files, DirectSDBWriter
 
 AUDIO_TYPE_LOOKUP = {
     'wav': AUDIO_TYPE_WAV,

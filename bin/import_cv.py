@@ -1,23 +1,17 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 import csv
-import sox
-import tarfile
-import subprocess
+import os
 import progressbar
+import sox
+import subprocess
+import tarfile
 
 from glob import glob
-from os import path
 from multiprocessing import Pool
-from util.importers import validate_label_eng as validate_label, get_counter, get_imported_samples, print_import_report
-from util.downloader import maybe_download, SIMPLE_BAR
+from deepspeech_training.util.importers import validate_label_eng as validate_label, get_counter, get_imported_samples, print_import_report
+from deepspeech_training.util.downloader import maybe_download, SIMPLE_BAR
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000
@@ -28,7 +22,7 @@ ARCHIVE_URL = 'https://s3.us-east-2.amazonaws.com/common-voice-data-download/' +
 
 def _download_and_preprocess_data(target_dir):
     # Making path absolute
-    target_dir = path.abspath(target_dir)
+    target_dir = os.path.abspath(target_dir)
     # Conditionally download data
     archive_path = maybe_download(ARCHIVE_NAME, target_dir, ARCHIVE_URL)
     # Conditionally extract common voice data
@@ -38,8 +32,8 @@ def _download_and_preprocess_data(target_dir):
 
 def _maybe_extract(target_dir, extracted_data, archive_path):
     # If target_dir/extracted_data does not exist, extract archive in target_dir
-    extracted_path = path.join(target_dir, extracted_data)
-    if not path.exists(extracted_path):
+    extracted_path = os.join(target_dir, extracted_data)
+    if not os.path.exists(extracted_path):
         print('No directory "%s" - extracting archive...' % extracted_path)
         with tarfile.open(archive_path) as tar:
             tar.extractall(target_dir)
@@ -47,9 +41,9 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
         print('Found directory "%s" - not extracting it from archive.' % extracted_path)
 
 def _maybe_convert_sets(target_dir, extracted_data):
-    extracted_dir = path.join(target_dir, extracted_data)
-    for source_csv in glob(path.join(extracted_dir, '*.csv')):
-        _maybe_convert_set(extracted_dir, source_csv, path.join(target_dir, os.path.split(source_csv)[-1]))
+    extracted_dir = os.path.join(target_dir, extracted_data)
+    for source_csv in glob(os.path.join(extracted_dir, '*.csv')):
+        _maybe_convert_set(extracted_dir, source_csv, os.path.join(target_dir, os.path.split(source_csv)[-1]))
 
 def one_sample(sample):
     mp3_filename = sample[0]
@@ -58,7 +52,7 @@ def one_sample(sample):
     _maybe_convert_wav(mp3_filename, wav_filename)
     frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
     file_size = -1
-    if path.exists(wav_filename):
+    if os.path.exists(wav_filename):
         file_size = path.getsize(wav_filename)
         frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
     label = validate_label(sample[1])
@@ -85,7 +79,7 @@ def one_sample(sample):
 
 def _maybe_convert_set(extracted_dir, source_csv, target_csv):
     print()
-    if path.exists(target_csv):
+    if os.path.exists(target_csv):
         print('Found CSV file "%s" - not importing "%s".' % (target_csv, source_csv))
         return
     print('No CSV file "%s" - importing "%s"...' % (target_csv, source_csv))
@@ -126,7 +120,7 @@ def _maybe_convert_set(extracted_dir, source_csv, target_csv):
     print_import_report(counter, SAMPLE_RATE, MAX_SECS)
 
 def _maybe_convert_wav(mp3_filename, wav_filename):
-    if not path.exists(wav_filename):
+    if not os.path.exists(wav_filename):
         transformer = sox.Transformer()
         transformer.convert(samplerate=SAMPLE_RATE)
         try:

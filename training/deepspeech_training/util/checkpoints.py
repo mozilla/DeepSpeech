@@ -2,8 +2,8 @@ import sys
 import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
 
-from util.flags import FLAGS
-from util.logging import log_info, log_error, log_warn
+from .flags import FLAGS
+from .logging import log_info, log_error, log_warn
 
 
 def _load_checkpoint(session, checkpoint_path):

@@ -1,14 +1,8 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import sys
-import os
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-import codecs
 import pandas
+import sys
 import tarfile
 import unicodedata
 import wave
@@ -16,9 +10,10 @@ import wave
 from glob import glob
 from os import makedirs, path, remove, rmdir
 from sox import Transformer
-from util.downloader import maybe_download
+from deepspeech_training.util.downloader import maybe_download
 from tensorflow.python.platform import gfile
-from util.stm import parse_stm_file
+from deepspeech_training.util.stm import parse_stm_file
+
 
 def _download_and_preprocess_data(data_dir):
     # Conditionally download data

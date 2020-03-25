@@ -2,23 +2,20 @@
 from __future__ import absolute_import, division, print_function
 
 import codecs
-import sys
 import os
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-import tarfile
 import pandas
 import re
-import unicodedata
+import tarfile
 import threading
-from multiprocessing.pool import ThreadPool
+import unicodedata
 
-from six.moves import urllib
-from glob import glob
-from os import makedirs, path
 from bs4 import BeautifulSoup
+from deepspeech_training.util.downloader import maybe_download
+from glob import glob
+from multiprocessing.pool import ThreadPool
+from os import makedirs, path
+from six.moves import urllib
 from tensorflow.python.platform import gfile
-from util.downloader import maybe_download
 
 """The number of jobs to run in parallel"""
 NUM_PARALLEL = 8
@@ -99,7 +96,7 @@ def _parallel_extracter(data_dir, number_of_test, number_of_dev, total, counter)
             dataset_dir = path.join(data_dir, "dev")
         else:
             dataset_dir = path.join(data_dir, "train")
-        if not gfile.Exists(path.join(dataset_dir, '.'.join(filename_of(archive).split(".")[:-1]))):
+        if not gfile.Exists(os.path.join(dataset_dir, '.'.join(filename_of(archive).split(".")[:-1]))):
             c = counter.increment()
             print('Extracting file {} ({}/{})...'.format(i+1, c, total))
             tar = tarfile.open(archive)
@@ -132,14 +129,14 @@ def _download_and_preprocess_data(data_dir):
     p.map(downloader, enumerate(refs))
 
     # Conditionally extract data to dataset_dir
-    if not path.isdir(path.join(data_dir,"test")):
-        makedirs(path.join(data_dir,"test"))
-    if not path.isdir(path.join(data_dir,"dev")):
-        makedirs(path.join(data_dir,"dev"))
-    if not path.isdir(path.join(data_dir,"train")):
-        makedirs(path.join(data_dir,"train"))
+    if not path.isdir(os.path.join(data_dir, "test")):
+        makedirs(os.path.join(data_dir, "test"))
+    if not path.isdir(os.path.join(data_dir, "dev")):
+        makedirs(os.path.join(data_dir, "dev"))
+    if not path.isdir(os.path.join(data_dir, "train")):
+        makedirs(os.path.join(data_dir, "train"))
 
-    tarfiles = glob(path.join(archive_dir, "*.tgz"))
+    tarfiles = glob(os.path.join(archive_dir, "*.tgz"))
     number_of_files = len(tarfiles)
     number_of_test = number_of_files//100
     number_of_dev = number_of_files//100
@@ -156,20 +153,20 @@ def _download_and_preprocess_data(data_dir):
     train_files = _generate_dataset(data_dir, "train")
 
     # Write sets to disk as CSV files
-    train_files.to_csv(path.join(data_dir, "voxforge-train.csv"), index=False)
-    dev_files.to_csv(path.join(data_dir, "voxforge-dev.csv"), index=False)
-    test_files.to_csv(path.join(data_dir, "voxforge-test.csv"), index=False)
+    train_files.to_csv(os.path.join(data_dir, "voxforge-train.csv"), index=False)
+    dev_files.to_csv(os.path.join(data_dir, "voxforge-dev.csv"), index=False)
+    test_files.to_csv(os.path.join(data_dir, "voxforge-test.csv"), index=False)
 
 def _generate_dataset(data_dir, data_set):
     extracted_dir = path.join(data_dir, data_set)
     files = []
-    for promts_file in glob(path.join(extracted_dir+"/*/etc/", "PROMPTS")):
-        if path.isdir(path.join(promts_file[:-11],"wav")):
+    for promts_file in glob(os.path.join(extracted_dir+"/*/etc/", "PROMPTS")):
+        if path.isdir(os.path.join(promts_file[:-11], "wav")):
             with codecs.open(promts_file, 'r', 'utf-8') as f:
                 for line in f:
                     id = line.split(' ')[0].split('/')[-1]
                     sentence = ' '.join(line.split(' ')[1:])
-                    sentence = re.sub("[^a-z']"," ",sentence.strip().lower())
+                    sentence = re.sub("[^a-z']", " ",sentence.strip().lower())
                     transcript = ""
                     for token in sentence.split(" "):
                         word = token.strip()
@@ -178,14 +175,14 @@ def _generate_dataset(data_dir, data_set):
                     transcript = unicodedata.normalize("NFKD", transcript.strip())  \
                                               .encode("ascii", "ignore")            \
                                               .decode("ascii", "ignore")
-                    wav_file = path.join(promts_file[:-11],"wav/" + id + ".wav")
+                    wav_file = path.join(promts_file[:-11], "wav/" + id + ".wav")
                     if gfile.Exists(wav_file):
                         wav_filesize = path.getsize(wav_file)
                         # remove audios that are shorter than 0.5s and longer than 20s.
                         # remove audios that are too short for transcript.
-                        if (wav_filesize/32000)>0.5 and (wav_filesize/32000)<20 and transcript!="" and \
-                            wav_filesize/len(transcript)>1400:
-                            files.append((path.abspath(wav_file), wav_filesize, transcript))
+                        if ((wav_filesize/32000) > 0.5 and (wav_filesize/32000) < 20 and transcript != "" and
+                                wav_filesize/len(transcript) > 1400):
+                            files.append((os.path.abspath(wav_file), wav_filesize, transcript))
 
     return pandas.DataFrame(data=files, columns=["wav_filename", "wav_filesize", "transcript"])
 

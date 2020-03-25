@@ -1,22 +1,18 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import sys
-import os
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 import codecs
 import fnmatch
+import os
 import pandas
 import progressbar
 import subprocess
+import sys
 import tarfile
 import unicodedata
 
+from deepspeech_training.util.downloader import maybe_download
 from sox import Transformer
-from util.downloader import maybe_download
 from tensorflow.python.platform import gfile
 
 SAMPLE_RATE = 16000

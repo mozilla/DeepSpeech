@@ -1,28 +1,24 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-
 # ensure that you have downloaded the LDC dataset LDC97S62 and tar exists in a folder e.g.
 # ./data/swb/swb1_LDC97S62.tgz
 # from the deepspeech directory run with: ./bin/import_swb.py ./data/swb/
-
-import sys
-import os
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
+import codecs
 import fnmatch
+import librosa
+import os
 import pandas
+import requests
+import soundfile # <= Has an external dependency on libsndfile
 import subprocess
+import sys
+import tarfile
 import unicodedata
 import wave
-import codecs
-import tarfile
-import requests
-from util.importers import validate_label_eng as validate_label
-import librosa
-import soundfile # <= Has an external dependency on libsndfile
+
+from deepspeech_training.util.importers import validate_label_eng as validate_label
+
 
 # ARCHIVE_NAME refers to ISIP alignments from 01/29/03
 ARCHIVE_NAME = 'switchboard_word_alignments.tar.gz'

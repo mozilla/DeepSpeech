@@ -1,22 +1,16 @@
 #!/usr/bin/env python
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 import csv
-import math
-import urllib
 import logging
-from util.importers import get_importers_parser, get_validate_label
-import subprocess
-from os import path
-from pathlib import Path
-
-import swifter
+import math
+import os
 import pandas as pd
+import swifter
+import subprocess
+import urllib
+
+from deepspeech_training.util.importers import get_importers_parser, get_validate_label
+from pathlib import Path
 from sox import Transformer
 
 
@@ -142,11 +136,11 @@ class GramVaaniDownloader:
         return mp3_directory
 
     def _pre_download(self):
-        mp3_directory = path.join(self.target_dir, "mp3")
-        if not path.exists(self.target_dir):
+        mp3_directory = os.path.join(self.target_dir, "mp3")
+        if not os.path.exists(self.target_dir):
             _logger.info("Creating directory...%s", self.target_dir)
             os.mkdir(self.target_dir)
-        if not path.exists(mp3_directory):
+        if not os.path.exists(mp3_directory):
             _logger.info("Creating directory...%s", mp3_directory)
             os.mkdir(mp3_directory)
         return mp3_directory
@@ -154,8 +148,8 @@ class GramVaaniDownloader:
     def _download(self, audio_url, transcript, audio_length, mp3_directory):
         if audio_url == "audio_url":
             return
-        mp3_filename = path.join(mp3_directory, os.path.basename(audio_url))
-        if not path.exists(mp3_filename):
+        mp3_filename = os.path.join(mp3_directory, os.path.basename(audio_url))
+        if not os.path.exists(mp3_filename):
             _logger.debug("Downloading mp3 file...%s", audio_url)
             urllib.request.urlretrieve(audio_url, mp3_filename)
         else:
@@ -182,8 +176,8 @@ class GramVaaniConverter:
         """
         wav_directory = self._pre_convert()
         for mp3_filename in self.mp3_directory.glob('**/*.mp3'):
-            wav_filename = path.join(wav_directory, os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav")
-            if not path.exists(wav_filename):
+            wav_filename = os.path.join(wav_directory, os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav")
+            if not os.path.exists(wav_filename):
                 _logger.debug("Converting mp3 file %s to wav file %s" % (mp3_filename, wav_filename))
                 transformer = Transformer()
                 transformer.convert(samplerate=SAMPLE_RATE, n_channels=N_CHANNELS, bitdepth=BITDEPTH)
@@ -193,11 +187,11 @@ class GramVaaniConverter:
         return wav_directory
 
     def _pre_convert(self):
-        wav_directory = path.join(self.target_dir, "wav")
-        if not path.exists(self.target_dir):
+        wav_directory = os.path.join(self.target_dir, "wav")
+        if not os.path.exists(self.target_dir):
             _logger.info("Creating directory...%s", self.target_dir)
             os.mkdir(self.target_dir)
-        if not path.exists(wav_directory):
+        if not os.path.exists(wav_directory):
             _logger.info("Creating directory...%s", wav_directory)
             os.mkdir(wav_directory)
         return wav_directory
@@ -233,8 +227,8 @@ class GramVaaniDataSets:
         if audio_url == "audio_url":
             return pd.Series(["wav_filename", "wav_filesize", "transcript"])
         mp3_filename = os.path.basename(audio_url)
-        wav_relative_filename = path.join("wav", os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav")
-        wav_filesize = path.getsize(path.join(self.target_dir, wav_relative_filename))
+        wav_relative_filename = os.path.join("wav", os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav")
+        wav_filesize = os.path.getsize(os.path.join(self.target_dir, wav_relative_filename))
         transcript = validate_label(transcript)
         if None == transcript:
             transcript = ""
@@ -252,7 +246,7 @@ class GramVaaniDataSets:
 
     def _is_valid_raw_wav_frames(self):
         transcripts = [str(transcript) for transcript in self.raw.transcript]
-        wav_filepaths = [path.join(self.target_dir, str(wav_filename)) for wav_filename in self.raw.wav_filename]
+        wav_filepaths = [os.path.join(self.target_dir, str(wav_filename)) for wav_filename in self.raw.wav_filename]
         wav_frames = [int(subprocess.check_output(['soxi', '-s', wav_filepath], stderr=subprocess.STDOUT)) for wav_filepath in wav_filepaths]
         is_valid_raw_wav_frames = [self._is_wav_frame_valid(wav_frame, transcript) for wav_frame, transcript in zip(wav_frames, transcripts)]
         return pd.Series(is_valid_raw_wav_frames)

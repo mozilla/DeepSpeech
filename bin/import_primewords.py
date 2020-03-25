@@ -1,19 +1,14 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-from util.importers import get_importers_parser
 import glob
 import json
 import numpy as np
+import os
 import pandas
 import tarfile
 
+from deepspeech_training.util.importers import get_importers_parser
 
 COLUMN_NAMES = ['wav_filename', 'wav_filesize', 'transcript']
 

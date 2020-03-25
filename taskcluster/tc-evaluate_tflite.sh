@@ -17,7 +17,9 @@ deepspeech_pkg_url=$(get_python_pkg_url ${pyver_pkg} ${py_unicode_type})
 set -o pipefail
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: --upgrade ${deepspeech_pkg_url} | cat
 pip install --upgrade pip==19.3.1 setuptools==45.0.0 wheel==0.33.6 | cat
-pip install --upgrade -r ${HOME}/DeepSpeech/ds/requirements.txt | cat
+pushd ${HOME}/DeepSpeech/ds
+    pip install --upgrade . | cat
+popd
 set +o pipefail
 
 which deepspeech

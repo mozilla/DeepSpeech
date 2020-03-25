@@ -5,7 +5,7 @@ import tempfile
 import collections
 import numpy as np
 
-from util.helpers import LimitingPool
+from .helpers import LimitingPool
 
 DEFAULT_RATE = 16000
 DEFAULT_CHANNELS = 1

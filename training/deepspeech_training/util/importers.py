@@ -4,7 +4,7 @@ import os
 import re
 import sys
 
-from util.helpers import secs_to_hours
+from .helpers import secs_to_hours
 from collections import Counter
 
 def get_counter():
