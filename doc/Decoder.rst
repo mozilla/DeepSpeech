@@ -32,15 +32,15 @@ DeepSpeech currently supports two modes of operation with significant difference
 Default mode (alphabet based)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The default mode, which uses an alphabet file (specified with ``--alphabet_config_path`` at training and export time) to determine which labels (characters), and how many of them, to predict in the output layer. At decoding time, if using an external scorer, it MUST be word based and MUST be built using the same alphabet file used for training. Word based means the text corpus used to build the scorer should contain words separated by whitespace. For most western languages, this is the default and requires no special steps from the developer part when creating the scorer.
+The default mode, which uses an alphabet file (specified with ``--alphabet_config_path`` at training and export time) to determine which labels (characters), and how many of them, to predict in the output layer. At decoding time, if using an external scorer, it MUST be word based and MUST be built using the same alphabet file used for training. Word based means the text corpus used to build the scorer should contain words separated by whitespace. For most western languages, this is the default and requires no special steps from the developer when creating the scorer.
 
 
 UTF-8 mode
 ^^^^^^^^^^
 
-In UTF-8 mode the model predicts UTF-8 bytes directly instead of letters from an alphabet file. This idea was proposed in the paper `Bytes Are All You Need <https://arxiv.org/abs/1811.09021>`_. This mode is enabled with the ``--utf8`` flag at training and export time. At training time, the alphabet file is not used. Instead, the model is forced to have 256 labels, with labels 0-254 corresponding to UTF-8 byte values 1-255, and label 255 is used for the CTC blank symbol. At decoding time, if using an external scorer, it MUST be built according to the instructions that follow.
+In UTF-8 mode the model predicts UTF-8 bytes directly instead of letters from an alphabet file. This idea was proposed in the paper `Bytes Are All You Need <https://arxiv.org/abs/1811.09021>`_. This mode is enabled with the ``--utf8`` flag at training and export time. At training time, the alphabet file is not used. Instead, the model is forced to have 256 labels, with labels 0-254 corresponding to UTF-8 byte values 1-255, and label 255 is used for the CTC blank symbol. If using an external scorer at decoding time, it MUST be built according to the instructions that follow.
 
-UTF-8 decoding can be useful for languages with very large alphabets, like Chinese Mandarin. It may also be useful for building multi-language models, or as a base for transfer learning. Currently these cases are untested and unsupported. Currently, UTF-8 mode makes assumptions that hold for Chinese Mandarin and may not hold for other languages.
+UTF-8 decoding can be useful for languages with very large alphabets, such as Mandarin written with Simplified Chinese characters. It may also be useful for building multi-language models, or as a base for transfer learning. Currently these cases are untested and unsupported. Note that UTF-8 mode makes assumptions that hold for Mandarin written with Simplified Chinese characters and may not hold for other languages.
 
 UTF-8 scorers are character based (more specifically, Unicode codepoint based), but the way they are used is similar to a word based scorer where each "word" is a sequence of UTF-8 bytes representing a single Unicode codepoint. This means that the input text used to create UTF-8 scorers should contain space separated Unicode codepoints. For example, the following input text:
 
@@ -71,3 +71,9 @@ Because KenLM uses spaces as a word separator, the resulting language model will
    # T h e | q u i c k | b r o w n | f o x | j u m p s | o v e r | t h e | l a z y | d o g
 
 The character, '|' in this case, will then have to be replaced with spaces as a post-processing step after decoding.
+
+
+Implementation
+^^^^^^^^^^^^^^
+
+The decoder source code can be found in ``native_client/ctcdecode``. The decoder is included in the language bindings and clients. In addition, there is a separate Python module which includes just the decoder and is needed for evaluation. In order to build and install this package, see the :github:`native_client README <native_client/README.rst#install-the-ctc-decoder-package>`.
