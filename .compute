@@ -2,12 +2,14 @@
 
 set -xe
 
-apt-get install -y python3-venv
+apt-get install -y python3-venv libopus0
+
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 
+pip install -U setuptools wheel pip
 pip install -r <(grep -v tensorflow requirements.txt)
-pip install tensorflow-gpu==1.15.0
+pip install tensorflow-gpu==1.14
 
 # Install ds_ctcdecoder package from TaskCluster
 pip install $(python3 util/taskcluster.py --decoder)
@@ -18,17 +20,22 @@ data="${SHARED_DIR}/data"
 fis="${data}/LDC/fisher"
 swb="${data}/LDC/LDC97S62/swb"
 lbs="${data}/OpenSLR/LibriSpeech/librivox"
+cv="${data}/mozilla/CommonVoice/en_1087h_2019-06-12/clips"
+npr="${data}/NPR/WAMU/sets/v0.3"
 
 python -u DeepSpeech.py \
-  --train_files "${fis}-train.csv","${swb}-train.csv","${lbs}-train-clean-100.csv","${lbs}-train-clean-360.csv","${lbs}-train-other-500.csv" \
-  --dev_files "${lbs}-dev-clean.csv"\
-  --test_files "${lbs}-test-clean.csv" \
+  --train_files "${npr}/best-train.sdb","${npr}/good-train.sdb","${cv}/train.sdb","${fis}-train.sdb","${swb}-train.sdb","${lbs}-train-clean-100.sdb","${lbs}-train-clean-360.sdb","${lbs}-train-other-500.sdb" \
+  --dev_files "${lbs}-dev-clean.sdb" \
+  --test_files "${lbs}-test-clean.sdb" \
   --train_batch_size 24 \
   --dev_batch_size 48 \
   --test_batch_size 48 \
+  --train_cudnn \
   --n_hidden 2048 \
   --learning_rate 0.0001 \
-  --dropout_rate 0.2 \
-  --epoch 13 \
+  --dropout_rate 0.40 \
+  --epochs 150 \
+  --noearly_stop \
+  --feature_cache "../tmp/feature.cache" \
   --checkpoint_dir "../keep" \
   --summary_dir "../keep/summaries"
