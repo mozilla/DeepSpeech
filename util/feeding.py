@@ -2,8 +2,10 @@
 from __future__ import absolute_import, division, print_function
 
 from functools import partial
+import os
 
 import numpy as np
+import pandas
 import tensorflow as tf
 
 from tensorflow.python.ops import gen_audio_ops as contrib_audio
@@ -16,6 +18,18 @@ from util.audio import change_audio_types, read_frames_from_file, vad_split, pcm
 from util.sample_collections import samples_from_files
 from util.helpers import remember_exception, MEGABYTE
 from util.audio_augmentation import augment_noise, create_noise_iterator, gla
+
+
+def read_csvs(csv_files):
+    sets = []
+    for csv in csv_files:
+        file = pandas.read_csv(csv, encoding='utf-8', na_filter=False)
+        #FIXME: not cross-platform
+        csv_dir = os.path.dirname(os.path.abspath(csv))
+        file['wav_filename'] = file['wav_filename'].str.replace(r'(^[^/])', lambda m: os.path.join(csv_dir, m.group(1))) # pylint: disable=cell-var-from-loop
+        sets.append(file)
+    # Concat all sets, drop any extra columns, re-index the final result as 0..N
+    return pandas.concat(sets, join='inner', ignore_index=True)
 
 
 def samples_to_mfccs(samples, sample_rate, train_phase=False, sample_id=None):
@@ -116,9 +130,9 @@ def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None):
     return audio_to_features(decoded.audio, decoded.sample_rate, train_phase=train_phase, sample_id=wav_filename, noise_iterator=noise_iterator)
 
 
-def entry_to_features(sample_id, audio, sample_rate, transcript, train_phase=False):
+def entry_to_features(sample_id, audio, sample_rate, transcript, train_phase=False, noise_iterator=None):
     # https://bugs.python.org/issue32117
-    features, features_len, review_audio = audio_to_features(audio, sample_rate, train_phase=train_phase, sample_id=sample_id)
+    features, features_len, review_audio = audio_to_features(audio, sample_rate, train_phase=train_phase, sample_id=sample_id, noise_iterator=noise_iterator)
     sparse_transcript = tf.SparseTensor(*transcript)
     return sample_id, features, features_len, sparse_transcript, review_audio
 
