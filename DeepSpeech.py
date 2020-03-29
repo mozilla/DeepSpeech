@@ -570,6 +570,12 @@ def train():
                     log_error('The following files caused an infinite (or NaN) '
                               'loss: {}'.format(','.join(problem_files)))
 
+                    # Save invalid files
+                    sys.path.append("/DeepSpeech/deepspeech-german/training/")
+                    from filter_invalid_files import add_files_to_excluded
+                    add_files_to_excluded(problem_files)
+                    sys.exit(1)
+
                 total_loss += batch_loss
                 step_count += 1
 
