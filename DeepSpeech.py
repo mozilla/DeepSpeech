@@ -239,7 +239,10 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     logits, _ = create_model(batch_x, batch_seq_len, dropout, reuse=reuse, rnn_impl=rnn_impl)
 
     # Compute the CTC loss using TensorFlow's `ctc_loss`
-    total_loss = tfv1.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+    total_loss = tfv1.nn.ctc_loss(labels=batch_y,
+                                  inputs=logits,
+                                  sequence_length=batch_seq_len,
+                                  ignore_longer_outputs_than_inputs=True)
 
     # Check if any files lead to non finite loss
     non_finite_files = tf.gather(batch_filenames, tfv1.where(~tf.math.is_finite(total_loss)))
@@ -556,7 +559,8 @@ def train():
                         log_info("Ignoring sparse warp error: {}".format(err))
                         continue
                     else:
-                        raise
+                        print("Ignoring error:", err)
+                        continue
                 except tf.errors.OutOfRangeError:
                     exception_box.raise_if_set()
                     break

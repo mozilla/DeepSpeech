@@ -70,8 +70,9 @@ def evaluate(test_csvs, create_model):
     transposed = tf.nn.softmax(tf.transpose(a=logits, perm=[1, 0, 2]))
 
     loss = tfv1.nn.ctc_loss(labels=batch_y,
-                          inputs=logits,
-                          sequence_length=batch_x_len)
+                            inputs=logits,
+                            sequence_length=batch_x_len,
+                            ignore_longer_outputs_than_inputs=True)
 
     tfv1.train.get_or_create_global_step()
 
@@ -110,6 +111,9 @@ def evaluate(test_csvs, create_model):
                         session.run([batch_wav_filename, transposed, loss, batch_x_len, batch_y])
                 except tf.errors.OutOfRangeError:
                     break
+                except tf.errors.InvalidArgumentError as e:
+                    print("Ignoring error:", e)
+                    continue
 
                 decoded = ctc_beam_search_decoder_batch(batch_logits, batch_lengths, Config.alphabet, FLAGS.beam_width,
                                                         num_processes=num_processes, scorer=scorer,
