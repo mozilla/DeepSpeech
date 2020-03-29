@@ -2,7 +2,6 @@ import argparse
 import os
 import subprocess
 from collections import Counter
-from urllib import request
 
 import progressbar
 
@@ -114,10 +113,6 @@ def main():
         default=500000
     )
     parser.add_argument(
-        '--download_librispeech',
-        action='store_true'
-    )
-    parser.add_argument(
         '--kenlm_bins',
         help='File path to the kenlm binaries lmplz, filter and build_binary',
         type=str,
@@ -136,14 +131,6 @@ def main():
         default='75%'
     )
     args = parser.parse_args()
-
-    if args.download_librispeech:
-        # Grab corpus
-        url = 'http://www.openslr.org/resources/11/librispeech-lm-norm.txt.gz'
-        print('Downloading {} into {} ...'.format(url, args.input_txt + '.gz'))
-        request.urlretrieve(url, args.input_txt + '.gz')
-        print('Unzipping ... ')
-        subprocess.check_call(['gunzip', args.input_txt + '.gz'])
 
     data_lower, vocab_str = convert_and_filter_topk(args)
     build_lm(args, data_lower, vocab_str)
