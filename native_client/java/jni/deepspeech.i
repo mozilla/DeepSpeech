@@ -6,6 +6,8 @@
 %}
 
 %include "typemaps.i"
+%include "enums.swg"
+%javaconst(1);
 
 %include "arrays_java.i"
 // apply to DS_FeedAudioContent and DS_SpeechToText
@@ -15,21 +17,29 @@
 %pointer_functions(ModelState*, modelstatep);
 %pointer_functions(StreamingState*, streamingstatep);
 
-%typemap(newfree) char* "DS_FreeString($1);";
-
-%include "carrays.i"
-%array_functions(struct MetadataItem, metadataItem_array);
+%extend struct CandidateTranscript {
+  /**
+   * Retrieve one TokenMetadata element
+   * 
+   * @param i Array index of the TokenMetadata to get
+   *
+   * @return The TokenMetadata requested or null
+   */
+  const TokenMetadata& getToken(int i) {
+    return self->tokens[i];
+  }
+}
 
 %extend struct Metadata {
   /**
-   * Retrieve one MetadataItem element
+   * Retrieve one CandidateTranscript element
    * 
-   * @param i Array index of the MetadataItem to get
+   * @param i Array index of the CandidateTranscript to get
    *
-   * @return The MetadataItem requested or null
+   * @return The CandidateTranscript requested or null
    */
-  MetadataItem getItem(int i) {
-    return metadataItem_array_getitem(self->items, i);
+  const CandidateTranscript& getTranscript(int i) {
+    return self->transcripts[i];
   }
 
   ~Metadata() {
@@ -37,14 +47,18 @@
   }
 }
 
-%nodefaultdtor Metadata;
 %nodefaultctor Metadata;
-%nodefaultctor MetadataItem;
-%nodefaultdtor MetadataItem;
+%nodefaultdtor Metadata;
+%nodefaultctor CandidateTranscript;
+%nodefaultdtor CandidateTranscript;
+%nodefaultctor TokenMetadata;
+%nodefaultdtor TokenMetadata;
 
+%typemap(newfree) char* "DS_FreeString($1);";
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
+%newobject DS_ErrorCodeToErrorMessage;
 
 %rename ("%(strip:[DS_])s") "";
 

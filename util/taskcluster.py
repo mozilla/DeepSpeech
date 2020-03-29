@@ -118,7 +118,7 @@ def main():
         ds_version = parse_version(version_string)
         args.branch = "v{}".format(version_string)
     else:
-        ds_version = args.branch.lstrip('v')
+        ds_version = parse_version(args.branch)
 
     if args.decoder:
         plat = platform.system().lower()

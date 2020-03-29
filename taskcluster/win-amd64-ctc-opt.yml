@@ -1,0 +1,17 @@
+build:
+  template_file: win-opt-base.tyml
+  dependencies:
+    - "swig-win-amd64"
+    - "node-gyp-cache"
+    - "pyenv-win-amd64"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.win-ctc.${event.head.sha}"
+  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.win/artifacts/public/home.tar.xz"
+  scripts:
+    build: 'taskcluster/decoder-build.sh'
+    package: 'taskcluster/decoder-package.sh'
+  metadata:
+    name: "DeepSpeech CTC Decoder Windows AMD64 CPU"
+    description: "Building DeepSpeech CTC Decoder for Windows/AMD64, CPU only, optimized version"

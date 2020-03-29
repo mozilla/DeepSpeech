@@ -21,14 +21,14 @@ namespace CSharpExamples
         static string GetArgument(IEnumerable<string> args, string option)
         => args.SkipWhile(i => i != option).Skip(1).Take(1).FirstOrDefault();
 
-        static string MetadataToString(Metadata meta)
+        static string MetadataToString(CandidateTranscript transcript)
         {
             var nl = Environment.NewLine;
             string retval =
-             Environment.NewLine + $"Recognized text: {string.Join("", meta?.Items?.Select(x => x.Character))} {nl}"
-             + $"Confidence: {meta?.Confidence} {nl}"
-             + $"Item count: {meta?.Items?.Length} {nl}"
-             + string.Join(nl, meta?.Items?.Select(x => $"Timestep : {x.Timestep} TimeOffset: {x.StartTime} Char: {x.Character}"));
+             Environment.NewLine + $"Recognized text: {string.Join("", transcript?.Tokens?.Select(x => x.Text))} {nl}"
+             + $"Confidence: {transcript?.Confidence} {nl}"
+             + $"Item count: {transcript?.Tokens?.Length} {nl}"
+             + string.Join(nl, transcript?.Tokens?.Select(x => $"Timestep : {x.Timestep} TimeOffset: {x.StartTime} Char: {x.Text}"));
             return retval;
         }
 
@@ -75,8 +75,8 @@ namespace CSharpExamples
                         if (extended)
                         {
                             Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer,
-                                Convert.ToUInt32(waveBuffer.MaxSize / 2));
-                            speechResult = MetadataToString(metaResult);
+                                Convert.ToUInt32(waveBuffer.MaxSize / 2), 1);
+                            speechResult = MetadataToString(metaResult.Transcripts[0]);
                         }
                         else
                         {

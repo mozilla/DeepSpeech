@@ -5,6 +5,9 @@ python:
     apt: 'python3-virtualenv python3-setuptools python3-pip python3-wheel python3-pkg-resources'
   packages_docs_bionic:
     apt: 'python3 python3-pip zip doxygen'
+training:
+  packages_trusty:
+    apt: 'libopus0'
 tensorflow:
   packages_trusty:
     apt: 'make build-essential gfortran git libblas-dev liblapack-dev libsox-dev libmagic-dev libgsm1-dev libltdl-dev libpng-dev python zlib1g-dev'
@@ -80,6 +83,18 @@ system:
       android_25:
         url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-25.4/artifacts/public/android_cache.tar.gz'
         namespace: 'project.deepspeech.android_cache.x86_64.android-25.4'
+      android_26:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-26.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-26.0'
+      android_27:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-27.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-27.0'
+      android_28:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-28.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-28.0'
+      android_29:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-29.0/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-29.0'
     sdk:
       android_27:
         url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.sdk.android-27.4/artifacts/public/android_cache.tar.gz'

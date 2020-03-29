@@ -60,7 +60,7 @@ using std::vector;
    When batch_buffer is full, we do a single step through the acoustic model
    and accumulate the intermediate decoding state in the DecoderState structure.
 
-   When finishStream() is called, we return the corresponding transcription from
+   When finishStream() is called, we return the corresponding transcript from
    the current decoder state.
 */
 struct StreamingState {
@@ -78,9 +78,10 @@ struct StreamingState {
 
   void feedAudioContent(const short* buffer, unsigned int buffer_size);
   char* intermediateDecode() const;
+  Metadata* intermediateDecodeWithMetadata(unsigned int num_results) const;
   void finalizeStream();
   char* finishStream();
-  Metadata* finishStreamWithMetadata();
+  Metadata* finishStreamWithMetadata(unsigned int num_results);
 
   void processAudioWindow(const vector<float>& buf);
   void processMfccWindow(const vector<float>& buf);
@@ -136,6 +137,12 @@ StreamingState::intermediateDecode() const
   return model_->decode(decoder_state_);
 }
 
+Metadata*
+StreamingState::intermediateDecodeWithMetadata(unsigned int num_results) const
+{
+  return model_->decode_metadata(decoder_state_, num_results);
+}
+
 char*
 StreamingState::finishStream()
 {
@@ -144,10 +151,10 @@ StreamingState::finishStream()
 }
 
 Metadata*
-StreamingState::finishStreamWithMetadata()
+StreamingState::finishStreamWithMetadata(unsigned int num_results)
 {
   finalizeStream();
-  return model_->decode_metadata(decoder_state_);
+  return model_->decode_metadata(decoder_state_, num_results);
 }
 
 void
@@ -402,6 +409,13 @@ DS_IntermediateDecode(const StreamingState* aSctx)
   return aSctx->intermediateDecode();
 }
 
+Metadata*
+DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
+                                  unsigned int aNumResults)
+{
+  return aSctx->intermediateDecodeWithMetadata(aNumResults);
+}
+
 char*
 DS_FinishStream(StreamingState* aSctx)
 {
@@ -411,11 +425,12 @@ DS_FinishStream(StreamingState* aSctx)
 }
 
 Metadata*
-DS_FinishStreamWithMetadata(StreamingState* aSctx)
+DS_FinishStreamWithMetadata(StreamingState* aSctx, 
+                            unsigned int aNumResults)
 {
-  Metadata* metadata = aSctx->finishStreamWithMetadata();
+  Metadata* result = aSctx->finishStreamWithMetadata(aNumResults);
   DS_FreeStream(aSctx);
-  return metadata;
+  return result;
 }
 
 StreamingState*
@@ -444,10 +459,11 @@ DS_SpeechToText(ModelState* aCtx,
 Metadata*
 DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
-                            unsigned int aBufferSize)
+                            unsigned int aBufferSize,
+                            unsigned int aNumResults)
 {
   StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
-  return DS_FinishStreamWithMetadata(ctx);
+  return DS_FinishStreamWithMetadata(ctx, aNumResults);
 }
 
 void
@@ -460,11 +476,16 @@ void
 DS_FreeMetadata(Metadata* m)
 {
   if (m) {
-    for (int i = 0; i < m->num_items; ++i) {
-      free(m->items[i].character);
+    for (int i = 0; i < m->num_transcripts; ++i) {
+      for (int j = 0; j < m->transcripts[i].num_tokens; ++j) {
+        free((void*)m->transcripts[i].tokens[j].text);
+      }
+
+      free((void*)m->transcripts[i].tokens);
     }
-    delete[] m->items;
-    delete m;
+
+    free((void*)m->transcripts);
+    free(m);
   }
 }
 

@@ -33,7 +33,7 @@ from util.config import Config, initialize_globals
 from util.checkpoints import load_or_init_graph
 from util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from util.flags import create_flags, FLAGS
-from util.helpers import check_ctcdecoder_version
+from util.helpers import check_ctcdecoder_version, ExceptionBox
 from util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
 
 check_ctcdecoder_version()
@@ -418,12 +418,17 @@ def train():
             FLAGS.augmentation_sparse_warp):
         do_cache_dataset = False
 
+    exception_box = ExceptionBox()
+
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
-                               train_phase=True)
+                               train_phase=True,
+                               exception_box=exception_box,
+                               process_ahead=len(Config.available_devices) * FLAGS.train_batch_size * 2,
+                               buffering=FLAGS.read_buffer)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -433,8 +438,13 @@ def train():
     train_init_op = iterator.make_initializer(train_set)
 
     if FLAGS.dev_files:
-        dev_csvs = FLAGS.dev_files.split(',')
-        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False) for csv in dev_csvs]
+        dev_sources = FLAGS.dev_files.split(',')
+        dev_sets = [create_dataset([source],
+                                   batch_size=FLAGS.dev_batch_size,
+                                   train_phase=False,
+                                   exception_box=exception_box,
+                                   process_ahead=len(Config.available_devices) * FLAGS.dev_batch_size * 2,
+                                   buffering=FLAGS.read_buffer) for source in dev_sources]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
@@ -540,6 +550,7 @@ def train():
                     _, current_step, batch_loss, problem_files, step_summary = \
                         session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
                                     feed_dict=feed_dict)
+                    exception_box.raise_if_set()
                 except tf.errors.InvalidArgumentError as err:
                     if FLAGS.augmentation_sparse_warp:
                         log_info("Ignoring sparse warp error: {}".format(err))
@@ -547,6 +558,7 @@ def train():
                     else:
                         raise
                 except tf.errors.OutOfRangeError:
+                    exception_box.raise_if_set()
                     break
 
                 if problem_files.size > 0:
@@ -586,12 +598,12 @@ def train():
                     # Validation
                     dev_loss = 0.0
                     total_steps = 0
-                    for csv, init_op in zip(dev_csvs, dev_init_ops):
-                        log_progress('Validating epoch %d on %s...' % (epoch, csv))
-                        set_loss, steps = run_set('dev', epoch, init_op, dataset=csv)
+                    for source, init_op in zip(dev_sources, dev_init_ops):
+                        log_progress('Validating epoch %d on %s...' % (epoch, source))
+                        set_loss, steps = run_set('dev', epoch, init_op, dataset=source)
                         dev_loss += set_loss * steps
                         total_steps += steps
-                        log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, csv, set_loss))
+                        log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, source, set_loss))
 
                     dev_loss = dev_loss / total_steps
                     dev_losses.append(dev_loss)
@@ -727,6 +739,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
 
     return inputs, outputs, layers
 
+
 def file_relative_read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
@@ -768,7 +781,7 @@ def export():
             method_order = [FLAGS.load]
         load_or_init_graph(session, method_order)
 
-        output_filename = FLAGS.export_name + '.pb'
+        output_filename = FLAGS.export_file_name + '.pb'
         if FLAGS.remove_export:
             if os.path.isdir(FLAGS.export_dir):
                 log_info('Removing old export')
@@ -805,20 +818,41 @@ def export():
 
         log_info('Models exported at %s' % (FLAGS.export_dir))
 
+    metadata_fname = os.path.join(FLAGS.export_dir, '{}_{}_{}.md'.format(
+        FLAGS.export_author_id,
+        FLAGS.export_model_name,
+        FLAGS.export_model_version))
+
+    model_runtime = 'tflite' if FLAGS.export_tflite else 'tensorflow'
+    with open(metadata_fname, 'w') as f:
+        f.write('---\n')
+        f.write('author: {}\n'.format(FLAGS.export_author_id))
+        f.write('model_name: {}\n'.format(FLAGS.export_model_name))
+        f.write('model_version: {}\n'.format(FLAGS.export_model_version))
+        f.write('contact_info: {}\n'.format(FLAGS.export_contact_info))
+        f.write('license: {}\n'.format(FLAGS.export_license))
+        f.write('language: {}\n'.format(FLAGS.export_language))
+        f.write('runtime: {}\n'.format(model_runtime))
+        f.write('min_ds_version: {}\n'.format(FLAGS.export_min_ds_version))
+        f.write('max_ds_version: {}\n'.format(FLAGS.export_max_ds_version))
+        f.write('acoustic_model_url: <replace this with a publicly available URL of the acoustic model>\n')
+        f.write('scorer_url: <replace this with a publicly available URL of the scorer, if present>\n')
+        f.write('---\n')
+        f.write('{}\n'.format(FLAGS.export_description))
+
+    log_info('Model metadata file saved to {}. Before submitting the exported model for publishing make sure all information in the metadata file is correct, and complete the URL fields.'.format(metadata_fname))
+
+
 def package_zip():
     # --export_dir path/to/export/LANG_CODE/ => path/to/export/LANG_CODE.zip
     export_dir = os.path.join(os.path.abspath(FLAGS.export_dir), '') # Force ending '/'
     zip_filename = os.path.dirname(export_dir)
 
-    with open(os.path.join(export_dir, 'info.json'), 'w') as f:
-        json.dump({
-            'name': FLAGS.export_language,
-        }, f)
-
     shutil.copy(FLAGS.scorer_path, export_dir)
 
     archive = shutil.make_archive(zip_filename, 'zip', export_dir)
     log_info('Exported packaged model {}'.format(archive))
+
 
 def do_single_file_inference(input_file_path):
     with tfv1.Session(config=Config.session_config) as session:
@@ -894,6 +928,7 @@ def main(_):
     if FLAGS.one_shot_infer:
         tfv1.reset_default_graph()
         do_single_file_inference(FLAGS.one_shot_infer)
+
 
 if __name__ == '__main__':
     create_flags()

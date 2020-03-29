@@ -7,7 +7,7 @@ import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import argparse
+from util.importers import get_importers_parser
 import glob
 import pandas
 import tarfile
@@ -81,7 +81,7 @@ def preprocess_data(tgz_file, target_dir):
 
 def main():
     # https://www.openslr.org/62/
-    parser = argparse.ArgumentParser(description='Import aidatatang_200zh corpus')
+    parser = get_importers_parser(description='Import aidatatang_200zh corpus')
     parser.add_argument('tgz_file', help='Path to aidatatang_200zh.tgz')
     parser.add_argument('--target_dir', default='', help='Target folder to extract files into and put the resulting CSVs. Defaults to same folder as the main archive.')
     params = parser.parse_args()

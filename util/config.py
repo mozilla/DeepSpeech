@@ -12,6 +12,7 @@ from util.flags import FLAGS
 from util.gpu import get_available_gpus
 from util.logging import log_error
 from util.text import Alphabet, UTF8Alphabet
+from util.helpers import parse_file_size
 
 class ConfigSingleton:
     _config = None
@@ -28,6 +29,9 @@ Config = ConfigSingleton() # pylint: disable=invalid-name
 
 def initialize_globals():
     c = AttrDict()
+
+    # Read-buffer
+    FLAGS.read_buffer = parse_file_size(FLAGS.read_buffer)
 
     # Set default dropout rates
     if FLAGS.dropout_rate2 < 0:

@@ -157,7 +157,7 @@ DecoderState::next(const double *probs,
 }
 
 std::vector<Output>
-DecoderState::decode() const
+DecoderState::decode(size_t num_results) const
 {
   std::vector<PathTrie*> prefixes_copy = prefixes_;
   std::unordered_map<const PathTrie*, float> scores;
@@ -181,15 +181,11 @@ DecoderState::decode() const
   }
 
   using namespace std::placeholders;
-  size_t num_prefixes = std::min(prefixes_copy.size(), beam_size_);
+  size_t num_returned = std::min(prefixes_copy.size(), num_results);
   std::partial_sort(prefixes_copy.begin(),
-                    prefixes_copy.begin() + num_prefixes,
+                    prefixes_copy.begin() + num_returned,
                     prefixes_copy.end(),
                     std::bind(prefix_compare_external, _1, _2, scores));
-
-  //TODO: expose this as an API parameter
-  const size_t top_paths = 1;
-  size_t num_returned = std::min(num_prefixes, top_paths);
 
   std::vector<Output> outputs;
   outputs.reserve(num_returned);

@@ -12,7 +12,7 @@ import org.junit.runners.MethodSorters;
 import static org.junit.Assert.*;
 
 import org.mozilla.deepspeech.libdeepspeech.DeepSpeechModel;
-import org.mozilla.deepspeech.libdeepspeech.Metadata;
+import org.mozilla.deepspeech.libdeepspeech.CandidateTranscript;
 
 import java.io.RandomAccessFile;
 import java.io.FileNotFoundException;
@@ -61,10 +61,10 @@ public class BasicTest {
         m.freeModel();
     }
 
-    private String metadataToString(Metadata m) {
+    private String candidateTranscriptToString(CandidateTranscript t) {
         String retval = "";
-        for (int i = 0; i < m.getNum_items(); ++i) {
-            retval += m.getItem(i).getCharacter();
+        for (int i = 0; i < t.getNum_tokens(); ++i) {
+            retval += t.getToken(i).getText();
         }
         return retval;
     }
@@ -97,7 +97,7 @@ public class BasicTest {
             ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
 
             if (extendedMetadata) {
-                return metadataToString(m.sttWithMetadata(shorts, shorts.length));
+                return candidateTranscriptToString(m.sttWithMetadata(shorts, shorts.length, 1).getTranscript(0));
             } else {
                 return m.stt(shorts, shorts.length);
             }

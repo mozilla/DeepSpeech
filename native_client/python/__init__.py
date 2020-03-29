@@ -35,7 +35,7 @@ class Model(object):
 
         status, impl = deepspeech.impl.CreateModel(model_path)
         if status != 0:
-            raise RuntimeError("CreateModel failed with error code 0x{:X}".format(status))
+            raise RuntimeError("CreateModel failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
         self._impl = impl
 
     def __del__(self):
@@ -121,17 +121,20 @@ class Model(object):
         """
         return deepspeech.impl.SpeechToText(self._impl, audio_buffer)
 
-    def sttWithMetadata(self, audio_buffer):
+    def sttWithMetadata(self, audio_buffer, num_results=1):
         """
-        Use the DeepSpeech model to perform Speech-To-Text and output metadata about the results.
+        Use the DeepSpeech model to perform Speech-To-Text and return results including metadata.
 
         :param audio_buffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type audio_buffer: numpy.int16 array
 
-        :return: Outputs a struct of individual letters along with their timing information.
+        :param num_results: Maximum number of candidate transcripts to return. Returned list might be smaller than this.
+        :type num_results: int
+
+        :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
         :type: :func:`Metadata`
         """
-        return deepspeech.impl.SpeechToTextWithMetadata(self._impl, audio_buffer)
+        return deepspeech.impl.SpeechToTextWithMetadata(self._impl, audio_buffer, num_results)
 
     def createStream(self):
         """
@@ -145,7 +148,7 @@ class Model(object):
         """
         status, ctx = deepspeech.impl.CreateStream(self._impl)
         if status != 0:
-            raise RuntimeError("CreateStream failed with error code 0x{:X}".format(status))
+            raise RuntimeError("CreateStream failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
         return Stream(ctx)
 
 
@@ -187,10 +190,27 @@ class Stream(object):
             raise RuntimeError("Stream object is not valid. Trying to decode an already finished stream?")
         return deepspeech.impl.IntermediateDecode(self._impl)
 
+    def intermediateDecodeWithMetadata(self, num_results=1):
+        """
+        Compute the intermediate decoding of an ongoing streaming inference and return results including metadata.
+
+        :param num_results: Maximum number of candidate transcripts to return. Returned list might be smaller than this.
+        :type num_results: int
+
+        :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
+        :type: :func:`Metadata`
+
+        :throws: RuntimeError if the stream object is not valid
+        """
+        if not self._impl:
+            raise RuntimeError("Stream object is not valid. Trying to decode an already finished stream?")
+        return deepspeech.impl.IntermediateDecodeWithMetadata(self._impl, num_results)
+
     def finishStream(self):
         """
-        Signal the end of an audio signal to an ongoing streaming inference,
-        returns the STT result over the whole audio signal.
+        Compute the final decoding of an ongoing streaming inference and return
+        the result. Signals the end of an ongoing streaming inference. The underlying
+        stream object must not be used after this method is called.
 
         :return: The STT result.
         :type: str
@@ -203,19 +223,24 @@ class Stream(object):
         self._impl = None
         return result
 
-    def finishStreamWithMetadata(self):
+    def finishStreamWithMetadata(self, num_results=1):
         """
-        Signal the end of an audio signal to an ongoing streaming inference,
-        returns per-letter metadata.
+        Compute the final decoding of an ongoing streaming inference and return
+        results including metadata. Signals the end of an ongoing streaming
+        inference. The underlying stream object must not be used after this
+        method is called.
 
-        :return: Outputs a struct of individual letters along with their timing information.
+        :param num_results: Maximum number of candidate transcripts to return. Returned list might be smaller than this.
+        :type num_results: int
+
+        :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
         :type: :func:`Metadata`
 
         :throws: RuntimeError if the stream object is not valid
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to finish an already finished stream?")
-        result = deepspeech.impl.FinishStreamWithMetadata(self._impl)
+        result = deepspeech.impl.FinishStreamWithMetadata(self._impl, num_results)
         self._impl = None
         return result
 
@@ -233,49 +258,40 @@ class Stream(object):
 
 
 # This is only for documentation purpose
-# Metadata and MetadataItem should be in sync with native_client/deepspeech.h
-class MetadataItem(object):
+# Metadata, CandidateTranscript and TokenMetadata should be in sync with native_client/deepspeech.h
+class TokenMetadata(object):
     """
     Stores each individual character, along with its timing information
     """
 
-    def character(self):
+    def text(self):
         """
-        The character generated for transcription
+        The text for this token
         """
 
 
     def timestep(self):
         """
-        Position of the character in units of 20ms
+        Position of the token in units of 20ms
         """
 
 
     def start_time(self):
         """
-        Position of the character in seconds
+        Position of the token in seconds
         """
 
 
-class Metadata(object):
+class CandidateTranscript(object):
     """
     Stores the entire CTC output as an array of character metadata objects
     """
-    def items(self):
+    def tokens(self):
         """
-        List of items
+        List of tokens
 
-        :return: A list of :func:`MetadataItem` elements
+        :return: A list of :func:`TokenMetadata` elements
         :type: list
-        """
-
-
-    def num_items(self):
-        """
-        Size of the list of items
-
-        :return: Size of the list of items
-        :type: int
         """
 
 
@@ -286,3 +302,12 @@ class Metadata(object):
         contributed to the creation of this transcription.
         """
 
+
+class Metadata(object):
+    def transcripts(self):
+        """
+        List of candidate transcripts
+
+        :return: A list of :func:`CandidateTranscript` objects
+        :type: list
+        """

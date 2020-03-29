@@ -54,8 +54,15 @@ def maybe_rebuild(srcs, out_name, build_dir):
 project_version = read('../../VERSION').strip()
 
 build_dir = 'temp_build/temp_build'
-third_party_build = 'third_party.a'
-ctc_decoder_build = 'first_party.a'
+
+if sys.platform.startswith('win'):
+    archive_ext = 'lib'
+else:
+    archive_ext = 'a'
+
+third_party_build = 'third_party.{}'.format(archive_ext)
+ctc_decoder_build = 'first_party.{}'.format(archive_ext)
+
 
 maybe_rebuild(KENLM_FILES, third_party_build, build_dir)
 maybe_rebuild(CTC_DECODER_FILES, ctc_decoder_build, build_dir)

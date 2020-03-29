@@ -1,0 +1,11 @@
+build:
+  template_file: test-win-cuda-opt-base.tyml
+  dependencies:
+    - "win-amd64-gpu-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
+  args:
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-cppwin-ds-tests.sh 16k cuda"
+  metadata:
+    name: "DeepSpeech Windows AMD64 CUDA C++ tests (16kHz)"
+    description: "Testing DeepSpeech C++ for Windows/AMD64, CUDA, optimized version (16kHz)"

@@ -89,38 +89,9 @@ namespace DeepSpeechClient
         /// <param name="resultCode">Native result code.</param>
         private void EvaluateResultCode(ErrorCodes resultCode)
         {
-            switch (resultCode)
+            if (resultCode != ErrorCodes.DS_ERR_OK)
             {
-                case ErrorCodes.DS_ERR_OK:
-                    break;
-                case ErrorCodes.DS_ERR_NO_MODEL:
-                    throw new ArgumentException("Missing model information.");
-                case ErrorCodes.DS_ERR_INVALID_ALPHABET:
-                    throw new ArgumentException("Invalid alphabet embedded in model. (Data corruption?)");
-                case ErrorCodes.DS_ERR_INVALID_SHAPE:
-                    throw new ArgumentException("Invalid model shape.");
-                case ErrorCodes.DS_ERR_INVALID_SCORER:
-                    throw new ArgumentException("Invalid scorer file.");
-                case ErrorCodes.DS_ERR_FAIL_INIT_MMAP:
-                    throw new ArgumentException("Failed to initialize memory mapped model.");
-                case ErrorCodes.DS_ERR_FAIL_INIT_SESS:
-                    throw new ArgumentException("Failed to initialize the session.");
-                case ErrorCodes.DS_ERR_FAIL_INTERPRETER:
-                    throw new ArgumentException("Interpreter failed.");
-                case ErrorCodes.DS_ERR_FAIL_RUN_SESS:
-                    throw new ArgumentException("Failed to run the session.");
-                case ErrorCodes.DS_ERR_FAIL_CREATE_STREAM:
-                    throw new ArgumentException("Error creating the stream.");
-                case ErrorCodes.DS_ERR_FAIL_READ_PROTOBUF:
-                    throw new ArgumentException("Error reading the proto buffer model file.");
-                case ErrorCodes.DS_ERR_FAIL_CREATE_SESS:
-                    throw new ArgumentException("Error failed to create session.");
-                case ErrorCodes.DS_ERR_MODEL_INCOMPATIBLE:
-                    throw new ArgumentException("Error incompatible model.");
-                case ErrorCodes.DS_ERR_SCORER_NOT_ENABLED:
-                    throw new ArgumentException("External scorer is not enabled.");
-                default:
-                    throw new ArgumentException("Unknown error, please make sure you are using the correct native binary.");
+                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage((int)resultCode).PtrToString());
             }
         }
 
@@ -140,7 +111,6 @@ namespace DeepSpeechClient
         /// <exception cref="FileNotFoundException">Thrown when cannot find the scorer file.</exception>
         public unsafe void EnableExternalScorer(string aScorerPath)
         {
-            string exceptionMessage = null;
             if (string.IsNullOrWhiteSpace(aScorerPath))
             {
                 throw new FileNotFoundException("Path to the scorer file cannot be empty.");
@@ -199,13 +169,14 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
-        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal.
+        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal, including metadata.
         /// </summary>
         /// <param name="stream">Instance of the stream to finish.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
         /// <returns>The extended metadata result.</returns>
-        public unsafe Metadata FinishStreamWithMetadata(DeepSpeechStream stream)
+        public unsafe Metadata FinishStreamWithMetadata(DeepSpeechStream stream, uint aNumResults)
         {
-            return NativeImp.DS_FinishStreamWithMetadata(stream.GetNativePointer()).PtrToMetadata();
+            return NativeImp.DS_FinishStreamWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
         }
 
         /// <summary>
@@ -216,6 +187,17 @@ namespace DeepSpeechClient
         public unsafe string IntermediateDecode(DeepSpeechStream stream)
         {
             return NativeImp.DS_IntermediateDecode(stream.GetNativePointer()).PtrToString();
+        }
+
+        /// <summary>
+        /// Computes the intermediate decoding of an ongoing streaming inference, including metadata.
+        /// </summary>
+        /// <param name="stream">Instance of the stream to decode.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
+        /// <returns>The STT intermediate result.</returns>
+        public unsafe Metadata IntermediateDecodeWithMetadata(DeepSpeechStream stream, uint aNumResults)
+        {
+            return NativeImp.DS_IntermediateDecodeWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
         }
 
         /// <summary>
@@ -261,14 +243,15 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
-        /// Use the DeepSpeech model to perform Speech-To-Text.
+        /// Use the DeepSpeech model to perform Speech-To-Text, return results including metadata.
         /// </summary>
         /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
         /// <returns>The extended metadata. Returns NULL on error.</returns>
-        public unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize)
+        public unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize, uint aNumResults)
         {
-            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize).PtrToMetadata();
+            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize, aNumResults).PtrToMetadata();
         }
 
         #endregion

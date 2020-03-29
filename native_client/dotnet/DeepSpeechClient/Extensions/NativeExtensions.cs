@@ -26,35 +26,68 @@ namespace DeepSpeechClient.Extensions
         }
 
         /// <summary>
-        /// Converts a pointer into managed metadata object.
+        /// Converts a pointer into managed TokenMetadata object.
+        /// </summary>
+        /// <param name="intPtr">Native pointer.</param>
+        /// <returns>TokenMetadata managed object.</returns>
+        private static Models.TokenMetadata PtrToTokenMetadata(this IntPtr intPtr)
+        {
+            var token = Marshal.PtrToStructure<TokenMetadata>(intPtr);
+            var managedToken = new Models.TokenMetadata
+            {
+                Timestep = token.timestep,
+                StartTime = token.start_time,
+                Text = token.text.PtrToString(releasePtr: false)
+            };
+            return managedToken;
+        }
+
+        /// <summary>
+        /// Converts a pointer into managed CandidateTranscript object.
+        /// </summary>
+        /// <param name="intPtr">Native pointer.</param>
+        /// <returns>CandidateTranscript managed object.</returns>
+        private static Models.CandidateTranscript PtrToCandidateTranscript(this IntPtr intPtr)
+        {
+            var managedTranscript = new Models.CandidateTranscript();
+            var transcript = Marshal.PtrToStructure<CandidateTranscript>(intPtr);
+
+            managedTranscript.Tokens = new Models.TokenMetadata[transcript.num_tokens];
+            managedTranscript.Confidence = transcript.confidence;
+
+            //we need to manually read each item from the native ptr using its size
+            var sizeOfTokenMetadata = Marshal.SizeOf(typeof(TokenMetadata));
+            for (int i = 0; i < transcript.num_tokens; i++)
+            {
+                managedTranscript.Tokens[i] = transcript.tokens.PtrToTokenMetadata();
+                transcript.tokens += sizeOfTokenMetadata;
+            }
+
+            return managedTranscript;
+        }
+
+        /// <summary>
+        /// Converts a pointer into managed Metadata object.
         /// </summary>
         /// <param name="intPtr">Native pointer.</param>
         /// <returns>Metadata managed object.</returns>
         internal static Models.Metadata PtrToMetadata(this IntPtr intPtr)
         {
-            var managedMetaObject = new Models.Metadata();
-            var metaData = (Metadata)Marshal.PtrToStructure(intPtr, typeof(Metadata));
+            var managedMetadata = new Models.Metadata();
+            var metadata = Marshal.PtrToStructure<Metadata>(intPtr);
 
-            managedMetaObject.Items = new Models.MetadataItem[metaData.num_items];
-            managedMetaObject.Confidence = metaData.confidence;
-
+            managedMetadata.Transcripts = new Models.CandidateTranscript[metadata.num_transcripts];
 
             //we need to manually read each item from the native ptr using its size
-            var sizeOfMetaItem = Marshal.SizeOf(typeof(MetadataItem));
-            for (int i = 0; i < metaData.num_items; i++)
+            var sizeOfCandidateTranscript = Marshal.SizeOf(typeof(CandidateTranscript));
+            for (int i = 0; i < metadata.num_transcripts; i++)
             {
-                var tempItem = Marshal.PtrToStructure<MetadataItem>(metaData.items);
-                managedMetaObject.Items[i] = new Models.MetadataItem
-                {
-                    Timestep = tempItem.timestep,
-                    StartTime = tempItem.start_time,
-                    Character = tempItem.character.PtrToString(releasePtr: false)
-                };
-                //we keep the offset on each read
-                metaData.items += sizeOfMetaItem;
+                managedMetadata.Transcripts[i] = metadata.transcripts.PtrToCandidateTranscript();
+                metadata.transcripts += sizeOfCandidateTranscript;
             }
+
             NativeImp.DS_FreeMetadata(intPtr);
-            return managedMetaObject;
+            return managedMetadata;
         }
     }
 }
