@@ -48,6 +48,9 @@ def create_bundle(
     if use_utf8:
         serialized_alphabet = UTF8Alphabet().serialize()
     else:
+        if not alphabet_path:
+            print("No --alphabet path specified, can't continue.")
+            sys.exit(1)
         serialized_alphabet = Alphabet(alphabet_path).serialize()
 
     alphabet = NativeAlphabet()
