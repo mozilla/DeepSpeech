@@ -10,6 +10,7 @@ struct Output {
     double confidence;
     std::vector<int> tokens;
     std::vector<int> timesteps;
+    std::vector<float> probabilities;
 };
 
 #endif  // OUTPUT_H_
