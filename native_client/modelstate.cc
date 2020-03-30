@@ -71,7 +71,7 @@ ModelState::decode_metadata(DecoderState* state)
     items[i].character = strdup(alphabet_->StringFromLabel(out[0].tokens[i]).c_str());
     items[i].timestep = out[0].timesteps[i];
     items[i].start_time = out[0].timesteps[i] * ((float)audio_win_step_ / sample_rate_);
-
+    items[i].probability = out[0].probabilities[i];
     if (items[i].start_time < 0) {
       items[i].start_time = 0;
     }

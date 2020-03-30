@@ -45,7 +45,7 @@ std::vector<Output> get_beam_search_result(
   std::vector<Output> output_vecs;
   for (size_t i = 0; i < top_paths && i < prefixes.size(); ++i) {
     Output output;
-    prefixes[i]->get_path_vec(output.tokens, output.timesteps);
+    prefixes[i]->get_path_vec(output.tokens, output.timesteps, output.probabilities);
     output.probability = -prefixes[i]->approx_ctc;
     output_vecs.push_back(output);
   }

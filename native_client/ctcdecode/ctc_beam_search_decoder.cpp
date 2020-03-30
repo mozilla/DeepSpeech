@@ -197,7 +197,8 @@ decoder_decode(DecoderState *state,
     if (ext_scorer != nullptr) {
       std::vector<int> output;
       std::vector<int> timesteps;
-      prefixes_copy[i]->get_path_vec(output, timesteps);
+      std::vector<float> probabilities;
+      prefixes_copy[i]->get_path_vec(output, timesteps, probabilities);
       auto prefix_length = output.size();
       auto words = ext_scorer->split_labels(output);
       // remove word insert

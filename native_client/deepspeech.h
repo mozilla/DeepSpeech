@@ -20,6 +20,7 @@ struct MetadataItem {
   char* character;
   int timestep; // Position of the character in units of 20ms
   float start_time; // Position of the character in seconds
+  double probability; // Logit value at the time the character was chosen
 };
 
 // Stores the entire CTC output as an array of character metadata objects

@@ -23,11 +23,14 @@ public:
   PathTrie* get_path_trie(int new_char, int new_timestep, float log_prob_c, bool reset = true);
 
   // get the prefix in index from root to current node
-  PathTrie* get_path_vec(std::vector<int>& output, std::vector<int>& timesteps);
+  PathTrie* get_path_vec(std::vector<int>& output,
+                         std::vector<int>& timesteps,
+                         std::vector<float>& probabilities);
 
   // get the prefix in index from some stop node to current nodel
   PathTrie* get_path_vec(std::vector<int>& output,
                          std::vector<int>& timesteps,
+                         std::vector<float>& probabilities,                         
                          int stop,
                          size_t max_steps = std::numeric_limits<size_t>::max());
 
