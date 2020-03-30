@@ -131,14 +131,14 @@ def main():
             ds.setScorerAlphaBeta(args.lm_alpha, args.lm_beta)
 
     fin = wave.open(args.audio, 'rb')
-    fs = fin.getframerate()
-    if fs != desired_sample_rate:
-        print('Warning: original sample rate ({}) is different than {}hz. Resampling might produce erratic speech recognition.'.format(fs, desired_sample_rate), file=sys.stderr)
-        fs, audio = convert_samplerate(args.audio, desired_sample_rate)
+    fs_orig = fin.getframerate()
+    if fs_orig != desired_sample_rate:
+        print('Warning: original sample rate ({}) is different than {}hz. Resampling might produce erratic speech recognition.'.format(fs_orig, desired_sample_rate), file=sys.stderr)
+        fs_new, audio = convert_samplerate(args.audio, desired_sample_rate)
     else:
         audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
 
-    audio_length = fin.getnframes() * (1/fs)
+    audio_length = fin.getnframes() * (1/fs_orig)
     fin.close()
 
     print('Running inference.', file=sys.stderr)
