@@ -431,7 +431,8 @@ def train():
             FLAGS.augmentation_freq_and_time_masking or
             FLAGS.augmentation_pitch_and_tempo_scaling or
             FLAGS.augmentation_speed_up_std > 0 or
-            FLAGS.train_augmentation_files):
+            FLAGS.train_augmentation_noise_files or
+            FLAGS.train_augmentation_speech_files):
         do_cache_dataset = False
 
     # Create training and validation datasets
@@ -440,7 +441,8 @@ def train():
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True,
-                               noise_sources=FLAGS.train_augmentation_files)
+                               noise_sources=FLAGS.train_augmentation_noise_files,
+                               speech_sources=FLAGS.train_augmentation_speech_files)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -451,7 +453,7 @@ def train():
 
     if FLAGS.dev_files:
         dev_csvs = FLAGS.dev_files.split(',')
-        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False, noise_sources=FLAGS.dev_augmentation_files) for csv in dev_csvs]
+        dev_sets = [create_dataset([csv], batch_size=FLAGS.dev_batch_size, train_phase=False, noise_sources=FLAGS.dev_augmentation_noise_files, speech_sources=FLAGS.dev_augmentation_speech_files) for csv in dev_csvs]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
@@ -690,7 +692,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading, noise_sources=FLAGS.test_augmentation_files)
+    samples = evaluate(FLAGS.test_files.split(','), create_model, try_loading, noise_sources=FLAGS.test_augmentation_noise_files, speech_sources=FLAGS.test_augmentation_speech_files)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)

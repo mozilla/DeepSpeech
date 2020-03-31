@@ -68,28 +68,35 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False):
                 FLAGS.augmentation_freq_and_time_masking,
                 FLAGS.augmentation_pitch_and_tempo_scaling,
                 FLAGS.augmentation_speed_up_std > 0]):
-        review_audio = gla(spectrogram)
+        review_audio = gla(spectrogram, FLAGS.review_audio_gla_iterations)
 
     return mfccs, tf.shape(input=mfccs)[0], review_audio
 
 
-def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None):
+def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None, speech_iterator=None):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
     audio = decoded.audio
 
     # augment audio
-    if noise_iterator:
-        noise = noise_iterator.get_next()
+    if noise_iterator or speech_iterator:
         audio = augment_noise(
             audio,
-            noise,
+            noise_iterator,
+            speech_iterator,
+            min_n_noises=FLAGS.audio_aug_min_n_noises,
+            max_n_noises=FLAGS.audio_aug_max_n_noises,
+            min_n_speakers=FLAGS.audio_aug_min_n_speakers,
+            max_n_speakers=FLAGS.audio_aug_max_n_speakers,
             min_audio_dbfs=FLAGS.audio_aug_min_audio_dbfs,
             max_audio_dbfs=FLAGS.audio_aug_max_audio_dbfs,
-            min_snr_db=FLAGS.audio_aug_min_snr_db,
-            max_snr_db=FLAGS.audio_aug_max_snr_db,
+            min_noise_snr_db=FLAGS.audio_aug_min_noise_snr_db,
+            max_noise_snr_db=FLAGS.audio_aug_max_noise_snr_db,
+            min_speech_snr_db=FLAGS.audio_aug_min_speech_snr_db,
+            max_speech_snr_db=FLAGS.audio_aug_max_speech_snr_db,
             limit_audio_peak_dbfs=FLAGS.audio_aug_limit_audio_peak_dbfs,
             limit_noise_peak_dbfs=FLAGS.audio_aug_limit_noise_peak_dbfs,
+            limit_speech_peak_dbfs=FLAGS.audio_aug_limit_speech_peak_dbfs,
             sample_rate=FLAGS.audio_sample_rate,
         )
 
@@ -106,9 +113,9 @@ def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None):
     return features, features_len, review_audio
 
 
-def entry_to_features(wav_filename, transcript, train_phase, noise_iterator):
+def entry_to_features(wav_filename, transcript, train_phase, noise_iterator, speech_iterator):
     # https://bugs.python.org/issue32117
-    features, features_len, review_audio = audiofile_to_features(wav_filename, train_phase=train_phase, noise_iterator=noise_iterator)
+    features, features_len, review_audio = audiofile_to_features(wav_filename, train_phase=train_phase, noise_iterator=noise_iterator, speech_iterator=speech_iterator)
     return wav_filename, features, features_len, tf.SparseTensor(*transcript), review_audio
 
 
@@ -121,7 +128,7 @@ def to_sparse_tuple(sequence):
     return indices, sequence, shape
 
 
-def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_phase=False, noise_sources=None):
+def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_phase=False, noise_sources=None, speech_sources=None):
     df = read_csvs(csvs)
     df.sort_values(by='wav_filesize', inplace=True)
 
@@ -156,12 +163,11 @@ def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_
 
     num_gpus = len(Config.available_devices)
 
-    if noise_sources:
-        noise_iterator = create_noise_iterator(noise_sources, read_csvs)
-    else:
-        noise_iterator = None
+    noise_iterator = create_noise_iterator(noise_sources, read_csvs) if noise_sources else None
+    speech_iterator = create_noise_iterator(speech_sources, read_csvs) if speech_sources else None
 
-    process_fn = partial(entry_to_features, train_phase=train_phase, noise_iterator=noise_iterator)
+
+    process_fn = partial(entry_to_features, train_phase=train_phase, noise_iterator=noise_iterator, speech_iterator=speech_iterator)
 
     dataset = tf.data.Dataset.from_generator(generate_values,
                                              output_types=(tf.string, (tf.int64, tf.int32, tf.int64)))
