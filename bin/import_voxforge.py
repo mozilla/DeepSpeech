@@ -5,15 +5,14 @@ import re
 import tarfile
 import threading
 import unicodedata
+import urllib
 from glob import glob
 from multiprocessing.pool import ThreadPool
 from os import makedirs, path
 
 import pandas
 from bs4 import BeautifulSoup
-from six.moves import urllib
 from tensorflow.python.platform import gfile
-
 from deepspeech_training.util.downloader import maybe_download
 
 """The number of jobs to run in parallel"""
