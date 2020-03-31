@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Prerequisite: Having the sph2pipe tool in your PATH:
-# https://www.ldc.upenn.edu/language-resources/tools/sphere-conversion-tools
-
 import codecs
 import fnmatch
-import librosa
 import os
-import pandas
-import soundfile # <= Has an external dependency on libsndfile
 import subprocess
 import sys
 import unicodedata
 
-from deepspeech_training.util.importers import validate_label_eng as validate_label
+import librosa
+import pandas
+import soundfile  # <= Has an external dependency on libsndfile
+
+from deepspeech_training.util.importers import \
+    validate_label_eng as validate_label
+
+# Prerequisite: Having the sph2pipe tool in your PATH:
+# https://www.ldc.upenn.edu/language-resources/tools/sphere-conversion-tools
+
+
 
 def _download_and_preprocess_data(data_dir):
     # Assume data_dir contains extracted LDC2004S13, LDC2004T19, LDC2005S13, LDC2005T19

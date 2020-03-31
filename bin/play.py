@@ -10,7 +10,10 @@ import random
 import sys
 
 from deepspeech_training.util.audio import AUDIO_TYPE_PCM
-from deepspeech_training.util.sample_collections import samples_from_file, LabeledSample
+from deepspeech_training.util.sample_collections import (
+    LabeledSample,
+    samples_from_file
+)
 
 
 def play_sample(samples, index):

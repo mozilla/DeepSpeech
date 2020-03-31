@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-import pandas
 import sys
 import tarfile
 import unicodedata
 import wave
-
 from glob import glob
 from os import makedirs, path, remove, rmdir
+
+import pandas
 from sox import Transformer
-from deepspeech_training.util.downloader import maybe_download
 from tensorflow.python.platform import gfile
+
+from deepspeech_training.util.downloader import maybe_download
 from deepspeech_training.util.stm import parse_stm_file
 
 

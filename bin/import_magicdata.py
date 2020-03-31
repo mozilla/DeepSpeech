@@ -3,9 +3,10 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import os
-import pandas
 import tarfile
 import wave
+
+import pandas
 
 from deepspeech_training.util.importers import get_importers_parser
 

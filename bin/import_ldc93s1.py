@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-import pandas
 import os
 import sys
 
+import pandas
+
 from deepspeech_training.util.downloader import maybe_download
+
 
 def _download_and_preprocess_data(data_dir):
     # Conditionally download data

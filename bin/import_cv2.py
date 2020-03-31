@@ -10,16 +10,22 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
-import progressbar
-import sox
 import subprocess
 import unicodedata
-
 from multiprocessing import Pool
-from deepspeech_training.util.downloader import SIMPLE_BAR
-from deepspeech_training.util.text import Alphabet
-from deepspeech_training.util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
 
+import progressbar
+import sox
+
+from deepspeech_training.util.downloader import SIMPLE_BAR
+from deepspeech_training.util.importers import (
+    get_counter,
+    get_imported_samples,
+    get_importers_parser,
+    get_validate_label,
+    print_import_report
+)
+from deepspeech_training.util.text import Alphabet
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000

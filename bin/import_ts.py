@@ -3,18 +3,23 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
-import progressbar
 import re
-import sox
 import subprocess
-import unidecode
 import zipfile
-
-from deepspeech_training.util.downloader import maybe_download
-from deepspeech_training.util.downloader import SIMPLE_BAR
-from deepspeech_training.util.importers import get_importers_parser, get_validate_label, get_counter, get_imported_samples, print_import_report
 from multiprocessing import Pool
 
+import progressbar
+import sox
+
+import unidecode
+from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
+from deepspeech_training.util.importers import (
+    get_counter,
+    get_imported_samples,
+    get_importers_parser,
+    get_validate_label,
+    print_import_report
+)
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000

@@ -3,19 +3,20 @@ from __future__ import absolute_import, division, print_function
 
 import codecs
 import os
-import pandas
 import re
 import tarfile
 import threading
 import unicodedata
-
-from bs4 import BeautifulSoup
-from deepspeech_training.util.downloader import maybe_download
 from glob import glob
 from multiprocessing.pool import ThreadPool
 from os import makedirs, path
+
+import pandas
+from bs4 import BeautifulSoup
 from six.moves import urllib
 from tensorflow.python.platform import gfile
+
+from deepspeech_training.util.downloader import maybe_download
 
 """The number of jobs to run in parallel"""
 NUM_PARALLEL = 8
@@ -188,7 +189,3 @@ def _generate_dataset(data_dir, data_set):
 
 if __name__=="__main__":
     _download_and_preprocess_data(sys.argv[1])
-
-
-
-

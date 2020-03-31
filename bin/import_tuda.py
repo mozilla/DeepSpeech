@@ -8,15 +8,17 @@ from __future__ import absolute_import, division, print_function
 import argparse
 import csv
 import os
-import progressbar
 import tarfile
 import unicodedata
 import wave
 import xml.etree.cElementTree as ET
-
 from collections import Counter
-from deepspeech_training.util.downloader import maybe_download, SIMPLE_BAR
-from deepspeech_training.util.importers import validate_label_eng as validate_label
+
+import progressbar
+
+from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
+from deepspeech_training.util.importers import \
+    validate_label_eng as validate_label
 from deepspeech_training.util.text import Alphabet
 
 TUDA_VERSION = 'v2'

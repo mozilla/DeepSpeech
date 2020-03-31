@@ -3,15 +3,22 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
-import progressbar
-import sox
 import subprocess
 import tarfile
-
 from glob import glob
 from multiprocessing import Pool
-from deepspeech_training.util.importers import validate_label_eng as validate_label, get_counter, get_imported_samples, print_import_report
-from deepspeech_training.util.downloader import maybe_download, SIMPLE_BAR
+
+import progressbar
+import sox
+
+from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
+from deepspeech_training.util.importers import (
+    get_counter,
+    get_imported_samples,
+    print_import_report
+)
+from deepspeech_training.util.importers import \
+    validate_label_eng as validate_label
 
 FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
 SAMPLE_RATE = 16000

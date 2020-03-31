@@ -3,10 +3,11 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import json
-import numpy as np
 import os
-import pandas
 import tarfile
+
+import numpy as np
+import pandas
 
 from deepspeech_training.util.importers import get_importers_parser
 

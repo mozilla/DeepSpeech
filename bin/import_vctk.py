@@ -4,17 +4,21 @@
 # as per https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html
 from __future__ import absolute_import, division, print_function
 
-import librosa
 import os
-import progressbar
 import random
 import re
-
-from deepspeech_training.util.downloader import maybe_download, SIMPLE_BAR
-from deepspeech_training.util.importers import get_counter, get_imported_samples, print_import_report
 from multiprocessing import Pool
 from zipfile import ZipFile
 
+import librosa
+import progressbar
+
+from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
+from deepspeech_training.util.importers import (
+    get_counter,
+    get_imported_samples,
+    print_import_report
+)
 
 SAMPLE_RATE = 16000
 MAX_SECS = 10

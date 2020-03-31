@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import tensorflow.compat.v1 as tfv1
 import sys
 
+import tensorflow.compat.v1 as tfv1
 from google.protobuf import text_format
 
 

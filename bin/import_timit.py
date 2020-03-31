@@ -11,13 +11,15 @@
 '''
 
 import errno
+import fnmatch
 import os
-from os import path
+import subprocess
 import sys
 import tarfile
-import fnmatch
+from os import path
+
 import pandas as pd
-import subprocess
+
 
 def clean(word):
     # LC ALL & strip punctuation which are not required

@@ -4,16 +4,17 @@ from __future__ import absolute_import, division, print_function
 import codecs
 import fnmatch
 import os
-import pandas
-import progressbar
 import subprocess
 import sys
 import tarfile
 import unicodedata
 
-from deepspeech_training.util.downloader import maybe_download
+import pandas
+import progressbar
 from sox import Transformer
 from tensorflow.python.platform import gfile
+
+from deepspeech_training.util.downloader import maybe_download
 
 SAMPLE_RATE = 16000
 

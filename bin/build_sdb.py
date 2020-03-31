@@ -6,11 +6,19 @@ Use "python3 build_sdb.py -h" for help
 from __future__ import absolute_import, division, print_function
 
 import argparse
+
 import progressbar
 
+from deepspeech_training.util.audio import (
+    AUDIO_TYPE_OPUS,
+    AUDIO_TYPE_WAV,
+    change_audio_types
+)
 from deepspeech_training.util.downloader import SIMPLE_BAR
-from deepspeech_training.util.audio import change_audio_types, AUDIO_TYPE_WAV, AUDIO_TYPE_OPUS
-from deepspeech_training.util.sample_collections import samples_from_files, DirectSDBWriter
+from deepspeech_training.util.sample_collections import (
+    DirectSDBWriter,
+    samples_from_files
+)
 
 AUDIO_TYPE_LOOKUP = {
     'wav': AUDIO_TYPE_WAV,
