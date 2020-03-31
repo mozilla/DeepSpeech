@@ -1,9 +1,16 @@
-from setuptools import setup, find_packages
+from pathlib import Path
+
+from setuptools import find_packages, setup
+
 
 def main():
+    version_file = Path(__file__).parent / 'VERSION'
+    with open(version_file) as fin:
+        version = fin.read().strip()
+
     setup(
         name='deepspeech_training',
-        version='0.0.1',
+        version=version,
         description='Training code for mozilla DeepSpeech',
         url='https://github.com/mozilla/DeepSpeech',
         author='Mozilla',
