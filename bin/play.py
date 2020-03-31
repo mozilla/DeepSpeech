@@ -3,7 +3,6 @@
 Tool for playing samples from Sample Databases (SDB files) and DeepSpeech CSV files
 Use "python3 build_sdb.py -h" for help
 """
-from __future__ import absolute_import, division, print_function
 
 import argparse
 import random

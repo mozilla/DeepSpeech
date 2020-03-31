@@ -3,8 +3,6 @@
 Tool for building Sample Databases (SDB files) from DeepSpeech CSV files and other SDB files
 Use "python3 build_sdb.py -h" for help
 """
-from __future__ import absolute_import, division, print_function
-
 import argparse
 
 import progressbar

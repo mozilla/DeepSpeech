@@ -3,7 +3,6 @@
 Downloads and prepares (parts of) the "Spoken Wikipedia Corpora" for DeepSpeech.py
 Use "python3 import_swc.py -h" for help
 """
-from __future__ import absolute_import, division, print_function
 
 import argparse
 import csv

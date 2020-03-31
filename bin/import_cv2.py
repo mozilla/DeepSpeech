@@ -6,8 +6,6 @@ and the script formats the data and transcripts to be in a state usable by
 DeepSpeech.py
 Use "python3 import_cv2.py -h" for help
 """
-from __future__ import absolute_import, division, print_function
-
 import csv
 import os
 import subprocess

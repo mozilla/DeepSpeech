@@ -2,8 +2,6 @@
 # VCTK used in wavenet paper https://arxiv.org/pdf/1609.03499.pdf
 # Licenced under Open Data Commons Attribution License (ODC-By) v1.0.
 # as per https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html
-from __future__ import absolute_import, division, print_function
-
 import os
 import random
 import re

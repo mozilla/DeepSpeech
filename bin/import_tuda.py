@@ -3,8 +3,6 @@
 Downloads and prepares (parts of) the "German Distant Speech" corpus (TUDA) for DeepSpeech.py
 Use "python3 import_tuda.py -h" for help
 """
-from __future__ import absolute_import, division, print_function
-
 import argparse
 import csv
 import os

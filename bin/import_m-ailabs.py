@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # pylint: disable=invalid-name
-from __future__ import absolute_import, division, print_function
-
 import csv
 import os
 import subprocess

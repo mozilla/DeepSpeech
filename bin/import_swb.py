@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import absolute_import, division, print_function
-
 # ensure that you have downloaded the LDC dataset LDC97S62 and tar exists in a folder e.g.
 # ./data/swb/swb1_LDC97S62.tgz
 # from the deepspeech directory run with: ./bin/import_swb.py ./data/swb/
