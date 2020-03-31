@@ -25,7 +25,7 @@ In creating a virtual environment you will create a directory containing a ``pyt
 
 .. code-block::
 
-   $ virtualenv -p python3 $HOME/tmp/deepspeech-train-venv/
+   $ python3 -m venv $HOME/tmp/deepspeech-train-venv/
 
 Once this command completes successfully, the environment will be ready to be activated.
 
@@ -46,7 +46,7 @@ Install the required dependencies using ``pip3``\ :
 .. code-block:: bash
 
    cd DeepSpeech
-   pip3 install -r requirements.txt
+   pip3 install -e .
 
 The ``webrtcvad`` Python package might require you to ensure you have proper tooling to build Python modules:
 
@@ -70,7 +70,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 .. code-block:: bash
 
    pip3 uninstall tensorflow
-   pip3 install 'tensorflow-gpu==1.15.0'
+   pip3 install 'tensorflow-gpu==1.15.2'
 
 Please ensure you have the required `CUDA dependency <USING.rst#cuda-dependency>`_.
 

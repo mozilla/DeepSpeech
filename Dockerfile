@@ -150,7 +150,7 @@ COPY . /DeepSpeech/
 
 WORKDIR /DeepSpeech
 
-RUN pip3 --no-cache-dir install -r requirements.txt
+RUN pip3 --no-cache-dir install .
 
 # Link DeepSpeech native_client libs to tf folder
 RUN ln -s /DeepSpeech/native_client /tensorflow

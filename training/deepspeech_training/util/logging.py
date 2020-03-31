@@ -3,7 +3,7 @@ from __future__ import print_function
 import progressbar
 import sys
 
-from util.flags import FLAGS
+from .flags import FLAGS
 
 
 # Logging functions

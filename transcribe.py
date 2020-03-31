@@ -12,13 +12,13 @@ tflogging.set_verbosity(tflogging.ERROR)
 import logging
 logging.getLogger('sox').setLevel(logging.ERROR)
 
-from multiprocessing import Process, cpu_count
+from deepspeech_training.util.audio import AudioFile
+from deepspeech_training.util.config import Config, initialize_globals
+from deepspeech_training.util.feeding import split_audio_file
+from deepspeech_training.util.flags import create_flags, FLAGS
+from deepspeech_training.util.logging import log_error, log_info, log_progress, create_progressbar
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
-from util.config import Config, initialize_globals
-from util.audio import AudioFile
-from util.feeding import split_audio_file
-from util.flags import create_flags, FLAGS
-from util.logging import log_error, log_info, log_progress, create_progressbar
+from multiprocessing import Process, cpu_count
 
 
 def fail(message, code=1):
@@ -27,8 +27,8 @@ def fail(message, code=1):
 
 
 def transcribe_file(audio_path, tlog_path):
-    from DeepSpeech import create_model  # pylint: disable=cyclic-import,import-outside-toplevel
-    from util.checkpoints import load_or_init_graph
+    from deepspeech_training.train import create_model  # pylint: disable=cyclic-import,import-outside-toplevel
+    from deepspeech_training.util.checkpoints import load_or_init_graph
     initialize_globals()
     scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta, FLAGS.scorer_path, Config.alphabet)
     try:

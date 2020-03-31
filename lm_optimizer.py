@@ -2,19 +2,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function
 
-import sys
-
-import optuna
 import absl.app
-from ds_ctcdecoder import Scorer
+import optuna
+import sys
 import tensorflow.compat.v1 as tfv1
 
-from DeepSpeech import create_model
-from evaluate import evaluate
-from util.config import Config, initialize_globals
-from util.flags import create_flags, FLAGS
-from util.logging import log_error
-from util.evaluate_tools import wer_cer_batch
+from deepspeech_training.evaluate import evaluate
+from deepspeech_training.train import create_model
+from deepspeech_training.util.config import Config, initialize_globals
+from deepspeech_training.util.flags import create_flags, FLAGS
+from deepspeech_training.util.logging import log_error
+from deepspeech_training.util.evaluate_tools import wer_cer_batch
+from ds_ctcdecoder import Scorer
 
 
 def character_based():

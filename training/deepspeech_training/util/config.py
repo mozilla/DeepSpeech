@@ -8,11 +8,11 @@ import tensorflow.compat.v1 as tfv1
 from attrdict import AttrDict
 from xdg import BaseDirectory as xdg
 
-from util.flags import FLAGS
-from util.gpu import get_available_gpus
-from util.logging import log_error
-from util.text import Alphabet, UTF8Alphabet
-from util.helpers import parse_file_size
+from .flags import FLAGS
+from .gpu import get_available_gpus
+from .logging import log_error
+from .text import Alphabet, UTF8Alphabet
+from .helpers import parse_file_size
 
 class ConfigSingleton:
     _config = None

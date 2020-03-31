@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-
-sys.path.insert(1, os.path.join(sys.path[0], "..", ".."))
-
 import argparse
 import shutil
+import sys
 
-from util.text import Alphabet, UTF8Alphabet
+from deepspeech_training.util.text import Alphabet, UTF8Alphabet
 from ds_ctcdecoder import Scorer, Alphabet as NativeAlphabet
 
 

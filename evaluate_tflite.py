@@ -10,13 +10,12 @@ import csv
 import os
 import sys
 
-from functools import partial
-from six.moves import zip, range
-from multiprocessing import JoinableQueue, Process, cpu_count, Manager
 from deepspeech import Model
-
-from util.evaluate_tools import calculate_and_print_report
-from util.flags import create_flags
+from deepspeech_training.util.evaluate_tools import calculate_and_print_report
+from deepspeech_training.util.flags import create_flags
+from functools import partial
+from multiprocessing import JoinableQueue, Process, cpu_count, Manager
+from six.moves import zip, range
 
 r'''
 This module should be self-contained:
