@@ -21,13 +21,6 @@ pushd ${HOME}/DeepSpeech/ds
 popd
 set +o pipefail
 
-pushd ${HOME}/DeepSpeech/ds/
-    verify_ctcdecoder_url
-popd
-
-decoder_pkg_url=$(get_python_pkg_url ${pyver_pkg} ${py_unicode_type} "ds_ctcdecoder" "${DECODER_ARTIFACTS_ROOT}")
-LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: ${PY37_SOURCE_PACKAGE} ${decoder_pkg_url} | cat
-
 # Prepare correct arguments for training
 case "${bitrate}" in
     8k)

@@ -90,8 +90,6 @@ def main():
                         help='Name of the TaskCluster scheme to use.')
     parser.add_argument('--branch', required=False,
                         help='Branch name to use. Defaulting to current content of VERSION file.')
-    parser.add_argument('--decoder', action='store_true',
-                        help='Get URL to ds_ctcdecoder Python package.')
 
     args = parser.parse_args()
 
@@ -118,32 +116,6 @@ def main():
         args.branch = "v{}".format(version_string)
     else:
         ds_version = parse_version(args.branch)
-
-    if args.decoder:
-        plat = platform.system().lower()
-        arch = platform.machine()
-
-        if plat == 'linux' and arch == 'x86_64':
-            plat = 'manylinux1'
-
-        if plat == 'darwin':
-            plat = 'macosx_10_10'
-
-        m_or_mu = 'mu' if is_ucs2 else 'm'
-        pyver = ''.join(map(str, sys.version_info[0:2]))
-
-        artifact = "ds_ctcdecoder-{ds_version}-cp{pyver}-cp{pyver}{m_or_mu}-{platform}_{arch}.whl".format(
-            ds_version=ds_version,
-            pyver=pyver,
-            m_or_mu=m_or_mu,
-            platform=plat,
-            arch=arch
-        )
-
-        ctc_arch = args.arch + '-ctc'
-
-        print(get_tc_url(ctc_arch, artifact, args.branch))
-        sys.exit(0)
 
     if args.source is not None:
         if args.source in DEFAULT_SCHEMES:
