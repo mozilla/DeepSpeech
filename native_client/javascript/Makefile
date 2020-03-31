@@ -43,7 +43,7 @@ node-wrapper: copy-deps build
 
 npm-pack: clean package.json index.js
 	npm install node-pre-gyp@0.14.x dts-gen@0.6.0
-	dts-gen -module deepspeech -file index.d.ts
+	$$(npm root)/.bin/dts-gen -module deepspeech -file index.d.ts
 	npm pack $(NODE_BUILD_VERBOSE)
 
 deepspeech_wrap.cxx: deepspeech.i
