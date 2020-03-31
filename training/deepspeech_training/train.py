@@ -896,8 +896,17 @@ def do_single_file_inference(input_file_path):
         print(decoded[0][1])
 
 
+def early_checks():
+    # Check for proper scorer early
+    if FLAGS.scorer_path:
+        scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
+                        FLAGS.scorer_path, Config.alphabet)
+        del scorer
+
+
 def main(_):
     initialize_globals()
+    early_checks()
 
     if FLAGS.train_files:
         tfv1.reset_default_graph()
