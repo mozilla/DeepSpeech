@@ -12,10 +12,7 @@ import pandas as pd
 from sox import Transformer
 
 import swifter
-from deepspeech_training.util.importers import (
-    get_importers_parser,
-    get_validate_label
-)
+from deepspeech_training.util.importers import get_importers_parser, get_validate_label
 
 __version__ = "0.1.0"
 _logger = logging.getLogger(__name__)
@@ -37,9 +34,7 @@ def parse_args(args):
     Returns:
       :obj:`argparse.Namespace`: command line parameters namespace
     """
-    parser = get_importers_parser(
-        description="Imports GramVaani data for Deep Speech"
-    )
+    parser = get_importers_parser(description="Imports GramVaani data for Deep Speech")
     parser.add_argument(
         "--version",
         action="version",
@@ -79,6 +74,7 @@ def parse_args(args):
     )
     return parser.parse_args(args)
 
+
 def setup_logging(level):
     """Setup basic logging
     Args:
@@ -88,6 +84,7 @@ def setup_logging(level):
     logging.basicConfig(
         level=level, stream=sys.stdout, format=format, datefmt="%Y-%m-%d %H:%M:%S"
     )
+
 
 class GramVaaniCSV:
     """GramVaaniCSV representing a GramVaani dataset.
@@ -104,8 +101,17 @@ class GramVaaniCSV:
         _logger.info("Parsing csv file...%s", os.path.abspath(csv_filename))
         data = pd.read_csv(
             os.path.abspath(csv_filename),
-            names=["piece_id","audio_url","transcript_labelled","transcript","labels","content_filename","audio_length","user_id"],
-            usecols=["audio_url","transcript","audio_length"],
+            names=[
+                "piece_id",
+                "audio_url",
+                "transcript_labelled",
+                "transcript",
+                "labels",
+                "content_filename",
+                "audio_length",
+                "user_id",
+            ],
+            usecols=["audio_url", "transcript", "audio_length"],
             skiprows=[0],
             engine="python",
             encoding="utf-8",
@@ -115,6 +121,7 @@ class GramVaaniCSV:
         data.dropna(inplace=True)
         _logger.info("Parsed %d lines csv file." % len(data))
         return data
+
 
 class GramVaaniDownloader:
     """GramVaaniDownloader downloads a GramVaani dataset.
@@ -135,7 +142,9 @@ class GramVaaniDownloader:
           mp3_directory (os.path): The directory into which the associated mp3's were downloaded
         """
         mp3_directory = self._pre_download()
-        self.data.swifter.apply(func=lambda arg: self._download(*arg, mp3_directory), axis=1, raw=True)
+        self.data.swifter.apply(
+            func=lambda arg: self._download(*arg, mp3_directory), axis=1, raw=True
+        )
         return mp3_directory
 
     def _pre_download(self):
@@ -158,6 +167,7 @@ class GramVaaniDownloader:
         else:
             _logger.debug("Already downloaded mp3 file...%s", audio_url)
 
+
 class GramVaaniConverter:
     """GramVaaniConverter converts the mp3's to wav's for a GramVaani dataset.
     Args:
@@ -178,15 +188,26 @@ class GramVaaniConverter:
           wav_directory (os.path): The directory into which the associated wav's were downloaded
         """
         wav_directory = self._pre_convert()
-        for mp3_filename in self.mp3_directory.glob('**/*.mp3'):
-            wav_filename = os.path.join(wav_directory, os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav")
+        for mp3_filename in self.mp3_directory.glob("**/*.mp3"):
+            wav_filename = os.path.join(
+                wav_directory,
+                os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav",
+            )
             if not os.path.exists(wav_filename):
-                _logger.debug("Converting mp3 file %s to wav file %s" % (mp3_filename, wav_filename))
+                _logger.debug(
+                    "Converting mp3 file %s to wav file %s"
+                    % (mp3_filename, wav_filename)
+                )
                 transformer = Transformer()
-                transformer.convert(samplerate=SAMPLE_RATE, n_channels=N_CHANNELS, bitdepth=BITDEPTH)
+                transformer.convert(
+                    samplerate=SAMPLE_RATE, n_channels=N_CHANNELS, bitdepth=BITDEPTH
+                )
                 transformer.build(str(mp3_filename), str(wav_filename))
             else:
-                _logger.debug("Already converted mp3 file %s to wav file %s" % (mp3_filename, wav_filename))
+                _logger.debug(
+                    "Already converted mp3 file %s to wav file %s"
+                    % (mp3_filename, wav_filename)
+                )
         return wav_directory
 
     def _pre_convert(self):
@@ -199,16 +220,21 @@ class GramVaaniConverter:
             os.mkdir(wav_directory)
         return wav_directory
 
+
 class GramVaaniDataSets:
     def __init__(self, target_dir, wav_directory, gram_vaani_csv):
         self.target_dir = target_dir
         self.wav_directory = wav_directory
         self.csv_data = gram_vaani_csv.data
-        self.raw = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
-        self.valid = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
-        self.train = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
-        self.dev = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
-        self.test = pd.DataFrame(columns=["wav_filename","wav_filesize","transcript"])
+        self.raw = pd.DataFrame(columns=["wav_filename", "wav_filesize", "transcript"])
+        self.valid = pd.DataFrame(
+            columns=["wav_filename", "wav_filesize", "transcript"]
+        )
+        self.train = pd.DataFrame(
+            columns=["wav_filename", "wav_filesize", "transcript"]
+        )
+        self.dev = pd.DataFrame(columns=["wav_filename", "wav_filesize", "transcript"])
+        self.test = pd.DataFrame(columns=["wav_filename", "wav_filesize", "transcript"])
 
     def create(self):
         self._convert_csv_data_to_raw_data()
@@ -217,30 +243,45 @@ class GramVaaniDataSets:
         self.valid = self.valid.sample(frac=1).reset_index(drop=True)
         train_size, dev_size, test_size = self._calculate_data_set_sizes()
         self.train = self.valid.loc[0:train_size]
-        self.dev = self.valid.loc[train_size:train_size+dev_size]
-        self.test = self.valid.loc[train_size+dev_size:train_size+dev_size+test_size]
+        self.dev = self.valid.loc[train_size : train_size + dev_size]
+        self.test = self.valid.loc[
+            train_size + dev_size : train_size + dev_size + test_size
+        ]
 
     def _convert_csv_data_to_raw_data(self):
-        self.raw[["wav_filename","wav_filesize","transcript"]] = self.csv_data[
-            ["audio_url","transcript","audio_length"]
-        ].swifter.apply(func=lambda arg: self._convert_csv_data_to_raw_data_impl(*arg), axis=1, raw=True)
+        self.raw[["wav_filename", "wav_filesize", "transcript"]] = self.csv_data[
+            ["audio_url", "transcript", "audio_length"]
+        ].swifter.apply(
+            func=lambda arg: self._convert_csv_data_to_raw_data_impl(*arg),
+            axis=1,
+            raw=True,
+        )
         self.raw.reset_index()
 
     def _convert_csv_data_to_raw_data_impl(self, audio_url, transcript, audio_length):
         if audio_url == "audio_url":
             return pd.Series(["wav_filename", "wav_filesize", "transcript"])
         mp3_filename = os.path.basename(audio_url)
-        wav_relative_filename = os.path.join("wav", os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav")
-        wav_filesize = os.path.getsize(os.path.join(self.target_dir, wav_relative_filename))
+        wav_relative_filename = os.path.join(
+            "wav", os.path.splitext(os.path.basename(mp3_filename))[0] + ".wav"
+        )
+        wav_filesize = os.path.getsize(
+            os.path.join(self.target_dir, wav_relative_filename)
+        )
         transcript = validate_label(transcript)
         if None == transcript:
             transcript = ""
-        return pd.Series([wav_relative_filename, wav_filesize, transcript]) 
+        return pd.Series([wav_relative_filename, wav_filesize, transcript])
 
     def _is_valid_raw_rows(self):
         is_valid_raw_transcripts = self._is_valid_raw_transcripts()
         is_valid_raw_wav_frames = self._is_valid_raw_wav_frames()
-        is_valid_raw_row = [(is_valid_raw_transcript & is_valid_raw_wav_frame) for is_valid_raw_transcript, is_valid_raw_wav_frame in zip(is_valid_raw_transcripts, is_valid_raw_wav_frames)]
+        is_valid_raw_row = [
+            (is_valid_raw_transcript & is_valid_raw_wav_frame)
+            for is_valid_raw_transcript, is_valid_raw_wav_frame in zip(
+                is_valid_raw_transcripts, is_valid_raw_wav_frames
+            )
+        ]
         series = pd.Series(is_valid_raw_row)
         return series
 
@@ -249,16 +290,29 @@ class GramVaaniDataSets:
 
     def _is_valid_raw_wav_frames(self):
         transcripts = [str(transcript) for transcript in self.raw.transcript]
-        wav_filepaths = [os.path.join(self.target_dir, str(wav_filename)) for wav_filename in self.raw.wav_filename]
-        wav_frames = [int(subprocess.check_output(['soxi', '-s', wav_filepath], stderr=subprocess.STDOUT)) for wav_filepath in wav_filepaths]
-        is_valid_raw_wav_frames = [self._is_wav_frame_valid(wav_frame, transcript) for wav_frame, transcript in zip(wav_frames, transcripts)]
+        wav_filepaths = [
+            os.path.join(self.target_dir, str(wav_filename))
+            for wav_filename in self.raw.wav_filename
+        ]
+        wav_frames = [
+            int(
+                subprocess.check_output(
+                    ["soxi", "-s", wav_filepath], stderr=subprocess.STDOUT
+                )
+            )
+            for wav_filepath in wav_filepaths
+        ]
+        is_valid_raw_wav_frames = [
+            self._is_wav_frame_valid(wav_frame, transcript)
+            for wav_frame, transcript in zip(wav_frames, transcripts)
+        ]
         return pd.Series(is_valid_raw_wav_frames)
 
     def _is_wav_frame_valid(self, wav_frame, transcript):
         is_wav_frame_valid = True
-        if int(wav_frame/SAMPLE_RATE*1000/10/2) < len(str(transcript)):
+        if int(wav_frame / SAMPLE_RATE * 1000 / 10 / 2) < len(str(transcript)):
             is_wav_frame_valid = False
-        elif wav_frame/SAMPLE_RATE > MAX_SECS:
+        elif wav_frame / SAMPLE_RATE > MAX_SECS:
             is_wav_frame_valid = False
         return is_wav_frame_valid
 
@@ -277,7 +331,14 @@ class GramVaaniDataSets:
     def _save(self, dataset):
         dataset_path = os.path.join(self.target_dir, dataset + ".csv")
         dataframe = getattr(self, dataset)
-        dataframe.to_csv(dataset_path, index=False, encoding="utf-8", escapechar='\\', quoting=csv.QUOTE_MINIMAL)
+        dataframe.to_csv(
+            dataset_path,
+            index=False,
+            encoding="utf-8",
+            escapechar="\\",
+            quoting=csv.QUOTE_MINIMAL,
+        )
+
 
 def main(args):
     """Main entry point allowing external calls
@@ -300,5 +361,6 @@ def main(args):
     datasets.create()
     datasets.save()
     _logger.info("Finished GramVaani importer...")
+
 
 main(sys.argv[1:])

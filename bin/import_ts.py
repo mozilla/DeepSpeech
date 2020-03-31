@@ -18,26 +18,32 @@ from deepspeech_training.util.importers import (
     get_imported_samples,
     get_importers_parser,
     get_validate_label,
-    print_import_report
+    print_import_report,
 )
 
-FIELDNAMES = ['wav_filename', 'wav_filesize', 'transcript']
+FIELDNAMES = ["wav_filename", "wav_filesize", "transcript"]
 SAMPLE_RATE = 16000
 MAX_SECS = 15
-ARCHIVE_NAME = '2019-04-11_fr_FR'
-ARCHIVE_DIR_NAME = 'ts_' + ARCHIVE_NAME
-ARCHIVE_URL = 'https://deepspeech-storage-mirror.s3.fr-par.scw.cloud/' + ARCHIVE_NAME + '.zip'
+ARCHIVE_NAME = "2019-04-11_fr_FR"
+ARCHIVE_DIR_NAME = "ts_" + ARCHIVE_NAME
+ARCHIVE_URL = (
+    "https://deepspeech-storage-mirror.s3.fr-par.scw.cloud/" + ARCHIVE_NAME + ".zip"
+)
 
 
 def _download_and_preprocess_data(target_dir, english_compatible=False):
     # Making path absolute
     target_dir = os.path.abspath(target_dir)
     # Conditionally download data
-    archive_path = maybe_download('ts_' + ARCHIVE_NAME + '.zip', target_dir, ARCHIVE_URL)
+    archive_path = maybe_download(
+        "ts_" + ARCHIVE_NAME + ".zip", target_dir, ARCHIVE_URL
+    )
     # Conditionally extract archive data
     _maybe_extract(target_dir, ARCHIVE_DIR_NAME, archive_path)
     # Conditionally convert TrainingSpeech data to DeepSpeech CSVs and wav
-    _maybe_convert_sets(target_dir, ARCHIVE_DIR_NAME, english_compatible=english_compatible)
+    _maybe_convert_sets(
+        target_dir, ARCHIVE_DIR_NAME, english_compatible=english_compatible
+    )
 
 
 def _maybe_extract(target_dir, extracted_data, archive_path):
@@ -55,7 +61,7 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
 
 def one_sample(sample):
     """ Take a audio file, and optionally convert it to 16kHz WAV """
-    orig_filename = sample['path']
+    orig_filename = sample["path"]
     # Storing wav files next to the wav ones - just with a different suffix
     wav_filename = os.path.splitext(orig_filename)[0] + ".converted.wav"
     _maybe_convert_wav(orig_filename, wav_filename)
@@ -63,8 +69,12 @@ def one_sample(sample):
     frames = 0
     if os.path.exists(wav_filename):
         file_size = os.path.getsize(wav_filename)
-        frames = int(subprocess.check_output(['soxi', '-s', wav_filename], stderr=subprocess.STDOUT))
-    label = sample['text']
+        frames = int(
+            subprocess.check_output(
+                ["soxi", "-s", wav_filename], stderr=subprocess.STDOUT
+            )
+        )
+    label = sample["text"]
 
     rows = []
 
@@ -72,21 +82,21 @@ def one_sample(sample):
     counter = get_counter()
     if file_size == -1:
         # Excluding samples that failed upon conversion
-        counter['failed'] += 1
+        counter["failed"] += 1
     elif label is None:
         # Excluding samples that failed on label validation
-        counter['invalid_label'] += 1
-    elif int(frames/SAMPLE_RATE*1000/10/2) < len(str(label)):
+        counter["invalid_label"] += 1
+    elif int(frames / SAMPLE_RATE * 1000 / 10 / 2) < len(str(label)):
         # Excluding samples that are too short to fit the transcript
-        counter['too_short'] += 1
-    elif frames/SAMPLE_RATE > MAX_SECS:
+        counter["too_short"] += 1
+    elif frames / SAMPLE_RATE > MAX_SECS:
         # Excluding very long samples to keep a reasonable batch-size
-        counter['too_long'] += 1
+        counter["too_long"] += 1
     else:
         # This one is good - keep it for the target CSV
         rows.append((wav_filename, file_size, label))
-    counter['all'] += 1
-    counter['total_time'] += frames
+    counter["all"] += 1
+    counter["total_time"] += frames
 
     return (counter, rows)
 
@@ -94,18 +104,19 @@ def one_sample(sample):
 def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
     extracted_dir = os.path.join(target_dir, extracted_data)
     # override existing CSV with normalized one
-    target_csv_template = os.path.join(target_dir, 'ts_' + ARCHIVE_NAME + '_{}.csv')
+    target_csv_template = os.path.join(target_dir, "ts_" + ARCHIVE_NAME + "_{}.csv")
     if os.path.isfile(target_csv_template):
         return
-    path_to_original_csv = os.path.join(extracted_dir, 'data.csv')
+    path_to_original_csv = os.path.join(extracted_dir, "data.csv")
     with open(path_to_original_csv) as csv_f:
         data = [
-            d for d in csv.DictReader(csv_f, delimiter=',')
-            if float(d['duration']) <= MAX_SECS
+            d
+            for d in csv.DictReader(csv_f, delimiter=",")
+            if float(d["duration"]) <= MAX_SECS
         ]
 
     for line in data:
-        line['path'] = os.path.join(extracted_dir, line['path'])
+        line["path"] = os.path.join(extracted_dir, line["path"])
 
     num_samples = len(data)
     rows = []
@@ -122,9 +133,9 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
     pool.close()
     pool.join()
 
-    with open(target_csv_template.format('train'), 'w') as train_csv_file:  # 80%
-        with open(target_csv_template.format('dev'), 'w') as dev_csv_file:  # 10%
-            with open(target_csv_template.format('test'), 'w') as test_csv_file:  # 10%
+    with open(target_csv_template.format("train"), "w") as train_csv_file:  # 80%
+        with open(target_csv_template.format("dev"), "w") as dev_csv_file:  # 10%
+            with open(target_csv_template.format("test"), "w") as test_csv_file:  # 10%
                 train_writer = csv.DictWriter(train_csv_file, fieldnames=FIELDNAMES)
                 train_writer.writeheader()
                 dev_writer = csv.DictWriter(dev_csv_file, fieldnames=FIELDNAMES)
@@ -133,7 +144,11 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
                 test_writer.writeheader()
 
                 for i, item in enumerate(rows):
-                    transcript = validate_label(cleanup_transcript(item[2], english_compatible=english_compatible))
+                    transcript = validate_label(
+                        cleanup_transcript(
+                            item[2], english_compatible=english_compatible
+                        )
+                    )
                     if not transcript:
                         continue
                     wav_filename = os.path.join(target_dir, extracted_data, item[0])
@@ -144,17 +159,20 @@ def _maybe_convert_sets(target_dir, extracted_data, english_compatible=False):
                         writer = dev_writer
                     else:
                         writer = train_writer
-                    writer.writerow(dict(
-                        wav_filename=wav_filename,
-                        wav_filesize=os.path.getsize(wav_filename),
-                        transcript=transcript,
-                    ))
+                    writer.writerow(
+                        dict(
+                            wav_filename=wav_filename,
+                            wav_filesize=os.path.getsize(wav_filename),
+                            transcript=transcript,
+                        )
+                    )
 
     imported_samples = get_imported_samples(counter)
-    assert counter['all'] == num_samples
+    assert counter["all"] == num_samples
     assert len(rows) == imported_samples
 
     print_import_report(counter, SAMPLE_RATE, MAX_SECS)
+
 
 def _maybe_convert_wav(orig_filename, wav_filename):
     if not os.path.exists(wav_filename):
@@ -163,26 +181,31 @@ def _maybe_convert_wav(orig_filename, wav_filename):
         try:
             transformer.build(orig_filename, wav_filename)
         except sox.core.SoxError as ex:
-            print('SoX processing error', ex, orig_filename, wav_filename)
+            print("SoX processing error", ex, orig_filename, wav_filename)
 
 
 PUNCTUATIONS_REG = re.compile(r"[°\-,;!?.()\[\]*…—]")
-MULTIPLE_SPACES_REG = re.compile(r'\s{2,}')
+MULTIPLE_SPACES_REG = re.compile(r"\s{2,}")
 
 
 def cleanup_transcript(text, english_compatible=False):
-    text = text.replace('’', "'").replace('\u00A0', ' ')
-    text = PUNCTUATIONS_REG.sub(' ', text)
-    text = MULTIPLE_SPACES_REG.sub(' ', text)
+    text = text.replace("’", "'").replace("\u00A0", " ")
+    text = PUNCTUATIONS_REG.sub(" ", text)
+    text = MULTIPLE_SPACES_REG.sub(" ", text)
     if english_compatible:
         text = unidecode.unidecode(text)
     return text.strip().lower()
 
 
 def handle_args():
-    parser = get_importers_parser(description='Importer for TrainingSpeech dataset.')
-    parser.add_argument(dest='target_dir')
-    parser.add_argument('--english-compatible', action='store_true', dest='english_compatible', help='Remove diactrics and other non-ascii chars.')
+    parser = get_importers_parser(description="Importer for TrainingSpeech dataset.")
+    parser.add_argument(dest="target_dir")
+    parser.add_argument(
+        "--english-compatible",
+        action="store_true",
+        dest="english_compatible",
+        help="Remove diactrics and other non-ascii chars.",
+    )
     return parser.parse_args()
 
 

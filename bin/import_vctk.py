@@ -17,7 +17,7 @@ from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
 from deepspeech_training.util.importers import (
     get_counter,
     get_imported_samples,
-    print_import_report
+    print_import_report,
 )
 
 SAMPLE_RATE = 16000
@@ -62,7 +62,9 @@ def _maybe_convert_sets(target_dir, extracted_data):
     all_samples = []
 
     for target in sorted(os.listdir(directory)):
-        all_samples += _maybe_prepare_set(path.join(extracted_dir, os.path.split(target)[-1]))
+        all_samples += _maybe_prepare_set(
+            path.join(extracted_dir, os.path.split(target)[-1])
+        )
 
     num_samples = len(all_samples)
     print(f"Converting wav files to {SAMPLE_RATE}hz...")
@@ -75,6 +77,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
     pool.join()
 
     _write_csv(extracted_dir, txt_dir, target_dir)
+
 
 def one_sample(sample):
     if is_audio_file(sample):
@@ -97,6 +100,7 @@ def _maybe_prepare_set(target_csv):
         new_samples.append(os.path.join(target_csv, s))
     samples = new_samples
     return samples
+
 
 def _write_csv(extracted_dir, txt_dir, target_dir):
     print(f"Writing CSV file")
@@ -192,7 +196,9 @@ AUDIO_EXTENSIONS = [".wav", "WAV"]
 
 
 def is_audio_file(filepath):
-    return any(os.path.basename(filepath).endswith(extension) for extension in AUDIO_EXTENSIONS)
+    return any(
+        os.path.basename(filepath).endswith(extension) for extension in AUDIO_EXTENSIONS
+    )
 
 
 if __name__ == "__main__":
