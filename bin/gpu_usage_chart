@@ -1,5 +1,0 @@
-#!/usr/bin/env python
-from deepspeech_training.util.gpu_usage import GPUUsage
-
-gu = GPUUsage()
-gu.start()
