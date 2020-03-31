@@ -141,6 +141,18 @@ Feel also free to pass additional (or overriding) ``DeepSpeech.py`` parameters t
 
 Each dataset has a corresponding importer script in ``bin/`` that can be used to download (if it's freely available) and preprocess the dataset. See ``bin/import_librivox.py`` for an example of how to import and preprocess a large dataset for training with DeepSpeech.
 
+Some importers might require additional code to properly handled your locale-specific requirements. Such handling is dealt with ``--validate_label_locale`` flag that allows you to source out-of-tree Python script that defines a ``validate_label`` function. Please refer to ``util/importers.py`` for implementation example of that function.
+If you don't provide this argument, the default ``validate_label`` function will be used. This one is only intended for English language, so you might have consistency issues in your data for other languages.
+
+For example, in order to use a custom validation function that disallows any sample with "a" in its transcript, and lower cases everything else, you could put the following code in a file called ``my_validation.py`` and then use ``--validate_label_locale my_validation.py``:
+
+.. code-block:: python
+
+  def validate_label(label):
+      if 'a' in label: # disallow labels with 'a'
+          return None
+      return label.lower() # lower case valid labels
+
 If you've run the old importers (in ``util/importers/``\ ), they could have removed source files that are needed for the new importers to run. In that case, simply remove the extracted folders and let the importer extract and process the dataset from scratch, and things should work.
 
 Training with automatic mixed precision
