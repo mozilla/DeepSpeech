@@ -1,4 +1,6 @@
 import argparse
+import gzip
+import io
 import os
 import subprocess
 from collections import Counter
@@ -10,11 +12,13 @@ def convert_and_filter_topk(args):
     """ Convert to lowercase, count word occurrences and save top-k words to a file """
 
     counter = Counter()
-    data_lower = os.path.join(args.output_dir, "lower.txt")
+    data_lower = os.path.join(args.output_dir, "lower.txt.gz")
 
     print("\nConverting to lowercase and counting word occurrences ...")
-    with open(data_lower, "w+", encoding="utf8") as file_out:
-        with open(args.input_txt, encoding="utf8") as file_in:
+    with io.TextIOWrapper(
+        io.BufferedWriter(gzip.open(data_lower, "w+")), encoding="utf-8"
+    ) as file_out:
+        with open(args.input_txt, encoding="utf-8") as file_in:
             for line in progressbar.progressbar(file_in):
                 line_lower = line.lower()
                 counter.update(line_lower.split())
@@ -127,7 +131,7 @@ def main():
     )
     parser.add_argument(
         "--top_k",
-        help="Use top_k most frequent words for the vocab.txt file",
+        help="Use top_k most frequent words for the vocab.txt file. These will be used to filter the ARPA file.",
         type=int,
         default=500000,
     )
@@ -151,7 +155,7 @@ def main():
     )
     parser.add_argument(
         "--arpa_prune",
-        help='ARPA pruning parameters. Separate values with "|"',
+        help="ARPA pruning parameters. Separate values with '|'",
         type=str,
         default="0|0|1",
     )
