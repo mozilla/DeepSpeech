@@ -46,21 +46,14 @@ Install the required dependencies using ``pip3``\ :
 .. code-block:: bash
 
    cd DeepSpeech
-   pip3 install -e .
+   pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
+   pip3 install --upgrade --force-reinstall -e .
 
 The ``webrtcvad`` Python package might require you to ensure you have proper tooling to build Python modules:
 
 .. code-block:: bash
 
    sudo apt-get install python3-dev
-
-You'll also need to install the ``ds_ctcdecoder`` Python package. ``ds_ctcdecoder`` is required for decoding the outputs of the ``deepspeech`` acoustic model into text. You can use ``util/taskcluster.py`` with the ``--decoder`` flag to get a URL to a binary of the decoder package appropriate for your platform and Python version:
-
-.. code-block:: bash
-
-   pip3 install $(python3 util/taskcluster.py --decoder)
-
-This command will download and install the ``ds_ctcdecoder`` package. You can override the platform with ``--arch`` if you want the package for ARM7 (\ ``--arch arm``\ ) or ARM64 (\ ``--arch arm64``\ ). If you prefer building the ``ds_ctcdecoder`` package from source, see the :github:`native_client README file <native_client/README.rst>`.
 
 Recommendations
 ^^^^^^^^^^^^^^^
