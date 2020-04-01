@@ -46,7 +46,7 @@ Install the required dependencies using ``pip3``\ :
 .. code-block:: bash
 
    cd DeepSpeech
-   pip3 install --upgrade pip wheel setuptools
+   pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
    pip3 install --upgrade --force-reinstall -e .
 
 The ``webrtcvad`` Python package might require you to ensure you have proper tooling to build Python modules:
