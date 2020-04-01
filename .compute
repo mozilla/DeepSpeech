@@ -8,11 +8,9 @@ python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 
 pip install -U setuptools wheel pip
-pip install -r <(grep -v tensorflow requirements.txt)
+pip install .
+pip uninstall -y tensorflow
 pip install tensorflow-gpu==1.14
-
-# Install ds_ctcdecoder package from TaskCluster
-pip install $(python3 util/taskcluster.py --decoder)
 
 mkdir -p ../keep/summaries
 
