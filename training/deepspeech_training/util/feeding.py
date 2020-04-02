@@ -122,7 +122,7 @@ def create_dataset(sources,
                                          process_ahead=2 * batch_size if process_ahead is None else process_ahead):
             transcript = text_to_char_array(sample.transcript, Config.alphabet, context=sample.sample_id)
             transcript = to_sparse_tuple(transcript)
-            yield sample.sample_id, sample.audio, sample.audio_format[0], transcript
+            yield sample.sample_id, sample.audio, sample.audio_format.rate, transcript
 
     # Batching a dataset of 2D SparseTensors creates 3D batches, which fail
     # when passed to tf.nn.ctc_loss, so we reshape them to remove the extra
@@ -167,7 +167,7 @@ def split_audio_file(audio_path,
             yield time_start, time_end, samples
 
     def to_mfccs(time_start, time_end, samples):
-        features, features_len = samples_to_mfccs(samples, audio_format[0])
+        features, features_len = samples_to_mfccs(samples, audio_format.rate)
         return time_start, time_end, features, features_len
 
     def create_batch_set(bs, criteria):
