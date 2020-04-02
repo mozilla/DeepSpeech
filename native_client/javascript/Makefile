@@ -42,7 +42,8 @@ node-wrapper: copy-deps build
 	$(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DIST_URL) package $(NODE_BUILD_VERBOSE)
 
 npm-pack: clean package.json index.js
-	npm install node-pre-gyp@0.14.x
+	npm install --prefix=${NPM_ROOT} node-pre-gyp@0.14.x typescript@3.6.2 @types/argparse@1.0.38
+	${NPM_ROOT}/.bin/tsc --outDir dist/ client.ts || true
 	npm pack $(NODE_BUILD_VERBOSE)
 
 deepspeech_wrap.cxx: deepspeech.i

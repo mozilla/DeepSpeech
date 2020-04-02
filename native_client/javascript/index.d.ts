@@ -1,4 +1,3 @@
-declare module 'deepspeech' {
 /**
  * Stores text of an individual token, along with its timing information
  */
@@ -195,4 +194,3 @@ export function FreeStream(stream: object): void;
  * Print version of this library and of the linked TensorFlow library on standard output.
  */
 export function Version(): void;
-}
