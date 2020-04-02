@@ -53,7 +53,7 @@ ModelState::decode_metadata(const DecoderState& state,
         strdup(alphabet_.StringFromLabel(out[i].tokens[j]).c_str()),   // text
         static_cast<unsigned int>(out[i].timesteps[j]),                // timestep
         out[i].timesteps[j] * ((float)audio_win_step_ / sample_rate_), // start_time
-        static_cast<float>(out[i].probabilities[j]) // probability
+        static_cast<float>(std::exp(out[i].logprobs[j]))               // probability
       };
       memcpy(&tokens[j], &token, sizeof(TokenMetadata));
     }
