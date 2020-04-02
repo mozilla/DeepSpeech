@@ -39,7 +39,11 @@
       "node-wav": "0.0.2"
     },
     "devDependencies": {
-      "electron": "^1.7.9"
+      "electron": "^1.7.9",
+      "node-gyp": "4.x - 5.x",
+      "typescript": "3.6.x",
+      "@types/argparse": "1.0.x",
+      "@types/node": "13.9.x"
     },
     "scripts": {
         "test": "node index.js"
