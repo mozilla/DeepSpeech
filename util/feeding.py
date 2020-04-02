@@ -130,7 +130,7 @@ def to_sparse_tuple(sequence):
 
 def create_dataset(csvs, batch_size, enable_cache=False, cache_path=None, train_phase=False, noise_sources=None, speech_sources=None):
     df = read_csvs(csvs)
-    df.sort_values(by='wav_filesize', inplace=True)
+    #df.sort_values(by='wav_filesize', inplace=True)
 
     df['transcript'] = df.apply(text_to_char_array, alphabet=Config.alphabet, result_type='reduce', axis=1)
 
