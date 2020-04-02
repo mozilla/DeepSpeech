@@ -207,9 +207,14 @@ Producing a mmap-able model is as simple as:
 Upon sucessfull run, it should report about conversion of a non-zero number of nodes. If it reports converting ``0`` nodes, something is wrong: make sure your model is a frozen one, and that you have not applied any incompatible changes (this includes ``quantize_weights``\ ).
 
 Continuing training from a release model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
 
-If you'd like to use one of the pre-trained models released by Mozilla to bootstrap your training process (transfer learning, fine tuning), you can do so by using the ``--checkpoint_dir`` flag in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
+There are two easy ways to make use of a pre-trained DeepSpeech model: fine-tuning or transfer-learning. Choosing which one to use depends on your target dataset, and it's simple decision. Does your data use the same alphabet as the release model? If you are using the same alphabet as an English release model (i.e. `a-z` plus `'`) then the output layer will match your data, and you can fine-tune the existing parameters. However, if you want to use a new alphabet (e.g. Cyrillic `а`, `б`, `д`), the output layer of DeepSpeech will *not* match your data. In this case, you should use transfer-learing (i.e. remove the output layer, and reinitialize a new output layer that matches your target character set.
+
+Fine-Tuning (same alphabet)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you'd like to use one of the pre-trained models released by Mozilla to bootstrap your training process (fine tuning), you can do so by using the ``--checkpoint_dir`` flag in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
 
 For example, if you want to fine tune the entire graph using your own data in ``my-train.csv``\ , ``my-dev.csv`` and ``my-test.csv``\ , for three epochs, you can something like the following, tuning the hyperparameters as needed:
 
@@ -224,6 +229,26 @@ Note: the released models were trained with ``--n_hidden 2048``\ , so you need t
 
    Key cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/bias/Adam not found in checkpoint
 
+
+Transfer-Learning (new alphabet)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want to train a DeepSpeech model for a new language, or if you just want to add new characters to your custom English model, you will have to use transfer-learning. Transfer-learning for DeepSpeech works by removing the output layer (any optionally more layers) of a pre-trained model and reinitializing parameters to fit the target alphabet. The simplest case of transfer-learning is when you remove just the output layer.
+
+To use transfer-learning, you need to specify the location of the pre-trained model with ``--load_checkpoint_dir`` and define where your new model checkpoints will be saved with ``--save_checkpoint_dir``. Now, you need to specify how many layers to remove (aka "drop") from the pre-trained model: ``--drop_source_layers``. You also need to supply a new alphabet file using the standard ``--alphabet_config_path``.  in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
+
+.. code-block:: bash
+
+       python3 DeepSpeech.py \
+           --drop_source_layers 1 \
+           --alphabet_config_path my-new-language-alphabet.txt \
+           --save_checkpoint_dir path/to/output-checkpoint/folder \
+           --load_checkpoint_dir path/to/release-checkpoint/folder \
+           --train_files   my-new-language-train.csv \
+           --dev_files   my-new-language-dev.csv \
+           --test_files  my-new-language-test.csv
+.. code-block::
+   
 UTF-8 mode
 ^^^^^^^^^^
 
