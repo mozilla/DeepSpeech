@@ -144,10 +144,15 @@ def main(_):
                     fail('Missing destination directory')
         elif os.path.isdir(src_path):
             # Transcribe all files in dir
+            print("Transcribing all WAV files in --src")
             if FLAGS.dst:
                 fail('Destination file not supported for batch decoding jobs.')
             else:
-                wav_paths = glob.glob(src_path + "/*.wav")
+                if not FLAGS.recursive:
+                    print("If you wish to recursively scan --src, then you must use --recursive")
+                    wav_paths = glob.glob(src_path + "/*.wav")
+                else:
+                    wav_paths = glob.glob(src_path + "/**/*.wav")
                 transcribe_many(wav_paths, 'dir')
 
 
@@ -161,6 +166,7 @@ if __name__ == '__main__':
     tf.app.flags.DEFINE_string('dst', '', 'Path for writing the transcription log or logs (.tlog). '
                                           'If --src is a directory, this one also has to be a directory '
                                           'and the required sub-dir tree of --src will get replicated.')
+    tf.app.flags.DEFINE_boolean('recursive', False, 'scan dir of audio recursively')
     tf.app.flags.DEFINE_boolean('force', False, 'Forces re-transcribing and overwriting of already existing '
                                                 'transcription logs (.tlog)')
     tf.app.flags.DEFINE_integer('vad_aggressiveness', 3, 'How aggressive (0=lowest, 3=highest) the VAD should '
