@@ -256,6 +256,10 @@ You need to specify the location of the pre-trained model with ``--load_checkpoi
            --dev_files   my-new-language-dev.csv \
            --test_files  my-new-language-test.csv
 
+
+UTF-8 mode
+^^^^^^^^^^
+
 DeepSpeech includes a UTF-8 operating mode which can be useful to model languages with very large alphabets, such as Chinese Mandarin. For details on how it works and how to use it, see :ref:`decoder-docs`.
 
 Training with augmentation
