@@ -79,7 +79,7 @@ def build_lm(args, data_lower, vocab_str):
     lm_path = os.path.join(args.output_dir, "lm.arpa")
     subprocess.check_call(
         [
-            args.kenlm_bins + "lmplz",
+            os.path.join(args.kenlm_bins, "lmplz"),
             "--order",
             str(args.arpa_order),
             "--temp_prefix",
@@ -95,12 +95,12 @@ def build_lm(args, data_lower, vocab_str):
         ]
     )
 
-    # Filter LM using vocabulary of top 500k words
+    # Filter LM using vocabulary of top-k words
     print("\nFiltering ARPA file using vocabulary of top-k words ...")
     filtered_path = os.path.join(args.output_dir, "lm_filtered.arpa")
     subprocess.run(
         [
-            args.kenlm_bins + "filter",
+            os.path.join(args.kenlm_bins, "filter"),
             "single",
             "model:{}".format(lm_path),
             filtered_path,
@@ -114,7 +114,7 @@ def build_lm(args, data_lower, vocab_str):
     binary_path = os.path.join(args.output_dir, "lm.binary")
     subprocess.check_call(
         [
-            args.kenlm_bins + "build_binary",
+            os.path.join(args.kenlm_bins, "build_binary"),
             "-a",
             str(args.binary_a_bits),
             "-q",
