@@ -209,7 +209,11 @@ Upon sucessfull run, it should report about conversion of a non-zero number of n
 Continuing training from a release model
 ----------------------------------------
 
-There are two easy ways to make use of a pre-trained DeepSpeech model: fine-tuning or transfer-learning. Choosing which one to use depends on your target dataset, and it's simple decision. Does your data use the same alphabet as the release model? If you are using the same alphabet as an English release model (i.e. `a-z` plus `'`) then the output layer will match your data, and you can fine-tune the existing parameters. However, if you want to use a new alphabet (e.g. Cyrillic `а`, `б`, `д`), the output layer of DeepSpeech will *not* match your data. In this case, you should use transfer-learing (i.e. remove the output layer, and reinitialize a new output layer that matches your target character set.
+There are two easy ways to make use of a pre-trained DeepSpeech model: fine-tuning or transfer-learning. Choosing which one to use is a simple decision, and it depends on your target dataset. Does your data use the same alphabet as the release model? If "Yes": fine-tune. If "No" use transfer-learning.
+
+If your own data uses the *extact* same alphabet as the English release model (i.e. `a-z` plus `'`) then the release model's output layer will match your data, and you can just fine-tune the existing parameters. However, if you want to use a new alphabet (e.g. Cyrillic `а`, `б`, `д`), the output layer of a release DeepSpeech model will *not* match your data. In this case, you should use transfer-learing (i.e. remove the output layer, and reinitialize a new output layer that matches your target character set.
+
+N.B. - If you have access to a pre-trained model which uses UTF-8 bytes at the output layer, you can always fine-tune, because no matter what your alphabet should be encodable as UTF-8.
 
 Fine-Tuning (same alphabet)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -233,9 +237,13 @@ Note: the released models were trained with ``--n_hidden 2048``\ , so you need t
 Transfer-Learning (new alphabet)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to train a DeepSpeech model for a new language, or if you just want to add new characters to your custom English model, you will have to use transfer-learning. Transfer-learning for DeepSpeech works by removing the output layer (any optionally more layers) of a pre-trained model and reinitializing parameters to fit the target alphabet. The simplest case of transfer-learning is when you remove just the output layer.
+If you want to train a DeepSpeech model for a new language, or if you just want to add new characters to your custom English model, you will have to use transfer-learning.
 
-To use transfer-learning, you need to specify the location of the pre-trained model with ``--load_checkpoint_dir`` and define where your new model checkpoints will be saved with ``--save_checkpoint_dir``. Now, you need to specify how many layers to remove (aka "drop") from the pre-trained model: ``--drop_source_layers``. You also need to supply a new alphabet file using the standard ``--alphabet_config_path``.  in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
+In a nutshell, DeepSpeech's transfer-learning allows you to copy certain layers from a pre-trained model, initialize new layers for your target data, stitched together the old and new layers, and update all layers via gradient descent. You will remove the pre-trained output layer (and optionally more layers) and reinitializing parameters to fit your target alphabet. The simplest case of transfer-learning is when you remove just the output layer.
+
+In DeepSpeech's implementation, all removed layers are contiguous, starting from the output layer. The key flag you will want to experiment with is ``--drop_source_layers``. This flag accepts an integer from ``1`` to ``5`` and allows you to specify how many layers you want to remove from the pre-trained model. For example, if you supplied ``--drop_source_layers 3``, you will drop the output layer, penultimate layer, and LSTM layer from your pre-trained model. All those layers will be reinintialized, and crucially the output layer will be defined to match your supplied target alphabet.
+
+You need to specify the location of the pre-trained model with ``--load_checkpoint_dir`` and define where your new model checkpoints will be saved with ``--save_checkpoint_dir``. You need to specify how many layers to remove (aka "drop") from the pre-trained model: ``--drop_source_layers``. You also need to supply your new alphabet file using the standard ``--alphabet_config_path`` (remember, using a new alphabet is the whole reason you want to use transfer-learning).
 
 .. code-block:: bash
 
@@ -247,8 +255,7 @@ To use transfer-learning, you need to specify the location of the pre-trained mo
            --train_files   my-new-language-train.csv \
            --dev_files   my-new-language-dev.csv \
            --test_files  my-new-language-test.csv
-.. code-block::
-   
+
 UTF-8 mode
 ^^^^^^^^^^
 
