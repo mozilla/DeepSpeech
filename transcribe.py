@@ -76,20 +76,13 @@ def transcribe_file(audio_path, tlog_path):
                 json.dump(transcripts, tlog_file, default=float)
 
 
-def transcribe_many(paths, kind):
-    pbar = create_progressbar(prefix='Transcribing files | ', max_value=len(paths)).start()
-    if kind == 'dir':
-        # the user pointed to a dir of files
-        src_paths = paths
-        dst_paths = [ path.replace('.wav','.tlog') for path in paths ]
-    elif kind == 'catalog':
-        # the user pointed to a catalog dir from DSAlign
-        src_paths,dst_paths = zip(*paths)
-    for i in range(len(paths)):
+def transcribe_many(src_paths,dst_paths):
+    pbar = create_progressbar(prefix='Transcribing files | ', max_value=len(src_paths)).start()
+    for i in range(len(src_paths)):
         p = Process(target=transcribe_file, args=(src_paths[i], dst_paths[i]))
         p.start()
         p.join()
-        log_progress('Transcribed file {} of {} from "{}" to "{}"'.format(i + 1, len(paths), src_paths[i], dst_paths[i]))
+        log_progress('Transcribed file {} of {} from "{}" to "{}"'.format(i + 1, len(src_paths), src_paths[i], dst_paths[i]))
         pbar.update(i)
     pbar.finish()
 
@@ -129,7 +122,8 @@ def main(_):
                     fail('Destination file(s) from catalog already existing, use --force for overwriting')
                 if any(map(lambda e: not os.path.isdir(os.path.dirname(e[1])), catalog_entries)):
                     fail('Missing destination directory for at least one catalog entry')
-                transcribe_many(catalog_entries, 'catalog')
+                src_paths,dst_paths = zip(*paths)
+                transcribe_many(src_paths,dst_paths)
             else:
                 # Transcribe one file
                 dst_path = os.path.abspath(FLAGS.dst) if FLAGS.dst else os.path.splitext(src_path)[0] + '.tlog'
@@ -153,7 +147,8 @@ def main(_):
                     wav_paths = glob.glob(src_path + "/*.wav")
                 else:
                     wav_paths = glob.glob(src_path + "/**/*.wav")
-                transcribe_many(wav_paths, 'dir')
+                dst_paths = [path.replace('.wav','.tlog') for path in wav_paths]
+                transcribe_many(wav_paths,dst_paths)
 
 
 if __name__ == '__main__':
