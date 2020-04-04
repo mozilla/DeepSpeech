@@ -29,7 +29,7 @@ def fail(message, code=1):
 
 def transcribe_file(audio_path, tlog_path):
     from deepspeech_training.train import create_model  # pylint: disable=cyclic-import,import-outside-toplevel
-    from deepspeech_training.util.checkpoints import load_or_init_graph
+    from deepspeech_training.util.checkpoints import load_graph
     initialize_globals()
     scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta, FLAGS.scorer_path, Config.alphabet)
     try:
@@ -54,7 +54,7 @@ def transcribe_file(audio_path, tlog_path):
                 method_order = ['best', 'last']
             else:
                 method_order = [FLAGS.load]
-            load_or_init_graph(session, method_order)
+            load_graph(session, method_order)
             session.run(iterator.make_initializer(data_set))
             transcripts = []
             while True:

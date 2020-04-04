@@ -6,7 +6,7 @@ from .flags import FLAGS
 from .logging import log_info, log_error, log_warn
 
 
-def _load_checkpoint(session, checkpoint_path):
+def _load_checkpoint(session, checkpoint_path, allow_drop_layers):
     # Load the checkpoint and put all variables into loading list
     # we will exclude variables we do not wish to load and then
     # we will initialize them instead
@@ -45,7 +45,7 @@ def _load_checkpoint(session, checkpoint_path):
                       'tensors. Missing variables: {}'.format(missing_var_names))
             sys.exit(1)
 
-    if FLAGS.drop_source_layers > 0:
+    if allow_drop_layers and FLAGS.drop_source_layers > 0:
         # This transfer learning approach requires supplying
         # the layers which we exclude from the source model.
         # Say we want to exclude all layers except for the first one,
@@ -87,7 +87,7 @@ def _initialize_all_variables(session):
         session.run(v.initializer)
 
 
-def load_or_init_graph(session, method_order):
+def load_or_init_graph_for_training(session, method_order, allow_drop_layers=True):
     '''
     Load variables from checkpoint or initialize variables following the method
     order specified in the method_order parameter.
@@ -100,7 +100,7 @@ def load_or_init_graph(session, method_order):
             ckpt_path = _checkpoint_path_or_none('best_dev_checkpoint')
             if ckpt_path:
                 log_info('Loading best validating checkpoint from {}'.format(ckpt_path))
-                return _load_checkpoint(session, ckpt_path)
+                return _load_checkpoint(session, ckpt_path, allow_drop_layers)
             log_info('Could not find best validating checkpoint.')
 
         # Load most recent checkpoint, saved in checkpoint file 'checkpoint'
@@ -108,7 +108,7 @@ def load_or_init_graph(session, method_order):
             ckpt_path = _checkpoint_path_or_none('checkpoint')
             if ckpt_path:
                 log_info('Loading most recent checkpoint from {}'.format(ckpt_path))
-                return _load_checkpoint(session, ckpt_path)
+                return _load_checkpoint(session, ckpt_path, allow_drop_layers)
             log_info('Could not find most recent checkpoint.')
 
         # Initialize all variables
@@ -122,3 +122,14 @@ def load_or_init_graph(session, method_order):
 
     log_error('All initialization methods failed ({}).'.format(method_order))
     sys.exit(1)
+
+
+def load_graph(session, method_order):
+    '''
+    Load variables from checkpoint. Initialization is not allowed. Follows the
+    method order specified in the method_order parameter.
+
+    Valid methods are 'best' and 'last'.
+    '''
+    assert('init' not in method_order)
+    load_or_init_graph_for_training(session, method_order, allow_drop_layers=False)
