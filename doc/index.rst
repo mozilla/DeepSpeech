@@ -14,6 +14,8 @@ Welcome to DeepSpeech's documentation!
 
    TRAINING
 
+   Decoder
+
 .. toctree::
    :maxdepth: 2
    :caption: DeepSpeech Model

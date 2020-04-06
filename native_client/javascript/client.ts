@@ -1,48 +1,42 @@
 #!/usr/bin/env node
-'use strict';
 
-const Fs = require('fs');
-const Sox = require('sox-stream');
-const Ds = require('./index.js');
-const argparse = require('argparse');
-const MemoryStream = require('memory-stream');
-const Wav = require('node-wav');
-const Duplex = require('stream').Duplex;
-const util = require('util');
+// This is required for process.versions.electron below
+/// <reference types="electron" />
 
-var VersionAction = function VersionAction(options) {
-  options = options || {};
-  options.nargs = 0;
-  argparse.Action.call(this, options);
-}
-util.inherits(VersionAction, argparse.Action);
+import Ds from "./index";
+import * as Fs from "fs";
+import Sox from "sox-stream";
+import * as argparse from "argparse";
 
-VersionAction.prototype.call = function(parser) {
-  console.log('DeepSpeech ' + Ds.Version());
-  let runtime = 'Node';
-  if (process.versions.electron) {
-    runtime = 'Electron';
+const MemoryStream = require("memory-stream");
+const Wav = require("node-wav");
+const Duplex = require("stream").Duplex;
+
+class VersionAction extends argparse.Action {
+  call(parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: string | string[], optionString: string | null) {
+    console.log('DeepSpeech ' + Ds.Version());
+    let runtime = 'Node';
+    if (process.versions.electron) {
+      runtime = 'Electron';
+    }
+    console.error('Runtime: ' + runtime);
+    process.exit(0);
   }
-  console.error('Runtime: ' + runtime);
-  process.exit(0);
 }
 
-var parser = new argparse.ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
+let parser = new argparse.ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
 parser.addArgument(['--model'], {required: true, help: 'Path to the model (protocol buffer binary file)'});
 parser.addArgument(['--scorer'], {help: 'Path to the external scorer file'});
 parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});
-parser.addArgument(['--beam_width'], {help: 'Beam width for the CTC decoder', type: 'int'});
-parser.addArgument(['--lm_alpha'], {help: 'Language model weight (lm_alpha). If not specified, use default from the scorer package.', type: 'float'});
-parser.addArgument(['--lm_beta'], {help: 'Word insertion bonus (lm_beta). If not specified, use default from the scorer package.', type: 'float'});
-parser.addArgument(['--version'], {action: VersionAction, help: 'Print version and exits'});
+parser.addArgument(['--version'], {action: VersionAction, nargs: 0, help: 'Print version and exits'});
 parser.addArgument(['--extended'], {action: 'storeTrue', help: 'Output string from extended metadata'});
-var args = parser.parseArgs();
+let args = parser.parseArgs();
 
-function totalTime(hrtimeValue) {
+function totalTime(hrtimeValue: number[]): string {
   return (hrtimeValue[0] + hrtimeValue[1] / 1000000000).toPrecision(4);
 }
 
-function candidateTranscriptToString(transcript) {
+function candidateTranscriptToString(transcript: Ds.CandidateTranscript): string {
   var retval = ""
   for (var i = 0; i < transcript.tokens.length; ++i) {
     retval += transcript.tokens[i].text;
@@ -52,7 +46,7 @@ function candidateTranscriptToString(transcript) {
 
 console.error('Loading model from file %s', args['model']);
 const model_load_start = process.hrtime();
-var model = new Ds.Model(args['model']);
+let model = new Ds.Model(args['model']);
 const model_load_end = process.hrtime(model_load_start);
 console.error('Loaded model in %ds.', totalTime(model_load_end));
 
@@ -60,7 +54,7 @@ if (args['beam_width']) {
   model.setBeamWidth(args['beam_width']);
 }
 
-var desired_sample_rate = model.sampleRate();
+let desired_sample_rate = model.sampleRate();
 
 if (args['scorer']) {
   console.error('Loading scorer from file %s', args['scorer']);
@@ -78,23 +72,24 @@ const buffer = Fs.readFileSync(args['audio']);
 const result = Wav.decode(buffer);
 
 if (result.sampleRate < desired_sample_rate) {
-  console.error('Warning: original sample rate (' + result.sampleRate + ') ' +
-                'is lower than ' + desired_sample_rate + 'Hz. ' +
-                'Up-sampling might produce erratic speech recognition.');
+  console.error(`Warning: original sample rate ( ${result.sampleRate})` +
+                `is lower than ${desired_sample_rate} Hz. ` +
+                `Up-sampling might produce erratic speech recognition.`);
 }
 
-function bufferToStream(buffer) {
+function bufferToStream(buffer: Buffer) {
   var stream = new Duplex();
   stream.push(buffer);
   stream.push(null);
   return stream;
 }
 
-var audioStream = new MemoryStream();
+let audioStream = new MemoryStream();
 bufferToStream(buffer).
   pipe(Sox({
     global: {
       'no-dither': true,
+      'replay-gain': 'off',
     },
     output: {
       bits: 16,
