@@ -59,7 +59,7 @@ copy-deps: build
 node-wrapper: copy-deps build
 	PATH="$(NODE_MODULES_BIN):${PATH}" $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DIST_URL) --no-color package $(NODE_BUILD_VERBOSE)
 
-npm-pack: clean package.json index.js npm-dev
+npm-pack: clean package.json index.ts npm-dev
 	PATH="$(NODE_MODULES_BIN):${PATH}" tsc && $(NPM_TOOL) pack $(NODE_BUILD_VERBOSE)
 
 deepspeech_wrap.cxx: deepspeech.i ds-swig

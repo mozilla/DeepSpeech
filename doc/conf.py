@@ -80,7 +80,9 @@ breathe_projects = {
   "deepspeech-dotnet": "xml-dotnet/",
 }
 
-js_source_path = "../native_client/javascript"
+js_source_path = "../native_client/javascript/index.ts"
+js_language = "typescript"
+jsdoc_config_path = "../native_client/javascript/tsconfig.json"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']

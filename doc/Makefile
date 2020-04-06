@@ -29,7 +29,7 @@ pip3:
 	$(PIP_INSTALL) -r ../taskcluster/docs-requirements.txt
 
 npm:
-	npm install jsdoc@3.6.3
+	npm install typedoc@0.17.4 typescript@3.8.3 typedoc@0.17.4 electron@^1.7.9 node-gyp@5.x @types/argparse@1.0.x @types/node@13.9.x
 
 submodule:
 	git submodule update --init --remote
