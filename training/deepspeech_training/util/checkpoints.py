@@ -87,13 +87,7 @@ def _initialize_all_variables(session):
         session.run(v.initializer)
 
 
-def load_or_init_graph_for_training(session, method_order, allow_drop_layers=True):
-    '''
-    Load variables from checkpoint or initialize variables following the method
-    order specified in the method_order parameter.
-
-    Valid methods are 'best', 'last' and 'init'.
-    '''
+def _load_or_init_impl(session, method_order, allow_drop_layers):
     for method in method_order:
         # Load best validating checkpoint, saved in checkpoint file 'best_dev_checkpoint'
         if method == 'best':
@@ -124,12 +118,29 @@ def load_or_init_graph_for_training(session, method_order, allow_drop_layers=Tru
     sys.exit(1)
 
 
-def load_graph(session, method_order):
+def load_or_init_graph_for_training(session):
     '''
-    Load variables from checkpoint. Initialization is not allowed. Follows the
-    method order specified in the method_order parameter.
+    Load variables from checkpoint or initialize variables. By default this will
+    try to load the best validating checkpoint, then try the last checkpoint,
+    and finally initialize the weights from scratch. This can be overriden with
+    the `--load_train` flag. See its documentation for more info.
+    '''
+    if FLAGS.load_train == 'auto':
+        methods = ['best', 'last', 'init']
+    else:
+        methods = [FLAGS.load_train]
+    _load_or_init_impl(session, methods, allow_drop_layers=True)
 
-    Valid methods are 'best' and 'last'.
+
+def load_graph_for_evaluation(session):
     '''
-    assert('init' not in method_order)
-    load_or_init_graph_for_training(session, method_order, allow_drop_layers=False)
+    Load variables from checkpoint. Initialization is not allowed. By default
+    this will try to load the best validating checkpoint, then try the last
+    checkpoint. This can be overriden with the `--load_evaluate` flag. See its
+    documentation for more info.
+    '''
+    if FLAGS.load_evaluate == 'auto':
+        methods = ['best', 'last']
+    else:
+        methods = [FLAGS.load_evaluate]
+    _load_or_init_impl(session, methods, allow_drop_layers=False)

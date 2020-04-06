@@ -31,7 +31,7 @@ for LOAD in 'init' 'last' 'auto'; do
     echo "########################################################"
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
        --alphabet_config_path "./data/alphabet.txt" \
-       --load "$LOAD" \
+       --load_train "$LOAD" \
        --train_files  "${ldc93s1_csv}" --train_batch_size 1  \
        --dev_files  "${ldc93s1_csv}" --dev_batch_size 1 \
        --test_files  "${ldc93s1_csv}" --test_batch_size 1 \
@@ -45,60 +45,7 @@ for LOAD in 'init' 'last' 'auto'; do
     echo "##############################################################################"
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
            --alphabet_config_path "./data/alphabet.txt" \
-           --load "$LOAD" \
-           --train_files  "${ldc93s1_csv}" --train_batch_size 1  \
-           --dev_files  "${ldc93s1_csv}" --dev_batch_size 1 \
-           --test_files  "${ldc93s1_csv}" --test_batch_size 1 \
-           --save_checkpoint_dir '/tmp/ckpt/transfer/eng' \
-           --load_checkpoint_dir '/tmp/ckpt/transfer/eng' \
-           --scorer_path '' \
-           --n_hidden 100 \
-           --epochs 10
-
-    echo "#################################################################################"
-    echo "#### Transfer Russian model with --save_checkpoint_dir --load_checkpoint_dir ####"
-    echo "#################################################################################"
-    python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
-           --drop_source_layers 1 \
-           --alphabet_config_path "${ru_dir}/alphabet.ru" \
-           --load 'last' \
-           --train_files  "${ru_csv}" --train_batch_size 1  \
-           --dev_files  "${ru_csv}" --dev_batch_size 1 \
-           --test_files  "${ru_csv}" --test_batch_size 1 \
-           --save_checkpoint_dir '/tmp/ckpt/transfer/ru' \
-           --load_checkpoint_dir '/tmp/ckpt/transfer/eng' \
-           --scorer_path '' \
-           --n_hidden 100 \
-           --epochs 10
-done
-
-echo "#######################################################"
-echo "##### Train ENGLISH model and transfer to RUSSIAN #####"
-echo "##### while iterating over loading logic          #####"
-echo "#######################################################"
-
-for LOAD in 'init' 'last' 'auto'; do
-    echo "########################################################"
-    echo "#### Train ENGLISH model with just --checkpoint_dir ####"
-    echo "########################################################"
-    python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
-       --alphabet_config_path "./data/alphabet.txt" \
-       --load "$LOAD" \
-       --train_files  "${ldc93s1_csv}" --train_batch_size 1  \
-       --dev_files  "${ldc93s1_csv}" --dev_batch_size 1 \
-       --test_files  "${ldc93s1_csv}" --test_batch_size 1 \
-       --checkpoint_dir '/tmp/ckpt/transfer/eng' \
-       --scorer_path '' \
-       --n_hidden 100 \
-       --epochs 10
-
-
-    echo "##############################################################################"
-    echo "#### Train ENGLISH model with --save_checkpoint_dir --load_checkpoint_dir ####"
-    echo "##############################################################################"
-    python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
-           --alphabet_config_path "./data/alphabet.txt" \
-           --load "$LOAD" \
+           --load_train "$LOAD" \
            --train_files  "${ldc93s1_csv}" --train_batch_size 1  \
            --dev_files  "${ldc93s1_csv}" --dev_batch_size 1 \
            --test_files  "${ldc93s1_csv}" --test_batch_size 1 \
@@ -114,13 +61,20 @@ for LOAD in 'init' 'last' 'auto'; do
     python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
            --drop_source_layers 1 \
            --alphabet_config_path "${ru_dir}/alphabet.ru" \
-           --load 'last' \
+           --load_train 'last' \
            --train_files  "${ru_csv}" --train_batch_size 1  \
            --dev_files  "${ru_csv}" --dev_batch_size 1 \
-           --test_files  "${ru_csv}" --test_batch_size 1 \
            --save_checkpoint_dir '/tmp/ckpt/transfer/ru' \
            --load_checkpoint_dir '/tmp/ckpt/transfer/eng' \
            --scorer_path '' \
            --n_hidden 100 \
            --epochs 10
+
+    # Test transfer learning checkpoint
+    python -u evaluate.py --noshow_progressbar \
+           --test_files  "${ru_csv}" --test_batch_size 1 \
+           --alphabet_config_path "${ru_dir}/alphabet.ru" \
+           --load_checkpoint_dir '/tmp/ckpt/transfer/ru' \
+           --scorer_path '' \
+           --n_hidden 100
 done
