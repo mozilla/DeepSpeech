@@ -1,6 +1,6 @@
 breathe==4.13.1
 semver==2.8.1
 sphinx==2.2.0
-sphinx-js==2.8
+https://github.com/reuben/sphinx-js/tarball/master#egg=sphinx-js
 sphinx-rtd-theme==0.4.3
 pygments==2.4.2
