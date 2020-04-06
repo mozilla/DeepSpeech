@@ -24,13 +24,6 @@ export interface Metadata {
 }
 
 /**
- * @class
- * Provides an interface to a DeepSpeech stream. The constructor cannot be called
- * directly, use :js:func:`Model.createStream`.
- */
-export class Stream {}
-
-/**
  * An object providing an interface to a trained DeepSpeech model.
  *
  * @param aModelPath The path to the frozen model graph.
@@ -120,7 +113,14 @@ sttWithMetadata(aBuffer: object, aNumResults: number): Metadata;
  * @throws on error
  */
 createStream(): object;
+}
 
+/**
+ * @class
+ * Provides an interface to a DeepSpeech stream. The constructor cannot be called
+ * directly, use :js:func:`Model.createStream`.
+ */
+declare class Stream {
 /**
  * Feed audio samples to an ongoing streaming inference.
  *
