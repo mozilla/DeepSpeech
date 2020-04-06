@@ -125,6 +125,8 @@ Please note that as of now, we support:
  - Node.JS versions 4 to 13.
  - Electron.JS versions 1.6 to 7.1
 
+TypeScript support is also provided.
+
 Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can install the GPU specific package as follows:
 
 .. code-block:: bash
@@ -133,7 +135,7 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can in
 
 See the `release notes <https://github.com/mozilla/DeepSpeech/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
 
-See :github:`client.js <native_client/javascript/client.js>` for an example of how to use the bindings.
+See :github:`client.ts <native_client/javascript/client.ts>` for an example of how to use the bindings.
 
 Using the Command-Line client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
