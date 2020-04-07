@@ -1,13 +1,17 @@
 Python API Usage example
 ========================
 
+Examples are from `native_client/python/client.cc`.
+
 Creating a model instance and loading model
 -------------------------------------------
 
 .. literalinclude:: ../native_client/python/client.py
    :language: python
    :linenos:
-   :lines: 111,123
+   :lineno-match:
+   :start-after: sphinx-doc: python_ref_model_start
+   :end-before: sphinx-doc: python_ref_model_stop
 
 Performing inference
 --------------------
@@ -15,7 +19,9 @@ Performing inference
 .. literalinclude:: ../native_client/python/client.py
    :language: python
    :linenos:
-   :lines: 143-148
+   :lineno-match:
+   :start-after: sphinx-doc: python_ref_inference_start
+   :end-before: sphinx-doc: python_ref_inference_stop
 
 Full source code
 ----------------

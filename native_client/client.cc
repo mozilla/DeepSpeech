@@ -162,6 +162,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
 
   clock_t ds_start_time = clock();
 
+  // sphinx-doc: c_ref_inference_start
   if (extended_output) {
     Metadata *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, 1);
     res.string = CandidateTranscriptToString(&result->transcripts[0]);
@@ -198,6 +199,7 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
   } else {
     res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize);
   }
+  // sphinx-doc: c_ref_inference_stop
 
   clock_t ds_end_infer = clock();
 
@@ -393,6 +395,7 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
+  // sphinx-doc: c_ref_model_start
   int status = DS_CreateModel(model, &ctx);
   if (status != 0) {
     fprintf(stderr, "Could not create model.\n");
@@ -421,6 +424,7 @@ main(int argc, char **argv)
       }
     }
   }
+  // sphinx-doc: c_ref_model_stop
 
 #ifndef NO_SOX
   // Initialise SOX

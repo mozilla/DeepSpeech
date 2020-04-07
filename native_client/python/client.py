@@ -111,7 +111,9 @@ def main():
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
+    # sphinx-doc: python_ref_model_start
     ds = Model(args.model)
+    # sphinx-doc: python_ref_model_stop
     model_load_end = timer() - model_load_start
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
 
@@ -143,12 +145,14 @@ def main():
 
     print('Running inference.', file=sys.stderr)
     inference_start = timer()
+    # sphinx-doc: python_ref_inference_start
     if args.extended:
         print(metadata_to_string(ds.sttWithMetadata(audio, 1).transcripts[0]))
     elif args.json:
         print(metadata_json_output(ds.sttWithMetadata(audio, 3)))
     else:
         print(ds.stt(audio))
+    # sphinx-doc: python_ref_inference_stop
     inference_end = timer() - inference_start
     print('Inference took %0.3fs for %0.3fs audio file.' % (inference_end, audio_length), file=sys.stderr)
 

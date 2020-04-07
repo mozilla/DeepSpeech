@@ -44,6 +44,7 @@ function candidateTranscriptToString(transcript: Ds.CandidateTranscript): string
   return retval;
 }
 
+// sphinx-doc: js_ref_model_start
 console.error('Loading model from file %s', args['model']);
 const model_load_start = process.hrtime();
 let model = new Ds.Model(args['model']);
@@ -53,6 +54,7 @@ console.error('Loaded model in %ds.', totalTime(model_load_end));
 if (args['beam_width']) {
   model.setBeamWidth(args['beam_width']);
 }
+// sphinx-doc: js_ref_model_stop
 
 let desired_sample_rate = model.sampleRate();
 
@@ -110,6 +112,7 @@ audioStream.on('finish', () => {
   console.error('Running inference.');
   const audioLength = (audioBuffer.length / 2) * (1 / desired_sample_rate);
 
+  // sphinx-doc: js_ref_inference_start
   if (args['extended']) {
     let metadata = model.sttWithMetadata(audioBuffer, 1);
     console.log(candidateTranscriptToString(metadata.transcripts[0]));
@@ -117,6 +120,7 @@ audioStream.on('finish', () => {
   } else {
     console.log(model.stt(audioBuffer));
   }
+  // sphinx-doc: js_ref_inference_stop
   const inference_stop = process.hrtime(inference_start);
   console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
   Ds.FreeModel(model);
