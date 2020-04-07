@@ -54,7 +54,7 @@ def transcribe_file(audio_path, tlog_path):
                 method_order = ['best', 'last']
             else:
                 method_order = [FLAGS.load]
-            load_or_init_graph(session, method_order)
+            load_or_init_graph(session, method_order, train=False)
             session.run(iterator.make_initializer(data_set))
             transcripts = []
             while True:

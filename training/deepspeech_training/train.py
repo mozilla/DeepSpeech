@@ -777,7 +777,7 @@ def export():
             method_order = ['best', 'last']
         else:
             method_order = [FLAGS.load]
-        load_or_init_graph(session, method_order)
+        load_or_init_graph(session, method_order, train=False)
 
         output_filename = FLAGS.export_file_name + '.pb'
         if FLAGS.remove_export:
@@ -861,7 +861,7 @@ def do_single_file_inference(input_file_path):
             method_order = ['best', 'last']
         else:
             method_order = [FLAGS.load]
-        load_or_init_graph(session, method_order)
+        load_or_init_graph(session, method_order, train=False)
 
         features, features_len = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])

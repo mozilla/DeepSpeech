@@ -86,7 +86,7 @@ def evaluate(test_csvs, create_model):
             method_order = ['best', 'last']
         else:
             method_order = [FLAGS.load]
-        load_or_init_graph(session, method_order)
+        load_or_init_graph(session, method_order, train=False)
 
         def run_test(init_op, dataset):
             wav_filenames = []
