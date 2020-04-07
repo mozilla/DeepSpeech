@@ -38,8 +38,8 @@ Each time you need to work with DeepSpeech, you have to *activate* this virtual 
 
    $ source $HOME/tmp/deepspeech-train-venv/bin/activate
 
-Installing Python dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing DeepSpeech Training Code and its dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Install the required dependencies using ``pip3``\ :
 
