@@ -200,10 +200,10 @@ WORKDIR /DeepSpeech/native_client
 RUN make deepspeech
 WORKDIR /DeepSpeech/native_client/python
 RUN make bindings
-RUN pip3 install dist/deepspeech*
+RUN pip3 install --upgrade dist/deepspeech*
 WORKDIR /DeepSpeech/native_client/ctcdecode
 RUN make bindings
-RUN pip3 install dist/*.whl
+RUN pip3 install --upgrade dist/*.whl
 
 
 # << END Build and bind
