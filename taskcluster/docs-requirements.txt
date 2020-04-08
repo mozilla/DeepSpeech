@@ -1,6 +1,6 @@
-breathe==4.13.1
+breathe==4.14.2
 semver==2.8.1
-sphinx==2.2.0
+sphinx==2.4.4
 sphinx-js==2.8
 sphinx-rtd-theme==0.4.3
-pygments==2.4.2
+pygments==2.6.1

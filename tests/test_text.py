@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from .text import Alphabet
+from deepspeech_training.util.text import Alphabet
 
 class TestAlphabetParsing(unittest.TestCase):
 

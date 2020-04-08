@@ -1,29 +1,22 @@
 #!/usr/bin/env python
-
 # VCTK used in wavenet paper https://arxiv.org/pdf/1609.03499.pdf
 # Licenced under Open Data Commons Attribution License (ODC-By) v1.0.
 # as per https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html
-
-from __future__ import absolute_import, division, print_function
-
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
 import os
 import random
-import sys
-
-sys.path.insert(1, os.path.join(sys.path[0], ".."))
-
-from util.importers import get_counter, get_imported_samples, print_import_report
-
 import re
+from multiprocessing import Pool
+from zipfile import ZipFile
+
 import librosa
 import progressbar
 
-from os import path
-from multiprocessing import Pool
-from util.downloader import maybe_download, SIMPLE_BAR
-from zipfile import ZipFile
+from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
+from deepspeech_training.util.importers import (
+    get_counter,
+    get_imported_samples,
+    print_import_report,
+)
 
 SAMPLE_RATE = 16000
 MAX_SECS = 10
@@ -37,7 +30,7 @@ ARCHIVE_URL = (
 
 def _download_and_preprocess_data(target_dir):
     # Making path absolute
-    target_dir = path.abspath(target_dir)
+    target_dir = os.path.abspath(target_dir)
     # Conditionally download data
     archive_path = maybe_download(ARCHIVE_NAME, target_dir, ARCHIVE_URL)
     # Conditionally extract common voice data
@@ -48,8 +41,8 @@ def _download_and_preprocess_data(target_dir):
 
 def _maybe_extract(target_dir, extracted_data, archive_path):
     # If target_dir/extracted_data does not exist, extract archive in target_dir
-    extracted_path = path.join(target_dir, extracted_data)
-    if not path.exists(extracted_path):
+    extracted_path = os.path.join(target_dir, extracted_data)
+    if not os.path.exists(extracted_path):
         print(f"No directory {extracted_path} - extracting archive...")
         with ZipFile(archive_path, "r") as zipobj:
             # Extract all the contents of zip file in current directory
@@ -59,15 +52,17 @@ def _maybe_extract(target_dir, extracted_data, archive_path):
 
 
 def _maybe_convert_sets(target_dir, extracted_data):
-    extracted_dir = path.join(target_dir, extracted_data, "wav48")
-    txt_dir = path.join(target_dir, extracted_data, "txt")
+    extracted_dir = os.path.join(target_dir, extracted_data, "wav48")
+    txt_dir = os.path.join(target_dir, extracted_data, "txt")
 
     directory = os.path.expanduser(extracted_dir)
     srtd = len(sorted(os.listdir(directory)))
     all_samples = []
 
     for target in sorted(os.listdir(directory)):
-        all_samples += _maybe_prepare_set(path.join(extracted_dir, os.path.split(target)[-1]))
+        all_samples += _maybe_prepare_set(
+            path.join(extracted_dir, os.path.split(target)[-1])
+        )
 
     num_samples = len(all_samples)
     print(f"Converting wav files to {SAMPLE_RATE}hz...")
@@ -80,6 +75,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
     pool.join()
 
     _write_csv(extracted_dir, txt_dir, target_dir)
+
 
 def one_sample(sample):
     if is_audio_file(sample):
@@ -102,6 +98,7 @@ def _maybe_prepare_set(target_csv):
         new_samples.append(os.path.join(target_csv, s))
     samples = new_samples
     return samples
+
 
 def _write_csv(extracted_dir, txt_dir, target_dir):
     print(f"Writing CSV file")
@@ -197,7 +194,9 @@ AUDIO_EXTENSIONS = [".wav", "WAV"]
 
 
 def is_audio_file(filepath):
-    return any(os.path.basename(filepath).endswith(extension) for extension in AUDIO_EXTENSIONS)
+    return any(
+        os.path.basename(filepath).endswith(extension) for extension in AUDIO_EXTENSIONS
+    )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 JavaScript (NodeJS / ElectronJS)
 ================================
 
+Support for TypeScript is :download:`provided in index.d.ts<../native_client/javascript/index.d.ts>`
+
 Model
 -----
 

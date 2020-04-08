@@ -25,7 +25,7 @@ In creating a virtual environment you will create a directory containing a ``pyt
 
 .. code-block::
 
-   $ virtualenv -p python3 $HOME/tmp/deepspeech-train-venv/
+   $ python3 -m venv $HOME/tmp/deepspeech-train-venv/
 
 Once this command completes successfully, the environment will be ready to be activated.
 
@@ -38,29 +38,22 @@ Each time you need to work with DeepSpeech, you have to *activate* this virtual 
 
    $ source $HOME/tmp/deepspeech-train-venv/bin/activate
 
-Installing Python dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing DeepSpeech Training Code and its dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Install the required dependencies using ``pip3``\ :
 
 .. code-block:: bash
 
    cd DeepSpeech
-   pip3 install -r requirements.txt
+   pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
+   pip3 install --upgrade --force-reinstall -e .
 
 The ``webrtcvad`` Python package might require you to ensure you have proper tooling to build Python modules:
 
 .. code-block:: bash
 
    sudo apt-get install python3-dev
-
-You'll also need to install the ``ds_ctcdecoder`` Python package. ``ds_ctcdecoder`` is required for decoding the outputs of the ``deepspeech`` acoustic model into text. You can use ``util/taskcluster.py`` with the ``--decoder`` flag to get a URL to a binary of the decoder package appropriate for your platform and Python version:
-
-.. code-block:: bash
-
-   pip3 install $(python3 util/taskcluster.py --decoder)
-
-This command will download and install the ``ds_ctcdecoder`` package. You can override the platform with ``--arch`` if you want the package for ARM7 (\ ``--arch arm``\ ) or ARM64 (\ ``--arch arm64``\ ). If you prefer building the ``ds_ctcdecoder`` package from source, see the :github:`native_client README file <native_client/README.rst>`.
 
 Recommendations
 ^^^^^^^^^^^^^^^
@@ -70,7 +63,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 .. code-block:: bash
 
    pip3 uninstall tensorflow
-   pip3 install 'tensorflow-gpu==1.15.0'
+   pip3 install 'tensorflow-gpu==1.15.2'
 
 Please ensure you have the required `CUDA dependency <USING.rst#cuda-dependency>`_.
 
@@ -147,6 +140,18 @@ This script will train on a small sample dataset composed of just a single audio
 Feel also free to pass additional (or overriding) ``DeepSpeech.py`` parameters to these scripts. Then, just run the script to train the modified network.
 
 Each dataset has a corresponding importer script in ``bin/`` that can be used to download (if it's freely available) and preprocess the dataset. See ``bin/import_librivox.py`` for an example of how to import and preprocess a large dataset for training with DeepSpeech.
+
+Some importers might require additional code to properly handled your locale-specific requirements. Such handling is dealt with ``--validate_label_locale`` flag that allows you to source out-of-tree Python script that defines a ``validate_label`` function. Please refer to ``util/importers.py`` for implementation example of that function.
+If you don't provide this argument, the default ``validate_label`` function will be used. This one is only intended for English language, so you might have consistency issues in your data for other languages.
+
+For example, in order to use a custom validation function that disallows any sample with "a" in its transcript, and lower cases everything else, you could put the following code in a file called ``my_validation.py`` and then use ``--validate_label_locale my_validation.py``:
+
+.. code-block:: python
+
+  def validate_label(label):
+      if 'a' in label: # disallow labels with 'a'
+          return None
+      return label.lower() # lower case valid labels
 
 If you've run the old importers (in ``util/importers/``\ ), they could have removed source files that are needed for the new importers to run. In that case, simply remove the extracted folders and let the importer extract and process the dataset from scratch, and things should work.
 

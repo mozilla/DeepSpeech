@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-
-sys.path.insert(1, os.path.join(sys.path[0], "..", ".."))
-
 import argparse
 import shutil
+import sys
 
-from util.text import Alphabet, UTF8Alphabet
+from deepspeech_training.util.text import Alphabet, UTF8Alphabet
 from ds_ctcdecoder import Scorer, Alphabet as NativeAlphabet
 
 
@@ -48,6 +42,9 @@ def create_bundle(
     if use_utf8:
         serialized_alphabet = UTF8Alphabet().serialize()
     else:
+        if not alphabet_path:
+            print("No --alphabet path specified, can't continue.")
+            sys.exit(1)
         serialized_alphabet = Alphabet(alphabet_path).serialize()
 
     alphabet = NativeAlphabet()

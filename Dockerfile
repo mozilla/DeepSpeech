@@ -24,7 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libsox-fmt-mp3 \
         htop \
         nano \
-        swig \
         cmake \
         libboost-all-dev \
         zlib1g-dev \
@@ -66,7 +65,7 @@ RUN wget https://bootstrap.pypa.io/get-pip.py && \
 
 # >> START Configure Tensorflow Build
 
-# Clone TensoFlow from Mozilla repo
+# Clone TensorFlow from Mozilla repo
 RUN git clone https://github.com/mozilla/tensorflow/
 WORKDIR /tensorflow
 RUN git checkout r1.15
@@ -150,7 +149,7 @@ COPY . /DeepSpeech/
 
 WORKDIR /DeepSpeech
 
-RUN pip3 --no-cache-dir install -r requirements.txt
+RUN pip3 --no-cache-dir install .
 
 # Link DeepSpeech native_client libs to tf folder
 RUN ln -s /DeepSpeech/native_client /tensorflow
@@ -201,10 +200,10 @@ WORKDIR /DeepSpeech/native_client
 RUN make deepspeech
 WORKDIR /DeepSpeech/native_client/python
 RUN make bindings
-RUN pip3 install dist/deepspeech*
+RUN pip3 install --upgrade dist/deepspeech*
 WORKDIR /DeepSpeech/native_client/ctcdecode
-RUN make
-RUN pip3 install dist/*.whl
+RUN make bindings
+RUN pip3 install --upgrade dist/*.whl
 
 
 # << END Build and bind
