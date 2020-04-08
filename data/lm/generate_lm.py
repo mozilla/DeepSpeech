@@ -144,49 +144,49 @@ def main():
         "--top_k",
         help="Use top_k most frequent words for the vocab.txt file. These will be used to filter the ARPA file.",
         type=int,
-        default=500000,
+        required=True,
     )
     parser.add_argument(
         "--kenlm_bins",
         help="File path to the KENLM binaries lmplz, filter and build_binary",
         type=str,
-        default="/DeepSpeech/native_client/kenlm/build/bin/",
+        required=True,
     )
     parser.add_argument(
         "--arpa_order",
         help="Order of k-grams in ARPA-file generation",
         type=int,
-        default=5,
+        required=True,
     )
     parser.add_argument(
         "--max_arpa_memory",
         help="Maximum allowed memory usage for ARPA-file generation",
         type=str,
-        default="75%",
+        required=True,
     )
     parser.add_argument(
         "--arpa_prune",
         help="ARPA pruning parameters. Separate values with '|'",
         type=str,
-        default="0|0|1",
+        required=True,
     )
     parser.add_argument(
         "--binary_a_bits",
         help="Build binary quantization value a in bits",
         type=int,
-        default=255,
+        required=True,
     )
     parser.add_argument(
         "--binary_q_bits",
         help="Build binary quantization value q in bits",
         type=int,
-        default=8,
+        required=True,
     )
     parser.add_argument(
         "--binary_type",
         help="Build binary data structure type",
         type=str,
-        default="trie",
+        required=True,
     )
     args = parser.parse_args()
 
