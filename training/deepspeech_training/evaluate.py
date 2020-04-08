@@ -16,7 +16,7 @@ from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from six.moves import zip
 
 from .util.config import Config, initialize_globals
-from .util.checkpoints import load_or_init_graph
+from .util.checkpoints import load_graph_for_evaluation
 from .util.evaluate_tools import calculate_and_print_report
 from .util.feeding import create_dataset
 from .util.flags import create_flags, FLAGS
@@ -82,11 +82,7 @@ def evaluate(test_csvs, create_model):
         num_processes = 1
 
     with tfv1.Session(config=Config.session_config) as session:
-        if FLAGS.load == 'auto':
-            method_order = ['best', 'last']
-        else:
-            method_order = [FLAGS.load]
-        load_or_init_graph(session, method_order)
+        load_graph_for_evaluation(session)
 
         def run_test(init_op, dataset):
             wav_filenames = []
