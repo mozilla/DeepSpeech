@@ -14,7 +14,10 @@ It is required to use our fork of TensorFlow since it includes fixes for common 
 If you'd like to build the language bindings or the decoder package, you'll also need:
 
 
-* `SWIG >= 3.0.12 <http://www.swig.org/>`_. If you intend to build NodeJS / ElectronJS bindings you will need a patched version of SWIG. Please refer to the matching section below.
+* `SWIG >= 3.0.12 <http://www.swig.org/>`_.
+  Unfortunately, NodeJS / ElectronJS after 10.x support on SWIG is a bit behind, and while there are pending patches proposed to upstream, it is not yet merged.
+  The proper prebuilt patched version (covering linux, windows and macOS) of SWIG should get installed under `native_client/ <native_client/>`_ as soon as you build any bindings that requires it.
+
 * `node-pre-gyp <https://github.com/mapbox/node-pre-gyp>`_ (for Node.JS bindings only)
 
 Dependencies
@@ -107,10 +110,6 @@ The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>
 
 Install NodeJS / ElectronJS bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Unfortunately, JavaScript support on SWIG is a bit behind, and while there are pending patches proposed to upstream, it is not yet merged.
-You should be able to build from `our fork <https://github.com/lissyx/swig/tree/taskcluster>`_, and you can find pre-built binaries on `TaskCluster <https://community-tc.services.mozilla.com/tasks/index/project.deepspeech.swig>`_ (please look for swig fork sha1).
-Extract the `ds-swig.tar.gz` to some place in your `$HOME`, then update `$PATH` accordingly. You might need to symlink `ds-swig` as `swig`, and you will have to `export SWIG_LIB=<path/to/swig/share>` so that it contains path to `share/swig/<VERSION>/`.
 
 After following the above build and installation instructions, the Node.JS bindings can be built:
 

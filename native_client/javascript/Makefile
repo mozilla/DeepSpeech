@@ -62,6 +62,5 @@ node-wrapper: copy-deps build
 npm-pack: clean package.json index.js npm-dev
 	PATH="$(NODE_MODULES_BIN):${PATH}" tsc && $(NPM_TOOL) pack $(NODE_BUILD_VERBOSE)
 
-deepspeech_wrap.cxx: deepspeech.i
-	swig -version
-	swig -c++ -javascript -node deepspeech.i
+deepspeech_wrap.cxx: deepspeech.i ds-swig
+	$(DS_SWIG_ENV) swig -c++ -javascript -node deepspeech.i

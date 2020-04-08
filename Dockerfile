@@ -24,7 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libsox-fmt-mp3 \
         htop \
         nano \
-        swig \
         cmake \
         libboost-all-dev \
         zlib1g-dev \
@@ -203,7 +202,7 @@ WORKDIR /DeepSpeech/native_client/python
 RUN make bindings
 RUN pip3 install dist/deepspeech*
 WORKDIR /DeepSpeech/native_client/ctcdecode
-RUN make
+RUN make bindings
 RUN pip3 install dist/*.whl
 
 
