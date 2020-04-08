@@ -27,5 +27,5 @@ maven-bundle: apk
 	$(GRADLE) uploadArchives
 	$(GRADLE) zipMavenArtifacts
 
-bindings: clean
-	swig -c++ -java -package org.mozilla.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/mozilla/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i
+bindings: clean ds-swig
+	$(DS_SWIG_ENV) swig -c++ -java -package org.mozilla.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/mozilla/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i

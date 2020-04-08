@@ -85,10 +85,6 @@ payload:
       format: tar.gz
       content:
         url: ${system.node_gyp_cache.url}
-    - directory: ds-swig
-      format: tar.gz
-      content:
-        url: ${system.swig.cache.win_amd64}
 
   artifacts:
     - type: "directory"

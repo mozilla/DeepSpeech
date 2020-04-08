@@ -88,10 +88,6 @@ payload:
       format: tar.gz
       content:
         url: ${system.node_gyp_cache.url}
-    - directory: ds-swig
-      format: tar.gz
-      content:
-        url: ${system.swig.cache.darwin_amd64}
     - file: home.tar.xz
       content:
         url: ${build.tensorflow}
