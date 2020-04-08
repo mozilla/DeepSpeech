@@ -16,9 +16,9 @@ DeepSpeech Class
    :members:
 
 DeepSpeechStream Class
-----------------
+----------------------
 
-.. doxygenclass:: DeepSpeechClient::DeepSpeechStream
+.. doxygenclass:: DeepSpeechClient::Models::DeepSpeechStream
    :project: deepspeech-dotnet
    :members:
 
