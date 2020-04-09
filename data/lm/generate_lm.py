@@ -23,7 +23,7 @@ def convert_and_filter_topk(args):
         _, file_extension = os.path.splitext(args.input_txt)
         if file_extension == ".gz":
             file_in = io.TextIOWrapper(
-                io.BufferedWriter(gzip.open(args.input_txt)), encoding="utf-8"
+                io.BufferedReader(gzip.open(args.input_txt)), encoding="utf-8"
             )
         else:
             file_in = open(args.input_txt, encoding="utf-8")
@@ -194,7 +194,7 @@ def main():
     build_lm(args, data_lower, vocab_str)
 
     # Delete intermediate files
-    os.remove(os.path.join(args.output_dir, "lower.txt"))
+    os.remove(os.path.join(args.output_dir, "lower.txt.gz"))
     os.remove(os.path.join(args.output_dir, "lm.arpa"))
     os.remove(os.path.join(args.output_dir, "lm_filtered.arpa"))
 
