@@ -1,14 +1,16 @@
 import os
 import io
 import wave
+import math
 import tempfile
 import collections
 import numpy as np
 
-from .helpers import LimitingPool
+from .helpers import LimitingPool, np_capped_squares
 from collections import namedtuple
 
 AudioFormat = namedtuple('AudioFormat', 'rate channels width')
+dBFS = namedtuple('dBFS', 'mean max')
 
 DEFAULT_RATE = 16000
 DEFAULT_CHANNELS = 1
@@ -20,6 +22,7 @@ AUDIO_TYPE_PCM = 'application/vnd.mozilla.pcm'
 AUDIO_TYPE_WAV = 'audio/wav'
 AUDIO_TYPE_OPUS = 'application/vnd.mozilla.opus'
 SERIALIZABLE_AUDIO_TYPES = [AUDIO_TYPE_WAV, AUDIO_TYPE_OPUS]
+LOADABLE_AUDIO_EXTENSIONS = {'.wav': AUDIO_TYPE_WAV}
 
 OPUS_PCM_LEN_SIZE = 4
 OPUS_RATE_SIZE = 4
@@ -81,7 +84,7 @@ class Sample:
             else:
                 raise ValueError('Unsupported audio type: {}'.format(self.audio_type))
 
-    def change_audio_type(self, new_audio_type):
+    def change_audio_type(self, new_audio_type, bitrate=None):
         """
         In-place conversion of audio data into a different representation.
 
@@ -89,6 +92,8 @@ class Sample:
         ----------
         new_audio_type : str
             New audio-type - see `__init__`.
+        bitrate : int
+            Bitrate to use in case of converting to a lossy audio-type.
         """
         if self.audio_type == new_audio_type:
             return
@@ -104,7 +109,7 @@ class Sample:
         elif new_audio_type in SERIALIZABLE_AUDIO_TYPES:
             self.change_audio_type(AUDIO_TYPE_PCM)
             audio_bytes = io.BytesIO()
-            write_audio(new_audio_type, audio_bytes, self.audio, audio_format=self.audio_format)
+            write_audio(new_audio_type, audio_bytes, self.audio, audio_format=self.audio_format, bitrate=bitrate)
             audio_bytes.seek(0)
             self.audio = audio_bytes
         else:
@@ -114,14 +119,20 @@ class Sample:
 
 
 def _change_audio_type(sample_and_audio_type):
-    sample, audio_type = sample_and_audio_type
-    sample.change_audio_type(audio_type)
+    sample, audio_type, bitrate = sample_and_audio_type
+    sample.change_audio_type(audio_type, bitrate=bitrate)
     return sample
 
 
-def change_audio_types(samples, audio_type=AUDIO_TYPE_PCM, processes=None, process_ahead=None):
+def change_audio_types(samples, audio_type=AUDIO_TYPE_PCM, bitrate=None, processes=None, process_ahead=None):
     with LimitingPool(processes=processes, process_ahead=process_ahead) as pool:
-        yield from pool.imap(_change_audio_type, map(lambda s: (s, audio_type), samples))
+        yield from pool.imap(_change_audio_type, map(lambda s: (s, audio_type, bitrate), samples))
+
+
+def get_audio_type_from_extension(ext):
+    if ext in LOADABLE_AUDIO_EXTENSIONS:
+        return LOADABLE_AUDIO_EXTENSIONS[ext]
+    return None
 
 
 def read_audio_format_from_wav_file(wav_file):
@@ -264,10 +275,12 @@ def get_opus_frame_size(rate):
     return 60 * rate // 1000
 
 
-def write_opus(opus_file, audio_data, audio_format=DEFAULT_FORMAT):
+def write_opus(opus_file, audio_data, audio_format=DEFAULT_FORMAT, bitrate=None):
     frame_size = get_opus_frame_size(audio_format.rate)
     import opuslib  # pylint: disable=import-outside-toplevel
     encoder = opuslib.Encoder(audio_format.rate, audio_format.channels, 'audio')
+    if bitrate is not None:
+        encoder.bitrate = bitrate
     chunk_size = frame_size * audio_format.channels * audio_format.width
     opus_file.write(pack_number(len(audio_data), OPUS_PCM_LEN_SIZE))
     opus_file.write(pack_number(audio_format.rate, OPUS_RATE_SIZE))
@@ -277,7 +290,7 @@ def write_opus(opus_file, audio_data, audio_format=DEFAULT_FORMAT):
         chunk = audio_data[i:i + chunk_size]
         # Preventing non-deterministic encoding results from uninitialized remainder of the encoder buffer
         if len(chunk) < chunk_size:
-            chunk = chunk + bytearray(chunk_size - len(chunk))
+            chunk = chunk + b'\0' * (chunk_size - len(chunk))
         encoded = encoder.encode(chunk, frame_size)
         opus_file.write(pack_number(len(encoded), OPUS_CHUNK_LEN_SIZE))
         opus_file.write(encoded)
@@ -304,7 +317,7 @@ def read_opus(opus_file):
         decoded = decoder.decode(chunk, frame_size)
         audio_data.extend(decoded)
     audio_data = audio_data[:pcm_buffer_size]
-    return audio_format, audio_data
+    return audio_format, bytes(audio_data)
 
 
 def write_wav(wav_file, pcm_data, audio_format=DEFAULT_FORMAT):
@@ -331,11 +344,11 @@ def read_audio(audio_type, audio_file):
     raise ValueError('Unsupported audio type: {}'.format(audio_type))
 
 
-def write_audio(audio_type, audio_file, pcm_data, audio_format=DEFAULT_FORMAT):
+def write_audio(audio_type, audio_file, pcm_data, audio_format=DEFAULT_FORMAT, bitrate=None):
     if audio_type == AUDIO_TYPE_WAV:
         return write_wav(audio_file, pcm_data, audio_format=audio_format)
     if audio_type == AUDIO_TYPE_OPUS:
-        return write_opus(audio_file, pcm_data, audio_format=audio_format)
+        return write_opus(audio_file, pcm_data, audio_format=audio_format, bitrate=bitrate)
     raise ValueError('Unsupported audio type: {}'.format(audio_type))
 
 
@@ -376,6 +389,26 @@ def np_to_pcm(np_data, audio_format=DEFAULT_FORMAT):
     assert audio_format.channels == 1  # only mono supported for now
     dtype = get_dtype(audio_format)
     np_data = np_data.squeeze()
-    np_data *= dtype.max
+    np_data = np_data * np.iinfo(dtype).max
     np_data = np_data.astype(dtype)
-    return bytearray(np_data.tobytes())
+    return np_data.tobytes()
+
+
+def rms_to_dbfs(rms):
+    return 20.0 * math.log10(max(1e-16, rms)) + 3.0103
+
+
+def mean_dbfs(sample_data):
+    return rms_to_dbfs(math.sqrt(np.mean(np_capped_squares(sample_data))))
+
+
+def max_dbfs(sample_data):
+    return rms_to_dbfs(max(abs(np.min(sample_data)), abs(np.max(sample_data))))
+
+
+def gain_db_to_ratio(gain_db):
+    return math.pow(10.0, gain_db / 20.0)
+
+
+def normalize_audio(sample_data, dbfs=3.0103):
+    return np.maximum(np.minimum(sample_data * gain_db_to_ratio(dbfs - max_dbfs(sample_data)), 1.0), -1.0)

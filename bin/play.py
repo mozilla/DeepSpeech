@@ -1,54 +1,72 @@
 #!/usr/bin/env python
 """
-Tool for playing samples from Sample Databases (SDB files) and DeepSpeech CSV files
+Tool for playing (and augmenting) single samples or samples from Sample Databases (SDB files) and DeepSpeech CSV files
 Use "python3 build_sdb.py -h" for help
 """
 
-import argparse
-import random
+import os
 import sys
+import random
+import argparse
 
-from deepspeech_training.util.audio import AUDIO_TYPE_PCM
-from deepspeech_training.util.sample_collections import LabeledSample, samples_from_file
-
-
-def play_sample(samples, index):
-    if index < 0:
-        index = len(samples) + index
-    if CLI_ARGS.random:
-        index = random.randint(0, len(samples))
-    elif index >= len(samples):
-        print("No sample with index {}".format(CLI_ARGS.start))
-        sys.exit(1)
-    sample = samples[index]
-    print('Sample "{}"'.format(sample.sample_id))
-    if isinstance(sample, LabeledSample):
-        print('  "{}"'.format(sample.transcript))
-    sample.change_audio_type(AUDIO_TYPE_PCM)
-    rate, channels, width = sample.audio_format
-    wave_obj = simpleaudio.WaveObject(sample.audio, channels, width, rate)
-    play_obj = wave_obj.play()
-    play_obj.wait_done()
+from deepspeech_training.util.audio import LOADABLE_AUDIO_EXTENSIONS, AUDIO_TYPE_PCM, AUDIO_TYPE_WAV
+from deepspeech_training.util.sample_collections import SampleList, LabeledSample, samples_from_source, prepare_samples
 
 
-def play_collection():
-    samples = samples_from_file(CLI_ARGS.collection, buffering=0)
+def get_samples_in_play_order():
+    ext = os.path.splitext(CLI_ARGS.source)[1].lower()
+    if ext in LOADABLE_AUDIO_EXTENSIONS:
+        samples = SampleList([(CLI_ARGS.source, 0)], labeled=False)
+    else:
+        samples = samples_from_source(CLI_ARGS.source, buffering=0)
     played = 0
     index = CLI_ARGS.start
     while True:
         if 0 <= CLI_ARGS.number <= played:
             return
-        play_sample(samples, index)
+        if CLI_ARGS.random:
+            yield samples[random.randint(0, len(samples) - 1)]
+        elif index < 0:
+            yield samples[len(samples) + index]
+        elif index >= len(samples):
+            print("No sample with index {}".format(CLI_ARGS.start))
+            sys.exit(1)
+        else:
+            yield samples[index]
         played += 1
         index = (index + 1) % len(samples)
 
 
+def play_collection():
+    samples = get_samples_in_play_order()
+    samples = prepare_samples(samples,
+                              audio_type=AUDIO_TYPE_PCM,
+                              augmentation_specs=CLI_ARGS.augment,
+                              process_ahead=0,
+                              fixed_clock=CLI_ARGS.clock)
+    for sample in samples:
+        if not CLI_ARGS.quiet:
+            print('Sample "{}"'.format(sample.sample_id), file=sys.stderr)
+            if isinstance(sample, LabeledSample):
+                print('  "{}"'.format(sample.transcript), file=sys.stderr)
+        if CLI_ARGS.pipe:
+            sample.change_audio_type(AUDIO_TYPE_WAV)
+            sys.stdout.buffer.write(sample.audio.getvalue())
+            return
+        wave_obj = simpleaudio.WaveObject(sample.audio,
+                                          sample.audio_format.channels,
+                                          sample.audio_format.width,
+                                          sample.audio_format.rate)
+        play_obj = wave_obj.play()
+        play_obj.wait_done()
+
+
 def handle_args():
     parser = argparse.ArgumentParser(
-        description="Tool for playing samples from Sample Databases (SDB files) "
+        description="Tool for playing (and augmenting) single samples or samples from Sample Databases (SDB files) "
         "and DeepSpeech CSV files"
     )
-    parser.add_argument("collection", help="Sample DB or CSV file to play samples from")
+    parser.add_argument("source", help="Sample DB, CSV or WAV file to play samples from")
     parser.add_argument(
         "--start",
         type=int,
@@ -66,16 +84,40 @@ def handle_args():
         action="store_true",
         help="If samples should be played in random order",
     )
+    parser.add_argument(
+        "--augment",
+        action='append',
+        help="Add an augmentation operation",
+    )
+    parser.add_argument(
+        "--clock",
+        type=float,
+        default=0.5,
+        help="Simulates clock value used for augmentations during training."
+             "Ranges from 0.0 (representing parameter start values) to"
+             "1.0 (representing parameter end values)",
+    )
+    parser.add_argument(
+        "--pipe",
+        action="store_true",
+        help="Pipe first sample as wav file to stdout. Forces --number to 1.",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="No info logging to console",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    try:
-        import simpleaudio
-    except ModuleNotFoundError:
-        print('play.py requires Python package "simpleaudio"')
-        sys.exit(1)
     CLI_ARGS = handle_args()
+    if not CLI_ARGS.pipe:
+        try:
+            import simpleaudio
+        except ModuleNotFoundError:
+            print('Unless using the --pipe flag, play.py requires Python package "simpleaudio" for playing samples')
+            sys.exit(1)
     try:
         play_collection()
     except KeyboardInterrupt:

@@ -39,6 +39,8 @@ echo "Moving ${sample_name} to LDC93S1.wav"
 mv "${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/${sample_name}" "${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/LDC93S1.wav"
 
 pushd ${HOME}/DeepSpeech/ds/
+    # Testing signal augmentations
+    time ./bin/run-tc-signal_augmentations.sh
     # Run twice to test preprocessed features
     time ./bin/run-tc-ldc93s1_new.sh 249 "${sample_rate}"
     time ./bin/run-tc-ldc93s1_new.sh 1 "${sample_rate}"
