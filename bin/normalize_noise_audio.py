@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 # Make sure we can import stuff from util/
 # This script needs to be run from the root of the DeepSpeech repository
 
-from util.feeding import secs_to_hours
 from librosa import get_duration
 from multiprocessing import Pool
 from functools import partial
@@ -11,13 +10,10 @@ import math
 import argparse
 import sys
 import os
+import progressbar
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-try:
-    import tqdm
-except ImportError as err:
-    print('[ImportError] try `pip install tqdm`')
-    raise err
+from util.feeding import secs_to_hours
 
 try:
     from pydub import AudioSegment
@@ -152,8 +148,10 @@ def main(src_dir,
                                max_duration_seconds=max_duration_seconds)
 
         pool = Pool(processes=None)
-        for _ in tqdm.tqdm(pool.imap_unordered(convert_func, filenames), total=len(filenames)):
-            pass
+        pbar = progressbar.ProgressBar(prefix='Preparing Noise Dataset', max_value=len(filenames)).start()
+        for i, _ in enumerate(pool.imap_unordered(convert_func, filenames)):
+            pbar.update(i)
+        pbar.finish()
 
 
 if __name__ == "__main__":

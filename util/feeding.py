@@ -90,24 +90,31 @@ def samples_to_mfccs(samples, sample_rate, train_phase=False, sample_id=None):
                 FLAGS.augmentation_freq_and_time_masking,
                 FLAGS.augmentation_pitch_and_tempo_scaling,
                 FLAGS.augmentation_speed_up_std > 0]):
-        review_audio = gla(spectrogram)
+        review_audio = gla(spectrogram, FLAGS.review_audio_gla_iterations)
 
     return mfccs, tf.shape(input=mfccs)[0], review_audio
 
-def audio_to_features(audio, sample_rate, train_phase=False, sample_id=None, noise_iterator=None):
+def audio_to_features(audio, sample_rate, train_phase=False, sample_id=None, noise_iterator=None, speech_iterator=None):
 
     # augment audio
-    if noise_iterator:
-        noise = noise_iterator.get_next()
+    if noise_iterator or speech_iterator:
         audio = augment_noise(
             audio,
-            noise,
+            noise_iterator,
+            speech_iterator,
+            min_n_noises=FLAGS.audio_aug_min_n_noises,
+            max_n_noises=FLAGS.audio_aug_max_n_noises,
+            min_n_speakers=FLAGS.audio_aug_min_n_speakers,
+            max_n_speakers=FLAGS.audio_aug_max_n_speakers,
             min_audio_dbfs=FLAGS.audio_aug_min_audio_dbfs,
             max_audio_dbfs=FLAGS.audio_aug_max_audio_dbfs,
-            min_snr_db=FLAGS.audio_aug_min_snr_db,
-            max_snr_db=FLAGS.audio_aug_max_snr_db,
+            min_noise_snr_db=FLAGS.audio_aug_min_noise_snr_db,
+            max_noise_snr_db=FLAGS.audio_aug_max_noise_snr_db,
+            min_speech_snr_db=FLAGS.audio_aug_min_speech_snr_db,
+            max_speech_snr_db=FLAGS.audio_aug_max_speech_snr_db,
             limit_audio_peak_dbfs=FLAGS.audio_aug_limit_audio_peak_dbfs,
             limit_noise_peak_dbfs=FLAGS.audio_aug_limit_noise_peak_dbfs,
+            limit_speech_peak_dbfs=FLAGS.audio_aug_limit_speech_peak_dbfs,
             sample_rate=FLAGS.audio_sample_rate,
         )
 
@@ -124,15 +131,15 @@ def audio_to_features(audio, sample_rate, train_phase=False, sample_id=None, noi
     return features, features_len, review_audio
 
 
-def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None):
+def audiofile_to_features(wav_filename, train_phase=False, noise_iterator=None, speech_iterator=None):
     samples = tf.io.read_file(wav_filename)
     decoded = contrib_audio.decode_wav(samples, desired_channels=1)
-    return audio_to_features(decoded.audio, decoded.sample_rate, train_phase=train_phase, sample_id=wav_filename, noise_iterator=noise_iterator)
+    return audio_to_features(decoded.audio, decoded.sample_rate, train_phase=train_phase, sample_id=wav_filename, noise_iterator=noise_iterator, speech_iterator=speech_iterator)
 
 
-def entry_to_features(sample_id, audio, sample_rate, transcript, train_phase=False, noise_iterator=None):
+def entry_to_features(sample_id, audio, sample_rate, transcript, train_phase=False, noise_iterator=None, speech_iterator=None):
     # https://bugs.python.org/issue32117
-    features, features_len, review_audio = audio_to_features(audio, sample_rate, train_phase=train_phase, sample_id=sample_id, noise_iterator=noise_iterator)
+    features, features_len, review_audio = audio_to_features(audio, sample_rate, train_phase=train_phase, sample_id=sample_id, noise_iterator=noise_iterator, speech_iterator=speech_iterator)
     sparse_transcript = tf.SparseTensor(*transcript)
     return sample_id, features, features_len, sparse_transcript, review_audio
 
@@ -154,7 +161,8 @@ def create_dataset(sources,
                    exception_box=None,
                    process_ahead=None,
                    buffering=1 * MEGABYTE,
-                   noise_sources=None):
+                   noise_sources=None,
+                   speech_sources=None):
     def generate_values():
         samples = samples_from_files(sources, buffering=buffering, labeled=True)
         for sample in change_audio_types(samples,
@@ -186,12 +194,10 @@ def create_dataset(sources,
 
         return tf.data.Dataset.zip((sample_ids, features, transcripts, review_audio))
 
-    if noise_sources:
-        noise_iterator = create_noise_iterator(noise_sources, read_csvs)
-    else:
-        noise_iterator = None
+    noise_iterator = create_noise_iterator(noise_sources, read_csvs) if noise_sources else None
+    speech_iterator = create_noise_iterator(speech_sources, read_csvs) if speech_sources else None
 
-    process_fn = partial(entry_to_features, train_phase=train_phase, noise_iterator=noise_iterator)
+    process_fn = partial(entry_to_features, train_phase=train_phase, noise_iterator=noise_iterator, speech_iterator=speech_iterator)
 
     dataset = (tf.data.Dataset.from_generator(remember_exception(generate_values, exception_box),
                                               output_types=(tf.string, tf.float32, tf.int32,

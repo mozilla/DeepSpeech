@@ -421,7 +421,8 @@ def train():
             FLAGS.augmentation_pitch_and_tempo_scaling or
             FLAGS.augmentation_speed_up_std > 0 or
             FLAGS.augmentation_sparse_warp or
-            FLAGS.train_augmentation_files):
+            FLAGS.train_augmentation_noise_files or
+            FLAGS.train_augmentation_speech_files):
         do_cache_dataset = False
 
     exception_box = ExceptionBox()
@@ -435,7 +436,8 @@ def train():
                                exception_box=exception_box,
                                process_ahead=len(Config.available_devices) * FLAGS.train_batch_size * 2,
                                buffering=FLAGS.read_buffer,
-                               noise_sources=FLAGS.train_augmentation_files)
+                               noise_sources=FLAGS.train_augmentation_noise_files,
+                               speech_sources=FLAGS.train_augmentation_speech_files)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -452,7 +454,8 @@ def train():
                                    exception_box=exception_box,
                                    process_ahead=len(Config.available_devices) * FLAGS.dev_batch_size * 2,
                                    buffering=FLAGS.read_buffer,
-                                   noise_sources=FLAGS.dev_augmentation_files) for source in dev_sources]
+                                   noise_sources=FLAGS.dev_augmentation_noise_files,
+                                   speech_sources=FLAGS.dev_augmentation_speech_files) for source in dev_sources]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
@@ -673,7 +676,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model, noise_sources=FLAGS.test_augmentation_files)
+    samples = evaluate(FLAGS.test_files.split(','), create_model, noise_sources=FLAGS.test_augmentation_noise_files, speech_sources=FLAGS.test_augmentation_speech_files)
     if FLAGS.test_output_file:
         # Save decoded tuples as JSON, converting NumPy floats to Python floats
         json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)

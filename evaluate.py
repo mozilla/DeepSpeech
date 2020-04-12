@@ -43,7 +43,7 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
     return [alphabet.decode(res) for res in results]
 
 
-def evaluate(test_csvs, create_model, noise_sources=None):
+def evaluate(test_csvs, create_model, noise_sources=None, speech_sources=None):
     if FLAGS.scorer_path:
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.scorer_path, Config.alphabet)
@@ -51,7 +51,7 @@ def evaluate(test_csvs, create_model, noise_sources=None):
         scorer = None
 
     test_csvs = FLAGS.test_files.split(',')
-    test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size, train_phase=False, noise_sources=noise_sources) for csv in test_csvs]
+    test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size, train_phase=False, noise_sources=noise_sources, speech_sources=speech_sources) for csv in test_csvs]
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(test_sets[0]),
                                                  tfv1.data.get_output_shapes(test_sets[0]),
                                                  output_classes=tfv1.data.get_output_classes(test_sets[0]))
