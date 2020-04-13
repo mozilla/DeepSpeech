@@ -173,7 +173,7 @@ bool Scorer::is_scoring_boundary(PathTrie* prefix, size_t new_label)
       return false;
     }
     unsigned char first_byte;
-    int distance_to_boundary = prefix->distance_to_codepoint_boundary(&first_byte);
+    int distance_to_boundary = prefix->distance_to_codepoint_boundary(&first_byte, alphabet_);
     int needed_bytes;
     if ((first_byte >> 3) == 0x1E) {
       needed_bytes = 4;
@@ -319,9 +319,9 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
     std::vector<int> prefix_steps;
 
     if (is_utf8_mode_) {
-      new_node = current_node->get_prev_grapheme(prefix_vec, prefix_steps);
+      new_node = current_node->get_prev_grapheme(prefix_vec, prefix_steps, alphabet_);
     } else {
-      new_node = current_node->get_prev_word(prefix_vec, prefix_steps, SPACE_ID_);
+      new_node = current_node->get_prev_word(prefix_vec, prefix_steps, alphabet_);
     }
     current_node = new_node->parent;
 

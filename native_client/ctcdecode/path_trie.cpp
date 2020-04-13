@@ -124,7 +124,8 @@ void PathTrie::get_path_vec(std::vector<int>& output, std::vector<int>& timestep
 }
 
 PathTrie* PathTrie::get_prev_grapheme(std::vector<int>& output,
-                                      std::vector<int>& timesteps)
+                                      std::vector<int>& timesteps,
+                                      const Alphabet& alphabet)
 {
   PathTrie* stop = this;
   if (character == ROOT_) {
@@ -132,24 +133,23 @@ PathTrie* PathTrie::get_prev_grapheme(std::vector<int>& output,
   }
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
-  //FIXME: use Alphabet instead of hardcoding +1 here
-  if (!byte_is_codepoint_boundary(character + 1)) {
-    stop = parent->get_prev_grapheme(output, timesteps);
+  if (!byte_is_codepoint_boundary(alphabet.StringFromLabel(character)[0])) {
+    stop = parent->get_prev_grapheme(output, timesteps, alphabet);
   }
   output.push_back(character);
   timesteps.push_back(timestep);
   return stop;
 }
 
-int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte)
+int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte,
+                                             const Alphabet& alphabet)
 {
-  //FIXME: use Alphabet instead of hardcoding +1 here
-  if (byte_is_codepoint_boundary(character + 1)) {
+  if (byte_is_codepoint_boundary(alphabet.StringFromLabel(character)[0])) {
     *first_byte = (unsigned char)character + 1;
     return 1;
   }
   if (parent != nullptr && parent->character != ROOT_) {
-    return 1 + parent->distance_to_codepoint_boundary(first_byte);
+    return 1 + parent->distance_to_codepoint_boundary(first_byte, alphabet);
   }
   assert(false); // unreachable
   return 0;
@@ -157,16 +157,16 @@ int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte)
 
 PathTrie* PathTrie::get_prev_word(std::vector<int>& output,
                                   std::vector<int>& timesteps,
-                                  int space_id)
+                                  const Alphabet& alphabet)
 {
   PathTrie* stop = this;
-  if (character == space_id || character == ROOT_) {
+  if (character == alphabet.GetSpaceLabel() || character == ROOT_) {
     return stop;
   }
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
   if (parent != nullptr) {
-    stop = parent->get_prev_word(output, timesteps, space_id);
+    stop = parent->get_prev_word(output, timesteps, alphabet);
   }
   output.push_back(character);
   timesteps.push_back(timestep);
