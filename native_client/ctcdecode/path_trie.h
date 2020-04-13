@@ -8,10 +8,7 @@
 #include <vector>
 
 #include "fst/fstlib.h"
-
-#ifdef DEBUG
 #include "alphabet.h"
-#endif
 
 /* Trie tree for prefix storing and manipulating, with a dictionary in
  * finite-state transducer for spelling correction.
@@ -31,15 +28,16 @@ public:
 
   // get the prefix data in correct time order from beginning of last grapheme to current node
   PathTrie* get_prev_grapheme(std::vector<int>& output,
-                              std::vector<int>& timesteps);
+                              std::vector<int>& timesteps,
+                              const Alphabet& alphabet);
 
   // get the distance from current node to the first codepoint boundary, and the byte value at the boundary
-  int distance_to_codepoint_boundary(unsigned char *first_byte);
+  int distance_to_codepoint_boundary(unsigned char *first_byte, const Alphabet& alphabet);
 
   // get the prefix data in correct time order from beginning of last word to current node
   PathTrie* get_prev_word(std::vector<int>& output,
                           std::vector<int>& timesteps,
-                          int space_id);
+                          const Alphabet& alphabet);
 
   // update log probs
   void iterate_to_vec(std::vector<PathTrie*>& output);
@@ -80,7 +78,6 @@ private:
   // pointer to dictionary of FST
   std::shared_ptr<FstType> dictionary_;
   FstType::StateId dictionary_state_;
-  // true if finding ars in FST
   std::shared_ptr<fst::SortedMatcher<FstType>> matcher_;
 };
 
