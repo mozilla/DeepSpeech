@@ -30,11 +30,12 @@ def create_bundle(
     cbm = "Looks" if vocab_looks_char_based else "Doesn't look"
     print("{} like a character based model.".format(cbm))
 
-    if force_utf8 is None:
+    if force_utf8 is True or force_utf8 is False:
+        use_utf8 = force_utf8
+    else:
+        # Use detected utf-8 mode for everything except True/False boolean values
         use_utf8 = vocab_looks_char_based
         print("Using detected UTF-8 mode: {}".format(use_utf8))
-    else:
-        use_utf8 = force_utf8
 
     if use_utf8:
         serialized_alphabet = UTF8Alphabet().serialize()
