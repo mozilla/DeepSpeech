@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 
 import argparse
 import shutil
-import sys
 
 from deepspeech_training.util.text import Alphabet, UTF8Alphabet
 from ds_ctcdecoder import Scorer, Alphabet as NativeAlphabet
@@ -27,31 +26,29 @@ def create_bundle(
                 if len(word) > 1:
                     vocab_looks_char_based = False
     print("{} unique words read from vocabulary file.".format(len(words)))
-    print(
-        "{} like a character based model.".format(
-            "Looks" if vocab_looks_char_based else "Doesn't look"
-        )
-    )
 
-    if force_utf8 != None:  # pylint: disable=singleton-comparison
-        use_utf8 = force_utf8.value
-        print("Forcing UTF-8 mode = {}".format(use_utf8))
+    cbm = "Looks" if vocab_looks_char_based else "Doesn't look"
+    print("{} like a character based model.".format(cbm))
+
+    if force_utf8 in ("True", "1", "true", "yes", "y"):
+        use_utf8 = True
+    elif force_utf8 in ("False", "0", "false", "no", "n"):
+        use_utf8 = False
     else:
         use_utf8 = vocab_looks_char_based
+        print("Using detected UTF-8 mode: {}".format(use_utf8))
 
     if use_utf8:
         serialized_alphabet = UTF8Alphabet().serialize()
     else:
         if not alphabet_path:
-            print("No --alphabet path specified, can't continue.")
-            sys.exit(1)
+            raise RuntimeError("No --alphabet path specified, can't continue.")
         serialized_alphabet = Alphabet(alphabet_path).serialize()
 
     alphabet = NativeAlphabet()
     err = alphabet.deserialize(serialized_alphabet, len(serialized_alphabet))
     if err != 0:
-        print("Error loading alphabet: {}".format(err))
-        sys.exit(1)
+        raise RuntimeError("Error loading alphabet: {}".format(err))
 
     scorer = Scorer()
     scorer.set_alphabet(alphabet)
@@ -62,33 +59,6 @@ def create_bundle(
     shutil.copy(lm_path, package_path)
     scorer.save_dictionary(package_path, True)  # append, not overwrite
     print("Package created in {}".format(package_path))
-
-
-class Tristate(object):
-    def __init__(self, value=None):
-        if any(value is v for v in (True, False, None)):
-            self.value = value
-        else:
-            raise ValueError("Tristate value must be True, False, or None")
-
-    def __eq__(self, other):
-        return (
-            self.value is other.value
-            if isinstance(other, Tristate)
-            else self.value is other
-        )
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __bool__(self):
-        raise TypeError("Tristate object may not be used as a Boolean")
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return "Tristate(%s)" % self.value
 
 
 def main():
@@ -129,19 +99,12 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.force_utf8 in ("True", "1", "true", "yes", "y"):
-        force_utf8 = Tristate(True)
-    elif args.force_utf8 in ("False", "0", "false", "no", "n"):
-        force_utf8 = Tristate(False)
-    else:
-        force_utf8 = Tristate(None)
-
     create_bundle(
         args.alphabet,
         args.lm,
         args.vocab,
         args.package,
-        force_utf8,
+        args.force_utf8,
         args.default_alpha,
         args.default_beta,
     )
