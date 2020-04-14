@@ -13,7 +13,7 @@ You can download the LibriSpeech corpus with the following commands:
 | As input you can use a plain text (e.g. ``file.txt``) or gzipped (e.g. ``file.txt.gz``) text file with one sentence in each line.
 |
 | If you are using a container created from the Dockerfile, you can use ``--kenlm_bins /DeepSpeech/native_client/kenlm/build/bin/``.
-Else you have to build `KenLM <https://github.com/kpu/kenlm>`_ first and then pass the build directory to the script.
+ Else you have to build `KenLM <https://github.com/kpu/kenlm>`_ first and then pass the build directory to the script.
 
 .. code-block:: bash
 
