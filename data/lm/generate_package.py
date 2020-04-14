@@ -30,13 +30,11 @@ def create_bundle(
     cbm = "Looks" if vocab_looks_char_based else "Doesn't look"
     print("{} like a character based model.".format(cbm))
 
-    if force_utf8 in ("True", "1", "true", "yes", "y"):
-        use_utf8 = True
-    elif force_utf8 in ("False", "0", "false", "no", "n"):
-        use_utf8 = False
-    else:
+    if force_utf8 is None:
         use_utf8 = vocab_looks_char_based
         print("Using detected UTF-8 mode: {}".format(use_utf8))
+    else:
+        use_utf8 = force_utf8
 
     if use_utf8:
         serialized_alphabet = UTF8Alphabet().serialize()
@@ -100,12 +98,19 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.force_utf8 in ("True", "1", "true", "yes", "y"):
+        force_utf8 = True
+    elif args.force_utf8 in ("False", "0", "false", "no", "n"):
+        force_utf8 = False
+    else:
+        force_utf8 = None
+
     create_bundle(
         args.alphabet,
         args.lm,
         args.vocab,
         args.package,
-        args.force_utf8,
+        force_utf8,
         args.default_alpha,
         args.default_beta,
     )
