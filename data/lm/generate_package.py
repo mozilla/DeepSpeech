@@ -125,7 +125,7 @@ def main():
     parser.add_argument(
         "--force_utf8",
         default="",
-        help="Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary.",
+        help="Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. See <https://github.com/mozilla/DeepSpeech/blob/master/doc/Decoder.rst#utf-8-mode> for further explanation",
     )
     args = parser.parse_args()
 

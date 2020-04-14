@@ -1,8 +1,30 @@
+The LM binary was generated from the LibriSpeech normalized LM training text, available `here <http://www.openslr.org/11>`_.
+It is created with `KenLM <https://github.com/kpu/kenlm>`_.
 
-The LM binary was generated from the LibriSpeech normalized LM training text, available `here <http://www.openslr.org/11>`_\ , using the `generate_lm.py` script (will generate `lm.binary` and `librispeech-vocab-500k.txt` in the folder it is run from). `KenLM <https://github.com/kpu/kenlm>`_'s built binaries must be in your PATH (lmplz, build_binary, filter).
-
-The scorer package was then built using the `generate_package.py` script:
+You can download the LibriSpeech corpus with the following commands:
 
 .. code-block:: bash
-    python generate_lm.py # this will create lm.binary and librispeech-vocab-500k.txt
-    python generate_package.py --alphabet ../alphabet.txt --lm lm.binary --vocab librispeech-vocab-500k.txt --default_alpha 0.75 --default_beta 1.85 --package kenlm.scorer
+
+    wget http://www.openslr.org/resources/11/librispeech-lm-norm.txt.gz
+
+
+Then use the `generate_lm.py` script to generate `lm.binary` and `vocab-500000.txt`.
+
+As input you can use a plain text (e.g. `file.txt`) or gzipped (e.g. `file.txt.gz`) text file with one sentence in each line.
+
+If you are not using the DeepSpeech docker container, you have to build `KenLM <https://github.com/kpu/kenlm>`_ first and then pass the build directory to the script.
+
+.. code-block:: bash
+
+    python3 data/lm/generate_lm.py --input_txt librispeech-lm-norm.txt.gz \
+      --output_dir . --top_k 500000 --kenlm_bins path/to/kenlm/build/bin/ \
+      --arpa_order 5 --max_arpa_memory "85%" --arpa_prune "0|0|1" \
+      --binary_a_bits 255 --binary_q_bits 8 --binary_type trie
+
+
+Afterwards you can use `generate_package.py` to generate the scorer package using the lm.binary and vocab-500000.txt files:
+
+.. code-block:: bash
+
+    python3 generate_package.py --alphabet ../alphabet.txt --lm lm.binary --vocab vocab-500000.txt \
+      --package kenlm.scorer --default_alpha 0.75 --default_beta 1.85
