@@ -16,8 +16,8 @@ If you are not using the DeepSpeech docker container, you have to build `KenLM <
 
 .. code-block:: bash
 
-    python3 data/lm/generate_lm.py --input_txt librispeech-lm-norm.txt.gz \
-      --output_dir . --top_k 500000 --kenlm_bins path/to/kenlm/build/bin/ \
+    python3 generate_lm.py --input_txt librispeech-lm-norm.txt.gz --output_dir . \
+      --top_k 500000 --kenlm_bins /DeepSpeech/native_client/kenlm/build/bin/ \
       --arpa_order 5 --max_arpa_memory "85%" --arpa_prune "0|0|1" \
       --binary_a_bits 255 --binary_q_bits 8 --binary_type trie
 
