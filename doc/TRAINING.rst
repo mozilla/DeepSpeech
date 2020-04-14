@@ -261,14 +261,14 @@ Inspired by Google Paper on `SpecAugment: A Simple Data Augmentation Method for 
    * Enable / Disable : ``--augmentation_freq_and_time_masking / --noaugmentation_freq_and_time_masking``  
    * Max range of masks in the frequency domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_freq_mask_range eg: 5``
    * Number of masks in the frequency domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_number_freq_masks eg: 3`` 
-   * Max range of masks in the time domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_time_mask_rangee eg: 2`` 
-   * Number of masks in the time domain when performing freqtime-mask augmentation: ``augmentation_freq_and_time_masking_number_time_masks eg: 3`` 
+   * Max range of masks in the time domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_time_mask_range eg: 2`` 
+   * Number of masks in the time domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_number_time_masks eg: 3`` 
 
 #. 
    **Whether to use spectrogram speed and tempo scaling:** 
 
 
-   * Enable / Disable : ``--augmentation_pitch_and_tempo_scaling / --noaugmentation_pitch_and_tempo_scaling.``  
+   * Enable / Disable : ``--augmentation_pitch_and_tempo_scaling / --noaugmentation_pitch_and_tempo_scaling``  
    * Min value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95`` 
    * Max value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2``  
    * Max value of tempo scaling: ``--augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2``  
