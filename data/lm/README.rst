@@ -14,6 +14,7 @@ You can download the LibriSpeech corpus with the following commands:
 |
 | If you are using a container created from the Dockerfile, you can use ``--kenlm_bins /DeepSpeech/native_client/kenlm/build/bin/``.
  Else you have to build `KenLM <https://github.com/kpu/kenlm>`_ first and then pass the build directory to the script.
+|
 
 .. code-block:: bash
 
