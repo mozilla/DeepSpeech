@@ -33,7 +33,10 @@ class Scorer(swigwrapper.Scorer):
             err = self.init(scorer_path.encode('utf-8'),
                             native_alphabet)
             if err != 0:
-                raise ValueError('Scorer initialization failed with error code {}'.format(err))
+                if err == 1:
+                    raise ValueError('Scorer initialization failed with error code {}, did you download the repository with git lfs?'.format(err))
+                else:
+                    raise ValueError('Scorer initialization failed with error code {}'.format(err))
 
             self.reset_params(alpha, beta)
 
