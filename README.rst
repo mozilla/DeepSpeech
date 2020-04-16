@@ -36,7 +36,7 @@ To install and use deepspeech all you have to do is:
    tar xvf audio-0.6.1.tar.gz
 
    # Transcribe an audio file
-   deepspeech --model deepspeech-0.6.1-models/output_graph.pbmm --scorer deepspeech-0.6.1-models/kenlm.scorer --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.6.1-models/output_graph.pbmm --audio audio/2830-3980-0043.wav
 
 A pre-trained English model is available for use and can be downloaded using `the instructions below <doc/USING.rst#using-a-pre-trained-model>`_. A package with some example audio files is available for download in our `release notes <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
 
