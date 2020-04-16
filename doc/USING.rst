@@ -12,7 +12,7 @@ Inference using a DeepSpeech pre-trained model can be done with a client/languag
 Running ``deepspeech`` might, see below, require some runtime dependencies to be already installed on your system:
 
 
-* ``sox`` - The Python and Node.JS clients use SoX to resample files to 16kHz.
+* ``sox`` - The Python and Node.JS clients use SoX to resample files to 16kHz. On MacOS, the Command-Line client will also require SoX to be installed.
 * ``libgomp1`` - libsox (statically linked into the clients) depends on OpenMP. Some people have had to install this manually.
 * ``libstdc++`` - Standard C++ Library implementation. Some people have had to install this manually.
 * ``libpthread`` - On Linux, some people have had to install libpthread manually. On Ubuntu, ``libpthread`` is part of the ``libpthread-stubs0-dev`` package.  
