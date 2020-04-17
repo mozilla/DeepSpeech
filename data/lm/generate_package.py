@@ -30,10 +30,9 @@ def create_bundle(
     cbm = "Looks" if vocab_looks_char_based else "Doesn't look"
     print("{} like a character based model.".format(cbm))
 
-    if force_utf8 is True or force_utf8 is False:
+    if force_utf8 != None:  # pylint: disable=singleton-comparison
         use_utf8 = force_utf8
     else:
-        # Use detected utf-8 mode for everything except True/False boolean values
         use_utf8 = vocab_looks_char_based
         print("Using detected UTF-8 mode: {}".format(use_utf8))
 
@@ -58,6 +57,33 @@ def create_bundle(
     shutil.copy(lm_path, package_path)
     scorer.save_dictionary(package_path, True)  # append, not overwrite
     print("Package created in {}".format(package_path))
+
+
+class Tristate(object):
+    def __init__(self, value=None):
+        if any(value is v for v in (True, False, None)):
+            self.value = value
+        else:
+            raise ValueError("Tristate value must be True, False, or None")
+
+    def __eq__(self, other):
+        return (
+            self.value is other.value
+            if isinstance(other, Tristate)
+            else self.value is other
+        )
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __bool__(self):
+        raise TypeError("Tristate object may not be used as a Boolean")
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return "Tristate(%s)" % self.value
 
 
 def main():
@@ -100,11 +126,11 @@ def main():
     args = parser.parse_args()
 
     if args.force_utf8 in ("True", "1", "true", "yes", "y"):
-        force_utf8 = True
+        force_utf8 = Tristate(True)
     elif args.force_utf8 in ("False", "0", "false", "no", "n"):
-        force_utf8 = False
+        force_utf8 = Tristate(False)
     else:
-        force_utf8 = None
+        force_utf8 = Tristate(None)
 
     create_bundle(
         args.alphabet,
