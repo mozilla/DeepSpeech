@@ -31,7 +31,7 @@ def create_bundle(
     print("{} like a character based model.".format(cbm))
 
     if force_utf8 != None:  # pylint: disable=singleton-comparison
-        use_utf8 = force_utf8
+        use_utf8 = force_utf8.value
     else:
         use_utf8 = vocab_looks_char_based
         print("Using detected UTF-8 mode: {}".format(use_utf8))
