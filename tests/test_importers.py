@@ -1,10 +1,14 @@
 import unittest
 
 from argparse import Namespace
-from .importers import validate_label_eng, get_validate_label
+from deepspeech_training.util.importers import validate_label_eng, get_validate_label
+from pathlib import Path
+
+def from_here(path):
+    here = Path(__file__)
+    return here.parent / path
 
 class TestValidateLabelEng(unittest.TestCase):
-
     def test_numbers(self):
         label = validate_label_eng("this is a 1 2 3 test")
         self.assertEqual(label, None)
@@ -24,12 +28,12 @@ class TestGetValidateLabel(unittest.TestCase):
         self.assertEqual(f('toto1234[{[{[]'), None)
 
     def test_get_validate_label_missing(self):
-        args = Namespace(validate_label_locale='util/test_data/validate_locale_ger.py')
+        args = Namespace(validate_label_locale=from_here('test_data/validate_locale_ger.py'))
         f = get_validate_label(args)
         self.assertEqual(f, None)
 
     def test_get_validate_label(self):
-        args = Namespace(validate_label_locale='util/test_data/validate_locale_fra.py')
+        args = Namespace(validate_label_locale=from_here('test_data/validate_locale_fra.py'))
         f = get_validate_label(args)
         l = f('toto')
         self.assertEqual(l, 'toto')

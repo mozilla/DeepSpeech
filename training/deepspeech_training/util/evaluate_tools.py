@@ -7,8 +7,8 @@ import numpy as np
 
 from attrdict import AttrDict
 
-from util.flags import FLAGS
-from util.text import levenshtein
+from .flags import FLAGS
+from .text import levenshtein
 
 
 def pmap(fun, iterable):

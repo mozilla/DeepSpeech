@@ -1,28 +1,22 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-
-sys.path.insert(1, os.path.join(sys.path[0], "..", ".."))
-
 import argparse
 import shutil
+import sys
 
-from util.text import Alphabet, UTF8Alphabet
+from deepspeech_training.util.text import Alphabet, UTF8Alphabet
 from ds_ctcdecoder import Scorer, Alphabet as NativeAlphabet
 
 
 def create_bundle(
-        alphabet_path,
-        lm_path,
-        vocab_path,
-        package_path,
-        force_utf8,
-        default_alpha,
-        default_beta,
+    alphabet_path,
+    lm_path,
+    vocab_path,
+    package_path,
+    force_utf8,
+    default_alpha,
+    default_beta,
 ):
     words = set()
     vocab_looks_char_based = True
@@ -48,6 +42,9 @@ def create_bundle(
     if use_utf8:
         serialized_alphabet = UTF8Alphabet().serialize()
     else:
+        if not alphabet_path:
+            print("No --alphabet path specified, can't continue.")
+            sys.exit(1)
         serialized_alphabet = Alphabet(alphabet_path).serialize()
 
     alphabet = NativeAlphabet()
@@ -112,27 +109,23 @@ def main():
         required=True,
         help="Path of vocabulary file. Must contain words separated by whitespace.",
     )
-    parser.add_argument(
-        "--package",
-        required=True,
-        help="Path to save scorer package."
-    )
+    parser.add_argument("--package", required=True, help="Path to save scorer package.")
     parser.add_argument(
         "--default_alpha",
         type=float,
-        default=0.75,
+        required=True,
         help="Default value of alpha hyperparameter.",
     )
     parser.add_argument(
         "--default_beta",
         type=float,
-        default=1.85,
+        required=True,
         help="Default value of beta hyperparameter.",
     )
     parser.add_argument(
         "--force_utf8",
         default="",
-        help="Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. Using this wrong can result in a 'Segmentation fault' error at the model evaluation.",
+        help="Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. See <https://github.com/mozilla/DeepSpeech/blob/master/doc/Decoder.rst#utf-8-mode> for further explanation",
     )
     args = parser.parse_args()
 

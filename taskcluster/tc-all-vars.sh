@@ -6,14 +6,12 @@ export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=${HOME}
     export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
-    export SWIG_ROOT="${HOME}/ds-swig"
     export DS_CPU_COUNT=$(nproc)
 fi;
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export PYENV_ROOT="${TASKCLUSTER_TASK_DIR}/pyenv-root"
-    export SWIG_ROOT="$(cygpath ${USERPROFILE})/ds-swig"
     export PLATFORM_EXE_SUFFIX=.exe
     export DS_CPU_COUNT=$(nproc)
 
@@ -22,7 +20,6 @@ if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
 fi;
 
 if [ "${OS}" = "Darwin" ]; then
-    export SWIG_ROOT="${TASKCLUSTER_ORIG_TASKDIR}/ds-swig"
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export DS_CPU_COUNT=$(sysctl hw.ncpu |cut -d' ' -f2)
     export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
@@ -43,19 +40,6 @@ if [ "${OS}" = "Darwin" ]; then
     if [ -f "${TESTS_BREW}/bin/brew" ]; then
         export PATH=${TESTS_BREW}/bin/:$PATH
     fi;
-fi;
-
-SWIG_BIN=swig${PLATFORM_EXE_SUFFIX}
-DS_SWIG_BIN=ds-swig${PLATFORM_EXE_SUFFIX}
-if [ -f "${SWIG_ROOT}/bin/${DS_SWIG_BIN}" ]; then
-    export PATH=${SWIG_ROOT}/bin/:$PATH
-    export SWIG_LIB="$(find ${SWIG_ROOT}/share/swig/ -type f -name "swig.swg" | xargs dirname)"
-    # Make an alias to be more magic
-    if [ ! -L "${SWIG_ROOT}/bin/${SWIG_BIN}" ]; then
-        ln -s ${DS_SWIG_BIN} ${SWIG_ROOT}/bin/${SWIG_BIN}
-    fi;
-    swig -version
-    swig -swiglib
 fi;
 
 PY37_OPENSSL_DIR="${PYENV_ROOT}/ssl-xenial"

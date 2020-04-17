@@ -8,11 +8,11 @@ import tensorflow.compat.v1 as tfv1
 from attrdict import AttrDict
 from xdg import BaseDirectory as xdg
 
-from util.flags import FLAGS
-from util.gpu import get_available_gpus
-from util.logging import log_error
-from util.text import Alphabet, UTF8Alphabet
-from util.helpers import parse_file_size
+from .flags import FLAGS
+from .gpu import get_available_gpus
+from .logging import log_error, log_warn
+from .text import Alphabet, UTF8Alphabet
+from .helpers import parse_file_size
 
 class ConfigSingleton:
     _config = None
@@ -45,8 +45,11 @@ def initialize_globals():
     if not FLAGS.checkpoint_dir:
         FLAGS.checkpoint_dir = xdg.save_data_path(os.path.join('deepspeech', 'checkpoints'))
 
-    if FLAGS.load not in ['last', 'best', 'init', 'auto']:
-        FLAGS.load = 'auto'
+    if FLAGS.load_train not in ['last', 'best', 'init', 'auto']:
+        FLAGS.load_train = 'auto'
+
+    if FLAGS.load_evaluate not in ['last', 'best', 'auto']:
+        FLAGS.load_evaluate = 'auto'
 
     # Set default summary dir
     if not FLAGS.summary_dir:

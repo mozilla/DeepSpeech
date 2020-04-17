@@ -5,8 +5,8 @@ import json
 
 from pathlib import Path
 from functools import partial
-from util.helpers import MEGABYTE, GIGABYTE, Interleaved
-from util.audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_WAV, AUDIO_TYPE_OPUS, SERIALIZABLE_AUDIO_TYPES
+from .helpers import MEGABYTE, GIGABYTE, Interleaved
+from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_WAV, AUDIO_TYPE_OPUS, SERIALIZABLE_AUDIO_TYPES
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4

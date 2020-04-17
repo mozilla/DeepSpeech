@@ -3,19 +3,13 @@
 Tool for playing samples from Sample Databases (SDB files) and DeepSpeech CSV files
 Use "python3 build_sdb.py -h" for help
 """
-from __future__ import absolute_import, division, print_function
 
-# Make sure we can import stuff from util/
-# This script needs to be run from the root of the DeepSpeech repository
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-import random
 import argparse
+import random
+import sys
 
-from util.sample_collections import samples_from_file, LabeledSample
-from util.audio import AUDIO_TYPE_PCM
+from deepspeech_training.util.audio import AUDIO_TYPE_PCM
+from deepspeech_training.util.sample_collections import LabeledSample, samples_from_file
 
 
 def play_sample(samples, index):
@@ -24,7 +18,7 @@ def play_sample(samples, index):
     if CLI_ARGS.random:
         index = random.randint(0, len(samples))
     elif index >= len(samples):
-        print('No sample with index {}'.format(CLI_ARGS.start))
+        print("No sample with index {}".format(CLI_ARGS.start))
         sys.exit(1)
     sample = samples[index]
     print('Sample "{}"'.format(sample.sample_id))
@@ -50,13 +44,28 @@ def play_collection():
 
 
 def handle_args():
-    parser = argparse.ArgumentParser(description='Tool for playing samples from Sample Databases (SDB files) '
-                                                 'and DeepSpeech CSV files')
-    parser.add_argument('collection', help='Sample DB or CSV file to play samples from')
-    parser.add_argument('--start', type=int, default=0,
-                        help='Sample index to start at (negative numbers are relative to the end of the collection)')
-    parser.add_argument('--number', type=int, default=-1, help='Number of samples to play (-1 for endless)')
-    parser.add_argument('--random', action='store_true', help='If samples should be played in random order')
+    parser = argparse.ArgumentParser(
+        description="Tool for playing samples from Sample Databases (SDB files) "
+        "and DeepSpeech CSV files"
+    )
+    parser.add_argument("collection", help="Sample DB or CSV file to play samples from")
+    parser.add_argument(
+        "--start",
+        type=int,
+        default=0,
+        help="Sample index to start at (negative numbers are relative to the end of the collection)",
+    )
+    parser.add_argument(
+        "--number",
+        type=int,
+        default=-1,
+        help="Number of samples to play (-1 for endless)",
+    )
+    parser.add_argument(
+        "--random",
+        action="store_true",
+        help="If samples should be played in random order",
+    )
     return parser.parse_args()
 
 
@@ -70,5 +79,5 @@ if __name__ == "__main__":
     try:
         play_collection()
     except KeyboardInterrupt:
-        print(' Stopped')
+        print(" Stopped")
         sys.exit(0)

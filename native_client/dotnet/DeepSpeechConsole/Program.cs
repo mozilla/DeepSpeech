@@ -51,8 +51,10 @@ namespace CSharpExamples
             {
                 Console.WriteLine("Loading model...");
                 stopwatch.Start();
+                // sphinx-doc: csharp_ref_model_start
                 using (IDeepSpeech sttClient = new DeepSpeech(model ?? "output_graph.pbmm"))
                 {
+                // sphinx-doc: csharp_ref_model_stop
                     stopwatch.Stop();
 
                     Console.WriteLine($"Model loaded - {stopwatch.Elapsed.Milliseconds} ms");
@@ -72,6 +74,7 @@ namespace CSharpExamples
                         stopwatch.Start();
 
                         string speechResult;
+                        // sphinx-doc: csharp_ref_inference_start
                         if (extended)
                         {
                             Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer,
@@ -83,6 +86,7 @@ namespace CSharpExamples
                             speechResult = sttClient.SpeechToText(waveBuffer.ShortBuffer,
                                 Convert.ToUInt32(waveBuffer.MaxSize / 2));
                         }
+                        // sphinx-doc: csharp_ref_inference_stop
 
                         stopwatch.Stop();
 

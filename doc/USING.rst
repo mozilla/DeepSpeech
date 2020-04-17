@@ -125,6 +125,8 @@ Please note that as of now, we support:
  - Node.JS versions 4 to 13.
  - Electron.JS versions 1.6 to 7.1
 
+TypeScript support is also provided.
+
 Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can install the GPU specific package as follows:
 
 .. code-block:: bash
@@ -133,7 +135,7 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can in
 
 See the `release notes <https://github.com/mozilla/DeepSpeech/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
 
-See :github:`client.js <native_client/javascript/client.js>` for an example of how to use the bindings.
+See :github:`client.ts <native_client/javascript/client.ts>` for an example of how to use the bindings.
 
 Using the Command-Line client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -157,6 +159,8 @@ also, if you need some binaries different than current master, like ``v0.2.0-alp
    python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
 
 The script ``taskcluster.py`` will download ``native_client.tar.xz`` (which includes the ``deepspeech`` binary and associated libraries) and extract it into the current folder. Also, ``taskcluster.py`` will download binaries for Linux/x86_64 by default, but you can override that behavior with the ``--arch`` parameter. See the help info with ``python util/taskcluster.py -h`` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
+
+Alternatively you may manually download the ``native_client.tar.xz`` from the [releases](https://github.com/mozilla/DeepSpeech/releases).
 
 Note: the following command assumes you `downloaded the pre-trained model <#getting-the-pre-trained-model>`_.
 

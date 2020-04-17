@@ -122,25 +122,3 @@ verify_bazel_rebuild()
     exit 1
   fi;
 }
-
-# Should be called from context where Python virtualenv is set
-verify_ctcdecoder_url()
-{
-  default_url=$(python util/taskcluster.py --decoder)
-  echo "${default_url}" | grep -F "deepspeech.native_client.v${DS_VERSION}"
-  rc_default_url=$?
-
-  tag_url=$(python util/taskcluster.py --decoder --branch 'v1.2.3')
-  echo "${tag_url}" | grep -F "deepspeech.native_client.v1.2.3"
-  rc_tag_url=$?
-
-  master_url=$(python util/taskcluster.py --decoder --branch 'master')
-  echo "${master_url}" | grep -F "deepspeech.native_client.master"
-  rc_master_url=$?
-
-  if [ ${rc_default_url} -eq 0 -a ${rc_tag_url} -eq 0 -a ${rc_master_url} -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi;
-}

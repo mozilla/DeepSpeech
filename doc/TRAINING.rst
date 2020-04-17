@@ -25,7 +25,7 @@ In creating a virtual environment you will create a directory containing a ``pyt
 
 .. code-block::
 
-   $ virtualenv -p python3 $HOME/tmp/deepspeech-train-venv/
+   $ python3 -m venv $HOME/tmp/deepspeech-train-venv/
 
 Once this command completes successfully, the environment will be ready to be activated.
 
@@ -38,29 +38,22 @@ Each time you need to work with DeepSpeech, you have to *activate* this virtual 
 
    $ source $HOME/tmp/deepspeech-train-venv/bin/activate
 
-Installing Python dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing DeepSpeech Training Code and its dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Install the required dependencies using ``pip3``\ :
 
 .. code-block:: bash
 
    cd DeepSpeech
-   pip3 install -r requirements.txt
+   pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
+   pip3 install --upgrade --force-reinstall -e .
 
 The ``webrtcvad`` Python package might require you to ensure you have proper tooling to build Python modules:
 
 .. code-block:: bash
 
    sudo apt-get install python3-dev
-
-You'll also need to install the ``ds_ctcdecoder`` Python package. ``ds_ctcdecoder`` is required for decoding the outputs of the ``deepspeech`` acoustic model into text. You can use ``util/taskcluster.py`` with the ``--decoder`` flag to get a URL to a binary of the decoder package appropriate for your platform and Python version:
-
-.. code-block:: bash
-
-   pip3 install $(python3 util/taskcluster.py --decoder)
-
-This command will download and install the ``ds_ctcdecoder`` package. You can override the platform with ``--arch`` if you want the package for ARM7 (\ ``--arch arm``\ ) or ARM64 (\ ``--arch arm64``\ ). If you prefer building the ``ds_ctcdecoder`` package from source, see the :github:`native_client README file <native_client/README.rst>`.
 
 Recommendations
 ^^^^^^^^^^^^^^^
@@ -70,7 +63,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 .. code-block:: bash
 
    pip3 uninstall tensorflow
-   pip3 install 'tensorflow-gpu==1.15.0'
+   pip3 install 'tensorflow-gpu==1.15.2'
 
 Please ensure you have the required `CUDA dependency <USING.rst#cuda-dependency>`_.
 
@@ -148,6 +141,18 @@ Feel also free to pass additional (or overriding) ``DeepSpeech.py`` parameters t
 
 Each dataset has a corresponding importer script in ``bin/`` that can be used to download (if it's freely available) and preprocess the dataset. See ``bin/import_librivox.py`` for an example of how to import and preprocess a large dataset for training with DeepSpeech.
 
+Some importers might require additional code to properly handled your locale-specific requirements. Such handling is dealt with ``--validate_label_locale`` flag that allows you to source out-of-tree Python script that defines a ``validate_label`` function. Please refer to ``util/importers.py`` for implementation example of that function.
+If you don't provide this argument, the default ``validate_label`` function will be used. This one is only intended for English language, so you might have consistency issues in your data for other languages.
+
+For example, in order to use a custom validation function that disallows any sample with "a" in its transcript, and lower cases everything else, you could put the following code in a file called ``my_validation.py`` and then use ``--validate_label_locale my_validation.py``:
+
+.. code-block:: python
+
+  def validate_label(label):
+      if 'a' in label: # disallow labels with 'a'
+          return None
+      return label.lower() # lower case valid labels
+
 If you've run the old importers (in ``util/importers/``\ ), they could have removed source files that are needed for the new importers to run. In that case, simply remove the extracted folders and let the importer extract and process the dataset from scratch, and things should work.
 
 Training with automatic mixed precision
@@ -202,9 +207,17 @@ Producing a mmap-able model is as simple as:
 Upon sucessfull run, it should report about conversion of a non-zero number of nodes. If it reports converting ``0`` nodes, something is wrong: make sure your model is a frozen one, and that you have not applied any incompatible changes (this includes ``quantize_weights``\ ).
 
 Continuing training from a release model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
+There are currently two supported approaches to make use of a pre-trained DeepSpeech model: fine-tuning or transfer-learning. Choosing which one to use is a simple decision, and it depends on your target dataset. Does your data use the same alphabet as the release model? If "Yes": fine-tune. If "No" use transfer-learning.
 
-If you'd like to use one of the pre-trained models released by Mozilla to bootstrap your training process (transfer learning, fine tuning), you can do so by using the ``--checkpoint_dir`` flag in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
+If your own data uses the *extact* same alphabet as the English release model (i.e. `a-z` plus `'`) then the release model's output layer will match your data, and you can just fine-tune the existing parameters. However, if you want to use a new alphabet (e.g. Cyrillic `а`, `б`, `д`), the output layer of a release DeepSpeech model will *not* match your data. In this case, you should use transfer-learning (i.e. remove the trained model's output layer, and reinitialize a new output layer that matches your target character set.
+
+N.B. - If you have access to a pre-trained model which uses UTF-8 bytes at the output layer you can always fine-tune, because any alphabet should be encodable as UTF-8.
+
+Fine-Tuning (same alphabet)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you'd like to use one of the pre-trained models released by Mozilla to bootstrap your training process (fine tuning), you can do so by using the ``--checkpoint_dir`` flag in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
 
 For example, if you want to fine tune the entire graph using your own data in ``my-train.csv``\ , ``my-dev.csv`` and ``my-test.csv``\ , for three epochs, you can something like the following, tuning the hyperparameters as needed:
 
@@ -219,6 +232,28 @@ Note: the released models were trained with ``--n_hidden 2048``\ , so you need t
 
    Key cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/bias/Adam not found in checkpoint
 
+
+Transfer-Learning (new alphabet)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want to continue training an alphabet-based DeepSpeech model (i.e. not a UTF-8 model) on a new language, or if you just want to add new characters to your custom alphabet, you will probably want to use transfer-learning instead of fine-tuning. If you're starting with a pre-trained UTF-8 model -- even if your data comes from a different language or uses a different alphabet -- the model will be able to predict your new transcripts, and you should use fine-tuning instead.
+
+In a nutshell, DeepSpeech's transfer-learning allows you to remove certain layers from a pre-trained model, initialize new layers for your target data, stitch together the old and new layers, and update all layers via gradient descent. You will remove the pre-trained output layer (and optionally more layers) and reinitialize parameters to fit your target alphabet. The simplest case of transfer-learning is when you remove just the output layer.
+
+In DeepSpeech's implementation of transfer-learning, all removed layers will be contiguous, starting from the output layer. The key flag you will want to experiment with is ``--drop_source_layers``. This flag accepts an integer from ``1`` to ``5`` and allows you to specify how many layers you want to remove from the pre-trained model. For example, if you supplied ``--drop_source_layers 3``, you will drop the last three layers of the pre-trained model: the output layer, penultimate layer, and LSTM layer. All dropped layers will be reinintialized, and (crucially) the output layer will be defined to match your supplied target alphabet.
+
+You need to specify the location of the pre-trained model with ``--load_checkpoint_dir`` and define where your new model checkpoints will be saved with ``--save_checkpoint_dir``. You need to specify how many layers to remove (aka "drop") from the pre-trained model: ``--drop_source_layers``. You also need to supply your new alphabet file using the standard ``--alphabet_config_path`` (remember, using a new alphabet is the whole reason you want to use transfer-learning).
+
+.. code-block:: bash
+
+       python3 DeepSpeech.py \
+           --drop_source_layers 1 \
+           --alphabet_config_path my-new-language-alphabet.txt \
+           --save_checkpoint_dir path/to/output-checkpoint/folder \
+           --load_checkpoint_dir path/to/release-checkpoint/folder \
+           --train_files   my-new-language-train.csv \
+           --dev_files   my-new-language-dev.csv \
+           --test_files  my-new-language-test.csv
 UTF-8 mode
 ^^^^^^^^^^
 
@@ -256,14 +291,14 @@ Inspired by Google Paper on `SpecAugment: A Simple Data Augmentation Method for 
    * Enable / Disable : ``--augmentation_freq_and_time_masking / --noaugmentation_freq_and_time_masking``  
    * Max range of masks in the frequency domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_freq_mask_range eg: 5``
    * Number of masks in the frequency domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_number_freq_masks eg: 3`` 
-   * Max range of masks in the time domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_time_mask_rangee eg: 2`` 
-   * Number of masks in the time domain when performing freqtime-mask augmentation: ``augmentation_freq_and_time_masking_number_time_masks eg: 3`` 
+   * Max range of masks in the time domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_time_mask_range eg: 2`` 
+   * Number of masks in the time domain when performing freqtime-mask augmentation: ``--augmentation_freq_and_time_masking_number_time_masks eg: 3`` 
 
 #. 
    **Whether to use spectrogram speed and tempo scaling:** 
 
 
-   * Enable / Disable : ``--augmentation_pitch_and_tempo_scaling / --noaugmentation_pitch_and_tempo_scaling.``  
+   * Enable / Disable : ``--augmentation_pitch_and_tempo_scaling / --noaugmentation_pitch_and_tempo_scaling``  
    * Min value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95`` 
    * Max value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2``  
    * Max value of tempo scaling: ``--augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2``  

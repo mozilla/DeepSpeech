@@ -14,6 +14,8 @@ Welcome to DeepSpeech's documentation!
 
    TRAINING
 
+   Decoder
+
 .. toctree::
    :maxdepth: 2
    :caption: DeepSpeech Model
@@ -52,9 +54,11 @@ Welcome to DeepSpeech's documentation!
 
    C-Examples
 
-   NodeJS-Examples
+   DotNet-Examples
 
    Java-Examples
+
+   NodeJS-Examples
 
    Python-Examples
 
@@ -62,7 +66,7 @@ Welcome to DeepSpeech's documentation!
    :maxdepth: 2
    :caption: Contributed examples
 
-   DotNet-contrib-examples.rst
+   DotNet-contrib-examples
 
    NodeJS-contrib-Examples
 

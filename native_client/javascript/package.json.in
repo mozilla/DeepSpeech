@@ -2,7 +2,8 @@
     "name" : "$(PROJECT_NAME)",
     "version" : "$(PROJECT_VERSION)",
     "description" : "DeepSpeech NodeJS bindings",
-    "main" : "./index",
+    "main" : "./index.js",
+    "types": "./index.d.ts",
     "bin": {
        "deepspeech": "./client.js"
     },
@@ -13,6 +14,7 @@
        "README.md",
        "client.js",
        "index.js",
+       "index.d.ts",
        "lib/*"
     ],
     "bugs": {
@@ -37,6 +39,11 @@
       "node-wav": "0.0.2"
     },
     "devDependencies": {
+      "electron": "^1.7.9",
+      "node-gyp": "4.x - 5.x",
+      "typescript": "3.6.x",
+      "@types/argparse": "1.0.x",
+      "@types/node": "13.9.x"
     },
     "scripts": {
         "test": "node index.js"

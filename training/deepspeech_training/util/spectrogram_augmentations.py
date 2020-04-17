@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
-from util.sparse_image_warp import sparse_image_warp
+
+from .sparse_image_warp import sparse_image_warp
 
 def augment_freq_time_mask(spectrogram,
                            frequency_masking_para=30,

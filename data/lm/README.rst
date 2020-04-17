@@ -1,32 +1,30 @@
-Download librispeech corpus
+The LM binary was generated from the LibriSpeech normalized LM training text, available `here <http://www.openslr.org/11>`_.
+It is created with `KenLM <https://github.com/kpu/kenlm>`_.
+
+You can download the LibriSpeech corpus with the following commands:
 
 .. code-block:: bash
 
-    wget http://www.openslr.org/resources/11/librispeech-lm-norm.txt.gz -O librispeech.txt.gz
-    gunzip librispeech.txt.gz
+    wget http://www.openslr.org/resources/11/librispeech-lm-norm.txt.gz
 
-|
-| Generate vocab-500000.txt and lm.binary files
-| Optional Parameters:
 
-* '--kenlm_bins path/to/bins/':  Change the path of the kenlm binaries (defaults to directory in docker container)
-* '--top_k 500000': Change the number of most frequent words
-* '--arpa_order 5': Change order of k-grams in arpa-file generation
-* '--max_arpa_memory 75%': Set maximum allowed memory usage for arpa-file generation
+Then use the `generate_lm.py` script to generate `lm.binary` and `vocab-500000.txt`.
 
+As input you can use a plain text (e.g. `file.txt`) or gzipped (e.g. `file.txt.gz`) text file with one sentence in each line.
+
+If you are not using the DeepSpeech docker container, you have to build `KenLM <https://github.com/kpu/kenlm>`_ first and then pass the build directory to the script.
 
 .. code-block:: bash
 
-    python3 data/lm/generate_lm.py --input_txt path/to/vocab_sentences.txt --output_dir path/lm/
+    python3 data/lm/generate_lm.py --input_txt librispeech-lm-norm.txt.gz \
+      --output_dir . --top_k 500000 --kenlm_bins path/to/kenlm/build/bin/ \
+      --arpa_order 5 --max_arpa_memory "85%" --arpa_prune "0|0|1" \
+      --binary_a_bits 255 --binary_q_bits 8 --binary_type trie
 
-|
-| Generate scorer package with the above vocab-500000.txt and lm.binary files
-| Optional Parameters:
 
-* '--default_alpha 0.75'
-* '--default_beta 1.85'
-* '--force_utf8 ""': See `link <https://github.com/mozilla/DeepSpeech/blob/master/doc/Decoder.rst#utf-8-mode>`_ for explanation
+Afterwards you can use `generate_package.py` to generate the scorer package using the lm.binary and vocab-500000.txt files:
 
 .. code-block:: bash
 
-    python generate_package.py --alphabet ../alphabet.txt --lm lm.binary --vocab librispeech-vocab-500k.txt --package kenlm.scorer
+    python3 generate_package.py --alphabet ../alphabet.txt --lm lm.binary --vocab vocab-500000.txt \
+      --package kenlm.scorer --default_alpha 0.75 --default_beta 1.85

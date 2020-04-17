@@ -105,16 +105,10 @@ do_deepspeech_nodejs_build()
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    NPM_ROOT=$(cygpath -u "$(npm root)")
-    PYTHON27=":/c/Python27"
-    # node-gyp@5.x behaves erratically with VS2015 and MSBuild.exe detection
-    npm install node-gyp@4.x node-pre-gyp
-  else
-    NPM_ROOT="$(npm root)"
-    npm install node-gyp@5.x node-pre-gyp
+    PYTHON27="/c/Python27"
   fi
 
-  export PATH="$NPM_ROOT/.bin/${PYTHON27}:$PATH"
+  export PATH="${PYTHON27}:$PATH"
 
   for node in ${SUPPORTED_NODEJS_VERSIONS}; do
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
@@ -157,16 +151,10 @@ do_deepspeech_npm_package()
   # Python 2.7 is required for node-pre-gyp, it is only required to force it on
   # Windows
   if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    NPM_ROOT=$(cygpath -u "$(npm root)")
-    PYTHON27=":/c/Python27"
-    # node-gyp@5.x behaves erratically with VS2015 and MSBuild.exe detection
-    npm install node-gyp@4.x node-pre-gyp
-  else
-    NPM_ROOT="$(npm root)"
-    npm install node-gyp@5.x node-pre-gyp
+    PYTHON27="/c/Python27"
   fi
 
-  export PATH="$NPM_ROOT/.bin/$PYTHON27:$PATH"
+  export PATH="${NPM_BIN}${PYTHON27}:$PATH"
 
   all_tasks="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
 

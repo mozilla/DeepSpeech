@@ -10,14 +10,14 @@ import tensorflow as tf
 
 from tensorflow.python.ops import gen_audio_ops as contrib_audio
 
-from util.config import Config
-from util.text import text_to_char_array
-from util.flags import FLAGS
-from util.spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up, augment_sparse_warp
-from util.audio import change_audio_types, read_frames_from_file, vad_split, pcm_to_np, DEFAULT_FORMAT, AUDIO_TYPE_NP
-from util.sample_collections import samples_from_files
-from util.helpers import remember_exception, MEGABYTE
-from util.audio_augmentation import augment_noise, create_noise_iterator, gla
+from .config import Config
+from .text import text_to_char_array
+from .flags import FLAGS
+from .spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up, augment_sparse_warp
+from .audio import change_audio_types, read_frames_from_file, vad_split, pcm_to_np, DEFAULT_FORMAT, AUDIO_TYPE_NP
+from .sample_collections import samples_from_files
+from .helpers import remember_exception, MEGABYTE
+from .audio_augmentation import augment_noise, create_noise_iterator, gla
 
 
 def read_csvs(csv_files):
