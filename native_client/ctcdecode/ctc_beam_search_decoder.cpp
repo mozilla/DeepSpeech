@@ -29,6 +29,7 @@ DecoderState::init(const Alphabet& alphabet,
   cutoff_prob_ = cutoff_prob;
   cutoff_top_n_ = cutoff_top_n;
   ext_scorer_ = ext_scorer;
+  start_expanding_ = false;
 
   // init prefixes' root
   PathTrie *root = new PathTrie;
@@ -55,6 +56,19 @@ DecoderState::next(const double *probs,
   // prefix search over time
   for (size_t rel_time_step = 0; rel_time_step < time_dim; ++rel_time_step, ++abs_time_step_) {
     auto *prob = &probs[rel_time_step*class_dim];
+
+    // At the start of the decoding process, we delay beam expansion so that
+    // timings on the first letters is not incorrect. As soon as we see a
+    // timestep with blank probability lower than 0.999, we start expanding
+    // beams.
+    if (prob[blank_id_] < 0.999) {
+      start_expanding_ = true;
+    }
+
+    // If not expanding yet, just continue to next timestep.
+    if (!start_expanding_) {
+      continue;
+    }
 
     float min_cutoff = -NUM_FLT_INF;
     bool full_beam = false;
