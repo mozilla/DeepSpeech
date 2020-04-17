@@ -241,8 +241,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     # Compute the CTC loss using TensorFlow's `ctc_loss`
     total_loss = tfv1.nn.ctc_loss(labels=batch_y,
                                   inputs=logits,
-                                  sequence_length=batch_seq_len,
-                                  ignore_longer_outputs_than_inputs=True)
+                                  sequence_length=batch_seq_len)
 
     # Check if any files lead to non finite loss
     non_finite_files = tf.gather(batch_filenames, tfv1.where(~tf.math.is_finite(total_loss)))
@@ -573,9 +572,7 @@ def train():
                     if FLAGS.augmentation_sparse_warp:
                         log_info("Ignoring sparse warp error: {}".format(err))
                         continue
-                    else:
-                        print("Ignoring error:", err)
-                        continue
+                    raise
                 except tf.errors.OutOfRangeError:
                     exception_box.raise_if_set()
                     break
@@ -584,12 +581,6 @@ def train():
                     problem_files = [f.decode('utf8') for f in problem_files[..., 0]]
                     log_error('The following files caused an infinite (or NaN) '
                               'loss: {}'.format(','.join(problem_files)))
-
-                    # Save invalid files
-                    sys.path.append("/DeepSpeech/deepspeech-german/training/")
-                    from filter_invalid_files import add_files_to_excluded
-                    add_files_to_excluded(problem_files)
-                    sys.exit(1)
 
                 total_loss += batch_loss
                 step_count += 1
