@@ -5,8 +5,8 @@ import tensorflow.compat.v1 as tfv1
 import numpy as np
 from tensorflow.python.ops import gen_audio_ops as contrib_audio
 import os
-from util.logging import log_info
-from util.config import Config
+from .logging import log_info
+from .config import Config
 
 
 DBFS_COEF = 10.0 / np.log(10.0)
