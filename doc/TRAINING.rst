@@ -265,7 +265,7 @@ Training with augmentation
 Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm and spectrogram has been implemented and can be used while training the model. Following are the available augmentation techniques that can be enabled at training time by using the corresponding flags in the command line.
 
 Audio Augmentation
-~~~~~~~~~~~~~~~~~~
+
 
 
 #. **Standard deviation for Gaussian additive noise:** ``--data_aug_features_additive``
@@ -273,7 +273,7 @@ Audio Augmentation
 #. **Standard deviation for speeding-up tempo. If Standard deviation is 0, this augmentation is not performed:** ``--augmentation_speed_up_std`` 
 
 Spectrogram Augmentation
-~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 Inspired by Google Paper on `SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition <https://arxiv.org/abs/1904.08779>`_
 
