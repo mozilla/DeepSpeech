@@ -7,7 +7,7 @@ Inference using a DeepSpeech pre-trained model can be done with a client/languag
 * `The Python package/language binding <#using-the-python-package>`_
 * `The Node.JS package/language binding <#using-the-nodejs-package>`_
 * `The Command-Line client <#using-the-command-line-client>`_
-* :github:`The .NET client/language binding <native_client/dotnet/README.rst>`
+* `The .NET client/language binding <https://github.com/mozilla/DeepSpeech/blob/master/native_client/dotnet/README.rst>`_
 
 Running ``deepspeech`` might, see below, require some runtime dependencies to be already installed on your system:
 
@@ -110,7 +110,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 The ``--scorer`` argument is optional, and represents an external language model to be used when transcribing the audio.
 
-See :github:`client.py <native_client/python/client.py>` for an example of how to use the package programatically.
+See `client.py <https://github.com/mozilla/DeepSpeech/blob/master/native_client/python/client.py>`_ for an example of how to use the package programatically.
 
 Using the Node.JS / Electron.JS package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -135,7 +135,7 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can in
 
 See the `release notes <https://github.com/mozilla/DeepSpeech/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
 
-See :github:`client.ts <native_client/javascript/client.ts>` for an example of how to use the bindings.
+See `client.ts <https://github.com/mozilla/DeepSpeech/blob/master/native_client/javascript/client.ts>`_ for an example of how to use the bindings.
 
 Using the Command-Line client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -168,12 +168,12 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
    ./deepspeech --model models/output_graph.pbmm --scorer models/kenlm.scorer --audio audio_input.wav
 
-See the help output with ``./deepspeech -h`` and the :github:`native client README <native_client/README.rst>` for more details.
+See the help output with ``./deepspeech -h`` and the `native client README <https://github.com/mozilla/DeepSpeech/blob/master/native_client/README.rst>`_ for more details.
 
 Installing bindings from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow these :github:`native client installation instructions <native_client/README.rst>`.
+If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow these `native client installation instructions <https://github.com/mozilla/DeepSpeech/blob/master/native_client/README.rst>`_.
 
 Third party bindings
 ^^^^^^^^^^^^^^^^^^^^
