@@ -123,7 +123,7 @@ The central (Python) script is ``DeepSpeech.py`` in the project's root directory
 
    ./DeepSpeech.py --helpfull
 
-To get the output of this in a slightly better-formatted way, you can also look up the option definitions in :github:`util/flags.py <util/flags.py>`.
+To get the output of this in a slightly better-formatted way, you can also look up the option definitions in github:`util/flags.py <util/flags.py>`.
 
 For executing pre-configured training scenarios, there is a collection of convenience scripts in the ``bin`` folder. Most of them are named after the corpora they are configured for. Keep in mind that most speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series or newer recommended) takes even longer.
 
@@ -179,7 +179,7 @@ Exporting a model for inference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the ``--export_dir`` parameter is provided, a model will have been exported to this directory during training.
-Refer to the corresponding :github:`README.rst <native_client/README.rst>` for information on building and running a client that can use the exported model.
+Refer to the corresponding :github`README.rst <native_client/README.rst>` for information on building and running a client that can use the exported model.
 
 Exporting a model for TFLite
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -257,7 +257,7 @@ You need to specify the location of the pre-trained model with ``--load_checkpoi
 UTF-8 mode
 ^^^^^^^^^^
 
-DeepSpeech includes a UTF-8 operating mode which can be useful to model languages with very large alphabets, such as Chinese Mandarin. For details on how it works and how to use it, see :ref:`decoder-docs`.
+DeepSpeech includes a UTF-8 operating mode which can be useful to model languages with very large alphabets, such as Chinese Mandarin. For details on how it works and how to use it, see ref:`decoder-docs`.
 
 Training with augmentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
