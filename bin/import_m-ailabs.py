@@ -60,6 +60,9 @@ def one_sample(sample):
     file_size = -1
     frames = 0
     if os.path.exists(wav_filename):
+        subprocess.check_output(
+            ['sox', wav_filename, '-r', str(SAMPLE_RATE), '-c', '1', '-b', '16', wav_filename], stderr=subprocess.STDOUT
+        )
         file_size = os.path.getsize(wav_filename)
         frames = int(
             subprocess.check_output(
