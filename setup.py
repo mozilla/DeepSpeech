@@ -73,6 +73,7 @@ def main():
         'bs4',
         'pandas',
         'requests',
+        'numba == 0.47.0', # ships py3.5 wheel, depend on llvmlite 0.31.*
         'librosa',
         'soundfile',
     ]
