@@ -32,6 +32,7 @@ Then run with a TF Lite model, a scorer and a CSV test file
 def tflite_worker(model, scorer, queue_in, queue_out, gpu_mask):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_mask)
     ds = Model(model)
+    ds.enableExternalScorer(scorer)
 
     while True:
         try:
