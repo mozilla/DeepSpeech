@@ -64,7 +64,7 @@ def main():
 
     install_requires_base = [
         'tensorflow == 1.15.2',
-        'numpy == 1.18.1',
+        'numpy',
         'progressbar2',
         'six',
         'pyxdg',
