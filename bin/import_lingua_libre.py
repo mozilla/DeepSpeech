@@ -24,6 +24,8 @@ from deepspeech_training.util.text import Alphabet
 
 FIELDNAMES = ["wav_filename", "wav_filesize", "transcript"]
 SAMPLE_RATE = 16000
+BITDEPTH = 16
+N_CHANNELS = 1
 MAX_SECS = 10
 
 ARCHIVE_DIR_NAME = "lingua_libre"
@@ -176,7 +178,7 @@ def _maybe_convert_sets(target_dir, extracted_data):
 def _maybe_convert_wav(ogg_filename, wav_filename):
     if not os.path.exists(wav_filename):
         transformer = sox.Transformer()
-        transformer.convert(samplerate=SAMPLE_RATE)
+        transformer.convert(samplerate=SAMPLE_RATE, n_channels=N_CHANNELS, bitdepth=BITDEPTH)
         try:
             transformer.build(ogg_filename, wav_filename)
         except sox.core.SoxError as ex:

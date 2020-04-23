@@ -34,6 +34,10 @@ def get_decoder_pkg_url(version, artifacts_root=None):
     is_ucs2 = sys.maxunicode < 0x10ffff
     m_or_mu = 'mu' if is_ucs2 else 'm'
 
+    # ABI does not contain m / mu anymore after Python 3.8
+    if sys.version_info.major == 3 and sys.version_info.minor >= 8:
+        m_or_mu = ''
+
     pyver = ''.join(str(i) for i in sys.version_info[0:2])
 
     if not artifacts_root:
@@ -73,6 +77,8 @@ def main():
         'bs4',
         'pandas',
         'requests',
+        'numba == 0.47.0', # ships py3.5 wheel
+        'llvmlite == 0.31.0', # for numba==0.47.0
         'librosa',
         'soundfile',
     ]

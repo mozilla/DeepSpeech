@@ -16,6 +16,7 @@ class DecoderState {
   size_t beam_size_;
   double cutoff_prob_;
   size_t cutoff_top_n_;
+  bool start_expanding_;
 
   std::shared_ptr<Scorer> ext_scorer_;
   std::vector<PathTrie*> prefixes_;
