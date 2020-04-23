@@ -29,4 +29,4 @@ Afterwards you can use ``generate_package.py`` to generate the scorer package us
 .. code-block:: bash
 
     python3 generate_package.py --alphabet ../alphabet.txt --lm lm.binary --vocab vocab-500000.txt \
-      --package kenlm.scorer --default_alpha 0.75 --default_beta 1.85
+      --package kenlm.scorer --default_alpha 0.931289039105002 --default_beta 1.1834137581510284
