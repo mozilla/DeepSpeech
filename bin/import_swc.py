@@ -268,7 +268,7 @@ def collect_samples(base_dir, language):
     bar = progressbar.ProgressBar(max_value=len(roots), widgets=SIMPLE_BAR)
     for root in bar(roots):
         wav_path = os.path.join(root, WAV_NAME)
-        aligned = ET.parse(path.join(root, ALIGNED_NAME))
+        aligned = ET.parse(os.path.join(root, ALIGNED_NAME))
         article = UNKNOWN
         speaker = UNKNOWN
         for prop in aligned.iter("prop"):
@@ -351,7 +351,7 @@ def maybe_convert_one_to_wav(entry):
     output_wav = os.path.join(root, WAV_NAME)
     if os.path.isfile(output_wav):
         return
-    files = sorted(glob(path.join(root, AUDIO_PATTERN)))
+    files = sorted(glob(os.path.join(root, AUDIO_PATTERN)))
     try:
         if len(files) == 1:
             transformer.build(files[0], output_wav)
