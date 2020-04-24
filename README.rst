@@ -14,9 +14,9 @@ Project DeepSpeech
 
 DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
 
-**NOTE:** This documentation applies to the **MASTER version** of DeepSpeech only. **Documentation for the latest stable version** is published on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
+**NOTE:** This documentation applies to the **0.7.0 version** of DeepSpeech only. **Documentation for all versions** is published on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 
-To install and use deepspeech all you have to do is:
+To install and use DeepSpeech all you have to do is:
 
 .. code-block:: bash
 
@@ -27,16 +27,16 @@ To install and use deepspeech all you have to do is:
    # Install DeepSpeech
    pip3 install deepspeech
 
-   # Download pre-trained English model and extract
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.6.1/deepspeech-0.6.1-models.tar.gz
-   tar xvf deepspeech-0.6.1-models.tar.gz
+   # Download pre-trained English model files
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.0/deepspeech-0.7.0-models.pbmm
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.0/deepspeech-0.7.0-models.scorer
 
    # Download example audio files
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.6.1/audio-0.6.1.tar.gz
-   tar xvf audio-0.6.1.tar.gz
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.0/audio-0.7.0.tar.gz
+   tar xvf audio-0.7.0.tar.gz
 
    # Transcribe an audio file
-   deepspeech --model deepspeech-0.6.1-models/output_graph.pbmm --scorer deepspeech-0.6.1-models/kenlm.scorer --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.7.0-models.pbmm --scorer deepspeech-0.7.0-models.scorer --audio audio/2830-3980-0043.wav
 
 A pre-trained English model is available for use and can be downloaded using `the instructions below <doc/USING.rst#using-a-pre-trained-model>`_. A package with some example audio files is available for download in our `release notes <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
 
@@ -52,7 +52,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    pip3 install deepspeech-gpu
 
    # Transcribe an audio file.
-   deepspeech --model deepspeech-0.6.1-models/output_graph.pbmm --scorer deepspeech-0.6.1-models/kenlm.scorer --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.7.0-models.pbmm --scorer deepspeech-0.7.0-models.scorer --audio audio/2830-3980-0043.wav
 
 Please ensure you have the required `CUDA dependencies <doc/USING.rst#cuda-dependency>`_.
 
