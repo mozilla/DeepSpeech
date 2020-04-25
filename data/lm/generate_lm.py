@@ -93,7 +93,7 @@ def build_lm(args, data_lower, vocab_str):
             *args.arpa_prune.split("|"),
         ]
     if args.discount_fallback:
-        subargs += [ "--discount_fallback" ]
+        subargs += ["--discount_fallback"]
     subprocess.check_call(subargs)
 
     # Filter LM using vocabulary of top-k words
