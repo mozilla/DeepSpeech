@@ -92,6 +92,7 @@ def build_lm(args, data_lower, vocab_str):
             lm_path,
             "--prune",
             *args.arpa_prune.split("|"),
+            "--discount_fallback",
         ]
     )
 
