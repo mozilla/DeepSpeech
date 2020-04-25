@@ -6,6 +6,7 @@ If you'd like to build the DeepSpeech binaries yourself, you'll need the followi
 
 
 * `Mozilla's TensorFlow r1.15 branch <https://github.com/mozilla/tensorflow/tree/r1.15>`_
+* `Bazel 0.24.1 <https://github.com/bazelbuild/bazel/releases/tag/0.24.1>`_
 * `General TensorFlow requirements <https://www.tensorflow.org/install/install_sources>`_
 * `libsox <https://sourceforge.net/projects/sox/>`_
 
