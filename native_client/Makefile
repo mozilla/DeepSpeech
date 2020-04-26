@@ -34,6 +34,8 @@ debug: $(DEEPSPEECH_BIN)
 install: $(DEEPSPEECH_BIN)
 	install -d ${PREFIX}/lib
 	install -m 0644 ${TFDIR}/bazel-bin/native_client/libdeepspeech.so ${PREFIX}/lib/
+	install -d ${PREFIX}/include
+	install -m 0644 deepspeech.h ${PREFIX}/include
 	install -d ${PREFIX}/bin
 	install -m 0755 deepspeech ${PREFIX}/bin/
 
