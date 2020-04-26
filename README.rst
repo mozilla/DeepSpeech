@@ -14,7 +14,7 @@ Project DeepSpeech
 
 DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
 
-**NOTE:** This documentation applies to the **0.7.0 version** of DeepSpeech only. **Documentation for all versions** is published on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
+**NOTE:** This documentation applies to the **master version** of DeepSpeech only. **Documentation for all versions** is published on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 
 To install and use DeepSpeech all you have to do is:
 
