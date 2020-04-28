@@ -76,4 +76,4 @@ The character, '|' in this case, will then have to be replaced with spaces as a 
 Implementation
 ^^^^^^^^^^^^^^
 
-The decoder source code can be found in ``native_client/ctcdecode``. The decoder is included in the language bindings and clients. In addition, there is a separate Python module which includes just the decoder and is needed for evaluation. A pre-built version of this package is automatically downloaded and installed when installing the training code. If you want to manually build and install it from source, see the :github:`native_client README <native_client/README.rst#install-the-ctc-decoder-package>`.
+The decoder source code can be found in ``native_client/ctcdecode``. The decoder is included in the language bindings and clients. In addition, there is a separate Python module which includes just the decoder and is needed for evaluation. A pre-built version of this package is automatically downloaded and installed when installing the training code. If you want or need to manually build and install it from source, see the :github:`native_client README <native_client/README.rst#install-the-ctc-decoder-package>`.
