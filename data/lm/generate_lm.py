@@ -77,8 +77,7 @@ def convert_and_filter_topk(args):
 def build_lm(args, data_lower, vocab_str):
     print("\nCreating ARPA file ...")
     lm_path = os.path.join(args.output_dir, "lm.arpa")
-    subprocess.check_call(
-        [
+    subargs = [
             os.path.join(args.kenlm_bins, "lmplz"),
             "--order",
             str(args.arpa_order),
@@ -93,7 +92,9 @@ def build_lm(args, data_lower, vocab_str):
             "--prune",
             *args.arpa_prune.split("|"),
         ]
-    )
+    if args.discount_fallback:
+        subargs += ["--discount_fallback"]
+    subprocess.check_call(subargs)
 
     # Filter LM using vocabulary of top-k words
     print("\nFiltering ARPA file using vocabulary of top-k words ...")
@@ -188,6 +189,12 @@ def main():
         type=str,
         required=True,
     )
+    parser.add_argument(
+        "--discount_fallback",
+        help="To try when such message is returned by kenlm: 'Could not calculate Kneser-Ney discounts [...] rerun with --discount_fallback'",
+        action="store_true",
+    )
+
     args = parser.parse_args()
 
     data_lower, vocab_str = convert_and_filter_topk(args)
