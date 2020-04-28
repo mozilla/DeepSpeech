@@ -123,7 +123,7 @@ The central (Python) script is ``DeepSpeech.py`` in the project's root directory
 
    ./DeepSpeech.py --helpfull
 
-To get the output of this in a slightly better-formatted way, you can also look up the option definitions in :github:`util/flags.py <util/flags.py>`.
+To get the output of this in a slightly better-formatted way, you can also look at the flag definitions in :ref:`training-flags`.
 
 For executing pre-configured training scenarios, there is a collection of convenience scripts in the ``bin`` folder. Most of them are named after the corpora they are configured for. Keep in mind that most speech corpora are *very large*, on the order of tens of gigabytes, and some aren't free. Downloading and preprocessing them can take a very long time, and training on them without a fast GPU (GTX 10 series or newer recommended) takes even longer.
 
