@@ -5,6 +5,7 @@ import absl.flags
 
 FLAGS = absl.flags.FLAGS
 
+# sphinx-doc: training_ref_flags_start
 def create_flags():
     # Importer
     # ========
@@ -198,3 +199,5 @@ def create_flags():
     f.register_validator('one_shot_infer',
                          lambda value: not value or os.path.isfile(value),
                          message='The file pointed to by --one_shot_infer must exist and be readable.')
+
+# sphinx-doc: training_ref_flags_end

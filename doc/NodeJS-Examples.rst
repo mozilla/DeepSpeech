@@ -1,3 +1,5 @@
+.. _js-api-example:
+
 JavaScript API Usage example
 =============================
 

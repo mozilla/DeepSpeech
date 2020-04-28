@@ -1,7 +1,9 @@
+.. _py-api-example:
+
 Python API Usage example
 ========================
 
-Examples are from `native_client/python/client.cc`.
+Examples are from `native_client/python/client.py`.
 
 Creating a model instance and loading model
 -------------------------------------------
