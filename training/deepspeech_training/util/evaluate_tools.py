@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
+import json
 from multiprocessing.dummy import Pool
-import numpy as np
 
+import numpy as np
 from attrdict import AttrDict
 
 from .flags import FLAGS
@@ -115,3 +116,13 @@ def print_report(samples, losses, wer, cer, dataset_name):
     print('Worst WER:', '\n' + '-' * 80)
     for s in worst_samples:
         print_single_sample(s)
+
+
+def save_samples_json(samples, output_path):
+    ''' Save decoded tuples as JSON, converting NumPy floats to Python floats.
+
+        We set ensure_ascii=True to prevent json from escaping non-ASCII chars
+        in the texts.
+    '''
+    with open(output_path, 'w') as fout:
+        json.dump(samples, fout, default=float, ensure_ascii=False, indent=2)

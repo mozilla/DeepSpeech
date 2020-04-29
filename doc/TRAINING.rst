@@ -112,7 +112,7 @@ If, for example, Common Voice language ``en`` was extracted to ``../data/CV/en/`
 
 .. code-block:: bash
 
-   ./DeepSpeech.py --train_files ../data/CV/en/clips/train.csv --dev_files ../data/CV/en/clips/dev.csv --test_files ../data/CV/en/clips/test.csv
+   python3 DeepSpeech.py --train_files ../data/CV/en/clips/train.csv --dev_files ../data/CV/en/clips/dev.csv --test_files ../data/CV/en/clips/test.csv
 
 Training a model
 ^^^^^^^^^^^^^^^^
@@ -121,7 +121,7 @@ The central (Python) script is ``DeepSpeech.py`` in the project's root directory
 
 .. code-block:: bash
 
-   ./DeepSpeech.py --helpfull
+   python3 DeepSpeech.py --helpfull
 
 To get the output of this in a slightly better-formatted way, you can also look at the flag definitions in :ref:`training-flags`.
 
@@ -163,7 +163,7 @@ Automatic Mixed Precision (AMP) training on GPU for TensorFlow has been recently
 Mixed precision training makes use of both FP32 and FP16 precisions where appropriate. FP16 operations can leverage the Tensor cores on NVIDIA GPUs (Volta, Turing or newer architectures) for improved throughput. Mixed precision training also often allows larger batch sizes. DeepSpeech GPU automatic mixed precision training can be enabled via the flag value `--auto_mixed_precision=True`.
 
 ```
-DeepSpeech.py --train_files ./train.csv --dev_files ./dev.csv --test_files ./test.csv --automatic_mixed_precision=True
+python3 DeepSpeech.py --train_files ./train.csv --dev_files ./dev.csv --test_files ./test.csv --automatic_mixed_precision=True
 ```
 
 On a Volta generation V100 GPU, automatic mixed precision speeds up DeepSpeech training and evaluation by ~30%-40%.

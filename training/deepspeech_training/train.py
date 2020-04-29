@@ -31,10 +31,11 @@ from .evaluate import evaluate
 from six.moves import zip, range
 from .util.config import Config, initialize_globals
 from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation
+from .util.evaluate_tools import save_samples_json
 from .util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
 from .util.flags import create_flags, FLAGS
 from .util.helpers import check_ctcdecoder_version, ExceptionBox
-from .util.logging import log_info, log_error, log_debug, log_progress, create_progressbar
+from .util.logging import create_progressbar, log_debug, log_error, log_info, log_progress, log_warn
 
 check_ctcdecoder_version()
 
@@ -641,8 +642,7 @@ def train():
 def test():
     samples = evaluate(FLAGS.test_files.split(','), create_model)
     if FLAGS.test_output_file:
-        # Save decoded tuples as JSON, converting NumPy floats to Python floats
-        json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
+        save_samples_json(samples, FLAGS.test_output_file)
 
 
 def create_inference_graph(batch_size=1, n_steps=16, tflite=False):

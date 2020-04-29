@@ -17,7 +17,7 @@ from six.moves import zip
 
 from .util.config import Config, initialize_globals
 from .util.checkpoints import load_graph_for_evaluation
-from .util.evaluate_tools import calculate_and_print_report
+from .util.evaluate_tools import calculate_and_print_report, save_samples_json
 from .util.feeding import create_dataset
 from .util.flags import create_flags, FLAGS
 from .util.helpers import check_ctcdecoder_version
@@ -143,8 +143,7 @@ def main(_):
     samples = evaluate(FLAGS.test_files.split(','), create_model)
 
     if FLAGS.test_output_file:
-        # Save decoded tuples as JSON, converting NumPy floats to Python floats
-        json.dump(samples, open(FLAGS.test_output_file, 'w'), default=float)
+        save_samples_json(samples, FLAGS.test_output_file)
 
 
 def run_script():
