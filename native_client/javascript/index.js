@@ -141,7 +141,7 @@ Model.prototype.createStream = function() {
     if (status !== 0) {
         throw "CreateStream failed "+binding.ErrorCodeToErrorMessage(status)+" 0x" + status.toString(16);
     }
-    return ctx;
+    return new Stream(ctx);
 }
 
 /**
@@ -192,7 +192,7 @@ Stream.prototype.intermediateDecodeWithMetadata = function(aNumResults) {
  * This method will free the stream, it must not be used after this method is called.
  */
 Stream.prototype.finishStream = function() {
-    result = binding.FinishStream(this._impl);
+    let result = binding.FinishStream(this._impl);
     this._impl = null;
     return result;
 }
