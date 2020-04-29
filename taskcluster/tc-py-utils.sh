@@ -72,15 +72,15 @@ maybe_setup_virtualenv_cross_arm()
   fi;
 
   if [ "${OS}" != "Linux" ]; then
-    echo "Only for Linux";
-    exit 1;
+    echo "Only for Linux/ARM arch";
+    return 0;
   fi;
 
   ARCH=$(uname -m)
 
   if [ "${ARCH}" = "x86_64" ]; then
-    echo "Not for Linux/AMD64";
-    exit 0;
+    echo "Only for Linux/ARM arch";
+    return 0;
   fi;
 
   mkdir -p ${PYENV_ROOT}/versions/${version}/envs/
@@ -322,6 +322,26 @@ get_python_pkg_url()
   local deepspeech_pkg="${pkgname}-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
   echo "${root}/${deepspeech_pkg}"
+}
+
+get_tflite_python_pkg_name()
+{
+  # Default to deepspeech package
+  local _pkgname="deepspeech_tflite"
+
+  ARCH=$(uname -m)
+  case "${OS}:${ARCH}" in
+      Linux:armv7l|Linux:aarch64)
+          # On linux/arm or linux/aarch64 we don't produce deepspeech_tflite
+          _pkgname="deepspeech"
+      ;;
+
+      *)
+          _pkgname="deepspeech_tflite"
+      ;;
+  esac
+
+  echo "${_pkgname}"
 }
 
 extract_python_versions()
