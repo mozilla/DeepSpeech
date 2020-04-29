@@ -112,7 +112,7 @@ sttWithMetadata(aBuffer: object, aNumResults: number): Metadata;
  *
  * @throws on error
  */
-createStream(): object;
+createStream(): Stream;
 }
 
 /**
@@ -127,14 +127,14 @@ declare class Stream {
  * @param aBuffer An array of 16-bit, mono raw audio samples at the
  *                 appropriate sample rate (matching what the model was trained on).
  */
-feedAudioContent(aBuffer: object): void;
+feedAudioContent(aBuffer: Buffer): void;
 
 /**
  * Compute the intermediate decoding of an ongoing streaming inference.
  *
  * @return The STT intermediate result.
  */
-intermediateDecode(aSctx: object): string;
+intermediateDecode(aSctx: Stream): string;
 
 /**
  * Compute the intermediate decoding of an ongoing streaming inference, return results including metadata.
@@ -188,7 +188,7 @@ export function FreeMetadata(metadata: Metadata): void;
  *
  * @param stream A streaming state pointer returned by :js:func:`Model.createStream`.
  */
-export function FreeStream(stream: object): void;
+export function FreeStream(stream: Stream): void;
 
 /**
  * Print version of this library and of the linked TensorFlow library on standard output.

@@ -36,3 +36,5 @@ npm install --prefix ${NODE_ROOT} --cache ${NODE_CACHE} ${deepspeech_npm_url}
 check_runtime_nodejs
 
 run_prod_inference_tests "${bitrate}"
+
+run_js_streaming_prod_inference_tests "${bitrate}"
