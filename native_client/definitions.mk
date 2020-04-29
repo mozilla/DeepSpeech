@@ -12,6 +12,8 @@ TOOL_LD   := ld
 TOOL_LDD  := ldd
 TOOL_LIBEXE :=
 
+OS        := $(shell uname -s)
+
 ifeq ($(findstring _NT,$(OS)),_NT)
 PLATFORM_EXE_SUFFIX := .exe
 endif
@@ -30,7 +32,13 @@ SOX_CFLAGS      := `pkg-config --cflags sox`
 ifeq ($(OS),Linux)
 SOX_CFLAGS      += -fopenmp
 SOX_LDFLAGS     := -Wl,-Bstatic `pkg-config --static --libs sox` -lgsm `pkg-config --static --libs libpng | cut -d' ' -f1` -lz -lmagic -lltdl -Wl,-Bdynamic -ldl
-else # OS == Linux
+else ifeq ($(OS),Darwin)
+LIBSOX_PATH             := $(shell echo `pkg-config --libs-only-L sox | sed -e 's/^-L//'`/lib`pkg-config --libs-only-l sox | sed -e 's/^-l//'`.dylib)
+LIBOPUSFILE_PATH        := $(shell echo `pkg-config --libs-only-L opusfile | sed -e 's/^-L//'`/lib`pkg-config --libs-only-l opusfile | sed -e 's/^-l//'`.dylib)
+LIBSOX_STATIC_DEPS      := $(shell echo `otool -L $(LIBSOX_PATH) | tail -n +2 | cut -d' ' -f1 | grep /opt/ | sed -E "s/\.[[:digit:]]+\.dylib/\.a/" | tr '\n' ' '`)
+LIBOPUSFILE_STATIC_DEPS := $(shell echo `otool -L $(LIBOPUSFILE_PATH) | tail -n +2 | cut -d' ' -f1 | grep /opt/ | sed -E "s/\.[[:digit:]]+\.dylib/\.a/" | tr '\n' ' '`)
+SOX_LDFLAGS             := $(LIBSOX_STATIC_DEPS) $(LIBOPUSFILE_STATIC_DEPS) -framework CoreAudio -lz
+else
 SOX_LDFLAGS     := `pkg-config --libs sox`
 endif # OS others
 PYTHON_PACKAGES := numpy${NUMPY_BUILD_VERSION}
@@ -92,8 +100,6 @@ PYTHON_PLATFORM_NAME := --plat-name linux_aarch64
 NODE_PLATFORM_TARGET := --target_arch=arm64 --target_platform=linux
 TOOLCHAIN_LDD_OPTS   := --root $(RASPBIAN)/
 endif # ($(TARGET),rpi3-armv8)
-
-OS      := $(shell uname -s)
 
 # -Wl,--no-as-needed is required to force linker not to evict libs it thinks we
 # dont need ; will fail the build on OSX because that option does not exists
