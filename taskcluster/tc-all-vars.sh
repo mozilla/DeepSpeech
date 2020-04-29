@@ -85,7 +85,7 @@ ldc93s1_sample_filename=''
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.8:ucs2 3.6.10:ucs2 3.7.6:ucs2 3.8.1:ucs2}
 
 # When updating NodeJS / ElectronJS supported versions, do not forget to increment
-# deepspeech.node-gyp-cache.<X> in both `system.node_gyp_cache` (taskcluster/.shared.yml)
-# and route index (taskcluster/node-gyp-cache.yml) to ensure the cache is updated
-SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-10.18.1 11.15.0 12.8.1 13.1.0}
+# deepspeech.node-gyp-cache.<X> in `system.node_gyp_cache` (taskcluster/.shared.yml)
+# to ensure the cache is updated
+SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-10.18.1 11.15.0 12.8.1 13.1.0 14.0.0}
 SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1}
