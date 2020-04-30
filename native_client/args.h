@@ -54,7 +54,7 @@ void PrintHelp(const char* bin)
     "\t-t\t\t\t\tRun in benchmark mode, output mfcc & inference time\n"
     "\t--extended\t\t\tOutput string from extended metadata\n"
     "\t--json\t\t\t\tExtended output, shows word timings as JSON\n"
-    "\t--candidate_transcripts NUMBER\tNumber of candidate transcripts to include in output\n"
+    "\t--candidate_transcripts NUMBER\tNumber of candidate transcripts to include in JSON output\n"
     "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
     "\t--help\t\t\t\tShow help\n"
     "\t--version\t\t\tPrint version and exits\n";
