@@ -226,7 +226,7 @@ For example, if you want to fine tune the entire graph using your own data in ``
    mkdir fine_tuning_checkpoints
    python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder --epochs 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
 
-Note: the released models were trained with ``--n_hidden 2048``\ , so you need to use that same value when initializing from the release models. Since v0.6.0, the release models are also trained with ``--train_cudnn``\ , so you'll need to specify that as well. If you don't have a CUDA compatible GPU, then you can workaround it by using the ``--load_cudnn`` flag. Use ``--helpfull`` to get more information on how the flags work. If you try to load a release model without following these steps, you'll get an error similar to this:
+Note: the released models were trained with ``--n_hidden 2048``\ , so you need to use that same value when initializing from the release models. Since v0.6.0, the release models are also trained with ``--train_cudnn``\ , so you'll need to specify that as well. If you don't have a CUDA compatible GPU, then you can workaround it by using the ``--load_cudnn`` flag. Use ``--helpfull`` to get more information on how the flags work. Also, you cannot use ```automatic_mixed_precision``` when loading released models. If you try to load a release model without following these steps, you'll get an error similar to this:
 
 .. code-block::
 
