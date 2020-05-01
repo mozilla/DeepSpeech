@@ -107,6 +107,8 @@ def main():
                         help='Output string from extended metadata')
     parser.add_argument('--json', required=False, action='store_true',
                         help='Output json from metadata with timestamp of each word')
+    parser.add_argument('--candidate_transcripts', type=int, default=3,
+                        help='Number of candidate transcripts to include in JSON output')
     args = parser.parse_args()
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
@@ -149,7 +151,7 @@ def main():
     if args.extended:
         print(metadata_to_string(ds.sttWithMetadata(audio, 1).transcripts[0]))
     elif args.json:
-        print(metadata_json_output(ds.sttWithMetadata(audio, 3)))
+        print(metadata_json_output(ds.sttWithMetadata(audio, args.candidate_transcripts)))
     else:
         print(ds.stt(audio))
     # sphinx-doc: python_ref_inference_stop
