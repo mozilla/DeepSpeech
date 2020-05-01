@@ -160,10 +160,10 @@ Training with automatic mixed precision
 
 Automatic Mixed Precision (AMP) training on GPU for TensorFlow has been recently [introduced](https://medium.com/tensorflow/automatic-mixed-precision-in-tensorflow-for-faster-ai-training-on-nvidia-gpus-6033234b2540).
 
-Mixed precision training makes use of both FP32 and FP16 precisions where appropriate. FP16 operations can leverage the Tensor cores on NVIDIA GPUs (Volta, Turing or newer architectures) for improved throughput. Mixed precision training also often allows larger batch sizes. DeepSpeech GPU automatic mixed precision training can be enabled via the flag value `--auto_mixed_precision=True`.
+Mixed precision training makes use of both FP32 and FP16 precisions where appropriate. FP16 operations can leverage the Tensor cores on NVIDIA GPUs (Volta, Turing or newer architectures) for improved throughput. Mixed precision training also often allows larger batch sizes. Automatic mixed precision training can be enabled by including the flag `--automatic_mixed_precision` at training time:
 
 ```
-python3 DeepSpeech.py --train_files ./train.csv --dev_files ./dev.csv --test_files ./test.csv --automatic_mixed_precision=True
+python3 DeepSpeech.py --train_files ./train.csv --dev_files ./dev.csv --test_files ./test.csv --automatic_mixed_precision
 ```
 
 On a Volta generation V100 GPU, automatic mixed precision speeds up DeepSpeech training and evaluation by ~30%-40%.
@@ -226,11 +226,15 @@ For example, if you want to fine tune the entire graph using your own data in ``
    mkdir fine_tuning_checkpoints
    python3 DeepSpeech.py --n_hidden 2048 --checkpoint_dir path/to/checkpoint/folder --epochs 3 --train_files my-train.csv --dev_files my-dev.csv --test_files my_dev.csv --learning_rate 0.0001
 
-Note: the released models were trained with ``--n_hidden 2048``\ , so you need to use that same value when initializing from the release models. Since v0.6.0, the release models are also trained with ``--train_cudnn``\ , so you'll need to specify that as well. If you don't have a CUDA compatible GPU, then you can workaround it by using the ``--load_cudnn`` flag. Use ``--helpfull`` to get more information on how the flags work. Also, you cannot use ```automatic_mixed_precision``` when loading released models. If you try to load a release model without following these steps, you'll get an error similar to this:
+Notes about the release checkpoints: the released models were trained with ``--n_hidden 2048``\ , so you need to use that same value when initializing from the release models. Since v0.6.0, the release models are also trained with ``--train_cudnn``\ , so you'll need to specify that as well. If you don't have a CUDA compatible GPU, then you can workaround it by using the ``--load_cudnn`` flag. Use ``--helpfull`` to get more information on how the flags work.
+
+You also cannot use ```--automatic_mixed_precision``` when loading release checkpoints, as they do not use automatic mixed precision training.
+
+If you try to load a release model without following these steps, you'll get an error similar to this:
 
 .. code-block::
 
-   Key cudnn_lstm/rnn/multi_rnn_cell/cell_0/cudnn_compatible_lstm_cell/bias/Adam not found in checkpoint
+   E Tried to load a CuDNN RNN checkpoint but there were more missing variables than just the Adam moment tensors.
 
 
 Transfer-Learning (new alphabet)
