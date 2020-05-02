@@ -111,14 +111,14 @@ system:
     namespace: 'project.deepspeech.gradle.6'
   pyenv:
     linux:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.7/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.linux.7'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.8/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.linux.8'
     osx:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.7/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.osx.7'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.8/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.osx.8'
     win:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.7/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.win.7'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.8/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.win.8'
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
