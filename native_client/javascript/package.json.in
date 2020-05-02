@@ -35,7 +35,7 @@
       "node-pre-gyp": "0.15.x",
       "argparse": "1.0.x",
       "sox-stream": "2.0.x",
-      "memory-stream": "0.0.3",
+      "memory-stream": "1.0.x",
       "node-wav": "0.0.2"
     },
     "devDependencies": {

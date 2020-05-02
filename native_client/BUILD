@@ -122,8 +122,8 @@ tf_cc_shared_object(
     linkopts = select({
         "//tensorflow:macos": [],
         "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
-        "//tensorflow:rpi3": LINUX_LINKOPTS + ["-l:libstdc++.a"],
-        "//tensorflow:rpi3-armv8": LINUX_LINKOPTS + ["-l:libstdc++.a"],
+        "//tensorflow:rpi3": LINUX_LINKOPTS,
+        "//tensorflow:rpi3-armv8": LINUX_LINKOPTS,
         "//tensorflow:windows": [],
         "//conditions:default": [],
     }) + tflite_linkopts(),

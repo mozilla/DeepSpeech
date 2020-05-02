@@ -19,7 +19,7 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-    image: "arm64v8/debian:buster-20190812"
+    image: "arm64v8/debian:buster-20200422"
 
     env:
       $let:
@@ -42,7 +42,7 @@ then:
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
-          apt-get -qq update && apt-get -qq -y install curl python-simplejson git gnupg pixz sox sudo wget libatlas3-base libopenblas-base xxd && ${extraSystemSetup} &&
+          apt-get -qq update && apt-get -qq -y install curl python-simplejson git gnupg pixz sox sudo wget libatlas3-base libopenblas-base xxd && update-ca-certificates --fresh && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
           cd ${system.homedir.linux} &&
           echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&

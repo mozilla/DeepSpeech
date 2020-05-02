@@ -4,7 +4,7 @@ build:
     - "linux-amd64-ctc-opt"
   system_setup:
     >
-      apt-get -qq update && apt-get -qq -y install ${training.packages_trusty.apt}
+      apt-get -qq update && apt-get -qq -y install ${training.packages_xenial.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-extra-tests.sh 3.6.10:m 16k"
   metadata:

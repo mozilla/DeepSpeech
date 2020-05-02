@@ -14,7 +14,7 @@ build:
       apt-get -qq -y install gdebi git pixz &&
       wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb &&
       echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
-      ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
+      ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning}
       && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   system_config:
     >

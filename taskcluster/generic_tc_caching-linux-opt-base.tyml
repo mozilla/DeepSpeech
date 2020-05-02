@@ -25,7 +25,7 @@ payload:
         taskIndexExpire: { $fromNow: '6 months' }
       in: >
         (apt-get -qq -y remove --purge ubuntu-advantage-tools || true) &&
-        apt-get -qq update && apt-get -qq -y install curl git && ${extraSystemSetup};
+        apt-get -qq update && apt-get -qq -y install curl git sudo && ${extraSystemSetup};
         cache_artifact=`curl -sSIL -o /dev/null -w "%{http_code}" ${build.cache.artifact_url}` &&
         if [ "$cache_artifact" != "200" ]; then
           adduser --system --home ${system.homedir.linux} ${system.username} && cd ${system.homedir.linux}/ &&

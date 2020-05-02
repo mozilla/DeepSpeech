@@ -13,7 +13,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.android-apk.${event.head.sha}"
   system_setup:
     >
-      ${java.packages_trusty.apt}
+      ${java.packages_xenial.apt}
   tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.c29895fba1b9f9f48e2e54eefb024c69aa333473.android-armv7/artifacts/public/home.tar.xz"
   gradle_cache:
     url: ${system.gradle_cache.url}

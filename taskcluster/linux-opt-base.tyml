@@ -44,7 +44,7 @@ then:
           extraSystemConfig: { $eval: strip(str(build.system_config)) }
         in: >
           adduser --system --home ${system.homedir.linux} ${system.username} &&
-          apt-get -qq update && apt-get -qq -y install ${tensorflow.packages_trusty.apt} pixz pkg-config realpath sudo unzip wget zip && ${extraSystemSetup} &&
+          apt-get -qq update && apt-get -qq -y install ${tensorflow.packages_xenial.apt} pixz pkg-config realpath sudo unzip wget zip && ${extraSystemSetup} &&
           cd ${system.homedir.linux}/ &&
           echo -e "#!/bin/bash\nset -xe\n env && id && (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | tar -C ${system.homedir.linux}/ -xf - ) && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && ln -s ~/DeepSpeech/ds/native_client/ ~/DeepSpeech/tf/native_client && mkdir -p ${system.homedir.linux}/.cache/node-gyp/ && wget -O - ${system.node_gyp_cache.url} | tar -C ${system.homedir.linux}/.cache/node-gyp/ -xzf - && mkdir -p ${system.homedir.linux}/pyenv-root/ && wget -O - ${system.pyenv.linux.url} | tar -C ${system.homedir.linux}/pyenv-root/ -xzf - && if [ ! -z "${build.gradle_cache.url}" ]; then wget -O - ${build.gradle_cache.url} | tar -C ${system.homedir.linux}/ -xzf - ; fi && if [ ! -z "${build.android_cache.url}" ]; then wget -O - ${build.android_cache.url} | tar -C ${system.homedir.linux}/ -xzf - ; fi;" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u ${system.username} /bin/bash /tmp/clone.sh && ${extraSystemConfig} &&

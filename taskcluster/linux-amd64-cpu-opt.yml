@@ -10,7 +10,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.cpu.${event.head.sha}"
   system_setup:
     >
-      ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
+      ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning}
       && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.c29895fba1b9f9f48e2e54eefb024c69aa333473.cpu/artifacts/public/home.tar.xz"
   scripts:

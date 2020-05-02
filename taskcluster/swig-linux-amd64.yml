@@ -1,6 +1,6 @@
 build:
   template_file: generic_tc_caching-linux-opt-base.tyml
-  docker_image: "ubuntu:14.04"
+  docker_image: "ubuntu:16.04"
   build_or_cache:
     repo: "${system.swig.repo}"
     sha: "${system.swig.sha1}"
