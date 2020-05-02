@@ -44,7 +44,6 @@ then:
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
-          ${aptEc2Mirrors} &&
           apt-get -qq update && apt-get -qq -y install curl python-simplejson git pixz sox sudo wget && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
           cd ${system.homedir.linux} &&

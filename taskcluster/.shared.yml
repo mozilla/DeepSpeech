@@ -138,4 +138,3 @@ system:
     osx: '/Users/build-user'
     win: '/c/builds/tc-workdir'
   sox_win: '/usr/bin/wget.exe https://sourceforge.net/projects/sox/files/sox/14.4.2/sox-14.4.2-win32.zip/download -O sox-14.4.2-win32.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_TASK_DIR/bin/ -tzip -aoa sox-14.4.2-win32.zip && rm sox-*zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/sox-14.4.2/:$PATH'
-aptEc2Mirrors: 'echo "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main" > /etc/apt/sources.list.d/trusty-updates.list && apt-get -qq update && apt-get -qq -y upgrade'
