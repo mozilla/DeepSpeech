@@ -81,10 +81,11 @@ class Model(object):
         :param scorer_path: The path to the external scorer file.
         :type scorer_path: str
 
-        :return: Zero on success, non-zero on failure.
-        :type: int
+        :throws: RuntimeError on error
         """
-        return deepspeech.impl.EnableExternalScorer(self._impl, scorer_path)
+        status = deepspeech.impl.EnableExternalScorer(self._impl, scorer_path)
+        if status != 0:
+            raise RuntimeError("EnableExternalScorer failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
 
     def disableExternalScorer(self):
         """
