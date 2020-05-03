@@ -333,11 +333,12 @@ int
 DS_EnableExternalScorer(ModelState* aCtx,
                         const char* aScorerPath)
 {
-  aCtx->scorer_.reset(new Scorer());
-  int err = aCtx->scorer_->init(aScorerPath, aCtx->alphabet_);
+  std::unique_ptr<Scorer> scorer(new Scorer());
+  int err = scorer->init(aScorerPath, aCtx->alphabet_);
   if (err != 0) {
     return DS_ERR_INVALID_SCORER;
   }
+  aCtx->scorer_ = std::move(scorer);
   return DS_ERR_OK;
 }
 
