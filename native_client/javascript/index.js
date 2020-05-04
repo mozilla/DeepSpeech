@@ -35,7 +35,7 @@ function Model(aModelPath) {
     const status = rets[0];
     const impl = rets[1];
     if (status !== 0) {
-        throw "CreateModel failed "+binding.ErrorCodeToErrorMessage(status)+" 0x" + status.toString(16);
+        throw "CreateModel failed with '"+binding.ErrorCodeToErrorMessage(status)+"' (0x" + status.toString(16) + ")";
     }
 
     this._impl = impl;
@@ -76,10 +76,13 @@ Model.prototype.sampleRate = function() {
  *
  * @param {string} aScorerPath The path to the external scorer file.
  *
- * @return {number} Zero on success, non-zero on failure (invalid arguments).
+ * @throws on error
  */
 Model.prototype.enableExternalScorer = function(aScorerPath) {
-    return binding.EnableExternalScorer(this._impl, aScorerPath);
+    const status = binding.EnableExternalScorer(this._impl, aScorerPath);
+    if (status !== 0) {
+        throw "EnableExternalScorer failed with '"+binding.ErrorCodeToErrorMessage(status)+"' (0x" + status.toString(16) + ")";
+    }
 }
 
 /**
@@ -139,7 +142,7 @@ Model.prototype.createStream = function() {
     const status = rets[0];
     const ctx = rets[1];
     if (status !== 0) {
-        throw "CreateStream failed "+binding.ErrorCodeToErrorMessage(status)+" 0x" + status.toString(16);
+        throw "CreateStream failed with '"+binding.ErrorCodeToErrorMessage(status)+"' (0x" + status.toString(16) + ")";
     }
     return new Stream(ctx);
 }
