@@ -211,7 +211,7 @@ Stream.prototype.finishStream = function() {
  */
 Stream.prototype.finishStreamWithMetadata = function(aNumResults) {
     aNumResults = aNumResults || 1;
-    result = binding.FinishStreamWithMetadata(this._impl, aNumResults);
+    let result = binding.FinishStreamWithMetadata(this._impl, aNumResults);
     this._impl = null;
     return result;
 }
