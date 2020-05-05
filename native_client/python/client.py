@@ -120,7 +120,7 @@ def main():
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
 
     if args.beam_width:
-        ds.setModelBeamWidth(args.beam_width)
+        ds.setBeamWidth(args.beam_width)
 
     desired_sample_rate = ds.sampleRate()
 
