@@ -42,10 +42,14 @@ assert_correct_inference()
   else
       echo "!! Non matching output !!"
       echo "got: <${phrase}>"
-      echo "xxd:"; echo "${phrase}" | xxd
+      if [ -x "$(command -v xxd)" ]; then
+        echo "xxd:"; echo "${phrase}" | xxd
+      fi
       echo "-------------------"
       echo "expected: <${expected}>"
-      echo "xxd:"; echo "${expected}" | xxd
+      if [ -x "$(command -v xxd)" ]; then
+        echo "xxd:"; echo "${expected}" | xxd
+      fi
       return 1
   fi;
 }
@@ -89,10 +93,14 @@ assert_working_inference()
       *)
           echo "!! Non matching output !!"
           echo "got: <${phrase}>"
-          echo "xxd:"; echo "${phrase}" | xxd
+          if [ -x "$(command -v xxd)" ]; then
+            echo "xxd:"; echo "${phrase}" | xxd
+          fi
           echo "-------------------"
           echo "expected: <${expected}>"
-          echo "xxd:"; echo "${expected}" | xxd
+          if [ -x "$(command -v xxd)" ]; then
+            echo "xxd:"; echo "${expected}" | xxd
+          fi
           return 1
       ;;
   esac
@@ -125,10 +133,14 @@ assert_shows_something()
       *)
           echo "!! Non matching output !!"
           echo "got: <${stderr}>"
-          echo "xxd:"; echo "${stderr}" | xxd
+          if [ -x "$(command -v xxd)" ]; then
+            echo "xxd:"; echo "${stderr}" | xxd
+          fi
           echo "-------------------"
           echo "expected: <${expected}>"
-          echo "xxd:"; echo "${expected}" | xxd
+          if [ -x "$(command -v xxd)" ]; then
+            echo "xxd:"; echo "${expected}" | xxd
+          fi
           return 1
       ;;
   esac
@@ -150,10 +162,14 @@ assert_not_present()
       *${not_expected}*)
           echo "!! Not expected was present !!"
           echo "got: <${stderr}>"
-          echo "xxd:"; echo "${stderr}" | xxd
+          if [ -x "$(command -v xxd)" ]; then
+            echo "xxd:"; echo "${stderr}" | xxd
+          fi
           echo "-------------------"
           echo "not_expected: <${not_expected}>"
-          echo "xxd:"; echo "${not_expected}" | xxd
+          if [ -x "$(command -v xxd)" ]; then
+            echo "xxd:"; echo "${not_expected}" | xxd
+          fi
           return 1
       ;;
 
