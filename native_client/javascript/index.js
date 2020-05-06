@@ -211,7 +211,7 @@ Stream.prototype.finishStream = function() {
  */
 Stream.prototype.finishStreamWithMetadata = function(aNumResults) {
     aNumResults = aNumResults || 1;
-    result = binding.FinishStreamWithMetadata(this._impl, aNumResults);
+    let result = binding.FinishStreamWithMetadata(this._impl, aNumResults);
     this._impl = null;
     return result;
 }
@@ -230,7 +230,7 @@ function FreeModel(model) {
 /**
  * Free memory allocated for metadata information.
  *
- * @param {object} metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`Model.finishStreamWithMetadata`
+ * @param {object} metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`Stream.finishStreamWithMetadata`
  */
 function FreeMetadata(metadata) {
     return binding.FreeMetadata(metadata);

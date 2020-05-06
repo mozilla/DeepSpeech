@@ -134,6 +134,11 @@ if (!args['stream']) {
     stream.feedAudioContent(chunk);
   });
   conversionStream.on('end', () => {
-    console.log(stream.finishStream());
+    if (args['extended']) {
+      let metadata = stream.finishStreamWithMetadata();
+      console.log(candidateTranscriptToString(metadata.transcripts[0]));
+    } else {
+      console.log(stream.finishStream());
+    }
   });
 }

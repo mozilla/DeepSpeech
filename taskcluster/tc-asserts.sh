@@ -519,6 +519,12 @@ run_js_streaming_inference_tests()
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}" "$status"
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}" "$status"
 }
 
 run_js_streaming_prod_inference_tests()
@@ -526,6 +532,13 @@ run_js_streaming_prod_inference_tests()
   local _bitrate=$1
   set +e
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  status=$?
+  set -e
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
+
+  local _bitrate=$1
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
