@@ -230,7 +230,7 @@ function FreeModel(model) {
 /**
  * Free memory allocated for metadata information.
  *
- * @param {object} metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`Model.finishStreamWithMetadata`
+ * @param {object} metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`Stream.finishStreamWithMetadata`
  */
 function FreeMetadata(metadata) {
     return binding.FreeMetadata(metadata);

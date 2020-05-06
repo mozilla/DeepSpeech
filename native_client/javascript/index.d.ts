@@ -177,7 +177,7 @@ export function FreeModel(model: Model): void;
 /**
  * Free memory allocated for metadata information.
  *
- * @param metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`Model.finishStreamWithMetadata`
+ * @param metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`Stream.finishStreamWithMetadata`
  */
 export function FreeMetadata(metadata: Metadata): void;
 
