@@ -103,7 +103,7 @@ stt(aBuffer: object): string;
  * @return :js:func:`Metadata` object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
  * The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
-sttWithMetadata(aBuffer: object, aNumResults: number): Metadata;
+sttWithMetadata(aBuffer: object, aNumResults?: number): Metadata;
 
 /**
  * Create a new streaming inference state. One can then call :js:func:`Stream.feedAudioContent` and :js:func:`Stream.finishStream` on the returned stream object.
@@ -143,7 +143,7 @@ intermediateDecode(aSctx: Stream): string;
  *
  * @return :js:func:`Metadata` object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information. The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
-intermediateDecodeWithMetadata (aNumResults: number): Metadata;
+intermediateDecodeWithMetadata (aNumResults?: number): Metadata;
 
 /**
  * Compute the final decoding of an ongoing streaming inference and return the result. Signals the end of an ongoing streaming inference.
@@ -163,7 +163,7 @@ finishStream(): string;
  *
  * This method will free the stream, it must not be used after this method is called.
  */
-finishStreamWithMetadata(aNumResults: number): Metadata;
+finishStreamWithMetadata(aNumResults?: number): Metadata;
 }
 
 /**
