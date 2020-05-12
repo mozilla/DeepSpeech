@@ -14,13 +14,18 @@ class Alphabet(object):
         self._label_to_str = {}
         self._str_to_label = {}
         self._size = 0
-        with codecs.open(config_file, 'r', 'utf-8') as fin:
-            for line in fin:
-                self._label_to_str += line[:-1] # remove the line ending
-                self._str_to_label[line[:-1]] = self._size
-                self._size += 1
+        if config_file:
+            with codecs.open(config_file, 'r', 'utf-8') as fin:
+                for line in fin:
+                    if line[0:2] == '\\#':
+                        line = '#\n'
+                    elif line[0] == '#':
+                        continue
+                    self._label_to_str[self._size] = line[:-1] # remove the line ending
+                    self._str_to_label[line[:-1]] = self._size
+                    self._size += 1
 
-    def string_from_label(self, label):
+    def _string_from_label(self, label):
         return self._label_to_str[label]
 
     def _label_from_string(self, string):
