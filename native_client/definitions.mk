@@ -10,8 +10,13 @@ TOOL_CC   := gcc
 TOOL_CXX  := c++
 TOOL_LD   := ld
 TOOL_LDD  := ldd
+TOOL_LIBEXE :=
 
-DEEPSPEECH_BIN       := deepspeech
+ifeq ($(findstring _NT,$(OS)),_NT)
+PLATFORM_EXE_SUFFIX := .exe
+endif
+
+DEEPSPEECH_BIN       := deepspeech$(PLATFORM_EXE_SUFFIX)
 CFLAGS_DEEPSPEECH    := -std=c++11 -o $(DEEPSPEECH_BIN)
 LINK_DEEPSPEECH      := -ldeepspeech
 LINK_PATH_DEEPSPEECH := -L${TFDIR}/bazel-bin/native_client
@@ -35,11 +40,11 @@ endif
 endif
 
 ifeq ($(TARGET),host-win)
-DEEPSPEECH_BIN  := deepspeech.exe
 TOOLCHAIN := '$(VCINSTALLDIR)\bin\amd64\'
-TOOL_CC   := cl.exe
-TOOL_CXX  := cl.exe
-TOOL_LD   := link.exe
+TOOL_CC     := cl.exe
+TOOL_CXX    := cl.exe
+TOOL_LD     := link.exe
+TOOL_LIBEXE := lib.exe
 LINK_DEEPSPEECH      := $(TFDIR)\bazel-bin\native_client\libdeepspeech.so.if.lib
 LINK_PATH_DEEPSPEECH :=
 CFLAGS_DEEPSPEECH    := -nologo -Fe$(DEEPSPEECH_BIN)
@@ -113,6 +118,7 @@ CC      := $(TOOLCHAIN)$(TOOL_CC)
 CXX     := $(TOOLCHAIN)$(TOOL_CXX)
 LD      := $(TOOLCHAIN)$(TOOL_LD)
 LDD     := $(TOOLCHAIN)$(TOOL_LDD) $(TOOLCHAIN_LDD_OPTS)
+LIBEXE  := $(TOOLCHAIN)$(TOOL_LIBEXE)
 
 RPATH_PYTHON         := '-Wl,-rpath,\$$ORIGIN/lib/' $(LDFLAGS_RPATH)
 RPATH_NODEJS         := '-Wl,-rpath,$$\$$ORIGIN/../'
@@ -167,3 +173,36 @@ define copy_missing_libs
         done; \
     fi;
 endef
+
+SWIG_DIST_URL ?= 
+ifeq ($(findstring Linux,$(OS)),Linux)
+SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz"
+else ifeq ($(findstring Darwin,$(OS)),Darwin)
+SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.darwin.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz"
+else ifeq ($(findstring _NT,$(OS)),_NT)
+SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz"
+else
+$(error There is no prebuilt SWIG available for your platform. Please produce one and set SWIG_DIST_URL.)
+endif
+
+# Should point to native_client/ subdir by default
+SWIG_ROOT ?= $(abspath $(shell dirname "$(lastword $(MAKEFILE_LIST))"))/ds-swig
+ifeq ($(findstring _NT,$(OS)),_NT)
+SWIG_ROOT ?= $(shell cygpath -u "$(SWIG_ROOT)")
+endif
+SWIG_LIB ?= $(SWIG_ROOT)/share/swig/4.0.2/
+
+SWIG_BIN := swig$(PLATFORM_EXE_SUFFIX)
+DS_SWIG_BIN := ds-swig$(PLATFORM_EXE_SUFFIX)
+DS_SWIG_BIN_PATH := $(SWIG_ROOT)/bin
+
+DS_SWIG_ENV := SWIG_LIB="$(SWIG_LIB)" PATH="$(DS_SWIG_BIN_PATH):${PATH}"
+
+$(DS_SWIG_BIN_PATH)/swig:
+	mkdir -p $(SWIG_ROOT)
+	wget -O - "$(SWIG_DIST_URL)" | tar -C $(SWIG_ROOT) -zxf -
+	ln -s $(DS_SWIG_BIN) $(DS_SWIG_BIN_PATH)/$(SWIG_BIN)
+
+ds-swig: $(DS_SWIG_BIN_PATH)/swig
+	$(DS_SWIG_ENV) swig -version
+	$(DS_SWIG_ENV) swig -swiglib

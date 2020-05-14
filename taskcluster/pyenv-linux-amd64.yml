@@ -1,0 +1,11 @@
+build:
+  template_file: pyenv-linux-opt-base.tyml
+  system_setup:
+    >
+      apt-get -qq update && apt-get -qq -y install python-yaml ${python.packages_trusty.apt} wget
+  scripts:
+    build: "taskcluster/pyenv-build.sh"
+    package: "taskcluster/pyenv-package.sh"
+  metadata:
+    name: "Builds Pyenv Linux AMD64"
+    description: "Setup a builds Pyenv for Linux/AMD64"

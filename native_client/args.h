@@ -12,19 +12,19 @@
 
 char* model = NULL;
 
-char* lm = NULL;
-
-char* trie = NULL;
+char* scorer = NULL;
 
 char* audio = NULL;
 
-int beam_width = 500;
+bool set_beamwidth = false;
 
-float lm_alpha = 0.75f;
+int beam_width = 0;
 
-float lm_beta = 1.85f;
+bool set_alphabeta = false;
 
-bool load_without_trie = false;
+float lm_alpha = 0.f;
+
+float lm_beta = 0.f;
 
 bool show_times = false;
 
@@ -34,50 +34,53 @@ bool extended_metadata = false;
 
 bool json_output = false;
 
+int json_candidate_transcripts = 3;
+
 int stream_size = 0;
 
 void PrintHelp(const char* bin)
 {
     std::cout <<
-    "Usage: " << bin << " --model MODEL [--lm LM --trie TRIE] --audio AUDIO [-t] [-e]\n"
+    "Usage: " << bin << " --model MODEL [--scorer SCORER] --audio AUDIO [-t] [-e]\n"
     "\n"
     "Running DeepSpeech inference.\n"
     "\n"
-    "	--model MODEL		Path to the model (protocol buffer binary file)\n"
-    "	--lm LM			Path to the language model binary file\n"
-    "	--trie TRIE		Path to the language model trie file created with native_client/generate_trie\n"
-    "	--audio AUDIO		Path to the audio file to run (WAV format)\n"
-    "	--beam_width BEAM_WIDTH	Value for decoder beam width (int)\n"
-    "	--lm_alpha LM_ALPHA	Value for language model alpha param (float)\n"
-    "	--lm_beta LM_BETA	Value for language model beta param (float)\n"
-    "	-t			Run in benchmark mode, output mfcc & inference time\n"
-    "	--extended		Output string from extended metadata\n"
-    "	--json			Extended output, shows word timings as JSON\n"
-    "	--stream size		Run in stream mode, output intermediate results\n"
-    "	--help			Show help\n"
-    "	--version		Print version and exits\n";
-    DS_PrintVersions();
+    "\t--model MODEL\t\t\tPath to the model (protocol buffer binary file)\n"
+    "\t--scorer SCORER\t\t\tPath to the external scorer file\n"
+    "\t--audio AUDIO\t\t\tPath to the audio file to run (WAV format)\n"
+    "\t--beam_width BEAM_WIDTH\t\tValue for decoder beam width (int)\n"
+    "\t--lm_alpha LM_ALPHA\t\tValue for language model alpha param (float)\n"
+    "\t--lm_beta LM_BETA\t\tValue for language model beta param (float)\n"
+    "\t-t\t\t\t\tRun in benchmark mode, output mfcc & inference time\n"
+    "\t--extended\t\t\tOutput string from extended metadata\n"
+    "\t--json\t\t\t\tExtended output, shows word timings as JSON\n"
+    "\t--candidate_transcripts NUMBER\tNumber of candidate transcripts to include in output\n"
+    "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
+    "\t--help\t\t\t\tShow help\n"
+    "\t--version\t\t\tPrint version and exits\n";
+    char* version = DS_Version();
+    std::cerr << "DeepSpeech " << version << "\n";
+    DS_FreeString(version);
     exit(1);
 }
 
 bool ProcessArgs(int argc, char** argv)
 {
-    const char* const short_opts = "m:a:l:r:w:c:d:b:tehv";
+    const char* const short_opts = "m:l:a:b:c:d:tejs:vh";
     const option long_opts[] = {
             {"model", required_argument, nullptr, 'm'},
-            {"lm", required_argument, nullptr, 'l'},
-            {"trie", required_argument, nullptr, 'r'},
-            {"audio", required_argument, nullptr, 'w'},
+            {"scorer", required_argument, nullptr, 'l'},
+            {"audio", required_argument, nullptr, 'a'},
             {"beam_width", required_argument, nullptr, 'b'},
             {"lm_alpha", required_argument, nullptr, 'c'},
             {"lm_beta", required_argument, nullptr, 'd'},
-            {"run_very_slowly_without_trie_I_really_know_what_Im_doing", no_argument, nullptr, 999},
             {"t", no_argument, nullptr, 't'},
             {"extended", no_argument, nullptr, 'e'},
             {"json", no_argument, nullptr, 'j'},
+            {"candidate_transcripts", required_argument, nullptr, 150},
             {"stream", required_argument, nullptr, 's'},
-            {"help", no_argument, nullptr, 'h'},
             {"version", no_argument, nullptr, 'v'},
+            {"help", no_argument, nullptr, 'h'},
             {nullptr, no_argument, nullptr, 0}
     };
 
@@ -95,39 +98,30 @@ bool ProcessArgs(int argc, char** argv)
             break;
 
         case 'l':
-            lm = optarg;
+            scorer = optarg;
             break;
 
-        case 'r':
-            trie = optarg;
-            break;
-
-        case 'w':
+        case 'a':
             audio = optarg;
             break;
 
-	case 'b':
-	    beam_width = atoi(optarg);
-	    break;
-	
-	case 'c':
-	    lm_alpha = atof(optarg);
-	    break;
-	
-	case 'd':
-	    lm_beta = atof(optarg);
-	    break;
+        case 'b':
+            set_beamwidth = true;
+            beam_width = atoi(optarg);
+            break;
 
-        case 999:
-            load_without_trie = true;
+        case 'c':
+            set_alphabeta = true;
+            lm_alpha = atof(optarg);
+            break;
+
+        case 'd':
+            set_alphabeta = true;
+            lm_beta = atof(optarg);
             break;
 
         case 't':
             show_times = true;
-            break;
-
-        case 'v':
-            has_versions = true;
             break;
 
         case 'e':
@@ -138,8 +132,16 @@ bool ProcessArgs(int argc, char** argv)
             json_output = true;
             break;
 
+        case 150:
+            json_candidate_transcripts = atoi(optarg);
+            break;
+
         case 's':
             stream_size = atoi(optarg);
+            break;
+
+        case 'v':
+            has_versions = true;
             break;
 
         case 'h': // -h or --help
@@ -151,7 +153,9 @@ bool ProcessArgs(int argc, char** argv)
     }
 
     if (has_versions) {
-        DS_PrintVersions();
+        char* version = DS_Version();
+        std::cout << "DeepSpeech " << version << "\n";
+        DS_FreeString(version);
         return false;
     }
 

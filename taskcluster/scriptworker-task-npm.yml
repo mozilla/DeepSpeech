@@ -4,12 +4,10 @@ build:
     # Make sure builds are ready
     - "node-package-gpu"
     - "node-package-cpu"
+    - "node-package-tflite"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   upload_targets:
     - "npm"
   artifacts_deps:
@@ -21,6 +19,8 @@ build:
       - "node-package-gpu"
       # CPU package with all archs
       - "node-package-cpu"
+      # tflite package for non-default tflite archs
+      - "node-package-tflite"
     nuget: []
   metadata:
     name: "DeepSpeech NPM Packages"

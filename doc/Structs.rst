@@ -8,9 +8,16 @@ Metadata
    :project: deepspeech-c
    :members:
 
-MetadataItem
-------------
+CandidateTranscript
+-------------------
 
-.. doxygenstruct:: MetadataItem
+.. doxygenstruct:: CandidateTranscript
+   :project: deepspeech-c
+   :members:
+
+TokenMetadata
+-------------
+
+.. doxygenstruct:: TokenMetadata
    :project: deepspeech-c
    :members:

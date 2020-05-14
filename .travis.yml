@@ -7,11 +7,21 @@ before_cache:
 python:
   - "3.6"
 
-install:
-  - pip install --upgrade cardboardlint pylint
-
-script:
-  # Run cardboardlinter, in case of pull requests
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-      cardboardlinter --refspec $TRAVIS_BRANCH -n auto;
-    fi
+jobs:
+  include:
+    - name: cardboard linter
+      install:
+        - pip install --upgrade cardboardlint pylint
+      script:
+        # Run cardboardlinter, in case of pull requests
+        - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+            cardboardlinter --refspec $TRAVIS_BRANCH -n auto;
+          fi
+    - name: python unit tests
+      install:
+        - pip install --upgrade -r requirements_tests.txt;
+          pip install --upgrade .
+      script:
+        - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+            python -m unittest;
+          fi

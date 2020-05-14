@@ -18,7 +18,7 @@ DecoderState::init(const Alphabet& alphabet,
                    size_t beam_size,
                    double cutoff_prob,
                    size_t cutoff_top_n,
-                   Scorer *ext_scorer)
+                   std::shared_ptr<Scorer> ext_scorer)
 {
   // assign special ids
   abs_time_step_ = 0;
@@ -29,6 +29,7 @@ DecoderState::init(const Alphabet& alphabet,
   cutoff_prob_ = cutoff_prob;
   cutoff_top_n_ = cutoff_top_n;
   ext_scorer_ = ext_scorer;
+  start_expanding_ = false;
 
   // init prefixes' root
   PathTrie *root = new PathTrie;
@@ -36,7 +37,7 @@ DecoderState::init(const Alphabet& alphabet,
   prefix_root_.reset(root);
   prefixes_.push_back(root);
 
-  if (ext_scorer != nullptr) {
+  if (ext_scorer && (bool)(ext_scorer_->dictionary)) {
     // no need for std::make_shared<>() since Copy() does 'new' behind the doors
     auto dict_ptr = std::shared_ptr<PathTrie::FstType>(ext_scorer->dictionary->Copy(true));
     root->set_dictionary(dict_ptr);
@@ -56,9 +57,22 @@ DecoderState::next(const double *probs,
   for (size_t rel_time_step = 0; rel_time_step < time_dim; ++rel_time_step, ++abs_time_step_) {
     auto *prob = &probs[rel_time_step*class_dim];
 
+    // At the start of the decoding process, we delay beam expansion so that
+    // timings on the first letters is not incorrect. As soon as we see a
+    // timestep with blank probability lower than 0.999, we start expanding
+    // beams.
+    if (prob[blank_id_] < 0.999) {
+      start_expanding_ = true;
+    }
+
+    // If not expanding yet, just continue to next timestep.
+    if (!start_expanding_) {
+      continue;
+    }
+
     float min_cutoff = -NUM_FLT_INF;
     bool full_beam = false;
-    if (ext_scorer_ != nullptr) {
+    if (ext_scorer_) {
       size_t num_prefixes = std::min(prefixes_.size(), beam_size_);
       std::partial_sort(prefixes_.begin(),
                         prefixes_.begin() + num_prefixes,
@@ -109,7 +123,7 @@ DecoderState::next(const double *probs,
             log_p = log_prob_c + prefix->score;
           }
 
-          if (ext_scorer_ != nullptr) {
+          if (ext_scorer_) {
             // skip scoring the space in word based LMs
             PathTrie* prefix_to_score;
             if (ext_scorer_->is_utf8_mode()) {
@@ -157,7 +171,7 @@ DecoderState::next(const double *probs,
 }
 
 std::vector<Output>
-DecoderState::decode() const
+DecoderState::decode(size_t num_results) const
 {
   std::vector<PathTrie*> prefixes_copy = prefixes_;
   std::unordered_map<const PathTrie*, float> scores;
@@ -166,12 +180,10 @@ DecoderState::decode() const
   }
 
   // score the last word of each prefix that doesn't end with space
-  if (ext_scorer_ != nullptr) {
+  if (ext_scorer_) {
     for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
       auto prefix = prefixes_copy[i];
-      if (prefix->is_empty()) {
-        scores[prefix] = OOV_SCORE;
-      } else if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
+      if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
         float score = 0.0;
         std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix);
         bool bos = ngram.size() < ext_scorer_->get_max_order();
@@ -183,15 +195,11 @@ DecoderState::decode() const
   }
 
   using namespace std::placeholders;
-  size_t num_prefixes = std::min(prefixes_copy.size(), beam_size_);
+  size_t num_returned = std::min(prefixes_copy.size(), num_results);
   std::partial_sort(prefixes_copy.begin(),
-                    prefixes_copy.begin() + num_prefixes,
+                    prefixes_copy.begin() + num_returned,
                     prefixes_copy.end(),
                     std::bind(prefix_compare_external, _1, _2, scores));
-
-  //TODO: expose this as an API parameter
-  const size_t top_paths = 1;
-  size_t num_returned = std::min(num_prefixes, top_paths);
 
   std::vector<Output> outputs;
   outputs.reserve(num_returned);
@@ -202,7 +210,7 @@ DecoderState::decode() const
     Output output;
     prefixes_copy[i]->get_path_vec(output.tokens, output.timesteps);
     double approx_ctc = scores[prefixes_copy[i]];
-    if (ext_scorer_ != nullptr) {
+    if (ext_scorer_) {
       auto words = ext_scorer_->split_labels_into_scored_units(output.tokens);
       // remove term insertion weight
       approx_ctc -= words.size() * ext_scorer_->beta;
@@ -224,7 +232,7 @@ std::vector<Output> ctc_beam_search_decoder(
     size_t beam_size,
     double cutoff_prob,
     size_t cutoff_top_n,
-    Scorer *ext_scorer)
+    std::shared_ptr<Scorer> ext_scorer)
 {
   DecoderState state;
   state.init(alphabet, beam_size, cutoff_prob, cutoff_top_n, ext_scorer);
@@ -245,7 +253,7 @@ ctc_beam_search_decoder_batch(
     size_t num_processes,
     double cutoff_prob,
     size_t cutoff_top_n,
-    Scorer *ext_scorer)
+    std::shared_ptr<Scorer> ext_scorer)
 {
   VALID_CHECK_GT(num_processes, 0, "num_processes must be nonnegative!");
   VALID_CHECK_EQ(batch_size, seq_lengths_size, "must have one sequence length per batch element");

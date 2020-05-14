@@ -27,9 +27,9 @@ int main(int argc, char** argv)
     return err;
   }
   Scorer scorer;
-
+  err = scorer.init(kenlm_path, alphabet);
 #ifndef DEBUG
-  return scorer.init(0.0, 0.0, kenlm_path, trie_path, alphabet);
+  return err;
 #else
   // Print some info about the FST
   using FstType = fst::ConstFst<fst::StdArc>;
@@ -60,7 +60,6 @@ int main(int argc, char** argv)
   // for (int i = 1; i < 10; ++i) {
   //   print_states_from(i);
   // }
-#endif // DEBUG
-
   return 0;
+#endif // DEBUG
 }

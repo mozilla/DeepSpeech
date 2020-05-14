@@ -4,6 +4,7 @@ using DeepSpeechClient.Extensions;
 using System;
 using System.IO;
 using DeepSpeechClient.Enums;
+using DeepSpeechClient.Models;
 
 namespace DeepSpeechClient
 {
@@ -13,14 +14,15 @@ namespace DeepSpeechClient
     public class DeepSpeech : IDeepSpeech
     {
         private unsafe IntPtr** _modelStatePP;
-        private unsafe IntPtr** _streamingStatePP;
-
-
-
-
-        public DeepSpeech()
+        
+        /// <summary>
+        /// Initializes a new instance of <see cref="DeepSpeech"/> class and creates a new acoustic model.
+        /// </summary>
+        /// <param name="aModelPath">The path to the frozen model graph.</param>
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
+        public DeepSpeech(string aModelPath)
         {
-
+            CreateModel(aModelPath);
         }
 
         #region IDeepSpeech
@@ -29,10 +31,8 @@ namespace DeepSpeechClient
         /// Create an object providing an interface to a trained DeepSpeech model.
         /// </summary>
         /// <param name="aModelPath">The path to the frozen model graph.</param>
-        /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width generates better results at the cost of decoding time.</param>
         /// <exception cref="ArgumentException">Thrown when the native binary failed to create the model.</exception>
-        public unsafe void CreateModel(string aModelPath,
-            uint aBeamWidth)
+        private unsafe void CreateModel(string aModelPath)
         {
             string exceptionMessage = null;
             if (string.IsNullOrWhiteSpace(aModelPath))
@@ -49,8 +49,28 @@ namespace DeepSpeechClient
                 throw new FileNotFoundException(exceptionMessage);
             }
             var resultCode = NativeImp.DS_CreateModel(aModelPath,
-                            aBeamWidth,
                             ref _modelStatePP);
+            EvaluateResultCode(resultCode);
+        }
+
+        /// <summary>
+        /// Get beam width value used by the model. If SetModelBeamWidth was not
+        /// called before, will return the default value loaded from the model file.
+        /// </summary>
+        /// <returns>Beam width value used by the model.</returns>
+        public unsafe uint GetModelBeamWidth()
+        {
+            return NativeImp.DS_GetModelBeamWidth(_modelStatePP);
+        }
+
+        /// <summary>
+        /// Set beam width value used by the model.
+        /// </summary>
+        /// <param name="aBeamWidth">The beam width used by the decoder. A larger beam width value generates better results at the cost of decoding time.</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        public unsafe void SetModelBeamWidth(uint aBeamWidth)
+        {
+            var resultCode = NativeImp.DS_SetModelBeamWidth(_modelStatePP, aBeamWidth);
             EvaluateResultCode(resultCode);
         }
 
@@ -69,36 +89,9 @@ namespace DeepSpeechClient
         /// <param name="resultCode">Native result code.</param>
         private void EvaluateResultCode(ErrorCodes resultCode)
         {
-            switch (resultCode)
+            if (resultCode != ErrorCodes.DS_ERR_OK)
             {
-                case ErrorCodes.DS_ERR_OK:
-                    break;
-                case ErrorCodes.DS_ERR_NO_MODEL:
-                    throw new ArgumentException("Missing model information.");
-                case ErrorCodes.DS_ERR_INVALID_ALPHABET:
-                    throw new ArgumentException("Invalid alphabet embedded in model. (Data corruption?)");
-                case ErrorCodes.DS_ERR_INVALID_SHAPE:
-                    throw new ArgumentException("Invalid model shape.");
-                case ErrorCodes.DS_ERR_INVALID_LM:
-                    throw new ArgumentException("Invalid language model file.");
-                case ErrorCodes.DS_ERR_FAIL_INIT_MMAP:
-                    throw new ArgumentException("Failed to initialize memory mapped model.");
-                case ErrorCodes.DS_ERR_FAIL_INIT_SESS:
-                    throw new ArgumentException("Failed to initialize the session.");
-                case ErrorCodes.DS_ERR_FAIL_INTERPRETER:
-                    throw new ArgumentException("Interpreter failed.");
-                case ErrorCodes.DS_ERR_FAIL_RUN_SESS:
-                    throw new ArgumentException("Failed to run the session.");
-                case ErrorCodes.DS_ERR_FAIL_CREATE_STREAM:
-                    throw new ArgumentException("Error creating the stream.");
-                case ErrorCodes.DS_ERR_FAIL_READ_PROTOBUF:
-                    throw new ArgumentException("Error reading the proto buffer model file.");
-                case ErrorCodes.DS_ERR_FAIL_CREATE_SESS:
-                    throw new ArgumentException("Error failed to create session.");
-                case ErrorCodes.DS_ERR_MODEL_INCOMPATIBLE:
-                    throw new ArgumentException("Error incompatible model.");
-                default:
-                    throw new ArgumentException("Unknown error, please make sure you are using the correct native binary.");
+                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage((int)resultCode).PtrToString());
             }
         }
 
@@ -111,91 +104,120 @@ namespace DeepSpeechClient
         }
 
         /// <summary>
-        /// Enable decoding using beam scoring with a KenLM language model.
+        /// Enable decoding using an external scorer.
         /// </summary>
-        /// <param name="aLMPath">The path to the language model binary file.</param>
-        /// <param name="aTriePath">The path to the trie file build from the same vocabulary as the language model binary.</param>
-        /// <param name="aLMAlpha">The alpha hyperparameter of the CTC decoder. Language Model weight.</param>
-        /// <param name="aLMBeta">The beta hyperparameter of the CTC decoder. Word insertion weight.</param>
-        /// <exception cref="ArgumentException">Thrown when the native binary failed to enable decoding with a language model.</exception>
-        public unsafe void EnableDecoderWithLM(string aLMPath, string aTriePath,
-            float aLMAlpha, float aLMBeta)
+        /// <param name="aScorerPath">The path to the external scorer file.</param>
+        /// <exception cref="ArgumentException">Thrown when the native binary failed to enable decoding with an external scorer.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when cannot find the scorer file.</exception>
+        public unsafe void EnableExternalScorer(string aScorerPath)
         {
-            string exceptionMessage = null;
-            if (string.IsNullOrWhiteSpace(aTriePath))
+            if (string.IsNullOrWhiteSpace(aScorerPath))
             {
-                exceptionMessage = "Path to the trie file cannot be empty.";
+                throw new FileNotFoundException("Path to the scorer file cannot be empty.");
             }
-            if (!File.Exists(aTriePath))
+            if (!File.Exists(aScorerPath))
             {
-                exceptionMessage = $"Cannot find the trie file: {aTriePath}";
-            }
-
-            if (exceptionMessage != null)
-            {
-                throw new FileNotFoundException(exceptionMessage);
+                throw new FileNotFoundException($"Cannot find the scorer file: {aScorerPath}");
             }
 
-            var resultCode = NativeImp.DS_EnableDecoderWithLM(_modelStatePP,
-                            aLMPath,
-                            aTriePath,
-                            aLMAlpha,
-                            aLMBeta);
+            var resultCode = NativeImp.DS_EnableExternalScorer(_modelStatePP, aScorerPath);
+            EvaluateResultCode(resultCode);
+        }
+
+        /// <summary>
+        /// Disable decoding using an external scorer.
+        /// </summary>
+        /// <exception cref="ArgumentException">Thrown when an external scorer is not enabled.</exception>
+        public unsafe void DisableExternalScorer()
+        {
+            var resultCode = NativeImp.DS_DisableExternalScorer(_modelStatePP);
+            EvaluateResultCode(resultCode);
+        }
+
+        /// <summary>
+        /// Set hyperparameters alpha and beta of the external scorer.
+        /// </summary>
+        /// <param name="aAlpha">The alpha hyperparameter of the decoder. Language model weight.</param>
+        /// <param name="aBeta">The beta hyperparameter of the decoder. Word insertion weight.</param>
+        /// <exception cref="ArgumentException">Thrown when an external scorer is not enabled.</exception>
+        public unsafe void SetScorerAlphaBeta(float aAlpha, float aBeta)
+        {
+            var resultCode = NativeImp.DS_SetScorerAlphaBeta(_modelStatePP,
+                            aAlpha,
+                            aBeta);
             EvaluateResultCode(resultCode);
         }
 
         /// <summary>
         /// Feeds audio samples to an ongoing streaming inference.
         /// </summary>
+        /// <param name="stream">Instance of the stream to feed the data.</param>
         /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate (matching what the model was trained on).</param>
-        public unsafe void FeedAudioContent(short[] aBuffer, uint aBufferSize)
+        public unsafe void FeedAudioContent(DeepSpeechStream stream, short[] aBuffer, uint aBufferSize)
         {
-            NativeImp.DS_FeedAudioContent(_streamingStatePP, aBuffer, aBufferSize);
+            NativeImp.DS_FeedAudioContent(stream.GetNativePointer(), aBuffer, aBufferSize);
         }
 
         /// <summary>
         /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal.
         /// </summary>
-        /// <returns>The STT result. The user is responsible for freeing the string.</returns>
-        public unsafe string FinishStream()
+        /// <param name="stream">Instance of the stream to finish.</param>
+        /// <returns>The STT result.</returns>
+        public unsafe string FinishStream(DeepSpeechStream stream)
         {
-            return NativeImp.DS_FinishStream(_streamingStatePP).PtrToString();
+            return NativeImp.DS_FinishStream(stream.GetNativePointer()).PtrToString();
         }
 
         /// <summary>
-        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal.
+        /// Closes the ongoing streaming inference, returns the STT result over the whole audio signal, including metadata.
         /// </summary>
-        /// <returns>The extended metadata. The user is responsible for freeing the struct.</returns>
-        public unsafe Models.Metadata FinishStreamWithMetadata()
+        /// <param name="stream">Instance of the stream to finish.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
+        /// <returns>The extended metadata result.</returns>
+        public unsafe Metadata FinishStreamWithMetadata(DeepSpeechStream stream, uint aNumResults)
         {
-            return NativeImp.DS_FinishStreamWithMetadata(_streamingStatePP).PtrToMetadata();
+            return NativeImp.DS_FinishStreamWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
         }
 
         /// <summary>
         /// Computes the intermediate decoding of an ongoing streaming inference.
         /// </summary>
-        /// <returns>The STT intermediate result. The user is responsible for freeing the string.</returns>
-        public unsafe string IntermediateDecode()
+        /// <param name="stream">Instance of the stream to decode.</param>
+        /// <returns>The STT intermediate result.</returns>
+        public unsafe string IntermediateDecode(DeepSpeechStream stream)
         {
-            return NativeImp.DS_IntermediateDecode(_streamingStatePP);
+            return NativeImp.DS_IntermediateDecode(stream.GetNativePointer()).PtrToString();
         }
 
         /// <summary>
-        /// Prints the versions of Tensorflow and DeepSpeech.
+        /// Computes the intermediate decoding of an ongoing streaming inference, including metadata.
         /// </summary>
-        public unsafe void PrintVersions()
+        /// <param name="stream">Instance of the stream to decode.</param>
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
+        /// <returns>The STT intermediate result.</returns>
+        public unsafe Metadata IntermediateDecodeWithMetadata(DeepSpeechStream stream, uint aNumResults)
         {
-            NativeImp.DS_PrintVersions();
+            return NativeImp.DS_IntermediateDecodeWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
+        }
+
+        /// <summary>
+        /// Return version of this library. The returned version is a semantic version
+        /// (SemVer 2.0.0).
+        /// </summary>
+        public unsafe string Version()
+        {
+            return NativeImp.DS_Version().PtrToString();
         }
 
         /// <summary>
         /// Creates a new streaming inference state.
         /// </summary>
-        /// <exception cref="ArgumentException">Thrown when the native binary failed to initialize the streaming mode.</exception>
-        public unsafe void CreateStream()
+        public unsafe DeepSpeechStream CreateStream()
         {
-            var resultCode = NativeImp.DS_CreateStream(_modelStatePP, ref _streamingStatePP);
+            IntPtr** streamingStatePointer = null;
+            var resultCode = NativeImp.DS_CreateStream(_modelStatePP, ref streamingStatePointer);
             EvaluateResultCode(resultCode);
+            return new DeepSpeechStream(streamingStatePointer);
         }
 
         /// <summary>
@@ -203,25 +225,10 @@ namespace DeepSpeechClient
         /// This can be used if you no longer need the result of an ongoing streaming
         /// inference and don't want to perform a costly decode operation.
         /// </summary>
-        public unsafe void FreeStream()
+        public unsafe void FreeStream(DeepSpeechStream stream)
         {
-            NativeImp.DS_FreeStream(ref _streamingStatePP);
-        }
-
-        /// <summary>
-        /// Free a DeepSpeech allocated string
-        /// </summary>
-        public unsafe void FreeString(IntPtr intPtr)
-        {
-            NativeImp.DS_FreeString(intPtr);
-        }
-
-        /// <summary>
-        /// Free a DeepSpeech allocated Metadata struct
-        /// </summary>
-        public unsafe void FreeMetadata(IntPtr intPtr)
-        {
-            NativeImp.DS_FreeMetadata(intPtr);
+            NativeImp.DS_FreeStream(stream.GetNativePointer());
+            stream.Dispose();
         }
 
         /// <summary>
@@ -229,21 +236,22 @@ namespace DeepSpeechClient
         /// </summary>
         /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
-        /// <returns>The STT result. The user is responsible for freeing the string.  Returns NULL on error.</returns>
+        /// <returns>The STT result. Returns NULL on error.</returns>
         public unsafe string SpeechToText(short[] aBuffer, uint aBufferSize)
         {
             return NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize).PtrToString();
         }
 
         /// <summary>
-        /// Use the DeepSpeech model to perform Speech-To-Text.
+        /// Use the DeepSpeech model to perform Speech-To-Text, return results including metadata.
         /// </summary>
         /// <param name="aBuffer">A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).</param>
         /// <param name="aBufferSize">The number of samples in the audio signal.</param>
-        /// <returns>The extended metadata. The user is responsible for freeing the struct.  Returns NULL on error.</returns>
-        public unsafe Models.Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize)
+        /// <param name="aNumResults">Maximum number of candidate transcripts to return. Returned list might be smaller than this.</param>
+        /// <returns>The extended metadata. Returns NULL on error.</returns>
+        public unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize, uint aNumResults)
         {
-            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize).PtrToMetadata();
+            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize, aNumResults).PtrToMetadata();
         }
 
         #endregion

@@ -28,23 +28,12 @@ routes:
 
 payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }
-  mounts:
-    - file: msys2-base-x86_64.tar.xz
-      content:
-        sha256: 4e799b5c3efcf9efcb84923656b7bcff16f75a666911abd6620ea8e5e1e9870c
-        url: >-
-          https://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-base-x86_64-20180531.tar.xz/download
 
   env:
-    $let:
-      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
-    in:
-      TC_MSYS_VERSION: 'MSYS_NT-6.3'
-      MSYS: 'winsymlinks:nativestrict'
-      TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
-      DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
-      EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
-      EXAMPLES_CHECKOUT_TARGET: "master"
+    TC_MSYS_VERSION: 'MSYS_NT-6.3'
+    MSYS: 'winsymlinks:nativestrict'
+    EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
+    EXAMPLES_CHECKOUT_TARGET: "master"
 
   command:
     - >-
@@ -60,19 +49,17 @@ payload:
       (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
       env &&
       ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
-      (wget -O - $TENSORFLOW_BUILD_ARTIFACT | 7z x -txz -si -so | 7z x -aoa -ttar -si ) &&
+      (7z x -txz -so $USERPROFILE/home.tar.xz | 7z x -aoa -ttar -si ) &&
       git clone --quiet $EXAMPLES_CLONE_URL $TASKCLUSTER_TASK_DIR/DeepSpeech/examples &&
       cd $TASKCLUSTER_TASK_DIR/DeepSpeech/examples && git checkout --quiet $EXAMPLES_CHECKOUT_TARGET &&
       git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
       cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
       ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
       cd $TASKCLUSTER_TASK_DIR &&
+      (mkdir pyenv-root/ && 7z x -so $USERPROFILE/pyenv.tar.gz | 7z x -opyenv-root/ -aoa -ttar -si ) &&
       pacman --noconfirm -R bsdtar &&
       pacman --noconfirm -S tar make &&
       pacman --noconfirm -S zip &&
-      (pacman --noconfirm -S patch swig &&
-        (for patch_file in $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/swig_node_v12_*.patch ; do patch -d /usr/share/swig/*/ -p2 < $patch_file; done)
-      ) &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
       echo \"export TASKCLUSTER_TASK_EXIT_CODE=$?\" > $USERPROFILE/tc-exit.sh &&
@@ -81,6 +68,23 @@ payload:
 
     - .\msys64\usr\bin\bash.exe --login -cxe "source $USERPROFILE/tc-exit.sh &&
       exit $TASKCLUSTER_TASK_EXIT_CODE"
+
+  mounts:
+    - file: msys2-base-x86_64.tar.xz
+      content:
+        sha256: 4e799b5c3efcf9efcb84923656b7bcff16f75a666911abd6620ea8e5e1e9870c
+        url: >-
+          https://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-base-x86_64-20180531.tar.xz/download
+    - file: home.tar.xz
+      content:
+        url: ${build.tensorflow}
+    - file: pyenv.tar.gz
+      content:
+        url: ${system.pyenv.win.url}
+    - directory: .node-gyp
+      format: tar.gz
+      content:
+        url: ${system.node_gyp_cache.url}
 
   artifacts:
     - type: "directory"

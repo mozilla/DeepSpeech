@@ -20,14 +20,12 @@ TFModelState::~TFModelState()
       std::cerr << "Error closing TensorFlow session: " << status << std::endl;
     }
   }
-  delete mmap_env_;
 }
 
 int
-TFModelState::init(const char* model_path,
-                   unsigned int beam_width)
+TFModelState::init(const char* model_path)
 {
-  int err = ModelState::init(model_path, beam_width);
+  int err = ModelState::init(model_path);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -35,7 +33,7 @@ TFModelState::init(const char* model_path,
   Status status;
   SessionOptions options;
 
-  mmap_env_ = new MemmappedEnv(Env::Default());
+  mmap_env_.reset(new MemmappedEnv(Env::Default()));
 
   bool is_mmap = std::string(model_path).find(".pbmm") != std::string::npos;
   if (!is_mmap) {
@@ -50,17 +48,19 @@ TFModelState::init(const char* model_path,
     options.config.mutable_graph_options()
       ->mutable_optimizer_options()
       ->set_opt_level(::OptimizerOptions::L0);
-    options.env = mmap_env_;
+    options.env = mmap_env_.get();
   }
 
-  status = NewSession(options, &session_);
+  Session* session;
+  status = NewSession(options, &session);
   if (!status.ok()) {
     std::cerr << status << std::endl;
     return DS_ERR_FAIL_INIT_SESS;
   }
+  session_.reset(session);
 
   if (is_mmap) {
-    status = ReadBinaryProto(mmap_env_,
+    status = ReadBinaryProto(mmap_env_.get(),
                              MemmappedFileSystem::kMemmappedPackageDefaultGraphDef,
                              &graph_def_);
   } else {
@@ -91,7 +91,8 @@ TFModelState::init(const char* model_path,
     std::cerr << "Specified model file version (" << graph_version << ") is "
               << "incompatible with minimum version supported by this client ("
               << ds_graph_version() << "). See "
-              << "https://github.com/mozilla/DeepSpeech/blob/master/USING.rst#model-compatibility "
+              << "https://github.com/mozilla/DeepSpeech/blob/"
+              << ds_git_version() << "/doc/USING.rst#model-compatibility "
               << "for more information" << std::endl;
     return DS_ERR_MODEL_INCOMPATIBLE;
   }
@@ -101,6 +102,7 @@ TFModelState::init(const char* model_path,
     "metadata_sample_rate",
     "metadata_feature_win_len",
     "metadata_feature_win_step",
+    "metadata_beam_width",
     "metadata_alphabet",
   }, {}, &metadata_outputs);
   if (!status.ok()) {
@@ -113,8 +115,10 @@ TFModelState::init(const char* model_path,
   int win_step_ms = metadata_outputs[2].scalar<int>()();
   audio_win_len_ = sample_rate_ * (win_len_ms / 1000.0);
   audio_win_step_ = sample_rate_ * (win_step_ms / 1000.0);
+  int beam_width = metadata_outputs[3].scalar<int>()();
+  beam_width_ = (unsigned int)(beam_width);
 
-  string serialized_alphabet = metadata_outputs[3].scalar<string>()();
+  string serialized_alphabet = metadata_outputs[4].scalar<string>()();
   err = alphabet_.deserialize(serialized_alphabet.data(), serialized_alphabet.size());
   if (err != 0) {
     return DS_ERR_INVALID_ALPHABET;
@@ -123,6 +127,8 @@ TFModelState::init(const char* model_path,
   assert(sample_rate_ > 0);
   assert(audio_win_len_ > 0);
   assert(audio_win_step_ > 0);
+  assert(beam_width_ > 0);
+  assert(alphabet_.GetSize() > 0);
 
   for (int i = 0; i < graph_def_.node_size(); ++i) {
     NodeDef node = graph_def_.node(i);

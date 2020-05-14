@@ -1,20 +1,12 @@
 build:
-  template_file: linux-opt-base.tyml
+  template_file: node-package-opt-base.tyml
   dependencies:
     - "linux-amd64-gpu-opt"
     - "win-amd64-gpu-opt"
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
   system_setup:
     >
-      ${nodejs.packages_trusty.prep_6} && ${nodejs.packages_trusty.apt_pinning}
-      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
-  system_config:
-    >
-      ${swig.patch_nodejs.linux}
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.14.e77504ac6b941fd2af495b49a0bcd56f25ca0e1e.cpu/artifacts/public/home.tar.xz"
+      ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   scripts:
     build: "taskcluster/node-build.sh --cuda"
     package: "taskcluster/node-package.sh"

@@ -2,7 +2,8 @@
     "name" : "$(PROJECT_NAME)",
     "version" : "$(PROJECT_VERSION)",
     "description" : "DeepSpeech NodeJS bindings",
-    "main" : "./index",
+    "main" : "./index.js",
+    "types": "./index.d.ts",
     "bin": {
        "deepspeech": "./client.js"
     },
@@ -10,9 +11,10 @@
     "license": "MPL-2.0",
     "homepage": "https://github.com/mozilla/DeepSpeech/tree/v$(PROJECT_VERSION)#project-deepspeech",
     "files": [
-       "README.rst",
+       "README.md",
        "client.js",
        "index.js",
+       "index.d.ts",
        "lib/*"
     ],
     "bugs": {
@@ -30,13 +32,18 @@
         "host"        : "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.v1.0.0-warpctc.arm/artifacts/public/"
     },
     "dependencies"  : {
-      "node-pre-gyp": "0.13.x",
+      "node-pre-gyp": "0.14.x",
       "argparse": "1.0.x",
       "sox-stream": "2.0.x",
       "memory-stream": "0.0.3",
       "node-wav": "0.0.2"
     },
     "devDependencies": {
+      "electron": "^1.7.9",
+      "node-gyp": "4.x - 5.x",
+      "typescript": "3.6.x",
+      "@types/argparse": "1.0.x",
+      "@types/node": "13.9.x"
     },
     "scripts": {
         "test": "node index.js"

@@ -7,16 +7,12 @@ namespace DeepSpeechClient.Structs
     internal unsafe struct Metadata
     {
         /// <summary>
-        /// Native list of items.
+        /// Native list of candidate transcripts.
         /// </summary>
-        internal unsafe IntPtr items;
+        internal unsafe IntPtr transcripts;
         /// <summary>
-        /// Count of items from the native side.
+        /// Count of transcripts from the native side.
         /// </summary>
-        internal unsafe int num_items;
-        /// <summary>
-        /// Approximated confidence value for this transcription.
-        /// </summary>
-        internal unsafe double confidence;
+        internal unsafe int num_transcripts;
     }
 }

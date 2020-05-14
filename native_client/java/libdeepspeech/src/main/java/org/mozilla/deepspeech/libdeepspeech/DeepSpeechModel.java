@@ -11,8 +11,15 @@ public class DeepSpeechModel {
     }
 
     // FIXME: We should have something better than those SWIGTYPE_*
-    SWIGTYPE_p_p_ModelState _mspp;
-    SWIGTYPE_p_ModelState   _msp;
+    private SWIGTYPE_p_p_ModelState _mspp;
+    private SWIGTYPE_p_ModelState   _msp;
+
+    private void evaluateErrorCode(int errorCode) {
+        DeepSpeech_Error_Codes code = DeepSpeech_Error_Codes.swigToEnum(errorCode);
+        if (code != DeepSpeech_Error_Codes.ERR_OK) {
+            throw new RuntimeException("Error: " + impl.ErrorCodeToErrorMessage(errorCode) + " (0x" + Integer.toHexString(errorCode) + ").");
+        }
+    }
 
    /**
     * @brief An object providing an interface to a trained DeepSpeech model.
@@ -20,14 +27,35 @@ public class DeepSpeechModel {
     * @constructor
     *
     * @param modelPath The path to the frozen model graph.
-    * @param beam_width The beam width used by the decoder. A larger beam
-    *                   width generates better results at the cost of decoding
-    *                   time.
+    *
+    * @throws RuntimeException on failure.
     */
-    public DeepSpeechModel(String modelPath, int beam_width) {
+    public DeepSpeechModel(String modelPath) {
         this._mspp = impl.new_modelstatep();
-        impl.CreateModel(modelPath, beam_width, this._mspp);
+        evaluateErrorCode(impl.CreateModel(modelPath, this._mspp));
         this._msp  = impl.modelstatep_value(this._mspp);
+    }
+
+   /**
+    * @brief Get beam width value used by the model. If setModelBeamWidth was not
+    *        called before, will return the default value loaded from the model file.
+    *
+    * @return Beam width value used by the model.
+    */
+    public long beamWidth() {
+        return impl.GetModelBeamWidth(this._msp);
+    }
+
+    /**
+     * @brief Set beam width value used by the model.
+     *
+     * @param aBeamWidth The beam width used by the model. A larger beam width value
+     *                   generates better results at the cost of decoding time.
+     *
+     * @throws RuntimeException on failure.
+     */
+    public void setBeamWidth(long beamWidth) {
+        evaluateErrorCode(impl.SetModelBeamWidth(this._msp, beamWidth));
     }
 
    /**
@@ -47,17 +75,35 @@ public class DeepSpeechModel {
     }
 
    /**
+    * @brief Enable decoding using an external scorer.
+    *
+    * @param scorer The path to the external scorer file.
+    *
+    * @throws RuntimeException on failure.
+    */
+    public void enableExternalScorer(String scorer) {
+        evaluateErrorCode(impl.EnableExternalScorer(this._msp, scorer));
+    }
+
+    /**
+    * @brief Disable decoding using an external scorer.
+    *
+    * @throws RuntimeException on failure.
+    */
+    public void disableExternalScorer() {
+        evaluateErrorCode(impl.DisableExternalScorer(this._msp));
+    }
+
+    /**
     * @brief Enable decoding using beam scoring with a KenLM language model.
     *
-    * @param lm The path to the language model binary file.
-    * @param trie The path to the trie file build from the same vocabulary as the language model binary.
-    * @param lm_alpha The alpha hyperparameter of the CTC decoder. Language Model weight.
-    * @param lm_beta The beta hyperparameter of the CTC decoder. Word insertion weight.
+    * @param alpha The alpha hyperparameter of the decoder. Language model weight.
+    * @param beta The beta hyperparameter of the decoder. Word insertion weight.
     *
-    * @return Zero on success, non-zero on failure (invalid arguments).
+    * @throws RuntimeException on failure.
     */
-    public void enableDecoderWihLM(String lm, String trie, float lm_alpha, float lm_beta) {
-        impl.EnableDecoderWithLM(this._msp, lm, trie, lm_alpha, lm_beta);
+    public void setScorerAlphaBeta(float alpha, float beta) {
+        evaluateErrorCode(impl.SetScorerAlphaBeta(this._msp, alpha, beta));
     }
 
    /*
@@ -80,11 +126,13 @@ public class DeepSpeechModel {
     * @param buffer A 16-bit, mono raw audio signal at the appropriate
     *                sample rate (matching what the model was trained on).
     * @param buffer_size The number of samples in the audio signal.
+    * @param num_results Maximum number of candidate transcripts to return. Returned list might be smaller than this.
     *
-    * @return Outputs a Metadata object of individual letters along with their timing information.
+    * @return Metadata struct containing multiple candidate transcripts. Each transcript
+    *         has per-token metadata including timing information.
     */
-    public Metadata sttWithMetadata(short[] buffer, int buffer_size) {
-        return impl.SpeechToTextWithMetadata(this._msp, buffer, buffer_size);
+    public Metadata sttWithMetadata(short[] buffer, int buffer_size, int num_results) {
+        return impl.SpeechToTextWithMetadata(this._msp, buffer, buffer_size, num_results);
     }
 
    /**
@@ -93,10 +141,12 @@ public class DeepSpeechModel {
     *        and finishStream().
     *
     * @return An opaque object that represents the streaming state.
+    *
+    * @throws RuntimeException on failure.
     */
     public DeepSpeechStreamingState createStream() {
         SWIGTYPE_p_p_StreamingState ssp = impl.new_streamingstatep();
-        impl.CreateStream(this._msp, ssp);
+        evaluateErrorCode(impl.CreateStream(this._msp, ssp));
         return new DeepSpeechStreamingState(impl.streamingstatep_value(ssp));
     }
 
@@ -124,8 +174,20 @@ public class DeepSpeechModel {
     }
 
    /**
-    * @brief Signal the end of an audio signal to an ongoing streaming
-    *        inference, returns the STT result over the whole audio signal.
+    * @brief Compute the intermediate decoding of an ongoing streaming inference.
+    *
+    * @param ctx A streaming state pointer returned by createStream().
+    * @param num_results Maximum number of candidate transcripts to return. Returned list might be smaller than this.
+    *
+    * @return The STT intermediate result.
+    */
+    public Metadata intermediateDecodeWithMetadata(DeepSpeechStreamingState ctx, int num_results) {
+        return impl.IntermediateDecodeWithMetadata(ctx.get(), num_results);
+    }
+
+   /**
+    * @brief Compute the final decoding of an ongoing streaming inference and return
+    *        the result. Signals the end of an ongoing streaming inference.
     *
     * @param ctx A streaming state pointer returned by createStream().
     *
@@ -138,16 +200,19 @@ public class DeepSpeechModel {
     }
 
    /**
-    * @brief Signal the end of an audio signal to an ongoing streaming
-    *        inference, returns per-letter metadata.
+    * @brief Compute the final decoding of an ongoing streaming inference and return
+    *        the results including metadata. Signals the end of an ongoing streaming
+    *        inference.
     *
     * @param ctx A streaming state pointer returned by createStream().
+    * @param num_results Maximum number of candidate transcripts to return. Returned list might be smaller than this.
     *
-    * @return Outputs a Metadata object of individual letters along with their timing information.
+    * @return Metadata struct containing multiple candidate transcripts. Each transcript
+    *         has per-token metadata including timing information.
     *
     * @note This method will free the state pointer (@p ctx).
     */
-    public Metadata finishStreamWithMetadata(DeepSpeechStreamingState ctx) {
-        return impl.FinishStreamWithMetadata(ctx.get());
+    public Metadata finishStreamWithMetadata(DeepSpeechStreamingState ctx, int num_results) {
+        return impl.FinishStreamWithMetadata(ctx.get(), num_results);
     }
 }

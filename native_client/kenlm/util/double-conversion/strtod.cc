@@ -25,8 +25,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cstdarg>
-#include <climits>
+#include <stdarg.h>
+#include <limits.h>
 
 #include "strtod.h"
 #include "bignum.h"
@@ -137,6 +137,7 @@ static void TrimAndCut(Vector<const char> buffer, int exponent,
   Vector<const char> right_trimmed = TrimTrailingZeros(left_trimmed);
   exponent += left_trimmed.length() - right_trimmed.length();
   if (right_trimmed.length() > kMaxSignificantDecimalDigits) {
+    (void) space_size;  // Mark variable as used.
     ASSERT(space_size >= kMaxSignificantDecimalDigits);
     CutToMaxSignificantDigits(right_trimmed, exponent,
                               buffer_copy_space, updated_exponent);
@@ -263,7 +264,6 @@ static DiyFp AdjustmentPowerOfTen(int exponent) {
     case 7: return DiyFp(UINT64_2PART_C(0x98968000, 00000000), -40);
     default:
       UNREACHABLE();
-      return DiyFp(0, 0);
   }
 }
 
@@ -286,7 +286,7 @@ static bool DiyFpStrtod(Vector<const char> buffer,
   const int kDenominator = 1 << kDenominatorLog;
   // Move the remaining decimals into the exponent.
   exponent += remaining_decimals;
-  int error = (remaining_decimals == 0 ? 0 : kDenominator / 2);
+  uint64_t error = (remaining_decimals == 0 ? 0 : kDenominator / 2);
 
   int old_e = input.e();
   input.Normalize();
@@ -506,9 +506,7 @@ float Strtof(Vector<const char> buffer, int exponent) {
   double double_previous = Double(double_guess).PreviousDouble();
 
   float f1 = static_cast<float>(double_previous);
-#ifndef NDEBUG
   float f2 = float_guess;
-#endif
   float f3 = static_cast<float>(double_next);
   float f4;
   if (is_correct) {
@@ -517,9 +515,8 @@ float Strtof(Vector<const char> buffer, int exponent) {
     double double_next2 = Double(double_next).NextDouble();
     f4 = static_cast<float>(double_next2);
   }
-#ifndef NDEBUG
+  (void) f2;  // Mark variable as used.
   ASSERT(f1 <= f2 && f2 <= f3 && f3 <= f4);
-#endif
 
   // If the guess doesn't lie near a single-precision boundary we can simply
   // return its float-value.

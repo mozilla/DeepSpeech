@@ -20,32 +20,43 @@ typedef struct ModelState ModelState;
 typedef struct StreamingState StreamingState;
 
 /**
- * @brief Stores each individual character, along with its timing information
+ * @brief Stores text of an individual token, along with its timing information
  */
-typedef struct MetadataItem {
-  /** The character generated for transcription */
-  char* character;
+typedef struct TokenMetadata {
+  /** The text corresponding to this token */
+  const char* const text;
 
-  /** Position of the character in units of 20ms */
-  int timestep;
+  /** Position of the token in units of 20ms */
+  const unsigned int timestep;
 
-  /** Position of the character in seconds */
-  float start_time;
-} MetadataItem;
+  /** Position of the token in seconds */
+  const float start_time;
+} TokenMetadata;
 
 /**
- * @brief Stores the entire CTC output as an array of character metadata objects
+ * @brief A single transcript computed by the model, including a confidence
+ *        value and the metadata for its constituent tokens.
+ */
+typedef struct CandidateTranscript {
+  /** Array of TokenMetadata objects */
+  const TokenMetadata* const tokens;
+  /** Size of the tokens array */
+  const unsigned int num_tokens;
+  /** Approximated confidence value for this transcript. This is roughly the
+   * sum of the acoustic model logit values for each timestep/character that
+   * contributed to the creation of this transcript.
+   */
+  const double confidence;
+} CandidateTranscript;
+
+/**
+ * @brief An array of CandidateTranscript objects computed by the model.
  */
 typedef struct Metadata {
-  /** List of items */
-  MetadataItem* items;
-  /** Size of the list of items */
-  int num_items;
-  /** Approximated confidence value for this transcription. This is roughly the
-   * sum of the acoustic model logit values for each timestep/character that
-   * contributed to the creation of this transcription.
-   */
-  double confidence;
+  /** Array of CandidateTranscript objects */
+  const CandidateTranscript* const transcripts;
+  /** Size of the transcripts array */
+  const unsigned int num_transcripts;
 } Metadata;
 
 enum DeepSpeech_Error_Codes
@@ -59,8 +70,9 @@ enum DeepSpeech_Error_Codes
     // Invalid parameters
     DS_ERR_INVALID_ALPHABET   = 0x2000,
     DS_ERR_INVALID_SHAPE      = 0x2001,
-    DS_ERR_INVALID_LM         = 0x2002,
+    DS_ERR_INVALID_SCORER     = 0x2002,
     DS_ERR_MODEL_INCOMPATIBLE = 0x2003,
+    DS_ERR_SCORER_NOT_ENABLED = 0x2004,
 
     // Runtime failures
     DS_ERR_FAIL_INIT_MMAP     = 0x3000,
@@ -77,17 +89,38 @@ enum DeepSpeech_Error_Codes
  * @brief An object providing an interface to a trained DeepSpeech model.
  *
  * @param aModelPath The path to the frozen model graph.
- * @param aBeamWidth The beam width used by the decoder. A larger beam
- *                   width generates better results at the cost of decoding
- *                   time.
  * @param[out] retval a ModelState pointer
  *
  * @return Zero on success, non-zero on failure.
  */
 DEEPSPEECH_EXPORT
 int DS_CreateModel(const char* aModelPath,
-                   unsigned int aBeamWidth,
                    ModelState** retval);
+
+/**
+ * @brief Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
+ *        was not called before, will return the default value loaded from the
+ *        model file.
+ *
+ * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ *
+ * @return Beam width value used by the model.
+ */
+DEEPSPEECH_EXPORT
+unsigned int DS_GetModelBeamWidth(const ModelState* aCtx);
+
+/**
+ * @brief Set beam width value used by the model.
+ *
+ * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ * @param aBeamWidth The beam width used by the model. A larger beam width value
+ *                   generates better results at the cost of decoding time.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_SetModelBeamWidth(ModelState* aCtx,
+                         unsigned int aBeamWidth);
 
 /**
  * @brief Return the sample rate expected by a model.
@@ -97,7 +130,7 @@ int DS_CreateModel(const char* aModelPath,
  * @return Sample rate expected by the model for its input.
  */
 DEEPSPEECH_EXPORT
-int DS_GetModelSampleRate(ModelState* aCtx);
+int DS_GetModelSampleRate(const ModelState* aCtx);
 
 /**
  * @brief Frees associated resources and destroys model object.
@@ -106,28 +139,43 @@ DEEPSPEECH_EXPORT
 void DS_FreeModel(ModelState* ctx);
 
 /**
- * @brief Enable decoding using beam scoring with a KenLM language model.
+ * @brief Enable decoding using an external scorer.
  *
  * @param aCtx The ModelState pointer for the model being changed.
- * @param aLMPath The path to the language model binary file.
- * @param aTriePath The path to the trie file build from the same vocabu-
- *                  lary as the language model binary.
- * @param aLMAlpha The alpha hyperparameter of the CTC decoder. Language Model
-                   weight.
- * @param aLMBeta The beta hyperparameter of the CTC decoder. Word insertion
-                  weight.
+ * @param aScorerPath The path to the external scorer file.
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
 DEEPSPEECH_EXPORT
-int DS_EnableDecoderWithLM(ModelState* aCtx,
-                           const char* aLMPath,
-                           const char* aTriePath,
-                           float aLMAlpha,
-                           float aLMBeta);
+int DS_EnableExternalScorer(ModelState* aCtx,
+                            const char* aScorerPath);
 
 /**
- * @brief Use the DeepSpeech model to perform Speech-To-Text.
+ * @brief Disable decoding using an external scorer.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_DisableExternalScorer(ModelState* aCtx);
+
+/**
+ * @brief Set hyperparameters alpha and beta of the external scorer.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param aAlpha The alpha hyperparameter of the decoder. Language model weight.
+ * @param aLMBeta The beta hyperparameter of the decoder. Word insertion weight.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_SetScorerAlphaBeta(ModelState* aCtx,
+                          float aAlpha,
+                          float aBeta);
+
+/**
+ * @brief Use the DeepSpeech model to convert speech to text.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
@@ -143,21 +191,25 @@ char* DS_SpeechToText(ModelState* aCtx,
                       unsigned int aBufferSize);
 
 /**
- * @brief Use the DeepSpeech model to perform Speech-To-Text and output metadata 
- * about the results.
+ * @brief Use the DeepSpeech model to convert speech to text and output results
+ * including metadata.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
  *                sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in the audio signal.
+ * @param aNumResults The maximum number of CandidateTranscript structs to return. Returned value might be smaller than this.
  *
- * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ * @return Metadata struct containing multiple CandidateTranscript structs. Each
+ *         transcript has per-token metadata including timing information. The
+ *         user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
  */
 DEEPSPEECH_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                                       const short* aBuffer,
-                                      unsigned int aBufferSize);
+                                      unsigned int aBufferSize,
+                                      unsigned int aNumResults);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
@@ -196,11 +248,27 @@ void DS_FeedAudioContent(StreamingState* aSctx,
  *         string using {@link DS_FreeString()}.
  */
 DEEPSPEECH_EXPORT
-char* DS_IntermediateDecode(StreamingState* aSctx);
+char* DS_IntermediateDecode(const StreamingState* aSctx);
 
 /**
- * @brief Signal the end of an audio signal to an ongoing streaming
- *        inference, returns the STT result over the whole audio signal.
+ * @brief Compute the intermediate decoding of an ongoing streaming inference,
+ *        return results including metadata.
+ *
+ * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aNumResults The number of candidate transcripts to return.
+ *
+ * @return Metadata struct containing multiple candidate transcripts. Each transcript
+ *         has per-token metadata including timing information. The user is
+ *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
+ */
+DEEPSPEECH_EXPORT
+Metadata* DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
+                                            unsigned int aNumResults);
+
+/**
+ * @brief Compute the final decoding of an ongoing streaming inference and return
+ *        the result. Signals the end of an ongoing streaming inference.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
  *
@@ -213,18 +281,23 @@ DEEPSPEECH_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
 
 /**
- * @brief Signal the end of an audio signal to an ongoing streaming
- *        inference, returns per-letter metadata.
+ * @brief Compute the final decoding of an ongoing streaming inference and return
+ *        results including metadata. Signals the end of an ongoing streaming
+ *        inference.
  *
  * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aNumResults The number of candidate transcripts to return.
  *
- * @return Outputs a struct of individual letters along with their timing information. 
- *         The user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}. Returns NULL on error.
+ * @return Metadata struct containing multiple candidate transcripts. Each transcript
+ *         has per-token metadata including timing information. The user is
+ *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         Returns NULL on error.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
 DEEPSPEECH_EXPORT
-Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx);
+Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx,
+                                      unsigned int aNumResults);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This
@@ -251,10 +324,22 @@ DEEPSPEECH_EXPORT
 void DS_FreeString(char* str);
 
 /**
- * @brief Print version of this library and of the linked TensorFlow library.
+ * @brief Returns the version of this library. The returned version is a semantic
+ *        version (SemVer 2.0.0). The string returned must be freed with {@link DS_FreeString()}.
+ *
+ * @return The version string.
  */
 DEEPSPEECH_EXPORT
-void DS_PrintVersions();
+char* DS_Version();
+
+/**
+ * @brief Returns a textual description corresponding to an error code.
+ *        The string returned must be freed with @{link DS_FreeString()}.
+ *
+ * @return The error description.
+ */
+DEEPSPEECH_EXPORT
+char* DS_ErrorCodeToErrorMessage(int aErrorCode);
 
 #undef DEEPSPEECH_EXPORT
 

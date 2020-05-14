@@ -1,23 +1,29 @@
 JavaScript API Usage example
 =============================
 
+Examples are from `native_client/javascript/client.ts`.
+
 Creating a model instance and loading model
 -------------------------------------------
 
-.. literalinclude:: ../native_client/javascript/client.js
+.. literalinclude:: ../native_client/javascript/client.ts
    :language: javascript
    :linenos:
-   :lines: 57-66
+   :lineno-match:
+   :start-after: sphinx-doc: js_ref_model_start
+   :end-before: sphinx-doc: js_ref_model_stop
 
 Performing inference
 --------------------
 
-.. literalinclude:: ../native_client/javascript/client.js
+.. literalinclude:: ../native_client/javascript/client.ts
    :language: javascript
    :linenos:
-   :lines: 115-117
+   :lineno-match:
+   :start-after: sphinx-doc: js_ref_inference_start
+   :end-before: sphinx-doc: js_ref_inference_stop
 
 Full source code
 ----------------
 
-See :download:`Full source code<../native_client/javascript/client.js>`.
+See :download:`Full source code<../native_client/javascript/client.ts>`.

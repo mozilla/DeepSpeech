@@ -26,22 +26,11 @@ routes:
   then:
     { $eval: build.routes }
 
-scopes:
-  $if: '(event.event != "push") && (event.event != "tag")'
-  then:
-    - generic-worker:cache:deepspeech-homebrew-bin
-    - generic-worker:cache:deepspeech-homebrew-cache
-    - generic-worker:cache:deepspeech-macos-pyenv
-
 payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }
 
   env:
-    $let:
-      training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
-    in:
-      TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
-      DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
+    TENSORFLOW_BUILD_ARTIFACT: ${build.tensorflow}
 
   # There is no VM yet running tasks on OSX
   # so one should install by hand:
@@ -52,26 +41,6 @@ payload:
   # - brew install pixz
   # - brew cask install java
   # - sudo easy_install pip
-  #
-  # gtar needed for --transform
-  #   --transform used to rewrite symlinks
-  #     this rewrite should take care of tranforming
-  #      - ${system.homedir.osx}/TaskCluster/Tasks/task_[[:digit:]]\{10\}/
-  #      - ${system.homedir.osx}/TaskCluster/HeavyTasks/X/task_[[:digit:]]\{10\}/
-  #      - ${system.homedir.osx}/TaskCluster/LightTasks/X/task_[[:digit:]]\{10\}/
-  #      into
-  #      - $TASKCLUSTER_TASK_DIR/
-  #  => goal:
-  #     - no dangling symlink that points to broken/invalid path
-  #       all symlinks should point to (full)path scoped only on this task
-  #     - no file referring to anything else than $TASKCLUSTER_TASK_DIR/
-  #       sed to the rescue to change all text files that references the wrong
-  #       dir and hopefully keep the tensorflow bazel cache usable
-  #     - the huge grep -R serves this purpose (without, later build of
-  #       native_client fails)
-  #     - we need to remove from the grep result anything matching
-  #       "generic-worker/" to avoid screwing the generic-worker/live_backing.log
-  #       and this breaking the build in undebuggable ways
 
   command:
     - - "/bin/bash"
@@ -81,30 +50,22 @@ payload:
         export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
         export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
         (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
-        (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew/ homebrew/ || true) &&
-        (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ homebrew.cache/ || true) &&
-        (mv $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ pyenv.cache/ || true) &&
         export TASKCLUSTER_TASK_DIR="$(pwd)" &&
         export LC_ALL=C &&
-        export PKG_CONFIG_PATH="$TASKCLUSTER_TASK_DIR/homebrew/lib/pkgconfig" &&
         export MACOSX_DEPLOYMENT_TARGET=10.10 &&
         export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
         export HOMEBREW_NO_AUTO_UPDATE=1 &&
         env &&
         trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-        (mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ || true) &&
-        (mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ || true) &&
-        (mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ || true) &&
         cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
         exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
-        (wget -O - $TENSORFLOW_BUILD_ARTIFACT | pixz -d | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
+        (pixz -d < $TASKCLUSTER_ORIG_TASKDIR/home.tar.xz | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
         git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
         cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
         cd $TASKCLUSTER_TASK_DIR &&
-        $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/tc-brew.sh &&
-        $TASKCLUSTER_TASK_DIR/homebrew/bin/brew reinstall swig &&
-        ${swig.patch_nodejs.osx_v12} &&
+        (mkdir pyenv-root/ && gtar -C pyenv-root/ -xf $TASKCLUSTER_ORIG_TASKDIR/pyenv.tar.gz) &&
+        (mkdir homebrew-builds/ && gtar -C homebrew-builds/ -xf $TASKCLUSTER_ORIG_TASKDIR/homebrew-builds.tar.gz) &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package}
 
@@ -117,14 +78,19 @@ payload:
         else: { $fromNow: '7 days' }
 
   mounts:
-    $if: '(event.event != "push") && (event.event != "tag")'
-    then:
-      - cacheName: deepspeech-homebrew-bin
-        directory: homebrew/
-      - cacheName: deepspeech-homebrew-cache
-        directory: homebrew.cache/
-      - cacheName: deepspeech-macos-pyenv
-        directory: pyenv.cache/
+    - file: pyenv.tar.gz
+      content:
+        url: ${system.pyenv.osx.url}
+    - file: homebrew-builds.tar.gz
+      content:
+        url: ${system.homebrew_builds.url}
+    - directory: ${system.homedir.osx}/Library/Caches/node-gyp/
+      format: tar.gz
+      content:
+        url: ${system.node_gyp_cache.url}
+    - file: home.tar.xz
+      content:
+        url: ${build.tensorflow}
 
 metadata:
   name: ${build.metadata.name}

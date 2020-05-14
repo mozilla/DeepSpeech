@@ -1,19 +1,26 @@
 build:
   template_file: linux-opt-base.tyml
+  dependencies:
+    - "android-arm64-cpu-opt"
+    - "android-armv7-cpu-opt"
+    - "android-x86_64-cpu-opt"
+    - "pyenv-linux-amd64"
+    - "gradle-cache"
+    - "android-cache-sdk-android-27"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-apk"
     - "index.project.deepspeech.deepspeech.native_client.android-apk.${event.head.sha}"
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
-  dependencies:
-     - "android-arm64-cpu-opt"
-     - "android-armv7-cpu-opt"
-     - "android-x86_64-cpu-opt"
   system_setup:
     >
-      apt-get -qq -y install curl && ${swig.packages.install_script}
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.14.e77504ac6b941fd2af495b49a0bcd56f25ca0e1e.android-armv7/artifacts/public/home.tar.xz"
+      ${java.packages_trusty.apt}
+  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.android-armv7/artifacts/public/home.tar.xz"
+  gradle_cache:
+    url: ${system.gradle_cache.url}
+    namespace: ${system.gradle_cache.namespace}
+  android_cache:
+    url: ${system.android_cache.sdk.android_27.url}
+    namespace: ${system.android_cache.sdk.android_27.namespace}
   scripts:
     build: "taskcluster/android-apk-build.sh"
     package: "taskcluster/android-apk-package.sh"

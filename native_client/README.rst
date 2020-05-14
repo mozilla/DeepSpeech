@@ -5,7 +5,7 @@ Building DeepSpeech Binaries
 If you'd like to build the DeepSpeech binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
 
-* `Mozilla's TensorFlow r1.14 branch <https://github.com/mozilla/tensorflow/tree/r1.14>`_
+* `Mozilla's TensorFlow r1.15 branch <https://github.com/mozilla/tensorflow/tree/r1.15>`_
 * `General TensorFlow requirements <https://www.tensorflow.org/install/install_sources>`_
 * `libsox <https://sourceforge.net/projects/sox/>`_
 
@@ -14,7 +14,10 @@ It is required to use our fork of TensorFlow since it includes fixes for common 
 If you'd like to build the language bindings or the decoder package, you'll also need:
 
 
-* `SWIG >= 3.0.12 <http://www.swig.org/>`_
+* `SWIG >= 3.0.12 <http://www.swig.org/>`_.
+  Unfortunately, NodeJS / ElectronJS after 10.x support on SWIG is a bit behind, and while there are pending patches proposed to upstream, it is not yet merged.
+  The proper prebuilt patched version (covering linux, windows and macOS) of SWIG should get installed under `native_client/ <native_client/>`_ as soon as you build any bindings that requires it.
+
 * `node-pre-gyp <https://github.com/mapbox/node-pre-gyp>`_ (for Node.JS bindings only)
 
 Dependencies
@@ -32,7 +35,7 @@ Clone our fork of TensorFlow and checkout the correct version:
 .. code-block::
 
    git clone https://github.com/mozilla/tensorflow.git
-   git checkout origin/r1.14
+   git checkout origin/r1.15
 
 Bazel: Download & Install
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,7 +55,7 @@ After you have installed the correct version of Bazel, configure TensorFlow:
 Compile DeepSpeech
 ------------------
 
-Compile ``libdeepspeech.so`` & ``generate_trie``
+Compile ``libdeepspeech.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Within your TensorFlow checkout, create a symbolic link to the DeepSpeech ``native_client`` directory. Assuming DeepSpeech and TensorFlow checkouts are in the same directory, do:
@@ -62,11 +65,11 @@ Within your TensorFlow checkout, create a symbolic link to the DeepSpeech ``nati
    cd tensorflow
    ln -s ../DeepSpeech/native_client ./
 
-You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``\ , as well as the ``generate_trie`` binary. Add ``--config=cuda`` if you want a CUDA build.
+You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``\ . Add ``--config=cuda`` if you want a CUDA build.
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -105,8 +108,8 @@ Included are a set of generated Python bindings. After following the above build
 
 The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to `deepspeech.h <deepspeech.h>`_ for documentation.
 
-Install Node.JS bindings
-^^^^^^^^^^^^^^^^^^^^^^^^
+Install NodeJS / ElectronJS bindings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 After following the above build and installation instructions, the Node.JS bindings can be built:
 
@@ -145,13 +148,13 @@ So your command line for ``RPi3`` and ``ARMv7`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 And your command line for ``LePotato`` and ``ARM64`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_trie
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 While we test only on RPi3 Raspbian Buster and LePotato ARMBian Buster, anything compatible with ``armv7-a cortex-a53`` or ``armv8-a cortex-a53`` should be fine.
 

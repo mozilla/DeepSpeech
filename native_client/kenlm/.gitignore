@@ -3,6 +3,9 @@ util/file_piece.cc.gz
 *.o
 doc/
 build/
+/bin
+/lib
+/tests
 ._*
 windows/Win32
 windows/x64

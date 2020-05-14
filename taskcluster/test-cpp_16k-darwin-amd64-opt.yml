@@ -1,0 +1,12 @@
+build:
+  template_file: test-darwin-opt-base.tyml
+  dependencies:
+    - "darwin-amd64-cpu-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+    - "homebrew_tests-darwin-amd64"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
+  args:
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-cpp-ds-tests.sh 16k"
+  metadata:
+    name: "DeepSpeech OSX AMD64 CPU C++ tests (16kHz)"
+    description: "Testing DeepSpeech C++ for OSX/AMD64, CPU only, optimized version (16kHz)"

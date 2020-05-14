@@ -17,15 +17,7 @@ then:
     github:
       { $eval: taskcluster.github_events.pull_request }
 
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
-
   scopes: [
-    "queue:route:notify.irc-channel.*",
-    "generic-worker:cache:deepspeech-homebrew-bin",
-    "generic-worker:cache:deepspeech-homebrew-cache",
-    "generic-worker:cache:deepspeech-homebrew-local",
     "generic-worker:cache:deepspeech-macos-pyenv",
   ]
 
@@ -34,7 +26,7 @@ then:
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
+        training: { $eval: as_slugid(build.test_model_task) }
         darwin_amd64_build: { $eval: as_slugid("darwin-amd64-cpu-opt") }
         darwin_amd64_tflite: { $eval: as_slugid("darwin-amd64-tflite-opt") }
       in:
@@ -55,40 +47,31 @@ then:
             export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
             export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
             (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
-            (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew/ homebrew/ || true) &&
-            (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ homebrew.cache/ || true) &&
-            (mv $TASKCLUSTER_ORIG_TASKDIR/homebrew.local/ homebrew.local/ || true) &&
-            (mv $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ pyenv.cache/ || true) &&
             export TASKCLUSTER_TASK_DIR="$(pwd)" &&
             export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
             export LC_ALL=C &&
             export MACOSX_DEPLOYMENT_TARGET=10.10 &&
             export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
-            export HOMEBREW_NO_AUTO_UPDATE=1 &&
             export PIP_DEFAULT_TIMEOUT=60 &&
             env &&
             trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-            (mv $TASKCLUSTER_TASK_DIR/homebrew/ $TASKCLUSTER_ORIG_TASKDIR/homebrew/ || true) &&
-            (mv $TASKCLUSTER_TASK_DIR/homebrew.cache/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.cache/ || true) &&
-            (mv $TASKCLUSTER_TASK_DIR/homebrew.local/ $TASKCLUSTER_ORIG_TASKDIR/homebrew.local/ || true) &&
-            (mv $TASKCLUSTER_TASK_DIR/pyenv.cache/ $TASKCLUSTER_ORIG_TASKDIR/pyenv.cache/ || true) &&
             cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
             exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
             git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
             cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
             cd $TASKCLUSTER_TASK_DIR &&
-            source $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-brew-tests.sh && ${extraSystemSetup} &&
+            (mkdir pyenv-root/ && gtar -C pyenv-root/ -xf $TASKCLUSTER_ORIG_TASKDIR/pyenv.tar.gz) &&
+            (mkdir homebrew-tests/ && gtar -C homebrew-tests/ -xf $TASKCLUSTER_ORIG_TASKDIR/homebrew-tests.tar.gz) &&
+            ${extraSystemSetup} &&
             /bin/bash ${build.args.tests_cmdline}
 
     mounts:
-      - cacheName: deepspeech-homebrew-bin
-        directory: homebrew/
-      - cacheName: deepspeech-homebrew-cache
-        directory: homebrew.cache/
-      - cacheName: deepspeech-homebrew-local
-        directory: homebrew.local/
-      - cacheName: deepspeech-macos-pyenv
-        directory: pyenv.cache/
+      - file: pyenv.tar.gz
+        content:
+          url: ${system.pyenv.osx.url}
+      - file: homebrew-tests.tar.gz
+        content:
+          url: ${system.homebrew_tests.url}
 
   metadata:
     name: ${build.metadata.name}

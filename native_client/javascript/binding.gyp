@@ -39,6 +39,8 @@
   ],
   "variables": {
     "build_v8_with_gn": 0,
+    "v8_enable_pointer_compression": 0,
+    "v8_enable_31bit_smis_on_64bit_arch": 0,
     "enable_lto": 1
   },
 }

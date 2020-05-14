@@ -1,7 +1,7 @@
-KenLM source downloaded from http://kheafield.com/code/kenlm.tar.gz on 2017/08/05
-sha256 c4c9f587048470c9a6a592914f0609a71fbb959f0a4cad371e8c355ce81f7c6b
+KenLM source downloaded from https://github.com/kpu/kenlm on 2020/01/15
+commit b9f35777d112ce2fc10bd3986302517a16dc3883
 
-This corresponds to https://github.com/kpu/kenlm/commit/cdd794598ea15dc23a7daaf7a8cf89423c97f7e6
+This corresponds to https://github.com/kpu/kenlm/commit/b9f35777d112ce2fc10bd3986302517a16dc3883
 
 The following procedure was run to remove unneeded files:
 
@@ -10,19 +10,3 @@ rm -rf windows include lm/filter lm/builder util/stream util/getopt.* python
 
 This was done in order to ensure uniqueness of double_conversion:
 git grep 'double_conversion' | cut -d':' -f1 | sort | uniq | xargs sed -ri 's/double_conversion/kenlm_double_conversion/g'
-
-Please apply this patch to be able to build on Android:
-diff --git a/native_client/kenlm/util/file.cc b/native_client/kenlm/util/file.cc
-index d53dc0a..b5e36b2 100644
---- a/native_client/kenlm/util/file.cc
-+++ b/native_client/kenlm/util/file.cc
-@@ -540,7 +540,7 @@ std::string DefaultTempDirectory() {
-   const char *const vars[] = {"TMPDIR", "TMP", "TEMPDIR", "TEMP", 0};
-   for (int i=0; vars[i]; ++i) {
-     char *val =
--#if defined(_GNU_SOURCE)
-+#if defined(_GNU_SOURCE) && defined(__GLIBC_PREREQ)
- #if __GLIBC_PREREQ(2,17)
-       secure_getenv
- #else // __GLIBC_PREREQ
-

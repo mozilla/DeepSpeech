@@ -137,6 +137,8 @@ class Model {
 
     const Vocabulary &BaseVocabulary() const { return *base_vocab_; }
 
+    virtual uint64_t GetEndOfSearchOffset() const = 0;
+
   private:
     template <class T, class U, class V> friend class ModelFacade;
     explicit Model(size_t state_size) : state_size_(state_size) {}

@@ -1,23 +1,25 @@
 build:
   template_file: linux-opt-base.tyml
+  dependencies:
+    - "swig-linux-amd64"
+    - "node-gyp-cache"
+    - "pyenv-linux-amd64"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.arm"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.arm"
     - "index.project.deepspeech.deepspeech.native_client.arm.${event.head.sha}"
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.14.e77504ac6b941fd2af495b49a0bcd56f25ca0e1e.arm/artifacts/public/home.tar.xz"
   ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
   system_setup:
     >
       apt-get -qq -y install gdebi git pixz &&
       wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb &&
       echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb &&
-      ${nodejs.packages_trusty.prep_8} && ${nodejs.packages_trusty.apt_pinning}
-      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml &&
-      apt-get -qq -y install ${python.packages_trusty.apt} && ${swig.packages.install_script}
+      ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   system_config:
     >
-      multistrap -d /tmp/multistrap-raspbian-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_raspbian_buster.conf &&
-      ${swig.patch_nodejs.linux}
+      multistrap -d /tmp/multistrap-raspbian-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_raspbian_buster.conf
+  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r1.15.ceb46aae5836a0f648a2c3da5942af2b7d1b98bf.arm/artifacts/public/home.tar.xz"
   scripts:
     build: "taskcluster/rpi3-build.sh"
     package: "taskcluster/package.sh"

@@ -16,7 +16,7 @@ struct ModelState {
   static constexpr unsigned int BATCH_SIZE = 1;
 
   Alphabet alphabet_;
-  std::unique_ptr<Scorer> scorer_;
+  std::shared_ptr<Scorer> scorer_;
   unsigned int beam_width_;
   unsigned int n_steps_;
   unsigned int n_context_;
@@ -30,7 +30,7 @@ struct ModelState {
   ModelState();
   virtual ~ModelState();
 
-  virtual int init(const char* model_path, unsigned int beam_width);
+  virtual int init(const char* model_path);
 
   virtual void compute_mfcc(const std::vector<float>& audio_buffer, std::vector<float>& mfcc_output) = 0;
 
@@ -60,17 +60,20 @@ struct ModelState {
    *
    * @return String representing the decoded text.
    */
-  virtual char* decode(const DecoderState& state);
+  virtual char* decode(const DecoderState& state) const;
 
   /**
    * @brief Return character-level metadata including letter timings.
    *
    * @param state Decoder state to use when decoding.
+   * @param num_results Maximum number of candidate results to return.
    *
-   * @return Metadata struct containing MetadataItem structs for each character.
-   * The user is responsible for freeing Metadata by calling DS_FreeMetadata().
+   * @return A Metadata struct containing CandidateTranscript structs.
+   * Each represents an candidate transcript, with the first ranked most probable.
+   * The user is responsible for freeing Result by calling DS_FreeMetadata().
    */
-  virtual Metadata* decode_metadata(const DecoderState& state);
+  virtual Metadata* decode_metadata(const DecoderState& state,
+                                    size_t num_results);
 };
 
 #endif // MODELSTATE_H

@@ -2,6 +2,8 @@ from setuptools import setup, Extension
 import glob
 import platform
 import os
+import sys
+import re
 
 #Does gcc compile with this header and library?
 def compile_test(header, library):
@@ -9,16 +11,28 @@ def compile_test(header, library):
     command = "bash -c \"g++ -include " + header + " -l" + library + " -x c++ - <<<'int main() {}' -o " + dummy_path + " >/dev/null 2>/dev/null && rm " + dummy_path + " 2>/dev/null\""
     return os.system(command) == 0
 
+max_order = "6"
+is_max_order = [s for s in sys.argv if "--max_order" in s]
+for element in is_max_order:
+    max_order = re.split('[= ]',element)[1]
+    sys.argv.remove(element)
 
-FILES = glob.glob('util/*.cc') + glob.glob('lm/*.cc') + glob.glob('util/double-conversion/*.cc')
+FILES = glob.glob('util/*.cc') + glob.glob('lm/*.cc') + glob.glob('util/double-conversion/*.cc') + glob.glob('python/*.cc')
 FILES = [fn for fn in FILES if not (fn.endswith('main.cc') or fn.endswith('test.cc'))]
 
-LIBS = ['stdc++']
-if platform.system() != 'Darwin':
-    LIBS.append('rt')
+if platform.system() == 'Linux':
+    LIBS = ['stdc++', 'rt']
+elif platform.system() == 'Darwin':
+    LIBS = ['c++']
+else:
+    LIBS = []
 
 #We don't need -std=c++11 but python seems to be compiled with it now.  https://github.com/kpu/kenlm/issues/86
-ARGS = ['-O3', '-DNDEBUG', '-DKENLM_MAX_ORDER=6', '-std=c++11']
+ARGS = ['-O3', '-DNDEBUG', '-DKENLM_MAX_ORDER='+max_order, '-std=c++11']
+
+#Attempted fix to https://github.com/kpu/kenlm/issues/186 and https://github.com/kpu/kenlm/issues/197
+if platform.system() == 'Darwin':
+    ARGS += ["-stdlib=libc++", "-mmacosx-version-min=10.7"]
 
 if compile_test('zlib.h', 'z'):
     ARGS.append('-DHAVE_ZLIB')

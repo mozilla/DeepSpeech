@@ -17,6 +17,9 @@ if [ -z "${electronver}" ]; then
     exit 1
 fi;
 
+bitrate=$3
+set_ldc_sample_filename "${bitrate}"
+
 download_data
 
 node --version
@@ -55,6 +58,8 @@ fi
 node --version
 
 check_runtime_electronjs
+
+ensure_cuda_usage "$4"
 
 run_electronjs_inference_tests
 

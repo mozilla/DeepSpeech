@@ -17,27 +17,17 @@ then:
     github:
       { $eval: taskcluster.github_events.pull_request }
 
-  routes:
-    - "notify.irc-channel.${notifications.irc}.on-exception"
-    - "notify.irc-channel.${notifications.irc}.on-failed"
-
-  scopes: [
-    "queue:route:notify.irc-channel.*"
-  ]
-
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
     image: ${build.docker_image}
 
     env:
       $let:
-        training: { $eval: as_slugid("test-training_upstream-linux-amd64-py36m-opt") }
+        training: { $eval: as_slugid(build.test_model_task) }
         linux_amd64_build: { $eval: as_slugid("linux-amd64-cpu-opt") }
         linux_amd64_tflite: { $eval: as_slugid("linux-amd64-tflite-opt") }
         linux_amd64_ctc: { $eval: as_slugid("linux-amd64-ctc-opt") }
       in:
-        CONVERT_GRAPHDEF_MEMMAPPED: ${build.convert_graphdef}
-        BENCHMARK_MODEL_BIN: ${build.benchmark_model_bin}
         DEEPSPEECH_ARTIFACTS_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${linux_amd64_build}/artifacts/public
         DEEPSPEECH_ARTIFACTS_TFLITE_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${linux_amd64_tflite}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
@@ -58,7 +48,7 @@ then:
           apt-get -qq update && apt-get -qq -y install curl python-simplejson git pixz sox sudo wget && ${extraSystemSetup} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
           cd ${system.homedir.linux} &&
-          echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+          echo -e "#!/bin/bash\nset -xe\n env && id && mkdir ~/DeepSpeech/ && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha}&& mkdir -p ${system.homedir.linux}/pyenv-root/ && wget -O - ${system.pyenv.linux.url} | tar -C ${system.homedir.linux}/pyenv-root/ -xzf -" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u ${system.username} /bin/bash /tmp/clone.sh &&
           sudo -H -u ${system.username} --preserve-env /bin/bash ${build.args.tests_cmdline}
 

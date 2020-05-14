@@ -10,7 +10,7 @@ import os
 import platform
 import sys
 
-from build_common import *
+from build_archive import *
 
 try:
     import numpy
@@ -40,32 +40,41 @@ sys.argv = [sys.argv[0]] + unknown_args
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+def maybe_rebuild(srcs, out_name, build_dir):
+    if not os.path.exists(out_name):
+        if not os.path.exists(build_dir):
+            os.makedirs(build_dir)
+
+        build_archive(srcs=srcs,
+                     out_name=out_name,
+                     build_dir=build_dir,
+                     num_parallel=known_args.num_processes,
+                     debug=debug)
+
 project_version = read('../../VERSION').strip()
 
 build_dir = 'temp_build/temp_build'
-common_build = 'common.a'
 
-if not os.path.exists(common_build):
-    if not os.path.exists(build_dir):
-        os.makedirs(build_dir)
+if sys.platform.startswith('win'):
+    archive_ext = 'lib'
+else:
+    archive_ext = 'a'
 
-    build_common(out_name=common_build,
-                 build_dir=build_dir,
-                 num_parallel=known_args.num_processes,
-                 debug=debug)
+third_party_build = 'third_party.{}'.format(archive_ext)
+ctc_decoder_build = 'first_party.{}'.format(archive_ext)
+
+
+maybe_rebuild(KENLM_FILES, third_party_build, build_dir)
+maybe_rebuild(CTC_DECODER_FILES, ctc_decoder_build, build_dir)
 
 decoder_module = Extension(
     name='ds_ctcdecoder._swigwrapper',
-    sources=['swigwrapper.i',
-             'ctc_beam_search_decoder.cpp',
-             'scorer.cpp',
-             'path_trie.cpp',
-             'decoder_utils.cpp'],
+    sources=['swigwrapper.i'],
     swig_opts=['-c++', '-extranative'],
     language='c++',
     include_dirs=INCLUDES + [numpy_include],
     extra_compile_args=ARGS + (DBG_ARGS if debug else OPT_ARGS),
-    extra_link_args=[common_build],
+    extra_link_args=[ctc_decoder_build, third_party_build],
 )
 
 class BuildExtFirst(build):

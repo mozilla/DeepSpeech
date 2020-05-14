@@ -1,10 +1,18 @@
 JavaScript (NodeJS / ElectronJS)
 ================================
 
+Support for TypeScript is :download:`provided in index.d.ts<../native_client/javascript/index.d.ts>`
+
 Model
 -----
 
 .. js:autoclass:: Model
+   :members:
+
+Stream
+------
+
+.. js:autoclass:: Stream
    :members:
 
 Module exported methods
@@ -16,7 +24,7 @@ Module exported methods
 
 .. js:autofunction:: FreeMetadata
 
-.. js:autofunction:: printVersions
+.. js:autofunction:: Version
 
 Metadata
 --------
@@ -24,8 +32,14 @@ Metadata
 .. js:autoclass:: Metadata
    :members:
 
-MetadataItem
-------------
+CandidateTranscript
+-------------------
 
-.. js:autoclass:: MetadataItem
+.. js:autoclass:: CandidateTranscript
+   :members:
+
+TokenMetadata
+-------------
+
+.. js:autoclass:: TokenMetadata
    :members:

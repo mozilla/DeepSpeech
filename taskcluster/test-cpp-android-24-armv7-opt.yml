@@ -2,9 +2,14 @@ build:
   template_file: test-android-opt-base.tyml
   dependencies:
     - "android-armv7-cpu-opt"
-    - "test-training_upstream-linux-amd64-py36m-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+    - "android-cache-armeabi-v7a-android-24"
+  cache:
+    url: ${system.android_cache.armeabi_v7a.android_24.url}
+    namespace: ${system.android_cache.armeabi_v7a.android_24.namespace}
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   args:
-    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-ds-tests.sh armeabi-v7a android-24"
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-ds-tests.sh armeabi-v7a android-24 16k"
   metadata:
     name: "DeepSpeech Android 7.0 ARMv7 Google Pixel C++ tests"
     description: "Testing DeepSpeech C++ for Android 7.0 ARMv7 Google Pixel, optimized version"

@@ -1,0 +1,16 @@
+build:
+  template_file: node-package-opt-base.tyml
+  dependencies:
+    - "darwin-amd64-tflite-opt"
+    - "linux-amd64-tflite-opt"
+    - "win-amd64-tflite-opt"
+  system_setup:
+    >
+      ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
+      && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
+  scripts:
+    build: "taskcluster/node-build.sh --tflite"
+    package: "taskcluster/node-package.sh"
+  metadata:
+    name: "DeepSpeech NodeJS TFLite package"
+    description: "Packaging DeepSpeech TFLite for registry"

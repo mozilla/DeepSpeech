@@ -12,7 +12,7 @@ import org.junit.runners.MethodSorters;
 import static org.junit.Assert.*;
 
 import org.mozilla.deepspeech.libdeepspeech.DeepSpeechModel;
-import org.mozilla.deepspeech.libdeepspeech.Metadata;
+import org.mozilla.deepspeech.libdeepspeech.CandidateTranscript;
 
 import java.io.RandomAccessFile;
 import java.io.FileNotFoundException;
@@ -30,14 +30,8 @@ import java.nio.ByteBuffer;
 public class BasicTest {
 
     public static final String modelFile    = "/data/local/tmp/test/output_graph.tflite";
-    public static final String lmFile       = "/data/local/tmp/test/lm.binary";
-    public static final String trieFile     = "/data/local/tmp/test/trie";
+    public static final String scorerFile   = "/data/local/tmp/test/kenlm.scorer";
     public static final String wavFile      = "/data/local/tmp/test/LDC93S1.wav";
-
-    public static final int BEAM_WIDTH = 50;
-
-    public static final float LM_ALPHA = 0.75f;
-    public static final float LM_BETA  = 1.85f;
 
     private char readLEChar(RandomAccessFile f) throws IOException {
         byte b1 = f.readByte();
@@ -63,14 +57,14 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_basic() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
         m.freeModel();
     }
 
-    private String metadataToString(Metadata m) {
+    private String candidateTranscriptToString(CandidateTranscript t) {
         String retval = "";
-        for (int i = 0; i < m.getNum_items(); ++i) {
-            retval += m.getItem(i).getCharacter();
+        for (int i = 0; i < t.getNum_tokens(); ++i) {
+            retval += t.getToken(i).getText();
         }
         return retval;
     }
@@ -103,7 +97,7 @@ public class BasicTest {
             ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
 
             if (extendedMetadata) {
-                return metadataToString(m.sttWithMetadata(shorts, shorts.length));
+                return candidateTranscriptToString(m.sttWithMetadata(shorts, shorts.length, 1).getTranscript(0));
             } else {
                 return m.stt(shorts, shorts.length);
             }
@@ -120,7 +114,7 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_stt_noLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
 
         String decoded = doSTT(m, false);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
@@ -129,8 +123,8 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_stt_withLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
-        m.enableDecoderWihLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        m.enableExternalScorer(scorerFile);
 
         String decoded = doSTT(m, false);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
@@ -139,7 +133,7 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_sttWithMetadata_noLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
 
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
@@ -148,8 +142,8 @@ public class BasicTest {
 
     @Test
     public void loadDeepSpeech_sttWithMetadata_withLM() {
-        DeepSpeechModel m = new DeepSpeechModel(modelFile, BEAM_WIDTH);
-        m.enableDecoderWihLM(lmFile, trieFile, LM_ALPHA, LM_BETA);
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        m.enableExternalScorer(scorerFile);
 
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);

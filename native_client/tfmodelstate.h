@@ -11,15 +11,14 @@
 
 struct TFModelState : public ModelState
 {
-  tensorflow::MemmappedEnv* mmap_env_;
-  tensorflow::Session* session_;
+  std::unique_ptr<tensorflow::MemmappedEnv> mmap_env_;
+  std::unique_ptr<tensorflow::Session> session_;
   tensorflow::GraphDef graph_def_;
 
   TFModelState();
   virtual ~TFModelState();
 
-  virtual int init(const char* model_path,
-                   unsigned int beam_width) override;
+  virtual int init(const char* model_path) override;
 
   virtual void infer(const std::vector<float>& mfcc,
                      unsigned int n_frames,

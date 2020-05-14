@@ -21,12 +21,10 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --n_hidden 100 --epochs 1 \
   --max_to_keep 1 --checkpoint_dir '/tmp/ckpt' --checkpoint_secs 0 \
   --learning_rate 0.001 --dropout_rate 0.05 \
-  --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
-  --lm_trie_path 'data/smoke_test/vocab.trie'
+  --scorer_path 'data/smoke_test/pruned_lm.scorer'
 
 python -u DeepSpeech.py \
   --n_hidden 100 \
   --checkpoint_dir '/tmp/ckpt' \
-  --lm_binary_path 'data/smoke_test/vocab.pruned.lm' \
-  --lm_trie_path 'data/smoke_test/vocab.trie' \
+  --scorer_path 'data/smoke_test/pruned_lm.scorer' \
   --one_shot_infer 'data/smoke_test/LDC93S1.wav'

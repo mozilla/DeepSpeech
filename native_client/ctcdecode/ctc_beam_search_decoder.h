@@ -1,6 +1,7 @@
 #ifndef CTC_BEAM_SEARCH_DECODER_H_
 #define CTC_BEAM_SEARCH_DECODER_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,8 +16,9 @@ class DecoderState {
   size_t beam_size_;
   double cutoff_prob_;
   size_t cutoff_top_n_;
+  bool start_expanding_;
 
-  Scorer* ext_scorer_; // weak
+  std::shared_ptr<Scorer> ext_scorer_;
   std::vector<PathTrie*> prefixes_;
   std::unique_ptr<PathTrie> prefix_root_;
 
@@ -45,7 +47,7 @@ public:
            size_t beam_size,
            double cutoff_prob,
            size_t cutoff_top_n,
-           Scorer *ext_scorer);
+           std::shared_ptr<Scorer> ext_scorer);
 
   /* Send data to the decoder
    *
@@ -59,13 +61,16 @@ public:
             int time_dim,
             int class_dim);
 
-  /* Get transcription from current decoder state
+  /* Get up to num_results transcriptions from current decoder state.
+   *
+   * Parameters:
+   *     num_results: Number of beams to return.
    *
    * Return:
    *     A vector where each element is a pair of score and decoding result,
    *     in descending order.
   */
-  std::vector<Output> decode() const;
+  std::vector<Output> decode(size_t num_results=1) const;
 };
 
 
@@ -95,7 +100,7 @@ std::vector<Output> ctc_beam_search_decoder(
     size_t beam_size,
     double cutoff_prob,
     size_t cutoff_top_n,
-    Scorer *ext_scorer);
+    std::shared_ptr<Scorer> ext_scorer);
 
 /* CTC Beam Search Decoder for batch data
  * Parameters:
@@ -126,6 +131,6 @@ ctc_beam_search_decoder_batch(
     size_t num_processes,
     double cutoff_prob,
     size_t cutoff_top_n,
-    Scorer *ext_scorer);
+    std::shared_ptr<Scorer> ext_scorer);
 
 #endif  // CTC_BEAM_SEARCH_DECODER_H_

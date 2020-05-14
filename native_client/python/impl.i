@@ -38,13 +38,69 @@ import_array();
   %append_output(SWIG_NewPointerObj(%as_voidptr($1), $1_descriptor, SWIG_POINTER_OWN));
 }
 
-%typemap(out) MetadataItem* %{
-  $result = PyList_New(arg1->num_items);
-  for (int i = 0; i < arg1->num_items; ++i) {
-    PyObject* o = SWIG_NewPointerObj(SWIG_as_voidptr(&arg1->items[i]), SWIGTYPE_p_MetadataItem, 0);
+%fragment("parent_reference_init", "init") {
+  // Thread-safe initialization - initialize during Python module initialization
+  parent_reference();
+}
+
+%fragment("parent_reference_function", "header", fragment="parent_reference_init") {
+
+static PyObject *parent_reference() {
+  static PyObject *parent_reference_string = SWIG_Python_str_FromChar("__parent_reference");
+  return parent_reference_string;
+}
+
+}
+
+%typemap(out, fragment="parent_reference_function") CandidateTranscript* %{
+  $result = PyList_New(arg1->num_transcripts);
+  for (int i = 0; i < arg1->num_transcripts; ++i) {
+    PyObject* o = SWIG_NewPointerObj(SWIG_as_voidptr(&arg1->transcripts[i]), SWIGTYPE_p_CandidateTranscript, 0);
+    // Add a reference to Metadata in the returned elements to avoid premature
+    // garbage collection
+    PyObject_SetAttr(o, parent_reference(), $self);
     PyList_SetItem($result, i, o);
   }
 %}
+
+%typemap(out, fragment="parent_reference_function") TokenMetadata* %{
+  $result = PyList_New(arg1->num_tokens);
+  for (int i = 0; i < arg1->num_tokens; ++i) {
+    PyObject* o = SWIG_NewPointerObj(SWIG_as_voidptr(&arg1->tokens[i]), SWIGTYPE_p_TokenMetadata, 0);
+    // Add a reference to CandidateTranscript in the returned elements to avoid premature
+    // garbage collection
+    PyObject_SetAttr(o, parent_reference(), $self);
+    PyList_SetItem($result, i, o);
+  }
+%}
+
+%extend struct TokenMetadata {
+%pythoncode %{
+  def __repr__(self):
+    return 'TokenMetadata(text=\'{}\', timestep={}, start_time={})'.format(self.text, self.timestep, self.start_time)
+%}
+}
+
+%extend struct CandidateTranscript {
+%pythoncode %{
+  def __repr__(self):
+    tokens_repr = ',\n'.join(repr(i) for i in self.tokens)
+    tokens_repr = '\n'.join('  ' + l for l in tokens_repr.split('\n'))
+    return 'CandidateTranscript(confidence={}, tokens=[\n{}\n])'.format(self.confidence, tokens_repr)
+%}
+}
+
+%extend struct Metadata {
+%pythoncode %{
+  def __repr__(self):
+    transcripts_repr = ',\n'.join(repr(i) for i in self.transcripts)
+    transcripts_repr = '\n'.join('  ' + l for l in transcripts_repr.split('\n'))
+    return 'Metadata(transcripts=[\n{}\n])'.format(transcripts_repr)
+%}
+}
+
+%ignore Metadata::num_transcripts;
+%ignore CandidateTranscript::num_tokens;
 
 %extend struct Metadata {
   ~Metadata() {
@@ -52,16 +108,20 @@ import_array();
   }
 }
 
-%nodefaultdtor Metadata;
 %nodefaultctor Metadata;
-%nodefaultctor MetadataItem;
-%nodefaultdtor MetadataItem;
+%nodefaultdtor Metadata;
+%nodefaultctor CandidateTranscript;
+%nodefaultdtor CandidateTranscript;
+%nodefaultctor TokenMetadata;
+%nodefaultdtor TokenMetadata;
 
 %typemap(newfree) char* "DS_FreeString($1);";
 
 %newobject DS_SpeechToText;
 %newobject DS_IntermediateDecode;
 %newobject DS_FinishStream;
+%newobject DS_Version;
+%newobject DS_ErrorCodeToErrorMessage;
 
 %rename ("%(strip:[DS_])s") "";
 

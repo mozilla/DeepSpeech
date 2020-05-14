@@ -7,6 +7,7 @@ build:
     - "tag"
   ref_match: "invalid-refs-should-not-work"
   dependencies: []
+  routes: []
   maxRunTime: 3600
   docker_image: "ubuntu:14.04"
   system_setup:
@@ -21,6 +22,17 @@ build:
   nc_asset_name: 'native_client.tar.xz'
   args:
     tests_cmdline: ''
-  convert_graphdef: ''
-  benchmark_model_bin: ''
-  tensorflow_git_desc: 'TensorFlow: v1.14.0-21-ge77504a'
+  tensorflow_git_desc: 'TensorFlow: v1.15.0-24-gceb46aa'
+  test_model_task: ''
+  homebrew:
+    url: ''
+    namespace: ''
+  cache:
+    url: ''
+    namespace: ''
+  android_cache:
+    url: ''
+    namespace: ''
+  gradle_cache:
+    url: ''
+    namespace: ''

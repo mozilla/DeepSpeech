@@ -9,14 +9,26 @@ Model
 .. autoclass:: Model
    :members:
 
+Stream
+------
+
+.. autoclass:: Stream
+   :members:
+
 Metadata
 --------
 
 .. autoclass:: Metadata
    :members:
 
-MetadataItem
-------------
+CandidateTranscript
+-------------------
 
-.. autoclass:: MetadataItem
+.. autoclass:: CandidateTranscript
+   :members:
+
+TokenMetadata
+-------------
+
+.. autoclass:: TokenMetadata
    :members:
