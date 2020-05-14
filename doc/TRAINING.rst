@@ -275,27 +275,27 @@ Audio Augmentation before feature caching
 
 Augmentations that are applied before potential feature caching can be specified through the ``--augment`` multi-flag.
 
-Each sample of the training data will get treated by every specified augmentation in their given order. However: If an augmentation will actually get applied to a sample, is decided by chance on base of the augmentation's probability value. For example a value of ``p=0.1`` would apply the according augmentation to just 10% of all samples. This also means that augmentations are not mutually exclusive on a per-sample basis.
+Each sample of the training data will get treated by every specified augmentation in their given order. However: whether an augmentation will actually get applied to a sample is decided by chance on base of the augmentation's probability value. For example a value of ``p=0.1`` would apply the according augmentation to just 10% of all samples. This also means that augmentations are not mutually exclusive on a per-sample basis.
 
-The ``--augment`` flag's value follows a common format (given by an overlay example):
+ The ``--augment`` flag uses a common syntax for all augmentation types: ``--augment augmentation_type1[param1=value1,param2=value2,...] --augment augmentation_type2[param1=value1,param2=value2,...] ...``. For example, for the ``overlay`` augmentation:
 
 .. code-block:: bash
 
         python3 DeepSpeech.py --augment overlay[p=0.1,source=/path/to/audio.sdb,snr=20.0] ...
 
 
-Values specified in the following as ``<float-range>`` or ``<int-range>`` are supporting the following formats:
+In the documentation below, whenever a value is specified as ``<float-range>`` or ``<int-range>``, it supports one of the follow formats:
 
-        * ``<value>``: A constant value
+        * ``<value>``: A constant (int or float) value.
 
-        * ``<value>~<r>``: A center value with a randomization radius around it. E.g. ``1.2~0.4`` will result in picking of a random value between 0.8 and 1.6 on each sample augmentation.
+        * ``<value>~<r>``: A center value with a randomization radius around it. E.g. ``1.2~0.4`` will result in picking of a uniformly random value between 0.8 and 1.6 on each sample augmentation.
 
         * ``<start>:<end>``: The value will range from `<start>` at the beginning of an epoch to `<end>` at the end of an epoch. E.g. ``-0.2:1.2`` (float) or ``2000:4000`` (int)
 
-        * ``<start>:<end>~<r>``: Combination of the latter two cases with a ranging center value. E.g. ``4-6~2`` would at the beginning of an epoch pick values between 2 and 6 and at the end of an epoch between 4 and 8.
+        * ``<start>:<end>~<r>``: Combination of the two previous cases with a ranging center value. E.g. ``4-6~2`` would at the beginning of an epoch pick values between 2 and 6 and at the end of an epoch between 4 and 8.
 
 
-The flag ``--augmentations_per_epoch`` allows to specify how often the whole training-set should be repeated per epoch for re-augmenting all its samples. Be aware: This will also multiply the required size of the feature cache (if enabled).
+The flag ``--augmentations_per_epoch N`` receives an integer value and defaults to 1. During training, each epoch will do ``N`` passes over the training set, each time performing augmentation independently of previous passes. Be aware: this will also multiply the required size of the feature cache if it's enabled.
 
 
 **Overlay augmentation** ``--augment overlay[p=<float>,source=<str>,snr=<float-range>,layers=<int-range>]``
@@ -321,17 +321,17 @@ The flag ``--augmentations_per_epoch`` allows to specify how often the whole tra
 
 
 **Gaps augmentation** ``--augment gaps[p=<float>,n=<int-range>,size=<float-range>]``
-        Zeros time-intervals within the augmented samples.
+        Sets time-intervals within the augmented samples to zero (silence) at random positions.
 
         * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **n**: number of intervals to zero
+        * **n**: number of intervals to set to zero
 
-        * **size**: interval durations in ms
+        * **size**: duration of intervals in ms
 
 
 **Resample augmentation** ``--augment resample[p=<float>,rate=<int-range>]``
-        Re-samples augmented samples to another sample-rate and back.
+        Resamples augmented samples to another sample rate and then resamples back to the original sample rate.
 
         * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
@@ -339,7 +339,7 @@ The flag ``--augmentations_per_epoch`` allows to specify how often the whole tra
 
 
 **Codec augmentation** ``--augment codec[p=<float>,bitrate=<int-range>]``
-        Compresses and re-expands augmented samples using the lossy Opus audio codec.
+        Compresses and then decompresses augmented samples using the lossy Opus audio codec.
 
         * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
@@ -424,4 +424,3 @@ Inspired by Google Paper on `SpecAugment: A Simple Data Augmentation Method for 
    * Min value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95`` 
    * Max value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2``  
    * Max value of tempo scaling: ``--augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2``  
-
