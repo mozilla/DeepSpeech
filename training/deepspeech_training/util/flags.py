@@ -26,6 +26,27 @@ def create_flags():
     # Data Augmentation
     # ================
 
+    f.DEFINE_string('train_augmentation_noise_files', '', 'comma separated list of files or dirs, specifying the noise dataset used for mixing audio into train dataset, if empty, no mix will be run in train phase')
+    f.DEFINE_string('dev_augmentation_noise_files', '', 'comma separated list of files or dirs, specifying the noise dataset used for mixing audio into dev dataset, if empty, no mix will be run in dev phase')
+    f.DEFINE_string('test_augmentation_noise_files', '', 'comma separated list of files or dirs, specifying the noise dataset used for mixing audio into test dataset, if empty, no mix will be run in test phase')
+    f.DEFINE_string('train_augmentation_speech_files', '', 'comma separated list of files or dirs, specifying the speech dataset used for mixing audio into train dataset, if empty, no mix will be run in train phase')
+    f.DEFINE_string('dev_augmentation_speech_files', '', 'comma separated list of files or dirs, specifying the speech dataset used for mixing audio into dev dataset, if empty, no mix will be run in dev phase')
+    f.DEFINE_string('test_augmentation_speech_files', '', 'comma separated list of files or dirs, specifying the speech dataset used for mixing audio into test dataset, if empty, no mix will be run in test phase')
+    f.DEFINE_float('audio_aug_min_audio_dbfs', -35, 'min value of dbfs to specify the min volume of audio during gaining audio')
+    f.DEFINE_float('audio_aug_max_audio_dbfs', 0, 'max value of dbfs to specify the max volume of audio during gaining audio')
+    f.DEFINE_float('audio_aug_min_noise_snr_db', 3, 'min value of db to specify the min signal-to-noise ratio during gaining noise')
+    f.DEFINE_float('audio_aug_max_noise_snr_db', 30, 'max value of db to specify the max signal-to-noise ratio during gaining noise')
+    f.DEFINE_float('audio_aug_min_speech_snr_db', 10, 'min value of db to specify the min signal-to-noise ratio during gaining speech')
+    f.DEFINE_float('audio_aug_max_speech_snr_db', 50, 'max value of db to specify the max signal-to-noise ratio during gaining speech')
+    f.DEFINE_float('audio_aug_limit_audio_peak_dbfs', 7.0, 'max value of dbfs to specify the limitation of max audio dbfs of chunks, the audio volume will not gain over than the specified value')
+    f.DEFINE_float('audio_aug_limit_noise_peak_dbfs', 3.0, 'max value of dbfs to specify the limitation of max noise dbfs of chunks, the noise volume will not gain over than the specified value')
+    f.DEFINE_float('audio_aug_limit_speech_peak_dbfs', 3.0, 'max value of dbfs to specify the limitation of max speech dbfs of chunks, the speech volume will not gain over than the specified value')
+    f.DEFINE_integer('audio_aug_min_n_noises', 0, 'min number of the noises per audio mixing')
+    f.DEFINE_integer('audio_aug_max_n_noises', 1, 'max number of the noises per audio mixing')
+    f.DEFINE_integer('audio_aug_min_n_speakers', 0, 'min number of the speakers per audio mixing')
+    f.DEFINE_integer('audio_aug_max_n_speakers', 1, 'max number of the speakers per audio mixing')
+
+
     f.DEFINE_float('data_aug_features_additive', 0, 'std of the Gaussian additive noise')
     f.DEFINE_float('data_aug_features_multiplicative', 0, 'std of normal distribution around 1 for multiplicative noise')
 
@@ -50,6 +71,9 @@ def create_flags():
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_min_pitch', 0.95, 'min value of pitch scaling')
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_max_pitch', 1.2, 'max value of pitch scaling')
     f.DEFINE_float('augmentation_pitch_and_tempo_scaling_max_tempo', 1.2, 'max vlaue of tempo scaling')
+
+    f.DEFINE_integer('review_audio_steps', 0, 'number of audio, push the audio into summary directory (if 0, no audio will be dumped), one file per step is saved until the given count is reached')
+    f.DEFINE_integer('review_audio_gla_iterations', 10, 'number of iteration to reconstruct audio from features, using Griffin-Lim Algorithm')
 
     # Global Constants
     # ================

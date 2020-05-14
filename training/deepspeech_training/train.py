@@ -229,7 +229,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     the decoded result and the batch's original Y.
     '''
     # Obtain the next batch of data
-    batch_filenames, (batch_x, batch_seq_len), batch_y = iterator.get_next()
+    batch_filenames, (batch_x, batch_seq_len), batch_y, review_audio = iterator.get_next()
 
     if FLAGS.train_cudnn:
         rnn_impl = rnn_impl_cudnn_rnn
@@ -240,7 +240,9 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     logits, _ = create_model(batch_x, batch_seq_len, dropout, reuse=reuse, rnn_impl=rnn_impl)
 
     # Compute the CTC loss using TensorFlow's `ctc_loss`
-    total_loss = tfv1.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
+    total_loss = tfv1.nn.ctc_loss(labels=batch_y,
+                                  inputs=logits,
+                                  sequence_length=batch_seq_len)
 
     # Check if any files lead to non finite loss
     non_finite_files = tf.gather(batch_filenames, tfv1.where(~tf.math.is_finite(total_loss)))
@@ -249,7 +251,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     avg_loss = tf.reduce_mean(input_tensor=total_loss)
 
     # Finally we return the average loss
-    return avg_loss, non_finite_files
+    return avg_loss, non_finite_files, review_audio
 
 
 # Adam Optimization
@@ -310,7 +312,7 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                 with tf.name_scope('tower_%d' % i):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
-                    avg_loss, non_finite_files = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=i > 0)
+                    avg_loss, non_finite_files, review_audio = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=i > 0)
 
                     # Allow for variables to be re-used by the next tower
                     tfv1.get_variable_scope().reuse_variables()
@@ -327,6 +329,8 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                     tower_non_finite_files.append(non_finite_files)
 
     avg_loss_across_towers = tf.reduce_mean(input_tensor=tower_avg_losses, axis=0)
+    if FLAGS.review_audio_steps:
+        tfv1.summary.audio(name='step_audio', tensor=review_audio, sample_rate=FLAGS.audio_sample_rate, collections=['step_audio_summaries'])
     tfv1.summary.scalar(name='step_loss', tensor=avg_loss_across_towers, collections=['step_summaries'])
 
     all_non_finite_files = tf.concat(tower_non_finite_files, axis=0)
@@ -416,7 +420,9 @@ def train():
             FLAGS.augmentation_freq_and_time_masking or
             FLAGS.augmentation_pitch_and_tempo_scaling or
             FLAGS.augmentation_speed_up_std > 0 or
-            FLAGS.augmentation_sparse_warp):
+            FLAGS.augmentation_sparse_warp or
+            FLAGS.train_augmentation_noise_files or
+            FLAGS.train_augmentation_speech_files):
         do_cache_dataset = False
 
     exception_box = ExceptionBox()
@@ -429,7 +435,9 @@ def train():
                                train_phase=True,
                                exception_box=exception_box,
                                process_ahead=len(Config.available_devices) * FLAGS.train_batch_size * 2,
-                               buffering=FLAGS.read_buffer)
+                               buffering=FLAGS.read_buffer,
+                               noise_sources=FLAGS.train_augmentation_noise_files,
+                               speech_sources=FLAGS.train_augmentation_speech_files)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -445,7 +453,9 @@ def train():
                                    train_phase=False,
                                    exception_box=exception_box,
                                    process_ahead=len(Config.available_devices) * FLAGS.dev_batch_size * 2,
-                                   buffering=FLAGS.read_buffer) for source in dev_sources]
+                                   buffering=FLAGS.read_buffer,
+                                   noise_sources=FLAGS.dev_augmentation_noise_files,
+                                   speech_sources=FLAGS.dev_augmentation_speech_files) for source in dev_sources]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     # Dropout
@@ -483,6 +493,7 @@ def train():
     apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
     # Summaries
+    step_audio_summaries_op = tfv1.summary.merge_all('step_audio_summaries')
     step_summaries_op = tfv1.summary.merge_all('step_summaries')
     step_summary_writers = {
         'train': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'train'), max_queue=120),
@@ -542,11 +553,21 @@ def train():
             session.run(init_op)
 
             # Batch loop
+
+            audio_summary_steps = 0
             while True:
                 try:
-                    _, current_step, batch_loss, problem_files, step_summary = \
-                        session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
-                                    feed_dict=feed_dict)
+                    step_audio_summary = None
+                    if audio_summary_steps < FLAGS.review_audio_steps and epoch == 0:
+                        _, current_step, batch_loss, problem_files, step_summary, step_audio_summary = \
+                            session.run([train_op, global_step, loss, non_finite_files, step_summaries_op, step_audio_summaries_op],
+                                        feed_dict=feed_dict)
+                        audio_summary_steps += 1
+                    else:
+                        _, current_step, batch_loss, problem_files, step_summary = \
+                            session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
+                                        feed_dict=feed_dict)
+
                     exception_box.raise_if_set()
                 except tf.errors.InvalidArgumentError as err:
                     if FLAGS.augmentation_sparse_warp:
@@ -566,6 +587,9 @@ def train():
                 step_count += 1
 
                 pbar.update(step_count)
+
+                if step_audio_summary is not None:
+                    step_summary_writer.add_summary(step_audio_summary, current_step)
 
                 step_summary_writer.add_summary(step_summary, current_step)
 
@@ -640,7 +664,7 @@ def train():
 
 
 def test():
-    samples = evaluate(FLAGS.test_files.split(','), create_model)
+    samples = evaluate(FLAGS.test_files.split(','), create_model, noise_sources=FLAGS.test_augmentation_noise_files, speech_sources=FLAGS.test_augmentation_speech_files)
     if FLAGS.test_output_file:
         save_samples_json(samples, FLAGS.test_output_file)
 
@@ -651,7 +675,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Create feature computation graph
     input_samples = tfv1.placeholder(tf.float32, [Config.audio_window_samples], 'input_samples')
     samples = tf.expand_dims(input_samples, -1)
-    mfccs, _ = samples_to_mfccs(samples, FLAGS.audio_sample_rate)
+    mfccs, _, _ = samples_to_mfccs(samples, FLAGS.audio_sample_rate)
     mfccs = tf.identity(mfccs, name='mfccs')
 
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
@@ -851,7 +875,7 @@ def do_single_file_inference(input_file_path):
         # Restore variables from training checkpoint
         load_graph_for_evaluation(session)
 
-        features, features_len = audiofile_to_features(input_file_path)
+        features, features_len, _ = audiofile_to_features(input_file_path)
         previous_state_c = np.zeros([1, Config.n_cell_dim])
         previous_state_h = np.zeros([1, Config.n_cell_dim])
 
