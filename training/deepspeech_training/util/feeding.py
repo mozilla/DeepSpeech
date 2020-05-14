@@ -13,7 +13,7 @@ from .text import text_to_char_array
 from .flags import FLAGS
 from .spectrogram_augmentations import augment_freq_time_mask, augment_dropout, augment_pitch_and_tempo, augment_speed_up, augment_sparse_warp
 from .audio import read_frames_from_file, vad_split, pcm_to_np, DEFAULT_FORMAT
-from .sample_collections import samples_from_sources, prepare_samples
+from .sample_collections import samples_from_sources, augment_samples
 from .helpers import remember_exception, MEGABYTE
 
 
@@ -119,7 +119,7 @@ def create_dataset(sources,
                    buffering=1 * MEGABYTE):
     def generate_values():
         samples = samples_from_sources(sources, buffering=buffering, labeled=True)
-        samples = prepare_samples(samples,
+        samples = augment_samples(samples,
                                   repetitions=repetitions,
                                   augmentation_specs=augmentation_specs,
                                   buffering=buffering,

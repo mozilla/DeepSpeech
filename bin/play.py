@@ -10,7 +10,7 @@ import random
 import argparse
 
 from deepspeech_training.util.audio import LOADABLE_AUDIO_EXTENSIONS, AUDIO_TYPE_PCM, AUDIO_TYPE_WAV
-from deepspeech_training.util.sample_collections import SampleList, LabeledSample, samples_from_source, prepare_samples
+from deepspeech_training.util.sample_collections import SampleList, LabeledSample, samples_from_source, augment_samples
 
 
 def get_samples_in_play_order():
@@ -39,7 +39,7 @@ def get_samples_in_play_order():
 
 def play_collection():
     samples = get_samples_in_play_order()
-    samples = prepare_samples(samples,
+    samples = augment_samples(samples,
                               audio_type=AUDIO_TYPE_PCM,
                               augmentation_specs=CLI_ARGS.augment,
                               process_ahead=0,

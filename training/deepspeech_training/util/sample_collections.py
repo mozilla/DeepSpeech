@@ -429,16 +429,16 @@ class PreparationContext:
         self.augmentations = augmentations
 
 
-PREPARATION_CONTEXT = None
+AUGMENTATION_CONTEXT = None
 
 
-def _init_preparation_worker(preparation_context):
-    global PREPARATION_CONTEXT  # pylint: disable=global-statement
-    PREPARATION_CONTEXT = preparation_context
+def _init_augmentation_worker(preparation_context):
+    global AUGMENTATION_CONTEXT  # pylint: disable=global-statement
+    AUGMENTATION_CONTEXT = preparation_context
 
 
-def _prepare_sample(timed_sample, context=None):
-    context = PREPARATION_CONTEXT if context is None else context
+def _augment_sample(timed_sample, context=None):
+    context = AUGMENTATION_CONTEXT if context is None else context
     sample, clock = timed_sample
     for augmentation in context.augmentations:
         if random.random() < augmentation.probability:
@@ -447,7 +447,7 @@ def _prepare_sample(timed_sample, context=None):
     return sample
 
 
-def prepare_samples(samples,
+def augment_samples(samples,
                     audio_type=AUDIO_TYPE_NP,
                     augmentation_specs=None,
                     buffering=BUFFER_SIZE,
@@ -497,12 +497,12 @@ def prepare_samples(samples,
         context = PreparationContext(audio_type, augmentations)
         if process_ahead == 0:
             for timed_sample in timed_samples():
-                yield _prepare_sample(timed_sample, context=context)
+                yield _augment_sample(timed_sample, context=context)
         else:
             with LimitingPool(process_ahead=process_ahead,
-                              initializer=_init_preparation_worker,
+                              initializer=_init_augmentation_worker,
                               initargs=(context,)) as pool:
-                yield from pool.imap(_prepare_sample, timed_samples())
+                yield from pool.imap(_augment_sample, timed_samples())
     finally:
         for augmentation in augmentations:
             call_if_exists(augmentation, 'stop')
