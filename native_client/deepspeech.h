@@ -59,37 +59,34 @@ typedef struct Metadata {
   const unsigned int num_transcripts;
 } Metadata;
 
+
+#define DS_FOR_EACH_ERROR(APPLY) \
+  APPLY(DS_ERR_OK,                      0x0000, "No error.") \
+  APPLY(DS_ERR_NO_MODEL,                0x1000, "Missing model information.") \
+  APPLY(DS_ERR_INVALID_ALPHABET,        0x2000, "Invalid alphabet embedded in model. (Data corruption?)") \
+  APPLY(DS_ERR_INVALID_SHAPE,           0x2001, "Invalid model shape.") \
+  APPLY(DS_ERR_INVALID_SCORER,          0x2002, "Invalid scorer file.") \
+  APPLY(DS_ERR_MODEL_INCOMPATIBLE,      0x2003, "Incompatible model.") \
+  APPLY(DS_ERR_SCORER_NOT_ENABLED,      0x2004, "External scorer is not enabled.") \
+  APPLY(DS_ERR_SCORER_UNREADABLE,       0x2005, "Could not read scorer file.") \
+  APPLY(DS_ERR_SCORER_INVALID_LM,       0x2006, "Could not recognize language model header in scorer.") \
+  APPLY(DS_ERR_SCORER_NO_TRIE,          0x2007, "Reached end of scorer file before loading vocabulary trie.") \
+  APPLY(DS_ERR_SCORER_INVALID_TRIE,     0x2008, "Invalid magic in trie header.") \
+  APPLY(DS_ERR_SCORER_VERSION_MISMATCH, 0x2009, "Scorer file version does not match expected version.") \
+  APPLY(DS_ERR_FAIL_INIT_MMAP,          0x3000, "Failed to initialize memory mapped model.") \
+  APPLY(DS_ERR_FAIL_INIT_SESS,          0x3001, "Failed to initialize the session.") \
+  APPLY(DS_ERR_FAIL_INTERPRETER,        0x3002, "Interpreter failed.") \
+  APPLY(DS_ERR_FAIL_RUN_SESS,           0x3003, "Failed to run the session.") \
+  APPLY(DS_ERR_FAIL_CREATE_STREAM,      0x3004, "Error creating the stream.") \
+  APPLY(DS_ERR_FAIL_READ_PROTOBUF,      0x3005, "Error reading the proto buffer model file.") \
+  APPLY(DS_ERR_FAIL_CREATE_SESS,        0x3006, "Failed to create session.") \
+  APPLY(DS_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.")
+
 enum DeepSpeech_Error_Codes
 {
-    // OK
-    DS_ERR_OK                      = 0x0000,
-
-    // Missing information
-    DS_ERR_NO_MODEL                = 0x1000,
-
-    // Invalid parameters
-    DS_ERR_INVALID_ALPHABET        = 0x2000,
-    DS_ERR_INVALID_SHAPE           = 0x2001,
-    DS_ERR_INVALID_SCORER          = 0x2002,
-    DS_ERR_MODEL_INCOMPATIBLE      = 0x2003,
-    DS_ERR_SCORER_NOT_ENABLED      = 0x2004,
-
-    // Scorer errors
-    DS_ERR_SCORER_UNREADABLE       = 0x2005,
-    DS_ERR_SCORER_INVALID_LM       = 0x2006,
-    DS_ERR_SCORER_NO_TRIE          = 0x2007,
-    DS_ERR_SCORER_INVALID_TRIE     = 0x2008,
-    DS_ERR_SCORER_VERSION_MISMATCH = 0x2009,
-
-    // Runtime failures
-    DS_ERR_FAIL_INIT_MMAP          = 0x3000,
-    DS_ERR_FAIL_INIT_SESS          = 0x3001,
-    DS_ERR_FAIL_INTERPRETER        = 0x3002,
-    DS_ERR_FAIL_RUN_SESS           = 0x3003,
-    DS_ERR_FAIL_CREATE_STREAM      = 0x3004,
-    DS_ERR_FAIL_READ_PROTOBUF      = 0x3005,
-    DS_ERR_FAIL_CREATE_SESS        = 0x3006,
-    DS_ERR_FAIL_CREATE_MODEL       = 0x3007,
+#define DEFINE(NAME, VALUE, DESC) NAME = VALUE,
+DS_FOR_EACH_ERROR(DEFINE)
+#undef DEFINE
 };
 
 /**
