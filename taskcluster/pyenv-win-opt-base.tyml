@@ -33,7 +33,6 @@ then:
         "C:\Program Files\7-zip\7z.exe" x -txz -so msys2-base-x86_64.tar.xz |
         "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
       - .\msys64\usr\bin\bash.exe --login -cx "exit"
-      - .\msys64\usr\bin\bash.exe --login -cx "pacman --noconfirm -Syu"
       - $let:
           taskIndexExpire: { $fromNow: '6 months' }
         in: >
