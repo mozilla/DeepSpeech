@@ -59,6 +59,7 @@ typedef struct Metadata {
   const unsigned int num_transcripts;
 } Metadata;
 
+// sphinx-doc: error_code_listing_start
 
 #define DS_FOR_EACH_ERROR(APPLY) \
   APPLY(DS_ERR_OK,                      0x0000, "No error.") \
@@ -81,6 +82,8 @@ typedef struct Metadata {
   APPLY(DS_ERR_FAIL_READ_PROTOBUF,      0x3005, "Error reading the proto buffer model file.") \
   APPLY(DS_ERR_FAIL_CREATE_SESS,        0x3006, "Failed to create session.") \
   APPLY(DS_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.")
+
+// sphinx-doc: error_code_listing_end
 
 enum DeepSpeech_Error_Codes
 {
