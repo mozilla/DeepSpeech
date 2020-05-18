@@ -368,7 +368,7 @@ run_electronjs_inference_tests()
 run_basic_inference_tests()
 {
   set +e
-  deepspeech --model does_not_exist --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr
+  deepspeech --model "" --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr
   set -e
   grep "Missing model information" ${TASKCLUSTER_TMP_DIR}/stderr
 
