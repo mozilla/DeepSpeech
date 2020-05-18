@@ -41,3 +41,9 @@ namespace std {
 %template(IntVector) std::vector<int>;
 %template(OutputVector) std::vector<Output>;
 %template(OutputVectorVector) std::vector<std::vector<Output>>;
+
+// Import only the error code enum definitions from deepspeech.h
+%ignore "";
+%rename("%s", regexmatch$name="DS_ERR_") "";
+%rename("%s", regexmatch$name="DeepSpeech_Error_Codes") "";
+%include "../deepspeech.h"
