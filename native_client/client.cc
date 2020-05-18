@@ -398,7 +398,9 @@ main(int argc, char **argv)
   // sphinx-doc: c_ref_model_start
   int status = DS_CreateModel(model, &ctx);
   if (status != 0) {
-    fprintf(stderr, "Could not create model.\n");
+    char* error = DS_ErrorCodeToErrorMessage(status);
+    fprintf(stderr, "Could not create model: %s\n", error);
+    free(error);
     return 1;
   }
 
