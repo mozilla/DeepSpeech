@@ -9,11 +9,31 @@ from multiprocessing import Queue, Process
 from .audio import gain_db_to_ratio, max_dbfs, normalize_audio, AUDIO_TYPE_NP, AUDIO_TYPE_PCM, AUDIO_TYPE_OPUS
 from .helpers import int_range, float_range, pick_value_from_range, MEGABYTE
 
-SPEC_PARSER = re.compile(r'^([a-z]+)(\[(.*)\])?$')
+SPEC_PARSER = re.compile(r'^(?P<cls>[a-z]+)(\[(?P<params>.*)\])?$')
 BUFFER_SIZE = 1 * MEGABYTE
 
 
+class Augmentation:
+    def __init__(self, p=1.0):
+        self.probability = float(p)
+
+    def start(self, buffering=BUFFER_SIZE):
+        pass
+
+    def apply(self, sample, clock):
+        raise NotImplementedError
+
+    def stop(self):
+        pass
+
+
 def _enqueue_overlay_samples(sample_source, queue, buffering=BUFFER_SIZE):
+    """
+    As the central distribution point for overlay samples this function is supposed to run in one process only.
+    This ensures that samples are not used twice if not required.
+    It loads the (raw and still compressed) data and provides it to the actual augmentation workers.
+    These are then doing decompression, potential conversion and overlaying in parallel.
+    """
     # preventing cyclic import problems
     from .sample_collections import samples_from_source  # pylint: disable=import-outside-toplevel
     samples = samples_from_source(sample_source, buffering=buffering, labeled=False)
@@ -22,11 +42,11 @@ def _enqueue_overlay_samples(sample_source, queue, buffering=BUFFER_SIZE):
             queue.put(sample)
 
 
-class Overlay:
+class Overlay(Augmentation):
     """See "Overlay augmentation" in TRAINING.rst"""
     def __init__(self, source, p=1.0, snr=3.0, layers=1):
+        super(Overlay, self).__init__(p)
         self.source = source
-        self.probability = float(p)
         self.snr = float_range(snr)
         self.layers = int_range(layers)
         self.queue = Queue(max(1, math.floor(self.probability * self.layers[1] * os.cpu_count())))
@@ -72,10 +92,10 @@ class Overlay:
             self.enqueue_process.terminate()
 
 
-class Reverb:
+class Reverb(Augmentation):
     """See "Reverb augmentation" in TRAINING.rst"""
     def __init__(self, p=1.0, delay=20.0, decay=10.0):
-        self.probability = float(p)
+        super(Reverb, self).__init__(p)
         self.delay = float_range(delay)
         self.decay = float_range(decay)
 
@@ -102,10 +122,10 @@ class Reverb:
         sample.audio = np.array(audio, dtype=np.float32)
 
 
-class Resample:
+class Resample(Augmentation):
     """See "Resample augmentation" in TRAINING.rst"""
     def __init__(self, p=1.0, rate=8000):
-        self.probability = float(p)
+        super(Resample, self).__init__(p)
         self.rate = int_range(rate)
 
     def apply(self, sample, clock):
@@ -122,10 +142,10 @@ class Resample:
         sample.audio = audio
 
 
-class Codec:
+class Codec(Augmentation):
     """See "Codec augmentation" in TRAINING.rst"""
     def __init__(self, p=1.0, bitrate=3200):
-        self.probability = float(p)
+        super(Codec, self).__init__(p)
         self.bitrate = int_range(bitrate)
 
     def apply(self, sample, clock):
@@ -134,10 +154,10 @@ class Codec:
         sample.change_audio_type(new_audio_type=AUDIO_TYPE_OPUS, bitrate=bitrate)  # will get decoded again downstream
 
 
-class Gaps:
+class Gaps(Augmentation):
     """See "Gaps augmentation" in TRAINING.rst"""
     def __init__(self, p=1.0, n=1, size=50.0):
-        self.probability = float(p)
+        super(Gaps, self).__init__(p)
         self.n_gaps = int_range(n)
         self.size = float_range(size)
 
@@ -154,10 +174,10 @@ class Gaps:
         sample.audio = audio
 
 
-class Volume:
+class Volume(Augmentation):
     """See "Volume augmentation" in TRAINING.rst"""
     def __init__(self, p=1.0, dbfs=3.0103):
-        self.probability = float(p)
+        super(Volume, self).__init__(p)
         self.target_dbfs = float_range(dbfs)
 
     def apply(self, sample, clock):
@@ -182,11 +202,13 @@ def parse_augmentation(augmentation_spec):
     match = SPEC_PARSER.match(augmentation_spec)
     if not match:
         raise ValueError('Augmentation specification has wrong format')
-    cls_name = match.group(1)[0].upper() + match.group(1)[1:]
-    if cls_name not in globals():
+    cls_name = match.group('cls')
+    cls_name = cls_name[0].upper() + cls_name[1:]
+    augmentation_cls = globals()[cls_name] if cls_name in globals() else None
+    if not issubclass(augmentation_cls, Augmentation) or augmentation_cls == Augmentation:
         raise ValueError('Unknown augmentation: {}'.format(cls_name))
-    augmentation_cls = globals()[cls_name]
-    parameters = [] if match.group(3) is None else match.group(3).split(',')
+    parameters = match.group('params')
+    parameters = [] if parameters is None else parameters.split(',')
     args = []
     kwargs = {}
     for parameter in parameters:

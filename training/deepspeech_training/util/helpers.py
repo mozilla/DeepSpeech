@@ -1,11 +1,9 @@
 import os
 import sys
 import time
-import math
 import heapq
 import semver
 import random
-import numpy as np
 
 from multiprocessing import Pool
 from collections import namedtuple
@@ -158,7 +156,7 @@ def get_value_range(value, target_type):
         if len(value) == 2:
             return ValueRange(target_type(value[0]), target_type(value[1]), 0)
         if len(value) == 3:
-            return ValueRange(target_type(value[0]), target_type(value[1]), target_type(value[1]))
+            return ValueRange(target_type(value[0]), target_type(value[1]), target_type(value[2]))
         raise ValueError('Cannot convert to ValueRange: Wrong tuple size')
     return ValueRange(target_type(value), target_type(value), 0)
 
@@ -176,15 +174,3 @@ def pick_value_from_range(value_range, clock=None):
     value = value_range.start + clock * (value_range.end - value_range.start)
     value = random.uniform(value - value_range.r, value + value_range.r)
     return round(value) if isinstance(value_range.start, int) else value
-
-
-def call_if_exists(o, name, *args, **kwargs):
-    method = getattr(o, name, None)
-    if callable(method):
-        method(*args, **kwargs)
-
-
-def np_capped_squares(data):
-    sqrt_max = math.sqrt(np.finfo(data.dtype).max)
-    data = np.minimum(np.maximum(data, -sqrt_max), sqrt_max)  # prevent overflow during squaring
-    return data ** 2

@@ -8,7 +8,7 @@ from pathlib import Path
 from functools import partial
 
 from .signal_augmentations import parse_augmentation
-from .helpers import MEGABYTE, GIGABYTE, Interleaved, LimitingPool, call_if_exists
+from .helpers import MEGABYTE, GIGABYTE, Interleaved, LimitingPool
 from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_OPUS, AUDIO_TYPE_NP, SERIALIZABLE_AUDIO_TYPES, get_audio_type_from_extension
 
 BIG_ENDIAN = 'big'
@@ -300,8 +300,7 @@ class SDB:  # pylint: disable=too-many-instance-attributes
 
 
 class SampleList:
-    """Sample collection reader for reading a DeepSpeech CSV file
-    Automatically orders samples by CSV column wav_filesize (if available)."""
+    """Sample collection base class with samples loaded from a list of in-memory paths."""
     def __init__(self, samples, labeled=True):
         """
         Parameters
@@ -309,7 +308,7 @@ class SampleList:
         samples : iterable of tuples of the form (sample_filename, filesize [, transcript])
             File-size is used for ordering the samples; transcript has to be provided if labeled=True
         labeled : bool or None
-            If True: Reads LabeledSample instances. Fails, if CSV file has no transcript column.
+            If True: Reads LabeledSample instances.
             If False: Ignores transcripts (if available) and reads (unlabeled) util.audio.Sample instances.
         """
         self.labeled = labeled
@@ -319,10 +318,6 @@ class SampleList:
     def __getitem__(self, i):
         sample_spec = self.samples[i]
         return load_sample(sample_spec[0], label=sample_spec[2] if self.labeled else None)
-
-    def __iter__(self):
-        for i in range(len(self.samples)):
-            yield self[i]
 
     def __len__(self):
         return len(self.samples)
@@ -493,7 +488,7 @@ def augment_samples(samples,
     augmentations = [] if augmentation_specs is None else list(map(parse_augmentation, augmentation_specs))
     try:
         for augmentation in augmentations:
-            call_if_exists(augmentation, 'start', buffering=buffering)
+            augmentation.start(buffering=buffering)
         context = PreparationContext(audio_type, augmentations)
         if process_ahead == 0:
             for timed_sample in timed_samples():
@@ -505,4 +500,4 @@ def augment_samples(samples,
                 yield from pool.imap(_augment_sample, timed_samples())
     finally:
         for augmentation in augmentations:
-            call_if_exists(augmentation, 'stop')
+            augmentation.stop()

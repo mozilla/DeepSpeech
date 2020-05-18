@@ -270,10 +270,10 @@ Augmentation
 Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm and spectrogram has been implemented and can be used while training the model. Following are the available augmentation techniques that can be enabled at training time by using the corresponding flags in the command line.
 
 
-Audio Augmentation before feature caching
------------------------------------------
+Audio Augmentation
+------------------
 
-Augmentations that are applied before potential feature caching can be specified through the ``--augment`` multi-flag.
+Augmentations that are applied before potential feature caching can be specified through the ``--augment`` flag. Being a multi-flag, it can be specified multiple times (see below for an example).
 
 Each sample of the training data will get treated by every specified augmentation in their given order. However: whether an augmentation will actually get applied to a sample is decided by chance on base of the augmentation's probability value. For example a value of ``p=0.1`` would apply the according augmentation to just 10% of all samples. This also means that augmentations are not mutually exclusive on a per-sample basis.
 
@@ -294,8 +294,9 @@ In the documentation below, whenever a value is specified as ``<float-range>`` o
 
         * ``<start>:<end>~<r>``: Combination of the two previous cases with a ranging center value. E.g. ``4-6~2`` would at the beginning of an epoch pick values between 2 and 6 and at the end of an epoch between 4 and 8.
 
+Ranges specified with integer limits will only assume integer (rounded) values.
 
-The flag ``--augmentations_per_epoch N`` receives an integer value and defaults to 1. During training, each epoch will do ``N`` passes over the training set, each time performing augmentation independently of previous passes. Be aware: this will also multiply the required size of the feature cache if it's enabled.
+If feature caching is enabled, these augmentations will only be performed on the first epoch and the result will be reused for subsequent epochs. The flag ``--augmentations_per_epoch N`` (by default `N` is 1) could be used to get more than one epoch worth of augmentations into the cache. During training, each epoch will do ``N`` passes over the training set, each time performing augmentation independently of previous passes. Be aware: this will also multiply the required size of the feature cache if it's enabled.
 
 
 **Overlay augmentation** ``--augment overlay[p=<float>,source=<str>,snr=<float-range>,layers=<int-range>]``
@@ -303,15 +304,15 @@ The flag ``--augmentations_per_epoch N`` receives an integer value and defaults 
 
         * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **source**: path to the sample collection to use for augmenting (*.sdb or *.csv file)
+        * **source**: path to the sample collection to use for augmenting (*.sdb or *.csv file). It will be repeated if there are not enough samples left.
 
         * **snr**: signal to noise ratio in dB - positive values for lowering volume of the overlay in relation to the sample
 
-        * **layers**: number of layers of the overlay signal (e.g. 10 layers of speech to get "cocktail-party effect")
+        * **layers**: number of layers added onto the sample (e.g. 10 layers of speech to get "cocktail-party effect"). A layer is just a sample of the same duration as the sample to augment. It gets stitched together from as many source samples as required.
 
 
 **Reverb augmentation** ``--augment reverb[p=<float>,delay=<float-range>,decay=<float-range>]``
-        Adds reverberation to the augmented samples.
+        Adds simplified (no all-pass filters) `Schroeder reverberation <https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html>`_ to the augmented samples.
 
         * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
@@ -387,15 +388,15 @@ Example simulation of the codec augmentation of a wav-file first at the beginnin
         bin/play.py --augment codec[p=0.1,bitrate=48000:16000] --clock 1.0 test.wav
 
 
-Audio Augmentation after feature caching
-----------------------------------------
+The following augmentations are applied after feature caching, hence the way they are applied will not repeat epoch-wise.
+Working on spectrogram and feature level, `bin/play.py` offers no ability to simulate them.
 
 #. **Standard deviation for Gaussian additive noise:** ``--data_aug_features_additive``
 #. **Standard deviation for Normal distribution around 1 for multiplicative noise:** ``--data_aug_features_multiplicative`` 
 #. **Standard deviation for speeding-up tempo. If Standard deviation is 0, this augmentation is not performed:** ``--augmentation_speed_up_std`` 
 
-Spectrogram Augmentation after feature caching
-----------------------------------------------
+Spectrogram Augmentation
+------------------------
 
 Inspired by Google Paper on `SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition <https://arxiv.org/abs/1904.08779>`_
 
