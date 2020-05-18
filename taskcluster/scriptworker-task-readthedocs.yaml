@@ -1,0 +1,14 @@
+build:
+  template_file: simple-task.tyml
+  dependencies:
+    # Make sure everything else is ready
+    - "scriptworker-task-github"
+  allowed:
+    - "tag"
+  ref_match: "refs/tags/"
+  upload_targets:
+    - "readthedocs"
+  artifacts_deps: []
+  metadata:
+    name: "DeepSpeech ReadTheDocs build & version update"
+    description: "Trigger building of new version on ReadTheDocs and update default version"
