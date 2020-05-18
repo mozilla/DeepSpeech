@@ -535,6 +535,16 @@ DS_ErrorCodeToErrorMessage(int aErrorCode)
       return strdup("Incompatible model.");
     case DS_ERR_SCORER_NOT_ENABLED:
       return strdup("External scorer is not enabled.");
+    case DS_ERR_SCORER_UNREADABLE:
+      return strdup("Could not open scorer file.");
+    case DS_ERR_SCORER_INVALID_LM:
+      return strdup("Could not recognize language model header in scorer.");
+    case DS_ERR_SCORER_NO_TRIE:
+      return strdup("Reached end of scorer file before loading vocabulary trie.");
+    case DS_ERR_SCORER_INVALID_TRIE:
+      return strdup("Invalid magic in trie header.");
+    case DS_ERR_SCORER_VERSION_MISMATCH:
+      return strdup("Scorer file version does not match expected version.");
     default:
       return strdup("Unknown error, please make sure you are using the correct native binary.");
   }
