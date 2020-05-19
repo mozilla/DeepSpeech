@@ -30,7 +30,7 @@ then:
         DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
-        TC_MSYS_VERSION: 'MSYS_NT-6.3'
+        TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
         MSYS: 'winsymlinks:nativestrict'
 
     command:

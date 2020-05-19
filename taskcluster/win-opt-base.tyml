@@ -30,7 +30,7 @@ payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }
 
   env:
-    TC_MSYS_VERSION: 'MSYS_NT-6.3'
+    TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
     MSYS: 'winsymlinks:nativestrict'
     EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
     EXAMPLES_CHECKOUT_TARGET: "master"

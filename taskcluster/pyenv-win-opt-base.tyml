@@ -25,7 +25,7 @@ then:
             https://github.com/msys2/msys2-installer/releases/download/2020-05-17/msys2-base-x86_64-20200517.tar.xz
 
     env:
-      TC_MSYS_VERSION: 'MSYS_NT-6.3'
+      TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
       MSYS: 'winsymlinks:nativestrict'
 
     command:
