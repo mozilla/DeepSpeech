@@ -3,7 +3,9 @@ from __future__ import absolute_import, division, print_function
 
 import argparse
 import shutil
+import sys
 
+import ds_ctcdecoder
 from deepspeech_training.util.text import Alphabet, UTF8Alphabet
 from ds_ctcdecoder import Scorer, Alphabet as NativeAlphabet
 
@@ -52,7 +54,11 @@ def create_bundle(
     scorer.set_alphabet(alphabet)
     scorer.set_utf8_mode(use_utf8)
     scorer.reset_params(default_alpha, default_beta)
-    scorer.load_lm(lm_path)
+    err = scorer.load_lm(lm_path)
+    if err != ds_ctcdecoder.DS_ERR_SCORER_NO_TRIE:
+        print('Error loading language model file: 0x{:X}.'.format(err))
+        print('See the error codes section in https://deepspeech.readthedocs.io for a description.')
+        sys.exit(1)
     scorer.fill_dictionary(list(words))
     shutil.copy(lm_path, package_path)
     scorer.save_dictionary(package_path, True)  # append, not overwrite
