@@ -3,8 +3,10 @@ import sys
 import time
 import heapq
 import semver
+import random
 
 from multiprocessing import Pool
+from collections import namedtuple
 
 KILO = 1024
 KILOBYTE = 1 * KILO
@@ -12,6 +14,8 @@ MEGABYTE = KILO * KILOBYTE
 GIGABYTE = KILO * MEGABYTE
 TERABYTE = KILO * GIGABYTE
 SIZE_PREFIX_LOOKUP = {'k': KILOBYTE, 'm': MEGABYTE, 'g': GIGABYTE, 't': TERABYTE}
+
+ValueRange = namedtuple('ValueRange', 'start end r')
 
 
 def parse_file_size(file_size):
@@ -79,11 +83,11 @@ class LimitingPool:
     """Limits unbound ahead-processing of multiprocessing.Pool's imap method
     before items get consumed by the iteration caller.
     This prevents OOM issues in situations where items represent larger memory allocations."""
-    def __init__(self, processes=None, process_ahead=None, sleeping_for=0.1):
+    def __init__(self, processes=None, initializer=None, initargs=None, process_ahead=None, sleeping_for=0.1):
         self.process_ahead = os.cpu_count() if process_ahead is None else process_ahead
         self.sleeping_for = sleeping_for
         self.processed = 0
-        self.pool = Pool(processes=processes)
+        self.pool = Pool(processes=processes, initializer=initializer, initargs=initargs)
 
     def __enter__(self):
         return self
@@ -99,6 +103,9 @@ class LimitingPool:
         for obj in self.pool.imap(fun, self._limit(it)):
             self.processed -= 1
             yield obj
+
+    def terminate(self):
+        self.pool.terminate()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.pool.close()
@@ -128,3 +135,42 @@ def remember_exception(iterable, exception_box=None):
         except Exception as ex:  # pylint: disable = broad-except
             exception_box.exception = ex
     return iterable if exception_box is None else do_iterate
+
+
+def get_value_range(value, target_type):
+    if isinstance(value, str):
+        r = target_type(0)
+        parts = value.split('~')
+        if len(parts) == 2:
+            value = parts[0]
+            r = target_type(parts[1])
+        elif len(parts) > 2:
+            raise ValueError('Cannot parse value range')
+        parts = value.split(':')
+        if len(parts) == 1:
+            parts.append(parts[0])
+        elif len(parts) > 2:
+            raise ValueError('Cannot parse value range')
+        return ValueRange(target_type(parts[0]), target_type(parts[1]), r)
+    if isinstance(value, tuple):
+        if len(value) == 2:
+            return ValueRange(target_type(value[0]), target_type(value[1]), 0)
+        if len(value) == 3:
+            return ValueRange(target_type(value[0]), target_type(value[1]), target_type(value[2]))
+        raise ValueError('Cannot convert to ValueRange: Wrong tuple size')
+    return ValueRange(target_type(value), target_type(value), 0)
+
+
+def int_range(value):
+    return get_value_range(value, int)
+
+
+def float_range(value):
+    return get_value_range(value, float)
+
+
+def pick_value_from_range(value_range, clock=None):
+    clock = random.random() if clock is None else max(0.0, min(1.0, float(clock)))
+    value = value_range.start + clock * (value_range.end - value_range.start)
+    value = random.uniform(value - value_range.r, value + value_range.r)
+    return round(value) if isinstance(value_range.start, int) else value

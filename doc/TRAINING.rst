@@ -263,21 +263,140 @@ UTF-8 mode
 
 DeepSpeech includes a UTF-8 operating mode which can be useful to model languages with very large alphabets, such as Chinese Mandarin. For details on how it works and how to use it, see :ref:`decoder-docs`.
 
-Training with augmentation
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Augmentation
+^^^^^^^^^^^^
 
 Augmentation is a useful technique for better generalization of machine learning models. Thus, a pre-processing pipeline with various augmentation techniques on raw pcm and spectrogram has been implemented and can be used while training the model. Following are the available augmentation techniques that can be enabled at training time by using the corresponding flags in the command line.
 
-Audio Augmentation
-~~~~~~~~~~~~~~~~~~
 
+Audio Augmentation
+------------------
+
+Augmentations that are applied before potential feature caching can be specified through the ``--augment`` flag. Being a multi-flag, it can be specified multiple times (see below for an example).
+
+Each sample of the training data will get treated by every specified augmentation in their given order. However: whether an augmentation will actually get applied to a sample is decided by chance on base of the augmentation's probability value. For example a value of ``p=0.1`` would apply the according augmentation to just 10% of all samples. This also means that augmentations are not mutually exclusive on a per-sample basis.
+
+ The ``--augment`` flag uses a common syntax for all augmentation types: ``--augment augmentation_type1[param1=value1,param2=value2,...] --augment augmentation_type2[param1=value1,param2=value2,...] ...``. For example, for the ``overlay`` augmentation:
+
+.. code-block:: bash
+
+        python3 DeepSpeech.py --augment overlay[p=0.1,source=/path/to/audio.sdb,snr=20.0] ...
+
+
+In the documentation below, whenever a value is specified as ``<float-range>`` or ``<int-range>``, it supports one of the follow formats:
+
+        * ``<value>``: A constant (int or float) value.
+
+        * ``<value>~<r>``: A center value with a randomization radius around it. E.g. ``1.2~0.4`` will result in picking of a uniformly random value between 0.8 and 1.6 on each sample augmentation.
+
+        * ``<start>:<end>``: The value will range from `<start>` at the beginning of an epoch to `<end>` at the end of an epoch. E.g. ``-0.2:1.2`` (float) or ``2000:4000`` (int)
+
+        * ``<start>:<end>~<r>``: Combination of the two previous cases with a ranging center value. E.g. ``4-6~2`` would at the beginning of an epoch pick values between 2 and 6 and at the end of an epoch between 4 and 8.
+
+Ranges specified with integer limits will only assume integer (rounded) values.
+
+If feature caching is enabled, these augmentations will only be performed on the first epoch and the result will be reused for subsequent epochs. The flag ``--augmentations_per_epoch N`` (by default `N` is 1) could be used to get more than one epoch worth of augmentations into the cache. During training, each epoch will do ``N`` passes over the training set, each time performing augmentation independently of previous passes. Be aware: this will also multiply the required size of the feature cache if it's enabled.
+
+
+**Overlay augmentation** ``--augment overlay[p=<float>,source=<str>,snr=<float-range>,layers=<int-range>]``
+        Layers another audio source (multiple times) onto augmented samples.
+
+        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+
+        * **source**: path to the sample collection to use for augmenting (*.sdb or *.csv file). It will be repeated if there are not enough samples left.
+
+        * **snr**: signal to noise ratio in dB - positive values for lowering volume of the overlay in relation to the sample
+
+        * **layers**: number of layers added onto the sample (e.g. 10 layers of speech to get "cocktail-party effect"). A layer is just a sample of the same duration as the sample to augment. It gets stitched together from as many source samples as required.
+
+
+**Reverb augmentation** ``--augment reverb[p=<float>,delay=<float-range>,decay=<float-range>]``
+        Adds simplified (no all-pass filters) `Schroeder reverberation <https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html>`_ to the augmented samples.
+
+        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+
+        * **delay**: time delay in ms for the first signal reflection - higher values are widening the perceived "room"
+
+        * **decay**: sound decay in dB per reflection - higher values will result in a less reflective perceived "room"
+
+
+**Gaps augmentation** ``--augment gaps[p=<float>,n=<int-range>,size=<float-range>]``
+        Sets time-intervals within the augmented samples to zero (silence) at random positions.
+
+        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+
+        * **n**: number of intervals to set to zero
+
+        * **size**: duration of intervals in ms
+
+
+**Resample augmentation** ``--augment resample[p=<float>,rate=<int-range>]``
+        Resamples augmented samples to another sample rate and then resamples back to the original sample rate.
+
+        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+
+        * **rate**: sample-rate to re-sample to
+
+
+**Codec augmentation** ``--augment codec[p=<float>,bitrate=<int-range>]``
+        Compresses and then decompresses augmented samples using the lossy Opus audio codec.
+
+        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+
+        * **bitrate**: bitrate used during compression
+
+
+**Volume augmentation** ``--augment volume[p=<float>,dbfs=<float-range>]``
+        Measures and levels augmented samples to a target dBFS value.
+
+        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+
+        * **dbfs** : target volume in dBFS (default value of 3.0103 will normalize min and max amplitudes to -1.0/1.0)
+
+
+Example training with all augmentations:
+
+.. code-block:: bash
+
+        python -u DeepSpeech.py \
+          --train_files "train.sdb" \
+          --augmentations_per_epoch 10 \
+          --augment overlay[p=0.5,source=noise.sdb,layers=1,snr=50:20~10] \
+          --augment overlay[p=0.2,source=voices.sdb,layers=10:6,snr=50:20~10] \
+          --augment reverb[p=0.1,delay=50.0~30.0,decay=10.0:2.0~1.0] \
+          --augment gaps[p=0.05,n=1:3~2,size=10:100] \
+          --augment resample[p=0.1,rate=12000:8000~4000] \
+          --augment codec[p=0.1,bitrate=48000:16000] \
+          --augment volume[p=0.1,dbfs=-10:-40] \
+          [...]
+
+
+The ``bin/play.py`` tool also supports ``--augment`` parameters and can be used for experimenting with different configurations.
+
+Example of playing all samples with reverberation and maximized volume:
+
+.. code-block:: bash
+
+        bin/play.py --augment reverb[p=0.1,delay=50.0,decay=2.0] --augment volume --random test.sdb
+
+Example simulation of the codec augmentation of a wav-file first at the beginning and then at the end of an epoch:
+
+.. code-block:: bash
+
+        bin/play.py --augment codec[p=0.1,bitrate=48000:16000] --clock 0.0 test.wav
+        bin/play.py --augment codec[p=0.1,bitrate=48000:16000] --clock 1.0 test.wav
+
+
+The following augmentations are applied after feature caching, hence the way they are applied will not repeat epoch-wise.
+Working on spectrogram and feature level, `bin/play.py` offers no ability to simulate them.
 
 #. **Standard deviation for Gaussian additive noise:** ``--data_aug_features_additive``
 #. **Standard deviation for Normal distribution around 1 for multiplicative noise:** ``--data_aug_features_multiplicative`` 
 #. **Standard deviation for speeding-up tempo. If Standard deviation is 0, this augmentation is not performed:** ``--augmentation_speed_up_std`` 
 
 Spectrogram Augmentation
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Inspired by Google Paper on `SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition <https://arxiv.org/abs/1904.08779>`_
 
@@ -306,4 +425,3 @@ Inspired by Google Paper on `SpecAugment: A Simple Data Augmentation Method for 
    * Min value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_min_pitch eg:0.95`` 
    * Max value of pitch scaling: ``--augmentation_pitch_and_tempo_scaling_max_pitch eg:1.2``  
    * Max value of tempo scaling: ``--augmentation_pitch_and_tempo_scaling_max_tempo eg:1.2``  
-

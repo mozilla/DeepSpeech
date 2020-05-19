@@ -424,6 +424,8 @@ def train():
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
+                               repetitions=FLAGS.augmentations_per_epoch,
+                               augmentation_specs=FLAGS.augment,
                                enable_cache=FLAGS.feature_cache and do_cache_dataset,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True,

@@ -2,11 +2,14 @@
 import os
 import csv
 import json
+import random
 
 from pathlib import Path
 from functools import partial
-from .helpers import MEGABYTE, GIGABYTE, Interleaved
-from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_WAV, AUDIO_TYPE_OPUS, SERIALIZABLE_AUDIO_TYPES
+
+from .signal_augmentations import parse_augmentation
+from .helpers import MEGABYTE, GIGABYTE, Interleaved, LimitingPool
+from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_OPUS, AUDIO_TYPE_NP, SERIALIZABLE_AUDIO_TYPES, get_audio_type_from_extension
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4
@@ -47,9 +50,42 @@ class LabeledSample(Sample):
         self.transcript = transcript
 
 
+def load_sample(filename, label=None):
+    """
+    Loads audio-file as a (labeled or unlabeled) sample
+
+    Parameters
+    ----------
+    filename : str
+        Filename of the audio-file to load as sample
+    label : str
+        Label (transcript) of the sample.
+        If None: return util.audio.Sample instance
+        Otherwise: return util.sample_collections.LabeledSample instance
+
+    Returns
+    -------
+    util.audio.Sample instance if label is None, else util.sample_collections.LabeledSample instance
+    """
+    ext = os.path.splitext(filename)[1].lower()
+    audio_type = get_audio_type_from_extension(ext)
+    if audio_type is None:
+        raise ValueError('Unknown audio type extension "{}"'.format(ext))
+    with open(filename, 'rb') as audio_file:
+        if label is None:
+            return Sample(audio_type, audio_file.read(), sample_id=filename)
+        return LabeledSample(audio_type, audio_file.read(), label, sample_id=filename)
+
+
 class DirectSDBWriter:
     """Sample collection writer for creating a Sample DB (SDB) file"""
-    def __init__(self, sdb_filename, buffering=BUFFER_SIZE, audio_type=AUDIO_TYPE_OPUS, id_prefix=None, labeled=True):
+    def __init__(self,
+                 sdb_filename,
+                 buffering=BUFFER_SIZE,
+                 audio_type=AUDIO_TYPE_OPUS,
+                 bitrate=None,
+                 id_prefix=None,
+                 labeled=True):
         """
         Parameters
         ----------
@@ -59,6 +95,8 @@ class DirectSDBWriter:
             Write-buffer size to use while writing the SDB file
         audio_type : str
             See util.audio.Sample.__init__ .
+        bitrate : int
+            Bitrate for sample-compression in case of lossy audio_type (e.g. AUDIO_TYPE_OPUS)
         id_prefix : str
             Prefix for IDs of written samples - defaults to sdb_filename
         labeled : bool or None
@@ -71,6 +109,7 @@ class DirectSDBWriter:
         if audio_type not in SERIALIZABLE_AUDIO_TYPES:
             raise ValueError('Audio type "{}" not supported'.format(audio_type))
         self.audio_type = audio_type
+        self.bitrate = bitrate
         self.sdb_file = open(sdb_filename, 'wb', buffering=buffering)
         self.offsets = []
         self.num_samples = 0
@@ -100,7 +139,7 @@ class DirectSDBWriter:
     def add(self, sample):
         def to_bytes(n):
             return n.to_bytes(INT_SIZE, BIG_ENDIAN)
-        sample.change_audio_type(self.audio_type)
+        sample.change_audio_type(self.audio_type, bitrate=self.bitrate)
         opus = sample.audio.getbuffer()
         opus_len = to_bytes(len(opus))
         if self.labeled:
@@ -260,7 +299,31 @@ class SDB:  # pylint: disable=too-many-instance-attributes
         self.close()
 
 
-class CSV:
+class SampleList:
+    """Sample collection base class with samples loaded from a list of in-memory paths."""
+    def __init__(self, samples, labeled=True):
+        """
+        Parameters
+        ----------
+        samples : iterable of tuples of the form (sample_filename, filesize [, transcript])
+            File-size is used for ordering the samples; transcript has to be provided if labeled=True
+        labeled : bool or None
+            If True: Reads LabeledSample instances.
+            If False: Ignores transcripts (if available) and reads (unlabeled) util.audio.Sample instances.
+        """
+        self.labeled = labeled
+        self.samples = list(samples)
+        self.samples.sort(key=lambda r: r[1])
+
+    def __getitem__(self, i):
+        sample_spec = self.samples[i]
+        return load_sample(sample_spec[0], label=sample_spec[2] if self.labeled else None)
+
+    def __len__(self):
+        return len(self.samples)
+
+
+class CSV(SampleList):
     """Sample collection reader for reading a DeepSpeech CSV file
     Automatically orders samples by CSV column wav_filesize (if available)."""
     def __init__(self, csv_filename, labeled=None):
@@ -275,16 +338,14 @@ class CSV:
             If None: Automatically determines if CSV file has a transcript column
             (reading util.sample_collections.LabeledSample instances) or not (reading util.audio.Sample instances).
         """
-        self.csv_filename = csv_filename
-        self.labeled = labeled
-        self.rows = []
+        rows = []
         csv_dir = Path(csv_filename).parent
         with open(csv_filename, 'r', encoding='utf8') as csv_file:
             reader = csv.DictReader(csv_file)
             if 'transcript' in reader.fieldnames:
-                if self.labeled is None:
-                    self.labeled = True
-            elif self.labeled:
+                if labeled is None:
+                    labeled = True
+            elif labeled:
                 raise RuntimeError('No transcript data (missing CSV column)')
             for row in reader:
                 wav_filename = Path(row['wav_filename'])
@@ -292,36 +353,20 @@ class CSV:
                     wav_filename = csv_dir / wav_filename
                 wav_filename = str(wav_filename)
                 wav_filesize = int(row['wav_filesize']) if 'wav_filesize' in row else 0
-                if self.labeled:
-                    self.rows.append((wav_filename, wav_filesize, row['transcript']))
+                if labeled:
+                    rows.append((wav_filename, wav_filesize, row['transcript']))
                 else:
-                    self.rows.append((wav_filename, wav_filesize))
-        self.rows.sort(key=lambda r: r[1])
-
-    def __getitem__(self, i):
-        row = self.rows[i]
-        wav_filename = row[0]
-        with open(wav_filename, 'rb') as wav_file:
-            if self.labeled:
-                return LabeledSample(AUDIO_TYPE_WAV, wav_file.read(), row[2], sample_id=wav_filename)
-            return Sample(AUDIO_TYPE_WAV, wav_file.read(), sample_id=wav_filename)
-
-    def __iter__(self):
-        for i in range(len(self.rows)):
-            yield self[i]
-
-    def __len__(self):
-        return len(self.rows)
+                    rows.append((wav_filename, wav_filesize))
+        super(CSV, self).__init__(rows, labeled=labeled)
 
 
-def samples_from_file(filename, buffering=BUFFER_SIZE, labeled=None):
+def samples_from_source(sample_source, buffering=BUFFER_SIZE, labeled=None):
     """
-    Returns an iterable of util.sample_collections.LabeledSample or util.audio.Sample instances
-    loaded from a sample source file.
+    Loads samples from a sample source file.
 
     Parameters
     ----------
-    filename : str
+    sample_source : str
         Path to the sample source file (SDB or CSV)
     buffering : int
         Read-buffer size to use while reading files
@@ -330,23 +375,27 @@ def samples_from_file(filename, buffering=BUFFER_SIZE, labeled=None):
         If False: Ignores transcripts (if available) and reads (unlabeled) util.audio.Sample instances.
         If None: Automatically determines if source provides transcripts
         (reading util.sample_collections.LabeledSample instances) or not (reading util.audio.Sample instances).
+
+    Returns
+    -------
+    iterable of util.sample_collections.LabeledSample or util.audio.Sample instances supporting len.
     """
-    ext = os.path.splitext(filename)[1].lower()
+    ext = os.path.splitext(sample_source)[1].lower()
     if ext == '.sdb':
-        return SDB(filename, buffering=buffering, labeled=labeled)
+        return SDB(sample_source, buffering=buffering, labeled=labeled)
     if ext == '.csv':
-        return CSV(filename, labeled=labeled)
+        return CSV(sample_source, labeled=labeled)
     raise ValueError('Unknown file type: "{}"'.format(ext))
 
 
-def samples_from_files(filenames, buffering=BUFFER_SIZE, labeled=None):
+def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None):
     """
-    Returns an iterable of util.sample_collections.LabeledSample or util.audio.Sample instances
-    loaded from a collection of sample source files.
+    Loads and combines samples from a list of source files. Sources are combined in an interleaving way to
+    keep default sample order from shortest to longest.
 
     Parameters
     ----------
-    filenames : list of str
+    sample_sources : list of str
         Paths to sample source files (SDBs or CSVs)
     buffering : int
         Read-buffer size to use while reading files
@@ -355,11 +404,100 @@ def samples_from_files(filenames, buffering=BUFFER_SIZE, labeled=None):
         If False: Ignores transcripts (if available) and always reads (unlabeled) util.audio.Sample instances.
         If None: Reads util.sample_collections.LabeledSample instances from sources with transcripts and
         util.audio.Sample instances from sources with no transcripts.
+
+    Returns
+    -------
+    iterable of util.sample_collections.LabeledSample (labeled=True) or util.audio.Sample (labeled=False) supporting len
     """
-    filenames = list(filenames)
-    if len(filenames) == 0:
+    sample_sources = list(sample_sources)
+    if len(sample_sources) == 0:
         raise ValueError('No files')
-    if len(filenames) == 1:
-        return samples_from_file(filenames[0], buffering=buffering, labeled=labeled)
-    cols = list(map(partial(samples_from_file, buffering=buffering, labeled=labeled), filenames))
+    if len(sample_sources) == 1:
+        return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled)
+    cols = list(map(partial(samples_from_source, buffering=buffering, labeled=labeled), sample_sources))
     return Interleaved(*cols, key=lambda s: s.duration)
+
+
+class PreparationContext:
+    def __init__(self, target_audio_type, augmentations):
+        self.target_audio_type = target_audio_type
+        self.augmentations = augmentations
+
+
+AUGMENTATION_CONTEXT = None
+
+
+def _init_augmentation_worker(preparation_context):
+    global AUGMENTATION_CONTEXT  # pylint: disable=global-statement
+    AUGMENTATION_CONTEXT = preparation_context
+
+
+def _augment_sample(timed_sample, context=None):
+    context = AUGMENTATION_CONTEXT if context is None else context
+    sample, clock = timed_sample
+    for augmentation in context.augmentations:
+        if random.random() < augmentation.probability:
+            augmentation.apply(sample, clock)
+    sample.change_audio_type(new_audio_type=context.target_audio_type)
+    return sample
+
+
+def augment_samples(samples,
+                    audio_type=AUDIO_TYPE_NP,
+                    augmentation_specs=None,
+                    buffering=BUFFER_SIZE,
+                    process_ahead=None,
+                    repetitions=1,
+                    fixed_clock=None):
+    """
+    Prepares samples for being used during training.
+    This includes parallel and buffered application of augmentations and a conversion to a specified audio-type.
+
+    Parameters
+    ----------
+    samples : Sample enumeration
+        Typically produced by samples_from_sources.
+    audio_type : str
+        Target audio-type to convert samples to. See util.audio.Sample.__init__ .
+    augmentation_specs : list of str
+        Augmentation specifications like ["reverb[delay=20.0,decay=-20]", "volume"]. See TRAINING.rst.
+    buffering : int
+        Read-buffer size to use while reading files.
+    process_ahead : int
+        Number of samples to pre-process ahead of time.
+    repetitions : int
+        How often the input sample enumeration should get repeated for being re-augmented.
+    fixed_clock : float
+        Sets the internal clock to a value between 0.0 (beginning of epoch) and 1.0 (end of epoch).
+        Setting this to a number is used for simulating augmentations at a certain epoch-time.
+        If kept at None (default), the internal clock will run regularly from 0.0 to 1.0,
+        hence preparing them for training.
+
+    Returns
+    -------
+    iterable of util.sample_collections.LabeledSample or util.audio.Sample
+    """
+    def timed_samples():
+        for repetition in range(repetitions):
+            for sample_index, sample in enumerate(samples):
+                if fixed_clock is None:
+                    yield sample, (repetition * len(samples) + sample_index) / (repetitions * len(samples))
+                else:
+                    yield sample, fixed_clock
+
+    augmentations = [] if augmentation_specs is None else list(map(parse_augmentation, augmentation_specs))
+    try:
+        for augmentation in augmentations:
+            augmentation.start(buffering=buffering)
+        context = PreparationContext(audio_type, augmentations)
+        if process_ahead == 0:
+            for timed_sample in timed_samples():
+                yield _augment_sample(timed_sample, context=context)
+        else:
+            with LimitingPool(process_ahead=process_ahead,
+                              initializer=_init_augmentation_worker,
+                              initargs=(context,)) as pool:
+                yield from pool.imap(_augment_sample, timed_samples())
+    finally:
+        for augmentation in augmentations:
+            augmentation.stop()

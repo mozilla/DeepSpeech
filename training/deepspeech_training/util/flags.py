@@ -26,6 +26,9 @@ def create_flags():
     # Data Augmentation
     # ================
 
+    f.DEFINE_multi_string('augment', None, 'specifies an augmentation of the training samples. Format is "--augment operation[param1=value1, ...]"')
+    f.DEFINE_integer('augmentations_per_epoch', 1, 'how often the train set should be repeated and re-augmented per epoch')
+
     f.DEFINE_float('data_aug_features_additive', 0, 'std of the Gaussian additive noise')
     f.DEFINE_float('data_aug_features_multiplicative', 0, 'std of normal distribution around 1 for multiplicative noise')
 
