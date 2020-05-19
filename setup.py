@@ -10,12 +10,15 @@ from setuptools import find_packages, setup
 def get_decoder_pkg_url(version, artifacts_root=None):
     is_arm = 'arm' in platform.machine()
     is_mac = 'darwin' in sys.platform
+    is_win = 'win32' in sys.platform
     is_64bit = sys.maxsize > (2**31 - 1)
 
     if is_arm:
         tc_arch = 'arm64-ctc' if is_64bit else 'arm-ctc'
     elif is_mac:
         tc_arch = 'osx-ctc'
+    elif is_win:
+        tc_arch = 'win-ctc'
     else:
         tc_arch = 'cpu-ctc'
 
@@ -23,13 +26,16 @@ def get_decoder_pkg_url(version, artifacts_root=None):
     branch = "v{}".format(version)
 
     plat = platform.system().lower()
-    arch = platform.machine()
+    arch = platform.machine().lower()
 
     if plat == 'linux' and arch == 'x86_64':
         plat = 'manylinux1'
 
     if plat == 'darwin':
         plat = 'macosx_10_10'
+
+    if plat == 'windows':
+        plat = 'win'
 
     is_ucs2 = sys.maxunicode < 0x10ffff
     m_or_mu = 'mu' if is_ucs2 else 'm'
