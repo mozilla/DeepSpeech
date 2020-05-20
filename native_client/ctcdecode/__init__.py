@@ -44,7 +44,7 @@ class Scorer(swigwrapper.Scorer):
             self.reset_params(alpha, beta)
 
     def load_lm(self, lm_path):
-        super(Scorer, self).load_lm(lm_path.encode('utf-8'))
+        return super(Scorer, self).load_lm(lm_path.encode('utf-8'))
 
     def save_dictionary(self, save_path, *args, **kwargs):
         super(Scorer, self).save_dictionary(save_path.encode('utf-8'), *args, **kwargs)
