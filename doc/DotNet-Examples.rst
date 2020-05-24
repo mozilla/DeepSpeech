@@ -1,4 +1,4 @@
-.Net API Usage example
+.NET API Usage example
 ======================
 
 Examples are from `native_client/dotnet/DeepSpeechConsole/Program.cs`.

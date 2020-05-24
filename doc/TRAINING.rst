@@ -258,6 +258,7 @@ You need to specify the location of the pre-trained model with ``--load_checkpoi
            --train_files   my-new-language-train.csv \
            --dev_files   my-new-language-dev.csv \
            --test_files  my-new-language-test.csv
+
 UTF-8 mode
 ^^^^^^^^^^
 
@@ -277,22 +278,28 @@ Augmentations that are applied before potential feature caching can be specified
 
 Each sample of the training data will get treated by every specified augmentation in their given order. However: whether an augmentation will actually get applied to a sample is decided by chance on base of the augmentation's probability value. For example a value of ``p=0.1`` would apply the according augmentation to just 10% of all samples. This also means that augmentations are not mutually exclusive on a per-sample basis.
 
- The ``--augment`` flag uses a common syntax for all augmentation types: ``--augment augmentation_type1[param1=value1,param2=value2,...] --augment augmentation_type2[param1=value1,param2=value2,...] ...``. For example, for the ``overlay`` augmentation:
+The ``--augment`` flag uses a common syntax for all augmentation types:
 
-.. code-block:: bash
+.. code-block::
 
-        python3 DeepSpeech.py --augment overlay[p=0.1,source=/path/to/audio.sdb,snr=20.0] ...
+  --augment augmentation_type1[param1=value1,param2=value2,...] --augment augmentation_type2[param1=value1,param2=value2,...] ...
+
+For example, for the ``overlay`` augmentation:
+
+.. code-block::
+
+  python3 DeepSpeech.py --augment overlay[p=0.1,source=/path/to/audio.sdb,snr=20.0] ...
 
 
 In the documentation below, whenever a value is specified as ``<float-range>`` or ``<int-range>``, it supports one of the follow formats:
 
-        * ``<value>``: A constant (int or float) value.
+  * ``<value>``: A constant (int or float) value.
 
-        * ``<value>~<r>``: A center value with a randomization radius around it. E.g. ``1.2~0.4`` will result in picking of a uniformly random value between 0.8 and 1.6 on each sample augmentation.
+  * ``<value>~<r>``: A center value with a randomization radius around it. E.g. ``1.2~0.4`` will result in picking of a uniformly random value between 0.8 and 1.6 on each sample augmentation.
 
-        * ``<start>:<end>``: The value will range from `<start>` at the beginning of an epoch to `<end>` at the end of an epoch. E.g. ``-0.2:1.2`` (float) or ``2000:4000`` (int)
+  * ``<start>:<end>``: The value will range from `<start>` at the beginning of an epoch to `<end>` at the end of an epoch. E.g. ``-0.2:1.2`` (float) or ``2000:4000`` (int)
 
-        * ``<start>:<end>~<r>``: Combination of the two previous cases with a ranging center value. E.g. ``4-6~2`` would at the beginning of an epoch pick values between 2 and 6 and at the end of an epoch between 4 and 8.
+  * ``<start>:<end>~<r>``: Combination of the two previous cases with a ranging center value. E.g. ``4-6~2`` would at the beginning of an epoch pick values between 2 and 6 and at the end of an epoch between 4 and 8.
 
 Ranges specified with integer limits will only assume integer (rounded) values.
 
@@ -300,59 +307,59 @@ If feature caching is enabled, these augmentations will only be performed on the
 
 
 **Overlay augmentation** ``--augment overlay[p=<float>,source=<str>,snr=<float-range>,layers=<int-range>]``
-        Layers another audio source (multiple times) onto augmented samples.
+  Layers another audio source (multiple times) onto augmented samples.
 
-        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **source**: path to the sample collection to use for augmenting (*.sdb or *.csv file). It will be repeated if there are not enough samples left.
+  * **source**: path to the sample collection to use for augmenting (\*.sdb or \*.csv file). It will be repeated if there are not enough samples left.
 
-        * **snr**: signal to noise ratio in dB - positive values for lowering volume of the overlay in relation to the sample
+  * **snr**: signal to noise ratio in dB - positive values for lowering volume of the overlay in relation to the sample
 
-        * **layers**: number of layers added onto the sample (e.g. 10 layers of speech to get "cocktail-party effect"). A layer is just a sample of the same duration as the sample to augment. It gets stitched together from as many source samples as required.
+  * **layers**: number of layers added onto the sample (e.g. 10 layers of speech to get "cocktail-party effect"). A layer is just a sample of the same duration as the sample to augment. It gets stitched together from as many source samples as required.
 
 
 **Reverb augmentation** ``--augment reverb[p=<float>,delay=<float-range>,decay=<float-range>]``
-        Adds simplified (no all-pass filters) `Schroeder reverberation <https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html>`_ to the augmented samples.
+  Adds simplified (no all-pass filters) `Schroeder reverberation <https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html>`_ to the augmented samples.
 
-        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **delay**: time delay in ms for the first signal reflection - higher values are widening the perceived "room"
+  * **delay**: time delay in ms for the first signal reflection - higher values are widening the perceived "room"
 
-        * **decay**: sound decay in dB per reflection - higher values will result in a less reflective perceived "room"
+  * **decay**: sound decay in dB per reflection - higher values will result in a less reflective perceived "room"
 
 
 **Gaps augmentation** ``--augment gaps[p=<float>,n=<int-range>,size=<float-range>]``
-        Sets time-intervals within the augmented samples to zero (silence) at random positions.
+  Sets time-intervals within the augmented samples to zero (silence) at random positions.
 
-        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **n**: number of intervals to set to zero
+  * **n**: number of intervals to set to zero
 
-        * **size**: duration of intervals in ms
+  * **size**: duration of intervals in ms
 
 
 **Resample augmentation** ``--augment resample[p=<float>,rate=<int-range>]``
-        Resamples augmented samples to another sample rate and then resamples back to the original sample rate.
+  Resamples augmented samples to another sample rate and then resamples back to the original sample rate.
 
-        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **rate**: sample-rate to re-sample to
+  * **rate**: sample-rate to re-sample to
 
 
 **Codec augmentation** ``--augment codec[p=<float>,bitrate=<int-range>]``
-        Compresses and then decompresses augmented samples using the lossy Opus audio codec.
+  Compresses and then decompresses augmented samples using the lossy Opus audio codec.
 
-        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **bitrate**: bitrate used during compression
+  * **bitrate**: bitrate used during compression
 
 
 **Volume augmentation** ``--augment volume[p=<float>,dbfs=<float-range>]``
-        Measures and levels augmented samples to a target dBFS value.
+  Measures and levels augmented samples to a target dBFS value.
 
-        * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
-        * **dbfs** : target volume in dBFS (default value of 3.0103 will normalize min and max amplitudes to -1.0/1.0)
+  * **dbfs** : target volume in dBFS (default value of 3.0103 will normalize min and max amplitudes to -1.0/1.0)
 
 
 Example training with all augmentations:

@@ -5,7 +5,7 @@ using System.IO;
 namespace DeepSpeechClient.Interfaces
 {
     /// <summary>
-    /// Client interface of the Mozilla's DeepSpeech implementation.
+    /// Client interface of Mozilla's DeepSpeech implementation.
     /// </summary>
     public interface IDeepSpeech : IDisposable
     {

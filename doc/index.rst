@@ -58,11 +58,17 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 
    TRAINING
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Decoder and scorer
+
    Decoder
+
+   Scorer
 
 .. toctree::
    :maxdepth: 2
-   :caption: DeepSpeech Model
+   :caption: Architecture and training
 
    DeepSpeech
 
@@ -71,16 +77,10 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
    ParallelOptimization
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Enums and structs
+   :maxdepth: 3
+   :caption: API Reference
 
    Error-Codes
-
-   Structs
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API Reference
 
    C-API
 
@@ -106,15 +106,7 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 
    Python-Examples
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contributed examples
-
-   DotNet-contrib-examples
-
-   NodeJS-contrib-Examples
-
-   Python-contrib-Examples
+   Contributed-Examples
 
 Indices and tables
 ==================

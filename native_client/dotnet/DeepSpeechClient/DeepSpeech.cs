@@ -9,7 +9,7 @@ using DeepSpeechClient.Models;
 namespace DeepSpeechClient
 {
     /// <summary>
-    /// Client of the Mozilla's deepspeech implementation.
+    /// Concrete implementation of <see cref="DeepSpeechClient.Interfaces.IDeepSpeech"/>.
     /// </summary>
     public class DeepSpeech : IDeepSpeech
     {
