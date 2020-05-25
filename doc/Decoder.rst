@@ -1,7 +1,7 @@
 .. _decoder-docs:
 
-CTC beam search decoder with external scorer
-============================================
+CTC beam search decoder
+=======================
 
 Introduction
 ^^^^^^^^^^^^
@@ -18,7 +18,7 @@ DeepSpeech clients support OPTIONAL use of an external language model to improve
 
 The use of an external scorer is fully optional. When an external scorer is not specified, DeepSpeech still uses a beam search decoding algorithm, but without any outside scoring.
 
-Currently, the DeepSpeech external scorer is implemented with `KenLM <https://kheafield.com/code/kenlm/>`_, plus some tooling to package the necessary files and metadata into a single ``.scorer`` package. The tooling lives in ``data/lm/``. The scripts included in ``data/lm/`` can be used and modified to build your own language model based on your particular use case or language.
+Currently, the DeepSpeech external scorer is implemented with `KenLM <https://kheafield.com/code/kenlm/>`_, plus some tooling to package the necessary files and metadata into a single ``.scorer`` package. The tooling lives in ``data/lm/``. The scripts included in ``data/lm/`` can be used and modified to build your own language model based on your particular use case or language. See :ref:`scorer-scripts` for more details on how to reproduce our scorer file as well as create your own.
 
 The scripts are geared towards replicating the language model files we release as part of `DeepSpeech model releases <https://github.com/mozilla/DeepSpeech/releases/latest>`_, but modifying them to use different datasets or language model construction parameters should be simple.
 
