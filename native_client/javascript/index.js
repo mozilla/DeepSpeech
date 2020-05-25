@@ -184,7 +184,7 @@ Stream.prototype.intermediateDecode = function() {
  */
 Stream.prototype.intermediateDecodeWithMetadata = function(aNumResults) {
     aNumResults = aNumResults || 1;
-    return binding.IntermediateDecode(this._impl, aNumResults);
+    return binding.IntermediateDecodeWithMetadata(this._impl, aNumResults);
 }
 
 /**
