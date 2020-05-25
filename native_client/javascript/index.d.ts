@@ -134,7 +134,7 @@ feedAudioContent(aBuffer: Buffer): void;
  *
  * @return The STT intermediate result.
  */
-intermediateDecode(aSctx: Stream): string;
+intermediateDecode(): string;
 
 /**
  * Compute the intermediate decoding of an ongoing streaming inference, return results including metadata.
