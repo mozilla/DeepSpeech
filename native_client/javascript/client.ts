@@ -132,6 +132,12 @@ if (!args['stream']) {
   let stream  = model.createStream();
   conversionStream.on('data', (chunk: Buffer) => {
     stream.feedAudioContent(chunk);
+    if (args['extended']) {
+      let metadata = stream.intermediateDecodeWithMetadata();
+      console.error('intermediate: ' + candidateTranscriptToString(metadata.transcripts[0]));
+    } else {
+      console.error('intermediate: ' + stream.intermediateDecode());
+    }
   });
   conversionStream.on('end', () => {
     if (args['extended']) {
