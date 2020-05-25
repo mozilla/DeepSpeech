@@ -9,10 +9,14 @@
         "noImplicitThis": true,
         "strictFunctionTypes": true,
         "strictNullChecks": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "alwaysStrict": true,
+        "declaration": true,
+        "stripInternal": true
     },
     "files": [
-        "index.d.ts",
-        "client.ts"
+        "index.ts",
+        "client.ts",
+        "node-pre-gyp.d.ts"
     ]
 }

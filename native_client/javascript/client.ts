@@ -3,7 +3,7 @@
 // This is required for process.versions.electron below
 /// <reference types="electron" />
 
-import Ds from "./index";
+import * as Ds from "./index";
 import * as Fs from "fs";
 import Sox from "sox-stream";
 import * as argparse from "argparse";
