@@ -90,7 +90,7 @@ setScorerAlphaBeta(aLMAlpha: number, aLMBeta: number): number;
  *
  * @return The STT result. Returns undefined on error.
  */
-stt(aBuffer: object): string;
+stt(aBuffer: Buffer): string;
 
 /**
  * Use the DeepSpeech model to perform Speech-To-Text and output metadata
@@ -103,7 +103,7 @@ stt(aBuffer: object): string;
  * @return :js:func:`Metadata` object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
  * The user is responsible for freeing Metadata by calling :js:func:`FreeMetadata`. Returns undefined on error.
  */
-sttWithMetadata(aBuffer: object, aNumResults?: number): Metadata;
+sttWithMetadata(aBuffer: Buffer, aNumResults?: number): Metadata;
 
 /**
  * Create a new streaming inference state. One can then call :js:func:`Stream.feedAudioContent` and :js:func:`Stream.finishStream` on the returned stream object.
