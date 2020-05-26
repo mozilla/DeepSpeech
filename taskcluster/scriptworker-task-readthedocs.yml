@@ -8,7 +8,12 @@ build:
   ref_match: "refs/tags/"
   upload_targets:
     - "readthedocs"
-  artifacts_deps: []
+  artifacts_deps:
+    python: []
+    cpp: []
+    java_aar: []
+    javascript: []
+    nuget: []
   metadata:
     name: "DeepSpeech ReadTheDocs build & version update"
     description: "Trigger building of new version on ReadTheDocs and update default version"
