@@ -12,11 +12,14 @@ jobs:
     - name: cardboard linter
       install:
         - pip install --upgrade cardboardlint pylint
-      script:
+      script: |
         # Run cardboardlinter, in case of pull requests
-        - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-            cardboardlinter --refspec $TRAVIS_BRANCH -n auto;
+        if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+          if [ "$TRAVIS_BRANCH" != "master" ]; then
+            git fetch origin $TRAVIS_BRANCH:$TRAVIS_BRANCH
           fi
+          cardboardlinter --refspec $TRAVIS_BRANCH -n auto;
+        fi
     - name: python unit tests
       install:
         - pip install --upgrade -r requirements_tests.txt;
