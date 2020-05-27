@@ -204,20 +204,10 @@ DecoderState::decode(size_t num_results) const
   std::vector<Output> outputs;
   outputs.reserve(num_returned);
 
-  // compute aproximate ctc score as the return score, without affecting the
-  // return order of decoding result. To delete when decoder gets stable.
   for (size_t i = 0; i < num_returned; ++i) {
     Output output;
     prefixes_copy[i]->get_path_vec(output.tokens, output.timesteps);
-    double approx_ctc = scores[prefixes_copy[i]];
-    if (ext_scorer_) {
-      auto words = ext_scorer_->split_labels_into_scored_units(output.tokens);
-      // remove term insertion weight
-      approx_ctc -= words.size() * ext_scorer_->beta;
-      // remove language model weight
-      approx_ctc -= (ext_scorer_->get_sent_log_prob(words)) * ext_scorer_->alpha;
-    }
-    output.confidence = -approx_ctc;
+    output.confidence = scores[prefixes_copy[i]];
     outputs.push_back(output);
   }
 
