@@ -41,7 +41,7 @@ Clone our fork of TensorFlow and checkout the correct version:
 Bazel: Download & Install
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, `find the version of Bazel <https://www.tensorflow.org/install/source#tested_build_configurations>`_ you need for this TensorFlow release. Next, `download and install the correct version of Bazel <https://docs.bazel.build/versions/master/install.html>`_.
+First, install Bazel 0.24.1 following the `Bazel installation documentation <https://docs.bazel.build/versions/0.24.0/install.html>`_.
 
 TensorFlow: Configure with Bazel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
