@@ -39,7 +39,7 @@ def _preprocess_data(tsv_dir, audio_dir, filter_obj, space_after_every_character
             exclude += set_samples
         if dataset == "validated":
             _maybe_convert_set("train-all", tsv_dir, audio_dir, filter_obj, space_after_every_character,
-                               filter_obj, rows=set_samples, exclude=exclude)
+                               rows=set_samples, exclude=exclude)
 
 
 def one_sample(args):
