@@ -4,6 +4,8 @@ set -xe
 
 source $(dirname "$0")/tc-tests-utils.sh
 
+extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf" "pyalias"
+
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
 virtualenv_activate "${pyalias}" "deepspeech"
