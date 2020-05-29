@@ -6,8 +6,8 @@ build:
       >
         apt-get -qq update && apt-get -qq -y install ${training.packages_trusty.apt}
     args:
-      tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-unittests.sh 3.6.10:m 8k"
+      tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-unittests.sh 3.6.10:m"
     metadata:
-      name: "DeepSpeech Linux AMD64 CPU 8kHz training Py3.6"
-      description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 8kHz Python 3.6, CPU only, optimized version"
-  
+      name: "DeepSpeech on Linux AMD64 CPU training unittests using Python 3.6"
+      description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 Python 3.6, CPU only, optimized version"
+ 
