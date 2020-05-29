@@ -9,4 +9,4 @@ build:
       tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-unittests.sh 3.5.8:m"
     metadata:
       name: "DeepSpeech on Linux AMD64 CPU training unittests using Python 3.5"
-      description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 Python 3.5, CPU only, optimized version"
+      description: "Training unittests DeepSpeech LDC93S1 model for Linux/AMD64 using Python 3.5, for CPU only, and optimized version"
