@@ -2,3 +2,7 @@
 	path = doc/examples
 	url = https://github.com/mozilla/DeepSpeech-examples.git
 	branch = master
+[submodule "third_party/tensorflow"]
+	path = third_party/tensorflow
+	url = https://github.com/mozilla/tensorflow.git
+	branch = r1.15
