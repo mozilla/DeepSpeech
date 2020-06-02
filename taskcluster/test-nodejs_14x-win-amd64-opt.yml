@@ -1,0 +1,14 @@
+build:
+  template_file: test-win-opt-base.tyml
+  dependencies:
+    - "win-amd64-cpu-opt"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
+  system_setup:
+    >
+      ${system.sox_win} && ${nodejs.win.prep_14}
+  args:
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 14.x 16k"
+  metadata:
+    name: "DeepSpeech Windows AMD64 CPU NodeJS 14.x tests"
+    description: "Testing DeepSpeech for Windows/AMD64 on NodeJS v14.x, CPU only, optimized version"
