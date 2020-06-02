@@ -9,7 +9,7 @@ build:
   dependencies: []
   routes: []
   maxRunTime: 3600
-  docker_image: "ubuntu:14.04"
+  docker_image: "ubuntu:16.04"
   system_setup:
     >
       true

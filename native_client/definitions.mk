@@ -48,7 +48,7 @@ endif
 endif
 
 ifeq ($(TARGET),host-win)
-TOOLCHAIN := '$(VCINSTALLDIR)\bin\amd64\'
+TOOLCHAIN := '$(VCToolsInstallDir)\bin\Hostx64\x64\'
 TOOL_CC     := cl.exe
 TOOL_CXX    := cl.exe
 TOOL_LD     := link.exe

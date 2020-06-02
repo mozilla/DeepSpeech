@@ -1,10 +1,8 @@
 # Description: Deepspeech native client library.
 
-load(
-    "@org_tensorflow//tensorflow:tensorflow.bzl",
-    "if_cuda",
-    "tf_cc_shared_object",
-)
+load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_shared_object")
+load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
+
 load(
     "@org_tensorflow//tensorflow/lite:build_def.bzl",
     "tflite_copts",
@@ -143,7 +141,6 @@ tf_cc_shared_object(
             ### CPU only build, libdeepspeech.so file size reduced by ~50%
             "//tensorflow/core/kernels:spectrogram_op",  # AudioSpectrogram
             "//tensorflow/core/kernels:bias_op",  # BiasAdd
-            "//tensorflow/contrib/rnn:lstm_ops_kernels",  # BlockLSTM
             "//tensorflow/core/kernels:cast_op",  # Cast
             "//tensorflow/core/kernels:concat_op",  # ConcatV2
             "//tensorflow/core/kernels:constant_op",  # Const, Placeholder
@@ -163,9 +160,10 @@ tf_cc_shared_object(
             "//tensorflow/core/kernels:softmax_op",  # Softmax
             "//tensorflow/core/kernels:tile_ops",  # Tile
             "//tensorflow/core/kernels:transpose_op",  # Transpose
+            "//tensorflow/core/kernels:rnn_ops",  # BlockLSTM
             # And we also need the op libs for these ops used in the model:
             "//tensorflow/core:audio_ops_op_lib",  # AudioSpectrogram, Mfcc
-            "//tensorflow/contrib/rnn:lstm_ops_op_lib",  # BlockLSTM
+            "//tensorflow/core:rnn_ops_op_lib",  # BlockLSTM
             "//tensorflow/core:math_ops_op_lib",  # Cast, Less, Max, MatMul, Minimum, Range
             "//tensorflow/core:array_ops_op_lib",  # ConcatV2, Const, ExpandDims, Fill, GatherNd, Identity, Pack, Placeholder, Reshape, Tile, Transpose
             "//tensorflow/core:no_op_op_lib",  # NoOp

@@ -40,7 +40,7 @@
     },
     "devDependencies": {
       "electron": "^1.7.9",
-      "node-gyp": "4.x - 5.x",
+      "node-gyp": "5.x",
       "typescript": "3.8.x",
       "typedoc": "0.17.x",
       "@types/argparse": "1.0.x",
