@@ -92,7 +92,7 @@ prepare_homebrew_tests()
 
   install_pkg_homebrew "nvm"
     source "${TESTS_BREW}/opt/nvm/nvm.sh"
-    for node_ver in ${SUPPORTED_NODEJS_VERSIONS};
+    for node_ver in ${SUPPORTED_NODEJS_TESTS_VERSIONS};
     do
       nvm install ${node_ver}
     done;

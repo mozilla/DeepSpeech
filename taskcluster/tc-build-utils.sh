@@ -110,7 +110,7 @@ do_deepspeech_nodejs_build()
 
   export PATH="${PYTHON27}:$PATH"
 
-  for node in ${SUPPORTED_NODEJS_VERSIONS}; do
+  for node in ${SUPPORTED_NODEJS_BUILD_VERSIONS}; do
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
       TARGET=${SYSTEM_TARGET} \
       RASPBIAN=${SYSTEM_RASPBIAN} \
