@@ -40,7 +40,7 @@ do_prepare_homebrew()
     curl -L ${BREW_URL} | tar xz --strip 1 -C "${_brew_instance}"
   fi;
 
-  check_homebrew
+  check_homebrew "${_brew_instance}"
 
   # Force an upgrade to fetch formulae
   brew search openssl
@@ -53,14 +53,16 @@ do_prepare_homebrew()
 
 check_homebrew()
 {
-  echo "local brew prefix ..."
-  local_prefix=$(brew --prefix)
-  echo "${local_prefix}"
+  local _expected_prefix=$1
 
-  if [ "${BUILDS_BREW}" != "${local_prefix}" ]; then
+  echo "local brew prefix ..."
+  local _local_prefix=$(brew --prefix)
+  echo "${_local_prefix}"
+
+  if [ "${_expected_prefix}" != "${_local_prefix}" ]; then
     echo "Weird state:"
-    echo "BUILDS_BREW=${BUILDS_BREW}"
-    echo "local_prefix=${local_prefix}"
+    echo "_expected_prefix=${_expected_prefix}"
+    echo "_local_prefix=${_local_prefix}"
     exit 1
   fi;
 }
