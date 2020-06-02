@@ -76,6 +76,22 @@ It has been reported for some people failure at training:
 
 Setting the ``TF_FORCE_GPU_ALLOW_GROWTH`` environment variable to ``true`` seems to help in such cases. This could also be due to an incorrect version of libcudnn. Double check your versions with the :ref:`TensorFlow 1.15 documentation <cuda-deps>`.
 
+Basic Dockerfile for training
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We provide ``Dockerfile.train`` to automatically set up a basic training environment in Docker. You need to generate the Dockerfile from the template using:
+This should ensure that you'll re-use the upstream Python 3 TensorFlow GPU-enabled Docker image.
+
+.. code-block:: bash
+
+   make Dockerfile.train
+
+If you want to specify a different DeepSpeech repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
+
+.. code-block:: bash
+
+   make Dockerfile.train DEEPSPEECH_REPO=git://your/fork DEEPSPEECH_SHA=origin/your-branch
+
 Common Voice training data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 

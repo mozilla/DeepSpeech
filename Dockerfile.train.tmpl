@@ -1,0 +1,44 @@
+# Please refer to the TRAINING documentation, "Basic Dockerfile for training"
+
+FROM tensorflow/tensorflow:1.15.2-gpu-py3
+
+ENV DEEPSPEECH_REPO=#DEEPSPEECH_REPO#
+ENV DEEPSPEECH_SHA=#DEEPSPEECH_SHA#
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        apt-utils \
+        bash-completion \
+        build-essential \
+        curl \
+        git \
+        git-lfs \
+        libbz2-dev \
+        locales \
+        python3-venv \
+        unzip \
+        wget
+
+WORKDIR /
+RUN git lfs install
+RUN git clone $DEEPSPEECH_REPO
+
+WORKDIR /DeepSpeech
+RUN git checkout $DEEPSPEECH_SHA
+
+# Setup a virtualenv otherwise we mess with the system and this is BAD.
+RUN python3 -m venv venv/
+
+ENV VIRTUAL_ENV=/DeepSpeech/venv
+ENV PATH=$VIRTUAL_ENV/bin:$PATH
+
+# Build CTC decoder first, to avoid clashes on incompatible versions upgrades
+RUN cd native_client/ctcdecode && make NUM_PROCESSES=$(nproc) bindings
+RUN pip3 install --upgrade native_client/ctcdecode/dist/*.whl
+
+# Prepare deps
+RUN pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
+
+# Install DeepSpeech, no need for the decoder since we did it earlier
+RUN DS_NODECODER=y pip3 install --upgrade --force-reinstall -e .
+
+RUN ./bin/run-ldc93s1.sh

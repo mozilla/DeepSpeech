@@ -186,6 +186,22 @@ Installing bindings from source
 
 If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow the :github:`native client build and installation instructions <native_client/README.rst>`.
 
+Dockerfile for building from source
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We provide ``Dockerfile.build`` to automatically build ``libdeepspeech.so``, the C++ native client, Python bindings, and KenLM.
+You need to generate the Dockerfile from the template using:
+
+.. code-block:: bash
+
+   make Dockerfile.build
+
+If you want to specify a different DeepSpeech repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
+
+.. code-block:: bash
+
+   make Dockerfile.build DEEPSPEECH_REPO=git://your/fork DEEPSPEECH_SHA=origin/your-branch
+
 Third party bindings
 ^^^^^^^^^^^^^^^^^^^^
 
