@@ -39,7 +39,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         openjdk-8-jdk \
         bash-completion \
         g++ \
-        unzip
+        unzip \
+        git-lfs
 
 RUN ln -s -f /usr/bin/python3 /usr/bin/python
 
@@ -137,15 +138,9 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64:/usr/loc
 
 # << END Configure Bazel
 
-
-# Copy DeepSpeech repo contents to container's /DeepSpeech
-COPY . /DeepSpeech/
-
-# Alternative clone from GitHub 
-# RUN apt-get update && apt-get install -y git-lfs 
-# WORKDIR /
-# RUN git lfs install
-# RUN git clone https://github.com/mozilla/DeepSpeech.git
+WORKDIR /
+RUN git lfs install
+RUN git clone https://github.com/mozilla/DeepSpeech.git
 
 WORKDIR /DeepSpeech
 
@@ -225,3 +220,5 @@ RUN rm -rf kenlm \
 
 # Done
 WORKDIR /DeepSpeech
+
+RUN ./bin/run-ldc93s1.sh
