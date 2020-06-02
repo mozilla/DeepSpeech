@@ -25,7 +25,7 @@ if [ "${OS}" = "Darwin" ]; then
     export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
 
     export HOMEBREW_NO_AUTO_UPDATE=1
-    export BREW_URL=https://github.com/Homebrew/brew/tarball/2.1.14
+    export BREW_URL=https://github.com/Homebrew/brew/tarball/2.2.17
 
     export BUILDS_BREW="${TASKCLUSTER_TASK_DIR}/homebrew-builds"
     export TESTS_BREW="${TASKCLUSTER_TASK_DIR}/homebrew-tests"

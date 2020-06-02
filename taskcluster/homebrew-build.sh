@@ -29,7 +29,7 @@ do_prepare_homebrew()
   export PATH=${_brew_instance}/bin:$PATH
   export HOMEBREW_LOGS="${_brew_instance}/homebrew.logs/"
   export HOMEBREW_CACHE="${_brew_instance}/homebrew.cache/"
-  export BREW_FORMULAS_COMMIT=c3f06e4f17853bea8c35742923a9c43d3a244d35
+  export BREW_FORMULAS_COMMIT=ddd39cf1b71452bfe9c5f17f45cc0118796b20d3
 
   # Never fail on pre-existing homebrew/ directory
   mkdir -p "${_brew_instance}" || true
