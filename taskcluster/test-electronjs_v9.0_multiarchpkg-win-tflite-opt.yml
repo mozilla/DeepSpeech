@@ -8,7 +8,7 @@ build:
     >
       ${system.sox_win} && ${nodejs.win.prep_12}
   args:
-    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 9.0.1 16k"
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron_tflite-tests.sh 12.x 9.0.1 16k"
   metadata:
     name: "DeepSpeech Windows AMD64 TFLite ElectronJS MultiArch Package v9.0 tests"
     description: "Testing DeepSpeech for Windows/AMD64 on ElectronJS MultiArch Package v9.0, TFLite only, optimized version"
