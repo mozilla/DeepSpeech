@@ -16,7 +16,7 @@ mkdir -p ${devDir}
 
 node-gyp list ${devDir}
 
-for node in ${SUPPORTED_NODEJS_VERSIONS}; do
+for node in ${SUPPORTED_NODEJS_BUILD_VERSIONS}; do
     node-gyp install --devdir ${devDir} \
         --target=$node
     mkdir ${devDir}/${node}/x64/ || true
