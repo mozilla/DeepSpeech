@@ -24,6 +24,15 @@ import sys
 
 sys.path.insert(0, os.path.abspath('../'))
 
+# Install npm deps
+# This must be kept in sync with:
+#   - native_client/javascript/package.json.in devDependencies
+# Note that only dependencies of index.ts need to be installed (not client.ts).
+import subprocess
+subprocess.check_call(
+  ['npm', 'install', 'typedoc@0.17.4', 'typescript@3.8.3', '@types/node@13.9.x']
+)
+
 autodoc_mock_imports = ['deepspeech']
 
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
