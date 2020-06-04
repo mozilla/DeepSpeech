@@ -3,7 +3,7 @@ NODE_ABI_TARGET    ?=
 NODE_BUILD_VERBOSE ?= --verbose
 NPM_TOOL           ?= npm
 PROJECT_NAME       ?= deepspeech
-PROJECT_VERSION    ?= $(shell cat ../../VERSION | tr -d '\n')
+PROJECT_VERSION    ?= $(shell cat ../../training/deepspeech_training/VERSION | tr -d '\n')
 NPM_ROOT           ?= $(shell npm root)
 
 NODE_MODULES_BIN   ?= $(NPM_ROOT)/.bin/
