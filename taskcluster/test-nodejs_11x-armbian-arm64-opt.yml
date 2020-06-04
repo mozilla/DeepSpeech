@@ -11,4 +11,4 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node_tflite-tests.sh 11.x 16k"
   metadata:
     name: "DeepSpeech ARMbian ARM64 Cortex-A53 CPU NodeJS 11.x tests"
-    description: "Testing DeepSpeech forARMbian ARM64 Cortex-A53 on NodeJS v11.x, CPU only, optimized version"
+    description: "Testing DeepSpeech for ARMbian ARM64 Cortex-A53 on NodeJS v11.x, CPU only, optimized version"

@@ -1,8 +1,8 @@
 build:
   template_file: homebrew-darwin-opt-base.tyml
   homebrew:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_tests.4/artifacts/public/homebrew_tests.tar.gz'
-    namespace: 'project.deepspeech.homebrew_tests.4'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_tests.6/artifacts/public/homebrew_tests.tar.gz'
+    namespace: 'project.deepspeech.homebrew_tests.6'
   scripts:
     build: "taskcluster/homebrew-build.sh --tests"
     package: "taskcluster/homebrew-package.sh --tests"

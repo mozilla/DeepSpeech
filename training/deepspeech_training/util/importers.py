@@ -42,15 +42,17 @@ def get_validate_label(args):
     :return: The user-supplied validate_label function
     :type: function
     """
+    # Python 3.5 does not support passing a pathlib.Path to os.path.* methods
     if 'validate_label_locale' not in args or (args.validate_label_locale is None):
         print('WARNING: No --validate_label_locale specified, your might end with inconsistent dataset.')
         return validate_label_eng
-    if not os.path.exists(os.path.abspath(args.validate_label_locale)):
+    validate_label_locale = str(args.validate_label_locale)
+    if not os.path.exists(os.path.abspath(validate_label_locale)):
         print('ERROR: Inexistent --validate_label_locale specified. Please check.')
         return None
-    module_dir = os.path.abspath(os.path.dirname(args.validate_label_locale))
+    module_dir = os.path.abspath(os.path.dirname(validate_label_locale))
     sys.path.insert(1, module_dir)
-    fname = os.path.basename(args.validate_label_locale).replace('.py', '')
+    fname = os.path.basename(validate_label_locale).replace('.py', '')
     locale_module = importlib.import_module(fname, package=None)
     return locale_module.validate_label
 
