@@ -168,7 +168,7 @@ def split_audio_file(audio_path,
         segments = vad_split(frames, aggressiveness=aggressiveness)
         for segment in segments:
             segment_buffer, time_start, time_end = segment
-            samples = pcm_to_np(audio_format, segment_buffer)
+            samples = pcm_to_np(segment_buffer, audio_format)
             yield time_start, time_end, samples
 
     def to_mfccs(time_start, time_end, samples):
