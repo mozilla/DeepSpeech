@@ -29,6 +29,7 @@ autodoc_mock_imports = ['deepspeech']
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 if read_the_docs_build:
     import subprocess
+    subprocess.call('cd ../ && npm install typedoc@0.17.4 typescript@3.8.3 @types/node@13.9.x', shell=True)
     subprocess.call('cd ../ && doxygen doc/doxygen-c.conf', shell=True)
     subprocess.call('cd ../ && doxygen doc/doxygen-java.conf', shell=True)
     subprocess.call('cd ../ && doxygen doc/doxygen-dotnet.conf', shell=True)
