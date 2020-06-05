@@ -111,7 +111,7 @@ def write_csvs(extracted):
             CLI_ARGS.base_dir, "tuda-{}-{}.csv".format(TUDA_VERSION, sub_set)
         )
         print('Writing "{}"...'.format(csv_path))
-        with open(csv_path, "w") as csv_file:
+        with open(csv_path, "w", encoding="utf-8", newline="") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=FIELDNAMES)
             writer.writeheader()
             set_dir = os.path.join(extracted, sub_set)

@@ -159,9 +159,9 @@ def _maybe_convert_sets(target_dir, extracted_data):
     pool.close()
     pool.join()
 
-    with open(target_csv_template.format("train"), "w") as train_csv_file:  # 80%
-        with open(target_csv_template.format("dev"), "w") as dev_csv_file:  # 10%
-            with open(target_csv_template.format("test"), "w") as test_csv_file:  # 10%
+    with open(target_csv_template.format("train"), "w", encoding="utf-8", newline="") as train_csv_file:  # 80%
+        with open(target_csv_template.format("dev"), "w", encoding="utf-8", newline="") as dev_csv_file:  # 10%
+            with open(target_csv_template.format("test"), "w", encoding="utf-8", newline="") as test_csv_file:  # 10%
                 train_writer = csv.DictWriter(train_csv_file, fieldnames=FIELDNAMES)
                 train_writer.writeheader()
                 dev_writer = csv.DictWriter(dev_csv_file, fieldnames=FIELDNAMES)
