@@ -51,6 +51,9 @@ pushd ${HOME}/DeepSpeech/ds/
     # Testing interleaved source (SDB+CSV combination) - run twice to test preprocessed features
     time ./bin/run-tc-ldc93s1_new_sdb_csv.sh 109 "${sample_rate}"
     time ./bin/run-tc-ldc93s1_new_sdb_csv.sh 1 "${sample_rate}"
+
+    # Test --metrics_files training argument
+    time ./bin/run-tc-ldc93s1_new_metrics.sh 2 "${sample_rate}"
 popd
 
 pushd ${HOME}/DeepSpeech/ds/
