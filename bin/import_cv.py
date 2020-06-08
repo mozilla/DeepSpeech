@@ -127,7 +127,7 @@ def _maybe_convert_set(extracted_dir, source_csv, target_csv):
     pool.join()
 
     print('Writing "%s"...' % target_csv)
-    with open(target_csv, "w") as target_csv_file:
+    with open(target_csv, "w", encoding="utf-8", newline="") as target_csv_file:
         writer = csv.DictWriter(target_csv_file, fieldnames=FIELDNAMES)
         writer.writeheader()
         bar = progressbar.ProgressBar(max_value=len(rows), widgets=SIMPLE_BAR)

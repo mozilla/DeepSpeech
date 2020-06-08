@@ -194,16 +194,17 @@ WORKDIR /DeepSpeech/
 RUN pip3 install tensorflow-gpu==1.15.0
 
 
-# Make DeepSpeech and install Python bindings
+# Build client.cc and install Python client and decoder bindings
 ENV TFDIR /tensorflow
 WORKDIR /DeepSpeech/native_client
 RUN make deepspeech
-WORKDIR /DeepSpeech/native_client/python
-RUN make bindings
-RUN pip3 install --upgrade dist/deepspeech*
-WORKDIR /DeepSpeech/native_client/ctcdecode
-RUN make bindings
-RUN pip3 install --upgrade dist/*.whl
+
+WORKDIR /DeepSpeech
+RUN cd native_client/python && make bindings
+RUN pip3 install --upgrade native_client/python/dist/*.whl
+
+RUN cd native_client/ctcdecode && make bindings
+RUN pip3 install --upgrade native_client/ctcdecode/dist/*.whl
 
 
 # << END Build and bind

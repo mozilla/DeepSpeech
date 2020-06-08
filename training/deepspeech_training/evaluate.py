@@ -61,7 +61,6 @@ def evaluate(test_csvs, create_model):
     # One rate per layer
     no_dropout = [None] * 6
     logits, _ = create_model(batch_x=batch_x,
-                             batch_size=FLAGS.test_batch_size,
                              seq_length=batch_x_len,
                              dropout=no_dropout)
 

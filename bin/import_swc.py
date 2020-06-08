@@ -461,7 +461,7 @@ def write_csvs(samples, language):
         base_dir = os.path.abspath(CLI_ARGS.base_dir)
         csv_path = os.path.join(base_dir, language + "-" + sub_set + ".csv")
         print('Writing "{}"...'.format(csv_path))
-        with open(csv_path, "w") as csv_file:
+        with open(csv_path, "w", encoding="utf-8", newline="") as csv_file:
             writer = csv.DictWriter(
                 csv_file, fieldnames=FIELDNAMES_EXT if CLI_ARGS.add_meta else FIELDNAMES
             )
