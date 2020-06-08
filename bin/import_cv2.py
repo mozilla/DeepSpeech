@@ -127,7 +127,7 @@ def _maybe_convert_set(dataset, tsv_dir, audio_dir, filter_obj, space_after_ever
 
     output_csv = os.path.join(os.path.abspath(audio_dir), dataset + ".csv")
     print("Saving new DeepSpeech-formatted CSV file to: ", output_csv)
-    with open(output_csv, "w", encoding="utf-8") as output_csv_file:
+    with open(output_csv, "w", encoding="utf-8", newline="") as output_csv_file:
         print("Writing CSV file for DeepSpeech.py as: ", output_csv)
         writer = csv.DictWriter(output_csv_file, fieldnames=FIELDNAMES)
         writer.writeheader()
