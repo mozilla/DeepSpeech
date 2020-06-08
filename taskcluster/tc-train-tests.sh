@@ -8,6 +8,13 @@ extract_python_versions "$1" "pyver" "pyver_pkg" "py_unicode_type" "pyconf" "pya
 
 bitrate=$2
 
+decoder_src=$3
+
+if [ "$decoder_src" = "--pypi" ]; then
+    # Disable automatically picking up decoder package built in this CI group
+    export DECODER_ARTIFACTS_ROOT=""
+fi
+
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 mkdir -p /tmp/train || true
 mkdir -p /tmp/train_tflite || true

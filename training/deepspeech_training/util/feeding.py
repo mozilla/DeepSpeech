@@ -151,7 +151,7 @@ def create_dataset(sources,
                               .map(process_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE))
     if enable_cache:
         dataset = dataset.cache(cache_path)
-    dataset = (dataset.window(batch_size, drop_remainder=True).flat_map(batch_fn)
+    dataset = (dataset.window(batch_size, drop_remainder=train_phase).flat_map(batch_fn)
                       .prefetch(len(Config.available_devices)))
     return dataset
 
@@ -168,7 +168,7 @@ def split_audio_file(audio_path,
         segments = vad_split(frames, aggressiveness=aggressiveness)
         for segment in segments:
             segment_buffer, time_start, time_end = segment
-            samples = pcm_to_np(audio_format, segment_buffer)
+            samples = pcm_to_np(segment_buffer, audio_format)
             yield time_start, time_end, samples
 
     def to_mfccs(time_start, time_end, samples):

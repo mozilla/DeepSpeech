@@ -57,7 +57,7 @@ export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 export DS_EXAMPLEDIR=${DS_ROOT_TASK}/DeepSpeech/examples
 
-export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
+export DS_VERSION="$(cat ${DS_DSDIR}/training/deepspeech_training/VERSION)"
 
 export GRADLE_USER_HOME=${DS_ROOT_TASK}/gradle-cache
 export ANDROID_SDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/SDK/

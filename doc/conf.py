@@ -26,12 +26,14 @@ sys.path.insert(0, os.path.abspath('../'))
 
 autodoc_mock_imports = ['deepspeech']
 
-read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
-if read_the_docs_build:
-    import subprocess
-    subprocess.call('cd ../ && doxygen doc/doxygen-c.conf', shell=True)
-    subprocess.call('cd ../ && doxygen doc/doxygen-java.conf', shell=True)
-    subprocess.call('cd ../ && doxygen doc/doxygen-dotnet.conf', shell=True)
+# This is in fact only relevant on ReadTheDocs, but we want to run the same way
+# on our CI as in RTD to avoid regressions on RTD that we would not catch on
+# TaskCluster
+import subprocess
+subprocess.check_call('cd ../ && npm install typedoc@0.17.4 typescript@3.8.3 @types/node@13.9.x', shell=True)
+subprocess.check_call('cd ../ && doxygen doc/doxygen-c.conf', shell=True)
+subprocess.check_call('cd ../ && doxygen doc/doxygen-java.conf', shell=True)
+subprocess.check_call('cd ../ && doxygen doc/doxygen-dotnet.conf', shell=True)
 
 # -- General configuration ------------------------------------------------
 
