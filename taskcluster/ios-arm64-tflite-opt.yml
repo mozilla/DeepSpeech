@@ -1,0 +1,21 @@
+build:
+  template_file: darwin-opt-base.tyml
+  dependencies:
+    - "swig-darwin-amd64"
+    - "node-gyp-cache"
+    - "homebrew_builds-darwin-amd64"
+    - "pyenv-darwin-amd64"
+    - "tf_ios-arm64-opt"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.ios_arm64-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.ios_arm64-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.ios_arm64-tflite.${event.head.sha}"
+  tensorflow: ${system.tensorflow.ios_arm64.url}
+  scripts:
+    build: "taskcluster/ios-build.sh"
+    package: "taskcluster/package.sh"
+  nc_asset_name: "native_client.arm64.tflite.ios.tar.xz"
+  maxRunTime: 14400
+  metadata:
+    name: "DeepSpeech iOS ARM64 TFLite"
+    description: "Building DeepSpeech for iOS ARM64, TFLite, optimized version"
