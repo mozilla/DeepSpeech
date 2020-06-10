@@ -91,6 +91,7 @@ def one_sample(sample):
     else:
         # This one is good - keep it for the target CSV
         rows.append((wav_filename, file_size, label))
+        counter["imported_time"] += frames
     counter["all"] += 1
     counter["total_time"] += frames
 
