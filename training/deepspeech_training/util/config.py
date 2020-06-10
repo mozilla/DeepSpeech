@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import sys
-import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
 
 from attrdict import AttrDict
@@ -13,6 +12,7 @@ from .gpu import get_available_gpus
 from .logging import log_error, log_warn
 from .text import Alphabet, UTF8Alphabet
 from .helpers import parse_file_size
+from .augmentations import parse_augmentations
 
 class ConfigSingleton:
     _config = None
@@ -29,6 +29,17 @@ Config = ConfigSingleton() # pylint: disable=invalid-name
 
 def initialize_globals():
     c = AttrDict()
+
+    # Augmentations
+    c.augmentations = parse_augmentations(FLAGS.augment)
+    if len(c.augmentations) > 0 and FLAGS.feature_cache is not None and FLAGS.cache_for_epochs == 0:
+        log_warn('Due to current feature-cache settings the exact same sample augmentations of the first '
+                 'epoch will be repeated on all following epochs. This could lead to unintended over-fitting. '
+                 'You could use --cache_for_epochs <n_epochs> to invalidate the cache after a given number of epochs.')
+
+    # Caching
+    if FLAGS.cache_for_epochs == 1:
+        log_warn('--cache_for_epochs == 1 is (re-)creating the feature cache on every epoch but will never use it.')
 
     # Read-buffer
     FLAGS.read_buffer = parse_file_size(FLAGS.read_buffer)

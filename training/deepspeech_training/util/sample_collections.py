@@ -2,14 +2,12 @@
 import os
 import csv
 import json
-import random
 
 from pathlib import Path
 from functools import partial
 
-from .signal_augmentations import parse_augmentation
-from .helpers import MEGABYTE, GIGABYTE, Interleaved, LimitingPool
-from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_OPUS, AUDIO_TYPE_NP, SERIALIZABLE_AUDIO_TYPES, get_audio_type_from_extension
+from .helpers import MEGABYTE, GIGABYTE, Interleaved
+from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_OPUS, SERIALIZABLE_AUDIO_TYPES, get_audio_type_from_extension
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4
@@ -416,88 +414,3 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None):
         return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled)
     cols = list(map(partial(samples_from_source, buffering=buffering, labeled=labeled), sample_sources))
     return Interleaved(*cols, key=lambda s: s.duration)
-
-
-class PreparationContext:
-    def __init__(self, target_audio_type, augmentations):
-        self.target_audio_type = target_audio_type
-        self.augmentations = augmentations
-
-
-AUGMENTATION_CONTEXT = None
-
-
-def _init_augmentation_worker(preparation_context):
-    global AUGMENTATION_CONTEXT  # pylint: disable=global-statement
-    AUGMENTATION_CONTEXT = preparation_context
-
-
-def _augment_sample(timed_sample, context=None):
-    context = AUGMENTATION_CONTEXT if context is None else context
-    sample, clock = timed_sample
-    for augmentation in context.augmentations:
-        if random.random() < augmentation.probability:
-            augmentation.apply(sample, clock)
-    sample.change_audio_type(new_audio_type=context.target_audio_type)
-    return sample
-
-
-def augment_samples(samples,
-                    audio_type=AUDIO_TYPE_NP,
-                    augmentation_specs=None,
-                    buffering=BUFFER_SIZE,
-                    process_ahead=None,
-                    repetitions=1,
-                    fixed_clock=None):
-    """
-    Prepares samples for being used during training.
-    This includes parallel and buffered application of augmentations and a conversion to a specified audio-type.
-
-    Parameters
-    ----------
-    samples : Sample enumeration
-        Typically produced by samples_from_sources.
-    audio_type : str
-        Target audio-type to convert samples to. See util.audio.Sample.__init__ .
-    augmentation_specs : list of str
-        Augmentation specifications like ["reverb[delay=20.0,decay=-20]", "volume"]. See TRAINING.rst.
-    buffering : int
-        Read-buffer size to use while reading files.
-    process_ahead : int
-        Number of samples to pre-process ahead of time.
-    repetitions : int
-        How often the input sample enumeration should get repeated for being re-augmented.
-    fixed_clock : float
-        Sets the internal clock to a value between 0.0 (beginning of epoch) and 1.0 (end of epoch).
-        Setting this to a number is used for simulating augmentations at a certain epoch-time.
-        If kept at None (default), the internal clock will run regularly from 0.0 to 1.0,
-        hence preparing them for training.
-
-    Returns
-    -------
-    iterable of util.sample_collections.LabeledSample or util.audio.Sample
-    """
-    def timed_samples():
-        for repetition in range(repetitions):
-            for sample_index, sample in enumerate(samples):
-                if fixed_clock is None:
-                    yield sample, (repetition * len(samples) + sample_index) / (repetitions * len(samples))
-                else:
-                    yield sample, fixed_clock
-
-    augmentations = [] if augmentation_specs is None else list(map(parse_augmentation, augmentation_specs))
-    try:
-        for augmentation in augmentations:
-            augmentation.start(buffering=buffering)
-        context = PreparationContext(audio_type, augmentations)
-        if process_ahead == 0:
-            for timed_sample in timed_samples():
-                yield _augment_sample(timed_sample, context=context)
-        else:
-            with LimitingPool(process_ahead=process_ahead,
-                              initializer=_init_augmentation_worker,
-                              initargs=(context,)) as pool:
-                yield from pool.imap(_augment_sample, timed_samples())
-    finally:
-        for augmentation in augmentations:
-            augmentation.stop()

@@ -22,7 +22,8 @@ popd
 set +o pipefail
 
 pushd ${HOME}/DeepSpeech/ds/
-    time ./bin/run-tc-signal_augmentations.sh
+    time ./bin/run-tc-sample_augmentations.sh
+    time ./bin/run-tc-graph_augmentations.sh
 popd
 
 virtualenv_deactivate "${pyalias}" "deepspeech"

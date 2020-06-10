@@ -41,12 +41,6 @@ if ! $compare --if-differ "${ldc93s1_wav}" /tmp/reverb-test.wav; then
   exit 1
 fi
 
-$play ${ldc93s1_wav} --augment gaps[n=10,size=100.0] --pipe >/tmp/gaps-test.wav
-if ! $compare --if-differ "${ldc93s1_wav}" /tmp/gaps-test.wav; then
-  echo "Gaps augmentation had no effect or changed basic sample properties"
-  exit 1
-fi
-
 $play ${ldc93s1_wav} --augment resample[rate=4000] --pipe >/tmp/resample-test.wav
 if ! $compare --if-differ "${ldc93s1_wav}" /tmp/resample-test.wav; then
   echo "Resample augmentation had no effect or changed basic sample properties"
