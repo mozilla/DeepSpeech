@@ -1,0 +1,12 @@
+framework module deepspeech_ios {
+  umbrella header "deepspeech_ios.h"
+
+  export *
+  module * { export * }
+  
+  explicit module libdeepspeech_Private {
+      header "deepspeech.h"
+      export *
+      link "deepspeech"
+  }
+}

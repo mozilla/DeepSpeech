@@ -1,0 +1,4 @@
+.DS_Store
+build/
+xcuserdata/
+/deepspeech_ios/libdeepspeech.dylib

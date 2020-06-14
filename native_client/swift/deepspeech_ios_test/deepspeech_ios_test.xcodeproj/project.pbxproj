@@ -1,0 +1,637 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		507CD3A124B61FE400409BBB /* deepspeech_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A024B61FE400409BBB /* deepspeech_ios.framework */; };
+		507CD3A324B61FEB00409BBB /* libdeepspeech.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; };
+		507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		50F787F32497683900D52237 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F22497683900D52237 /* AppDelegate.swift */; };
+		50F787F52497683900D52237 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F42497683900D52237 /* SceneDelegate.swift */; };
+		50F787F72497683900D52237 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F62497683900D52237 /* ContentView.swift */; };
+		50F787F92497683A00D52237 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50F787F82497683A00D52237 /* Assets.xcassets */; };
+		50F787FC2497683A00D52237 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50F787FB2497683A00D52237 /* Preview Assets.xcassets */; };
+		50F787FF2497683A00D52237 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50F787FD2497683A00D52237 /* LaunchScreen.storyboard */; };
+		50F7880A2497683A00D52237 /* deepspeech_ios_testTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F788092497683A00D52237 /* deepspeech_ios_testTests.swift */; };
+		50F788152497683A00D52237 /* deepspeech_ios_testUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F788142497683A00D52237 /* deepspeech_ios_testUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		50F788062497683A00D52237 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 50F787E72497683900D52237 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 50F787EE2497683900D52237;
+			remoteInfo = deepspeech_ios_test;
+		};
+		50F788112497683A00D52237 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 50F787E72497683900D52237 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 50F787EE2497683900D52237;
+			remoteInfo = deepspeech_ios_test;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		50F2B10E2498EB59007CD876 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		507CD3A024B61FE400409BBB /* deepspeech_ios.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = deepspeech_ios.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		507CD3A224B61FEA00409BBB /* libdeepspeech.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libdeepspeech.so; path = ../libdeepspeech.so; sourceTree = "<group>"; };
+		50F787EF2497683900D52237 /* deepspeech_ios_test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = deepspeech_ios_test.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		50F787F22497683900D52237 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		50F787F42497683900D52237 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		50F787F62497683900D52237 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		50F787F82497683A00D52237 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		50F787FB2497683A00D52237 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		50F787FE2497683A00D52237 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		50F788002497683A00D52237 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		50F788052497683A00D52237 /* deepspeech_ios_testTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = deepspeech_ios_testTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		50F788092497683A00D52237 /* deepspeech_ios_testTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = deepspeech_ios_testTests.swift; sourceTree = "<group>"; };
+		50F7880B2497683A00D52237 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		50F788102497683A00D52237 /* deepspeech_ios_testUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = deepspeech_ios_testUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		50F788142497683A00D52237 /* deepspeech_ios_testUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = deepspeech_ios_testUITests.swift; sourceTree = "<group>"; };
+		50F788162497683A00D52237 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		50F787EC2497683900D52237 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				507CD3A324B61FEB00409BBB /* libdeepspeech.so in Frameworks */,
+				507CD3A124B61FE400409BBB /* deepspeech_ios.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50F788022497683A00D52237 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50F7880D2497683A00D52237 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		50F2B0FC2498D6C7007CD876 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				507CD3A224B61FEA00409BBB /* libdeepspeech.so */,
+				507CD3A024B61FE400409BBB /* deepspeech_ios.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		50F787E62497683900D52237 = {
+			isa = PBXGroup;
+			children = (
+				50F787F12497683900D52237 /* deepspeech_ios_test */,
+				50F788082497683A00D52237 /* deepspeech_ios_testTests */,
+				50F788132497683A00D52237 /* deepspeech_ios_testUITests */,
+				50F787F02497683900D52237 /* Products */,
+				50F2B0FC2498D6C7007CD876 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		50F787F02497683900D52237 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				50F787EF2497683900D52237 /* deepspeech_ios_test.app */,
+				50F788052497683A00D52237 /* deepspeech_ios_testTests.xctest */,
+				50F788102497683A00D52237 /* deepspeech_ios_testUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		50F787F12497683900D52237 /* deepspeech_ios_test */ = {
+			isa = PBXGroup;
+			children = (
+				50F787F22497683900D52237 /* AppDelegate.swift */,
+				50F787F42497683900D52237 /* SceneDelegate.swift */,
+				50F787F62497683900D52237 /* ContentView.swift */,
+				50F787F82497683A00D52237 /* Assets.xcassets */,
+				50F787FD2497683A00D52237 /* LaunchScreen.storyboard */,
+				50F788002497683A00D52237 /* Info.plist */,
+				50F787FA2497683A00D52237 /* Preview Content */,
+			);
+			path = deepspeech_ios_test;
+			sourceTree = "<group>";
+		};
+		50F787FA2497683A00D52237 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				50F787FB2497683A00D52237 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		50F788082497683A00D52237 /* deepspeech_ios_testTests */ = {
+			isa = PBXGroup;
+			children = (
+				50F788092497683A00D52237 /* deepspeech_ios_testTests.swift */,
+				50F7880B2497683A00D52237 /* Info.plist */,
+			);
+			path = deepspeech_ios_testTests;
+			sourceTree = "<group>";
+		};
+		50F788132497683A00D52237 /* deepspeech_ios_testUITests */ = {
+			isa = PBXGroup;
+			children = (
+				50F788142497683A00D52237 /* deepspeech_ios_testUITests.swift */,
+				50F788162497683A00D52237 /* Info.plist */,
+			);
+			path = deepspeech_ios_testUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		50F787EE2497683900D52237 /* deepspeech_ios_test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50F788192497683A00D52237 /* Build configuration list for PBXNativeTarget "deepspeech_ios_test" */;
+			buildPhases = (
+				50F787EB2497683900D52237 /* Sources */,
+				50F787EC2497683900D52237 /* Frameworks */,
+				50F787ED2497683900D52237 /* Resources */,
+				50F2B10E2498EB59007CD876 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = deepspeech_ios_test;
+			productName = deepspeech_ios_test;
+			productReference = 50F787EF2497683900D52237 /* deepspeech_ios_test.app */;
+			productType = "com.apple.product-type.application";
+		};
+		50F788042497683A00D52237 /* deepspeech_ios_testTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50F7881C2497683A00D52237 /* Build configuration list for PBXNativeTarget "deepspeech_ios_testTests" */;
+			buildPhases = (
+				50F788012497683A00D52237 /* Sources */,
+				50F788022497683A00D52237 /* Frameworks */,
+				50F788032497683A00D52237 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				50F788072497683A00D52237 /* PBXTargetDependency */,
+			);
+			name = deepspeech_ios_testTests;
+			productName = deepspeech_ios_testTests;
+			productReference = 50F788052497683A00D52237 /* deepspeech_ios_testTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		50F7880F2497683A00D52237 /* deepspeech_ios_testUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50F7881F2497683A00D52237 /* Build configuration list for PBXNativeTarget "deepspeech_ios_testUITests" */;
+			buildPhases = (
+				50F7880C2497683A00D52237 /* Sources */,
+				50F7880D2497683A00D52237 /* Frameworks */,
+				50F7880E2497683A00D52237 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				50F788122497683A00D52237 /* PBXTargetDependency */,
+			);
+			name = deepspeech_ios_testUITests;
+			productName = deepspeech_ios_testUITests;
+			productReference = 50F788102497683A00D52237 /* deepspeech_ios_testUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		50F787E72497683900D52237 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1150;
+				LastUpgradeCheck = 1150;
+				ORGANIZATIONNAME = Mozilla;
+				TargetAttributes = {
+					50F787EE2497683900D52237 = {
+						CreatedOnToolsVersion = 11.5;
+					};
+					50F788042497683A00D52237 = {
+						CreatedOnToolsVersion = 11.5;
+						TestTargetID = 50F787EE2497683900D52237;
+					};
+					50F7880F2497683A00D52237 = {
+						CreatedOnToolsVersion = 11.5;
+						TestTargetID = 50F787EE2497683900D52237;
+					};
+				};
+			};
+			buildConfigurationList = 50F787EA2497683900D52237 /* Build configuration list for PBXProject "deepspeech_ios_test" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 50F787E62497683900D52237;
+			productRefGroup = 50F787F02497683900D52237 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				50F787EE2497683900D52237 /* deepspeech_ios_test */,
+				50F788042497683A00D52237 /* deepspeech_ios_testTests */,
+				50F7880F2497683A00D52237 /* deepspeech_ios_testUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		50F787ED2497683900D52237 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				50F787FF2497683A00D52237 /* LaunchScreen.storyboard in Resources */,
+				50F787FC2497683A00D52237 /* Preview Assets.xcassets in Resources */,
+				50F787F92497683A00D52237 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50F788032497683A00D52237 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50F7880E2497683A00D52237 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		50F787EB2497683900D52237 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				50F787F32497683900D52237 /* AppDelegate.swift in Sources */,
+				50F787F52497683900D52237 /* SceneDelegate.swift in Sources */,
+				50F787F72497683900D52237 /* ContentView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50F788012497683A00D52237 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				50F7880A2497683A00D52237 /* deepspeech_ios_testTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50F7880C2497683A00D52237 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				50F788152497683A00D52237 /* deepspeech_ios_testUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		50F788072497683A00D52237 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 50F787EE2497683900D52237 /* deepspeech_ios_test */;
+			targetProxy = 50F788062497683A00D52237 /* PBXContainerItemProxy */;
+		};
+		50F788122497683A00D52237 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 50F787EE2497683900D52237 /* deepspeech_ios_test */;
+			targetProxy = 50F788112497683A00D52237 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		50F787FD2497683A00D52237 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				50F787FE2497683A00D52237 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		50F788172497683A00D52237 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		50F788182497683A00D52237 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		50F7881A2497683A00D52237 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "\"deepspeech_ios_test/Preview Content\"";
+				DEVELOPMENT_TEAM = AWCG9S27P7;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)";
+				INFOPLIST_FILE = deepspeech_ios_test/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios-test";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		50F7881B2497683A00D52237 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "\"deepspeech_ios_test/Preview Content\"";
+				DEVELOPMENT_TEAM = AWCG9S27P7;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)";
+				INFOPLIST_FILE = deepspeech_ios_test/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios-test";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		50F7881D2497683A00D52237 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = deepspeech_ios_testTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios-testTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/deepspeech_ios_test.app/deepspeech_ios_test";
+			};
+			name = Debug;
+		};
+		50F7881E2497683A00D52237 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = deepspeech_ios_testTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios-testTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/deepspeech_ios_test.app/deepspeech_ios_test";
+			};
+			name = Release;
+		};
+		50F788202497683A00D52237 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = deepspeech_ios_testUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios-testUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = deepspeech_ios_test;
+			};
+			name = Debug;
+		};
+		50F788212497683A00D52237 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = deepspeech_ios_testUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios-testUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = deepspeech_ios_test;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		50F787EA2497683900D52237 /* Build configuration list for PBXProject "deepspeech_ios_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50F788172497683A00D52237 /* Debug */,
+				50F788182497683A00D52237 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		50F788192497683A00D52237 /* Build configuration list for PBXNativeTarget "deepspeech_ios_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50F7881A2497683A00D52237 /* Debug */,
+				50F7881B2497683A00D52237 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		50F7881C2497683A00D52237 /* Build configuration list for PBXNativeTarget "deepspeech_ios_testTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50F7881D2497683A00D52237 /* Debug */,
+				50F7881E2497683A00D52237 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		50F7881F2497683A00D52237 /* Build configuration list for PBXNativeTarget "deepspeech_ios_testUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50F788202497683A00D52237 /* Debug */,
+				50F788212497683A00D52237 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 50F787E72497683900D52237 /* Project object */;
+}
