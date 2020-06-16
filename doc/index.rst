@@ -58,6 +58,8 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 
    TRAINING
 
+   SUPPORTED_PLATFORMS
+
 .. toctree::
    :maxdepth: 2
    :caption: Decoder and scorer
