@@ -16,13 +16,12 @@ export CUDA_VISIBLE_DEVICES=0
 
 python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --train_files ${ldc93s1_csv} --train_batch_size 1 \
-  --augment speed \
   --augment dropout \
-  --augment pitch_and_tempo \
+  --augment pitch \
+  --augment tempo \
   --augment time_mask \
   --augment frequency_mask \
   --augment add \
   --augment multiply \
-  --augment warp \
   --n_hidden 100 \
   --epochs 1
