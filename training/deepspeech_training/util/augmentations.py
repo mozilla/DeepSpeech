@@ -206,7 +206,7 @@ def apply_sample_augmentations(samples,
     if final_clock is not None:
         assert 0.0 <= final_clock <= 1.0
         assert clock <= final_clock
-    augmentations = [aug for aug in augmentations if isinstance(aug, SampleAugmentation)]
+    augmentations = [aug for aug in augmentations if isinstance(aug, SampleAugmentation)] if augmentations else []
     try:
         for augmentation in augmentations:
             augmentation.start(buffering=buffering)
