@@ -1,7 +1,12 @@
 build:
-  template_file: swig-darwin-opt-base.tyml
-  swig_system: "darwin"
-  swig_arch: "amd64"
+  template_file: generic_tc_caching-darwin-opt-base.tyml
+  build_or_cache:
+    repo: "${system.swig.repo}"
+    sha: "${system.swig.sha1}"
+    dir: "swig"
+  cache:
+    artifact_url: "${system.swig_build.osx.url}"
+    artifact_namespace: "${system.swig_build.osx.namespace}"
   scripts:
     build: "taskcluster/build.sh"
     package: "taskcluster/package.sh"

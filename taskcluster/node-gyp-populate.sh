@@ -8,7 +8,9 @@ node --version
 
 npm --version
 
-npm install -g node-gyp@6.x
+npm install node-gyp@6.x
+
+export PATH=$HOME/node_modules/.bin/:$PATH
 
 devDir=$DS_ROOT_TASK/node-gyp-cache/
 
