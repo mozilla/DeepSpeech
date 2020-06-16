@@ -8,6 +8,7 @@ import numpy as np
 from multiprocessing import Queue, Process
 from .audio import gain_db_to_ratio, max_dbfs, normalize_audio, AUDIO_TYPE_NP, AUDIO_TYPE_PCM, AUDIO_TYPE_OPUS
 from .helpers import LimitingPool, int_range, float_range, pick_value_from_range, tf_pick_value_from_range, MEGABYTE
+from .sample_collections import samples_from_source
 
 BUFFER_SIZE = 1 * MEGABYTE
 SPEC_PARSER = re.compile(r'^(?P<cls>[a-z_]+)(\[(?P<params>.*)\])?$')
@@ -36,20 +37,24 @@ class GraphAugmentation(Augmentation):
             raise ValueError('Unsupported augmentation domain: {}'.format(domain))
         self.domain = domain
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         raise NotImplementedError
 
-    def apply_with_probability(self, tensor, clock=0.0):
+    def apply_with_probability(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
         rv = tf.random.stateless_uniform([], seed=(clock * tf.int32.min, clock * tf.int32.max))
         return tf.cond(tf.less(rv, self.probability),
-                       lambda: self.apply(tensor, clock=clock),
+                       lambda: self.apply(tensor, transcript=transcript, clock=clock),
                        lambda: tensor)
 
-    def maybe_apply(self, domain, tensor, clock=0.0):
+    def maybe_apply(self, domain, tensor, transcript=None, clock=0.0):
         if domain == self.domain:
-            return self.apply_with_probability(tensor, clock=clock)
+            return self.apply_with_probability(tensor, transcript=transcript, clock=clock)
         return tensor
+
+    def units_per_ms(self):
+        from .flags import FLAGS  # pylint: disable=import-outside-toplevel
+        return FLAGS.audio_sample_rate / 1000.0 if self.domain == 'signal' else 1.0 / FLAGS.feature_win_step
 
 
 def parse_augmentation(augmentation_spec):
@@ -103,7 +108,7 @@ def parse_augmentations(augmentation_specs):
     return [] if augmentation_specs is None else list(map(parse_augmentation, augmentation_specs))
 
 
-def apply_graph_augmentations(domain, tensor, augmentations, clock=0.0):
+def apply_graph_augmentations(domain, tensor, augmentations, transcript=None, clock=0.0):
     """
     Augments training sample tensor of a certain domain with matching augmentations of passed list.
 
@@ -115,6 +120,7 @@ def apply_graph_augmentations(domain, tensor, augmentations, clock=0.0):
         Tensor to apply augmentations to.
     augmentations : list of augmentation class instances from util.augmentations.*.
         List of augmentations of which only the spectrogram ones will get applied to the samples.
+    transcript : SparseTensor
     clock : Tensor of type float32
         Time indicator for augmentation value-ranges. Running from 0.0 (start of training) to 1.0 (end of training).
 
@@ -124,13 +130,9 @@ def apply_graph_augmentations(domain, tensor, augmentations, clock=0.0):
         The augmented spectrogram
     """
     if augmentations is not None:
-        # Warp has to come before any spectrogram masking
         for augmentation in augmentations:
-            if isinstance(augmentation, Warp):
-                tensor = augmentation.maybe_apply(domain, tensor, clock=clock)
-        for augmentation in augmentations:
-            if isinstance(augmentation, GraphAugmentation) and not isinstance(augmentation, Warp):
-                tensor = augmentation.maybe_apply(domain, tensor, clock=clock)
+            if isinstance(augmentation, GraphAugmentation):
+                tensor = augmentation.maybe_apply(domain, tensor, transcript=transcript, clock=clock)
     return tensor
 
 
@@ -204,7 +206,7 @@ def apply_sample_augmentations(samples,
     if final_clock is not None:
         assert 0.0 <= final_clock <= 1.0
         assert clock <= final_clock
-    augmentations = list(filter(lambda aug: isinstance(aug, SampleAugmentation), augmentations))
+    augmentations = [aug for aug in augmentations if isinstance(aug, SampleAugmentation)]
     try:
         for augmentation in augmentations:
             augmentation.start(buffering=buffering)
@@ -229,8 +231,6 @@ def _enqueue_overlay_samples(sample_source, queue, buffering=BUFFER_SIZE):
     It loads the (raw and still compressed) data and provides it to the actual augmentation workers.
     These are then doing decompression, potential conversion and overlaying in parallel.
     """
-    # preventing cyclic import problems
-    from .sample_collections import samples_from_source  # pylint: disable=import-outside-toplevel
     samples = samples_from_source(sample_source, buffering=buffering, labeled=False)
     while True:
         for sample in samples:
@@ -238,7 +238,7 @@ def _enqueue_overlay_samples(sample_source, queue, buffering=BUFFER_SIZE):
 
 
 class Overlay(SampleAugmentation):
-    """See "Overlay augmentation" in TRAINING.rst"""
+    """See "Overlay augmentation" in training documentation"""
     def __init__(self, source, p=1.0, snr=3.0, layers=1):
         super(Overlay, self).__init__(p)
         self.source = source
@@ -288,7 +288,7 @@ class Overlay(SampleAugmentation):
 
 
 class Codec(SampleAugmentation):
-    """See "Codec augmentation" in TRAINING.rst"""
+    """See "Codec augmentation" in training documentation"""
     def __init__(self, p=1.0, bitrate=3200):
         super(Codec, self).__init__(p)
         self.bitrate = int_range(bitrate)
@@ -300,7 +300,7 @@ class Codec(SampleAugmentation):
 
 
 class Reverb(SampleAugmentation):
-    """See "Reverb augmentation" in TRAINING.rst"""
+    """See "Reverb augmentation" in training documentation"""
     def __init__(self, p=1.0, delay=20.0, decay=10.0):
         super(Reverb, self).__init__(p)
         self.delay = float_range(delay)
@@ -330,7 +330,7 @@ class Reverb(SampleAugmentation):
 
 
 class Resample(SampleAugmentation):
-    """See "Resample augmentation" in TRAINING.rst"""
+    """See "Resample augmentation" in training documentation"""
     def __init__(self, p=1.0, rate=8000):
         super(Resample, self).__init__(p)
         self.rate = int_range(rate)
@@ -350,7 +350,7 @@ class Resample(SampleAugmentation):
 
 
 class Volume(SampleAugmentation):
-    """See "Volume augmentation" in TRAINING.rst"""
+    """See "Volume augmentation" in training documentation"""
     def __init__(self, p=1.0, dbfs=3.0103):
         super(Volume, self).__init__(p)
         self.target_dbfs = float_range(dbfs)
@@ -361,25 +361,22 @@ class Volume(SampleAugmentation):
         sample.audio = normalize_audio(sample.audio, dbfs=target_dbfs)
 
 
-class PitchAndTempo(GraphAugmentation):
-    """See "Pitch and tempo augmentation" in TRAINING.rst"""
-    def __init__(self, p=1.0, tempo=1.2, pitch=(1.075, 1.075, 0.125)):
-        super(PitchAndTempo, self).__init__(p, domain='spectrogram')
-        self.tempo = float_range(tempo)
+class Pitch(GraphAugmentation):
+    """See "Pitch augmentation" in training documentation"""
+    def __init__(self, p=1.0, pitch=(1.075, 1.075, 0.125)):
+        super(Pitch, self).__init__(p, domain='spectrogram')
         self.pitch = float_range(pitch)
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
         original_shape = tf.shape(tensor)
         pitch = tf_pick_value_from_range(self.pitch, clock=clock)
-        tempo = tf.math.maximum(1.0, tf_pick_value_from_range(self.tempo, clock=clock))
         new_freq_size = tf.cast(tf.cast(original_shape[2], tf.float32) * pitch, tf.int32)
-        new_time_size = tf.cast(tf.cast(original_shape[1], tf.float32) / tempo, tf.int32)
-        spectrogram_aug = tf.image.resize_bilinear(tf.expand_dims(tensor, -1), [new_time_size, new_freq_size])
+        spectrogram_aug = tf.image.resize_bilinear(tf.expand_dims(tensor, -1), [original_shape[1], new_freq_size])
         spectrogram_aug = tf.image.crop_to_bounding_box(spectrogram_aug,
                                                         offset_height=0,
                                                         offset_width=0,
-                                                        target_height=tf.shape(spectrogram_aug)[1],
+                                                        target_height=original_shape[1],
                                                         target_width=tf.math.minimum(original_shape[2], new_freq_size))
         spectrogram_aug = tf.cond(pitch < 1,
                                   lambda: tf.image.pad_to_bounding_box(spectrogram_aug,
@@ -391,82 +388,34 @@ class PitchAndTempo(GraphAugmentation):
         return spectrogram_aug[:, :, :, 0]
 
 
-class Speed(GraphAugmentation):
-    """See "Speed augmentation" in TRAINING.rst"""
-    def __init__(self, p=1.0, factor=1.1):
-        super(Speed, self).__init__(p, domain='spectrogram')
+class Tempo(GraphAugmentation):
+    """See "Tempo augmentation" in training documentation"""
+    def __init__(self, p=1.0, factor=1.1, max_time=-1):
+        super(Tempo, self).__init__(p, domain='spectrogram')
         self.factor = float_range(factor)
+        self.max_time = float(max_time)
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
         factor = tf_pick_value_from_range(self.factor, clock=clock)
         original_shape = tf.shape(tensor)
         new_time_size = tf.cast(tf.cast(original_shape[1], tf.float32) / factor, tf.int32)
+        if transcript is not None:
+            new_time_size = tf.math.maximum(new_time_size, tf.shape(transcript)[1])
+        if self.max_time > 0:
+            new_time_size = tf.math.minimum(new_time_size, tf.cast(self.max_time * self.units_per_ms(), tf.int32))
         spectrogram_aug = tf.image.resize_bilinear(tf.expand_dims(tensor, -1), [new_time_size, original_shape[2]])
         return spectrogram_aug[:, :, :, 0]
 
 
-class Warp(GraphAugmentation):
-    """See "Warp augmentation" in TRAINING.rst"""
-    def __init__(self, p=1.0, shift=100.0, order=3, nbp=1, ncp=1, regularization_weight=0.0):
-        super(Warp, self).__init__(p, domain='spectrogram')
-        self.shift = float_range(shift)
-        self.order = int_range(order)
-        self.nbp = int_range(nbp)
-        self.ncp = int_range(ncp)
-        # Making this a value-range is impossible, as it would get a tensor which would downstream be used as parameter
-        # of a comparison inside tensorflow.contrib.image.python.ops.interpolate_spline. This is not supported.
-        self.regularization_weight = float(regularization_weight)
-
-    def apply(self, tensor, clock=0.0):
-        import tensorflow as tf  # pylint: disable=import-outside-toplevel
-        from .flags import FLAGS  # pylint: disable=import-outside-toplevel
-        from .sparse_image_warp import sparse_image_warp  # pylint: disable=import-outside-toplevel
-
-        # reshape to fit `sparse_image_warp`'s input shape (1, time steps, freq, 1), batch_size must be 1
-        expanded_spectrogram = tf.expand_dims(tensor, -1)
-        original_shape = tf.shape(expanded_spectrogram)
-        tau, freq_size = original_shape[1], original_shape[2]
-        seed = (clock * tf.int32.min, clock * tf.int32.max)
-
-        shift = tf_pick_value_from_range(self.shift, clock=clock)
-        shift *= FLAGS.audio_sample_rate / (FLAGS.feature_win_step * 1000.0)  # number of windows
-        shift = tf.math.minimum(tf.cast(shift, dtype=tf.int32), tf.math.floordiv(tau, 2) - 1)  # to protect short audio
-        nbp = tf_pick_value_from_range(self.nbp, clock=clock)
-        ncp = tf_pick_value_from_range(self.ncp, clock=clock)
-        # workaround for missing stateless shuffle support
-        frequencies = tf.random.stateless_uniform([2 * ncp], seed, minval=1, maxval=freq_size - 2, dtype=tf.int32)
-        frequencies = tf.unique(tf.concat([frequencies, tf.range(1, limit=freq_size - 3)], axis=0))[0][0:ncp]
-        source_max = tau - shift
-        source_min = tf.math.minimum(source_max - ncp, shift)
-        # workaround for missing stateless shuffle support
-        src_times = tf.random.stateless_uniform([2 * ncp], seed, minval=source_min, maxval=source_max, dtype=tf.int32)
-        src_times = tf.unique(tf.concat([src_times, tf.range(1, limit=source_max)], axis=0))[0][0:ncp]
-        dst_times = src_times + tf.random.stateless_uniform([ncp], seed, minval=-shift, maxval=shift, dtype=tf.int32)
-        scp_locations = tf.cast([tf.transpose(tf.stack([src_times, frequencies]))], dtype=tf.float32)
-        dcp_locations = tf.cast([tf.transpose(tf.stack([dst_times, frequencies]))], dtype=tf.float32)
-
-        order = tf_pick_value_from_range(self.order, clock=clock)
-        order = tf.math.maximum(3, order)  # prevents "Input matrix is not invertible." exception
-        order = tf.cast(order, tf.float32)
-
-        spectrogram_aug, _ = sparse_image_warp(expanded_spectrogram,
-                                               source_control_point_locations=scp_locations,
-                                               dest_control_point_locations=dcp_locations,
-                                               interpolation_order=order,
-                                               regularization_weight=self.regularization_weight,
-                                               num_boundary_points=nbp)
-        return tf.reshape(spectrogram_aug, shape=(1, -1, freq_size))
-
-
 class FrequencyMask(GraphAugmentation):
-    """See "Frequency mask augmentation" in TRAINING.rst"""
+    """See "Frequency mask augmentation" in training documentation"""
     def __init__(self, p=1.0, n=3, size=2):
         super(FrequencyMask, self).__init__(p, domain='spectrogram')
         self.n = int_range(n)  # pylint: disable=invalid-name
         self.size = int_range(size)
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
         time_max = tf.shape(tensor)[1]
         freq_max = tf.shape(tensor)[2]
@@ -486,25 +435,20 @@ class FrequencyMask(GraphAugmentation):
 
 
 class TimeMask(GraphAugmentation):
-    """See "Time mask augmentation" in TRAINING.rst"""
+    """See "Time mask augmentation" in training documentation"""
     def __init__(self, p=1.0, domain='spectrogram', n=3, size=10.0):
         super(TimeMask, self).__init__(p, domain=domain)
         self.n = int_range(n)  # pylint: disable=invalid-name
         self.size = float_range(size)
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
-        from .flags import FLAGS  # pylint: disable=import-outside-toplevel
-        time_factor = FLAGS.audio_sample_rate / 1000.0  # samples per ms
-        if self.domain != 'signal':
-            time_factor /= FLAGS.feature_win_step  # windows per ms
-        time_max = tf.shape(tensor)[0] if self.domain == 'signal' else tf.shape(tensor)[1]
+        time_max = tf.shape(tensor)[0 if self.domain == 'signal' else 1]
         n = tf_pick_value_from_range(self.n, clock=clock)
 
         def body(i, augmented):
-            size = tf.cast(tf_pick_value_from_range(self.size, clock=clock) * time_factor, dtype=tf.int32)
+            size = tf.cast(tf_pick_value_from_range(self.size, clock=clock) * self.units_per_ms(), dtype=tf.int32)
             size = tf.math.maximum(1, tf.math.minimum(time_max - 1, size))
-            tf.print(size)
             seed = tf.cast(clock * tf.int32.max, tf.int32) - i
             t0 = tf.random.stateless_uniform((), (-seed, seed), minval=0, maxval=time_max - size, dtype=tf.dtypes.int32)
             rest = time_max - t0 - size
@@ -521,12 +465,12 @@ class TimeMask(GraphAugmentation):
 
 
 class Dropout(GraphAugmentation):
-    """See "Dropout augmentation" in TRAINING.rst"""
+    """See "Dropout augmentation" in training documentation"""
     def __init__(self, p=1.0, domain='spectrogram', rate=0.05):
         super(Dropout, self).__init__(p, domain=domain)
         self.rate = float_range(rate)
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
         rate = tf_pick_value_from_range(self.rate, clock=clock)
         rate = tf.math.maximum(0.0, rate)
@@ -539,12 +483,12 @@ class Dropout(GraphAugmentation):
 
 
 class Add(GraphAugmentation):
-    """See "Add augmentation" in TRAINING.rst"""
+    """See "Add augmentation" in training documentation"""
     def __init__(self, p=1.0, domain='features', stddev=5):
         super(Add, self).__init__(p, domain=domain)
         self.stddev = float_range(stddev)
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
         stddev = tf_pick_value_from_range(self.stddev, clock=clock)
         seed = (clock * tf.int32.min, clock * tf.int32.max)
@@ -552,12 +496,12 @@ class Add(GraphAugmentation):
 
 
 class Multiply(GraphAugmentation):
-    """See "Multiply augmentation" in TRAINING.rst"""
+    """See "Multiply augmentation" in training documentation"""
     def __init__(self, p=1.0, domain='features', stddev=5):
         super(Multiply, self).__init__(p, domain=domain)
         self.stddev = float_range(stddev)
 
-    def apply(self, tensor, clock=0.0):
+    def apply(self, tensor, transcript=None, clock=0.0):
         import tensorflow as tf  # pylint: disable=import-outside-toplevel
         stddev = tf_pick_value_from_range(self.stddev, clock=clock)
         seed = (clock * tf.int32.min, clock * tf.int32.max)

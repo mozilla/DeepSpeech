@@ -311,7 +311,7 @@ Augmentations are applied in the following order:
 
 4. **features** domain: The sample's mel spectrogram features are represented as a tensor.
 
-Within a single domain, augmentations are applied in the same order as they appear in the command-line (the **warp** augmentation being the only exception, as it is always applied first when enabled).
+Within a single domain, augmentations are applied in the same order as they appear in the command-line.
 
 
 Sample domain augmentations
@@ -365,38 +365,20 @@ Sample domain augmentations
 Spectrogram domain augmentations
 --------------------------------
 
-**Pitch and tempo augmentation** ``--augment pitch_and_tempo[p=<float>,pitch=<float-range>,tempo=<float-range>]``
-  Scales spectrogram on time and frequency axis and thus changes pitch and playback tempo.
+**Pitch augmentation** ``--augment pitch[p=<float>,pitch=<float-range>]``
+  Scales spectrogram on frequency axis and thus changes pitch.
 
   * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
   * **pitch**: pitch factor by with the frequency axis is scaled (e.g. a value of 2.0 will raise audio frequency by one octave)
 
-  * **tempo**: tempo factor by which the time axis is stretched or shrunken (e.g. a value of 2.0 will double playback tempo)
 
-
-**Speed augmentation** ``--augment speed[p=<float>,factor=<float-range>]``
+**Tempo augmentation** ``--augment tempo[p=<float>,factor=<float-range>]``
   Scales spectrogram on time axis and thus changes playback tempo.
 
   * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
   * **factor**: speed factor by which the time axis is stretched or shrunken (e.g. a value of 2.0 will double playback tempo)
-
-
-**Warp augmentation** ``--augment warp[p=<float>,shift=<float-range>,order=<int-range>,nbp=<int-range>,ncp=<int-range>,regularization_weight=<float>]``
-  Applies a non-linear image warp to the spectrogram, where the warp is specified by the source and destination locations of a (potentially small) number of control points. Of all specified spectrogram augmentations this one will always be applied first. See the SpecAugment paper for more details - https://arxiv.org/abs/1904.08779
-
-  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
-
-  * **shift**: maximum shift distance of control points on time axis in ms
-
-  * **order**: polynomial order used by the spline interpolation
-
-  * **nbp**: how many zero-flow boundary points to include at each spectrogram edge
-
-  * **ncp**: how many control points to warp inside the spectrogram
-
-  * **regularization_weight**: weight on smoothness regularizer in interpolation
 
 
 **Frequency mask augmentation** ``--augment frequency_mask[p=<float>,n=<int-range>,size=<int-range>]``
@@ -467,9 +449,8 @@ Example training with all augmentations:
           --augment resample[p=0.1,rate=12000:8000~4000] \
           --augment codec[p=0.1,bitrate=48000:16000] \
           --augment volume[p=0.1,dbfs=-10:-40] \
-          --augment pitch_and_tempo[p=0.1,pitch=1~0.2,tempo=1~0.2] \
-          --augment speed[p=0.1,factor=1~0.5] \
-          --augment warp[p=0.1,shift=30:60~20,ncp=4~3] \
+          --augment pitch[p=0.1,pitch=1~0.2] \
+          --augment tempo[p=0.1,factor=1~0.5] \
           --augment frequency_mask[p=0.1,n=1:3,size=1:5] \
           --augment time_mask[p=0.1,domain=signal,n=3:10~2,size=50:100~40] \
           --augment dropout[p=0.1,rate=0.05] \

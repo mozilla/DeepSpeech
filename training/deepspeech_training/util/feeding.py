@@ -18,7 +18,7 @@ from .sample_collections import samples_from_sources
 from .helpers import remember_exception, MEGABYTE
 
 
-def audio_to_features(audio, sample_rate, clock=0.0, train_phase=False, augmentations=None, sample_id=None):
+def audio_to_features(audio, sample_rate, transcript=None, clock=0.0, train_phase=False, augmentations=None, sample_id=None):
     if train_phase:
         # We need the lambdas to make TensorFlow happy.
         # pylint: disable=unnecessary-lambda
@@ -29,7 +29,7 @@ def audio_to_features(audio, sample_rate, clock=0.0, train_phase=False, augmenta
                 name='matching_sample_rate')
 
     if train_phase and augmentations is not None:
-        audio = apply_graph_augmentations('signal', audio, augmentations, clock=clock)
+        audio = apply_graph_augmentations('signal', audio, augmentations, transcript=transcript, clock=clock)
 
     spectrogram = contrib_audio.audio_spectrogram(audio,
                                                   window_size=Config.audio_window_samples,
@@ -37,7 +37,7 @@ def audio_to_features(audio, sample_rate, clock=0.0, train_phase=False, augmenta
                                                   magnitude_squared=True)
 
     if train_phase and augmentations is not None:
-        spectrogram = apply_graph_augmentations('spectrogram', spectrogram, augmentations, clock=clock)
+        spectrogram = apply_graph_augmentations('spectrogram', spectrogram, augmentations, transcript=transcript, clock=clock)
 
     features = contrib_audio.mfcc(spectrogram=spectrogram,
                                   sample_rate=sample_rate,
@@ -46,7 +46,7 @@ def audio_to_features(audio, sample_rate, clock=0.0, train_phase=False, augmenta
     features = tf.reshape(features, [-1, Config.n_input])
 
     if train_phase and augmentations is not None:
-        features = apply_graph_augmentations('features', features, augmentations, clock=clock)
+        features = apply_graph_augmentations('features', features, augmentations, transcript=transcript, clock=clock)
 
     return features, tf.shape(input=features)[0]
 
@@ -64,13 +64,14 @@ def audiofile_to_features(wav_filename, clock=0.0, train_phase=False, augmentati
 
 def entry_to_features(sample_id, audio, sample_rate, transcript, clock, train_phase=False, augmentations=None):
     # https://bugs.python.org/issue32117
+    sparse_transcript = tf.SparseTensor(*transcript)
     features, features_len = audio_to_features(audio,
                                                sample_rate,
+                                               transcript=sparse_transcript,
                                                clock=clock,
                                                train_phase=train_phase,
                                                augmentations=augmentations,
                                                sample_id=sample_id)
-    sparse_transcript = tf.SparseTensor(*transcript)
     return sample_id, features, features_len, sparse_transcript
 
 
