@@ -50,7 +50,6 @@ def main():
         version = fin.read().strip()
 
     install_requires_base = [
-        'tensorflow == 1.15.2',
         'numpy',
         'progressbar2',
         'six',
@@ -74,6 +73,10 @@ def main():
         'ds_ctcdecoder == {}'.format(version)
     ]
 
+    tensorflow_pypi_dep = [
+        'tensorflow == 1.15.2'
+    ]
+
     # Due to pip craziness environment variables are the only consistent way to
     # get options into this script when doing `pip install`.
     tc_decoder_artifacts_root = os.environ.get('DECODER_ARTIFACTS_ROOT', '')
@@ -86,6 +89,11 @@ def main():
         install_requires = install_requires_base
     else:
         install_requires = install_requires_base + decoder_pypi_dep
+
+    if len(os.environ.get('DS_NOTENSORFLOW', '')) > 0:
+        install_requires = install_requires
+    else:
+        install_requires = install_requires + tensorflow_pypi_dep
 
     setup(
         name='deepspeech_training',
