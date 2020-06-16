@@ -40,7 +40,7 @@ def get_samples_in_play_order():
 
 def play_collection():
     augmentations = parse_augmentations(CLI_ARGS.augment)
-    if any(map(lambda a: not isinstance(a, SampleAugmentation), augmentations)):
+    if any(not isinstance(a, SampleAugmentation) for a in augmentations):
         print("Warning: Some of the augmentations cannot be simulated by this command.")
     samples = get_samples_in_play_order()
     samples = apply_sample_augmentations(samples,
