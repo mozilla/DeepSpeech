@@ -77,7 +77,7 @@ public:
   void set_alphabet(const Alphabet& alphabet);
 
   // save dictionary in file
-  void save_dictionary(const std::string &path, bool append_instead_of_overwrite=false);
+  bool save_dictionary(const std::string &path, bool append_instead_of_overwrite=false);
 
   // return weather this step represents a boundary where beam scoring should happen
   bool is_scoring_boundary(PathTrie* prefix, size_t new_label);

@@ -47,7 +47,7 @@ class Scorer(swigwrapper.Scorer):
         return super(Scorer, self).load_lm(lm_path.encode('utf-8'))
 
     def save_dictionary(self, save_path, *args, **kwargs):
-        super(Scorer, self).save_dictionary(save_path.encode('utf-8'), *args, **kwargs)
+        return super(Scorer, self).save_dictionary(save_path.encode('utf-8'), *args, **kwargs)
 
 
 def ctc_beam_search_decoder(probs_seq,
