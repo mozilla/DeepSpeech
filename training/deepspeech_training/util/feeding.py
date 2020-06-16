@@ -132,7 +132,7 @@ def create_dataset(sources,
                                               output_types=(tf.string, tf.float32, tf.int32,
                                                             (tf.int64, tf.int32, tf.int64), tf.float64))
                               .map(process_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE))
-    if cache_path is not None:
+    if cache_path:
         dataset = dataset.cache(cache_path)
     dataset = (dataset.window(batch_size, drop_remainder=train_phase).flat_map(batch_fn)
                       .prefetch(len(Config.available_devices)))

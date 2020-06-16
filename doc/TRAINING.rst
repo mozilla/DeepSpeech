@@ -298,10 +298,10 @@ In the documentation below, whenever a value is specified as ``<float-range>`` o
 Ranges specified with integer limits will only assume integer (rounded) values.
 
 .. warning::
-    If feature caching is enabled and infinite (default), these augmentations will only be performed on first epoch and the result will be reused for subsequent epochs. This would not only hinder value ranges from reaching their intended final values, but could also lead to unintended over-fitting. In this case flag ``--cache_for_epochs N`` (with N > 1) should be used to periodically invalidate the cache and thus allow samples to be re-augmented in new ways and with current range-values.
+    When feature caching is enabled, by default the cache has no expiration limit and will be used for the entire training run. This will cause these augmentations to only be performed once during the first epoch and the result will be reused for subsequent epochs. This would not only hinder value ranges from reaching their intended final values, but could also lead to unintended over-fitting. In this case flag ``--cache_for_epochs N`` (with N > 1) should be used to periodically invalidate the cache after every N epochs and thus allow samples to be re-augmented in new ways and with current range-values.
 
-Every augmentation is targeting a certain data representation of the sample - further on called *domain*.
-Augmentations are applied domain-wise in the following order:
+Every augmentation targets a certain representation of the sample - in this documentation these representations are referred to as *domains*.
+Augmentations are applied in the following order:
 
 1. **sample** domain: The sample just got loaded and its waveform is represented as a NumPy array. For implementation reasons these augmentations are the only ones that can be "simulated" through ``bin/play.py``.
 
@@ -309,9 +309,9 @@ Augmentations are applied domain-wise in the following order:
 
 3. **spectrogram** domain: The sample spectrogram is represented as a tensor.
 
-4. **features** domain: The sample's MEL spectrogram features are represented as a tensor.
+4. **features** domain: The sample's mel spectrogram features are represented as a tensor.
 
-During each phase augmentations are applied in command-line order (the **warp** augmentation being the only exception).
+Within a single domain, augmentations are applied in the same order as they appear in the command-line (the **warp** augmentation being the only exception, as it is always applied first when enabled).
 
 
 Sample domain augmentations
@@ -384,7 +384,7 @@ Spectrogram domain augmentations
 
 
 **Warp augmentation** ``--augment warp[p=<float>,shift=<float-range>,order=<int-range>,nbp=<int-range>,ncp=<int-range>,regularization_weight=<float>]``
-  Applies a non-linear image warp to the spectrogram, where the warp is specified by the source and destination locations of a (potentially small) number of control points. Of all specified spectrogram augmentations this one will always be applied first.
+  Applies a non-linear image warp to the spectrogram, where the warp is specified by the source and destination locations of a (potentially small) number of control points. Of all specified spectrogram augmentations this one will always be applied first. See the SpecAugment paper for more details - https://arxiv.org/abs/1904.08779
 
   * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 
@@ -400,7 +400,7 @@ Spectrogram domain augmentations
 
 
 **Frequency mask augmentation** ``--augment frequency_mask[p=<float>,n=<int-range>,size=<int-range>]``
-  Sets frequency-intervals within the augmented samples to zero (silence) at random frequencies.
+  Sets frequency-intervals within the augmented samples to zero (silence) at random frequencies. See the SpecAugment paper for more details - https://arxiv.org/abs/1904.08779
 
   * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
 

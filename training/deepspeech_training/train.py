@@ -527,7 +527,7 @@ def train():
             step_summary_writer = step_summary_writers.get(set_name)
             checkpoint_time = time.time()
 
-            if is_train and FLAGS.cache_for_epochs > 0 and FLAGS.feature_cache is not None:
+            if is_train and FLAGS.cache_for_epochs > 0 and FLAGS.feature_cache:
                 feature_cache_index = FLAGS.feature_cache + '.index'
                 if epoch % FLAGS.cache_for_epochs == 0 and os.path.isfile(feature_cache_index):
                     log_info('Invalidating feature cache')
