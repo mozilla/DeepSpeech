@@ -20,6 +20,7 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --augment dropout \
   --augment pitch \
   --augment tempo \
+  --augment warp \
   --augment time_mask \
   --augment frequency_mask \
   --augment add \

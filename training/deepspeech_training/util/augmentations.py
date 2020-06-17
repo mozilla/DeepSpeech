@@ -412,6 +412,35 @@ class Tempo(GraphAugmentation):
         return spectrogram_aug[:, :, :, 0]
 
 
+class Warp(GraphAugmentation):
+    """See "Warp augmentation" in training documentation"""
+    def __init__(self, p=1.0, nt=1, nf=1, wt=0.1, wf=0.0):
+        super(Warp, self).__init__(p, domain='spectrogram')
+        self.num_t = int_range(nt)
+        self.num_f = int_range(nf)
+        self.warp_t = float_range(wt)
+        self.warp_f = float_range(wf)
+
+    def apply(self, tensor, transcript=None, clock=0.0):
+        import tensorflow as tf  # pylint: disable=import-outside-toplevel
+        original_shape = tf.shape(tensor)
+        size_t, size_f = original_shape[1], original_shape[2]
+        seed = (clock * tf.int32.min, clock * tf.int32.max)
+        num_t = tf_pick_value_from_range(self.num_t, clock=clock)
+        num_f = tf_pick_value_from_range(self.num_f, clock=clock)
+
+        def get_flows(n, size, warp):
+            warp = tf_pick_value_from_range(warp, clock=clock)
+            warp = warp * tf.cast(size, dtype=tf.float32) / tf.cast(2 * (n + 1), dtype=tf.float32)
+            f = tf.random.stateless_normal([num_t, num_f], seed, mean=0.0, stddev=warp, dtype=tf.float32)
+            return tf.pad(f, tf.constant([[1, 1], [1, 1]]), 'CONSTANT')  # zero flow at all edges
+
+        flows = tf.stack([get_flows(num_t, size_t, self.warp_t), get_flows(num_f, size_f, self.warp_f)], axis=2)
+        flows = tf.image.resize_bicubic(tf.expand_dims(flows, 0), [size_t, size_f])
+        spectrogram_aug = tf.contrib.image.dense_image_warp(tf.expand_dims(tensor, -1), flows)
+        return tf.reshape(spectrogram_aug, shape=(1, -1, size_f))
+
+
 class FrequencyMask(GraphAugmentation):
     """See "Frequency mask augmentation" in training documentation"""
     def __init__(self, p=1.0, n=3, size=2):
