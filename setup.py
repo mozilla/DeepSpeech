@@ -90,7 +90,7 @@ def main():
     else:
         install_requires = install_requires_base + decoder_pypi_dep
 
-    if len(os.environ.get('DS_NOTENSORFLOW', '')) > 0:
+    if os.environ.get('DS_NOTENSORFLOW', ''):
         install_requires = install_requires
     else:
         install_requires = install_requires + tensorflow_pypi_dep
