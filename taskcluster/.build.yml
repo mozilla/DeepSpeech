@@ -36,3 +36,7 @@ build:
   gradle_cache:
     url: ''
     namespace: ''
+  build_or_cache:
+    repo: "${event.head.repo.url}"
+    sha: "${event.head.sha}"
+    dir: "DeepSpeech/ds"

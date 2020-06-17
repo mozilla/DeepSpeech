@@ -1,5 +1,8 @@
 build:
-  template_file: pyenv-linux-opt-base.tyml
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: "${system.pyenv.linux.url}"
+    artifact_namespace: "${system.pyenv.linux.namespace}"
   system_setup:
     >
       apt-get -qq update && apt-get -qq -y install python-yaml ${python.packages_trusty.apt} wget

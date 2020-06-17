@@ -35,12 +35,13 @@ payload:
           export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
           env &&
           mkdir -p $TASKCLUSTER_ARTIFACTS/ &&
-          swig_bin=`curl -sSIL -o /dev/null -w "%{http_code}" ${system.pyenv.osx.url}` &&
-          if [ "$swig_bin" != "200" ]; then
-            git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
-            cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
-            $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
-            $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ${taskIndexExpire} 127.0.0.1:8080 ${system.pyenv.osx.namespace}
+          cache_artifact=`curl -sSIL -o /dev/null -w "%{http_code}" ${build.cache.artifact_url}` &&
+          if [ "$cache_artifact" != "200" ]; then
+            git clone --quiet ${build.build_or_cache.repo} $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir} &&
+            cd $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir} && git checkout --quiet ${build.build_or_cache.sha} &&
+            $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.build} &&
+            $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.package} &&
+            $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/taskcluster/tc-update-index.sh ${taskIndexExpire} 127.0.0.1:8080 ${build.cache.artifact_namespace}
           fi;
 
   artifacts:
