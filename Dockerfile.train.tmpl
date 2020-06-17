@@ -40,6 +40,6 @@ RUN pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
 #  - No need for the decoder since we did it earlier
 #  - There is already correct TensorFlow GPU installed on the base image,
 #    we don't want to break that
-RUN DS_NODECODER=y DS_NOTENSORFLOW=y pip3 install --upgrade --force-reinstall -e .
+RUN DS_NODECODER=y DS_NOTENSORFLOW=y pip3 install --upgrade -e .
 
 RUN ./bin/run-ldc93s1.sh
