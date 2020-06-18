@@ -47,7 +47,9 @@ Install the required dependencies using ``pip3``\ :
 
    cd DeepSpeech
    pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
-   pip3 install --upgrade --force-reinstall -e .
+   pip3 install --upgrade -e .
+
+Remember to re-run the last ``pip3 install`` command above when you update the training code (for example by pulling new changes), in order to update any dependencies.
 
 The ``webrtcvad`` Python package might require you to ensure you have proper tooling to build Python modules:
 
