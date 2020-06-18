@@ -1,7 +1,7 @@
 # Please refer to the TRAINING documentation, "Basic Dockerfile for training"
 
 FROM tensorflow/tensorflow:1.15.2-gpu-py3
-ARG DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV DEEPSPEECH_REPO=#DEEPSPEECH_REPO#
 ENV DEEPSPEECH_SHA=#DEEPSPEECH_SHA#
