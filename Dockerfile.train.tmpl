@@ -1,6 +1,7 @@
 # Please refer to the TRAINING documentation, "Basic Dockerfile for training"
 
 FROM tensorflow/tensorflow:1.15.2-gpu-py3
+ARG DEBIAN_FRONTEND=noninteractive
 
 ENV DEEPSPEECH_REPO=#DEEPSPEECH_REPO#
 ENV DEEPSPEECH_SHA=#DEEPSPEECH_SHA#
@@ -21,6 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # We need to remove it because it's breaking deepspeech install later with
 # weird errors about setuptools
 RUN apt-get purge -y python3-xdg
+
+# Install dependencies for audio augmentation
+RUN apt-get install -y --no-install-recommends libopus0 libsndfile1
 
 WORKDIR /
 RUN git lfs install
