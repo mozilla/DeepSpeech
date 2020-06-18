@@ -10,7 +10,8 @@ import random
 import argparse
 
 from deepspeech_training.util.audio import LOADABLE_AUDIO_EXTENSIONS, AUDIO_TYPE_PCM, AUDIO_TYPE_WAV
-from deepspeech_training.util.sample_collections import SampleList, LabeledSample, samples_from_source, augment_samples
+from deepspeech_training.util.sample_collections import SampleList, LabeledSample, samples_from_source
+from deepspeech_training.util.augmentations import parse_augmentations, apply_sample_augmentations, SampleAugmentation
 
 
 def get_samples_in_play_order():
@@ -38,12 +39,15 @@ def get_samples_in_play_order():
 
 
 def play_collection():
+    augmentations = parse_augmentations(CLI_ARGS.augment)
+    if any(not isinstance(a, SampleAugmentation) for a in augmentations):
+        print("Warning: Some of the augmentations cannot be simulated by this command.")
     samples = get_samples_in_play_order()
-    samples = augment_samples(samples,
-                              audio_type=AUDIO_TYPE_PCM,
-                              augmentation_specs=CLI_ARGS.augment,
-                              process_ahead=0,
-                              fixed_clock=CLI_ARGS.clock)
+    samples = apply_sample_augmentations(samples,
+                                         audio_type=AUDIO_TYPE_PCM,
+                                         augmentations=augmentations,
+                                         process_ahead=0,
+                                         clock=CLI_ARGS.clock)
     for sample in samples:
         if not CLI_ARGS.quiet:
             print('Sample "{}"'.format(sample.sample_id), file=sys.stderr)

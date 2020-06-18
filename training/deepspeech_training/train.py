@@ -10,7 +10,6 @@ DESIRED_LOG_LEVEL = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.a
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = DESIRED_LOG_LEVEL
 
 import absl.app
-import json
 import numpy as np
 import progressbar
 import shutil
@@ -32,7 +31,7 @@ from six.moves import zip, range
 from .util.config import Config, initialize_globals
 from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation
 from .util.evaluate_tools import save_samples_json
-from .util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
+from .util.feeding import create_dataset, audio_to_features, audiofile_to_features
 from .util.flags import create_flags, FLAGS
 from .util.helpers import check_ctcdecoder_version, ExceptionBox
 from .util.logging import create_progressbar, log_debug, log_error, log_info, log_progress, log_warn
@@ -407,26 +406,13 @@ def log_grads_and_vars(grads_and_vars):
 
 
 def train():
-    do_cache_dataset = True
-
-    # pylint: disable=too-many-boolean-expressions
-    if (FLAGS.data_aug_features_multiplicative > 0 or
-            FLAGS.data_aug_features_additive > 0 or
-            FLAGS.augmentation_spec_dropout_keeprate < 1 or
-            FLAGS.augmentation_freq_and_time_masking or
-            FLAGS.augmentation_pitch_and_tempo_scaling or
-            FLAGS.augmentation_speed_up_std > 0 or
-            FLAGS.augmentation_sparse_warp):
-        do_cache_dataset = False
-
     exception_box = ExceptionBox()
 
     # Create training and validation datasets
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               repetitions=FLAGS.augmentations_per_epoch,
-                               augmentation_specs=FLAGS.augment,
-                               enable_cache=FLAGS.feature_cache and do_cache_dataset,
+                               epochs=FLAGS.epochs,
+                               augmentations=Config.augmentations,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True,
                                exception_box=exception_box,
@@ -541,6 +527,12 @@ def train():
             step_summary_writer = step_summary_writers.get(set_name)
             checkpoint_time = time.time()
 
+            if is_train and FLAGS.cache_for_epochs > 0 and FLAGS.feature_cache:
+                feature_cache_index = FLAGS.feature_cache + '.index'
+                if epoch % FLAGS.cache_for_epochs == 0 and os.path.isfile(feature_cache_index):
+                    log_info('Invalidating feature cache')
+                    os.remove(feature_cache_index)  # this will let TF also overwrite the related cache data files
+
             # Setup progress bar
             class LossWidget(progressbar.widgets.FormatLabel):
                 def __init__(self):
@@ -567,11 +559,6 @@ def train():
                         session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
                                     feed_dict=feed_dict)
                     exception_box.raise_if_set()
-                except tf.errors.InvalidArgumentError as err:
-                    if FLAGS.augmentation_sparse_warp:
-                        log_info("Ignoring sparse warp error: {}".format(err))
-                        continue
-                    raise
                 except tf.errors.OutOfRangeError:
                     exception_box.raise_if_set()
                     break
@@ -680,7 +667,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Create feature computation graph
     input_samples = tfv1.placeholder(tf.float32, [Config.audio_window_samples], 'input_samples')
     samples = tf.expand_dims(input_samples, -1)
-    mfccs, _ = samples_to_mfccs(samples, FLAGS.audio_sample_rate)
+    mfccs, _ = audio_to_features(samples, FLAGS.audio_sample_rate)
     mfccs = tf.identity(mfccs, name='mfccs')
 
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
