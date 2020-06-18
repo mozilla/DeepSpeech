@@ -47,7 +47,7 @@ RUN pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
 RUN DS_NODECODER=y DS_NOTENSORFLOW=y pip3 install --upgrade --force-reinstall -e .
 
 # Tool to convert output graph for inference
-RUN python3 /DeepSpeech/util/taskcluster.py --source tensorflow --branch r1.15 \
-        --artifact convert_graphdef_memmapped_format  --target /DeepSpeech/
+RUN python3 util/taskcluster.py --source tensorflow --branch r1.15 \
+        --artifact convert_graphdef_memmapped_format  --target .
 
 RUN ./bin/run-ldc93s1.sh
