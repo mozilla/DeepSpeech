@@ -37,8 +37,8 @@ If you want to use the pre-trained English model for performing speech-to-text, 
 
 .. code-block:: bash
 
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.3/deepspeech-0.7.3-models.pbmm
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.3/deepspeech-0.7.3-models.scorer
+   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.pbmm
+   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.scorer
 
 Model compatibility
 ^^^^^^^^^^^^^^^^^^^
@@ -113,7 +113,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   deepspeech --model deepspeech-0.7.3-models.pbmm --scorer deepspeech-0.7.3-models.scorer --audio my_audio_file.wav
+   deepspeech --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio my_audio_file.wav
 
 The ``--scorer`` argument is optional, and represents an external language model to be used when transcribing the audio.
 
@@ -177,7 +177,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   ./deepspeech --model deepspeech-0.7.3-models.pbmm --scorer deepspeech-0.7.3-models.scorer --audio audio_input.wav
+   ./deepspeech --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio audio_input.wav
 
 See the help output with ``./deepspeech -h`` for more details.
 
