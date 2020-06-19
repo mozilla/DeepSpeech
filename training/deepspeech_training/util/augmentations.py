@@ -244,11 +244,12 @@ class Overlay(SampleAugmentation):
         self.source = source
         self.snr = float_range(snr)
         self.layers = int_range(layers)
-        self.queue = Queue(max(1, math.floor(self.probability * self.layers[1] * os.cpu_count())))
         self.current_sample = None
+        self.queue = None
         self.enqueue_process = None
 
     def start(self, buffering=BUFFER_SIZE):
+        self.queue = Queue(max(1, math.floor(self.probability * self.layers[1] * os.cpu_count())))
         self.enqueue_process = Process(target=_enqueue_overlay_samples,
                                        args=(self.source, self.queue),
                                        kwargs={'buffering': buffering})
@@ -285,6 +286,9 @@ class Overlay(SampleAugmentation):
     def stop(self):
         if self.enqueue_process is not None:
             self.enqueue_process.terminate()
+            self.enqueue_process = None
+        self.current_sample = None
+        self.queue = None
 
 
 class Codec(SampleAugmentation):
