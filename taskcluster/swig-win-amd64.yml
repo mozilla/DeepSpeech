@@ -1,8 +1,13 @@
 build:
-  template_file: swig-linux-opt-base.tyml
+  template_file: generic_tc_caching-linux-opt-base.tyml
   docker_image: "ubuntu:18.04"
-  swig_system: "win"
-  swig_arch: "amd64"
+  build_or_cache:
+    repo: "${system.swig.repo}"
+    sha: "${system.swig.sha1}"
+    dir: "swig"
+  cache:
+    artifact_url: "${system.swig_build.win.url}"
+    artifact_namespace: "${system.swig_build.win.namespace}"
   system_setup:
     >
       apt-get -qq -y install autoconf automake bison build-essential mingw-w64 &&

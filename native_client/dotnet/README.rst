@@ -30,11 +30,11 @@ Prerequisites
 
 * Windows 10
 * `Windows 10 SDK <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk>`_
-* `Visual Studio 2017 Community <https://visualstudio.microsoft.com/vs/community/>`_ 
+* `Visual Studio 2019 Community <https://visualstudio.microsoft.com/vs/community/>`_ 
 * `Git Large File Storage <https://git-lfs.github.com/>`_
 * `TensorFlow Windows pre-requisites <https://www.tensorflow.org/install/source_windows>`_
 
-Inside the Visual Studio Installer enable ``MS Build Tools`` and ``VC++ 2015.3 v14.00 (v140) toolset for desktop``.
+Inside the Visual Studio Installer enable ``MS Build Tools`` and ``VC++ 2019 v16.00 (v160) toolset for desktop``.
 
 If you want to enable CUDA support you need to follow the steps in `the TensorFlow docs for building on Windows with CUDA <https://www.tensorflow.org/install/gpu#windows_setup>`_.
 
@@ -51,7 +51,7 @@ We need to clone ``mozilla/DeepSpeech`` and ``mozilla/tensorflow``.
 
 .. code-block:: bash
 
-   git clone --branch r1.15 https://github.com/mozilla/tensorflow
+   git clone --branch r2.2 https://github.com/mozilla/tensorflow
 
 Configuring the paths
 ---------------------
@@ -113,7 +113,7 @@ If you run CUDA enabled ``native_client`` we need to add the following to the ``
 
 .. code-block::
 
-   C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\bin
+   C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\bin
 
 Building the native_client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

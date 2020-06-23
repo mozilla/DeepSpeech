@@ -45,7 +45,7 @@ tasks:
         - "--login"
         - "-cxe"
         - >
-          echo "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main" > /etc/apt/sources.list.d/trusty-updates.list &&
+          echo "deb http://archive.ubuntu.com/ubuntu/ xenial-updates main" > /etc/apt/sources.list.d/xenial-updates.list &&
           apt-get -qq update && apt-get -qq -y install git python3-pip curl sudo &&
           adduser --system --home /home/build-user build-user &&
           cd /home/build-user/ &&

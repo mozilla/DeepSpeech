@@ -42,10 +42,6 @@ if [ "${OS}" = "Darwin" ]; then
     fi;
 fi;
 
-PY37_OPENSSL_DIR="${PYENV_ROOT}/ssl-xenial"
-export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
-export LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH
-
 export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
 export TASKCLUSTER_TMP_DIR=${TASKCLUSTER_TMP_DIR:-/tmp}
 

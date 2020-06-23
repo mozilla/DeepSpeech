@@ -146,7 +146,7 @@ int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
   return DS_ERR_OK;
 }
 
-void Scorer::save_dictionary(const std::string& path, bool append_instead_of_overwrite)
+bool Scorer::save_dictionary(const std::string& path, bool append_instead_of_overwrite)
 {
   std::ios::openmode om;
   if (append_instead_of_overwrite) {
@@ -155,15 +155,39 @@ void Scorer::save_dictionary(const std::string& path, bool append_instead_of_ove
     om = std::ios::out|std::ios::binary;
   }
   std::fstream fout(path, om);
+  if (!fout ||fout.bad()) {
+    std::cerr << "Error opening '" << path << "'" << std::endl;
+    return false;
+  }
   fout.write(reinterpret_cast<const char*>(&MAGIC), sizeof(MAGIC));
+  if (fout.bad()) {
+    std::cerr << "Error writing MAGIC '" << path << "'" << std::endl;
+    return false;
+  }
   fout.write(reinterpret_cast<const char*>(&FILE_VERSION), sizeof(FILE_VERSION));
+  if (fout.bad()) {
+    std::cerr << "Error writing FILE_VERSION '" << path << "'" << std::endl;
+    return false;
+  }
   fout.write(reinterpret_cast<const char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
+  if (fout.bad()) {
+    std::cerr << "Error writing is_utf8_mode '" << path << "'" << std::endl;
+    return false;
+  }
   fout.write(reinterpret_cast<const char*>(&alpha), sizeof(alpha));
+  if (fout.bad()) {
+    std::cerr << "Error writing alpha '" << path << "'" << std::endl;
+    return false;
+  }
   fout.write(reinterpret_cast<const char*>(&beta), sizeof(beta));
+  if (fout.bad()) {
+    std::cerr << "Error writing beta '" << path << "'" << std::endl;
+    return false;
+  }
   fst::FstWriteOptions opt;
   opt.align = true;
   opt.source = path;
-  dictionary->Write(fout, opt);
+  return dictionary->Write(fout, opt);
 }
 
 bool Scorer::is_scoring_boundary(PathTrie* prefix, size_t new_label)

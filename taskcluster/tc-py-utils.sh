@@ -191,47 +191,6 @@ pyenv_install()
   fi
 }
 
-# Hack to extract Ubuntu's 16.04 libssl 1.0.2 packages and use them during the
-# local build of Python.
-#
-# Avoid (risky) upgrade of base system, allowing to keep one task build that
-# builds all the python packages
-maybe_ssl102_py37()
-{
-    pyver=$1
-
-    unset PY37_OPENSSL
-
-    ARCH=$(uname -m)
-    case "${pyver}" in
-        3.7*|3.8*)
-            if [ "${OS}" = "Linux" -a "${ARCH}" = "x86_64" ]; then
-                if [ -d "${PY37_OPENSSL_DIR}" ]; then
-                  rm -rf "${PY37_OPENSSL_DIR}"
-                fi
-
-                mkdir -p ${PY37_OPENSSL_DIR}
-                ${WGET} -P ${TASKCLUSTER_TMP_DIR} \
-                        http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.0.2g-1ubuntu4.15_amd64.deb \
-                        http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.0.0_1.0.2g-1ubuntu4.15_amd64.deb
-
-                for deb in ${TASKCLUSTER_TMP_DIR}/libssl*.deb; do
-                    dpkg -x ${deb} ${PY37_OPENSSL_DIR}
-                done;
-
-                # Python configure expects things to be under lib/
-                mv ${PY37_OPENSSL_DIR}/usr/include/x86_64-linux-gnu/openssl/opensslconf.h ${PY37_OPENSSL_DIR}/usr/include/openssl/
-                mv ${PY37_OPENSSL_DIR}/lib/x86_64-linux-gnu/lib* ${PY37_OPENSSL_DIR}/usr/lib/
-                mv ${PY37_OPENSSL_DIR}/usr/lib/x86_64-linux-gnu/* ${PY37_OPENSSL_DIR}/usr/lib/
-                ln -sfn libcrypto.so.1.0.0 ${PY37_OPENSSL_DIR}/usr/lib/libcrypto.so
-                ln -sfn libssl.so.1.0.0 ${PY37_OPENSSL_DIR}/usr/lib/libssl.so
-
-                export PY37_OPENSSL="--with-openssl=${PY37_OPENSSL_DIR}/usr"
-            fi;
-        ;;
-    esac
-}
-
 maybe_numpy_min_version()
 {
     local pyver=$1

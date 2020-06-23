@@ -1,0 +1,61 @@
+taskId: ${taskcluster.taskId}
+provisionerId: ${taskcluster.docker.provisionerId}
+workerType: ${taskcluster.docker.workerTypeWin}
+taskGroupId: ${taskcluster.taskGroupId}
+schedulerId: ${taskcluster.schedulerId}
+created: { $fromNow: '0 sec' }
+deadline: { $fromNow: '1 day' }
+expires: { $fromNow: '6 months' }
+scopes:
+  - "index:insert-task:project.deepspeech.*"
+
+payload:
+  maxRunTime: { $eval: to_int(build.maxRunTime) }
+
+  features:
+    taskclusterProxy: true
+
+  mounts:
+    - file: msys2-base-x86_64.tar.xz
+      content:
+        sha256: ${system.msys2.sha}
+        url: ${system.msys2.url}
+    - file: filesystem-2020.02-3-x86_64.pkg.tar.xz
+      content:
+        sha256: ${system.msys2_filesystem_pkg.sha}
+        url: ${system.msys2_filesystem_pkg.url}
+
+  env:
+    TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
+    MSYS: 'winsymlinks:nativestrict'
+
+  command:
+    - >-
+      "C:\Program Files\7-zip\7z.exe" x -txz -so msys2-base-x86_64.tar.xz |
+      "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
+    - .\msys64\usr\bin\bash.exe --login -cx "export THIS_BASH_PID=$$; ps -ef | grep '[?]' | awk '{print $2}' | grep -v $THIS_BASH_PID | xargs -r kill; exit 0"
+    - .\msys64\usr\bin\bash.exe --login -cx "${system.msys2_filesystem_pkg.install}"
+    - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
+    - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
+    - $let:
+        taskIndexExpire: { $fromNow: '6 months' }
+      in: >
+        echo .\msys64\usr\bin\bash.exe --login -cxe "export LC_ALL=C &&
+        export PATH=\"$USERPROFILE/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
+        export TASKCLUSTER_ARTIFACTS=\"$(cygpath -u $USERPROFILE/public)\" &&
+        export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
+        echo \"export TASKCLUSTER_TASK_EXIT_CODE=0\" > $USERPROFILE/tc-exit.sh &&
+        env && pacman --noconfirm -S tar && mkdir -p $TASKCLUSTER_ARTIFACTS/ && if [ \"`curl -sSIL -o /dev/null -w %%{http_code} ${build.cache.artifact_url}`\" != \"200\" ]; then git clone --quiet ${build.build_or_cache.repo} $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/ && cd $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir} && git checkout --quiet ${build.build_or_cache.sha} && $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.build} && $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.package} && $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/taskcluster/tc-update-index.sh ${taskIndexExpire} taskcluster ${build.cache.artifact_namespace}; fi; echo \"export TASKCLUSTER_TASK_EXIT_CODE=$?\" > $USERPROFILE/tc-exit.sh" | cmd /k
+
+    - .\msys64\usr\bin\bash.exe --login -cxe "source $USERPROFILE/tc-exit.sh && exit $TASKCLUSTER_TASK_EXIT_CODE"
+
+  artifacts:
+    - type: "directory"
+      path: "public/"
+      expires: { $fromNow: '6 months' }
+
+metadata:
+  name: ${build.metadata.name}
+  description: ${build.metadata.description}
+  owner: ${event.head.user.email}
+  source: ${event.head.repo.url}

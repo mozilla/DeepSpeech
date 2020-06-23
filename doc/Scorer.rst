@@ -24,7 +24,7 @@ Then use the ``generate_lm.py`` script to generate ``lm.binary`` and ``vocab-500
 
 As input you can use a plain text (e.g. ``file.txt``) or gzipped (e.g. ``file.txt.gz``) text file with one sentence in each line.
 
-If you are using a container created from the Dockerfile, you can use ``--kenlm_bins /DeepSpeech/native_client/kenlm/build/bin/``.
+If you are using a container created from ``Dockerfile.build``, you can use ``--kenlm_bins /DeepSpeech/native_client/kenlm/build/bin/``.
 Else you have to build `KenLM <https://github.com/kpu/kenlm>`_ first and then pass the build directory to the script.
 
 .. code-block:: bash

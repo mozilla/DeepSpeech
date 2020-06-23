@@ -40,11 +40,12 @@ payload:
       "C:\Program Files\7-zip\7z.exe" x -txz -so msys2-base-x86_64.tar.xz |
       "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
     - .\msys64\usr\bin\bash.exe --login -cx "export THIS_BASH_PID=$$; ps -ef | grep '[?]' | awk '{print $2}' | grep -v $THIS_BASH_PID | xargs -r kill; exit 0"
+    - .\msys64\usr\bin\bash.exe --login -cx "${system.msys2_filesystem_pkg.install}"
     - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
     - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
     - echo .\msys64\usr\bin\bash.exe --login -cxe "
       export LC_ALL=C &&
-      export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
+      export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files (x86)/Windows Kits/10/bin/x64/:$PATH\" &&
       export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
       export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
       (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
@@ -58,14 +59,13 @@ payload:
       ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
       cd $TASKCLUSTER_TASK_DIR &&
       (mkdir pyenv-root/ && 7z x -so $USERPROFILE/pyenv.tar.gz | 7z x -opyenv-root/ -aoa -ttar -si ) &&
-      pacman --noconfirm -R bsdtar &&
       pacman --noconfirm -S tar make &&
       pacman --noconfirm -S zip &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
       echo \"export TASKCLUSTER_TASK_EXIT_CODE=$?\" > $USERPROFILE/tc-exit.sh &&
       cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE" | cmd
-      /k ""C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"" x64
+      /k ""C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"" x64
 
     - .\msys64\usr\bin\bash.exe --login -cxe "source $USERPROFILE/tc-exit.sh &&
       exit $TASKCLUSTER_TASK_EXIT_CODE"
@@ -73,16 +73,19 @@ payload:
   mounts:
     - file: msys2-base-x86_64.tar.xz
       content:
-        sha256: c4443113497acb2d2e285d40b929fc55f33f8f669902595ecdf66a655b63dc60
-        url: >-
-          https://github.com/msys2/msys2-installer/releases/download/2020-05-17/msys2-base-x86_64-20200517.tar.xz
+        sha256: ${system.msys2.sha}
+        url: ${system.msys2.url}
+    - file: filesystem-2020.02-3-x86_64.pkg.tar.xz
+      content:
+        sha256: ${system.msys2_filesystem_pkg.sha}
+        url: ${system.msys2_filesystem_pkg.url}
     - file: home.tar.xz
       content:
         url: ${build.tensorflow}
     - file: pyenv.tar.gz
       content:
         url: ${system.pyenv.win.url}
-    - directory: .node-gyp
+    - directory: AppData/Local/node-gyp/Cache
       format: tar.gz
       content:
         url: ${system.node_gyp_cache.url}

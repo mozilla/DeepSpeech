@@ -78,6 +78,7 @@ def one_sample(args):
     else:
         # This one is good - keep it for the target CSV
         rows.append((os.path.split(wav_filename)[-1], file_size, label, sample[2]))
+        counter["imported_time"] += frames
     counter["all"] += 1
     counter["total_time"] += frames
 

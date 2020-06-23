@@ -1,5 +1,12 @@
 build:
-  template_file: node-gyp-cache-base.tyml
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  docker_image: "node:12"
+  cache:
+    artifact_url: "${system.node_gyp_cache.url}"
+    artifact_namespace: "${system.node_gyp_cache.namespace}"
+  system_setup:
+    >
+      (apt-get -qq -y install sudo || true)
   scripts:
     build: "taskcluster/node-gyp-populate.sh"
     package: "taskcluster/node-gyp-package.sh"

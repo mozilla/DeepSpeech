@@ -38,13 +38,14 @@ then:
         "C:\Program Files\7-zip\7z.exe" x -txz -so msys2-base-x86_64.tar.xz |
         "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
       - .\msys64\usr\bin\bash.exe --login -cx "export THIS_BASH_PID=$$; ps -ef | grep '[?]' | awk '{print $2}' | grep -v $THIS_BASH_PID | xargs -r kill; exit 0"
+      - .\msys64\usr\bin\bash.exe --login -cx "${system.msys2_filesystem_pkg.install}"
       - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
       - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
           .\msys64\usr\bin\bash.exe --login -cxe "export LC_ALL=C &&
-          export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin/:$PATH\" &&
+          export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1/bin/:$PATH\" &&
           export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
           export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
           export TASKCLUSTER_NODE_DIR=\"$(cygpath -w $TASKCLUSTER_TASK_DIR/bin)\" &&
@@ -57,7 +58,6 @@ then:
           cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
           cd $TASKCLUSTER_TASK_DIR &&
           (mkdir pyenv-root/ && 7z x -so $USERPROFILE/pyenv.tar.gz | 7z x -opyenv-root/ -aoa -ttar -si ) &&
-          pacman --noconfirm -R bsdtar &&
           pacman --noconfirm -S tar vim &&
           ${extraSystemSetup} &&
           /bin/bash ${build.args.tests_cmdline} ;
@@ -67,9 +67,12 @@ then:
     mounts:
       - file: msys2-base-x86_64.tar.xz
         content:
-          sha256: c4443113497acb2d2e285d40b929fc55f33f8f669902595ecdf66a655b63dc60
-          url: >-
-            https://github.com/msys2/msys2-installer/releases/download/2020-05-17/msys2-base-x86_64-20200517.tar.xz
+          sha256: ${system.msys2.sha}
+          url: ${system.msys2.url}
+      - file: filesystem-2020.02-3-x86_64.pkg.tar.xz
+        content:
+          sha256: ${system.msys2_filesystem_pkg.sha}
+          url: ${system.msys2_filesystem_pkg.url}
       - file: pyenv.tar.gz
         content:
           url: ${system.pyenv.win.url}

@@ -30,7 +30,7 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-    image: "ubuntu:14.04"
+    image: "ubuntu:16.04"
 
     command:
       - "/bin/bash"
@@ -40,10 +40,8 @@ then:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
           extraSystemConfig: { $eval: strip(str(build.system_config)) }
         in: >
-          apt-get -qq -y remove --purge ubuntu-advantage-tools &&
-          ${aptEc2Mirrors} &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&
-          apt-get -qq update && apt-get -qq -y install realpath git wget curl make && ${extraSystemSetup} &&
+          apt-get -qq update && apt-get -qq -y install realpath git wget curl make sudo && ${extraSystemSetup} &&
           cd ${system.homedir.linux}/ &&
           echo -e "#!/bin/bash\nset -xe\n env && id && git clone --quiet ${event.head.repo.url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${event.head.sha} && mkdir -p ~/DeepSpeech/tf/ && touch ~/DeepSpeech/tf/tc-vars.sh && chmod +x ~/DeepSpeech/tf/tc-vars.sh && mkdir -p ${system.homedir.linux}/.cache/node-gyp/ && wget -O - ${system.node_gyp_cache.url} | tar -C ${system.homedir.linux}/.cache/node-gyp/ -xzf -" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
           sudo -H -u ${system.username} /bin/bash /tmp/clone.sh && ${extraSystemConfig} &&
