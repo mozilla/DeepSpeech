@@ -5,7 +5,7 @@ build:
     - "win-amd64-gpu-opt"
   system_setup:
     >
-      ${nodejs.packages_trusty.prep_12} && ${nodejs.packages_trusty.apt_pinning}
+      ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning}
       && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   scripts:
     build: "taskcluster/node-build.sh --cuda"

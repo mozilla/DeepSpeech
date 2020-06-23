@@ -231,7 +231,7 @@ do_deepspeech_netframework_build()
   # Setup dependencies
   nuget install DeepSpeechConsole/packages.config -OutputDirectory packages/
 
-  MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
+  MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"
 
   # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
   # We build the .NET Client for .NET Framework v4.5,v4.6,v4.7
@@ -270,7 +270,7 @@ do_deepspeech_netframework_wpf_example_build()
   # Setup dependencies
   nuget install DeepSpeechWPF/packages.config -OutputDirectory DeepSpeechWPF/packages/
 
-  MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe')"
+  MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"
 
   # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
   # Build WPF example

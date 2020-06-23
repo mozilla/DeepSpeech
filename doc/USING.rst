@@ -28,7 +28,7 @@ Please refer to your system's documentation on how to install these dependencies
 CUDA dependency
 ^^^^^^^^^^^^^^^
 
-The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 1.15 it depends on CUDA 10.0 and CuDNN v7.6. `See the TensorFlow documentation <https://www.tensorflow.org/install/gpu>`_.
+The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 2.2 it depends on CUDA 10.1 and CuDNN v7.6. `See the TensorFlow documentation <https://www.tensorflow.org/install/gpu>`_.
 
 Getting the pre-trained model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,8 +37,8 @@ If you want to use the pre-trained English model for performing speech-to-text, 
 
 .. code-block:: bash
 
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.3/deepspeech-0.7.3-models.pbmm
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.3/deepspeech-0.7.3-models.scorer
+   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.pbmm
+   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.scorer
 
 Model compatibility
 ^^^^^^^^^^^^^^^^^^^
@@ -113,7 +113,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   deepspeech --model deepspeech-0.7.3-models.pbmm --scorer deepspeech-0.7.3-models.scorer --audio my_audio_file.wav
+   deepspeech --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio my_audio_file.wav
 
 The ``--scorer`` argument is optional, and represents an external language model to be used when transcribing the audio.
 
@@ -177,7 +177,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   ./deepspeech --model deepspeech-0.7.3-models.pbmm --scorer deepspeech-0.7.3-models.scorer --audio audio_input.wav
+   ./deepspeech --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio audio_input.wav
 
 See the help output with ``./deepspeech -h`` for more details.
 
@@ -185,6 +185,22 @@ Installing bindings from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If pre-built binaries aren't available for your system, you'll need to install them from scratch. Follow the :github:`native client build and installation instructions <native_client/README.rst>`.
+
+Dockerfile for building from source
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We provide ``Dockerfile.build`` to automatically build ``libdeepspeech.so``, the C++ native client, Python bindings, and KenLM.
+You need to generate the Dockerfile from the template using:
+
+.. code-block:: bash
+
+   make Dockerfile.build
+
+If you want to specify a different DeepSpeech repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
+
+.. code-block:: bash
+
+   make Dockerfile.build DEEPSPEECH_REPO=git://your/fork DEEPSPEECH_SHA=origin/your-branch
 
 Third party bindings
 ^^^^^^^^^^^^^^^^^^^^
@@ -197,4 +213,4 @@ In addition to the bindings above, third party developers have started to provid
 * `stes <https://github.com/stes>`_ provides preliminary `PKGBUILDs <https://wiki.archlinux.org/index.php/PKGBUILD>`_ to install the client and python bindings on `Arch Linux <https://www.archlinux.org/>`_ in the `arch-deepspeech <https://github.com/stes/arch-deepspeech>`_ repo.
 * `gst-deepspeech <https://github.com/Elleo/gst-deepspeech>`_ provides a `GStreamer <https://gstreamer.freedesktop.org/>`_ plugin which can be used from any language with GStreamer bindings.
 * `thecodrr <https://github.com/thecodrr>`_ provides `Vlang <https://vlang.io>`_ bindings. The installation and use of which is described in their `vspeech <https://github.com/thecodrr/vspeech>`_ repo.
-
+* `eagledot <https://gitlab.com/eagledot>`_ provides `NIM-lang <https://nim-lang.org/>`_ bindings. The installation and use of which is described in their `nim-deepspeech <https://gitlab.com/eagledot/nim-deepspeech>`_ repo.

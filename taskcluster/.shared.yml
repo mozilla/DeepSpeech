@@ -1,27 +1,27 @@
 python:
-  packages_trusty:
+  packages_xenial:
     apt: 'make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev liblzma-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libpng-dev libsox-dev libmagic-dev libgsm1-dev libltdl-dev'
   packages_buster:
     apt: 'python3-virtualenv python3-setuptools python3-pip python3-wheel python3-pkg-resources'
   packages_docs_bionic:
     apt: 'python3 python3-pip zip doxygen'
 training:
-  packages_trusty:
+  packages_xenial:
     apt: 'libopus0'
 tensorflow:
-  packages_trusty:
+  packages_xenial:
     apt: 'make build-essential gfortran git libblas-dev liblapack-dev libsox-dev libmagic-dev libgsm1-dev libltdl-dev libpng-dev python zlib1g-dev'
 java:
-  packages_trusty:
+  packages_xenial:
     apt: 'apt-get -qq -y install curl software-properties-common wget unzip && add-apt-repository --yes ppa:openjdk-r/ppa && apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y --force-yes install openjdk-8-jdk && java -version && update-ca-certificates -f'
 electronjs:
   packages_xenial:
     apt: 'libatk1.0-0 libatk-bridge2.0-0 libcairo2 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 xvfb'
 nodejs:
-  packages_trusty:
+  packages_xenial:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
-    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x trusty main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
+    prep_12: 'echo "deb http://deb.nodesource.com/node_12.x xenial main" > /etc/apt/sources.list.d/nodesource.list && wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -'
   packages_xenial:
     apt: 'nodejs sox'
     apt_pinning: '(echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > /etc/apt/preferences'
@@ -57,72 +57,91 @@ nodejs:
     prep_14: '/usr/bin/wget.exe https://nodejs.org/dist/v14.3.0/node-v14.3.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v14.3.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v14.3.0-win-x64/:$PATH'
 system:
   node_gyp_cache:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.4/artifacts/public/node-gyp-cache.tar.gz'
-    namespace: 'project.deepspeech.node-gyp-cache.4'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.6/artifacts/public/node-gyp-cache.tar.gz'
+    namespace: 'project.deepspeech.node-gyp-cache.6'
   homebrew_builds:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_builds.5/artifacts/public/homebrew_builds.tar.gz'
-    namespace: 'project.deepspeech.homebrew_builds.5'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_builds.7/artifacts/public/homebrew_builds.tar.gz'
+    namespace: 'project.deepspeech.homebrew_builds.7'
   homebrew_tests:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_tests.6/artifacts/public/homebrew_tests.tar.gz'
-    namespace: 'project.deepspeech.homebrew_tests.6'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_tests.8/artifacts/public/homebrew_tests.tar.gz'
+    namespace: 'project.deepspeech.homebrew_tests.8'
   android_cache:
     arm64_v8a:
       android_24:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.arm64-v8a.android-24.4/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.arm64-v8a.android-24.4'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.arm64-v8a.android-24.6/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.arm64-v8a.android-24.6'
       android_25:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.arm64-v8a.android-25.4/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.arm64-v8a.android-25.4'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.arm64-v8a.android-25.6/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.arm64-v8a.android-25.6'
     armeabi_v7a:
       android_24:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.armeabi-v7a.android-24.4/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.armeabi-v7a.android-24.4'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.armeabi-v7a.android-24.6/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.armeabi-v7a.android-24.6'
       android_25:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.armeabi-v7a.android-25.4/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.armeabi-v7a.android-25.4'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.armeabi-v7a.android-25.6/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.armeabi-v7a.android-25.6'
     x86_64:
       android_24:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-24.4/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.x86_64.android-24.4'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-24.6/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-24.6'
       android_25:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-25.4/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.x86_64.android-25.4'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-25.6/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-25.6'
       android_26:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-26.0/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.x86_64.android-26.0'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-26.2/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-26.2'
       android_27:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-27.0/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.x86_64.android-27.0'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-27.2/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-27.2'
       android_28:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-28.0/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.x86_64.android-28.0'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-28.2/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-28.2'
       android_29:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-29.0/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.x86_64.android-29.0'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-29.2/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-29.2'
+      android_30:
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-30.2/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-30.2'
     sdk:
       android_27:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.sdk.android-27.4/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.deepspeech.android_cache.sdk.android-27.4'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.sdk.android-27.6/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.sdk.android-27.6'
   gradle_cache:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.gradle.4/artifacts/public/gradle.tar.gz'
-    namespace: 'project.deepspeech.gradle.4'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.gradle.6/artifacts/public/gradle.tar.gz'
+    namespace: 'project.deepspeech.gradle.6'
   pyenv:
     linux:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.5/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.linux.5'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.8/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.linux.8'
     osx:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.5/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.osx.5'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.8/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.osx.8'
     win:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.5/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.win.5'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.8/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.win.8'
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
+  swig_build:
+    linux:
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz"
+      namespace: "project.deepspeech.swig.linux.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
+    osx:
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.darwin.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz"
+      namespace: "project.deepspeech.swig.darwin.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
+    win:
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz"
+      namespace: "project.deepspeech.swig.win.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
   username: 'build-user'
   homedir:
     linux: '/home/build-user'
     osx: '/Users/build-user'
     win: '/c/builds/tc-workdir'
   sox_win: '/usr/bin/wget.exe https://sourceforge.net/projects/sox/files/sox/14.4.2/sox-14.4.2-win32.zip/download -O sox-14.4.2-win32.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_TASK_DIR/bin/ -tzip -aoa sox-14.4.2-win32.zip && rm sox-*zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/sox-14.4.2/:$PATH'
-aptEc2Mirrors: 'echo "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main" > /etc/apt/sources.list.d/trusty-updates.list && apt-get -qq update && apt-get -qq -y upgrade'
+  msys2:
+    url: 'https://github.com/msys2/msys2-installer/releases/download/2020-06-02/msys2-base-x86_64-20200602.tar.xz'
+    sha: '598ceeaa3e2ccf86a25a2e3c449d00a9fd35300e36011bee610036dfa59d670a'
+  msys2_filesystem_pkg:
+    url: 'http://repo.msys2.org/msys/x86_64/filesystem-2020.02-3-x86_64.pkg.tar.xz'
+    sha: '927b020a67a05139ee1b2c45bff491c1d42335e64350cc7758ee20d7c3099477'
+    install: 'pacman -Udd --noconfirm $USERPROFILE/filesystem-2020.02-3-x86_64.pkg.tar.xz'

@@ -1,0 +1,14 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  system_setup:
+    >
+      ${java.packages_xenial.apt}
+  cache:
+    artifact_url: ${system.android_cache.x86_64.android_30.url}
+    artifact_namespace: ${system.android_cache.x86_64.android_30.namespace}
+  scripts:
+    build: "taskcluster/android_cache-build.sh x86_64 android-30"
+    package: "taskcluster/android_cache-package.sh"
+  metadata:
+    name: "Builds Android cache x86_64 / android-30"
+    description: "Setup an Android SDK / emulator cache for Android / x86_64 android-30"

@@ -1,5 +1,8 @@
 build:
-  template_file: pyenv-win-opt-base.tyml
+  template_file: generic_tc_caching-win-opt-base.tyml
+  cache:
+    artifact_url: "${system.pyenv.win.url}"
+    artifact_namespace: "${system.pyenv.win.namespace}"
   scripts:
     build: "taskcluster/pyenv-build.sh"
     package: "taskcluster/pyenv-package.sh"

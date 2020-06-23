@@ -1,8 +1,13 @@
 build:
-  template_file: swig-linux-opt-base.tyml
-  docker_image: "ubuntu:14.04"
-  swig_system: "linux"
-  swig_arch: "amd64"
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  docker_image: "ubuntu:16.04"
+  build_or_cache:
+    repo: "${system.swig.repo}"
+    sha: "${system.swig.sha1}"
+    dir: "swig"
+  cache:
+    artifact_url: "${system.swig_build.linux.url}"
+    artifact_namespace: "${system.swig_build.linux.namespace}"
   system_setup:
     >
       apt-get -qq -y install autoconf automake bison build-essential

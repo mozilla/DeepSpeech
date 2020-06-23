@@ -1,11 +1,11 @@
 build:
-  template_file: android_cache-opt-base.tyml
+  template_file: generic_tc_caching-linux-opt-base.tyml
   system_setup:
     >
-      ${java.packages_trusty.apt}
+      ${java.packages_xenial.apt}
   cache:
-    url: ${system.android_cache.sdk.android_27.url}
-    namespace: ${system.android_cache.sdk.android_27.namespace}
+    artifact_url: ${system.android_cache.sdk.android_27.url}
+    artifact_namespace: ${system.android_cache.sdk.android_27.namespace}
   scripts:
     build: "taskcluster/android_cache-build.sh sdk android-27"
     package: "taskcluster/android_cache-package.sh"

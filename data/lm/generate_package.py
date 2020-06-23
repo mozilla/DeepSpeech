@@ -61,8 +61,12 @@ def create_bundle(
         sys.exit(1)
     scorer.fill_dictionary(list(words))
     shutil.copy(lm_path, package_path)
-    scorer.save_dictionary(package_path, True)  # append, not overwrite
-    print("Package created in {}".format(package_path))
+    # append, not overwrite
+    if scorer.save_dictionary(package_path, True):
+        print("Package created in {}".format(package_path))
+    else:
+        print("Error when creating {}".format(package_path))
+        sys.exit(1)
 
 
 class Tristate(object):

@@ -5,8 +5,8 @@ Building DeepSpeech Binaries
 If you'd like to build the DeepSpeech binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
 
-* `Mozilla's TensorFlow r1.15 branch <https://github.com/mozilla/tensorflow/tree/r1.15>`_
-* `Bazel 0.24.1 <https://github.com/bazelbuild/bazel/releases/tag/0.24.1>`_
+* `Mozilla's TensorFlow r2.2 branch <https://github.com/mozilla/tensorflow/tree/r2.2>`_
+* `Bazel 2.0.0 <https://github.com/bazelbuild/bazel/releases/tag/2.0.0>`_
 * `General TensorFlow requirements <https://www.tensorflow.org/install/install_sources>`_
 * `libsox <https://sourceforge.net/projects/sox/>`_
 
@@ -36,12 +36,12 @@ Clone our fork of TensorFlow and checkout the correct version:
 .. code-block::
 
    git clone https://github.com/mozilla/tensorflow.git
-   git checkout origin/r1.15
+   git checkout origin/r2.2
 
 Bazel: Download & Install
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, install Bazel 0.24.1 following the `Bazel installation documentation <https://docs.bazel.build/versions/0.24.0/install.html>`_.
+First, install Bazel 2.0.0 following the `Bazel installation documentation <https://docs.bazel.build/versions/2.0.0/install.html>`_.
 
 TensorFlow: Configure with Bazel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
