@@ -44,7 +44,7 @@ then:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
           .\msys64\usr\bin\bash.exe --login -cxe "export LC_ALL=C &&
-          export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin/:$PATH\" &&
+          export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1/bin/:$PATH\" &&
           export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
           export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
           export TASKCLUSTER_NODE_DIR=\"$(cygpath -w $TASKCLUSTER_TASK_DIR/bin)\" &&

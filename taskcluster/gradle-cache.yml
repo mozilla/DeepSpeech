@@ -5,7 +5,7 @@ build:
     artifact_namespace: ${system.gradle_cache.namespace}
   system_setup:
     >
-      ${java.packages_trusty.apt}
+      ${java.packages_xenial.apt}
   scripts:
     build: "taskcluster/gradle-build.sh"
     package: "taskcluster/gradle-package.sh"

@@ -18,11 +18,7 @@ for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do
 
   pyalias="${pyver}_${pyconf}"
 
-  maybe_ssl102_py37 ${pyver}
-
-  LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH \
-      PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf} ${PY37_OPENSSL}" \
-      pyenv_install ${pyver} ${pyalias}
+  PYTHON_CONFIGURE_OPTS="--enable-unicode=${pyconf}" pyenv_install ${pyver} ${pyalias}
 
   setup_pyenv_virtualenv "${pyalias}" "deepspeech"
 

@@ -2,7 +2,7 @@ build:
   template_file: generic_tc_caching-linux-opt-base.tyml
   system_setup:
     >
-      ${java.packages_trusty.apt}
+      ${java.packages_xenial.apt}
   cache:
     artifact_url: ${system.android_cache.x86_64.android_25.url}
     artifact_namespace: ${system.android_cache.x86_64.android_25.namespace}

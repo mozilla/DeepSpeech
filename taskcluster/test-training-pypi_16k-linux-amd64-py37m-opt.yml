@@ -7,7 +7,7 @@ build:
   ref_match: "refs/tags/"
   system_setup:
     >
-      apt-get -qq update && apt-get -qq -y install ${training.packages_trusty.apt}
+      apt-get -qq update && apt-get -qq -y install ${training.packages_xenial.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-tests.sh 3.7.6:m 16k --pypi"
   metadata:

@@ -5,7 +5,7 @@ build:
     artifact_namespace: "${system.pyenv.linux.namespace}"
   system_setup:
     >
-      apt-get -qq update && apt-get -qq -y install python-yaml ${python.packages_trusty.apt} wget
+      apt-get -qq update && apt-get -qq -y install python-yaml ${python.packages_xenial.apt} wget
   scripts:
     build: "taskcluster/pyenv-build.sh"
     package: "taskcluster/pyenv-package.sh"
