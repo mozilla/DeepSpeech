@@ -1,0 +1,16 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: ${system.tensorflow.linux_arm64.url}
+    artifact_namespace: ${system.tensorflow.linux_arm64.namespace}
+  system_config:
+    >
+      ${tensorflow.packages_xenial.apt} && ${java.packages_xenial.apt}
+  scripts:
+    setup: "taskcluster/tf_tc-setup.sh"
+    build: "taskcluster/tf_tc-build.sh --arm64"
+    package: "taskcluster/tf_tc-package.sh"
+  maxRunTime: 14400
+  metadata:
+    name: "TensorFlow Linux ARM64 Cortex-A53 CPU"
+    description: "Building TensorFlow for Linux ARM64 Cortex-A53, CPU only, optimized version"

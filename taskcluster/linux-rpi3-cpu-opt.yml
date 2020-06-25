@@ -4,6 +4,7 @@ build:
     - "swig-linux-amd64"
     - "node-gyp-cache"
     - "pyenv-linux-amd64"
+    - "tf_linux-rpi3-cpu-opt"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.arm"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.arm"
@@ -19,8 +20,9 @@ build:
   system_config:
     >
       multistrap -d /tmp/multistrap-raspbian-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_raspbian_buster.conf
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.c29895fba1b9f9f48e2e54eefb024c69aa333473.arm/artifacts/public/home.tar.xz"
+  tensorflow: ${system.tensorflow.linux_armv7.url}
   scripts:
+    setup: ""
     build: "taskcluster/rpi3-build.sh"
     package: "taskcluster/package.sh"
   nc_asset_name: "native_client.rpi3.cpu.linux.tar.xz"

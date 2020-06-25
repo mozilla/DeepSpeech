@@ -1,7 +1,7 @@
 NC_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 TARGET    ?= host
-TFDIR     ?= $(abspath $(NC_DIR)/../../tensorflow)
+TFDIR     ?= $(abspath $(NC_DIR)/../tensorflow)
 PREFIX    ?= /usr/local
 SO_SEARCH ?= $(TFDIR)/bazel-bin/
 

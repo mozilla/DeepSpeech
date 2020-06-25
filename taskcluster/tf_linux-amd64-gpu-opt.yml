@@ -1,0 +1,16 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: ${system.tensorflow.linux_amd64_cuda.url}
+    artifact_namespace: ${system.tensorflow.linux_amd64_cuda.namespace}
+  system_config:
+    >
+      ${tensorflow.packages_xenial.apt} && ${java.packages_xenial.apt}
+  scripts:
+    setup: "taskcluster/tf_tc-setup.sh --cuda"
+    build: "taskcluster/tf_tc-build.sh --gpu"
+    package: "taskcluster/tf_tc-package.sh"
+  maxRunTime: 14400
+  metadata:
+    name: "TensorFlow Linux AMD64 CUDA"
+    description: "Building TensorFlow for Linux/AMD64, CUDA-enabled, optimized version"

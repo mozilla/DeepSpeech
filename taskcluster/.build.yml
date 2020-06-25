@@ -10,6 +10,8 @@ build:
   routes: []
   maxRunTime: 3600
   docker_image: "ubuntu:16.04"
+  generic:
+    workerType: 'ds-macos-light'
   system_setup:
     >
       true
@@ -17,12 +19,13 @@ build:
     >
       true
   scripts:
+    setup: ''
     build: ''
     package: ''
   nc_asset_name: 'native_client.tar.xz'
   args:
     tests_cmdline: ''
-  tensorflow_git_desc: 'TensorFlow: v2.2.0-12-gc29895f'
+  tensorflow_git_desc: 'TensorFlow: v2.2.0-14-g7ead558'
   test_model_task: ''
   homebrew:
     url: ''

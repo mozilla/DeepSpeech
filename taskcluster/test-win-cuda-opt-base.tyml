@@ -38,8 +38,6 @@ then:
         "C:\Program Files\7-zip\7z.exe" x -txz -so msys2-base-x86_64.tar.xz |
         "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
       - .\msys64\usr\bin\bash.exe --login -cx "export THIS_BASH_PID=$$; ps -ef | grep '[?]' | awk '{print $2}' | grep -v $THIS_BASH_PID | xargs -r kill; exit 0"
-      - .\msys64\usr\bin\bash.exe --login -cx "${system.msys2_filesystem_pkg.install}"
-      - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
       - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
@@ -69,10 +67,6 @@ then:
         content:
           sha256: ${system.msys2.sha}
           url: ${system.msys2.url}
-      - file: filesystem-2020.02-3-x86_64.pkg.tar.xz
-        content:
-          sha256: ${system.msys2_filesystem_pkg.sha}
-          url: ${system.msys2_filesystem_pkg.url}
       - file: pyenv.tar.gz
         content:
           url: ${system.pyenv.win.url}

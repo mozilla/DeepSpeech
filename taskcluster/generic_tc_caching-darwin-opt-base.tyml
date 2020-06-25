@@ -1,6 +1,6 @@
 taskId: ${taskcluster.taskId}
 provisionerId: ${taskcluster.generic.provisionerId}
-workerType: ${taskcluster.generic.workerType}
+workerType: ${build.generic.workerType}
 taskGroupId: ${taskcluster.taskGroupId}
 schedulerId: ${taskcluster.schedulerId}
 dependencies:
@@ -24,6 +24,8 @@ payload:
       - "--login"
       - "-cxe"
       - $let:
+          extraSystemSetup: { $eval: strip(str(build.system_setup)) }
+          extraSystemConfig: { $eval: strip(str(build.system_config)) }
           taskIndexExpire: { $fromNow: '6 months' }
         in: >
           export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
@@ -32,13 +34,14 @@ payload:
           export TASKCLUSTER_TASK_DIR="$(pwd)" &&
           export LC_ALL=C &&
           export MACOSX_DEPLOYMENT_TARGET=10.10 &&
-          export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
           env &&
           mkdir -p $TASKCLUSTER_ARTIFACTS/ &&
           cache_artifact=`curl -sSIL -o /dev/null -w "%{http_code}" ${build.cache.artifact_url}` &&
           if [ "$cache_artifact" != "200" ]; then
             git clone --quiet ${build.build_or_cache.repo} $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir} &&
             cd $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir} && git checkout --quiet ${build.build_or_cache.sha} &&
+            ${extraSystemConfig} &&
+            $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.setup} &&
             $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.build} &&
             $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.package} &&
             $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/taskcluster/tc-update-index.sh ${taskIndexExpire} 127.0.0.1:8080 ${build.cache.artifact_namespace}

@@ -4,6 +4,7 @@ build:
     - "swig-linux-amd64"
     - "node-gyp-cache"
     - "pyenv-linux-amd64"
+    - "tf_linux-amd64-cpu-opt"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.cpu-ctc"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.cpu-ctc"
@@ -12,8 +13,9 @@ build:
     >
       ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning}
       && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.c29895fba1b9f9f48e2e54eefb024c69aa333473.cpu/artifacts/public/home.tar.xz"
+  tensorflow: ${system.tensorflow.linux_amd64_cpu.url}
   scripts:
+    setup: ""
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'
   metadata:

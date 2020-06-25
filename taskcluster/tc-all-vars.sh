@@ -49,7 +49,7 @@ export ANDROID_TMP_DIR=/data/local/tmp
 
 mkdir -p ${TASKCLUSTER_TMP_DIR} || true
 
-export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/tf
+export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow
 export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 export DS_EXAMPLEDIR=${DS_ROOT_TASK}/DeepSpeech/examples
 
