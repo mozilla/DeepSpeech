@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from . import swigwrapper # pylint: disable=import-self
-from .swigwrapper import Alphabet
+from .swigwrapper import UTF8Alphabet
 
 __version__ = swigwrapper.__version__
 
@@ -30,24 +30,20 @@ class Scorer(swigwrapper.Scorer):
             assert beta is not None, 'beta parameter is required'
             assert scorer_path, 'scorer_path parameter is required'
 
-            serialized = alphabet.serialize()
-            native_alphabet = swigwrapper.Alphabet()
-            err = native_alphabet.deserialize(serialized, len(serialized))
+            err = self.init(scorer_path, alphabet)
             if err != 0:
-                raise ValueError('Error when deserializing alphabet.')
-
-            err = self.init(scorer_path.encode('utf-8'),
-                            native_alphabet)
-            if err != 0:
-                raise ValueError('Scorer initialization failed with error code {}'.format(err))
+                raise ValueError('Scorer initialization failed with error code 0x{:X}'.format(err))
 
             self.reset_params(alpha, beta)
 
-    def load_lm(self, lm_path):
-        return super(Scorer, self).load_lm(lm_path.encode('utf-8'))
 
-    def save_dictionary(self, save_path, *args, **kwargs):
-        return super(Scorer, self).save_dictionary(save_path.encode('utf-8'), *args, **kwargs)
+class Alphabet(swigwrapper.Alphabet):
+    """Convenience wrapper for Alphabet which calls init in the constructor"""
+    def __init__(self, config_path):
+        super(Alphabet, self).__init__()
+        err = self.init(config_path)
+        if err != 0:
+            raise ValueError('Alphabet initialization failed with error code 0x{:X}'.format(err))
 
 
 def ctc_beam_search_decoder(probs_seq,
@@ -79,15 +75,10 @@ def ctc_beam_search_decoder(probs_seq,
              results, in descending order of the confidence.
     :rtype: list
     """
-    serialized = alphabet.serialize()
-    native_alphabet = swigwrapper.Alphabet()
-    err = native_alphabet.deserialize(serialized, len(serialized))
-    if err != 0:
-        raise ValueError("Error when deserializing alphabet.")
     beam_results = swigwrapper.ctc_beam_search_decoder(
-        probs_seq, native_alphabet, beam_size, cutoff_prob, cutoff_top_n,
+        probs_seq, alphabet, beam_size, cutoff_prob, cutoff_top_n,
         scorer)
-    beam_results = [(res.confidence, alphabet.decode(res.tokens)) for res in beam_results]
+    beam_results = [(res.confidence, alphabet.Decode(res.tokens)) for res in beam_results]
     return beam_results
 
 
@@ -126,14 +117,9 @@ def ctc_beam_search_decoder_batch(probs_seq,
              results, in descending order of the confidence.
     :rtype: list
     """
-    serialized = alphabet.serialize()
-    native_alphabet = swigwrapper.Alphabet()
-    err = native_alphabet.deserialize(serialized, len(serialized))
-    if err != 0:
-        raise ValueError("Error when deserializing alphabet.")
-    batch_beam_results = swigwrapper.ctc_beam_search_decoder_batch(probs_seq, seq_lengths, native_alphabet, beam_size, num_processes, cutoff_prob, cutoff_top_n, scorer)
+    batch_beam_results = swigwrapper.ctc_beam_search_decoder_batch(probs_seq, seq_lengths, alphabet, beam_size, num_processes, cutoff_prob, cutoff_top_n, scorer)
     batch_beam_results = [
-        [(res.confidence, alphabet.decode(res.tokens)) for res in beam_results]
+        [(res.confidence, alphabet.Decode(res.tokens)) for res in beam_results]
         for beam_results in batch_beam_results
     ]
     return batch_beam_results

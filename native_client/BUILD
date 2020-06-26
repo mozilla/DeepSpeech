@@ -75,6 +75,7 @@ cc_library(
         "ctcdecode/scorer.cpp",
         "ctcdecode/path_trie.cpp",
         "ctcdecode/path_trie.h",
+        "alphabet.cc",
     ] + OPENFST_SOURCES_PLATFORM,
     hdrs = [
         "ctcdecode/ctc_beam_search_decoder.h",
@@ -86,13 +87,17 @@ cc_library(
         ".",
         "ctcdecode/third_party/ThreadPool",
     ] + OPENFST_INCLUDES_PLATFORM,
-    deps = [":kenlm"]
+    deps = [":kenlm"],
+    linkopts = [
+        "-lm",
+        "-ldl",
+        "-pthread",
+    ],
 )
 
 tf_cc_shared_object(
     name = "libdeepspeech.so",
     srcs = [
-        "alphabet.h",
         "deepspeech.cc",
         "deepspeech.h",
         "deepspeech_errors.cc",
@@ -203,6 +208,11 @@ cc_binary(
         "@com_google_absl//absl/types:optional",
         "@boost//:program_options",
     ],
+    linkopts = [
+        "-lm",
+        "-ldl",
+        "-pthread",
+    ],
 )
 
 cc_binary(
@@ -221,10 +231,5 @@ cc_binary(
         "trie_load.cc",
     ],
     copts = ["-std=c++11"],
-    linkopts = [
-        "-lm",
-        "-ldl",
-        "-pthread",
-    ],
     deps = [":decoder"],
 )

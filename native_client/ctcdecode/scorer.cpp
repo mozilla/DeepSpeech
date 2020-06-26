@@ -65,7 +65,7 @@ void Scorer::setup_char_map()
     // The initial state of FST is state 0, hence the index of chars in
     // the FST should start from 1 to avoid the conflict with the initial
     // state, otherwise wrong decoding results would be given.
-    char_map_[alphabet_.StringFromLabel(i)] = i + 1;
+    char_map_[alphabet_.DecodeSingle(i)] = i + 1;
   }
 }
 
@@ -314,11 +314,11 @@ void Scorer::reset_params(float alpha, float beta)
   this->beta = beta;
 }
 
-std::vector<std::string> Scorer::split_labels_into_scored_units(const std::vector<int>& labels)
+std::vector<std::string> Scorer::split_labels_into_scored_units(const std::vector<unsigned int>& labels)
 {
   if (labels.empty()) return {};
 
-  std::string s = alphabet_.LabelsToString(labels);
+  std::string s = alphabet_.Decode(labels);
   std::vector<std::string> words;
   if (is_utf8_mode_) {
     words = split_into_codepoints(s);
@@ -339,8 +339,8 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
       break;
     }
 
-    std::vector<int> prefix_vec;
-    std::vector<int> prefix_steps;
+    std::vector<unsigned int> prefix_vec;
+    std::vector<unsigned int> prefix_steps;
 
     if (is_utf8_mode_) {
       new_node = current_node->get_prev_grapheme(prefix_vec, prefix_steps, alphabet_);
@@ -350,7 +350,7 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
     current_node = new_node->parent;
 
     // reconstruct word
-    std::string word = alphabet_.LabelsToString(prefix_vec);
+    std::string word = alphabet_.Decode(prefix_vec);
     ngram.push_back(word);
   }
   std::reverse(ngram.begin(), ngram.end());

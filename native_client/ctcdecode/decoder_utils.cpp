@@ -119,7 +119,7 @@ bool prefix_compare_external(const PathTrie *x, const PathTrie *y, const std::un
   }
 }
 
-void add_word_to_fst(const std::vector<int> &word,
+void add_word_to_fst(const std::vector<unsigned int> &word,
                      fst::StdVectorFst *dictionary) {
   if (dictionary->NumStates() == 0) {
     fst::StdVectorFst::StateId start = dictionary->AddState();
@@ -144,7 +144,7 @@ bool add_word_to_dictionary(
     fst::StdVectorFst *dictionary) {
   auto characters = utf8 ? split_into_bytes(word) : split_into_codepoints(word);
 
-  std::vector<int> int_word;
+  std::vector<unsigned int> int_word;
 
   for (auto &c : characters) {
     auto int_c = char_map.find(c);

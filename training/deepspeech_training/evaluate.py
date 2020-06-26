@@ -40,7 +40,7 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
     for i, index in enumerate(indices):
         results[index[0]].append(values[i])
     # List of strings
-    return [alphabet.decode(res) for res in results]
+    return [alphabet.Decode(res) for res in results]
 
 
 def evaluate(test_csvs, create_model):

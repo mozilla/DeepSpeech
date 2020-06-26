@@ -86,7 +86,7 @@ std::vector<std::string> split_into_codepoints(const std::string &str);
 std::vector<std::string> split_into_bytes(const std::string &str);
 
 // Add a word in index to the dicionary of fst
-void add_word_to_fst(const std::vector<int> &word,
+void add_word_to_fst(const std::vector<unsigned int> &word,
                      fst::StdVectorFst *dictionary);
 
 // Return whether a byte is a code point boundary (not a continuation byte).

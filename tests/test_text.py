@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from deepspeech_training.util.text import Alphabet
+from ds_ctcdecoder import Alphabet
 
 class TestAlphabetParsing(unittest.TestCase):
 
@@ -11,12 +11,12 @@ class TestAlphabetParsing(unittest.TestCase):
         label_id = -1
         for expected_label, expected_label_id in expected:
             try:
-                label_id = alphabet.encode(expected_label)
+                label_id = alphabet.Encode(expected_label)
             except KeyError:
                 pass
             self.assertEqual(label_id, [expected_label_id])
             try:
-                label = alphabet.decode([expected_label_id])
+                label = alphabet.Decode([expected_label_id])
             except KeyError:
                 pass
             self.assertEqual(label, expected_label)

@@ -206,7 +206,7 @@ TFLiteModelState::init(const char* model_path)
   beam_width_ = (unsigned int)(*beam_width);
 
   tflite::StringRef serialized_alphabet = tflite::GetString(interpreter_->tensor(metadata_alphabet_idx), 0);
-  err = alphabet_.deserialize(serialized_alphabet.str, serialized_alphabet.len);
+  err = alphabet_.Deserialize(serialized_alphabet.str, serialized_alphabet.len);
   if (err != 0) {
     return DS_ERR_INVALID_ALPHABET;
   }
