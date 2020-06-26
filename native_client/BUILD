@@ -89,13 +89,14 @@ cc_library(
 tf_cc_shared_object(
     name = "libdeepspeech.so",
     srcs = [
+        "alphabet.h",
         "deepspeech.cc",
         "deepspeech.h",
-        "alphabet.h",
-        "modelstate.h",
+        "deepspeech_errors.cc",
         "modelstate.cc",
-        "workspace_status.h",
+        "modelstate.h",
         "workspace_status.cc",
+        "workspace_status.h",
     ] + select({
         "//native_client:tflite": [
             "tflitemodelstate.h",
