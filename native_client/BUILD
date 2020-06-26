@@ -2,6 +2,7 @@
 
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_shared_object")
 load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 
 load(
     "@org_tensorflow//tensorflow/lite:build_def.bzl",
@@ -78,6 +79,8 @@ cc_library(
     hdrs = [
         "ctcdecode/ctc_beam_search_decoder.h",
         "ctcdecode/scorer.h",
+        "ctcdecode/decoder_utils.h",
+        "alphabet.h",
     ],
     includes = [
         ".",
@@ -184,6 +187,22 @@ genrule(
     outs = ["libdeepspeech.so.dSYM"],
     output_to_bindir = True,
     cmd = "dsymutil $(location :libdeepspeech.so) -o $@"
+)
+
+cc_binary(
+    name = "generate_scorer_package",
+    srcs = [
+        "generate_scorer_package.cpp",
+        "deepspeech_errors.cc",
+    ],
+    copts = ["-std=c++11"],
+    deps = [
+        ":decoder",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/types:optional",
+        "@boost//:program_options",
+    ],
 )
 
 cc_binary(

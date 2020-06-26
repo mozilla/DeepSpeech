@@ -357,7 +357,7 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
   return ngram;
 }
 
-void Scorer::fill_dictionary(const std::vector<std::string>& vocabulary)
+void Scorer::fill_dictionary(const std::unordered_set<std::string>& vocabulary)
 {
   // ConstFst is immutable, so we need to use a MutableFst to create the trie,
   // and then we convert to a ConstFst for the decoder and for storing on disk.

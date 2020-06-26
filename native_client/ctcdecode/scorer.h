@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "lm/virtual_interface.hh"
@@ -83,7 +84,7 @@ public:
   bool is_scoring_boundary(PathTrie* prefix, size_t new_label);
 
   // fill dictionary FST from a vocabulary
-  void fill_dictionary(const std::vector<std::string> &vocabulary);
+  void fill_dictionary(const std::unordered_set<std::string> &vocabulary);
 
   // load language model from given path
   int load_lm(const std::string &lm_path);

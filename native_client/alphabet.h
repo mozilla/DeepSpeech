@@ -19,7 +19,7 @@ public:
   Alphabet(const Alphabet&) = default;
   Alphabet& operator=(const Alphabet&) = default;
 
-  int init(const char *config_file) {
+  virtual int init(const char *config_file) {
     std::ifstream in(config_file, std::ios::in);
     if (!in) {
       return 1;
@@ -43,6 +43,30 @@ public:
     size_ = label;
     in.close();
     return 0;
+  }
+
+  std::string serialize() {
+    // Serialization format is a sequence of (key, value) pairs, where key is
+    // a uint16_t and value is a uint16_t length followed by `length` UTF-8
+    // encoded bytes with the label.
+    std::stringstream out;
+
+    // We start by writing the number of pairs in the buffer as uint16_t.
+    uint16_t size = size_;
+    out.write(reinterpret_cast<char*>(&size), sizeof(size));
+
+    for (auto it = label_to_str_.begin(); it != label_to_str_.end(); ++it) {
+      uint16_t key = it->first;
+      string str = it->second;
+      uint16_t len = str.length();
+      // Then we write the key as uint16_t, followed by the length of the value
+      // as uint16_t, followed by `length` bytes (the value itself).
+      out.write(reinterpret_cast<char*>(&key), sizeof(key));
+      out.write(reinterpret_cast<char*>(&len), sizeof(len));
+      out.write(str.data(), len);
+    }
+
+    return out.str();
   }
 
   int deserialize(const char* buffer, const int buffer_size) {
@@ -126,11 +150,28 @@ public:
     return word;
   }
 
-private:
+protected:
   size_t size_;
   unsigned int space_label_;
   std::unordered_map<unsigned int, std::string> label_to_str_;
   std::unordered_map<std::string, unsigned int> str_to_label_;
 };
+
+class UTF8Alphabet : public Alphabet
+{
+public:
+  UTF8Alphabet() {
+    size_ = 255;
+    space_label_ = ' ' - 1;
+    for (int i = 0; i < size_; ++i) {
+      std::string val(1, i+1);
+      label_to_str_[i] = val;
+      str_to_label_[val] = i;
+    }
+  }
+
+  int init(const char*) override {}
+};
+
 
 #endif //ALPHABET_H
