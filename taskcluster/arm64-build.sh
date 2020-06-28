@@ -8,6 +8,7 @@ source $(dirname "$0")/tf_tc-vars.sh
 
 BAZEL_TARGETS="
 //native_client:libdeepspeech.so
+//native_client:generate_scorer_package
 "
 
 BAZEL_BUILD_FLAGS="${BAZEL_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS}"

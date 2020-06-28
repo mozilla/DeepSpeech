@@ -10,6 +10,7 @@ source $(dirname "$0")/tf_tc-vars.sh
 
 BAZEL_TARGETS="
 //native_client:libdeepspeech.so
+//native_client:generate_scorer_package
 "
 
 if [ "${package_option}" = "--cuda" ]; then
