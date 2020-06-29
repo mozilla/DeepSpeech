@@ -45,6 +45,11 @@ class Alphabet(swigwrapper.Alphabet):
         if err != 0:
             raise ValueError('Alphabet initialization failed with error code 0x{:X}'.format(err))
 
+    def Encode(self, input):
+        """Convert SWIG's UnsignedIntVec to a Python list"""
+        res = super(Alphabet, self).Encode(input)
+        return [el for el in res]
+
 
 def ctc_beam_search_decoder(probs_seq,
                             alphabet,
