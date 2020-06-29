@@ -6,7 +6,7 @@ source $(dirname "$0")/tc-tests-utils.sh
 
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
-cp ${DS_ROOT_TASK}/DeepSpeech/tf/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
+cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
 package_native_client "native_client.tar.xz"
 

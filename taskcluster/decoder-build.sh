@@ -4,7 +4,7 @@ set -xe
 
 source $(dirname "$0")/tc-tests-utils.sh
 
-source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
+source $(dirname "$0")/tf_tc-vars.sh
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
   export SYSTEM_TARGET=host-win

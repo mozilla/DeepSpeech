@@ -43,36 +43,34 @@ We highly recommend sticking to the recommended versions of CUDA/cuDNN in order 
 Getting the code
 ----------------
 
-We need to clone ``mozilla/DeepSpeech`` and ``mozilla/tensorflow``.
+We need to clone ``mozilla/DeepSpeech``.
 
 .. code-block:: bash
 
    git clone https://github.com/mozilla/DeepSpeech
-
-.. code-block:: bash
-
-   git clone --branch r2.2 https://github.com/mozilla/tensorflow
+   git submodule sync tensorflow/
+   git submodule update --init tensorflow/
 
 Configuring the paths
 ---------------------
 
-We need to create a symbolic link, for this example let's suppose that we cloned into ``D:\cloned`` and now the structure looks like:
+There should already be a symbolic link, for this example let's suppose that we cloned into ``D:\cloned`` and now the structure looks like:
 
 .. code-block::
 
    .
    ├── D:\
    │   ├── cloned                 # Contains DeepSpeech and tensorflow side by side
-   │   │   ├── DeepSpeech         # Root of the cloned DeepSpeech
-   │   │   ├── tensorflow         # Root of the cloned Mozilla's tensorflow 
+   │   │   └── DeepSpeech         # Root of the cloned DeepSpeech
+   │   │       ├── tensorflow     # Root of the cloned Mozilla's tensorflow 
    └── ...
 
 
-Change your path accordingly to your path structure, for the structure above we are going to use the following command:
+Change your path accordingly to your path structure, for the structure above we are going to use the following command if the symbolic link does not exists:
 
 .. code-block:: bash
 
-   mklink /d "D:\cloned\tensorflow\native_client" "D:\cloned\DeepSpeech\native_client"
+   mklink /d "D:\cloned\DeepSpeech\tensorflow\native_client" "D:\cloned\DeepSpeech\native_client"
 
 Adding environment variables
 ----------------------------
@@ -82,7 +80,7 @@ After you have installed the requirements there are few environment variables th
 MSYS2 paths
 ~~~~~~~~~~~
 
-For MSYS2 we need to add ``bin`` directory, if you installed in the default route the path that we need to add should looks like ``C:\msys64\usr\bin``. Now we can run ``pacman``\ :
+For MSYS2 we need to add ``bin`` directory, if you installed in the default route the path that we need to add should looks like ``C:\msys64\usr\bin``. Now we can run ``pacman``:
 
 .. code-block:: bash
 
@@ -120,7 +118,7 @@ Building the native_client
 
 There's one last command to run before building, you need to run the `configure.py <https://github.com/mozilla/tensorflow/blob/master/configure.py>`_ inside ``tensorflow`` cloned directory.
 
-At this point we are ready to start building the ``native_client``\ , go to ``tensorflow`` directory that you cloned, following our examples should be ``D:\cloned\tensorflow``.  
+At this point we are ready to start building the ``native_client``, go to ``tensorflow`` sub-directory, following our examples should be ``D:\cloned\DeepSpeech\tensorflow``.  
 
 CPU
 ~~~

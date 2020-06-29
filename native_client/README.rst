@@ -4,10 +4,8 @@ Building DeepSpeech Binaries
 
 If you'd like to build the DeepSpeech binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
-
-* `Mozilla's TensorFlow r2.2 branch <https://github.com/mozilla/tensorflow/tree/r2.2>`_
 * `Bazel 2.0.0 <https://github.com/bazelbuild/bazel/releases/tag/2.0.0>`_
-* `General TensorFlow requirements <https://www.tensorflow.org/install/install_sources>`_
+* `General TensorFlow r2.2 requirements <https://www.tensorflow.org/install/source#tested_build_configurations>`_
 * `libsox <https://sourceforge.net/projects/sox/>`_
 
 It is required to use our fork of TensorFlow since it includes fixes for common problems encountered when building the native client files.
@@ -28,15 +26,16 @@ If you follow these instructions, you should compile your own binaries of DeepSp
 
 For more information on configuring TensorFlow, read the docs up to the end of `"Configure the Build" <https://www.tensorflow.org/install/source#configure_the_build>`_.
 
-TensorFlow: Clone & Checkout
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Checkout source code
+^^^^^^^^^^^^^^^^^^^^
 
-Clone our fork of TensorFlow and checkout the correct version:
+Clone DeepSpeech source code (TensorFlow will come as a submdule):
 
 .. code-block::
 
-   git clone https://github.com/mozilla/tensorflow.git
-   git checkout origin/r2.2
+   git clone https://github.com/mozilla/DeepSpeech.git
+   git submodule sync tensorflow/
+   git submodule update --init tensorflow/
 
 Bazel: Download & Install
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -57,16 +56,16 @@ Compile DeepSpeech
 ------------------
 
 Compile ``libdeepspeech.so``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Within your TensorFlow checkout, create a symbolic link to the DeepSpeech ``native_client`` directory. Assuming DeepSpeech and TensorFlow checkouts are in the same directory, do:
+Within your TensorFlow directory, there should be a symbolic link to the DeepSpeech ``native_client`` directory. If it is not present, create it with the follow command:
 
 .. code-block::
 
    cd tensorflow
-   ln -s ../DeepSpeech/native_client ./
+   ln -s ../native_client
 
-You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``\ . Add ``--config=cuda`` if you want a CUDA build.
+You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``. Add ``--config=cuda`` if you want a CUDA build.
 
 .. code-block::
 
@@ -77,11 +76,10 @@ The generated binaries will be saved to ``bazel-bin/native_client/``.
 Compile Language Bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now, ``cd`` into the ``DeepSpeech/native_client`` directory and use the ``Makefile`` to build all the language bindings (C++ client, Python package, Nodejs package, etc.). Set the environment variable ``TFDIR`` to point to your TensorFlow checkout.
+Now, ``cd`` into the ``DeepSpeech/native_client`` directory and use the ``Makefile`` to build all the language bindings (C++ client, Python package, Nodejs package, etc.).
 
 .. code-block::
 
-   TFDIR=~/tensorflow
    cd ../DeepSpeech/native_client
    make deepspeech
 
@@ -191,11 +189,11 @@ Building the ``deepspeech`` binary will happen through ``ndk-build`` (ARMv7):
 .. code-block::
 
    cd ../DeepSpeech/native_client
-   $ANDROID_NDK_HOME/ndk-build APP_PLATFORM=android-21 APP_BUILD_SCRIPT=$(pwd)/Android.mk NDK_PROJECT_PATH=$(pwd) APP_STL=c++_shared TFDIR=$(pwd)/../../tensorflow/ TARGET_ARCH_ABI=armeabi-v7a
+   $ANDROID_NDK_HOME/ndk-build APP_PLATFORM=android-21 APP_BUILD_SCRIPT=$(pwd)/Android.mk NDK_PROJECT_PATH=$(pwd) APP_STL=c++_shared TFDIR=$(pwd)/../tensorflow/ TARGET_ARCH_ABI=armeabi-v7a
 
 And (ARM64):
 
 .. code-block::
 
    cd ../DeepSpeech/native_client
-   $ANDROID_NDK_HOME/ndk-build APP_PLATFORM=android-21 APP_BUILD_SCRIPT=$(pwd)/Android.mk NDK_PROJECT_PATH=$(pwd) APP_STL=c++_shared TFDIR=$(pwd)/../../tensorflowx/ TARGET_ARCH_ABI=arm64-v8a
+   $ANDROID_NDK_HOME/ndk-build APP_PLATFORM=android-21 APP_BUILD_SCRIPT=$(pwd)/Android.mk NDK_PROJECT_PATH=$(pwd) APP_STL=c++_shared TFDIR=$(pwd)/../tensorflow/ TARGET_ARCH_ABI=arm64-v8a

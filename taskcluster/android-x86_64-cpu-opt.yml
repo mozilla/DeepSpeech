@@ -8,7 +8,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-x86_64"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-x86_64"
     - "index.project.deepspeech.deepspeech.native_client.android-x86_64.${event.head.sha}"
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.c29895fba1b9f9f48e2e54eefb024c69aa333473.android-arm64/artifacts/public/home.tar.xz"
+  tensorflow: ${system.tensorflow.android_arm64.url}
   scripts:
     build: "taskcluster/android-build.sh x86_64"
     package: "taskcluster/android-package.sh x86_64"

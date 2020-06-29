@@ -12,6 +12,7 @@ build:
     >
       apt-get -qq -y install autoconf automake bison build-essential
   scripts:
+    setup: ""
     build: "taskcluster/build.sh"
     package: "taskcluster/package.sh"
   metadata:
