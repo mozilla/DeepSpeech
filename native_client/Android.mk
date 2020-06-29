@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE    := deepspeech-prebuilt
-LOCAL_SRC_FILES := $(TFDIR)/bazel-bin/native_client/libdeepspeech.so $(TFDIR)/bazel-bin/native_client/generate_scorer_package
+LOCAL_SRC_FILES := $(TFDIR)/bazel-bin/native_client/libdeepspeech.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)

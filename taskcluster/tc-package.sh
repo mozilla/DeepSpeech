@@ -35,6 +35,7 @@ package_native_client()
 package_native_client_ndk()
 {
   deepspeech_dir=${DS_DSDIR}
+  tensorflow_dir=${DS_TFDIR}
   artifacts_dir=${TASKCLUSTER_ARTIFACTS}
   artifact_name=$1
   arch_abi=$2
@@ -57,7 +58,7 @@ package_native_client_ndk()
   tar -cf - \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ deepspeech \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libdeepspeech.so \
-    -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ generate_scorer_package \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ generate_scorer_package \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libc++_shared.so \
     -C ${deepspeech_dir}/native_client/ deepspeech.h \
     -C ${deepspeech_dir}/ LICENSE \
