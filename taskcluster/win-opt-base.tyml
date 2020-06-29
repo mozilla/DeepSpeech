@@ -52,7 +52,7 @@ payload:
       (7z x -txz -so $USERPROFILE/home.tar.xz | 7z x -aoa -ttar -si ) &&
       git clone --quiet $EXAMPLES_CLONE_URL $TASKCLUSTER_TASK_DIR/DeepSpeech/examples &&
       cd $TASKCLUSTER_TASK_DIR/DeepSpeech/examples && git checkout --quiet $EXAMPLES_CHECKOUT_TARGET &&
-      cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git fetch origin && git checkout --quiet ${event.head.sha} &&
+      cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git remote set-url origin ${event.head.repo.url} && git fetch origin && git checkout --quiet ${event.head.sha} &&
       git submodule --quiet sync tensorflow/ && git submodule --quiet update tensorflow/ &&
       (rm $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tensorflow/native_client || true) &&
       ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tensorflow/native_client &&
