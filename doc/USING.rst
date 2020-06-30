@@ -5,7 +5,7 @@ Using a Pre-trained Model
 
 Inference using a DeepSpeech pre-trained model can be done with a client/language binding package. We have four clients/language bindings in this repository, listed below, and also a few community-maintained clients/language bindings in other repositories, listed `further down in this README <#third-party-bindings>`_.
 
-* `The C API <c-usage>`.
+* :ref:`The C API <c-usage>`.
 * :ref:`The Python package/language binding <py-usage>`
 * :ref:`The Node.JS package/language binding <nodejs-usage>`
 * :ref:`The command-line client <cli-usage>`
