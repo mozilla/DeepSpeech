@@ -399,6 +399,20 @@ Spectrogram domain augmentations
   * **factor**: speed factor by which the time axis is stretched or shrunken (e.g. a value of 2.0 will double playback tempo)
 
 
+**Warp augmentation** ``--augment warp[p=<float>,nt=<int-range>,nf=<int-range>,wt=<float-range>,wf=<float-range>]``
+  Applies a non-linear image warp to the spectrogram. This is achieved by randomly shifting a grid of equally distributed warp points along time and frequency axis.
+
+  * **p**: probability value between 0.0 (never) and 1.0 (always) if a given sample gets augmented by this method
+
+  * **nt**: number of equally distributed warp grid lines along time axis of the spectrogram (excluding the edges)
+
+  * **nf**: number of equally distributed warp grid lines along frequency axis of the spectrogram (excluding the edges)
+
+  * **wt**: standard deviation of the random shift applied to warp points along time axis (0.0 = no warp, 1.0 = half the distance to the neighbour point)
+
+  * **wf**: standard deviation of the random shift applied to warp points along frequency axis (0.0 = no warp, 1.0 = half the distance to the neighbour point)
+
+
 **Frequency mask augmentation** ``--augment frequency_mask[p=<float>,n=<int-range>,size=<int-range>]``
   Sets frequency-intervals within the augmented samples to zero (silence) at random frequencies. See the SpecAugment paper for more details - https://arxiv.org/abs/1904.08779
 
@@ -469,6 +483,7 @@ Example training with all augmentations:
           --augment volume[p=0.1,dbfs=-10:-40] \
           --augment pitch[p=0.1,pitch=1~0.2] \
           --augment tempo[p=0.1,factor=1~0.5] \
+          --augment warp[p=0.1,nt=4,nf=1,wt=0.5:1.0,wf=0.1:0.2] \
           --augment frequency_mask[p=0.1,n=1:3,size=1:5] \
           --augment time_mask[p=0.1,domain=signal,n=3:10~2,size=50:100~40] \
           --augment dropout[p=0.1,rate=0.05] \
