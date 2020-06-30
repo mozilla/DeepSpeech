@@ -4,56 +4,48 @@ set -ex
 
 source $(dirname $0)/tf_tc-vars.sh
 
-build_amd64=yes
+build_amd64=no
 build_gpu=no
 build_android_arm=no
 build_android_arm64=no
 build_linux_arm=no
 build_linux_arm64=no
+build_ios_arm64=no
+build_ios_x86_64=no
+
+if [ "$1" = "--cpu" ]; then
+    build_amd64=yes
+fi
 
 if [ "$1" = "--gpu" ]; then
     build_amd64=yes
     build_gpu=yes
-    build_android_arm=no
-    build_android_arm64=no
-    build_linux_arm=no
-    build_linux_arm64=no
 fi
 
 if [ "$1" = "--arm" ]; then
     build_amd64=yes
-    build_gpu=no
-    build_android_arm=no
-    build_android_arm64=no
     build_linux_arm=yes
-    build_linux_arm64=no
 fi
 
 if [ "$1" = "--arm64" ]; then
     build_amd64=yes
-    build_gpu=no
-    build_android_arm=no
-    build_android_arm64=no
-    build_linux_arm=no
     build_linux_arm64=yes
 fi
 
 if [ "$1" = "--android-armv7" ]; then
-    build_amd64=no
-    build_gpu=no
     build_android_arm=yes
-    build_android_arm64=no
-    build_linux_arm=no
-    build_linux_arm64=no
 fi
 
 if [ "$1" = "--android-arm64" ]; then
-    build_amd64=no
-    build_gpu=no
-    build_android_arm=no
     build_android_arm64=yes
-    build_linux_arm=no
-    build_linux_arm64=no
+fi
+
+if [ "$1" = "--ios-arm64" ]; then
+    build_ios_arm64=yes
+fi
+
+if [ "$1" = "--ios-x86_64" ]; then
+    build_ios_x86_64=yes
 fi
 
 pushd ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/
@@ -96,6 +88,14 @@ pushd ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/
 
     if [ "${build_android_arm64}" = "yes" ]; then
         echo "" | TF_SET_ANDROID_WORKSPACE=1 ./configure && ${BAZEL_BUILD} -c opt ${BAZEL_ANDROID_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+    fi;
+
+    if [ "${build_ios_arm64}" = "yes" ]; then
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c opt ${BAZEL_IOS_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+    fi;
+
+    if [ "${build_ios_x86_64}" = "yes" ]; then
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c opt ${BAZEL_IOS_X86_64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
     fi;
 
     if [ $? -ne 0 ]; then

@@ -1,8 +1,8 @@
 build:
   template_file: generic_tc_caching-darwin-opt-base.tyml
   cache:
-    artifact_url: ${system.tensorflow.darwin_amd64.url}
-    artifact_namespace: ${system.tensorflow.darwin_amd64.namespace}
+    artifact_url: ${system.tensorflow.ios_arm64.url}
+    artifact_namespace: ${system.tensorflow.ios_arm64.namespace}
   generic:
     workerType: "ds-macos-heavy"
   system_config:
@@ -10,9 +10,9 @@ build:
       ${tensorflow.packages_macos.brew}
   scripts:
     setup: "taskcluster/tf_tc-setup.sh"
-    build: "taskcluster/tf_tc-build.sh --cpu"
+    build: "taskcluster/tf_tc-build.sh --ios-arm64"
     package: "taskcluster/tf_tc-package.sh"
   maxRunTime: 28800
   metadata:
-    name: "TensorFlow OSX AMD64 CPU"
-    description: "Building TensorFlow for OSX AMD64, CPU only, optimized version"
+    name: "TensorFlow iOS ARM64 TFLite"
+    description: "Building TensorFlow for iOS ARM64, TFLite, optimized version"
