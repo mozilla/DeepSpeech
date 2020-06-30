@@ -60,7 +60,7 @@ payload:
         cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
         exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
         (pixz -d < $TASKCLUSTER_ORIG_TASKDIR/home.tar.xz | gtar -C $TASKCLUSTER_TASK_DIR -xf - ) &&
-        cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git fetch origin && git checkout --quiet ${event.head.sha} &&
+        cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git remote set-url origin ${event.head.repo.url} && git fetch origin && git checkout --quiet ${event.head.sha} &&
         git submodule --quiet sync tensorflow/ && git submodule --quiet update tensorflow/ &&
         cd $TASKCLUSTER_TASK_DIR &&
         (mkdir pyenv-root/ && gtar -C pyenv-root/ -xf $TASKCLUSTER_ORIG_TASKDIR/pyenv.tar.gz) &&
