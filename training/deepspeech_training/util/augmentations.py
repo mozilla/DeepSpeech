@@ -341,6 +341,8 @@ class Resample(SampleAugmentation):
 
     def apply(self, sample, clock=0.0):
         # late binding librosa and its dependencies
+        # pre-importing sklearn fixes https://github.com/scikit-learn/scikit-learn/issues/14485
+        import sklearn  # pylint: disable=import-outside-toplevel
         from librosa.core import resample  # pylint: disable=import-outside-toplevel
         sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
         rate = pick_value_from_range(self.rate, clock=clock)
