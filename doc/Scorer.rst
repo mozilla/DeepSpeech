@@ -44,7 +44,7 @@ Afterwards you can use ``generate_scorer_package`` to generate the scorer packag
 
     cd data/lm
     # Download and extract appropriate native_client package:
-    curl -LO ...
+    curl -LO http://github.com/mozilla/DeepSpeech/releases/...
     tar xvf native_client.*.tar.xz
     ./generate_scorer_package --alphabet ../alphabet.txt --lm lm.binary --vocab vocab-500000.txt \
       --package kenlm.scorer --default_alpha 0.931289039105002 --default_beta 1.1834137581510284
