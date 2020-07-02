@@ -33,7 +33,7 @@ char*
 ModelState::decode(const DecoderState& state) const
 {
   vector<Output> out = state.decode();
-  return strdup(alphabet_.LabelsToString(out[0].tokens).c_str());
+  return strdup(alphabet_.Decode(out[0].tokens).c_str());
 }
 
 Metadata*
@@ -50,7 +50,7 @@ ModelState::decode_metadata(const DecoderState& state,
 
     for (int j = 0; j < out[i].tokens.size(); ++j) {
       TokenMetadata token {
-        strdup(alphabet_.StringFromLabel(out[i].tokens[j]).c_str()),   // text
+        strdup(alphabet_.DecodeSingle(out[i].tokens[j]).c_str()),   // text
         static_cast<unsigned int>(out[i].timesteps[j]),                // timestep
         out[i].timesteps[j] * ((float)audio_win_step_ / sample_rate_), // start_time
       };

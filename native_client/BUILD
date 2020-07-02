@@ -2,6 +2,7 @@
 
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_shared_object")
 load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 
 load(
     "@org_tensorflow//tensorflow/lite:build_def.bzl",
@@ -74,16 +75,24 @@ cc_library(
         "ctcdecode/scorer.cpp",
         "ctcdecode/path_trie.cpp",
         "ctcdecode/path_trie.h",
+        "alphabet.cc",
     ] + OPENFST_SOURCES_PLATFORM,
     hdrs = [
         "ctcdecode/ctc_beam_search_decoder.h",
         "ctcdecode/scorer.h",
+        "ctcdecode/decoder_utils.h",
+        "alphabet.h",
     ],
     includes = [
         ".",
         "ctcdecode/third_party/ThreadPool",
     ] + OPENFST_INCLUDES_PLATFORM,
-    deps = [":kenlm"]
+    deps = [":kenlm"],
+    linkopts = [
+        "-lm",
+        "-ldl",
+        "-pthread",
+    ],
 )
 
 tf_cc_shared_object(
@@ -91,11 +100,11 @@ tf_cc_shared_object(
     srcs = [
         "deepspeech.cc",
         "deepspeech.h",
-        "alphabet.h",
-        "modelstate.h",
+        "deepspeech_errors.cc",
         "modelstate.cc",
-        "workspace_status.h",
+        "modelstate.h",
         "workspace_status.cc",
+        "workspace_status.h",
     ] + select({
         "//native_client:tflite": [
             "tflitemodelstate.h",
@@ -186,6 +195,27 @@ genrule(
 )
 
 cc_binary(
+    name = "generate_scorer_package",
+    srcs = [
+        "generate_scorer_package.cpp",
+        "deepspeech_errors.cc",
+    ],
+    copts = ["-std=c++11"],
+    deps = [
+        ":decoder",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/types:optional",
+        "@boost//:program_options",
+    ],
+    linkopts = [
+        "-lm",
+        "-ldl",
+        "-pthread",
+    ],
+)
+
+cc_binary(
     name = "enumerate_kenlm_vocabulary",
     srcs = [
         "enumerate_kenlm_vocabulary.cpp",
@@ -201,10 +231,5 @@ cc_binary(
         "trie_load.cc",
     ],
     copts = ["-std=c++11"],
-    linkopts = [
-        "-lm",
-        "-ldl",
-        "-pthread",
-    ],
     deps = [":decoder"],
 )

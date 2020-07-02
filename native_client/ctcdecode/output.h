@@ -8,8 +8,8 @@
  */
 struct Output {
     double confidence;
-    std::vector<int> tokens;
-    std::vector<int> timesteps;
+    std::vector<unsigned int> tokens;
+    std::vector<unsigned int> timesteps;
 };
 
 #endif  // OUTPUT_H_
