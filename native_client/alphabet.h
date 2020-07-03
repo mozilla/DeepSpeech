@@ -52,7 +52,7 @@ public:
 
   // Encode a sequence of character/output classes into a sequence of labels.
   // Characters are assumed to always take a single Unicode codepoint.
-  std::vector<unsigned int> Encode(const std::string& input) const;
+  virtual std::vector<unsigned int> Encode(const std::string& input) const;
 
 protected:
   size_t size_;
@@ -77,7 +77,8 @@ public:
   int init(const char*) override {
     return 0;
   }
-};
 
+  std::vector<unsigned int> Encode(const std::string& input) const override;
+};
 
 #endif //ALPHABET_H

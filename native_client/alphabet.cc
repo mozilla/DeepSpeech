@@ -187,3 +187,14 @@ Alphabet::Encode(const std::string& input) const
   }
   return result;
 }
+
+std::vector<unsigned int>
+UTF8Alphabet::Encode(const std::string& input) const
+{
+  std::vector<unsigned int> result;
+  for (auto byte_char : input) {
+    std::string byte_str(1, byte_char);
+    result.push_back(EncodeSingle(byte_str));
+  }
+  return result;
+}
