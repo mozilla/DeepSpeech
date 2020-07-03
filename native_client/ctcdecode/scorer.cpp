@@ -17,15 +17,27 @@
 #include <iostream>
 #include <fstream>
 
+#include "lm/virtual_interface.hh"
+#include "lm/word_index.hh"
 #include "lm/config.hh"
 #include "lm/model.hh"
 #include "lm/state.hh"
 #include "util/string_piece.hh"
 
+#include "fst/fstlib.h"
+
 #include "decoder_utils.h"
 
 static const int32_t MAGIC = 'TRIE';
 static const int32_t FILE_VERSION = 6;
+
+Scorer::Scorer()
+{
+}
+
+Scorer::~Scorer()
+{
+}
 
 int
 Scorer::init(const std::string& lm_path,

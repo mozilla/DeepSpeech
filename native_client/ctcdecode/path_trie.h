@@ -7,8 +7,13 @@
 #include <utility>
 #include <vector>
 
-#include "fst/fstlib.h"
+#include "fst/fst-decl.h"
 #include "alphabet.h"
+
+namespace fst {
+template <typename Arc>
+class SortedMatcher;
+}
 
 /* Trie tree for prefix storing and manipulating, with a dictionary in
  * finite-state transducer for spelling correction.
@@ -77,7 +82,7 @@ private:
 
   // pointer to dictionary of FST
   std::shared_ptr<FstType> dictionary_;
-  FstType::StateId dictionary_state_;
+  int dictionary_state_;
   std::shared_ptr<fst::SortedMatcher<FstType>> matcher_;
 };
 

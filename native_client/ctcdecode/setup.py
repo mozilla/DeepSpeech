@@ -10,7 +10,16 @@ import os
 import platform
 import sys
 
-from build_archive import *
+if sys.platform.startswith('win'):
+    ARGS = ['/nologo', '/D KENLM_MAX_ORDER=6', '/EHsc', '/source-charset:utf-8']
+    OPT_ARGS = ['/O2', '/MT', '/D NDEBUG']
+    DBG_ARGS = ['/Od', '/MTd', '/Zi', '/U NDEBUG', '/D DEBUG']
+    OPENFST_DIR = 'third_party/openfst-1.6.9-win'
+else:
+    ARGS = ['-std=c++11']
+    OPT_ARGS = ['-O3', '-DNDEBUG']
+    DBG_ARGS = ['-O0', '-g', '-UNDEBUG', '-DDEBUG']
+    OPENFST_DIR = 'third_party/openfst-1.6.7'
 
 try:
     import numpy
@@ -25,56 +34,23 @@ except ImportError:
 numpy_include = os.getenv('NUMPY_INCLUDE', numpy_include)
 numpy_min_ver = os.getenv('NUMPY_DEP_VERSION', '')
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument(
-    "--num_processes",
-    default=1,
-    type=int,
-    help="Number of cpu processes to build package. (default: %(default)d)")
-known_args, unknown_args = parser.parse_known_args()
-debug = '--debug' in unknown_args
-
-# reconstruct sys.argv to pass to setup below
-sys.argv = [sys.argv[0]] + unknown_args
+debug = '--debug' in sys.argv
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-def maybe_rebuild(srcs, out_name, build_dir):
-    if not os.path.exists(out_name):
-        if not os.path.exists(build_dir):
-            os.makedirs(build_dir)
-
-        build_archive(srcs=srcs,
-                     out_name=out_name,
-                     build_dir=build_dir,
-                     num_parallel=known_args.num_processes,
-                     debug=debug)
 
 project_version = read('../../training/deepspeech_training/VERSION').strip()
-
-build_dir = 'temp_build/temp_build'
-
-if sys.platform.startswith('win'):
-    archive_ext = 'lib'
-else:
-    archive_ext = 'a'
-
-third_party_build = 'third_party.{}'.format(archive_ext)
-ctc_decoder_build = 'first_party.{}'.format(archive_ext)
-
-
-maybe_rebuild(KENLM_FILES, third_party_build, build_dir)
-maybe_rebuild(CTC_DECODER_FILES, ctc_decoder_build, build_dir)
 
 decoder_module = Extension(
     name='ds_ctcdecoder._swigwrapper',
     sources=['swigwrapper.i'],
+    library_dirs=[os.path.join(os.environ['TFDIR'], 'bazel-bin', 'native_client')],
+    libraries=['decoder', 'kenlm', 'ds_version'],
     swig_opts=['-c++', '-extranative'],
     language='c++',
-    include_dirs=INCLUDES + [numpy_include],
+    include_dirs=[numpy_include, '..', OPENFST_DIR + '/src/include'],
     extra_compile_args=ARGS + (DBG_ARGS if debug else OPT_ARGS),
-    extra_link_args=[ctc_decoder_build, third_party_build],
 )
 
 class BuildExtFirst(build):

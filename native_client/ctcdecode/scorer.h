@@ -7,13 +7,15 @@
 #include <unordered_set>
 #include <vector>
 
-#include "lm/virtual_interface.hh"
-#include "lm/word_index.hh"
-#include "util/string_piece.hh"
-
 #include "path_trie.h"
 #include "alphabet.h"
 #include "deepspeech.h"
+
+namespace lm {
+namespace base {
+class Model;
+}
+}
 
 const double OOV_SCORE = -1000.0;
 const std::string START_TOKEN = "<s>";
@@ -32,8 +34,8 @@ class Scorer {
 public:
   using FstType = PathTrie::FstType;
 
-  Scorer() = default;
-  ~Scorer() = default;
+  Scorer();
+  ~Scorer();
 
   // disallow copying
   Scorer(const Scorer&) = delete;

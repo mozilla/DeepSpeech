@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "fst/log.h"
+#include "fst/fst-decl.h"
 #include "path_trie.h"
 #include "output.h"
 

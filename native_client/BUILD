@@ -64,6 +64,7 @@ cc_library(
     copts = ["-std=c++11"],
     defines = ["KENLM_MAX_ORDER=6"],
     includes = ["kenlm"],
+    linkstatic = True,
 )
 
 cc_library(
@@ -93,6 +94,18 @@ cc_library(
         "-ldl",
         "-pthread",
     ],
+    linkstatic = True,
+)
+
+cc_library(
+    name = "ds_version",
+    srcs = [
+        "workspace_status.cc",
+    ],
+    hdrs = [
+        "workspace_status.h",
+    ],
+    linkstatic = True,
 )
 
 tf_cc_shared_object(
@@ -103,8 +116,6 @@ tf_cc_shared_object(
         "deepspeech_errors.cc",
         "modelstate.cc",
         "modelstate.h",
-        "workspace_status.cc",
-        "workspace_status.h",
     ] + select({
         "//native_client:tflite": [
             "tflitemodelstate.h",
@@ -184,7 +195,7 @@ tf_cc_shared_object(
         ],
     }) + if_cuda([
         "//tensorflow/core:core",
-    ]) + [":decoder"],
+    ]) + [":decoder", ":ds_version"],
 )
 
 genrule(

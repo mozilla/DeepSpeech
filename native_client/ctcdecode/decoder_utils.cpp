@@ -4,6 +4,8 @@
 #include <cmath>
 #include <limits>
 
+#include "fst/fstlib.h"
+
 std::vector<std::pair<size_t, float>> get_pruned_log_probs(
     const double *prob_step,
     size_t class_dim,
