@@ -60,6 +60,10 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 
    SUPPORTED_PLATFORMS
 
+   BUILDING
+
+.. include:: ../SUPPORT.rst
+
 .. toctree::
    :maxdepth: 2
    :caption: Decoder and scorer

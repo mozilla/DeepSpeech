@@ -139,6 +139,7 @@ tf_cc_shared_object(
     deps = select({
         "//native_client:tflite": [
             "//tensorflow/lite/kernels:builtin_ops",
+            "//tensorflow/lite/tools/evaluation:utils",
         ],
         "//conditions:default": [
             "//tensorflow/core:core_cpu",

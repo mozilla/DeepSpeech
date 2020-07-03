@@ -142,8 +142,8 @@ system:
       namespace: "project.deepspeech.swig.win.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
   tensorflow:
     linux_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.cpu/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.cpu"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.1.cpu/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.1.cpu"
     linux_amd64_cuda:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.cuda/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.cuda"
@@ -157,11 +157,11 @@ system:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.osx/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.osx"
     android_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.android-arm64/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.android-arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1.1.bf55d362bb11e973b8f5.1.a3e5bf44d.1.android-arm64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1.1.bf55d362bb11e973b8f5.1.a3e5bf44d.1.android-arm64"
     android_armv7:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.android-armv7/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.android-armv7"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1.1.bf55d362bb11e973b8f5.1.a3e5bf44d.1.android-armv7/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1.1.bf55d362bb11e973b8f5.1.a3e5bf44d.1.android-armv7"
     win_amd64_cpu:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.win/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.0.win"

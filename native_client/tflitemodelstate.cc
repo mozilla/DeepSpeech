@@ -1,7 +1,16 @@
 #include "tflitemodelstate.h"
-
 #include "tensorflow/lite/string_util.h"
 #include "workspace_status.h"
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#define  LOG_TAG    "libdeepspeech"
+#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#else
+#define  LOGD(...)
+#define  LOGE(...)
+#endif // __ANDROID__
 
 using namespace tflite;
 using std::vector;
@@ -90,6 +99,62 @@ TFLiteModelState::~TFLiteModelState()
 {
 }
 
+std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr>
+getTfliteDelegates()
+{
+  std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr> delegates;
+
+  const char* env_delegate_c = std::getenv("DS_TFLITE_DELEGATE");
+  std::string env_delegate = (env_delegate_c != nullptr) ? env_delegate_c : "";
+
+#ifdef __ANDROID__
+  if (env_delegate == std::string("gpu")) {
+    LOGD("Trying to get GPU delegate ...");
+    // Try to get GPU delegate
+    {
+      tflite::Interpreter::TfLiteDelegatePtr delegate = evaluation::CreateGPUDelegate();
+      if (!delegate) {
+        LOGD("GPU delegation not supported");
+      } else {
+        LOGD("GPU delegation supported");
+        delegates.emplace("GPU", std::move(delegate));
+      }
+    }
+  }
+
+  if (env_delegate == std::string("nnapi")) {
+    LOGD("Trying to get NNAPI delegate ...");
+    // Try to get Android NNAPI delegate
+    {
+      tflite::Interpreter::TfLiteDelegatePtr delegate = evaluation::CreateNNAPIDelegate();
+      if (!delegate) {
+        LOGD("NNAPI delegation not supported");
+      } else {
+        LOGD("NNAPI delegation supported");
+        delegates.emplace("NNAPI", std::move(delegate));
+      }
+    }
+  }
+
+  if (env_delegate == std::string("hexagon")) {
+    LOGD("Trying to get Hexagon delegate ...");
+    // Try to get Android Hexagon delegate
+    {
+      const std::string libhexagon_path("/data/local/tmp");
+      tflite::Interpreter::TfLiteDelegatePtr delegate = evaluation::CreateHexagonDelegate(libhexagon_path, /* profiler */ false);
+      if (!delegate) {
+        LOGD("Hexagon delegation not supported");
+      } else {
+        LOGD("Hexagon delegation supported");
+        delegates.emplace("Hexagon", std::move(delegate));
+      }
+    }
+  }
+#endif // __ANDROID__
+
+  return delegates;
+}
+
 int
 TFLiteModelState::init(const char* model_path)
 {
@@ -111,8 +176,20 @@ TFLiteModelState::init(const char* model_path)
     return DS_ERR_FAIL_INTERPRETER;
   }
 
+  LOGD("Trying to detect delegates ...");
+  std::map<std::string, tflite::Interpreter::TfLiteDelegatePtr> delegates = getTfliteDelegates();
+  LOGD("Finished enumerating delegates ...");
+
   interpreter_->AllocateTensors();
   interpreter_->SetNumThreads(4);
+
+  LOGD("Trying to use delegates ...");
+  for (const auto& delegate : delegates) {
+    LOGD("Trying to apply delegate %s", delegate.first.c_str());
+    if (interpreter_->ModifyGraphWithDelegate(delegate.second.get()) != kTfLiteOk) {
+      LOGD("FAILED to apply delegate %s to the graph", delegate.first.c_str());
+    }
+  }
 
   // Query all the index once
   input_node_idx_       = get_input_tensor_by_name("input_node");

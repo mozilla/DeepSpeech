@@ -22,7 +22,7 @@ if [ "${arm_flavor}" = "arm64-v8a" ]; then
 fi
 
 if [ "${arm_flavor}" = "x86_64" ]; then
-    LOCAL_ANDROID_FLAGS="--config=android --cpu=x86_64 --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++11 --copt=-D_GLIBCXX_USE_C99"
+    LOCAL_ANDROID_FLAGS="--config=android --cpu=x86_64 --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99"
 fi
 
 BAZEL_BUILD_FLAGS="--define=runtime=tflite ${LOCAL_ANDROID_FLAGS} ${BAZEL_EXTRA_FLAGS}"
