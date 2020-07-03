@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# This script is intended for Docker Hub Automated Builds since we can't
+# build on TaskCluster because of too old Docker version (see issue #3057)
+#
+# Docker Hub expects an existing ready-to-use Dockerfile, and this hook allows
+# to generate one basing on the existing |make| template, but we need to change
+# in-place, hence why the |cp| statement
+#
+# Docker Hub Automated Builds needs to be configured as:
+#
+# Source Type | Source                | Docker Tag | Dockerfile Location   | Build Context
+# ----------------------------------------------------------------------------------------
+# Tag         | /^v([0-9.\-a-zA-Z]+)/ | v{\1}      | Dockerfile.train.tmpl | /
+# Tag         | /^v([0-9.\-a-zA-Z]+)/ | v{\1}      | Dockerfile.build.tmpl | /
+#
+# Docker Hub Automated builds will populate some env variables:
+#  - DOCKERFILE_PATH: the filename defined as "Dockerfile Location"
+#  - SOURCE_REPOSITORY_URL: the url of the repo triggering the tag event
+#  - SOURCE_COMMIT: the sha1 of the commit triggering the tag event
+#
+# More details: https://docs.docker.com/docker-hub/builds/advanced/#environment-variables-for-building-and-testing
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+DOCKERFILE_TARGET=$(echo ${DOCKERFILE_PATH} | sed -e 's/\.tmpl//g')
+make DEEPSPEECH_REPO=${SOURCE_REPOSITORY_URL} DEEPSPEECH_SHA=${SOURCE_COMMIT} ${DOCKERFILE_TARGET}
+cp ${DOCKERFILE_TARGET} ${DOCKERFILE_PATH}
+
+#### If you need to inspect the generated Dockerfile
+## echo "----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----"
+## cat ${DOCKERFILE_PATH}
+## echo "----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----"

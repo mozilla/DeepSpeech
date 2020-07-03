@@ -4,11 +4,12 @@ build:
     - "swig-win-amd64"
     - "node-gyp-cache"
     - "pyenv-win-amd64"
+    - "tf_win-amd64-cpu-opt"
   routes:
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win-ctc"
     - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win-ctc"
     - "index.project.deepspeech.deepspeech.native_client.win-ctc.${event.head.sha}"
-  tensorflow: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.c29895fba1b9f9f48e2e54eefb024c69aa333473.win/artifacts/public/home.tar.xz"
+  tensorflow: ${system.tensorflow.win_amd64_cpu.url}
   scripts:
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'

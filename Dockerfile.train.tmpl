@@ -10,9 +10,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-utils \
         bash-completion \
         build-essential \
+        cmake \
         curl \
         git \
         git-lfs \
+        libboost-all-dev \
         libbz2-dev \
         locales \
         python3-venv \
@@ -49,5 +51,17 @@ RUN DS_NODECODER=y DS_NOTENSORFLOW=y pip3 install --upgrade -e .
 # Tool to convert output graph for inference
 RUN python3 util/taskcluster.py --source tensorflow --branch r1.15 \
         --artifact convert_graphdef_memmapped_format  --target .
+
+# Build KenLM to generate new scorers
+WORKDIR /DeepSpeech/native_client
+RUN rm -rf kenlm && \
+	git clone https://github.com/kpu/kenlm && \
+	cd kenlm && \
+	git checkout 87e85e66c99ceff1fab2500a7c60c01da7315eec && \
+	mkdir -p build && \
+	cd build && \
+	cmake .. && \
+	make -j $(nproc)
+WORKDIR /DeepSpeech
 
 RUN ./bin/run-ldc93s1.sh

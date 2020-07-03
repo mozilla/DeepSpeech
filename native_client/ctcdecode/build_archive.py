@@ -46,7 +46,8 @@ CTC_DECODER_FILES = [
     'scorer.cpp',
     'path_trie.cpp',
     'decoder_utils.cpp',
-    'workspace_status.cc'
+    'workspace_status.cc',
+    '../alphabet.cc',
 ]
 
 def build_archive(srcs=[], out_name='', build_dir='temp_build/temp_build', debug=False, num_parallel=1):

@@ -52,12 +52,10 @@ def check_ctcdecoder_version():
             sys.exit(1)
         raise e
 
-    decoder_version_s = decoder_version.decode()
-
-    rv = semver.compare(ds_version_s, decoder_version_s)
+    rv = semver.compare(ds_version_s, decoder_version)
     if rv != 0:
         print("DeepSpeech version ({}) and CTC decoder version ({}) do not match. "
-              "Please ensure matching versions are in use.".format(ds_version_s, decoder_version_s))
+              "Please ensure matching versions are in use.".format(ds_version_s, decoder_version))
         sys.exit(1)
 
     return rv

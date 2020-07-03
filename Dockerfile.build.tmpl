@@ -53,11 +53,6 @@ RUN dpkg -i bazel_*.deb
 
 # >> START Configure Tensorflow Build
 
-# Clone TensorFlow from Mozilla repo
-RUN git clone https://github.com/mozilla/tensorflow/
-WORKDIR /tensorflow
-RUN git checkout r2.2
-
 # GPU Environment Setup
 ENV TF_NEED_ROCM 0
 ENV TF_NEED_OPENCL_SYCL 0
@@ -116,16 +111,15 @@ RUN echo "build --spawn_strategy=standalone --genrule_strategy=standalone" \
 
 WORKDIR /
 
-RUN git clone $DEEPSPEECH_REPO
+RUN git clone --recursive $DEEPSPEECH_REPO
 WORKDIR /DeepSpeech
 RUN git checkout $DEEPSPEECH_SHA
-
-# Link DeepSpeech native_client libs to tf folder
-RUN ln -s /DeepSpeech/native_client /tensorflow
+RUN git submodule sync tensorflow/
+RUN git submodule update --init tensorflow/
 
 # >> START Build and bind
 
-WORKDIR /tensorflow
+WORKDIR /DeepSpeech/tensorflow
 
 # Fix for not found script https://github.com/tensorflow/tensorflow/issues/471
 RUN ./configure
@@ -158,10 +152,10 @@ RUN bazel build \
 	--action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 # Copy built libs to /DeepSpeech/native_client
-RUN cp /tensorflow/bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/
+RUN cp bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/
 
 # Build client.cc and install Python client and decoder bindings
-ENV TFDIR /tensorflow
+ENV TFDIR /DeepSpeech/tensorflow
 
 RUN nproc
 

@@ -99,7 +99,7 @@ verify_bazel_rebuild()
 
   mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
-  cp ${DS_ROOT_TASK}/DeepSpeech/tf/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
   spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|unconditional execution is requested|Executing genrule //native_client:workspace_status|Compiling native_client/workspace_status.cc|Linking native_client/libdeepspeech.so' | wc -l)
   if [ "${spurious_rebuilds}" -ne 0 ]; then
@@ -108,13 +108,13 @@ verify_bazel_rebuild()
     if is_patched_bazel; then
       mkdir -p ${DS_ROOT_TASK}/DeepSpeech/ckd/ds ${DS_ROOT_TASK}/DeepSpeech/ckd/tf
       tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
-      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/
+      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ds/ckd/tensorflow/
 
       echo "Making a diff between CKD files"
       mkdir -p ${TASKCLUSTER_ARTIFACTS}
-      diff -urNw ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/ | tee ${TASKCLUSTER_ARTIFACTS}/ckd.diff
+      diff -urNw ${DS_ROOT_TASK}/DeepSpeech/ds/ckd/tensorflow/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/ | tee ${TASKCLUSTER_ARTIFACTS}/ckd.diff
 
-      rm -fr ${DS_ROOT_TASK}/DeepSpeech/ckd/tf/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
+      rm -fr ${DS_ROOT_TASK}/DeepSpeech/ds/ckd/tensorflow/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
     else
       echo "Cannot get CKD information from release, please use patched Bazel"
     fi;

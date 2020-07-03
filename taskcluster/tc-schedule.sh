@@ -2,15 +2,13 @@
 
 set -ex
 
-# tc-decision.py assumes being at the root folder
-curdir=$(dirname "$0")/..
+curdir=$(dirname "$0")/
 
 pip3 install --quiet --user --upgrade pip
 
 export PATH=$HOME/.local/bin/:$PATH
 
-curl -L --silent https://raw.githubusercontent.com/lissyx/taskcluster-github-decision/${TC_DECISION_SHA}/requirements.txt | pip3 install --quiet --user --upgrade -r /dev/stdin
-curl -L --silent https://raw.githubusercontent.com/lissyx/taskcluster-github-decision/${TC_DECISION_SHA}/tc-decision.py > ${curdir}/tc-decision.py
+pip3 install --quiet --user --upgrade -r ${curdir}/tc-decision_reqs.txt
 
 # First, perform dry run for push and pull request
 # This should help us track merge failures in advance

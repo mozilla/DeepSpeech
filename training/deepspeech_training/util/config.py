@@ -6,13 +6,14 @@ import tensorflow.compat.v1 as tfv1
 
 from attrdict import AttrDict
 from xdg import BaseDirectory as xdg
+from ds_ctcdecoder import Alphabet, UTF8Alphabet
 
 from .flags import FLAGS
 from .gpu import get_available_gpus
 from .logging import log_error, log_warn
-from .text import Alphabet, UTF8Alphabet
 from .helpers import parse_file_size
 from .augmentations import parse_augmentations
+
 
 class ConfigSingleton:
     _config = None
@@ -115,7 +116,7 @@ def initialize_globals():
     c.n_hidden_3 = c.n_cell_dim
 
     # Units in the sixth layer = number of characters in the target language plus one
-    c.n_hidden_6 = c.alphabet.size() + 1 # +1 for CTC blank label
+    c.n_hidden_6 = c.alphabet.GetSize() + 1 # +1 for CTC blank label
 
     # Size of audio window in samples
     if (FLAGS.feature_win_len * FLAGS.audio_sample_rate) % 1000 != 0:

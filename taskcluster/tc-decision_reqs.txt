@@ -1,0 +1,5 @@
+json-e == 2.3.1
+networkx 
+pyaml
+requests
+slugid == 1.0.7

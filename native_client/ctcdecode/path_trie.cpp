@@ -35,7 +35,7 @@ PathTrie::~PathTrie() {
   }
 }
 
-PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, float cur_log_prob_c, bool reset) {
+PathTrie* PathTrie::get_path_trie(unsigned int new_char, unsigned int new_timestep, float cur_log_prob_c, bool reset) {
   auto child = children_.begin();
   for (; child != children_.end(); ++child) {
     if (child->first == new_char) {
@@ -102,7 +102,7 @@ PathTrie* PathTrie::get_path_trie(int new_char, int new_timestep, float cur_log_
   }
 }
 
-void PathTrie::get_path_vec(std::vector<int>& output, std::vector<int>& timesteps) {
+void PathTrie::get_path_vec(std::vector<unsigned int>& output, std::vector<unsigned int>& timesteps) {
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
   if (parent != nullptr) {
@@ -114,8 +114,8 @@ void PathTrie::get_path_vec(std::vector<int>& output, std::vector<int>& timestep
   }
 }
 
-PathTrie* PathTrie::get_prev_grapheme(std::vector<int>& output,
-                                      std::vector<int>& timesteps,
+PathTrie* PathTrie::get_prev_grapheme(std::vector<unsigned int>& output,
+                                      std::vector<unsigned int>& timesteps,
                                       const Alphabet& alphabet)
 {
   PathTrie* stop = this;
@@ -124,7 +124,7 @@ PathTrie* PathTrie::get_prev_grapheme(std::vector<int>& output,
   }
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
-  if (!byte_is_codepoint_boundary(alphabet.StringFromLabel(character)[0])) {
+  if (!byte_is_codepoint_boundary(alphabet.DecodeSingle(character)[0])) {
     stop = parent->get_prev_grapheme(output, timesteps, alphabet);
   }
   output.push_back(character);
@@ -135,7 +135,7 @@ PathTrie* PathTrie::get_prev_grapheme(std::vector<int>& output,
 int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte,
                                              const Alphabet& alphabet)
 {
-  if (byte_is_codepoint_boundary(alphabet.StringFromLabel(character)[0])) {
+  if (byte_is_codepoint_boundary(alphabet.DecodeSingle(character)[0])) {
     *first_byte = (unsigned char)character + 1;
     return 1;
   }
@@ -146,8 +146,8 @@ int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte,
   return 0;
 }
 
-PathTrie* PathTrie::get_prev_word(std::vector<int>& output,
-                                  std::vector<int>& timesteps,
+PathTrie* PathTrie::get_prev_word(std::vector<unsigned int>& output,
+                                  std::vector<unsigned int>& timesteps,
                                   const Alphabet& alphabet)
 {
   PathTrie* stop = this;
@@ -225,7 +225,7 @@ void PathTrie::print(const Alphabet& a) {
   for (PathTrie* el : chain) {
     printf("%X ", (unsigned char)(el->character));
     if (el->character != ROOT_) {
-      tr.append(a.StringFromLabel(el->character));
+      tr.append(a.DecodeSingle(el->character));
     }
   }
   printf("\ntimesteps:\t ");

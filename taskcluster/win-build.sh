@@ -6,10 +6,11 @@ package_option=$1
 
 source $(dirname "$0")/tc-tests-utils.sh
 
-source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
+source $(dirname "$0")/tf_tc-vars.sh
 
 BAZEL_TARGETS="
 //native_client:libdeepspeech.so
+//native_client:generate_scorer_package
 "
 
 if [ "${package_option}" = "--cuda" ]; then
@@ -31,7 +32,7 @@ SYSTEM_TARGET=host-win
 do_bazel_build
 
 if [ "${package_option}" = "--cuda" ]; then
-    cp ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/native_client/liblibdeepspeech.so.ifso ${DS_ROOT_TASK}/DeepSpeech/tf/bazel-bin/native_client/libdeepspeech.so.if.lib
+    cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-bin/native_client/liblibdeepspeech.so.ifso ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-bin/native_client/libdeepspeech.so.if.lib
 fi
 
 export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin:'/c/Program Files/nodejs/'

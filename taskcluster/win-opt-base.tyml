@@ -40,8 +40,6 @@ payload:
       "C:\Program Files\7-zip\7z.exe" x -txz -so msys2-base-x86_64.tar.xz |
       "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
     - .\msys64\usr\bin\bash.exe --login -cx "export THIS_BASH_PID=$$; ps -ef | grep '[?]' | awk '{print $2}' | grep -v $THIS_BASH_PID | xargs -r kill; exit 0"
-    - .\msys64\usr\bin\bash.exe --login -cx "${system.msys2_filesystem_pkg.install}"
-    - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
     - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
     - echo .\msys64\usr\bin\bash.exe --login -cxe "
       export LC_ALL=C &&
@@ -54,9 +52,10 @@ payload:
       (7z x -txz -so $USERPROFILE/home.tar.xz | 7z x -aoa -ttar -si ) &&
       git clone --quiet $EXAMPLES_CLONE_URL $TASKCLUSTER_TASK_DIR/DeepSpeech/examples &&
       cd $TASKCLUSTER_TASK_DIR/DeepSpeech/examples && git checkout --quiet $EXAMPLES_CHECKOUT_TARGET &&
-      git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
-      cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
-      ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/tf/native_client &&
+      cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git remote set-url origin ${event.head.repo.url} && git fetch origin && git checkout --quiet ${event.head.sha} &&
+      git submodule --quiet sync tensorflow/ && git submodule --quiet update tensorflow/ &&
+      (rm $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tensorflow/native_client || true) &&
+      ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tensorflow/native_client &&
       cd $TASKCLUSTER_TASK_DIR &&
       (mkdir pyenv-root/ && 7z x -so $USERPROFILE/pyenv.tar.gz | 7z x -opyenv-root/ -aoa -ttar -si ) &&
       pacman --noconfirm -S tar make &&
@@ -75,10 +74,6 @@ payload:
       content:
         sha256: ${system.msys2.sha}
         url: ${system.msys2.url}
-    - file: filesystem-2020.02-3-x86_64.pkg.tar.xz
-      content:
-        sha256: ${system.msys2_filesystem_pkg.sha}
-        url: ${system.msys2_filesystem_pkg.url}
     - file: home.tar.xz
       content:
         url: ${build.tensorflow}

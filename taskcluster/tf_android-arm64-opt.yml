@@ -1,0 +1,16 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: ${system.tensorflow.android_arm64.url}
+    artifact_namespace: ${system.tensorflow.android_arm64.namespace}
+  system_config:
+    >
+      ${tensorflow.packages_xenial.apt} && ${java.packages_xenial.apt}
+  scripts:
+    setup: "taskcluster/tf_tc-setup.sh --android"
+    build: "taskcluster/tf_tc-build.sh --android-arm64"
+    package: "taskcluster/tf_tc-package.sh"
+  maxRunTime: 14400
+  metadata:
+    name: "TensorFlow Android ARM64"
+    description: "Building TensorFlow for Android ARM64, optimized version"

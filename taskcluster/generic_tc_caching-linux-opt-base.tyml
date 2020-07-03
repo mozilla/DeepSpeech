@@ -22,6 +22,7 @@ payload:
     - "-cxe"
     - $let:
         extraSystemSetup: { $eval: strip(str(build.system_setup)) }
+        extraSystemConfig: { $eval: strip(str(build.system_config)) }
         taskIndexExpire: { $fromNow: '6 months' }
       in: >
         (apt-get -qq -y remove --purge ubuntu-advantage-tools || true) &&
@@ -31,7 +32,8 @@ payload:
           adduser --system --home ${system.homedir.linux} ${system.username} && cd ${system.homedir.linux}/ &&
           mkdir -p /tmp/artifacts/ && chmod 777 /tmp/artifacts &&
           echo -e "#!/bin/bash\nset -xe\n env && id && (git clone --quiet ${build.build_or_cache.repo} ~/${build.build_or_cache.dir}/ && cd ~/${build.build_or_cache.dir}/ && git checkout --quiet ${build.build_or_cache.sha})" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
-          sudo -H -u ${system.username} /bin/bash /tmp/clone.sh &&
+          sudo -H -u ${system.username} /bin/bash /tmp/clone.sh && ${extraSystemConfig} &&
+          sudo -H -u ${system.username} --preserve-env /bin/bash ${system.homedir.linux}/${build.build_or_cache.dir}/${build.scripts.setup} &&
           sudo -H -u ${system.username} --preserve-env /bin/bash ${system.homedir.linux}/${build.build_or_cache.dir}/${build.scripts.build} &&
           sudo -H -u ${system.username} /bin/bash ${system.homedir.linux}/${build.build_or_cache.dir}/${build.scripts.package} &&
           sudo -H -u ${system.username} --preserve-env /bin/bash ${system.homedir.linux}/${build.build_or_cache.dir}/taskcluster/tc-update-index.sh ${taskIndexExpire} taskcluster ${build.cache.artifact_namespace}

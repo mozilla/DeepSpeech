@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "lm/virtual_interface.hh"
@@ -72,7 +73,7 @@ public:
 
   // trransform the labels in index to the vector of words (word based lm) or
   // the vector of characters (character based lm)
-  std::vector<std::string> split_labels_into_scored_units(const std::vector<int> &labels);
+  std::vector<std::string> split_labels_into_scored_units(const std::vector<unsigned int> &labels);
 
   void set_alphabet(const Alphabet& alphabet);
 
@@ -83,7 +84,7 @@ public:
   bool is_scoring_boundary(PathTrie* prefix, size_t new_label);
 
   // fill dictionary FST from a vocabulary
-  void fill_dictionary(const std::vector<std::string> &vocabulary);
+  void fill_dictionary(const std::unordered_set<std::string> &vocabulary);
 
   // load language model from given path
   int load_lm(const std::string &lm_path);

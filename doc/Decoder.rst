@@ -56,9 +56,11 @@ At decoding time, the scorer is queried every time a Unicode codepoint is predic
 
 **Acoustic models trained with ``--utf8`` MUST NOT be used with an alphabet based scorer. Conversely, acoustic models trained with an alphabet file MUST NOT be used with a UTF-8 scorer.**
 
-UTF-8 scorers can be built by using an input corpus with space separated codepoints. If your corpus only contains single codepoints separated by spaces, ``data/lm/generate_package.py`` should automatically enable UTF-8 mode, and it should print the message "Looks like a character based model."
+UTF-8 scorers can be built by using an input corpus with space separated codepoints. If your corpus only contains single codepoints separated by spaces, ``generate_scorer_package`` should automatically enable UTF-8 mode, and it should print the message "Looks like a character based model."
 
-If the message "Doesn't look like a character based model." is printed, you should double check your inputs to make sure it only contains single codepoints separated by spaces. UTF-8 mode can be forced by specifying the ``--force_utf8`` flag when running ``data/lm/generate_package.py``, but it is NOT RECOMMENDED.
+If the message "Doesn't look like a character based model." is printed, you should double check your inputs to make sure it only contains single codepoints separated by spaces. UTF-8 mode can be forced by specifying the ``--force_utf8`` flag when running ``generate_scorer_package``, but it is NOT RECOMMENDED.
+
+See :ref:`scorer-scripts` for more details on using ``generate_scorer_package``.
 
 Because KenLM uses spaces as a word separator, the resulting language model will not include space characters in it. If you wish to use UTF-8 mode but still model spaces, you need to replace spaces in the input corpus with a different character **before** converting it to space separated codepoints. For example:
 
