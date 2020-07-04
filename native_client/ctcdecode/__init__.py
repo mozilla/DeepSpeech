@@ -3,7 +3,9 @@ from __future__ import absolute_import, division, print_function
 from . import swigwrapper # pylint: disable=import-self
 from .swigwrapper import UTF8Alphabet
 
-__version__ = swigwrapper.__version__
+# This module is built with SWIG_PYTHON_STRICT_BYTE_CHAR so we must handle
+# string encoding explicitly, here and throughout this file.
+__version__ = swigwrapper.__version__.decode('utf-8')
 
 # Hack: import error codes by matching on their names, as SWIG unfortunately
 # does not support binding enums to Python in a scoped manner yet.
@@ -30,7 +32,7 @@ class Scorer(swigwrapper.Scorer):
             assert beta is not None, 'beta parameter is required'
             assert scorer_path, 'scorer_path parameter is required'
 
-            err = self.init(scorer_path, alphabet)
+            err = self.init(scorer_path.encode('utf-8'), alphabet)
             if err != 0:
                 raise ValueError('Scorer initialization failed with error code 0x{:X}'.format(err))
 
@@ -41,14 +43,26 @@ class Alphabet(swigwrapper.Alphabet):
     """Convenience wrapper for Alphabet which calls init in the constructor"""
     def __init__(self, config_path):
         super(Alphabet, self).__init__()
-        err = self.init(config_path)
+        err = self.init(config_path.encode('utf-8'))
         if err != 0:
             raise ValueError('Alphabet initialization failed with error code 0x{:X}'.format(err))
 
+    def EncodeSingle(self, input):
+        return super(Alphabet, self).EncodeSingle(input.encode('utf-8'))
+
     def Encode(self, input):
-        """Convert SWIG's UnsignedIntVec to a Python list"""
-        res = super(Alphabet, self).Encode(input)
+        # Convert SWIG's UnsignedIntVec to a Python list
+        res = super(Alphabet, self).Encode(input.encode('utf-8'))
         return [el for el in res]
+
+    def DecodeSingle(self, input):
+        res = super(Alphabet, self).DecodeSingle(input)
+        return res.decode('utf-8')
+
+    def Decode(self, input):
+        res = super(Alphabet, self).Decode(input)
+        return res.decode('utf-8')
+
 
 
 def ctc_beam_search_decoder(probs_seq,

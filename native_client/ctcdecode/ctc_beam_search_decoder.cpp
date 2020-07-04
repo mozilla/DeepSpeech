@@ -182,8 +182,9 @@ DecoderState::decode(size_t num_results) const
   // score the last word of each prefix that doesn't end with space
   if (ext_scorer_) {
     for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
-      auto prefix = prefixes_copy[i];
-      if (!ext_scorer_->is_scoring_boundary(prefix->parent, prefix->character)) {
+      PathTrie* prefix = prefixes_copy[i];
+      PathTrie* prefix_boundary = ext_scorer_->is_utf8_mode() ? prefix : prefix->parent;
+      if (prefix_boundary && !ext_scorer_->is_scoring_boundary(prefix_boundary, prefix->character)) {
         float score = 0.0;
         std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix);
         bool bos = ngram.size() < ext_scorer_->get_max_order();
