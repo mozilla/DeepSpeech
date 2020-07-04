@@ -202,7 +202,7 @@ Refer to the :ref:`usage instructions <usage-docs>` for information on running a
 Exporting a model for TFLite
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the ``--export_tflite`` flags. If you already have a trained model, you can re-export it for TFLite by running ``DeepSpeech.py`` again and specifying the same ``checkpoint_dir`` that you used for training, as well as passing ``--export_tflite --export_dir /model/export/destination``.
+If you want to experiment with the TF Lite engine, you need to export a model that is compatible with it, then use the ``--export_tflite`` flags. If you already have a trained model, you can re-export it for TFLite by running ``DeepSpeech.py`` again and specifying the same ``checkpoint_dir`` that you used for training, as well as passing ``--export_tflite --export_dir /model/export/destination``. If you changed the alphabet you also need to add the ``--alphabet_config_path my-new-language-alphabet.txt`` flag.
 
 Making a mmap-able model for inference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
