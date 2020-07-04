@@ -57,6 +57,9 @@ Alphabet::init(const char *config_file)
     if (line == " ") {
       space_label_ = label;
     }
+    if (line.length() == 0) {
+      continue;
+    }
     label_to_str_[label] = line;
     str_to_label_[line] = label;
     ++label;
