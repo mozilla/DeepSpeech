@@ -18,7 +18,7 @@ from deepspeech_training.util.importers import (
     get_validate_label,
     print_import_report,
 )
-from deepspeech_training.util.text import Alphabet
+from ds_ctcdecoder import Alphabet
 
 FIELDNAMES = ["wav_filename", "wav_filesize", "transcript"]
 SAMPLE_RATE = 16000
@@ -215,11 +215,8 @@ if __name__ == "__main__":
                 .decode("ascii", "ignore")
             )
         label = validate_label(label)
-        if ALPHABET and label:
-            try:
-                ALPHABET.encode(label)
-            except KeyError:
-                label = None
+        if ALPHABET and label and not ALPHABET.CanEncode(label):
+            label = None
         return label
 
     ARCHIVE_DIR_NAME = ARCHIVE_DIR_NAME.format(language=CLI_ARGS.language)
