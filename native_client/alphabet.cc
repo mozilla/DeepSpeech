@@ -137,6 +137,24 @@ Alphabet::Deserialize(const char* buffer, const int buffer_size)
   return 0;
 }
 
+bool
+Alphabet::CanEncodeSingle(const std::string& input) const
+{
+  auto it = str_to_label_.find(input);
+  return it != str_to_label_.end();
+}
+
+bool
+Alphabet::CanEncode(const std::string& input) const
+{
+  for (auto cp : split_into_codepoints(input)) {
+    if (!CanEncodeSingle(cp)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 std::string
 Alphabet::DecodeSingle(unsigned int label) const
 {
@@ -189,6 +207,18 @@ Alphabet::Encode(const std::string& input) const
     result.push_back(EncodeSingle(cp));
   }
   return result;
+}
+
+bool
+UTF8Alphabet::CanEncodeSingle(const std::string& input) const
+{
+  return true;
+}
+
+bool
+UTF8Alphabet::CanEncode(const std::string& input) const
+{
+  return true;
 }
 
 std::vector<unsigned int>
