@@ -36,18 +36,10 @@ public class CandidateTranscript {
   }
 
   /**
-   *  Array of TokenMetadata objects 
-   */
-  public TokenMetadata getTokens() {
-    long cPtr = implJNI.CandidateTranscript_tokens_get(swigCPtr, this);
-    return (cPtr == 0) ? null : new TokenMetadata(cPtr, false);
-  }
-
-  /**
    *  Size of the tokens array 
    */
-  public long getNum_tokens() {
-    return implJNI.CandidateTranscript_num_tokens_get(swigCPtr, this);
+  public long getNumTokens() {
+    return implJNI.CandidateTranscript_NumTokens_get(swigCPtr, this);
   }
 
   /**
@@ -56,7 +48,7 @@ public class CandidateTranscript {
    * contributed to the creation of this transcript.
    */
   public double getConfidence() {
-    return implJNI.CandidateTranscript_confidence_get(swigCPtr, this);
+    return implJNI.CandidateTranscript_Confidence_get(swigCPtr, this);
   }
 
   /**
