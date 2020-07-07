@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import struct
 
+from ds_ctcdecoder import Alphabet, UTF8Alphabet
+
 def text_to_char_array(transcript, alphabet, context=''):
     r"""
     Given a transcript string, map characters to
