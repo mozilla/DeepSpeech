@@ -62,4 +62,13 @@
 
 %rename ("%(strip:[DS_])s") "";
 
+// make struct members camel case to suit Java conventions
+%rename ("%(camelcase)s", %$ismember) "";
+
+// ignore automatically generated getTokens and getTranscripts since they don't
+// do anything useful and we have already provided getToken(int i) and
+// getTranscript(int i) above.
+%ignore "Metadata::transcripts";
+%ignore "CandidateTranscript::tokens";
+
 %include "../deepspeech.h"
