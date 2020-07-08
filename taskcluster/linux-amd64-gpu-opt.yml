@@ -16,7 +16,7 @@ build:
   tensorflow: ${system.tensorflow.linux_amd64_cuda.url}
   maxRunTime: 14400
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/cuda-build.sh"
     package: "taskcluster/package.sh"
   nc_asset_name: "native_client.amd64.cuda.linux.tar.xz"

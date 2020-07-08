@@ -7,7 +7,7 @@ build:
     >
       ${java.packages_xenial.apt}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/gradle-build.sh"
     package: "taskcluster/gradle-package.sh"
   metadata:
