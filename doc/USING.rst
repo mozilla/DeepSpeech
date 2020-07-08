@@ -52,12 +52,12 @@ There are several pre-trained model files available in official releases. Files 
 | deepspeech-tflite  | ❌                  | ✅                  |
 +--------------------+---------------------+---------------------+
 
-Finally, the pre-trained model files also include files ending in ``.scorer``. These are external scorers (language models) that are used at inference time in conjunction with an acoustic model (``.pbmm`` or ``.tflite`` file) to produce transcriptions. We also provide further documentation on :ref:`the decoding process <decoder-docs>` and :ref:`how language models are generated <scorer-scripts>`.
+Finally, the pre-trained model files also include files ending in ``.scorer``. These are external scorers (language models) that are used at inference time in conjunction with an acoustic model (``.pbmm`` or ``.tflite`` file) to produce transcriptions. We also provide further documentation on :ref:`the decoding process <decoder-docs>` and :ref:`how scorers are generated <scorer-scripts>`.
 
 Important considerations on model inputs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The release notes include detailed information on how the released models were trained/constructed. Important considerations for users include the characteristics of the used training data and whether they match your intended use case. For acoustic models, an important characteristic is the demographic distribution of speakers. For language models, the sources of text used in their construction. If the data used for training the models does not align with your intended use case, it may be necessary to adapt or train new models in order to get good accuracy in your transcription results.
+The release notes include detailed information on how the released models were trained/constructed. Important considerations for users include the characteristics of the training data used and whether they match your intended use case. For acoustic models, an important characteristic is the demographic distribution of speakers. For external scorers, the texts should be similar to those of the expected use case. If the data used for training the models does not align with your intended use case, it may be necessary to adapt or train new models in order to get good accuracy in your transcription results.
 
 The process for training an acoustic model is described in :ref:`training-docs`. In particular, fine tuning a release model using your own data can be a good way to leverage relatively smaller amounts of data that would not be sufficient for training a new model from scratch. See the :ref:`fine tuning and transfer learning sections <training-fine-tuning>` for more information. :ref:`Data augmentation <training-data-augmentation>` can also be a good way to increase the value of smaller training sets.
 
