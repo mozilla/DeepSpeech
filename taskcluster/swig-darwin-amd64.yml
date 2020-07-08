@@ -8,7 +8,7 @@ build:
     artifact_url: "${system.swig_build.osx.url}"
     artifact_namespace: "${system.swig_build.osx.namespace}"
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/build.sh"
     package: "taskcluster/package.sh"
   metadata:

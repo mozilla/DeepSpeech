@@ -4,7 +4,7 @@ build:
     artifact_url: "${system.pyenv.win.url}"
     artifact_namespace: "${system.pyenv.win.namespace}"
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/pyenv-build.sh"
     package: "taskcluster/pyenv-package.sh"
   metadata:

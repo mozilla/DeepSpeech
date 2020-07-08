@@ -13,7 +13,7 @@ build:
       apt-get -qq -y install autoconf automake bison build-essential mingw-w64 &&
       (apt-get -qq -y install sudo || true)
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/build.sh x86_64-w64-mingw32"
     package: "taskcluster/package.sh"
   metadata:

@@ -22,7 +22,7 @@ build:
       multistrap -d /tmp/multistrap-armbian64-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_armbian64_buster.conf
   tensorflow: ${system.tensorflow.linux_arm64.url}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/arm64-build.sh"
     package: "taskcluster/package.sh"
   nc_asset_name: "native_client.arm64.cpu.linux.tar.xz"

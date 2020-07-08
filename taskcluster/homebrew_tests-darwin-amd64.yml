@@ -4,7 +4,7 @@ build:
     artifact_url: ${system.homebrew_tests.url}
     artifact_namespace: ${system.homebrew_tests.namespace}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/homebrew-build.sh --tests"
     package: "taskcluster/homebrew-package.sh --tests"
   metadata:

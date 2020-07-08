@@ -11,7 +11,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.android-arm64.${event.head.sha}"
   tensorflow: ${system.tensorflow.android_arm64.url}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/android-build.sh arm64-v8a"
     package: "taskcluster/android-package.sh arm64-v8a"
   nc_asset_name: "native_client.arm64.cpu.android.tar.xz"
