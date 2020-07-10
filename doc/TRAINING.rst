@@ -124,7 +124,7 @@ It will also add the following ``.csv`` files:
 * ``clips/dev.csv``
 * ``clips/test.csv``
 
-All entries in these CSV files refer to their samples by absolute paths. So moving this sub-directory would require another import or tweaking the CSV files accordingly.
+All entries in these CSV files refer to their samples by relative paths.
 
 To use Common Voice data during training, validation and testing, you pass (comma separated combinations of) their filenames into ``--train_files``\ , ``--dev_files``\ , ``--test_files`` parameters of ``DeepSpeech.py``.
 
