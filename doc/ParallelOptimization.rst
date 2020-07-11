@@ -14,10 +14,10 @@ initially in CPU memory. Then each of the :math:`G` GPUs obtains a mini-batch of
 along with the current model parameters. Using this mini-batch each GPU then
 computes the gradients for all model parameters and sends these gradients back
 to the CPU when the GPU is done with its mini-batch. The CPU then asynchronously
-updates the model parameters whenever it recieves a set of gradients from a GPU.
+updates the model parameters whenever it receives a set of gradients from a GPU.
 
 Asynchronous parallel optimization has several advantages and several
-disadvantages. One large advantage is throughput. No GPU will every be waiting
+disadvantages. One large advantage is throughput. No GPU will ever be waiting
 idle. When a GPU is done processing a mini-batch, it can immediately obtain the
 next mini-batch to process. It never has to wait on other GPUs to finish their
 mini-batch. However, this means that the model updates will also be asynchronous
@@ -63,7 +63,7 @@ advantages of asynchronous and synchronous optimization.
 Hybrid Parallel Optimization
 ----------------------------
 
-Hybrid parallel optimization combines most of the benifits of asynchronous and
+Hybrid parallel optimization combines most of the benefits of asynchronous and
 synchronous optimization. It allows for multiple GPUs to be used, but does not
 suffer from the incorrect gradient problem exhibited by asynchronous
 optimization.
@@ -86,7 +86,7 @@ to use multiple GPUs in parallel. Furthermore, unlike asynchronous parallel
 optimization, the incorrect gradient problem is not present here. In fact,
 hybrid parallel optimization performs as if one is working with a single
 mini-batch which is :math:`G` times the size of a mini-batch handled by a single GPU.
-Hoewever, hybrid parallel optimization is not perfect. If one GPU is slower than
+However, hybrid parallel optimization is not perfect. If one GPU is slower than
 all the others in completing its mini-batch, all other GPUs will have to sit
 idle until this straggler finishes with its mini-batch. This hurts throughput.
 But, if all GPUs are of the same make and model, this problem should be
@@ -99,7 +99,7 @@ synchronous optimization. So, we will, for our work, use this hybrid model.
 Adam Optimization
 -----------------
 
-In constrast to
+In contrast to
 `Deep Speech: Scaling up end-to-end speech recognition <http://arxiv.org/abs/1412.5567>`_,
 in which `Nesterov’s Accelerated Gradient Descent <www.cs.toronto.edu/~fritz/absps/momentum.pdf>`_ was used, we will use the Adam method for optimization `[3] <http://arxiv.org/abs/1412.6980>`_,
 because, generally, it requires less fine-tuning.
