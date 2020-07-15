@@ -20,7 +20,7 @@ pip3:
 	$(PIP_INSTALL) -r ../taskcluster/docs-requirements.txt
 
 submodule:
-	git submodule update --init --remote
+	git submodule update --init --remote -- ../doc/examples
 
 # Add submodule update dependency to Sphinx's "html" target
 html: Makefile submodule pip3

@@ -63,7 +63,7 @@ public class BasicTest {
 
     private String candidateTranscriptToString(CandidateTranscript t) {
         String retval = "";
-        for (int i = 0; i < t.getNum_tokens(); ++i) {
+        for (int i = 0; i < t.getNumTokens(); ++i) {
             retval += t.getToken(i).getText();
         }
         return retval;

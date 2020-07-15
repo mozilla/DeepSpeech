@@ -22,7 +22,7 @@ build:
       multistrap -d /tmp/multistrap-raspbian-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_raspbian_buster.conf
   tensorflow: ${system.tensorflow.linux_armv7.url}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/rpi3-build.sh"
     package: "taskcluster/package.sh"
   nc_asset_name: "native_client.rpi3.cpu.linux.tar.xz"

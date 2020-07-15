@@ -49,6 +49,9 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 RUN curl -LO "https://github.com/bazelbuild/bazel/releases/download/2.0.0/bazel_2.0.0-linux-x86_64.deb"
 RUN dpkg -i bazel_*.deb
 
+# Try and free some space
+RUN rm -rf /var/lib/apt/lists/*
+
 # << END Install base software
 
 # >> START Configure Tensorflow Build

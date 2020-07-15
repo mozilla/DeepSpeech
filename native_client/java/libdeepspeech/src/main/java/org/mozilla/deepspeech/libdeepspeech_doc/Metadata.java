@@ -40,18 +40,10 @@ public class Metadata {
   }
 
   /**
-   *  Array of CandidateTranscript objects 
-   */
-  public CandidateTranscript getTranscripts() {
-    long cPtr = implJNI.Metadata_transcripts_get(swigCPtr, this);
-    return (cPtr == 0) ? null : new CandidateTranscript(cPtr, false);
-  }
-
-  /**
    *  Size of the transcripts array 
    */
-  public long getNum_transcripts() {
-    return implJNI.Metadata_num_transcripts_get(swigCPtr, this);
+  public long getNumTranscripts() {
+    return implJNI.Metadata_NumTranscripts_get(swigCPtr, this);
   }
 
   /**

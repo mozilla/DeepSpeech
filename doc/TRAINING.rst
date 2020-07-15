@@ -1,3 +1,5 @@
+.. _training-docs:
+
 Training Your Own Model
 =======================
 
@@ -231,6 +233,8 @@ There are currently two supported approaches to make use of a pre-trained DeepSp
 If your own data uses the *extact* same alphabet as the English release model (i.e. `a-z` plus `'`) then the release model's output layer will match your data, and you can just fine-tune the existing parameters. However, if you want to use a new alphabet (e.g. Cyrillic `а`, `б`, `д`), the output layer of a release DeepSpeech model will *not* match your data. In this case, you should use transfer-learning (i.e. remove the trained model's output layer, and reinitialize a new output layer that matches your target character set.
 
 N.B. - If you have access to a pre-trained model which uses UTF-8 bytes at the output layer you can always fine-tune, because any alphabet should be encodable as UTF-8.
+
+.. _training-fine-tuning:
 
 Fine-Tuning (same alphabet)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

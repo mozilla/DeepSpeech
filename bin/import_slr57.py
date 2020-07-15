@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 import csv
 import os
-import re
 import subprocess
 import tarfile
 import unicodedata
-import zipfile
 from glob import glob
 from multiprocessing import Pool
 
 import progressbar
-import sox
 
 from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
 from deepspeech_training.util.importers import (
@@ -20,7 +17,7 @@ from deepspeech_training.util.importers import (
     get_validate_label,
     print_import_report,
 )
-from deepspeech_training.util.text import Alphabet
+from ds_ctcdecoder import Alphabet
 
 FIELDNAMES = ["wav_filename", "wav_filesize", "transcript"]
 SAMPLE_RATE = 16000
@@ -227,11 +224,8 @@ if __name__ == "__main__":
                 .decode("ascii", "ignore")
             )
         label = validate_label(label)
-        if ALPHABET and label:
-            try:
-                ALPHABET.encode(label)
-            except KeyError:
-                label = None
+        if ALPHABET and label and not ALPHABET.CanEncode(label):
+            label = None
         return label
 
     _download_and_preprocess_data(target_dir=CLI_ARGS.target_dir)

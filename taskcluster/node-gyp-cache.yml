@@ -8,7 +8,7 @@ build:
     >
       (apt-get -qq -y install sudo || true)
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/node-gyp-populate.sh"
     package: "taskcluster/node-gyp-package.sh"
   metadata:

@@ -7,7 +7,7 @@ build:
     artifact_url: ${system.android_cache.armeabi_v7a.android_24.url}
     artifact_namespace: ${system.android_cache.armeabi_v7a.android_24.namespace}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/android_cache-build.sh armeabi-v7a android-24 default"
     package: "taskcluster/android_cache-package.sh"
   metadata:
