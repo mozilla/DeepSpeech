@@ -14,7 +14,7 @@ import sys
 import tarfile
 import unicodedata
 import wave
-import xml.etree.cElementTree as ET
+import xml.etree.ElementTree as ET
 from collections import Counter
 from glob import glob
 from multiprocessing.pool import ThreadPool
