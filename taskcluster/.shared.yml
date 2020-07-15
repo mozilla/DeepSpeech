@@ -169,11 +169,11 @@ system:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win-cuda/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win-cuda"
     ios_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.ios_arm64/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.ios_arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.1.ios_arm64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.1.ios_arm64"
     ios_x86_64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.ios_x86_64/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.ios_x86_64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.1.ios_x86_64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.1.ios_x86_64"
   username: 'build-user'
   homedir:
     linux: '/home/build-user'
