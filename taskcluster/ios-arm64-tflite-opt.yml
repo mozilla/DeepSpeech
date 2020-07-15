@@ -12,7 +12,7 @@ build:
     - "index.project.deepspeech.deepspeech.native_client.ios_arm64-tflite.${event.head.sha}"
   tensorflow: ${system.tensorflow.ios_arm64.url}
   scripts:
-    build: "taskcluster/ios-build.sh"
+    build: "taskcluster/ios-build.sh --arm64"
     package: "taskcluster/package.sh"
   nc_asset_name: "native_client.arm64.tflite.ios.tar.xz"
   maxRunTime: 14400
