@@ -9,7 +9,7 @@ import os
 import tarfile
 import unicodedata
 import wave
-import xml.etree.cElementTree as ET
+import xml.etree.ElementTree as ET
 from collections import Counter
 
 import progressbar
