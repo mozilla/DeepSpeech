@@ -7,7 +7,7 @@ build:
     artifact_url: ${system.android_cache.sdk.android_27.url}
     artifact_namespace: ${system.android_cache.sdk.android_27.namespace}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/android_cache-build.sh sdk android-27"
     package: "taskcluster/android_cache-package.sh"
   metadata:

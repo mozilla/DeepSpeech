@@ -37,10 +37,19 @@ public:
     return space_label_;
   }
 
+  // Returns true if the single character/output class has a corresponding label
+  // in the alphabet.
+  virtual bool CanEncodeSingle(const std::string& string) const;
+
+  // Returns true if the entire string can be encoded into labels in this
+  // alphabet.
+  virtual bool CanEncode(const std::string& string) const;
+
   // Decode a single label into a string.
   std::string DecodeSingle(unsigned int label) const;
 
-  // Encode a single character/output class into a label.
+  // Encode a single character/output class into a label. Character must be in
+  // the alphabet, this method will assert that. Use `CanEncodeSingle` to test.
   unsigned int EncodeSingle(const std::string& string) const;
 
   // Decode a sequence of labels into a string.
@@ -52,6 +61,8 @@ public:
 
   // Encode a sequence of character/output classes into a sequence of labels.
   // Characters are assumed to always take a single Unicode codepoint.
+  // Characters must be in the alphabet, this method will assert that. Use
+  // `CanEncode` and `CanEncodeSingle` to test.
   virtual std::vector<unsigned int> Encode(const std::string& input) const;
 
 protected:
@@ -78,6 +89,8 @@ public:
     return 0;
   }
 
+  bool CanEncodeSingle(const std::string& string) const override;
+  bool CanEncode(const std::string& string) const override;
   std::vector<unsigned int> Encode(const std::string& input) const override;
 };
 

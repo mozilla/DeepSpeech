@@ -47,6 +47,12 @@ class Alphabet(swigwrapper.Alphabet):
         if err != 0:
             raise ValueError('Alphabet initialization failed with error code 0x{:X}'.format(err))
 
+    def CanEncodeSingle(self, input):
+        return super(Alphabet, self).CanEncodeSingle(input.encode('utf-8'))
+
+    def CanEncode(self, input):
+        return super(Alphabet, self).CanEncode(input.encode('utf-8'))
+
     def EncodeSingle(self, input):
         return super(Alphabet, self).EncodeSingle(input.encode('utf-8'))
 

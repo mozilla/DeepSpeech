@@ -13,17 +13,17 @@ Metadata
 
 .. doxygenclass:: org::mozilla::deepspeech::libdeepspeech::Metadata
    :project: deepspeech-java
-   :members: getTranscripts, getNum_transcripts, getTranscript
+   :members: getNumTranscripts, getTranscript
 
 CandidateTranscript
 -------------------
 
 .. doxygenclass:: org::mozilla::deepspeech::libdeepspeech::CandidateTranscript
    :project: deepspeech-java
-   :members: getTokens, getNum_tokens, getConfidence, getToken
+   :members: getNumTokens, getConfidence, getToken
 
 TokenMetadata
 -------------
 .. doxygenclass:: org::mozilla::deepspeech::libdeepspeech::TokenMetadata
    :project: deepspeech-java
-   :members: getText, getTimestep, getStart_time
+   :members: getText, getTimestep, getStartTime

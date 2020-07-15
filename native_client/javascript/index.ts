@@ -8,7 +8,13 @@ const binding_path = binary.find(path.resolve(path.join(__dirname, 'package.json
 // @loader_path/../ but we can change the PATH to include the proper directory
 // for the dynamic linker
 if (process.platform === 'win32') {
-    const dslib_path = path.resolve(path.join(binding_path, '../..'));
+    var dslib_path = path.resolve(path.join(binding_path, '../..'));
+    // electron-builder does weird magic hand-in-hand with electronjs,
+    // and messes with the path where we expect things to be for the Windows
+    // linker.
+    if ('electron' in process.versions) {
+      dslib_path = dslib_path.replace("app.asar", "app.asar.unpacked");
+    }
     var oldPath = process.env.PATH;
     process.env['PATH'] = `${dslib_path};${process.env.PATH}`;
 }

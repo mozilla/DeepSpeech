@@ -15,7 +15,7 @@ build:
       && apt-get -qq update && apt-get -qq -y install nodejs python-yaml
   tensorflow: ${system.tensorflow.linux_amd64_cpu.url}
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'
   metadata:

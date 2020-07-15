@@ -7,7 +7,7 @@ build:
     >
       apt-get -qq update && apt-get -qq -y install python-yaml ${python.packages_xenial.apt} wget
   scripts:
-    setup: ""
+    setup: "taskcluster/tc-true.sh"
     build: "taskcluster/pyenv-build.sh"
     package: "taskcluster/pyenv-package.sh"
   metadata:

@@ -28,6 +28,9 @@ RUN apt-get purge -y python3-xdg
 # Install dependencies for audio augmentation
 RUN apt-get install -y --no-install-recommends libopus0 libsndfile1
 
+# Try and free some space
+RUN rm -rf /var/lib/apt/lists/*
+
 WORKDIR /
 RUN git lfs install
 RUN git clone $DEEPSPEECH_REPO

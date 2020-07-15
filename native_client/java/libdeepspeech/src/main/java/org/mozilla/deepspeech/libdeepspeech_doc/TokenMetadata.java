@@ -38,21 +38,21 @@ public class TokenMetadata {
    *  The text corresponding to this token 
    */
   public String getText() {
-    return implJNI.TokenMetadata_text_get(swigCPtr, this);
+    return implJNI.TokenMetadata_Text_get(swigCPtr, this);
   }
 
   /**
    *  Position of the token in units of 20ms 
    */
   public long getTimestep() {
-    return implJNI.TokenMetadata_timestep_get(swigCPtr, this);
+    return implJNI.TokenMetadata_Timestep_get(swigCPtr, this);
   }
 
   /**
    *  Position of the token in seconds 
    */
-  public float getStart_time() {
-    return implJNI.TokenMetadata_start_time_get(swigCPtr, this);
+  public float getStartTime() {
+    return implJNI.TokenMetadata_StartTime_get(swigCPtr, this);
   }
 
 }
