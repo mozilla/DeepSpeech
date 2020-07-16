@@ -33,6 +33,8 @@ do_deepspeech_python_build()
     virtualenv_activate "${pyalias}" "deepspeech"
 
     python --version
+    pip --version
+    pip3 --version
     which pip
     which pip3
 
