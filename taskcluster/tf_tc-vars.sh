@@ -171,8 +171,8 @@ BAZEL_ARM64_FLAGS="--config=rpi3-armv8 --config=rpi3-armv8_opt --copt=-DTFLITE_W
 BAZEL_ANDROID_ARM_FLAGS="--config=android --config=android_arm --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 --copt=-DTFLITE_WITH_RUY_GEMV"
 BAZEL_ANDROID_ARM64_FLAGS="--config=android --config=android_arm64 --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 --copt=-DTFLITE_WITH_RUY_GEMV"
 BAZEL_CUDA_FLAGS="--config=cuda"
-BAZEL_IOS_ARM64_FLAGS="--config=ios_arm64 --copt=-DTFLITE_WITH_RUY_GEMV"
-BAZEL_IOS_X86_64_FLAGS="--config=ios_x86_64 --copt=-DTFLITE_WITH_RUY_GEMV"
+BAZEL_IOS_ARM64_FLAGS="--config=ios_arm64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
+BAZEL_IOS_X86_64_FLAGS="--config=ios_x86_64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     # Somehow, even with Python being in the PATH, Bazel on windows struggles

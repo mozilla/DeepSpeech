@@ -91,11 +91,11 @@ pushd ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/
     fi;
 
     if [ "${build_ios_arm64}" = "yes" ]; then
-        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c opt ${BAZEL_IOS_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c opt ${BAZEL_IOS_ARM64_FLAGS} ${BUILD_TARGET_LITE_LIB}
     fi;
 
     if [ "${build_ios_x86_64}" = "yes" ]; then
-        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c opt ${BAZEL_IOS_X86_64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c opt ${BAZEL_IOS_X86_64_FLAGS} ${BUILD_TARGET_LITE_LIB}
     fi;
 
     if [ $? -ne 0 ]; then
