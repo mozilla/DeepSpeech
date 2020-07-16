@@ -124,7 +124,7 @@ It will also add the following ``.csv`` files:
 * ``clips/dev.csv``
 * ``clips/test.csv``
 
-All entries in these CSV files refer to their samples by relative paths.
+Entries in CSV files can refer to samples by their absolute or relative paths. Here, the importer produces relative paths.
 
 To use Common Voice data during training, validation and testing, you pass (comma separated combinations of) their filenames into ``--train_files``\ , ``--dev_files``\ , ``--test_files`` parameters of ``DeepSpeech.py``.
 
