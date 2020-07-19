@@ -11,10 +11,6 @@ download_material "${TASKCLUSTER_TMP_DIR}/ds"
 
 export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 
-if [ "${OS}" = "Darwin" ]; then
-    export DYLD_LIBRARY_PATH=$TESTS_BREW/lib/:$DYLD_LIBRARY_PATH
-fi;
-
 check_versions
 
 run_all_inference_tests
