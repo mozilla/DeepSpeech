@@ -30,7 +30,8 @@ public enum DeepSpeechError: Error {
     case failCreateSess(errorCode: Int32)
     case failCreateModel(errorCode: Int32)
 
-    // Additional case for invalid error codes, should never happen unless the user has mixed header and binary versions
+    // Additional case for invalid error codes, should never happen unless the
+    // user has mixed header and binary versions.
     case invalidErrorCode(errorCode: Int32)
 }
 
@@ -115,9 +116,15 @@ private func evaluateErrorCode(errorCode: Int32) throws {
     }
 }
 
+/// Stores text of an individual token, along with its timing information
 public struct DeepSpeechTokenMetadata {
+    /// The text corresponding to this token
     let text: String
+
+    /// Position of the token in units of 20ms
     let timestep: Int
+
+    /// Position of the token in seconds
     let startTime: Float
 
     internal init(fromInternal: TokenMetadata) {
@@ -127,8 +134,17 @@ public struct DeepSpeechTokenMetadata {
     }
 }
 
+/** A single transcript computed by the model, including a confidence value and
+    the metadata for its constituent tokens
+*/
 public struct DeepSpeechCandidateTranscript {
+    /// Array of DeepSpeechTokenMetadata objects
     private(set) var tokens: [DeepSpeechTokenMetadata] = []
+
+    /** Approximated confidence value for this transcript. This corresponds to
+        both acoustic model and language model scores that contributed to the
+        creation of this transcript.
+    */
     let confidence: Double
 
     internal init(fromInternal: CandidateTranscript) {
@@ -140,12 +156,16 @@ public struct DeepSpeechCandidateTranscript {
     }
 }
 
+/// An array of DeepSpeechCandidateTranscript objects computed by the model
 public struct DeepSpeechMetadata {
+    /// Array of DeepSpeechCandidateTranscript objects
     private(set) var transcripts: [DeepSpeechCandidateTranscript] = []
 
     internal init(fromInternal: UnsafeMutablePointer<Metadata>) {
         let md = fromInternal.pointee
-        let transcriptsBuffer = UnsafeBufferPointer<CandidateTranscript>(start: md.transcripts, count: Int(md.num_transcripts))
+        let transcriptsBuffer = UnsafeBufferPointer<CandidateTranscript>(
+            start: md.transcripts,
+            count: Int(md.num_transcripts))
 
         for tr in transcriptsBuffer {
             transcripts.append(DeepSpeechCandidateTranscript(fromInternal: tr))
@@ -167,6 +187,13 @@ public class DeepSpeechStream {
         }
     }
 
+    /** Feed audio samples to an ongoing streaming inference.
+
+        - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
+                            sample rate (matching what the model was trained on).
+
+        - Precondition: `finishStream()` has not been called on this stream.
+    */
     public func feedAudioContent(buffer: Array<Int16>) {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
@@ -175,12 +202,25 @@ public class DeepSpeechStream {
         }
     }
 
+    /** Feed audio samples to an ongoing streaming inference.
+
+        - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
+                            sample rate (matching what the model was trained on).
+
+        - Precondition: `finishStream()` has not been called on this stream.
+    */
     public func feedAudioContent(buffer: UnsafeBufferPointer<Int16>) {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
         DS_FeedAudioContent(streamCtx, buffer.baseAddress, UInt32(buffer.count))
     }
 
+    /** Compute the intermediate decoding of an ongoing streaming inference.
+
+        - Precondition: `finishStream()` has not been called on this stream.
+
+        - Returns: The STT intermediate result.
+    */
     public func intermediateDecode() -> String {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
@@ -189,6 +229,16 @@ public class DeepSpeechStream {
         return String(cString: result!)
     }
 
+    /** Compute the intermediate decoding of an ongoing streaming inference,
+        return results including metadata.
+
+        - Parameter numResults: The number of candidate transcripts to return.
+
+        - Precondition: `finishStream()` has not been called on this stream.
+
+        - Returns: Metadata struct containing multiple CandidateTranscript structs.
+                   Each transcript has per-token metadata including timing information.
+    */
     public func intermediateDecodeWithMetadata(numResults: Int) -> DeepSpeechMetadata {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
         let result = DS_IntermediateDecodeWithMetadata(streamCtx, UInt32(numResults))!
@@ -196,6 +246,15 @@ public class DeepSpeechStream {
         return DeepSpeechMetadata(fromInternal: result)
     }
 
+    /** Compute the final decoding of an ongoing streaming inference and return
+        the result. Signals the end of an ongoing streaming inference.
+
+        - Precondition: `finishStream()` has not been called on this stream.
+
+        - Returns: The STT result.
+
+        - Postcondition: This method will invalidate this streaming context.
+    */
     public func finishStream() -> String {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
@@ -206,11 +265,38 @@ public class DeepSpeechStream {
         }
         return String(cString: result!)
     }
+
+    /** Compute the final decoding of an ongoing streaming inference and return
+        results including metadata. Signals the end of an ongoing streaming
+        inference.
+
+        - Parameter numResults: The number of candidate transcripts to return.
+
+        - Precondition: `finishStream()` has not been called on this stream.
+
+        - Returns: Metadata struct containing multiple CandidateTranscript structs.
+                   Each transcript has per-token metadata including timing information.
+
+        - Postcondition: This method will invalidate this streaming context.
+    */
+    public func finishStreamWithMetadata(numResults: Int) -> DeepSpeechMetadata {
+        precondition(streamCtx != nil, "calling method on invalidated Stream")
+
+        let result = DS_FinishStreamWithMetadata(streamCtx, UInt32(numResults))!
+        defer { DS_FreeMetadata(result) }
+        return DeepSpeechMetadata(fromInternal: result)
+    }
 }
 
+/// An object providing an interface to a trained DeepSpeech model.
 public class DeepSpeechModel {
     private var modelCtx: OpaquePointer!
 
+    /**
+        - Parameter modelPath: The path to the model file.
+
+        - Throws: `DeepSpeechError` on failure.
+    */
     public init(modelPath: String) throws {
         let err = DS_CreateModel(modelPath, &modelCtx)
         try evaluateErrorCode(errorCode: err)
@@ -221,76 +307,143 @@ public class DeepSpeechModel {
         modelCtx = nil
     }
 
+    /** Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
+        was not called before, will return the default value loaded from the
+        model file.
+
+        - Returns: Beam width value used by the model.
+    */
     public func getBeamWidth() -> Int {
         return Int(DS_GetModelBeamWidth(modelCtx))
     }
 
+    /** Set beam width value used by the model.
+
+        - Parameter beamWidth: The beam width used by the model. A larger beam
+                               width value generates better results at the cost
+                               of decoding time.
+
+        - Throws: `DeepSpeechError` on failure.
+    */
     public func setBeamWidth(beamWidth: Int) throws {
         let err = DS_SetModelBeamWidth(modelCtx, UInt32(beamWidth))
         try evaluateErrorCode(errorCode: err)
     }
 
+    // The sample rate expected by the model.
     public var sampleRate: Int {
         get {
             return Int(DS_GetModelSampleRate(modelCtx))
         }
     }
 
+    /** Enable decoding using an external scorer.
+
+        - Parameter scorerPath: The path to the external scorer file.
+
+        - Throws: `DeepSpeechError` on failure.
+    */
     public func enableExternalScorer(scorerPath: String) throws {
         let err = DS_EnableExternalScorer(modelCtx, scorerPath)
         try evaluateErrorCode(errorCode: err)
     }
 
+    /** Disable decoding using an external scorer.
+
+        - Throws: `DeepSpeechError` on failure.
+    */
     public func disableExternalScorer() throws {
         let err = DS_DisableExternalScorer(modelCtx)
         try evaluateErrorCode(errorCode: err)
     }
 
+    /** Set hyperparameters alpha and beta of the external scorer.
+
+        - Parameter alpha: The alpha hyperparameter of the decoder. Language model weight.
+        - Parameter beta: The beta hyperparameter of the decoder. Word insertion weight.
+
+        - Throws: `DeepSpeechError` on failure.
+    */
     public func setScorerAlphaBeta(alpha: Float, beta: Float) throws {
         let err = DS_SetScorerAlphaBeta(modelCtx, alpha, beta)
         try evaluateErrorCode(errorCode: err)
     }
 
+    /** Use the DeepSpeech model to convert speech to text.
+
+        - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
+                            sample rate (matching what the model was trained on).
+
+        - Returns: The STT result.
+    */
     public func speechToText(buffer: Array<Int16>) -> String {
         return buffer.withUnsafeBufferPointer { unsafeBufferPointer -> String in
             return speechToText(buffer: unsafeBufferPointer)
         }
     }
 
+    /** Use the DeepSpeech model to convert speech to text.
+
+        - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
+                            sample rate (matching what the model was trained on).
+
+        - Returns: The STT result.
+    */
     public func speechToText(buffer: UnsafeBufferPointer<Int16>) -> String {
         let result = DS_SpeechToText(modelCtx, buffer.baseAddress, UInt32(buffer.count))
         defer { DS_FreeString(result) }
         return String(cString: result!)
     }
 
+    /** Use the DeepSpeech model to convert speech to text and output results
+        including metadata.
+
+        - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
+                            sample rate (matching what the model was trained on).
+        - Parameter numResults: The maximum number of DeepSpeechCandidateTranscript
+                                structs to return. Returned value might be smaller than this.
+
+        - Returns: Metadata struct containing multiple CandidateTranscript structs.
+                   Each transcript has per-token metadata including timing information.
+   */
     public func speechToTextWithMetadata(buffer: Array<Int16>, numResults: Int) -> DeepSpeechMetadata {
         return buffer.withUnsafeBufferPointer { unsafeBufferPointer -> DeepSpeechMetadata in
-            let result = DS_SpeechToTextWithMetadata(modelCtx, unsafeBufferPointer.baseAddress, UInt32(buffer.count), UInt32(numResults))!
-            defer { DS_FreeMetadata(result) }
-            return DeepSpeechMetadata(fromInternal: result)
+            return speechToTextWithMetadata(buffer: unsafeBufferPointer, numResults: numResults)
         }
     }
 
+    /** Use the DeepSpeech model to convert speech to text and output results
+        including metadata.
+
+        - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
+                            sample rate (matching what the model was trained on).
+        - Parameter numResults: The maximum number of DeepSpeechCandidateTranscript
+                                structs to return. Returned value might be smaller than this.
+
+        - Returns: Metadata struct containing multiple CandidateTranscript structs.
+                   Each transcript has per-token metadata including timing information.
+   */
+    public func speechToTextWithMetadata(buffer: UnsafeBufferPointer<Int16>, numResults: Int) -> DeepSpeechMetadata {
+        let result = DS_SpeechToTextWithMetadata(
+            modelCtx,
+            buffer.baseAddress,
+            UInt32(buffer.count),
+            UInt32(numResults))!
+        defer { DS_FreeMetadata(result) }
+        return DeepSpeechMetadata(fromInternal: result)
+    }
+
+    /** Create a new streaming inference state.
+
+        - Returns: DeepSpeechStream object representing the streaming state.
+
+        - Throws: `DeepSpeechError` on failure.
+    */
     public func createStream() throws -> DeepSpeechStream {
         var streamContext: OpaquePointer!
         let err = DS_CreateStream(modelCtx, &streamContext)
         try evaluateErrorCode(errorCode: err)
         return DeepSpeechStream(streamContext: streamContext)
-    }
-
-    public class func open(path: String, scorerPath: Optional<String> = nil) -> OpaquePointer {
-        var fooOpaque: OpaquePointer!
-        DS_CreateModel(path, &fooOpaque)
-        if let scorerPath = scorerPath {
-            DS_EnableExternalScorer(fooOpaque, scorerPath)
-        }
-        return fooOpaque
-    }
-
-    public class func createStream(modelState: OpaquePointer) -> OpaquePointer {
-        var fooOpaque: OpaquePointer!
-        DS_CreateStream(modelState, &fooOpaque)
-        return fooOpaque
     }
 }
 
