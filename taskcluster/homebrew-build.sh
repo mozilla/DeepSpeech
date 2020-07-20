@@ -42,12 +42,13 @@ do_prepare_homebrew()
 
   check_homebrew "${_brew_instance}"
 
-  # Force an upgrade to fetch formulae
-  brew search openssl
-
   # Then we force onto a specific well-known commit
+  mkdir -p "$(brew --prefix)/Library/Taps/homebrew/homebrew-core"
   pushd "$(brew --prefix)/Library/Taps/homebrew/homebrew-core"
-    git fetch origin && git checkout ${BREW_FORMULAS_COMMIT}
+    git init
+    git remote add origin https://github.com/Homebrew/homebrew-core.git
+    git fetch origin
+    git checkout ${BREW_FORMULAS_COMMIT}
   popd
 }
 

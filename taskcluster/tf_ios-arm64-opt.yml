@@ -1,0 +1,15 @@
+build:
+  template_file: generic_tc_caching-darwin-opt-base.tyml
+  cache:
+    artifact_url: ${system.tensorflow.ios_arm64.url}
+    artifact_namespace: ${system.tensorflow.ios_arm64.namespace}
+  generic:
+    workerType: "ds-macos-heavy"
+  scripts:
+    setup: "taskcluster/tf_tc-setup.sh"
+    build: "taskcluster/tf_tc-build.sh --ios-arm64"
+    package: "taskcluster/tf_tc-package.sh"
+  maxRunTime: 28800
+  metadata:
+    name: "TensorFlow iOS ARM64 TFLite"
+    description: "Building TensorFlow for iOS ARM64, TFLite, optimized version"

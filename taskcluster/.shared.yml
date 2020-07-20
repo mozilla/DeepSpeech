@@ -14,8 +14,6 @@ deepspeech:
 tensorflow:
   packages_xenial:
     apt: 'apt-get -qq update && apt-get -qq -y install realpath build-essential python-virtualenv python-dev python-pip libblas-dev liblapack-dev gfortran wget software-properties-common pixz zip zlib1g-dev unzip'
-  packages_macos:
-    brew: '$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tf_tc-brew.sh'
   packages_win:
     pacman: 'pacman --noconfirm -S patch unzip tar'
     msys64: 'ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64'
@@ -168,6 +166,12 @@ system:
     win_amd64_cuda:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win-cuda/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win-cuda"
+    ios_arm64:
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.3.ios_arm64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.3.ios_arm64"
+    ios_x86_64:
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.3.ios_x86_64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.3.ios_x86_64"
   username: 'build-user'
   homedir:
     linux: '/home/build-user'

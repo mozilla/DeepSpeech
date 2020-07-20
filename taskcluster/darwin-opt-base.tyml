@@ -35,11 +35,8 @@ payload:
   # There is no VM yet running tasks on OSX
   # so one should install by hand:
   # - brew
-  # - xcode (brew would install)
-  # - brew install gnu-tar
-  # - brew install git
-  # - brew install pixz
-  # - brew cask install java
+  # - Xcode 10.1 in /Applications/Xcode.app, then sudo chown -R root:wheel /Applications/Xcode.app
+  # - brew install gnu-tar git pixz wget coreutils pyenv-virtualenv
   # - sudo easy_install pip
 
   command:

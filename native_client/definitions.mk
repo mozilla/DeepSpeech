@@ -101,6 +101,20 @@ NODE_PLATFORM_TARGET := --target_arch=arm64 --target_platform=linux
 TOOLCHAIN_LDD_OPTS   := --root $(RASPBIAN)/
 endif # ($(TARGET),rpi3-armv8)
 
+ifeq ($(TARGET),ios-simulator)
+CFLAGS          := -isysroot $(shell xcrun -sdk iphonesimulator13.5 -show-sdk-path)
+SOX_CFLAGS      :=
+SOX_LDFLAGS     :=
+LDFLAGS         :=
+endif
+
+ifeq ($(TARGET),ios-arm64)
+CFLAGS          := -target arm64-apple-ios -isysroot $(shell xcrun -sdk iphoneos13.5 -show-sdk-path)
+SOX_CFLAGS      :=
+SOX_LDFLAGS     :=
+LDFLAGS         :=
+endif
+
 # -Wl,--no-as-needed is required to force linker not to evict libs it thinks we
 # dont need ; will fail the build on OSX because that option does not exists
 ifeq ($(OS),Linux)
@@ -108,9 +122,13 @@ LDFLAGS_NEEDED := -Wl,--no-as-needed
 LDFLAGS_RPATH  := -Wl,-rpath,\$$ORIGIN
 endif
 ifeq ($(OS),Darwin)
-CXXFLAGS       += -stdlib=libc++ -mmacosx-version-min=10.10
-LDFLAGS_NEEDED := -stdlib=libc++ -mmacosx-version-min=10.10
+CXXFLAGS       += -stdlib=libc++
+LDFLAGS_NEEDED := -stdlib=libc++
 LDFLAGS_RPATH  := -Wl,-rpath,@executable_path
+ifeq ($(TARGET),host)
+CXXFLAGS       += -mmacosx-version-min=10.10
+LDFLAGS_NEEDED += -mmacosx-version-min=10.10
+endif
 endif
 
 CFLAGS   += $(EXTRA_CFLAGS)

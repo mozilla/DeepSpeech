@@ -8,7 +8,7 @@ build:
       ${tensorflow.packages_xenial.apt} && ${java.packages_xenial.apt}
   scripts:
     setup: "taskcluster/tf_tc-setup.sh"
-    build: "taskcluster/tf_tc-build.sh"
+    build: "taskcluster/tf_tc-build.sh --cpu"
     package: "taskcluster/tf_tc-package.sh"
   maxRunTime: 14400
   metadata:
