@@ -138,32 +138,6 @@ func render(audioContext: AudioContext?, stream: DeepSpeechStream) {
 func test(model: DeepSpeechModel, audioPath: String, completion: @escaping () -> ()) {
     let url = URL(fileURLWithPath: audioPath)
 
-    //var format = AudioStreamBasicDescription.init()
-    //format.mSampleRate = 16000;
-    //format.mFormatID = kAudioFormatLinearPCM;
-    //format.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked;
-    //format.mBitsPerChannel = 16;
-    //format.mChannelsPerFrame = 1;
-    //format.mBytesPerFrame = format.mChannelsPerFrame * format.mBitsPerChannel / 8;
-    //format.mFramesPerPacket = 1;
-    //format.mBytesPerPacket = format.mFramesPerPacket * format.mBytesPerFrame;
-    //
-    //var file = Optional<ExtAudioFileRef>.init(nilLiteral: ());
-    //let status = ExtAudioFileCreateWithURL(url as CFURL,
-    //                                       kAudioFileWAVEType,
-    //                                       &format,
-    //                                       nil,
-    //                                       0,
-    //                                       &file)
-    //print("status: \(status)")
-    //let status2 = ExtAudioFileSetProperty(file!,
-    //                                     kExtAudioFileProperty_ClientDataFormat,
-    //                                     UInt32(MemoryLayout<AudioStreamBasicDescription>.size),
-    //                                     &format)
-    //print("status: \(status2)")
-    //
-    //ExtAudioFileRead(file, <#T##ioNumberFrames: UnsafeMutablePointer<UInt32>##UnsafeMutablePointer<UInt32>#>, <#T##ioData: UnsafeMutablePointer<AudioBufferList>##UnsafeMutablePointer<AudioBufferList>#>)
-
     let stream = try! model.createStream()
     print("\(audioPath)")
     let start = CFAbsoluteTimeGetCurrent()
@@ -177,25 +151,6 @@ func test(model: DeepSpeechModel, audioPath: String, completion: @escaping () ->
         print("\"\(audioPath)\": \(end - start) - \(result)")
         completion()
     })
-
-    //let file = try! AVAudioFile(forReading: url)
-    //print("file length \(file.length)")
-    //let format = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 16000, channels: 1, interleaved: false)!
-    //let stream = createStream(modelState: modelState)
-    //while file.framePosition < file.length {
-    //    let pcmBuf = AVAudioPCMBuffer.init(pcmFormat: format, frameCapacity: 8 * 1024)! // arbitrary frameCapacity
-    //    try! file.read(into: pcmBuf)
-    //    if pcmBuf.frameLength == 0 {
-    //        break
-    //    }
-    //    print("read \(pcmBuf.frameLength) frames into buffer")
-    //    let rawPtr = pcmBuf.audioBufferList.pointee.mBuffers.mData!
-    //    let ptr = rawPtr.bindMemory(to: Int16.self, capacity: Int(pcmBuf.frameLength))
-    //    print("first few samples: \(ptr[0]) \(ptr[1]) \(ptr[2]) \(ptr[3]) ")
-    //    DS_FeedAudioContent(stream, ptr, UInt32(pcmBuf.frameLength))
-    //}
-    //let result = DS_FinishStream(stream)
-    //return String.init(cString: result!)
 }
 
 @UIApplicationMain

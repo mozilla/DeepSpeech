@@ -5,9 +5,6 @@ build:
     artifact_namespace: ${system.tensorflow.ios_arm64.namespace}
   generic:
     workerType: "ds-macos-heavy"
-  system_config:
-    >
-      ${tensorflow.packages_macos.brew}
   scripts:
     setup: "taskcluster/tf_tc-setup.sh"
     build: "taskcluster/tf_tc-build.sh --ios-arm64"
