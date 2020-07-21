@@ -161,11 +161,11 @@ system:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.android-armv7/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.android-armv7"
     win_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.2.win/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.2.win"
     win_amd64_cuda:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win-cuda/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.win-cuda"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.2.win-cuda/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.518c1d04bf55d362bb11e973b8f5d0aa3e5bf44d.2.win-cuda"
     ios_arm64:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.3.ios_arm64/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.0854bb5188a3150a4d75a1c71ee610b0d45cfcb1.3.ios_arm64"
