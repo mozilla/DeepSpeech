@@ -7,7 +7,15 @@ from pathlib import Path
 from functools import partial
 
 from .helpers import MEGABYTE, GIGABYTE, Interleaved
-from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_OPUS, SERIALIZABLE_AUDIO_TYPES, get_audio_type_from_extension
+from .audio import (
+    Sample,
+    DEFAULT_FORMAT,
+    AUDIO_TYPE_PCM,
+    AUDIO_TYPE_OPUS,
+    SERIALIZABLE_AUDIO_TYPES,
+    get_audio_type_from_extension,
+    write_wav
+)
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4
@@ -294,6 +302,70 @@ class SDB:  # pylint: disable=too-many-instance-attributes
             self.sdb_file.close()
 
     def __del__(self):
+        self.close()
+
+
+class CSVWriter:  # pylint: disable=too-many-instance-attributes
+    """Sample collection writer for writing a CSV data-set and all its referenced WAV samples"""
+    def __init__(self,
+                 csv_filename,
+                 absolute_paths=False,
+                 labeled=True):
+        """
+        Parameters
+        ----------
+        csv_filename : str
+            Path to the CSV file to write.
+            Will create a directory (CSV-filename without extension) next to it and fail if it already exists.
+        absolute_paths : bool
+            If paths in CSV file should be absolute instead of relative to the CSV file's parent directory.
+        labeled : bool or None
+            If True: Writes labeled samples (util.sample_collections.LabeledSample) only.
+            If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
+        """
+        self.csv_filename = Path(csv_filename)
+        self.csv_base_dir = self.csv_filename.parent.resolve().absolute()
+        self.set_name = self.csv_filename.stem
+        self.csv_dir = self.csv_base_dir / self.set_name
+        if self.csv_dir.exists():
+            raise RuntimeError('"{}" already existing'.format(self.csv_dir))
+        os.mkdir(str(self.csv_dir))
+        self.absolute_paths = absolute_paths
+        fieldnames = ['wav_filename', 'wav_filesize']
+        self.labeled = labeled
+        if labeled:
+            fieldnames.append('transcript')
+        self.csv_file = open(csv_filename, 'w', encoding='utf-8', newline='')
+        self.csv_writer = csv.DictWriter(self.csv_file, fieldnames=fieldnames)
+        self.csv_writer.writeheader()
+        self.counter = 0
+
+    def __enter__(self):
+        return self
+
+    def add(self, sample):
+        sample_filename = self.csv_dir / 'sample{0:08d}.wav'.format(self.counter)
+        self.counter += 1
+        sample.change_audio_type(AUDIO_TYPE_PCM)
+        write_wav(str(sample_filename), sample.audio, audio_format=sample.audio_format)
+        sample.sample_id = str(sample_filename.relative_to(self.csv_base_dir))
+        row = {
+            'wav_filename': str(sample_filename.absolute()) if self.absolute_paths else sample.sample_id,
+            'wav_filesize': sample_filename.stat().st_size
+        }
+        if self.labeled:
+            row['transcript'] = sample.transcript
+        self.csv_writer.writerow(row)
+        return sample.sample_id
+
+    def close(self):
+        if self.csv_file:
+            self.csv_file.close()
+
+    def __len__(self):
+        return self.counter
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
 

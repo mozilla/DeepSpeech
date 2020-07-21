@@ -496,7 +496,7 @@ Example training with all augmentations:
           [...]
 
 
-The ``bin/play.py`` tool also supports ``--augment`` parameters (for sample domain augmentations) and can be used for experimenting with different configurations.
+The ``bin/play.py`` and ``bin/data_set_tool.py`` tools also support ``--augment`` parameters (for sample domain augmentations) and can be used for experimenting with different configurations or creating augmented data sets.
 
 Example of playing all samples with reverberation and maximized volume:
 
@@ -510,3 +510,12 @@ Example simulation of the codec augmentation of a wav-file first at the beginnin
 
         bin/play.py --augment codec[p=0.1,bitrate=48000:16000] --clock 0.0 test.wav
         bin/play.py --augment codec[p=0.1,bitrate=48000:16000] --clock 1.0 test.wav
+
+Example of creating a pre-augmented test set:
+
+.. code-block:: bash
+
+        bin/data_set_tool.py \
+          --augment overlay[source=noise.sdb,layers=1,snr=20~10] \
+          --augment resample[rate=12000:8000~4000] \
+          test.sdb test-augmented.sdb
