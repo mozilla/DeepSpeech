@@ -43,7 +43,7 @@ payload:
     - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
     - echo .\msys64\usr\bin\bash.exe --login -cxe "
       export LC_ALL=C &&
-      export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files (x86)/Windows Kits/10/bin/x64/:$PATH\" &&
+      export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files (x86)/Windows Kits/10/bin/x64/:/c/Program Files/dotnet/:$PATH\" &&
       export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
       export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
       (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
