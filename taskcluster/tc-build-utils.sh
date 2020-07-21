@@ -323,10 +323,10 @@ do_deepspeech_ios_framework_build()
   cd ${DS_DSDIR}/native_client/swift
   case $arch in
   "--x86_64")
-    xcodebuild -workspace deepspeech_ios.xcworkspace -scheme deepspeech_ios_test -configuration Release -arch x86_64 -sdk "iphonesimulator" -derivedDataPath DerivedData
+    xcodebuild -workspace deepspeech_ios.xcworkspace -scheme deepspeech_ios_test -configuration Release -arch x86_64 -sdk "iphonesimulator" -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
     ;;
   "--arm64")
-    xcodebuild -workspace deepspeech_ios.xcworkspace -scheme deepspeech_ios_test -configuration Release -arch arm64 -sdk "iphoneos" -derivedDataPath DerivedData
+    xcodebuild -workspace deepspeech_ios.xcworkspace -scheme deepspeech_ios_test -configuration Release -arch arm64 -sdk "iphoneos" -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
     ;;
   esac
 }
