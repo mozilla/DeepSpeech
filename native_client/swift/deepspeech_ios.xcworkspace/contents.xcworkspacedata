@@ -5,6 +5,6 @@
       location = "group:deepspeech_ios.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:deepspeech_ios_test/deepspeech_ios_test.xcodeproj">
+      location = "group:deepspeech_ios_test.xcodeproj">
    </FileRef>
 </Workspace>
