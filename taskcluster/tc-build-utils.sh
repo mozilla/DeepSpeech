@@ -325,3 +325,21 @@ do_nuget_build()
 
   nuget pack nupkg/deepspeech.nuspec
 }
+
+do_deepspeech_ios_framework_build()
+{
+  arch=$1
+  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so ${DS_DSDIR}/native_client/swift/libdeepspeech.so
+  cd ${DS_DSDIR}/native_client/swift
+  case $arch in
+  "--x86_64")
+    iosSDK="iphonesimulator"
+    xcodeArch="x86_64"
+    ;;
+  "--arm64")
+    iosSDK="iphoneos"
+    xcodeArch="arm64"
+    ;;
+  esac
+  xcodebuild -workspace deepspeech_ios.xcworkspace -scheme deepspeech_ios_test -configuration Release -arch "${xcodeArch}" -sdk "${iosSDK}" -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+}

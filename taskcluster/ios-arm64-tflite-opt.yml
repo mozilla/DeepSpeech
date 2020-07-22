@@ -13,7 +13,7 @@ build:
   tensorflow: ${system.tensorflow.ios_arm64.url}
   scripts:
     build: "taskcluster/ios-build.sh --arm64"
-    package: "taskcluster/package.sh"
+    package: "taskcluster/ios-package.sh --arm64"
   nc_asset_name: "native_client.arm64.tflite.ios.tar.xz"
   maxRunTime: 14400
   metadata:
