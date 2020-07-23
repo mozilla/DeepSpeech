@@ -65,13 +65,14 @@ class Interleaved:
     """Collection that lazily combines sorted collections in an interleaving fashion.
     During iteration the next smallest element from all the sorted collections is always picked.
     The collections must support iter() and len()."""
-    def __init__(self, *iterables, key=lambda obj: obj):
+    def __init__(self, *iterables, key=lambda obj: obj, reverse=False):
         self.iterables = iterables
         self.key = key
+        self.reverse = reverse
         self.len = sum(map(len, iterables))
 
     def __iter__(self):
-        return heapq.merge(*self.iterables, key=self.key)
+        return heapq.merge(*self.iterables, key=self.key, reverse=self.reverse)
 
     def __len__(self):
         return self.len
