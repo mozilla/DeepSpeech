@@ -48,15 +48,33 @@ class Alphabet(swigwrapper.Alphabet):
             raise ValueError('Alphabet initialization failed with error code 0x{:X}'.format(err))
 
     def CanEncodeSingle(self, input):
+        '''
+        Returns true if the single character/output class has a corresponding label
+        in the alphabet.
+        '''
         return super(Alphabet, self).CanEncodeSingle(input.encode('utf-8'))
 
     def CanEncode(self, input):
+        '''
+        Returns true if the entire string can be encoded into labels in this
+        alphabet.
+        '''
         return super(Alphabet, self).CanEncode(input.encode('utf-8'))
 
     def EncodeSingle(self, input):
+        '''
+        Encode a single character/output class into a label. Character must be in
+        the alphabet, this method will assert that. Use `CanEncodeSingle` to test.
+        '''
         return super(Alphabet, self).EncodeSingle(input.encode('utf-8'))
 
     def Encode(self, input):
+        '''
+        Encode a sequence of character/output classes into a sequence of labels.
+        Characters are assumed to always take a single Unicode codepoint.
+        Characters must be in the alphabet, this method will assert that. Use
+        `CanEncode` and `CanEncodeSingle` to test.
+        '''
         # Convert SWIG's UnsignedIntVec to a Python list
         res = super(Alphabet, self).Encode(input.encode('utf-8'))
         return [el for el in res]
@@ -66,6 +84,7 @@ class Alphabet(swigwrapper.Alphabet):
         return res.decode('utf-8')
 
     def Decode(self, input):
+        '''Decode a sequence of labels into a string.'''
         res = super(Alphabet, self).Decode(input)
         return res.decode('utf-8')
 

@@ -9,16 +9,20 @@ def text_to_char_array(transcript, alphabet, context=''):
     integers and return a numpy array representing the processed string.
     Use a string in `context` for adding text to raised exceptions.
     """
-    try:
-        transcript = alphabet.Encode(transcript)
-        if len(transcript) == 0:
-            raise ValueError('While processing {}: Found an empty transcript! '
-                             'You must include a transcript for all training data.'
-                             .format(context))
-        return transcript
-    except KeyError as e:
+    if not alphabet.CanEncode(transcript):
         # Provide the row context (especially wav_filename) for alphabet errors
-        raise ValueError('While processing: {}\n{}'.format(context, e))
+        raise ValueError(
+            'Alphabet cannot encode transcript "{}" while processing sample "{}", '
+            'check that your alphabet contains all characters in the training corpus. '
+            'Missing characters are: {}.'
+            .format(transcript, context, list(ch for ch in transcript if not alphabet.CanEncodeSingle(ch))))
+
+    encoded = alphabet.Encode(transcript)
+    if len(encoded) == 0:
+        raise ValueError('While processing {}: Found an empty transcript! '
+                         'You must include a transcript for all training data.'
+                         .format(context))
+    return encoded
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
