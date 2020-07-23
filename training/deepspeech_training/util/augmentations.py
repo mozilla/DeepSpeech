@@ -349,8 +349,13 @@ class Resample(SampleAugmentation):
         audio = sample.audio
         orig_len = len(audio)
         audio = np.swapaxes(audio, 0, 1)
-        audio = resample(audio, sample.audio_format.rate, rate)
-        audio = resample(audio, rate, sample.audio_format.rate)
+        if audio.shape[0] < 2:
+            # since v0.8 librosa enforces a shape of (samples,) instead of (channels, samples) for mono samples
+            resampled = resample(audio[0], sample.audio_format.rate, rate)
+            audio[0] = resample(resampled, rate, sample.audio_format.rate)[:orig_len]
+        else:
+            audio = resample(audio, sample.audio_format.rate, rate)
+            audio = resample(audio, rate, sample.audio_format.rate)
         audio = np.swapaxes(audio, 0, 1)[0:orig_len]
         sample.audio = audio
 
