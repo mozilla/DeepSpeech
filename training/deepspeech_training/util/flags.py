@@ -71,8 +71,14 @@ def create_flags():
     # Sample limits
 
     f.DEFINE_integer('limit_train', 0, 'maximum number of elements to use from train set - 0 means no limit')
-    f.DEFINE_integer('limit_dev', 0, 'maximum number of elements to use from validation set- 0 means no limit')
-    f.DEFINE_integer('limit_test', 0, 'maximum number of elements to use from test set- 0 means no limit')
+    f.DEFINE_integer('limit_dev', 0, 'maximum number of elements to use from validation set - 0 means no limit')
+    f.DEFINE_integer('limit_test', 0, 'maximum number of elements to use from test set - 0 means no limit')
+
+    # Sample order
+
+    f.DEFINE_boolean('reverse_train', False, 'if to reverse sample order of the train set')
+    f.DEFINE_boolean('reverse_dev', False, 'if to reverse sample order of the dev set')
+    f.DEFINE_boolean('reverse_test', False, 'if to reverse sample order of the test set')
 
     # Checkpointing
 

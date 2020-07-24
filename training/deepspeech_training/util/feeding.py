@@ -90,6 +90,8 @@ def create_dataset(sources,
                    augmentations=None,
                    cache_path=None,
                    train_phase=False,
+                   reverse=False,
+                   limit=0,
                    exception_box=None,
                    process_ahead=None,
                    buffering=1 * MEGABYTE):
@@ -99,8 +101,10 @@ def create_dataset(sources,
         epoch = epoch_counter['epoch']
         if train_phase:
             epoch_counter['epoch'] += 1
-        samples = samples_from_sources(sources, buffering=buffering, labeled=True)
+        samples = samples_from_sources(sources, buffering=buffering, labeled=True, reverse=reverse)
         num_samples = len(samples)
+        if limit > 0:
+            num_samples = min(limit, num_samples)
         samples = apply_sample_augmentations(samples,
                                              augmentations,
                                              buffering=buffering,
@@ -108,6 +112,8 @@ def create_dataset(sources,
                                              clock=epoch / epochs,
                                              final_clock=(epoch + 1) / epochs)
         for sample_index, sample in enumerate(samples):
+            if sample_index >= num_samples:
+                break
             clock = (epoch * num_samples + sample_index) / (epochs * num_samples) if train_phase and epochs > 0 else 0.0
             transcript = text_to_char_array(sample.transcript, Config.alphabet, context=sample.sample_id)
             transcript = to_sparse_tuple(transcript)
