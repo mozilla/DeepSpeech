@@ -12,7 +12,11 @@
 #include <sstream>
 #include <string>
 
-#if defined(__ANDROID__) || defined(_MSC_VER)
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__ANDROID__) || defined(_MSC_VER) || TARGET_OS_IPHONE
 #define NO_SOX
 #endif
 
@@ -244,7 +248,7 @@ GetAudioBuffer(const char* path, int desired_sample_rate)
     sox_false // Reverse endianness
   };
 
-#ifdef __APPLE__
+#if TARGET_OS_OSX
   // It would be preferable to use sox_open_memstream_write here, but OS-X
   // doesn't support POSIX 2008, which it requires. See Issue #461.
   // Instead, we write to a temporary file.
@@ -348,7 +352,7 @@ GetAudioBuffer(const char* path, int desired_sample_rate)
   fclose(wave);
 #endif // NO_SOX
 
-#ifdef __APPLE__
+#if TARGET_OS_OSX
   res.buffer_size = (size_t)(output->olength * 2);
   res.buffer = (char*)malloc(sizeof(char) * res.buffer_size);
   FILE* output_file = fopen(output_name, "rb");

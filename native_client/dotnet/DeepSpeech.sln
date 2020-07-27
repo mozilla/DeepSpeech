@@ -1,8 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.136
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeechClient", "DeepSpeechClient\DeepSpeechClient.csproj", "{56DE4091-BBBE-47E4-852D-7268B33B971F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepSpeechClient", "DeepSpeechClient\DeepSpeechClient.csproj", "{56DE4091-BBBE-47E4-852D-7268B33B971F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeechConsole", "DeepSpeechConsole\DeepSpeechConsole.csproj", "{312965E5-C4F6-4D95-BA64-79906B8BC7AC}"
 EndProject

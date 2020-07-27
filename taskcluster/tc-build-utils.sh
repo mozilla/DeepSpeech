@@ -33,6 +33,8 @@ do_deepspeech_python_build()
     virtualenv_activate "${pyalias}" "deepspeech"
 
     python --version
+    pip --version
+    pip3 --version
     which pip
     which pip3
 
@@ -229,7 +231,7 @@ do_deepspeech_netframework_build()
   cd ${DS_DSDIR}/native_client/dotnet
 
   # Setup dependencies
-  nuget install DeepSpeechConsole/packages.config -OutputDirectory packages/
+  nuget restore DeepSpeech.sln
 
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"
 
@@ -240,22 +242,29 @@ do_deepspeech_netframework_build()
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
-    /p:TargetFrameworkVersion="v4.5.2" \
+    /p:TargetFramework="net452" \
     /p:OutputPath=bin/nuget/x64/v4.5
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
-    /p:TargetFrameworkVersion="v4.6" \
+    /p:TargetFramework="net46" \
     /p:OutputPath=bin/nuget/x64/v4.6
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
-    /p:TargetFrameworkVersion="v4.7" \
+    /p:TargetFramework="net47" \
     /p:OutputPath=bin/nuget/x64/v4.7
+
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform=x64 \
+    /p:TargetFramework="uap10.0" \
+    /p:OutputPath=bin/nuget/x64/uap10.0
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
@@ -305,6 +314,9 @@ do_nuget_build()
   mkdir -p nupkg/lib/net47/
   cp DeepSpeechClient/bin/nuget/x64/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
 
+  mkdir -p nupkg/lib/uap10.0/
+  cp DeepSpeechClient/bin/nuget/x64/uap10.0/DeepSpeechClient.dll nupkg/lib/uap10.0/
+
   PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \
     -e "s/\$NUPKG_ID/${PROJECT_NAME}/" \
@@ -312,4 +324,22 @@ do_nuget_build()
     nupkg/deepspeech.nuspec.in > nupkg/deepspeech.nuspec && cat nupkg/deepspeech.nuspec
 
   nuget pack nupkg/deepspeech.nuspec
+}
+
+do_deepspeech_ios_framework_build()
+{
+  arch=$1
+  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so ${DS_DSDIR}/native_client/swift/libdeepspeech.so
+  cd ${DS_DSDIR}/native_client/swift
+  case $arch in
+  "--x86_64")
+    iosSDK="iphonesimulator"
+    xcodeArch="x86_64"
+    ;;
+  "--arm64")
+    iosSDK="iphoneos"
+    xcodeArch="arm64"
+    ;;
+  esac
+  xcodebuild -workspace deepspeech_ios.xcworkspace -scheme deepspeech_ios_test -configuration Release -arch "${xcodeArch}" -sdk "${iosSDK}" -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 }

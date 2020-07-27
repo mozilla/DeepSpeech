@@ -6,8 +6,16 @@ import json
 from pathlib import Path
 from functools import partial
 
-from .helpers import MEGABYTE, GIGABYTE, Interleaved
-from .audio import Sample, DEFAULT_FORMAT, AUDIO_TYPE_OPUS, SERIALIZABLE_AUDIO_TYPES, get_audio_type_from_extension
+from .helpers import KILOBYTE, MEGABYTE, GIGABYTE, Interleaved
+from .audio import (
+    Sample,
+    DEFAULT_FORMAT,
+    AUDIO_TYPE_PCM,
+    AUDIO_TYPE_OPUS,
+    SERIALIZABLE_AUDIO_TYPES,
+    get_audio_type_from_extension,
+    write_wav
+)
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4
@@ -15,6 +23,7 @@ BIGINT_SIZE = 2 * INT_SIZE
 MAGIC = b'SAMPLEDB'
 
 BUFFER_SIZE = 1 * MEGABYTE
+REVERSE_BUFFER_SIZE = 16 * KILOBYTE
 CACHE_SIZE = 1 * GIGABYTE
 
 SCHEMA_KEY = 'schema'
@@ -181,14 +190,19 @@ class DirectSDBWriter:
 
 class SDB:  # pylint: disable=too-many-instance-attributes
     """Sample collection reader for reading a Sample DB (SDB) file"""
-    def __init__(self, sdb_filename, buffering=BUFFER_SIZE, id_prefix=None, labeled=True):
+    def __init__(self,
+                 sdb_filename,
+                 buffering=BUFFER_SIZE,
+                 id_prefix=None,
+                 labeled=True,
+                 reverse=False):
         """
         Parameters
         ----------
         sdb_filename : str
             Path to the SDB file to read samples from
         buffering : int
-            Read-buffer size to use while reading the SDB file
+            Read-ahead buffer size to use while reading the SDB file in normal order. Fixed to 16kB if in reverse-mode.
         id_prefix : str
             Prefix for IDs of read samples - defaults to sdb_filename
         labeled : bool or None
@@ -199,7 +213,7 @@ class SDB:  # pylint: disable=too-many-instance-attributes
         """
         self.sdb_filename = sdb_filename
         self.id_prefix = sdb_filename if id_prefix is None else id_prefix
-        self.sdb_file = open(sdb_filename, 'rb', buffering=buffering)
+        self.sdb_file = open(sdb_filename, 'rb', buffering=REVERSE_BUFFER_SIZE if reverse else buffering)
         self.offsets = []
         if self.sdb_file.read(len(MAGIC)) != MAGIC:
             raise RuntimeError('No Sample Database')
@@ -229,6 +243,8 @@ class SDB:  # pylint: disable=too-many-instance-attributes
         num_samples = self.read_big_int()
         for _ in range(num_samples):
             self.offsets.append(self.read_big_int())
+        if reverse:
+            self.offsets.reverse()
 
     def read_int(self):
         return int.from_bytes(self.sdb_file.read(INT_SIZE), BIG_ENDIAN)
@@ -297,9 +313,73 @@ class SDB:  # pylint: disable=too-many-instance-attributes
         self.close()
 
 
+class CSVWriter:  # pylint: disable=too-many-instance-attributes
+    """Sample collection writer for writing a CSV data-set and all its referenced WAV samples"""
+    def __init__(self,
+                 csv_filename,
+                 absolute_paths=False,
+                 labeled=True):
+        """
+        Parameters
+        ----------
+        csv_filename : str
+            Path to the CSV file to write.
+            Will create a directory (CSV-filename without extension) next to it and fail if it already exists.
+        absolute_paths : bool
+            If paths in CSV file should be absolute instead of relative to the CSV file's parent directory.
+        labeled : bool or None
+            If True: Writes labeled samples (util.sample_collections.LabeledSample) only.
+            If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
+        """
+        self.csv_filename = Path(csv_filename)
+        self.csv_base_dir = self.csv_filename.parent.resolve().absolute()
+        self.set_name = self.csv_filename.stem
+        self.csv_dir = self.csv_base_dir / self.set_name
+        if self.csv_dir.exists():
+            raise RuntimeError('"{}" already existing'.format(self.csv_dir))
+        os.mkdir(str(self.csv_dir))
+        self.absolute_paths = absolute_paths
+        fieldnames = ['wav_filename', 'wav_filesize']
+        self.labeled = labeled
+        if labeled:
+            fieldnames.append('transcript')
+        self.csv_file = open(csv_filename, 'w', encoding='utf-8', newline='')
+        self.csv_writer = csv.DictWriter(self.csv_file, fieldnames=fieldnames)
+        self.csv_writer.writeheader()
+        self.counter = 0
+
+    def __enter__(self):
+        return self
+
+    def add(self, sample):
+        sample_filename = self.csv_dir / 'sample{0:08d}.wav'.format(self.counter)
+        self.counter += 1
+        sample.change_audio_type(AUDIO_TYPE_PCM)
+        write_wav(str(sample_filename), sample.audio, audio_format=sample.audio_format)
+        sample.sample_id = str(sample_filename.relative_to(self.csv_base_dir))
+        row = {
+            'wav_filename': str(sample_filename.absolute()) if self.absolute_paths else sample.sample_id,
+            'wav_filesize': sample_filename.stat().st_size
+        }
+        if self.labeled:
+            row['transcript'] = sample.transcript
+        self.csv_writer.writerow(row)
+        return sample.sample_id
+
+    def close(self):
+        if self.csv_file:
+            self.csv_file.close()
+
+    def __len__(self):
+        return self.counter
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
 class SampleList:
     """Sample collection base class with samples loaded from a list of in-memory paths."""
-    def __init__(self, samples, labeled=True):
+    def __init__(self, samples, labeled=True, reverse=False):
         """
         Parameters
         ----------
@@ -308,10 +388,12 @@ class SampleList:
         labeled : bool or None
             If True: Reads LabeledSample instances.
             If False: Ignores transcripts (if available) and reads (unlabeled) util.audio.Sample instances.
+        reverse : bool
+            If the order of the samples should be reversed
         """
         self.labeled = labeled
         self.samples = list(samples)
-        self.samples.sort(key=lambda r: r[1])
+        self.samples.sort(key=lambda r: r[1], reverse=reverse)
 
     def __getitem__(self, i):
         sample_spec = self.samples[i]
@@ -324,7 +406,7 @@ class SampleList:
 class CSV(SampleList):
     """Sample collection reader for reading a DeepSpeech CSV file
     Automatically orders samples by CSV column wav_filesize (if available)."""
-    def __init__(self, csv_filename, labeled=None):
+    def __init__(self, csv_filename, labeled=None, reverse=False):
         """
         Parameters
         ----------
@@ -335,6 +417,8 @@ class CSV(SampleList):
             If False: Ignores transcripts (if available) and reads (unlabeled) util.audio.Sample instances.
             If None: Automatically determines if CSV file has a transcript column
             (reading util.sample_collections.LabeledSample instances) or not (reading util.audio.Sample instances).
+        reverse : bool
+            If the order of the samples should be reversed
         """
         rows = []
         csv_dir = Path(csv_filename).parent
@@ -355,10 +439,10 @@ class CSV(SampleList):
                     rows.append((wav_filename, wav_filesize, row['transcript']))
                 else:
                     rows.append((wav_filename, wav_filesize))
-        super(CSV, self).__init__(rows, labeled=labeled)
+        super(CSV, self).__init__(rows, labeled=labeled, reverse=reverse)
 
 
-def samples_from_source(sample_source, buffering=BUFFER_SIZE, labeled=None):
+def samples_from_source(sample_source, buffering=BUFFER_SIZE, labeled=None, reverse=False):
     """
     Loads samples from a sample source file.
 
@@ -373,6 +457,8 @@ def samples_from_source(sample_source, buffering=BUFFER_SIZE, labeled=None):
         If False: Ignores transcripts (if available) and reads (unlabeled) util.audio.Sample instances.
         If None: Automatically determines if source provides transcripts
         (reading util.sample_collections.LabeledSample instances) or not (reading util.audio.Sample instances).
+    reverse : bool
+        If the order of the samples should be reversed
 
     Returns
     -------
@@ -380,13 +466,13 @@ def samples_from_source(sample_source, buffering=BUFFER_SIZE, labeled=None):
     """
     ext = os.path.splitext(sample_source)[1].lower()
     if ext == '.sdb':
-        return SDB(sample_source, buffering=buffering, labeled=labeled)
+        return SDB(sample_source, buffering=buffering, labeled=labeled, reverse=reverse)
     if ext == '.csv':
-        return CSV(sample_source, labeled=labeled)
+        return CSV(sample_source, labeled=labeled, reverse=reverse)
     raise ValueError('Unknown file type: "{}"'.format(ext))
 
 
-def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None):
+def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None, reverse=False):
     """
     Loads and combines samples from a list of source files. Sources are combined in an interleaving way to
     keep default sample order from shortest to longest.
@@ -402,6 +488,8 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None):
         If False: Ignores transcripts (if available) and always reads (unlabeled) util.audio.Sample instances.
         If None: Reads util.sample_collections.LabeledSample instances from sources with transcripts and
         util.audio.Sample instances from sources with no transcripts.
+    reverse : bool
+        If the order of the samples should be reversed
 
     Returns
     -------
@@ -411,6 +499,7 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None):
     if len(sample_sources) == 0:
         raise ValueError('No files')
     if len(sample_sources) == 1:
-        return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled)
-    cols = list(map(partial(samples_from_source, buffering=buffering, labeled=labeled), sample_sources))
-    return Interleaved(*cols, key=lambda s: s.duration)
+        return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled, reverse=reverse)
+    cols = [samples_from_source(source, buffering=buffering, labeled=labeled, reverse=reverse)
+            for source in sample_sources]
+    return Interleaved(*cols, key=lambda s: s.duration, reverse=reverse)
