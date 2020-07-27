@@ -18,7 +18,7 @@ struct FillComplexInputParm {
     var sourceSize: UInt32
 };
 
-class DeepSpeech : NSObject, AVCaptureAudioDataOutputSampleBufferDelegate {
+class SpeechRecognitionImpl : NSObject, AVCaptureAudioDataOutputSampleBufferDelegate {
     private var model: DeepSpeechModel
     private var stream: DeepSpeechStream?
     
@@ -134,8 +134,6 @@ class DeepSpeech : NSObject, AVCaptureAudioDataOutputSampleBufferDelegate {
                 
                 let shorts = UnsafeBufferPointer(start: data.assumingMemoryBound(to: Int16.self), count: Int(byteSize / 2))
                 stream!.feedAudioContent(buffer: shorts)
-                let intermediateResult = stream!.intermediateDecode()
-                print("Intermediate result: " + intermediateResult)
                 
                 // save bytes to audio data for creating a pcm file later for the captured audio
                 let ptr = UnsafePointer(data.assumingMemoryBound(to: UInt8.self))
@@ -261,34 +259,23 @@ class DeepSpeech : NSObject, AVCaptureAudioDataOutputSampleBufferDelegate {
     }
     
     public func recognizeFiles() {
-        let files = [
-            "5639-40744-0008",
-            "1089-134686-0019",
-            "2094-142345-0053",
-            "8463-294825-0010",
-            "121-123852-0001",
-            "7021-79740-0008",
-            "6930-76324-0010",
-            "5105-28240-0001",
-            "1089-134691-0012",
-            "5142-33396-0027",
-            "260-123288-0004",
-            "6930-75918-0008",
-            "8463-294828-0005",
-            "61-70970-0002"
-        ]
+        // Add file names (without extension) here if you want to test recognition from files.
+        // Remember to add them to the project under Copy Bundle Resources.
+        let files: [String] = []
 
         let serialQueue = DispatchQueue(label: "serialQueue")
         let group = DispatchGroup()
         group.enter()
         
-        serialQueue.async {
-            self.recognizeFile(audioPath: Bundle.main.path(forResource: "1284-134647-0003", ofType: "wav")!) {
-                group.leave()
+        if let first = files.first {
+            serialQueue.async {
+                self.recognizeFile(audioPath: Bundle.main.path(forResource: first, ofType: "wav")!) {
+                    group.leave()
+                }
             }
         }
-        
-        for path in files {
+
+        for path in files.dropFirst() {
             group.wait()
             group.enter()
             self.recognizeFile(audioPath: Bundle.main.path(forResource: path, ofType: "wav")!) {

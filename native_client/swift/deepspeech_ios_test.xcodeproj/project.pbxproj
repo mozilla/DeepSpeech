@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		504EC34324CF4EFD0073C22E /* SpeechRecognitionImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC34124CF4EFD0073C22E /* SpeechRecognitionImpl.swift */; };
+		504EC34424CF4EFD0073C22E /* AudioContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC34224CF4EFD0073C22E /* AudioContext.swift */; };
+		504EC34524CF4F4F0073C22E /* deepspeech_ios.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A024B61FE400409BBB /* deepspeech_ios.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		507CD3A124B61FE400409BBB /* deepspeech_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A024B61FE400409BBB /* deepspeech_ios.framework */; };
 		507CD3A324B61FEB00409BBB /* libdeepspeech.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; };
 		507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -44,6 +47,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				504EC34524CF4F4F0073C22E /* deepspeech_ios.framework in Embed Frameworks */,
 				507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -52,8 +56,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		504EC34124CF4EFD0073C22E /* SpeechRecognitionImpl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionImpl.swift; sourceTree = "<group>"; };
+		504EC34224CF4EFD0073C22E /* AudioContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioContext.swift; sourceTree = "<group>"; };
 		507CD3A024B61FE400409BBB /* deepspeech_ios.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = deepspeech_ios.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		507CD3A224B61FEA00409BBB /* libdeepspeech.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libdeepspeech.so; path = libdeepspeech.so; sourceTree = "<group>"; };
+		507CD3A224B61FEA00409BBB /* libdeepspeech.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libdeepspeech.so; sourceTree = "<group>"; };
 		50F787EF2497683900D52237 /* deepspeech_ios_test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = deepspeech_ios_test.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50F787F22497683900D52237 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		50F787F42497683900D52237 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -130,6 +136,8 @@
 		50F787F12497683900D52237 /* deepspeech_ios_test */ = {
 			isa = PBXGroup;
 			children = (
+				504EC34224CF4EFD0073C22E /* AudioContext.swift */,
+				504EC34124CF4EFD0073C22E /* SpeechRecognitionImpl.swift */,
 				50F787F22497683900D52237 /* AppDelegate.swift */,
 				50F787F42497683900D52237 /* SceneDelegate.swift */,
 				50F787F62497683900D52237 /* ContentView.swift */,
@@ -299,7 +307,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				504EC34424CF4EFD0073C22E /* AudioContext.swift in Sources */,
 				50F787F32497683900D52237 /* AppDelegate.swift in Sources */,
+				504EC34324CF4EFD0073C22E /* SpeechRecognitionImpl.swift in Sources */,
 				50F787F52497683900D52237 /* SceneDelegate.swift in Sources */,
 				50F787F72497683900D52237 /* ContentView.swift in Sources */,
 			);

@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    private var deepspeech = DeepSpeech()
+    private var stt = SpeechRecognitionImpl()
     @State var isRecognizingMicrophone = false
     
     var body: some View {
@@ -30,17 +30,17 @@ struct ContentView: View {
     }
     
     func recognizeFiles() {
-        self.deepspeech.recognizeFiles()
+        self.stt.recognizeFiles()
     }
     
     func startMicRecognition() {
         isRecognizingMicrophone = true
-        self.deepspeech.startMicrophoneRecognition()
+        self.stt.startMicrophoneRecognition()
     }
     
     func stopMicRecognition() {
         isRecognizingMicrophone = false
-        self.deepspeech.stopMicrophoneRecognition()
+        self.stt.stopMicrophoneRecognition()
     }
 }
 
