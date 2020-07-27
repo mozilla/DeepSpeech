@@ -77,6 +77,20 @@ You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
+.. _build-generate-scorer-package:
+
+Compile ``generate_scorer_package``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Following the same setup as for ``libdeepspeech.so`` above, you can rebuild the ``generate_scorer_package`` binary by adding its target to the command line: ``//native_client:generate_scorer_package``.
+Using the example from above you can build the library and that binary at the same time:
+
+.. code-block::
+
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_scorer_package
+
+The generated binaries will be saved to ``bazel-bin/native_client/``.
+
 Compile Language Bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
