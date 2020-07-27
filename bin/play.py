@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Tool for playing (and augmenting) single samples or samples from Sample Databases (SDB files) and DeepSpeech CSV files
-Use "python3 build_sdb.py -h" for help
+Use "python3 play.py -h" for help
 """
 
 import os

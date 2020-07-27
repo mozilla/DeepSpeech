@@ -13,7 +13,7 @@ fi;
 
 if [ ! -f "${ldc93s1_dir}/ldc93s1.sdb" ]; then
     echo "Converting LDC93S1 example data, saving to ${ldc93s1_sdb}."
-    python -u bin/build_sdb.py ${ldc93s1_csv} ${ldc93s1_sdb}
+    python -u bin/data_set_tool.py ${ldc93s1_csv} ${ldc93s1_sdb}
 fi;
 
 # Force only one visible device because we have a single-sample dataset

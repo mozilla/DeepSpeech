@@ -20,6 +20,8 @@ build:
     - "win-amd64-cpu-opt"
     - "win-amd64-gpu-opt"
     - "win-amd64-ctc-opt"
+    - "ios-x86_64-tflite-opt"
+    - "ios-arm64-tflite-opt"
   allowed:
     - "tag"
   ref_match: "refs/tags/"
@@ -66,6 +68,9 @@ build:
       - "win-amd64-cpu-opt"
       - "win-amd64-gpu-opt"
       - "win-amd64-tflite-opt"
+    ios:
+      - "ios-x86_64-tflite-opt"
+      - "ios-arm64-tflite-opt"
   metadata:
     name: "DeepSpeech GitHub Packages"
     description: "Trigger Uploading of DeepSpeech Packages to GitHub release page"

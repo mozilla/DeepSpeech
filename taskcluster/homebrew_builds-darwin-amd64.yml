@@ -9,4 +9,4 @@ build:
     package: "taskcluster/homebrew-package.sh --builds"
   metadata:
     name: "Builds Homebrew macOS AMD64"
-    description: "Setup a buildsl Homebrew for macOS/AMD64"
+    description: "Setup a builds Homebrew for macOS/AMD64"
