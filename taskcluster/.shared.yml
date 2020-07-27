@@ -179,5 +179,5 @@ system:
     win: '/c/builds/tc-workdir'
   sox_win: '/usr/bin/wget.exe https://sourceforge.net/projects/sox/files/sox/14.4.2/sox-14.4.2-win32.zip/download -O sox-14.4.2-win32.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_TASK_DIR/bin/ -tzip -aoa sox-14.4.2-win32.zip && rm sox-*zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/sox-14.4.2/:$PATH'
   msys2:
-    url: 'https://github.com/msys2/msys2-installer/releases/download/2020-06-02/msys2-base-x86_64-20200602.tar.xz'
-    sha: '598ceeaa3e2ccf86a25a2e3c449d00a9fd35300e36011bee610036dfa59d670a'
+    url: 'https://github.com/msys2/msys2-installer/releases/download/2020-07-20/msys2-base-x86_64-20200720.tar.xz'
+    sha: '24f0a7a3f499d9309bb55bcde5d34a08e752922c3bee9de3a33d2c40896a1496'
