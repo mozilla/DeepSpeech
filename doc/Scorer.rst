@@ -49,6 +49,9 @@ Afterwards you can use ``generate_scorer_package`` to generate the scorer packag
     ./generate_scorer_package --alphabet ../alphabet.txt --lm lm.binary --vocab vocab-500000.txt \
       --package kenlm.scorer --default_alpha 0.931289039105002 --default_beta 1.1834137581510284
 
+The ``generate_scorer_package`` binary is part of the released ``native_client.tar.xz``. If for some reason you need to rebuild it,
+please refer to how to :ref:`build-generate-scorer-package`.
+
 Building your own scorer
 ------------------------
 
