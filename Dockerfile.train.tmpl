@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         cmake \
         curl \
         git \
-        git-lfs \
         libboost-all-dev \
         libbz2-dev \
         locales \
@@ -32,7 +31,6 @@ RUN apt-get install -y --no-install-recommends libopus0 libsndfile1
 RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
-RUN git lfs install
 RUN git clone $DEEPSPEECH_REPO
 
 WORKDIR /DeepSpeech

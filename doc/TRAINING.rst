@@ -6,15 +6,13 @@ Training Your Own Model
 Prerequisites for training a model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 * `Python 3.6 <https://www.python.org/>`_
-* `Git Large File Storage <https://git-lfs.github.com/>`_
 * Mac or Linux environment
 
 Getting the training code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Install `Git Large File Storage <https://git-lfs.github.com/>`_ either manually or through a package-manager if available on your system. Then clone the DeepSpeech repository normally:
+Clone the DeepSpeech repository:
 
 .. code-block:: bash
 

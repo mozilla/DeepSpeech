@@ -31,7 +31,6 @@ Prerequisites
 * Windows 10
 * `Windows 10 SDK <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk>`_
 * `Visual Studio 2019 Community <https://visualstudio.microsoft.com/vs/community/>`_ 
-* `Git Large File Storage <https://git-lfs.github.com/>`_
 * `TensorFlow Windows pre-requisites <https://www.tensorflow.org/install/source_windows>`_
 
 Inside the Visual Studio Installer enable ``MS Build Tools`` and ``VC++ 2019 v16.00 (v160) toolset for desktop``.
