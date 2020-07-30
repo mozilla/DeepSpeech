@@ -282,8 +282,9 @@ Please push DeepSpeech data to ``/sdcard/deepspeech/``\ , including:
 
 
 * ``output_graph.tflite`` which is the TF Lite model
-* ``kenlm.scorer``, if you want to use the scorer; please be aware that too big
-  scorer will make the device run out of memory
+* External scorer file (available from one of our releases), if you want to use
+  the scorer; please be aware that too big scorer will make the device run out
+  of memory
 
 Then, push binaries from ``native_client.tar.xz`` to ``/data/local/tmp/ds``\ :
 

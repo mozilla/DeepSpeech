@@ -26,7 +26,6 @@ const std::string END_TOKEN = "</s>";
  * Example:
  *     Scorer scorer(alpha, beta, "path_of_language_model");
  *     scorer.get_log_cond_prob({ "WORD1", "WORD2", "WORD3" });
- *     scorer.get_sent_log_prob({ "WORD1", "WORD2", "WORD3" });
  */
 class Scorer {
 public:
@@ -53,8 +52,6 @@ public:
                            const std::vector<std::string>::const_iterator &end,
                            bool bos = false,
                            bool eos = false);
-
-  double get_sent_log_prob(const std::vector<std::string> &words);
 
   // return the max order
   size_t get_max_order() const { return max_order_; }
