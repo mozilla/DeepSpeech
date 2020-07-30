@@ -261,53 +261,6 @@ double Scorer::get_log_cond_prob(const std::vector<std::string>::const_iterator&
   return cond_prob/NUM_FLT_LOGE;
 }
 
-double Scorer::get_sent_log_prob(const std::vector<std::string>& words)
-{
-  // For a given sentence (`words`), return sum of LM scores over windows on
-  // sentence. For example, given the sentence:
-  //
-  //    there once was an ugly barnacle
-  //
-  // And a language model with max_order_ = 3, this function will return the sum
-  // of the following scores:
-  //
-  //    there                  | <s>
-  //    there   once           | <s>
-  //    there   once     was
-  //    once    was      an
-  //    was     an       ugly
-  //    an      ugly     barnacle
-  //    ugly    barnacle </s>
-  //
-  // This is used in the decoding process to compute the LM contribution for a
-  // given beam's accumulated score, so that it can be removed and only the
-  // acoustic model contribution can be returned as a confidence score for the
-  // transcription. See DecoderState::decode.
-  const int sent_len = words.size();
-
-  double score = 0.0;
-  for (int win_start = 0, win_end = 1; win_end <= sent_len+1; ++win_end) {
-    const int win_size = win_end - win_start;
-    bool bos = win_size < max_order_;
-    bool eos = win_end == (sent_len + 1);
-
-    // The last window goes one past the end of the words vector as passing the
-    // EOS=true flag counts towards the length of the scored sentence, so we
-    // adjust the win_end index here to not go over bounds.
-    score += get_log_cond_prob(words.begin() + win_start,
-                               words.begin() + (eos ? win_end - 1 : win_end),
-                               bos,
-                               eos);
-
-    // Only increment window start position after we have a full window
-    if (win_size == max_order_) {
-      win_start++;
-    }
-  }
-
-  return score / NUM_FLT_LOGE;
-}
-
 void Scorer::reset_params(float alpha, float beta)
 {
   this->alpha = alpha;
