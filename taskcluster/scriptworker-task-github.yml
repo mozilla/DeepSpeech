@@ -62,6 +62,8 @@ build:
       - "win-amd64-cpu-opt"
       - "win-amd64-gpu-opt"
       - "win-amd64-tflite-opt"
+      - "ios-x86_64-tflite-opt"
+      - "ios-arm64-tflite-opt"
     java_aar:
       - "android-java-opt"
     nuget:
