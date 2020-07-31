@@ -50,7 +50,7 @@ create_package(absl::optional<string> alphabet_path,
              << (vocab_looks_char_based ? "true" : "false") << "\n";
     }
 
-    if (force_utf8.value() && !alphabet_path.has_value()) {
+    if (!force_utf8.value() && !alphabet_path.has_value()) {
         cerr << "No --alphabet file specified, not using bytes output mode, can't continue.\n";
         return 1;
     }
