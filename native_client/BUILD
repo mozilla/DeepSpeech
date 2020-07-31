@@ -96,10 +96,10 @@ cc_library(
 )
 
 tf_cc_shared_object(
-    name = "libdeepspeech.so",
+    name = "libaeiou.so",
     srcs = [
         "deepspeech.cc",
-        "deepspeech.h",
+        "aeiou.h",
         "deepspeech_errors.cc",
         "modelstate.cc",
         "modelstate.h",
@@ -189,11 +189,11 @@ tf_cc_shared_object(
 )
 
 genrule(
-    name = "libdeepspeech_so_dsym",
-    srcs = [":libdeepspeech.so"],
-    outs = ["libdeepspeech.so.dSYM"],
+    name = "libaeiou_so_dsym",
+    srcs = [":libaeiou.so"],
+    outs = ["libaeiou.so.dSYM"],
     output_to_bindir = True,
-    cmd = "dsymutil $(location :libdeepspeech.so) -o $@"
+    cmd = "dsymutil $(location :libaeiou.so) -o $@"
 )
 
 cc_binary(

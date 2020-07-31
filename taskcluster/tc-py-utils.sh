@@ -268,7 +268,7 @@ get_python_pkg_url()
 
   local pkgname=$3
   if [ -z "${pkgname}" ]; then
-    pkgname="deepspeech"
+    pkgname="aeiou"
   fi
 
   local root=$4
@@ -286,17 +286,17 @@ get_python_pkg_url()
 get_tflite_python_pkg_name()
 {
   # Default to deepspeech package
-  local _pkgname="deepspeech_tflite"
+  local _pkgname="aeiou_tflite"
 
   ARCH=$(uname -m)
   case "${OS}:${ARCH}" in
       Linux:armv7l|Linux:aarch64)
-          # On linux/arm or linux/aarch64 we don't produce deepspeech_tflite
-          _pkgname="deepspeech"
+          # On linux/arm or linux/aarch64 we don't produce aeiou_tflite
+          _pkgname="aeiou"
       ;;
 
       *)
-          _pkgname="deepspeech_tflite"
+          _pkgname="aeiou_tflite"
       ;;
   esac
 

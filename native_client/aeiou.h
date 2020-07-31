@@ -1,5 +1,5 @@
-#ifndef DEEPSPEECH_H
-#define DEEPSPEECH_H
+#ifndef AEIOU_H
+#define AEIOU_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,12 +7,12 @@ extern "C" {
 
 #ifndef SWIG
     #if defined _MSC_VER
-        #define DEEPSPEECH_EXPORT __declspec(dllexport)
+        #define AEIOU_EXPORT __declspec(dllexport)
     #else
-        #define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
+        #define AEIOU_EXPORT __attribute__ ((visibility("default")))
     #endif /*End of _MSC_VER*/
 #else
-    #define DEEPSPEECH_EXPORT
+    #define AEIOU_EXPORT
 #endif
 
 typedef struct ModelState ModelState;
@@ -85,7 +85,7 @@ typedef struct Metadata {
 
 // sphinx-doc: error_code_listing_end
 
-enum DeepSpeech_Error_Codes
+enum Aeiou_Error_Codes
 {
 #define DEFINE(NAME, VALUE, DESC) NAME = VALUE,
 DS_FOR_EACH_ERROR(DEFINE)
@@ -100,7 +100,7 @@ DS_FOR_EACH_ERROR(DEFINE)
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 int DS_CreateModel(const char* aModelPath,
                    ModelState** retval);
 
@@ -113,7 +113,7 @@ int DS_CreateModel(const char* aModelPath,
  *
  * @return Beam width value used by the model.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 unsigned int DS_GetModelBeamWidth(const ModelState* aCtx);
 
 /**
@@ -125,7 +125,7 @@ unsigned int DS_GetModelBeamWidth(const ModelState* aCtx);
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 int DS_SetModelBeamWidth(ModelState* aCtx,
                          unsigned int aBeamWidth);
 
@@ -136,13 +136,13 @@ int DS_SetModelBeamWidth(ModelState* aCtx,
  *
  * @return Sample rate expected by the model for its input.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 int DS_GetModelSampleRate(const ModelState* aCtx);
 
 /**
  * @brief Frees associated resources and destroys model object.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 void DS_FreeModel(ModelState* ctx);
 
 /**
@@ -153,7 +153,7 @@ void DS_FreeModel(ModelState* ctx);
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 int DS_EnableExternalScorer(ModelState* aCtx,
                             const char* aScorerPath);
 
@@ -164,7 +164,7 @@ int DS_EnableExternalScorer(ModelState* aCtx,
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 int DS_DisableExternalScorer(ModelState* aCtx);
 
 /**
@@ -176,7 +176,7 @@ int DS_DisableExternalScorer(ModelState* aCtx);
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 int DS_SetScorerAlphaBeta(ModelState* aCtx,
                           float aAlpha,
                           float aBeta);
@@ -192,7 +192,7 @@ int DS_SetScorerAlphaBeta(ModelState* aCtx,
  * @return The STT result. The user is responsible for freeing the string using
  *         {@link DS_FreeString()}. Returns NULL on error.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 char* DS_SpeechToText(ModelState* aCtx,
                       const short* aBuffer,
                       unsigned int aBufferSize);
@@ -212,7 +212,7 @@ char* DS_SpeechToText(ModelState* aCtx,
  *         user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
  *         Returns NULL on error.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
                                       const short* aBuffer,
                                       unsigned int aBufferSize,
@@ -229,7 +229,7 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  *
  * @return Zero for success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 int DS_CreateStream(ModelState* aCtx,
                     StreamingState** retval);
 
@@ -241,7 +241,7 @@ int DS_CreateStream(ModelState* aCtx,
  *                appropriate sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in @p aBuffer.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 void DS_FeedAudioContent(StreamingState* aSctx,
                          const short* aBuffer,
                          unsigned int aBufferSize);
@@ -254,7 +254,7 @@ void DS_FeedAudioContent(StreamingState* aSctx,
  * @return The STT intermediate result. The user is responsible for freeing the
  *         string using {@link DS_FreeString()}.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 char* DS_IntermediateDecode(const StreamingState* aSctx);
 
 /**
@@ -269,7 +269,7 @@ char* DS_IntermediateDecode(const StreamingState* aSctx);
  *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
  *         Returns NULL on error.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 Metadata* DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
                                             unsigned int aNumResults);
 
@@ -284,7 +284,7 @@ Metadata* DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
  *
  * @note This method will free the state pointer (@p aSctx).
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 char* DS_FinishStream(StreamingState* aSctx);
 
 /**
@@ -302,7 +302,7 @@ char* DS_FinishStream(StreamingState* aSctx);
  *
  * @note This method will free the state pointer (@p aSctx).
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx,
                                       unsigned int aNumResults);
 
@@ -315,19 +315,19 @@ Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx,
  *
  * @note This method will free the state pointer (@p aSctx).
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 void DS_FreeStream(StreamingState* aSctx);
 
 /**
  * @brief Free memory allocated for metadata information.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 void DS_FreeMetadata(Metadata* m);
 
 /**
  * @brief Free a char* string returned by the DeepSpeech API.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 void DS_FreeString(char* str);
 
 /**
@@ -336,7 +336,7 @@ void DS_FreeString(char* str);
  *
  * @return The version string.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 char* DS_Version();
 
 /**
@@ -345,13 +345,13 @@ char* DS_Version();
  *
  * @return The error description.
  */
-DEEPSPEECH_EXPORT
+AEIOU_EXPORT
 char* DS_ErrorCodeToErrorMessage(int aErrorCode);
 
-#undef DEEPSPEECH_EXPORT
+#undef AEIOU_EXPORT
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* DEEPSPEECH_H */
+#endif /* AEIOU_H */

@@ -2,7 +2,7 @@
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "deepspeech.h"
+#include "aeiou.h"
 %}
 
 %include "numpy.i"
@@ -125,4 +125,4 @@ static PyObject *parent_reference() {
 
 %rename ("%(strip:[DS_])s") "";
 
-%include "../deepspeech.h"
+%include "../aeiou.h"

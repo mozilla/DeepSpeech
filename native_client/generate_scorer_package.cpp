@@ -11,7 +11,7 @@ using namespace std;
 #include "ctcdecode/decoder_utils.h"
 #include "ctcdecode/scorer.h"
 #include "alphabet.h"
-#include "deepspeech.h"
+#include "aeiou.h"
 
 namespace po = boost::program_options;
 

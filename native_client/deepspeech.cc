@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include "deepspeech.h"
+#include "aeiou.h"
 #include "alphabet.h"
 #include "modelstate.h"
 
@@ -25,7 +25,7 @@
 
 #ifdef __ANDROID__
 #include <android/log.h>
-#define  LOG_TAG    "libdeepspeech"
+#define  LOG_TAG    "libaeiou"
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #else
@@ -269,12 +269,12 @@ DS_CreateModel(const char* aModelPath,
   *retval = nullptr;
 
   std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
-  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
+  std::cerr << "Aeiou: " << ds_git_version() << std::endl;
 #ifdef __ANDROID__
   LOGE("TensorFlow: %s", tf_local_git_version());
   LOGD("TensorFlow: %s", tf_local_git_version());
-  LOGE("DeepSpeech: %s", ds_git_version());
-  LOGD("DeepSpeech: %s", ds_git_version());
+  LOGE("Aeiou: %s", ds_git_version());
+  LOGD("Aeiou: %s", ds_git_version());
 #endif
 
   if (!aModelPath || strlen(aModelPath) < 1) {

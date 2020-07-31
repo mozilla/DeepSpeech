@@ -52,4 +52,4 @@ namespace std {
 // package.
 %rename("$ignore", %$isfunction) "";
 %rename("$ignore", %$isclass) "";
-%include "../deepspeech.h"
+%include "../aeiou.h"

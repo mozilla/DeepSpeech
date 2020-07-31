@@ -17,10 +17,10 @@ if platform.system().lower() == "windows":
         # directory for the dynamic linker
         os.environ['PATH'] = dslib_path + ';' + os.environ['PATH']
 
-import deepspeech
+import aeiou
 
 # rename for backwards compatibility
-from deepspeech.impl import Version as version
+from aeiou.impl import Version as version
 
 class Model(object):
     """
@@ -33,14 +33,14 @@ class Model(object):
         # make sure the attribute is there if CreateModel fails
         self._impl = None
 
-        status, impl = deepspeech.impl.CreateModel(model_path)
+        status, impl = aeiou.impl.CreateModel(model_path)
         if status != 0:
-            raise RuntimeError("CreateModel failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+            raise RuntimeError("CreateModel failed with '{}' (0x{:X})".format(aeiou.impl.ErrorCodeToErrorMessage(status),status))
         self._impl = impl
 
     def __del__(self):
         if self._impl:
-            deepspeech.impl.FreeModel(self._impl)
+            aeiou.impl.FreeModel(self._impl)
             self._impl = None
 
     def beamWidth(self):
@@ -51,7 +51,7 @@ class Model(object):
         :return: Beam width value used by the model.
         :type: int
         """
-        return deepspeech.impl.GetModelBeamWidth(self._impl)
+        return aeiou.impl.GetModelBeamWidth(self._impl)
 
     def setBeamWidth(self, beam_width):
         """
@@ -63,7 +63,7 @@ class Model(object):
         :return: Zero on success, non-zero on failure.
         :type: int
         """
-        return deepspeech.impl.SetModelBeamWidth(self._impl, beam_width)
+        return aeiou.impl.SetModelBeamWidth(self._impl, beam_width)
 
     def sampleRate(self):
         """
@@ -72,7 +72,7 @@ class Model(object):
         :return: Sample rate.
         :type: int
         """
-        return deepspeech.impl.GetModelSampleRate(self._impl)
+        return aeiou.impl.GetModelSampleRate(self._impl)
 
     def enableExternalScorer(self, scorer_path):
         """
@@ -83,9 +83,9 @@ class Model(object):
 
         :throws: RuntimeError on error
         """
-        status = deepspeech.impl.EnableExternalScorer(self._impl, scorer_path)
+        status = aeiou.impl.EnableExternalScorer(self._impl, scorer_path)
         if status != 0:
-            raise RuntimeError("EnableExternalScorer failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+            raise RuntimeError("EnableExternalScorer failed with '{}' (0x{:X})".format(aeiou.impl.ErrorCodeToErrorMessage(status),status))
 
     def disableExternalScorer(self):
         """
@@ -93,7 +93,7 @@ class Model(object):
 
         :return: Zero on success, non-zero on failure.
         """
-        return deepspeech.impl.DisableExternalScorer(self._impl)
+        return aeiou.impl.DisableExternalScorer(self._impl)
 
     def setScorerAlphaBeta(self, alpha, beta):
         """
@@ -108,7 +108,7 @@ class Model(object):
         :return: Zero on success, non-zero on failure.
         :type: int
         """
-        return deepspeech.impl.SetScorerAlphaBeta(self._impl, alpha, beta)
+        return aeiou.impl.SetScorerAlphaBeta(self._impl, alpha, beta)
 
     def stt(self, audio_buffer):
         """
@@ -120,7 +120,7 @@ class Model(object):
         :return: The STT result.
         :type: str
         """
-        return deepspeech.impl.SpeechToText(self._impl, audio_buffer)
+        return aeiou.impl.SpeechToText(self._impl, audio_buffer)
 
     def sttWithMetadata(self, audio_buffer, num_results=1):
         """
@@ -135,7 +135,7 @@ class Model(object):
         :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
         :type: :func:`Metadata`
         """
-        return deepspeech.impl.SpeechToTextWithMetadata(self._impl, audio_buffer, num_results)
+        return aeiou.impl.SpeechToTextWithMetadata(self._impl, audio_buffer, num_results)
 
     def createStream(self):
         """
@@ -147,9 +147,9 @@ class Model(object):
 
         :throws: RuntimeError on error
         """
-        status, ctx = deepspeech.impl.CreateStream(self._impl)
+        status, ctx = aeiou.impl.CreateStream(self._impl)
         if status != 0:
-            raise RuntimeError("CreateStream failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+            raise RuntimeError("CreateStream failed with '{}' (0x{:X})".format(aeiou.impl.ErrorCodeToErrorMessage(status),status))
         return Stream(ctx)
 
 
@@ -176,7 +176,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to feed an already finished stream?")
-        deepspeech.impl.FeedAudioContent(self._impl, audio_buffer)
+        aeiou.impl.FeedAudioContent(self._impl, audio_buffer)
 
     def intermediateDecode(self):
         """
@@ -189,7 +189,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to decode an already finished stream?")
-        return deepspeech.impl.IntermediateDecode(self._impl)
+        return aeiou.impl.IntermediateDecode(self._impl)
 
     def intermediateDecodeWithMetadata(self, num_results=1):
         """
@@ -205,7 +205,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to decode an already finished stream?")
-        return deepspeech.impl.IntermediateDecodeWithMetadata(self._impl, num_results)
+        return aeiou.impl.IntermediateDecodeWithMetadata(self._impl, num_results)
 
     def finishStream(self):
         """
@@ -220,7 +220,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to finish an already finished stream?")
-        result = deepspeech.impl.FinishStream(self._impl)
+        result = aeiou.impl.FinishStream(self._impl)
         self._impl = None
         return result
 
@@ -241,7 +241,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to finish an already finished stream?")
-        result = deepspeech.impl.FinishStreamWithMetadata(self._impl, num_results)
+        result = aeiou.impl.FinishStreamWithMetadata(self._impl, num_results)
         self._impl = None
         return result
 
@@ -254,7 +254,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to free an already finished stream?")
-        deepspeech.impl.FreeStream(self._impl)
+        aeiou.impl.FreeStream(self._impl)
         self._impl = None
 
 

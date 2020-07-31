@@ -34,7 +34,7 @@
 #endif // NO_DIR
 #include <vector>
 
-#include "deepspeech.h"
+#include "aeiou.h"
 #include "args.h"
 
 typedef struct {

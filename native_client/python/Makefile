@@ -3,7 +3,7 @@
 include ../definitions.mk
 
 bindings-clean:
-	rm -rf dist temp_build deepspeech.egg-info MANIFEST.in temp_lib
+	rm -rf dist temp_build aeiou.egg-info MANIFEST.in temp_lib
 	rm -f impl_wrap.cpp impl.py
 
 # Enforce PATH here because swig calls from build_ext looses track of some
@@ -14,7 +14,7 @@ bindings-build: ds-swig
 
 MANIFEST.in: bindings-build
 	> $@
-	$(call copy_missing_libs,temp_build/deepspeech/*.so,temp_build/deepspeech/lib,$@)
+	$(call copy_missing_libs,temp_build/aeiou/*.so,temp_build/aeiou/lib,$@)
 
 # On Unix, _wrap.o gets generated
 # On Windows, _wrap.obj it is
