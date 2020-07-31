@@ -42,12 +42,12 @@ namespace std {
 %constant const char* __version__ = ds_version();
 %constant const char* __git_version__ = ds_git_version();
 
-// Import only the error code enum definitions from deepspeech.h
+// Import only the error code enum definitions from aeiou.h
 // We can't just do |%ignore "";| here because it affects this file globally (even
 // files %include'd above). That causes SWIG to lose destructor information and
 // leads to leaks of the wrapper objects.
 // Instead we ignore functions and classes (structs), which are the only other
-// things in deepspeech.h. If we add some new construct to deepspeech.h we need
+// things in aeiou.h. If we add some new construct to aeiou.h we need
 // to update the ignore rules here to avoid exposing unwanted APIs in the decoder
 // package.
 %rename("$ignore", %$isfunction) "";

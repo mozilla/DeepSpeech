@@ -5,7 +5,7 @@
 #define SWIG_FILE_WITH_INIT
 #include <string.h>
 #include <node_buffer.h>
-#include "deepspeech.h"
+#include "aeiou.h"
 
 using namespace v8;
 using namespace node;
@@ -95,4 +95,4 @@ using namespace node;
 
 %rename ("%(strip:[DS_])s") "";
 
-%include "../deepspeech.h"
+%include "../aeiou.h"

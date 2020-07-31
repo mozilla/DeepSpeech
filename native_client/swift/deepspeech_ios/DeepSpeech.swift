@@ -9,7 +9,7 @@
 import deepspeech_ios.libdeepspeech_Private
 
 public enum DeepSpeechError: Error {
-    // Should be kept in sync with deepspeech.h
+    // Should be kept in sync with aeiou.h
     case noModel(errorCode: Int32)
     case invalidAlphabet(errorCode: Int32)
     case invalidShape(errorCode: Int32)

@@ -123,7 +123,7 @@ Included are a set of generated Python bindings. After following the above build
    make bindings
    pip install dist/deepspeech*
 
-The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to `deepspeech.h <deepspeech.h>`_ for documentation.
+The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to the `C API <c-usage>` for documentation.
 
 Install NodeJS / ElectronJS bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -259,7 +259,7 @@ class Stream(object):
 
 
 # This is only for documentation purpose
-# Metadata, CandidateTranscript and TokenMetadata should be in sync with native_client/deepspeech.h
+# Metadata, CandidateTranscript and TokenMetadata should be in sync with native_client/aeiou.h
 class TokenMetadata(object):
     """
     Stores each individual character, along with its timing information
