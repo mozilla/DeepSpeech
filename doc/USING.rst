@@ -212,7 +212,7 @@ If pre-built binaries aren't available for your system, you'll need to install t
 Dockerfile for building from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We provide ``Dockerfile.build`` to automatically build ``libdeepspeech.so``, the C++ native client, Python bindings, and KenLM.
+We provide ``Dockerfile.build`` to automatically build ``libaeiou.so``, the C++ native client, Python bindings, and KenLM.
 You need to generate the Dockerfile from the template using:
 
 .. code-block:: bash

@@ -15,8 +15,8 @@ public class DeepSpeechModel {
     private SWIGTYPE_p_ModelState   _msp;
 
     private void evaluateErrorCode(int errorCode) {
-        DeepSpeech_Error_Codes code = DeepSpeech_Error_Codes.swigToEnum(errorCode);
-        if (code != DeepSpeech_Error_Codes.ERR_OK) {
+        Aeiou_Error_Codes code = Aeiou_Error_Codes.swigToEnum(errorCode);
+        if (code != Aeiou_Error_Codes.ERR_OK) {
             throw new RuntimeException("Error: " + impl.ErrorCodeToErrorMessage(errorCode) + " (0x" + Integer.toHexString(errorCode) + ").");
         }
     }

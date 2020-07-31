@@ -6,7 +6,7 @@ import argparse
 import numpy as np
 import wave
 
-from deepspeech import Model
+from aeiou import Model
 
 
 def main():

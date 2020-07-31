@@ -19,8 +19,8 @@ from six.moves import zip, range
 
 r'''
 This module should be self-contained:
-  - build libdeepspeech.so with TFLite:
-    - bazel build [...] --define=runtime=tflite [...] //native_client:libdeepspeech.so
+  - build libaeiou.so with TFLite:
+    - bazel build [...] --define=runtime=tflite [...] //native_client:libaeiou.so
   - make -C native_client/python/ TFDIR=... bindings
   - setup a virtualenv
   - pip install native_client/python/dist/deepspeech*.whl

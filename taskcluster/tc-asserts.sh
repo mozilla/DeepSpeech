@@ -253,7 +253,7 @@ assert_tensorflow_version()
 
 assert_deepspeech_version()
 {
-  assert_not_present "$1" "DeepSpeech: unknown"
+  assert_not_present "$1" "Aeiou: unknown"
 }
 
 # We need to ensure that running on inference really leverages GPU because

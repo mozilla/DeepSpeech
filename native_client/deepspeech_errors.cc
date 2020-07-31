@@ -2,7 +2,7 @@
 #include <string.h>
 
 char*
-DS_ErrorCodeToErrorMessage(int aErrorCode)
+STT_ErrorCodeToErrorMessage(int aErrorCode)
 {
 #define RETURN_MESSAGE(NAME, VALUE, DESC) \
     case NAME: \
@@ -10,7 +10,7 @@ DS_ErrorCodeToErrorMessage(int aErrorCode)
 
   switch(aErrorCode)
   {
-    DS_FOR_EACH_ERROR(RETURN_MESSAGE)
+    STT_FOR_EACH_ERROR(RETURN_MESSAGE)
     default:
       return strdup("Unknown error, please make sure you are using the correct native binary.");
   }

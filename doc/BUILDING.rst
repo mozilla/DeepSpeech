@@ -59,7 +59,7 @@ After you have installed the correct version of Bazel, configure TensorFlow:
 Compile DeepSpeech
 ------------------
 
-Compile ``libdeepspeech.so``
+Compile ``libaeiou.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Within your TensorFlow directory, there should be a symbolic link to the DeepSpeech ``native_client`` directory. If it is not present, create it with the follow command:
@@ -69,11 +69,11 @@ Within your TensorFlow directory, there should be a symbolic link to the DeepSpe
    cd tensorflow
    ln -s ../native_client
 
-You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``. Add ``--config=cuda`` if you want a CUDA build.
+You can now use Bazel to build the main DeepSpeech library, ``libaeiou.so``. Add ``--config=cuda`` if you want a CUDA build.
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libaeiou.so
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -82,12 +82,12 @@ The generated binaries will be saved to ``bazel-bin/native_client/``.
 Compile ``generate_scorer_package``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Following the same setup as for ``libdeepspeech.so`` above, you can rebuild the ``generate_scorer_package`` binary by adding its target to the command line: ``//native_client:generate_scorer_package``.
+Following the same setup as for ``libaeiou.so`` above, you can rebuild the ``generate_scorer_package`` binary by adding its target to the command line: ``//native_client:generate_scorer_package``.
 Using the example from above you can build the library and that binary at the same time:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_scorer_package
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libaeiou.so //native_client:generate_scorer_package
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -136,7 +136,7 @@ After following the above build and installation instructions, the Node.JS bindi
    make build
    make npm-pack
 
-This will create the package ``deepspeech-VERSION.tgz`` in ``native_client/javascript``.
+This will create the package ``aeiou-VERSION.tgz`` in ``native_client/javascript``.
 
 Install the CTC decoder package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -165,13 +165,13 @@ So your command line for ``RPi3`` and ``ARMv7`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libaeiou.so
 
 And your command line for ``LePotato`` and ``ARM64`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libaeiou.so
 
 While we test only on RPi3 Raspbian Buster and LePotato ARMBian Buster, anything compatible with ``armv7-a cortex-a53`` or ``armv8-a cortex-a53`` should be fine.
 
@@ -205,27 +205,27 @@ You can then include the library by just adding this line to your
 
    implementation 'deepspeech.mozilla.org:libdeepspeech:VERSION@aar'
 
-Building ``libdeepspeech.so``
+Building ``libaeiou.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can build the ``libdeepspeech.so`` using (ARMv7):
+You can build the ``libaeiou.so`` using (ARMv7):
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libaeiou.so
 
 Or (ARM64):
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libaeiou.so
 
 Building ``libdeepspeech.aar``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the unlikely event you have to rebuild the JNI bindings, source code is
 available under the ``libdeepspeech`` subdirectory.  Building depends on shared
-object: please ensure to place ``libdeepspeech.so`` into the
+object: please ensure to place ``libaeiou.so`` into the
 ``libdeepspeech/libs/{arm64-v8a,armeabi-v7a,x86_64}/`` matching subdirectories.
 
 Building the bindings is managed by ``gradle`` and should be limited to issuing
@@ -289,7 +289,7 @@ Please push DeepSpeech data to ``/sdcard/deepspeech/``\ , including:
 Then, push binaries from ``native_client.tar.xz`` to ``/data/local/tmp/ds``\ :
 
 * ``deepspeech``
-* ``libdeepspeech.so``
+* ``libaeiou.so``
 * ``libc++_shared.so``
 
 You should then be able to run as usual, using a shell from ``adb shell``\ :

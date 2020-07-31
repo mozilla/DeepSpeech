@@ -20,7 +20,7 @@ namespace DeepSpeechClient.Extensions
             byte[] buffer = new byte[len];
             Marshal.Copy(intPtr, buffer, 0, buffer.Length);
             if (releasePtr)
-                NativeImp.DS_FreeString(intPtr);
+                NativeImp.STT_FreeString(intPtr);
             string result = Encoding.UTF8.GetString(buffer);
             return result;
         }
@@ -86,7 +86,7 @@ namespace DeepSpeechClient.Extensions
                 metadata.transcripts += sizeOfCandidateTranscript;
             }
 
-            NativeImp.DS_FreeMetadata(intPtr);
+            NativeImp.STT_FreeMetadata(intPtr);
             return managedMetadata;
         }
     }
