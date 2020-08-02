@@ -32,8 +32,6 @@ payload:
   env:
     TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
     MSYS: 'winsymlinks:nativestrict'
-    EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
-    EXAMPLES_CHECKOUT_TARGET: "master"
 
   command:
     - >-
@@ -50,8 +48,6 @@ payload:
       env &&
       ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
       (7z x -txz -so $USERPROFILE/home.tar.xz | 7z x -aoa -ttar -si ) &&
-      git clone --quiet $EXAMPLES_CLONE_URL $TASKCLUSTER_TASK_DIR/DeepSpeech/examples &&
-      cd $TASKCLUSTER_TASK_DIR/DeepSpeech/examples && git checkout --quiet $EXAMPLES_CHECKOUT_TARGET &&
       cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git remote set-url origin ${event.head.repo.url} && git fetch origin && git checkout --quiet ${event.head.sha} &&
       git submodule --quiet sync tensorflow/ && git submodule --quiet update tensorflow/ &&
       (rm $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tensorflow/native_client || true) &&

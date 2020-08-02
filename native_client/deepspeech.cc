@@ -499,5 +499,5 @@ STT_FreeString(char* str)
 char*
 STT_Version()
 {
-  return strdup(STT_version());
+  return strdup(ds_version());
 }
