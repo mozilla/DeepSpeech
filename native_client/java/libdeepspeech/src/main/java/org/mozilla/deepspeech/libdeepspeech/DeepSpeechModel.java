@@ -7,7 +7,7 @@ public class DeepSpeechModel {
 
     static {
         System.loadLibrary("deepspeech-jni");
-        System.loadLibrary("deepspeech");
+        System.loadLibrary("aeiou");
     }
 
     // FIXME: We should have something better than those SWIGTYPE_*
