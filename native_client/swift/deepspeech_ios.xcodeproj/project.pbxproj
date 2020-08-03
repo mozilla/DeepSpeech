@@ -9,9 +9,9 @@
 /* Begin PBXBuildFile section */
 		505B136B24960D550007DADA /* deepspeech_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 505B136124960D550007DADA /* deepspeech_ios.framework */; };
 		505B137224960D550007DADA /* deepspeech_ios.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B136424960D550007DADA /* deepspeech_ios.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		505B137D24961AF20007DADA /* deepspeech.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B137C24961AF20007DADA /* deepspeech.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		505B137D24961AF20007DADA /* mozilla_voice_stt.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B137C24961AF20007DADA /* mozilla_voice_stt.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		505B137F24961BA70007DADA /* DeepSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505B137E24961BA70007DADA /* DeepSpeech.swift */; };
-		507CD39B24B61FA100409BBB /* libdeepspeech.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD39A24B61FA100409BBB /* libdeepspeech.so */; };
+		507CD39B24B61FA100409BBB /* libmozilla_voice_stt.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD39A24B61FA100409BBB /* libmozilla_voice_stt.so */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,9 +43,9 @@
 		505B136524960D550007DADA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		505B136A24960D550007DADA /* deepspeech_iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = deepspeech_iosTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		505B137B249619C90007DADA /* deepspeech_ios.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = deepspeech_ios.modulemap; sourceTree = "<group>"; };
-		505B137C24961AF20007DADA /* deepspeech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = deepspeech.h; path = ../../deepspeech.h; sourceTree = "<group>"; };
+		505B137C24961AF20007DADA /* mozilla_voice_stt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mozilla_voice_stt.h; path = ../../mozilla_voice_stt.h; sourceTree = "<group>"; };
 		505B137E24961BA70007DADA /* DeepSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSpeech.swift; sourceTree = "<group>"; };
-		507CD39A24B61FA100409BBB /* libdeepspeech.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libdeepspeech.so; sourceTree = "<group>"; };
+		507CD39A24B61FA100409BBB /* libmozilla_voice_stt.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libmozilla_voice_stt.so; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,7 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				507CD39B24B61FA100409BBB /* libdeepspeech.so in Frameworks */,
+				507CD39B24B61FA100409BBB /* libmozilla_voice_stt.so in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,7 +89,7 @@
 		505B136324960D550007DADA /* deepspeech_ios */ = {
 			isa = PBXGroup;
 			children = (
-				505B137C24961AF20007DADA /* deepspeech.h */,
+				505B137C24961AF20007DADA /* mozilla_voice_stt.h */,
 				505B136424960D550007DADA /* deepspeech_ios.h */,
 				505B137E24961BA70007DADA /* DeepSpeech.swift */,
 				505B137B249619C90007DADA /* deepspeech_ios.modulemap */,
@@ -101,7 +101,7 @@
 		505B1380249620C60007DADA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				507CD39A24B61FA100409BBB /* libdeepspeech.so */,
+				507CD39A24B61FA100409BBB /* libmozilla_voice_stt.so */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -114,7 +114,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				505B137224960D550007DADA /* deepspeech_ios.h in Headers */,
-				505B137D24961AF20007DADA /* deepspeech.h in Headers */,
+				505B137D24961AF20007DADA /* mozilla_voice_stt.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

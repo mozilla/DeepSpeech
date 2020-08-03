@@ -48,7 +48,7 @@ namespace DeepSpeechClient
             {
                 throw new FileNotFoundException(exceptionMessage);
             }
-            var resultCode = NativeImp.DS_CreateModel(aModelPath,
+            var resultCode = NativeImp.STT_CreateModel(aModelPath,
                             ref _modelStatePP);
             EvaluateResultCode(resultCode);
         }
@@ -60,7 +60,7 @@ namespace DeepSpeechClient
         /// <returns>Beam width value used by the model.</returns>
         public unsafe uint GetModelBeamWidth()
         {
-            return NativeImp.DS_GetModelBeamWidth(_modelStatePP);
+            return NativeImp.STT_GetModelBeamWidth(_modelStatePP);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace DeepSpeechClient
         /// <exception cref="ArgumentException">Thrown on failure.</exception>
         public unsafe void SetModelBeamWidth(uint aBeamWidth)
         {
-            var resultCode = NativeImp.DS_SetModelBeamWidth(_modelStatePP, aBeamWidth);
+            var resultCode = NativeImp.STT_SetModelBeamWidth(_modelStatePP, aBeamWidth);
             EvaluateResultCode(resultCode);
         }
 
@@ -80,7 +80,7 @@ namespace DeepSpeechClient
         /// <returns>Sample rate.</returns>
         public unsafe int GetModelSampleRate()
         {
-            return NativeImp.DS_GetModelSampleRate(_modelStatePP);
+            return NativeImp.STT_GetModelSampleRate(_modelStatePP);
         }
 
         /// <summary>
@@ -89,9 +89,9 @@ namespace DeepSpeechClient
         /// <param name="resultCode">Native result code.</param>
         private void EvaluateResultCode(ErrorCodes resultCode)
         {
-            if (resultCode != ErrorCodes.DS_ERR_OK)
+            if (resultCode != ErrorCodes.STT_ERR_OK)
             {
-                throw new ArgumentException(NativeImp.DS_ErrorCodeToErrorMessage((int)resultCode).PtrToString());
+                throw new ArgumentException(NativeImp.STT_ErrorCodeToErrorMessage((int)resultCode).PtrToString());
             }
         }
 
@@ -100,7 +100,7 @@ namespace DeepSpeechClient
         /// </summary>
         public unsafe void Dispose()
         {
-            NativeImp.DS_FreeModel(_modelStatePP);
+            NativeImp.STT_FreeModel(_modelStatePP);
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace DeepSpeechClient
                 throw new FileNotFoundException($"Cannot find the scorer file: {aScorerPath}");
             }
 
-            var resultCode = NativeImp.DS_EnableExternalScorer(_modelStatePP, aScorerPath);
+            var resultCode = NativeImp.STT_EnableExternalScorer(_modelStatePP, aScorerPath);
             EvaluateResultCode(resultCode);
         }
 
@@ -130,7 +130,7 @@ namespace DeepSpeechClient
         /// <exception cref="ArgumentException">Thrown when an external scorer is not enabled.</exception>
         public unsafe void DisableExternalScorer()
         {
-            var resultCode = NativeImp.DS_DisableExternalScorer(_modelStatePP);
+            var resultCode = NativeImp.STT_DisableExternalScorer(_modelStatePP);
             EvaluateResultCode(resultCode);
         }
 
@@ -142,7 +142,7 @@ namespace DeepSpeechClient
         /// <exception cref="ArgumentException">Thrown when an external scorer is not enabled.</exception>
         public unsafe void SetScorerAlphaBeta(float aAlpha, float aBeta)
         {
-            var resultCode = NativeImp.DS_SetScorerAlphaBeta(_modelStatePP,
+            var resultCode = NativeImp.STT_SetScorerAlphaBeta(_modelStatePP,
                             aAlpha,
                             aBeta);
             EvaluateResultCode(resultCode);
@@ -155,7 +155,7 @@ namespace DeepSpeechClient
         /// <param name="aBuffer">An array of 16-bit, mono raw audio samples at the appropriate sample rate (matching what the model was trained on).</param>
         public unsafe void FeedAudioContent(DeepSpeechStream stream, short[] aBuffer, uint aBufferSize)
         {
-            NativeImp.DS_FeedAudioContent(stream.GetNativePointer(), aBuffer, aBufferSize);
+            NativeImp.STT_FeedAudioContent(stream.GetNativePointer(), aBuffer, aBufferSize);
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace DeepSpeechClient
         /// <returns>The STT result.</returns>
         public unsafe string FinishStream(DeepSpeechStream stream)
         {
-            return NativeImp.DS_FinishStream(stream.GetNativePointer()).PtrToString();
+            return NativeImp.STT_FinishStream(stream.GetNativePointer()).PtrToString();
         }
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace DeepSpeechClient
         /// <returns>The extended metadata result.</returns>
         public unsafe Metadata FinishStreamWithMetadata(DeepSpeechStream stream, uint aNumResults)
         {
-            return NativeImp.DS_FinishStreamWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
+            return NativeImp.STT_FinishStreamWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
         }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace DeepSpeechClient
         /// <returns>The STT intermediate result.</returns>
         public unsafe string IntermediateDecode(DeepSpeechStream stream)
         {
-            return NativeImp.DS_IntermediateDecode(stream.GetNativePointer()).PtrToString();
+            return NativeImp.STT_IntermediateDecode(stream.GetNativePointer()).PtrToString();
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace DeepSpeechClient
         /// <returns>The STT intermediate result.</returns>
         public unsafe Metadata IntermediateDecodeWithMetadata(DeepSpeechStream stream, uint aNumResults)
         {
-            return NativeImp.DS_IntermediateDecodeWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
+            return NativeImp.STT_IntermediateDecodeWithMetadata(stream.GetNativePointer(), aNumResults).PtrToMetadata();
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace DeepSpeechClient
         /// </summary>
         public unsafe string Version()
         {
-            return NativeImp.DS_Version().PtrToString();
+            return NativeImp.STT_Version().PtrToString();
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace DeepSpeechClient
         public unsafe DeepSpeechStream CreateStream()
         {
             IntPtr** streamingStatePointer = null;
-            var resultCode = NativeImp.DS_CreateStream(_modelStatePP, ref streamingStatePointer);
+            var resultCode = NativeImp.STT_CreateStream(_modelStatePP, ref streamingStatePointer);
             EvaluateResultCode(resultCode);
             return new DeepSpeechStream(streamingStatePointer);
         }
@@ -227,7 +227,7 @@ namespace DeepSpeechClient
         /// </summary>
         public unsafe void FreeStream(DeepSpeechStream stream)
         {
-            NativeImp.DS_FreeStream(stream.GetNativePointer());
+            NativeImp.STT_FreeStream(stream.GetNativePointer());
             stream.Dispose();
         }
 
@@ -239,7 +239,7 @@ namespace DeepSpeechClient
         /// <returns>The STT result. Returns NULL on error.</returns>
         public unsafe string SpeechToText(short[] aBuffer, uint aBufferSize)
         {
-            return NativeImp.DS_SpeechToText(_modelStatePP, aBuffer, aBufferSize).PtrToString();
+            return NativeImp.STT_SpeechToText(_modelStatePP, aBuffer, aBufferSize).PtrToString();
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace DeepSpeechClient
         /// <returns>The extended metadata. Returns NULL on error.</returns>
         public unsafe Metadata SpeechToTextWithMetadata(short[] aBuffer, uint aBufferSize, uint aNumResults)
         {
-            return NativeImp.DS_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize, aNumResults).PtrToMetadata();
+            return NativeImp.STT_SpeechToTextWithMetadata(_modelStatePP, aBuffer, aBufferSize, aNumResults).PtrToMetadata();
         }
 
         #endregion

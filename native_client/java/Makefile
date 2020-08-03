@@ -14,13 +14,13 @@ apk-clean:
 	$(GRADLE) clean
 
 libs-clean:
-	rm -fr libdeepspeech/libs/*/libdeepspeech.so
+	rm -fr libdeepspeech/libs/*/libmozilla_voice_stt.so
 
-libdeepspeech/libs/%/libdeepspeech.so:
+libdeepspeech/libs/%/libmozilla_voice_stt.so:
 	-mkdir libdeepspeech/libs/$*/
-	cp ${TFDIR}/bazel-out/$*-*/bin/native_client/libdeepspeech.so libdeepspeech/libs/$*/
+	cp ${TFDIR}/bazel-out/$*-*/bin/native_client/libmozilla_voice_stt.so libdeepspeech/libs/$*/
 
-apk: apk-clean bindings $(patsubst %,libdeepspeech/libs/%/libdeepspeech.so,$(ARCHS))
+apk: apk-clean bindings $(patsubst %,libdeepspeech/libs/%/libmozilla_voice_stt.so,$(ARCHS))
 	$(GRADLE) build
 
 maven-bundle: apk

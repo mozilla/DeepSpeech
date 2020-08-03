@@ -10,7 +10,7 @@ import sys
 import wave
 import json
 
-from deepspeech import Model, version
+from mozilla_voice_stt import Model, version
 from timeit import default_timer as timer
 
 try:
@@ -83,12 +83,12 @@ class VersionAction(argparse.Action):
         super(VersionAction, self).__init__(nargs=0, *args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        print('DeepSpeech ', version())
+        print('Mozilla Voice STT ', version())
         exit(0)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
+    parser = argparse.ArgumentParser(description='Running Mozilla Voice STT inference.')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
     parser.add_argument('--scorer', required=False,

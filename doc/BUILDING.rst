@@ -1,12 +1,12 @@
 .. _build-native-client:
 
-Building DeepSpeech Binaries
-============================
+Building Mozilla Voice STT Binaries
+===================================
 
 This section describes how to rebuild binaries. We have already several prebuilt binaries for all the supported platform,
 it is highly advised to use them except if you know what you are doing.
 
-If you'd like to build the DeepSpeech binaries yourself, you'll need the following pre-requisites downloaded and installed:
+If you'd like to build the Mozilla Voice STT binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
 * `Bazel 2.0.0 <https://github.com/bazelbuild/bazel/releases/tag/2.0.0>`_
 * `General TensorFlow r2.2 requirements <https://www.tensorflow.org/install/source#tested_build_configurations>`_
@@ -26,14 +26,14 @@ If you'd like to build the language bindings or the decoder package, you'll also
 Dependencies
 ------------
 
-If you follow these instructions, you should compile your own binaries of DeepSpeech (built on TensorFlow using Bazel).
+If you follow these instructions, you should compile your own binaries of Mozilla Voice STT (built on TensorFlow using Bazel).
 
 For more information on configuring TensorFlow, read the docs up to the end of `"Configure the Build" <https://www.tensorflow.org/install/source#configure_the_build>`_.
 
 Checkout source code
 ^^^^^^^^^^^^^^^^^^^^
 
-Clone DeepSpeech source code (TensorFlow will come as a submdule):
+Clone Mozilla Voice STT source code (TensorFlow will come as a submdule):
 
 .. code-block::
 
@@ -56,24 +56,24 @@ After you have installed the correct version of Bazel, configure TensorFlow:
    cd tensorflow
    ./configure
 
-Compile DeepSpeech
-------------------
+Compile Mozilla Voice STT
+-------------------------
 
-Compile ``libdeepspeech.so``
+Compile ``libmozilla_voice_stt.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Within your TensorFlow directory, there should be a symbolic link to the DeepSpeech ``native_client`` directory. If it is not present, create it with the follow command:
+Within your TensorFlow directory, there should be a symbolic link to the Mozilla Voice STT ``native_client`` directory. If it is not present, create it with the follow command:
 
 .. code-block::
 
    cd tensorflow
    ln -s ../native_client
 
-You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``. Add ``--config=cuda`` if you want a CUDA build.
+You can now use Bazel to build the main Mozilla Voice STT library, ``libmozilla_voice_stt.so``. Add ``--config=cuda`` if you want a CUDA build.
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libmozilla_voice_stt.so
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -82,12 +82,12 @@ The generated binaries will be saved to ``bazel-bin/native_client/``.
 Compile ``generate_scorer_package``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Following the same setup as for ``libdeepspeech.so`` above, you can rebuild the ``generate_scorer_package`` binary by adding its target to the command line: ``//native_client:generate_scorer_package``.
+Following the same setup as for ``libmozilla_voice_stt.so`` above, you can rebuild the ``generate_scorer_package`` binary by adding its target to the command line: ``//native_client:generate_scorer_package``.
 Using the example from above you can build the library and that binary at the same time:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_scorer_package
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libmozilla_voice_stt.so //native_client:generate_scorer_package
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -123,7 +123,7 @@ Included are a set of generated Python bindings. After following the above build
    make bindings
    pip install dist/deepspeech*
 
-The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to `deepspeech.h <deepspeech.h>`_ for documentation.
+The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to the `C API <c-usage>` for documentation.
 
 Install NodeJS / ElectronJS bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -136,7 +136,7 @@ After following the above build and installation instructions, the Node.JS bindi
    make build
    make npm-pack
 
-This will create the package ``deepspeech-VERSION.tgz`` in ``native_client/javascript``.
+This will create the package ``mozilla_voice_stt-VERSION.tgz`` in ``native_client/javascript``.
 
 Install the CTC decoder package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -165,13 +165,13 @@ So your command line for ``RPi3`` and ``ARMv7`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3 --config=rpi3_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libmozilla_voice_stt.so
 
 And your command line for ``LePotato`` and ``ARM64`` should look like:
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=rpi3-armv8 --config=rpi3-armv8_opt -c opt --copt=-O3 --copt=-fvisibility=hidden //native_client:libmozilla_voice_stt.so
 
 While we test only on RPi3 Raspbian Buster and LePotato ARMBian Buster, anything compatible with ``armv7-a cortex-a53`` or ``armv8-a cortex-a53`` should be fine.
 
@@ -205,27 +205,27 @@ You can then include the library by just adding this line to your
 
    implementation 'deepspeech.mozilla.org:libdeepspeech:VERSION@aar'
 
-Building ``libdeepspeech.so``
+Building ``libmozilla_voice_stt.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can build the ``libdeepspeech.so`` using (ARMv7):
+You can build the ``libmozilla_voice_stt.so`` using (ARMv7):
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libmozilla_voice_stt.so
 
 Or (ARM64):
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libmozilla_voice_stt.so
 
 Building ``libdeepspeech.aar``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the unlikely event you have to rebuild the JNI bindings, source code is
 available under the ``libdeepspeech`` subdirectory.  Building depends on shared
-object: please ensure to place ``libdeepspeech.so`` into the
+object: please ensure to place ``libmozilla_voice_stt.so`` into the
 ``libdeepspeech/libs/{arm64-v8a,armeabi-v7a,x86_64}/`` matching subdirectories.
 
 Building the bindings is managed by ``gradle`` and should be limited to issuing
@@ -278,7 +278,7 @@ Running ``deepspeech`` via adb
 You should use ``adb push`` to send data to device, please refer to Android
 documentation on how to use that.
 
-Please push DeepSpeech data to ``/sdcard/deepspeech/``\ , including:
+Please push Mozilla Voice STT data to ``/sdcard/deepspeech/``\ , including:
 
 
 * ``output_graph.tflite`` which is the TF Lite model
@@ -289,7 +289,7 @@ Please push DeepSpeech data to ``/sdcard/deepspeech/``\ , including:
 Then, push binaries from ``native_client.tar.xz`` to ``/data/local/tmp/ds``\ :
 
 * ``deepspeech``
-* ``libdeepspeech.so``
+* ``libmozilla_voice_stt.so``
 * ``libc++_shared.so``
 
 You should then be able to run as usual, using a shell from ``adb shell``\ :

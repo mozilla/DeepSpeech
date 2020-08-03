@@ -253,7 +253,7 @@ assert_tensorflow_version()
 
 assert_deepspeech_version()
 {
-  assert_not_present "$1" "DeepSpeech: unknown"
+  assert_not_present "$1" "Mozilla Voice STT: unknown"
 }
 
 # We need to ensure that running on inference really leverages GPU because
@@ -261,7 +261,7 @@ assert_deepspeech_version()
 ensure_cuda_usage()
 {
   local _maybe_cuda=$1
-  DS_BINARY_FILE=${DS_BINARY_FILE:-"deepspeech"}
+  DS_BINARY_FILE=${DS_BINARY_FILE:-"mozilla_voice_stt"}
 
   if [ "${_maybe_cuda}" = "cuda" ]; then
     set +e
@@ -278,7 +278,7 @@ ensure_cuda_usage()
 check_versions()
 {
   set +e
-  ds_help=$(${DS_BINARY_PREFIX}deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>&1 1>/dev/null)
+  ds_help=$(${DS_BINARY_PREFIX}mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>&1 1>/dev/null)
   set -e
 
   assert_tensorflow_version "${ds_help}"
@@ -290,7 +290,7 @@ assert_deepspeech_runtime()
   local expected_runtime=$1
 
   set +e
-  local ds_version=$(${DS_BINARY_PREFIX}deepspeech --version 2>&1)
+  local ds_version=$(${DS_BINARY_PREFIX}mozilla_voice_stt --version 2>&1)
   set -e
 
   assert_shows_something "${ds_version}" "${expected_runtime}"
@@ -309,12 +309,12 @@ check_runtime_electronjs()
 run_tflite_basic_inference_tests()
 {
   set +e
-  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${DATA_TMP_DIR}/${model_name} --audio ${DATA_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}mozilla_voice_stt --model ${DATA_TMP_DIR}/${model_name} --audio ${DATA_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}deepspeech --model ${DATA_TMP_DIR}/${model_name} --audio ${DATA_TMP_DIR}/${ldc93s1_sample_filename} --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(${DS_BINARY_PREFIX}mozilla_voice_stt --model ${DATA_TMP_DIR}/${model_name} --audio ${DATA_TMP_DIR}/${ldc93s1_sample_filename} --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 }
@@ -345,22 +345,22 @@ run_netframework_inference_tests()
 run_electronjs_inference_tests()
 {
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   set -e
   assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
 }
@@ -368,30 +368,30 @@ run_electronjs_inference_tests()
 run_basic_inference_tests()
 {
   set +e
-  deepspeech --model "" --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr
+  mozilla_voice_stt --model "" --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr
   set -e
   grep "Missing model information" ${TASKCLUSTER_TMP_DIR}/stderr
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --extended 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
   set +e
-  phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}" "$status"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}" "$status"
@@ -402,13 +402,13 @@ run_all_inference_tests()
   run_basic_inference_tests
 
   set +e
-  phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_nolm_stereo_44k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}" "$status"
 
   set +e
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm_stereo_44k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_stereo_44k}" "$status"
@@ -416,12 +416,12 @@ run_all_inference_tests()
   # Run down-sampling warning test only when we actually perform downsampling
   if [ "${ldc93s1_sample_filename}" != "LDC93S1_pcms16le_1_8000.wav" ]; then
     set +e
-    phrase_pbmodel_nolm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+    phrase_pbmodel_nolm_mono_8k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
     set -e
     assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
 
     set +e
-    phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+    phrase_pbmodel_withlm_mono_8k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
     set -e
     assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
   fi;
@@ -452,19 +452,19 @@ run_prod_inference_tests()
   local _bitrate=$1
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
 
   set +e
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm_stereo_44k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
@@ -472,7 +472,7 @@ run_prod_inference_tests()
   # Run down-sampling warning test only when we actually perform downsampling
   if [ "${ldc93s1_sample_filename}" != "LDC93S1_pcms16le_1_8000.wav" ]; then
     set +e
-    phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+    phrase_pbmodel_withlm_mono_8k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
     set -e
     assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
   fi;
@@ -483,19 +483,19 @@ run_prodtflite_inference_tests()
   local _bitrate=$1
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
 
   set +e
-  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  phrase_pbmodel_withlm_stereo_44k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_prodtflitemodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
@@ -503,7 +503,7 @@ run_prodtflite_inference_tests()
   # Run down-sampling warning test only when we actually perform downsampling
   if [ "${ldc93s1_sample_filename}" != "LDC93S1_pcms16le_1_8000.wav" ]; then
     set +e
-    phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
+    phrase_pbmodel_withlm_mono_8k=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
     set -e
     assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
   fi;
@@ -512,13 +512,13 @@ run_prodtflite_inference_tests()
 run_multi_inference_tests()
 {
   set +e -o pipefail
-  multi_phrase_pbmodel_nolm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
+  multi_phrase_pbmodel_nolm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
   status=$?
   set -e +o pipefail
   assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_nolm}" "$status"
 
   set +e -o pipefail
-  multi_phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
+  multi_phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/ 2>${TASKCLUSTER_TMP_DIR}/stderr | tr '\n' '%')
   status=$?
   set -e +o pipefail
   assert_correct_multi_ldc93s1 "${multi_phrase_pbmodel_withlm}" "$status"
@@ -527,7 +527,7 @@ run_multi_inference_tests()
 run_cpp_only_inference_tests()
 {
   set +e
-  phrase_pbmodel_withlm_intermediate_decode=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 1280 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm_intermediate_decode=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 1280 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_intermediate_decode}" "$status"
@@ -536,13 +536,13 @@ run_cpp_only_inference_tests()
 run_js_streaming_inference_tests()
 {
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}" "$status"
 
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}" "$status"
@@ -552,14 +552,14 @@ run_js_streaming_prod_inference_tests()
 {
   local _bitrate=$1
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
 
   local _bitrate=$1
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
@@ -569,14 +569,14 @@ run_js_streaming_prodtflite_inference_tests()
 {
   local _bitrate=$1
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
 
   local _bitrate=$1
   set +e
-  phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
+  phrase_pbmodel_withlm=$(mozilla_voice_stt --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --stream --extended 2>${TASKCLUSTER_TMP_DIR}/stderr | tail -n 1)
   status=$?
   set -e
   assert_correct_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"

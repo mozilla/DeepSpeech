@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# DeepSpeech documentation build configuration file, created by
+# Mozilla Voice STT documentation build configuration file, created by
 # sphinx-quickstart on Thu Feb  2 21:20:39 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -41,7 +41,7 @@ import semver
 
 # -- Project information -----------------------------------------------------
 
-project = u'DeepSpeech'
+project = u'Mozilla Voice STT'
 copyright = '2019-2020, Mozilla Corporation'
 author = 'Mozilla Corporation'
 
@@ -170,7 +170,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'DeepSpeech.tex', u'DeepSpeech Documentation',
+    (master_doc, 'Mozilla_Voice_STT.tex', u'Mozilla Voice STT Documentation',
      u'Mozilla Research', 'manual'),
 ]
 
@@ -180,7 +180,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'deepspeech', u'DeepSpeech Documentation',
+    (master_doc, 'deepspeech', u'Mozilla Voice STT Documentation',
      [author], 1)
 ]
 
@@ -191,8 +191,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'DeepSpeech', u'DeepSpeech Documentation',
-     author, 'DeepSpeech', 'One line description of project.',
+    (master_doc, 'Mozilla Voice STT', u'Mozilla Voice STT Documentation',
+     author, 'Mozilla Voice STT', 'One line description of project.',
      'Miscellaneous'),
 ]
 

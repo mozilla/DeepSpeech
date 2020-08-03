@@ -5,8 +5,8 @@ framework module deepspeech_ios {
   module * { export * }
   
   explicit module libdeepspeech_Private {
-      header "deepspeech.h"
+      header "mozilla_voice_stt.h"
       export *
-      link "deepspeech"
+      link "mozilla_voice_stt"
   }
 }

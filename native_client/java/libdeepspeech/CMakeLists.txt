@@ -26,12 +26,12 @@ add_library( deepspeech-lib
 set_target_properties( deepspeech-lib
              PROPERTIES
              IMPORTED_LOCATION
-             ${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}/libdeepspeech.so )
+             ${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}/libmozilla_voice_stt.so )
 
 add_custom_command( TARGET deepspeech-jni POST_BUILD
              COMMAND ${CMAKE_COMMAND} -E copy
-             ${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}/libdeepspeech.so
-             ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libdeepspeech.so )
+             ${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}/libmozilla_voice_stt.so
+             ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libmozilla_voice_stt.so )
 
 
 # Searches for a specified prebuilt library and stores the path as a

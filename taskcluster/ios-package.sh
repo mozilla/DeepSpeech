@@ -12,7 +12,7 @@ cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
 package_native_client "native_client.tar.xz"
 
-package_libdeepspeech_as_zip "libdeepspeech.zip"
+package_libdeepspeech_as_zip "libmozilla_voice_stt.zip"
 
 case $arch in
 "--x86_64")

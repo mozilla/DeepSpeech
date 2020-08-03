@@ -28,8 +28,8 @@ pkg_name=$(get_tflite_python_pkg_name)
 deepspeech_pkg_url=$(get_python_pkg_url "${pyver_pkg}" "${py_unicode_type}" "${pkg_name}")
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: --upgrade ${deepspeech_pkg_url} | cat
 
-which deepspeech
-deepspeech --version
+which mozilla_voice_stt
+mozilla_voice_stt --version
 
 run_prodtflite_inference_tests "${bitrate}"
 

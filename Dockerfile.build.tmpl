@@ -149,12 +149,12 @@ RUN bazel build \
 	--copt=-msse4.2 \
 	--copt=-mavx \
 	--copt=-fvisibility=hidden \
-	//native_client:libdeepspeech.so \
+	//native_client:libmozilla_voice_stt.so \
 	--verbose_failures \
 	--action_env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 # Copy built libs to /DeepSpeech/native_client
-RUN cp bazel-bin/native_client/libdeepspeech.so /DeepSpeech/native_client/
+RUN cp bazel-bin/native_client/libmozilla_voice_stt.so /DeepSpeech/native_client/
 
 # Build client.cc and install Python client and decoder bindings
 ENV TFDIR /DeepSpeech/tensorflow
@@ -162,7 +162,7 @@ ENV TFDIR /DeepSpeech/tensorflow
 RUN nproc
 
 WORKDIR /DeepSpeech/native_client
-RUN make NUM_PROCESSES=$(nproc) deepspeech
+RUN make NUM_PROCESSES=$(nproc) mozilla_voice_stt
 
 WORKDIR /DeepSpeech
 RUN cd native_client/python && make NUM_PROCESSES=$(nproc) bindings

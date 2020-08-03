@@ -1,14 +1,14 @@
-.. DeepSpeech documentation master file, created by
+.. Mozilla Voice STT documentation master file, created by
    sphinx-quickstart on Thu Feb  2 21:20:39 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to DeepSpeech's documentation!
+Welcome to Mozilla Voice STT's documentation!
 ======================================
 
-DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
+Mozilla Voice STT is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project Mozilla Voice STT uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
 
-To install and use DeepSpeech all you have to do is:
+To install and use Mozilla Voice STT all you have to do is:
 
 .. code-block:: bash
 
@@ -16,7 +16,7 @@ To install and use DeepSpeech all you have to do is:
    virtualenv -p python3 $HOME/tmp/deepspeech-venv/
    source $HOME/tmp/deepspeech-venv/bin/activate
 
-   # Install DeepSpeech
+   # Install Mozilla Voice STT
    pip3 install deepspeech
 
    # Download pre-trained English model files
@@ -40,7 +40,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    virtualenv -p python3 $HOME/tmp/deepspeech-gpu-venv/
    source $HOME/tmp/deepspeech-gpu-venv/bin/activate
 
-   # Install DeepSpeech CUDA enabled package
+   # Install Mozilla Voice STT CUDA enabled package
    pip3 install deepspeech-gpu
 
    # Transcribe an audio file.
@@ -76,7 +76,7 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
    :maxdepth: 2
    :caption: Architecture and training
 
-   DeepSpeech
+   AcousticModel
 
    Geometry
 

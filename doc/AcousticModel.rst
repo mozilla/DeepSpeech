@@ -1,11 +1,5 @@
-DeepSpeech Model
-================
-
-The aim of this project is to create a simple, open, and ubiquitous speech
-recognition engine. Simple, in that the engine should not require server-class
-hardware to execute. Open, in that the code and models are released under the
-Mozilla Public License. Ubiquitous, in that the engine should run on many
-platforms and have bindings to many different languages.
+Mozilla Voice STT Acoustic Model
+================================
 
 The architecture of the engine was originally motivated by that presented in
 `Deep Speech: Scaling up end-to-end speech recognition <http://arxiv.org/abs/1412.5567>`_.
@@ -77,7 +71,7 @@ with respect to all of the model parameters may be done via back-propagation
 through the rest of the network. We use the Adam method for training
 `[3] <http://arxiv.org/abs/1412.6980>`_.
 
-The complete RNN model is illustrated in the figure below.
+The complete LSTM model is illustrated in the figure below.
 
 .. image:: ../images/rnn_fig-624x598.png
-    :alt: DeepSpeech BRNN
+    :alt: Mozilla Voice STT LSTM

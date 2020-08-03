@@ -17,9 +17,9 @@ do_deepspeech_python_build()
 
   SETUP_FLAGS=""
   if [ "${package_option}" = "--cuda" ]; then
-    SETUP_FLAGS="--project_name deepspeech-gpu"
+    SETUP_FLAGS="--project_name mozilla_voice_stt-gpu"
   elif [ "${package_option}" = "--tflite" ]; then
-    SETUP_FLAGS="--project_name deepspeech-tflite"
+    SETUP_FLAGS="--project_name mozilla_voice_stt-tflite"
   fi
 
   for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do
@@ -133,9 +133,9 @@ do_deepspeech_nodejs_build()
   done;
 
   if [ "${rename_to_gpu}" = "--cuda" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt-gpu
   else
-    make -C native_client/javascript clean npm-pack
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt
   fi
 
   tar -czf native_client/javascript/wrapper.tar.gz \
@@ -165,9 +165,9 @@ do_deepspeech_npm_package()
   done;
 
   if [ "${package_option}" = "--cuda" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-gpu
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt-gpu
   elif [ "${package_option}" = "--tflite" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=deepspeech-tflite
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt-tflite
   else
     make -C native_client/javascript clean npm-pack
   fi
@@ -208,7 +208,7 @@ do_deepspeech_binary_build()
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
     EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
     EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
-    deepspeech${PLATFORM_EXE_SUFFIX}
+    mozilla_voice_stt${PLATFORM_EXE_SUFFIX}
 }
 
 do_deepspeech_ndk_build()
@@ -301,7 +301,7 @@ do_nuget_build()
 
   cd ${DS_DSDIR}/native_client/dotnet
 
-  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/build
+  cp ${DS_TFDIR}/bazel-bin/native_client/libmozilla_voice_stt.so nupkg/build
 
   # We copy the generated clients for .NET into the Nuget framework dirs
 
@@ -329,7 +329,7 @@ do_nuget_build()
 do_deepspeech_ios_framework_build()
 {
   arch=$1
-  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so ${DS_DSDIR}/native_client/swift/libdeepspeech.so
+  cp ${DS_TFDIR}/bazel-bin/native_client/libmozilla_voice_stt.so ${DS_DSDIR}/native_client/swift/libmozilla_voice_stt.so
   cd ${DS_DSDIR}/native_client/swift
   case $arch in
   "--x86_64")

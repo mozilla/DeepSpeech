@@ -39,7 +39,7 @@ do_deepspeech_java_apk_build()
 
       mkdir native_client/java/libdeepspeech/libs/${nc_dir}
 
-      curl -L https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/native_client.tar.xz | tar -C native_client/java/libdeepspeech/libs/${nc_dir}/ -Jxvf - libdeepspeech.so
+      curl -L https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/native_client.tar.xz | tar -C native_client/java/libdeepspeech/libs/${nc_dir}/ -Jxvf - libmozilla_voice_stt.so
     fi;
   done;
 

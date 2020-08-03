@@ -7,7 +7,7 @@ public class DeepSpeechModel {
 
     static {
         System.loadLibrary("deepspeech-jni");
-        System.loadLibrary("deepspeech");
+        System.loadLibrary("mozilla_voice_stt");
     }
 
     // FIXME: We should have something better than those SWIGTYPE_*
@@ -15,8 +15,8 @@ public class DeepSpeechModel {
     private SWIGTYPE_p_ModelState   _msp;
 
     private void evaluateErrorCode(int errorCode) {
-        DeepSpeech_Error_Codes code = DeepSpeech_Error_Codes.swigToEnum(errorCode);
-        if (code != DeepSpeech_Error_Codes.ERR_OK) {
+        STT_Error_Codes code = STT_Error_Codes.swigToEnum(errorCode);
+        if (code != STT_Error_Codes.ERR_OK) {
             throw new RuntimeException("Error: " + impl.ErrorCodeToErrorMessage(errorCode) + " (0x" + Integer.toHexString(errorCode) + ").");
         }
     }

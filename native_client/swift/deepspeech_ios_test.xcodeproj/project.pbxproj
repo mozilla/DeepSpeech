@@ -11,8 +11,8 @@
 		504EC34424CF4EFD0073C22E /* AudioContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC34224CF4EFD0073C22E /* AudioContext.swift */; };
 		504EC34524CF4F4F0073C22E /* deepspeech_ios.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A024B61FE400409BBB /* deepspeech_ios.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		507CD3A124B61FE400409BBB /* deepspeech_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A024B61FE400409BBB /* deepspeech_ios.framework */; };
-		507CD3A324B61FEB00409BBB /* libdeepspeech.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; };
-		507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		507CD3A324B61FEB00409BBB /* libmozilla_voice_stt.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libmozilla_voice_stt.so */; };
+		507CD3A424B61FFC00409BBB /* libmozilla_voice_stt.so in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libmozilla_voice_stt.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		50F787F32497683900D52237 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F22497683900D52237 /* AppDelegate.swift */; };
 		50F787F52497683900D52237 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F42497683900D52237 /* SceneDelegate.swift */; };
 		50F787F72497683900D52237 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F62497683900D52237 /* ContentView.swift */; };
@@ -48,7 +48,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				504EC34524CF4F4F0073C22E /* deepspeech_ios.framework in Embed Frameworks */,
-				507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */,
+				507CD3A424B61FFC00409BBB /* libmozilla_voice_stt.so in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -59,7 +59,7 @@
 		504EC34124CF4EFD0073C22E /* SpeechRecognitionImpl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionImpl.swift; sourceTree = "<group>"; };
 		504EC34224CF4EFD0073C22E /* AudioContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioContext.swift; sourceTree = "<group>"; };
 		507CD3A024B61FE400409BBB /* deepspeech_ios.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = deepspeech_ios.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		507CD3A224B61FEA00409BBB /* libdeepspeech.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libdeepspeech.so; sourceTree = "<group>"; };
+		507CD3A224B61FEA00409BBB /* libmozilla_voice_stt.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libmozilla_voice_stt.so; sourceTree = "<group>"; };
 		50F787EF2497683900D52237 /* deepspeech_ios_test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = deepspeech_ios_test.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50F787F22497683900D52237 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		50F787F42497683900D52237 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -81,7 +81,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				507CD3A324B61FEB00409BBB /* libdeepspeech.so in Frameworks */,
+				507CD3A324B61FEB00409BBB /* libmozilla_voice_stt.so in Frameworks */,
 				507CD3A124B61FE400409BBB /* deepspeech_ios.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -106,7 +106,7 @@
 		50F2B0FC2498D6C7007CD876 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				507CD3A224B61FEA00409BBB /* libdeepspeech.so */,
+				507CD3A224B61FEA00409BBB /* libmozilla_voice_stt.so */,
 				507CD3A024B61FE400409BBB /* deepspeech_ios.framework */,
 			);
 			name = Frameworks;

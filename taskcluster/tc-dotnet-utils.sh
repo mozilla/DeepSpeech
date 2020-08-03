@@ -36,7 +36,7 @@ install_nuget()
 
   nuget install NAudio
   cp NAudio*/lib/net35/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
-  cp ${PROJECT_NAME}.${DS_VERSION}/build/libdeepspeech.so ${TASKCLUSTER_TMP_DIR}/ds/
+  cp ${PROJECT_NAME}.${DS_VERSION}/build/libmozilla_voice_stt.so ${TASKCLUSTER_TMP_DIR}/ds/
   cp ${PROJECT_NAME}.${DS_VERSION}/lib/net46/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/ds/

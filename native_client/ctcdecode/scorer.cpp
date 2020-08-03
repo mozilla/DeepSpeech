@@ -74,13 +74,13 @@ int Scorer::load_lm(const std::string& lm_path)
   // Check if file is readable to avoid KenLM throwing an exception
   const char* filename = lm_path.c_str();
   if (access(filename, R_OK) != 0) {
-    return DS_ERR_SCORER_UNREADABLE;
+    return STT_ERR_SCORER_UNREADABLE;
   }
 
   // Check if the file format is valid to avoid KenLM throwing an exception
   lm::ngram::ModelType model_type;
   if (!lm::ngram::RecognizeBinary(filename, model_type)) {
-    return DS_ERR_SCORER_INVALID_LM;
+    return STT_ERR_SCORER_INVALID_LM;
   }
 
   // Load the LM
@@ -97,7 +97,7 @@ int Scorer::load_lm(const std::string& lm_path)
   uint64_t trie_offset = language_model_->GetEndOfSearchOffset();
   if (package_size <= trie_offset) {
     // File ends without a trie structure
-    return DS_ERR_SCORER_NO_TRIE;
+    return STT_ERR_SCORER_NO_TRIE;
   }
 
   // Read metadata and trie from file
@@ -113,7 +113,7 @@ int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
   if (magic != MAGIC) {
     std::cerr << "Error: Can't parse scorer file, invalid header. Try updating "
                  "your scorer file." << std::endl;
-    return DS_ERR_SCORER_INVALID_TRIE;
+    return STT_ERR_SCORER_INVALID_TRIE;
   }
 
   int version;
@@ -125,10 +125,10 @@ int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
     if (version < FILE_VERSION) {
       std::cerr << "Update your scorer file.";
     } else {
-      std::cerr << "Downgrade your scorer file or update your version of DeepSpeech.";
+      std::cerr << "Downgrade your scorer file or update your version of Mozilla Voice STT.";
     }
     std::cerr << std::endl;
-    return DS_ERR_SCORER_VERSION_MISMATCH;
+    return STT_ERR_SCORER_VERSION_MISMATCH;
   }
 
   fin.read(reinterpret_cast<char*>(&is_utf8_mode_), sizeof(is_utf8_mode_));
@@ -143,7 +143,7 @@ int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
   opt.mode = fst::FstReadOptions::MAP;
   opt.source = file_path;
   dictionary.reset(FstType::Read(fin, opt));
-  return DS_ERR_OK;
+  return STT_ERR_OK;
 }
 
 bool Scorer::save_dictionary(const std::string& path, bool append_instead_of_overwrite)

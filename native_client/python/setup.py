@@ -24,7 +24,7 @@ def main():
     numpy_include = os.getenv('NUMPY_INCLUDE', numpy_include)
     numpy_min_ver = os.getenv('NUMPY_DEP_VERSION', '')
 
-    project_name = 'deepspeech'
+    project_name = 'mozilla_voice_stt'
     if '--project_name' in sys.argv:
         project_name_idx = sys.argv.index('--project_name')
         project_name = sys.argv[project_name_idx + 1]
@@ -59,7 +59,7 @@ def main():
 
         raise AssertionError('os.name == java not expected')
 
-    ds_ext = Extension(name='deepspeech._impl',
+    ds_ext = Extension(name='mozilla_voice_stt._impl',
                        sources=['impl.i'],
                        include_dirs=[numpy_include, '../'],
                        library_dirs=list(map(lambda x: x.strip(), lib_dirs_split(os.getenv('MODEL_LDFLAGS', '')))),
@@ -72,7 +72,7 @@ def main():
           long_description_content_type='text/x-rst; charset=UTF-8',
           author='Mozilla',
           version=project_version,
-          package_dir={'deepspeech': '.'},
+          package_dir={'mozilla_voice_stt': '.'},
           cmdclass={'build': BuildExtFirst},
           license='MPL-2.0',
           url='https://github.com/mozilla/DeepSpeech',
@@ -83,8 +83,8 @@ def main():
               'Discussions': 'https://discourse.mozilla.org/c/deep-speech',
           },
           ext_modules=[ds_ext],
-          py_modules=['deepspeech', 'deepspeech.client', 'deepspeech.impl'],
-          entry_points={'console_scripts':['deepspeech=deepspeech.client:main']},
+          py_modules=['mozilla_voice_stt', 'mozilla_voice_stt.client', 'mozilla_voice_stt.impl'],
+          entry_points={'console_scripts':['mozilla_voice_stt=mozilla_voice_stt.client:main']},
           install_requires=['numpy%s' % numpy_min_ver],
           include_package_data=True,
           classifiers=[

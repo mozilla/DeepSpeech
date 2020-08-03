@@ -6,7 +6,7 @@ CTC beam search decoder
 Introduction
 ^^^^^^^^^^^^
 
-DeepSpeech uses the `Connectionist Temporal Classification <http://www.cs.toronto.edu/~graves/icml_2006.pdf>`_ loss function. For an excellent explanation of CTC and its usage, see this Distill article: `Sequence Modeling with CTC <https://distill.pub/2017/ctc/>`_. This document assumes the reader is familiar with the concepts described in that article, and describes DeepSpeech specific behaviors that developers building systems with DeepSpeech should know to avoid problems.
+Mozilla Voice STT uses the `Connectionist Temporal Classification <http://www.cs.toronto.edu/~graves/icml_2006.pdf>`_ loss function. For an excellent explanation of CTC and its usage, see this Distill article: `Sequence Modeling with CTC <https://distill.pub/2017/ctc/>`_. This document assumes the reader is familiar with the concepts described in that article, and describes Mozilla Voice STT specific behaviors that developers building systems with Mozilla Voice STT should know to avoid problems.
 
 Note: Documentation for the tooling for creating custom scorer packages is available in :ref:`scorer-scripts`.
 
@@ -16,19 +16,19 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 External scorer
 ^^^^^^^^^^^^^^^
 
-DeepSpeech clients support OPTIONAL use of an external language model to improve the accuracy of the predicted transcripts. In the code, command line parameters, and documentation, this is referred to as a "scorer". The scorer is used to compute the likelihood (also called a score, hence the name "scorer") of sequences of words or characters in the output, to guide the decoder towards more likely results. This improves accuracy significantly.
+Mozilla Voice STT clients support OPTIONAL use of an external language model to improve the accuracy of the predicted transcripts. In the code, command line parameters, and documentation, this is referred to as a "scorer". The scorer is used to compute the likelihood (also called a score, hence the name "scorer") of sequences of words or characters in the output, to guide the decoder towards more likely results. This improves accuracy significantly.
 
-The use of an external scorer is fully optional. When an external scorer is not specified, DeepSpeech still uses a beam search decoding algorithm, but without any outside scoring.
+The use of an external scorer is fully optional. When an external scorer is not specified, Mozilla Voice STT still uses a beam search decoding algorithm, but without any outside scoring.
 
-Currently, the DeepSpeech external scorer is implemented with `KenLM <https://kheafield.com/code/kenlm/>`_, plus some tooling to package the necessary files and metadata into a single ``.scorer`` package. The tooling lives in ``data/lm/``. The scripts included in ``data/lm/`` can be used and modified to build your own language model based on your particular use case or language. See :ref:`scorer-scripts` for more details on how to reproduce our scorer file as well as create your own.
+Currently, the Mozilla Voice STT external scorer is implemented with `KenLM <https://kheafield.com/code/kenlm/>`_, plus some tooling to package the necessary files and metadata into a single ``.scorer`` package. The tooling lives in ``data/lm/``. The scripts included in ``data/lm/`` can be used and modified to build your own language model based on your particular use case or language. See :ref:`scorer-scripts` for more details on how to reproduce our scorer file as well as create your own.
 
-The scripts are geared towards replicating the language model files we release as part of `DeepSpeech model releases <https://github.com/mozilla/DeepSpeech/releases/latest>`_, but modifying them to use different datasets or language model construction parameters should be simple.
+The scripts are geared towards replicating the language model files we release as part of `Mozilla Voice STT model releases <https://github.com/mozilla/DeepSpeech/releases/latest>`_, but modifying them to use different datasets or language model construction parameters should be simple.
 
 
 Decoding modes
 ^^^^^^^^^^^^^^
 
-DeepSpeech currently supports two modes of operation with significant differences at both training and decoding time. Note that Bytes output mode is experimental and has not been tested for languages other than Chinese Mandarin.
+Mozilla Voice STT currently supports two modes of operation with significant differences at both training and decoding time. Note that Bytes output mode is experimental and has not been tested for languages other than Chinese Mandarin.
 
 
 Default mode (alphabet based)

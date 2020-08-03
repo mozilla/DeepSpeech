@@ -3,7 +3,7 @@
 Using a Pre-trained Model
 =========================
 
-Inference using a DeepSpeech pre-trained model can be done with a client/language binding package. We have four clients/language bindings in this repository, listed below, and also a few community-maintained clients/language bindings in other repositories, listed `further down in this README <#third-party-bindings>`_.
+Inference using a Mozilla Voice STT pre-trained model can be done with a client/language binding package. We have four clients/language bindings in this repository, listed below, and also a few community-maintained clients/language bindings in other repositories, listed `further down in this README <#third-party-bindings>`_.
 
 * :ref:`The C API <c-usage>`.
 * :ref:`The Python package/language binding <py-usage>`
@@ -33,7 +33,7 @@ The GPU capable builds (Python, NodeJS, C++, etc) depend on CUDA 10.1 and CuDNN 
 Getting the pre-trained model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the DeepSpeech `releases page <https://github.com/mozilla/DeepSpeech/releases>`_. Alternatively, you can run the following command to download the model files in your current directory:
+If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the Mozilla Voice STT `releases page <https://github.com/mozilla/DeepSpeech/releases>`_. Alternatively, you can run the following command to download the model files in your current directory:
 
 .. code-block:: bash
 
@@ -61,12 +61,12 @@ The release notes include detailed information on how the released models were t
 
 The process for training an acoustic model is described in :ref:`training-docs`. In particular, fine tuning a release model using your own data can be a good way to leverage relatively smaller amounts of data that would not be sufficient for training a new model from scratch. See the :ref:`fine tuning and transfer learning sections <training-fine-tuning>` for more information. :ref:`Data augmentation <training-data-augmentation>` can also be a good way to increase the value of smaller training sets.
 
-Creating your own external scorer from text data is another way that you can adapt the model to your specific needs. The process and tools used to generate an external scorer package are described in :ref:`scorer-scripts` and an overview of how the external scorer is used by DeepSpeech to perform inference is available in :ref:`decoder-docs`. Generating a smaller scorer from a single purpose text dataset is a quick process and can bring significant accuracy improvements, specially for more constrained, limited vocabulary applications.
+Creating your own external scorer from text data is another way that you can adapt the model to your specific needs. The process and tools used to generate an external scorer package are described in :ref:`scorer-scripts` and an overview of how the external scorer is used by Mozilla Voice STT to perform inference is available in :ref:`decoder-docs`. Generating a smaller scorer from a single purpose text dataset is a quick process and can bring significant accuracy improvements, specially for more constrained, limited vocabulary applications.
 
 Model compatibility
 ^^^^^^^^^^^^^^^^^^^
 
-DeepSpeech models are versioned to keep you from trying to use an incompatible graph with a newer client after a breaking change was made to the code. If you get an error saying your model file version is too old for the client, you should either upgrade to a newer model release, re-export your model from the checkpoint using a newer version of the code, or downgrade your client if you need to use the old model and can't re-export it.
+Mozilla Voice STT models are versioned to keep you from trying to use an incompatible graph with a newer client after a breaking change was made to the code. If you get an error saying your model file version is too old for the client, you should either upgrade to a newer model release, re-export your model from the checkpoint using a newer version of the code, or downgrade your client if you need to use the old model and can't re-export it.
 
 .. _py-usage:
 
@@ -79,8 +79,8 @@ For the Python bindings, it is highly recommended that you perform the installat
 
 We will continue under the assumption that you already have your system properly setup to create new virtual environments.
 
-Create a DeepSpeech virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create a Mozilla Voice STT virtual environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In creating a virtual environment you will create a directory containing a ``python3`` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on ``$HOME/tmp/deepspeech-venv``. You can create it using this command:
 
@@ -93,16 +93,16 @@ Once this command completes successfully, the environment will be ready to be ac
 Activating the environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Each time you need to work with DeepSpeech, you have to *activate* this virtual environment. This is done with this simple command:
+Each time you need to work with Mozilla Voice STT, you have to *activate* this virtual environment. This is done with this simple command:
 
 .. code-block::
 
    $ source $HOME/tmp/deepspeech-venv/bin/activate
 
-Installing DeepSpeech Python bindings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing Mozilla Voice STT Python bindings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once your environment has been set-up and loaded, you can use ``pip3`` to manage packages locally. On a fresh setup of the ``virtualenv``\ , you will have to install the DeepSpeech wheel. You can check if ``deepspeech`` is already installed with ``pip3 list``.
+Once your environment has been set-up and loaded, you can use ``pip3`` to manage packages locally. On a fresh setup of the ``virtualenv``\ , you will have to install the Mozilla Voice STT wheel. You can check if ``deepspeech`` is already installed with ``pip3 list``.
 
 To perform the installation, just use ``pip3`` as such:
 
@@ -192,7 +192,7 @@ also, if you need some binaries different than current master, like ``v0.2.0-alp
 
    python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
 
-The script ``taskcluster.py`` will download ``native_client.tar.xz`` (which includes the ``deepspeech`` binary and associated libraries) and extract it into the current folder. Also, ``taskcluster.py`` will download binaries for Linux/x86_64 by default, but you can override that behavior with the ``--arch`` parameter. See the help info with ``python util/taskcluster.py -h`` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
+The script ``taskcluster.py`` will download ``native_client.tar.xz`` (which includes the ``deepspeech`` binary and associated libraries) and extract it into the current folder. Also, ``taskcluster.py`` will download binaries for Linux/x86_64 by default, but you can override that behavior with the ``--arch`` parameter. See the help info with ``python util/taskcluster.py -h`` for more details. Specific branches of Mozilla Voice STT or TensorFlow can be specified as well.
 
 Alternatively you may manually download the ``native_client.tar.xz`` from the [releases](https://github.com/mozilla/DeepSpeech/releases).
 
@@ -212,14 +212,14 @@ If pre-built binaries aren't available for your system, you'll need to install t
 Dockerfile for building from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We provide ``Dockerfile.build`` to automatically build ``libdeepspeech.so``, the C++ native client, Python bindings, and KenLM.
+We provide ``Dockerfile.build`` to automatically build ``libmozilla_voice_stt.so``, the C++ native client, Python bindings, and KenLM.
 You need to generate the Dockerfile from the template using:
 
 .. code-block:: bash
 
    make Dockerfile.build
 
-If you want to specify a different DeepSpeech repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
+If you want to specify a different Mozilla Voice STT repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
 
 .. code-block:: bash
 

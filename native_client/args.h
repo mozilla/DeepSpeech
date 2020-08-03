@@ -8,7 +8,7 @@
 #endif
 #include <iostream>
 
-#include "deepspeech.h"
+#include "mozilla_voice_stt.h"
 
 char* model = NULL;
 
@@ -43,7 +43,7 @@ void PrintHelp(const char* bin)
     std::cout <<
     "Usage: " << bin << " --model MODEL [--scorer SCORER] --audio AUDIO [-t] [-e]\n"
     "\n"
-    "Running DeepSpeech inference.\n"
+    "Running Mozilla Voice STT inference.\n"
     "\n"
     "\t--model MODEL\t\t\tPath to the model (protocol buffer binary file)\n"
     "\t--scorer SCORER\t\t\tPath to the external scorer file\n"
@@ -58,9 +58,9 @@ void PrintHelp(const char* bin)
     "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
     "\t--help\t\t\t\tShow help\n"
     "\t--version\t\t\tPrint version and exits\n";
-    char* version = DS_Version();
-    std::cerr << "DeepSpeech " << version << "\n";
-    DS_FreeString(version);
+    char* version = STT_Version();
+    std::cerr << "Mozilla Voice STT " << version << "\n";
+    STT_FreeString(version);
     exit(1);
 }
 
@@ -153,9 +153,9 @@ bool ProcessArgs(int argc, char** argv)
     }
 
     if (has_versions) {
-        char* version = DS_Version();
-        std::cout << "DeepSpeech " << version << "\n";
-        DS_FreeString(version);
+        char* version = STT_Version();
+        std::cout << "Mozilla Voice STT " << version << "\n";
+        STT_FreeString(version);
         return false;
     }
 

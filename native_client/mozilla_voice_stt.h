@@ -1,5 +1,5 @@
-#ifndef DEEPSPEECH_H
-#define DEEPSPEECH_H
+#ifndef MOZILLA_VOICE_STT_H
+#define MOZILLA_VOICE_STT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,12 +7,12 @@ extern "C" {
 
 #ifndef SWIG
     #if defined _MSC_VER
-        #define DEEPSPEECH_EXPORT __declspec(dllexport)
+        #define STT_EXPORT __declspec(dllexport)
     #else
-        #define DEEPSPEECH_EXPORT __attribute__ ((visibility("default")))
+        #define STT_EXPORT __attribute__ ((visibility("default")))
     #endif /*End of _MSC_VER*/
 #else
-    #define DEEPSPEECH_EXPORT
+    #define STT_EXPORT
 #endif
 
 typedef struct ModelState ModelState;
@@ -61,34 +61,34 @@ typedef struct Metadata {
 
 // sphinx-doc: error_code_listing_start
 
-#define DS_FOR_EACH_ERROR(APPLY) \
-  APPLY(DS_ERR_OK,                      0x0000, "No error.") \
-  APPLY(DS_ERR_NO_MODEL,                0x1000, "Missing model information.") \
-  APPLY(DS_ERR_INVALID_ALPHABET,        0x2000, "Invalid alphabet embedded in model. (Data corruption?)") \
-  APPLY(DS_ERR_INVALID_SHAPE,           0x2001, "Invalid model shape.") \
-  APPLY(DS_ERR_INVALID_SCORER,          0x2002, "Invalid scorer file.") \
-  APPLY(DS_ERR_MODEL_INCOMPATIBLE,      0x2003, "Incompatible model.") \
-  APPLY(DS_ERR_SCORER_NOT_ENABLED,      0x2004, "External scorer is not enabled.") \
-  APPLY(DS_ERR_SCORER_UNREADABLE,       0x2005, "Could not read scorer file.") \
-  APPLY(DS_ERR_SCORER_INVALID_LM,       0x2006, "Could not recognize language model header in scorer.") \
-  APPLY(DS_ERR_SCORER_NO_TRIE,          0x2007, "Reached end of scorer file before loading vocabulary trie.") \
-  APPLY(DS_ERR_SCORER_INVALID_TRIE,     0x2008, "Invalid magic in trie header.") \
-  APPLY(DS_ERR_SCORER_VERSION_MISMATCH, 0x2009, "Scorer file version does not match expected version.") \
-  APPLY(DS_ERR_FAIL_INIT_MMAP,          0x3000, "Failed to initialize memory mapped model.") \
-  APPLY(DS_ERR_FAIL_INIT_SESS,          0x3001, "Failed to initialize the session.") \
-  APPLY(DS_ERR_FAIL_INTERPRETER,        0x3002, "Interpreter failed.") \
-  APPLY(DS_ERR_FAIL_RUN_SESS,           0x3003, "Failed to run the session.") \
-  APPLY(DS_ERR_FAIL_CREATE_STREAM,      0x3004, "Error creating the stream.") \
-  APPLY(DS_ERR_FAIL_READ_PROTOBUF,      0x3005, "Error reading the proto buffer model file.") \
-  APPLY(DS_ERR_FAIL_CREATE_SESS,        0x3006, "Failed to create session.") \
-  APPLY(DS_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.")
+#define STT_FOR_EACH_ERROR(APPLY) \
+  APPLY(STT_ERR_OK,                      0x0000, "No error.") \
+  APPLY(STT_ERR_NO_MODEL,                0x1000, "Missing model information.") \
+  APPLY(STT_ERR_INVALID_ALPHABET,        0x2000, "Invalid alphabet embedded in model. (Data corruption?)") \
+  APPLY(STT_ERR_INVALID_SHAPE,           0x2001, "Invalid model shape.") \
+  APPLY(STT_ERR_INVALID_SCORER,          0x2002, "Invalid scorer file.") \
+  APPLY(STT_ERR_MODEL_INCOMPATIBLE,      0x2003, "Incompatible model.") \
+  APPLY(STT_ERR_SCORER_NOT_ENABLED,      0x2004, "External scorer is not enabled.") \
+  APPLY(STT_ERR_SCORER_UNREADABLE,       0x2005, "Could not read scorer file.") \
+  APPLY(STT_ERR_SCORER_INVALID_LM,       0x2006, "Could not recognize language model header in scorer.") \
+  APPLY(STT_ERR_SCORER_NO_TRIE,          0x2007, "Reached end of scorer file before loading vocabulary trie.") \
+  APPLY(STT_ERR_SCORER_INVALID_TRIE,     0x2008, "Invalid magic in trie header.") \
+  APPLY(STT_ERR_SCORER_VERSION_MISMATCH, 0x2009, "Scorer file version does not match expected version.") \
+  APPLY(STT_ERR_FAIL_INIT_MMAP,          0x3000, "Failed to initialize memory mapped model.") \
+  APPLY(STT_ERR_FAIL_INIT_SESS,          0x3001, "Failed to initialize the session.") \
+  APPLY(STT_ERR_FAIL_INTERPRETER,        0x3002, "Interpreter failed.") \
+  APPLY(STT_ERR_FAIL_RUN_SESS,           0x3003, "Failed to run the session.") \
+  APPLY(STT_ERR_FAIL_CREATE_STREAM,      0x3004, "Error creating the stream.") \
+  APPLY(STT_ERR_FAIL_READ_PROTOBUF,      0x3005, "Error reading the proto buffer model file.") \
+  APPLY(STT_ERR_FAIL_CREATE_SESS,        0x3006, "Failed to create session.") \
+  APPLY(STT_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.")
 
 // sphinx-doc: error_code_listing_end
 
-enum DeepSpeech_Error_Codes
+enum STT_Error_Codes
 {
 #define DEFINE(NAME, VALUE, DESC) NAME = VALUE,
-DS_FOR_EACH_ERROR(DEFINE)
+STT_FOR_EACH_ERROR(DEFINE)
 #undef DEFINE
 };
 
@@ -100,50 +100,50 @@ DS_FOR_EACH_ERROR(DEFINE)
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
-int DS_CreateModel(const char* aModelPath,
-                   ModelState** retval);
+STT_EXPORT
+int STT_CreateModel(const char* aModelPath,
+                    ModelState** retval);
 
 /**
- * @brief Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
+ * @brief Get beam width value used by the model. If {@link STT_SetModelBeamWidth}
  *        was not called before, will return the default value loaded from the
  *        model file.
  *
- * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ * @param aCtx A ModelState pointer created with {@link STT_CreateModel}.
  *
  * @return Beam width value used by the model.
  */
-DEEPSPEECH_EXPORT
-unsigned int DS_GetModelBeamWidth(const ModelState* aCtx);
+STT_EXPORT
+unsigned int STT_GetModelBeamWidth(const ModelState* aCtx);
 
 /**
  * @brief Set beam width value used by the model.
  *
- * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ * @param aCtx A ModelState pointer created with {@link STT_CreateModel}.
  * @param aBeamWidth The beam width used by the model. A larger beam width value
  *                   generates better results at the cost of decoding time.
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
-int DS_SetModelBeamWidth(ModelState* aCtx,
-                         unsigned int aBeamWidth);
+STT_EXPORT
+int STT_SetModelBeamWidth(ModelState* aCtx,
+                          unsigned int aBeamWidth);
 
 /**
  * @brief Return the sample rate expected by a model.
  *
- * @param aCtx A ModelState pointer created with {@link DS_CreateModel}.
+ * @param aCtx A ModelState pointer created with {@link STT_CreateModel}.
  *
  * @return Sample rate expected by the model for its input.
  */
-DEEPSPEECH_EXPORT
-int DS_GetModelSampleRate(const ModelState* aCtx);
+STT_EXPORT
+int STT_GetModelSampleRate(const ModelState* aCtx);
 
 /**
  * @brief Frees associated resources and destroys model object.
  */
-DEEPSPEECH_EXPORT
-void DS_FreeModel(ModelState* ctx);
+STT_EXPORT
+void STT_FreeModel(ModelState* ctx);
 
 /**
  * @brief Enable decoding using an external scorer.
@@ -153,9 +153,9 @@ void DS_FreeModel(ModelState* ctx);
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
-DEEPSPEECH_EXPORT
-int DS_EnableExternalScorer(ModelState* aCtx,
-                            const char* aScorerPath);
+STT_EXPORT
+int STT_EnableExternalScorer(ModelState* aCtx,
+                             const char* aScorerPath);
 
 /**
  * @brief Disable decoding using an external scorer.
@@ -164,8 +164,8 @@ int DS_EnableExternalScorer(ModelState* aCtx,
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
-int DS_DisableExternalScorer(ModelState* aCtx);
+STT_EXPORT
+int STT_DisableExternalScorer(ModelState* aCtx);
 
 /**
  * @brief Set hyperparameters alpha and beta of the external scorer.
@@ -176,10 +176,10 @@ int DS_DisableExternalScorer(ModelState* aCtx);
  *
  * @return Zero on success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
-int DS_SetScorerAlphaBeta(ModelState* aCtx,
-                          float aAlpha,
-                          float aBeta);
+STT_EXPORT
+int STT_SetScorerAlphaBeta(ModelState* aCtx,
+                           float aAlpha,
+                           float aBeta);
 
 /**
  * @brief Use the DeepSpeech model to convert speech to text.
@@ -190,12 +190,12 @@ int DS_SetScorerAlphaBeta(ModelState* aCtx,
  * @param aBufferSize The number of samples in the audio signal.
  *
  * @return The STT result. The user is responsible for freeing the string using
- *         {@link DS_FreeString()}. Returns NULL on error.
+ *         {@link STT_FreeString()}. Returns NULL on error.
  */
-DEEPSPEECH_EXPORT
-char* DS_SpeechToText(ModelState* aCtx,
-                      const short* aBuffer,
-                      unsigned int aBufferSize);
+STT_EXPORT
+char* STT_SpeechToText(ModelState* aCtx,
+                       const short* aBuffer,
+                       unsigned int aBufferSize);
 
 /**
  * @brief Use the DeepSpeech model to convert speech to text and output results
@@ -209,19 +209,19 @@ char* DS_SpeechToText(ModelState* aCtx,
  *
  * @return Metadata struct containing multiple CandidateTranscript structs. Each
  *         transcript has per-token metadata including timing information. The
- *         user is responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         user is responsible for freeing Metadata by calling {@link STT_FreeMetadata()}.
  *         Returns NULL on error.
  */
-DEEPSPEECH_EXPORT
-Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
-                                      const short* aBuffer,
-                                      unsigned int aBufferSize,
-                                      unsigned int aNumResults);
+STT_EXPORT
+Metadata* STT_SpeechToTextWithMetadata(ModelState* aCtx,
+                                       const short* aBuffer,
+                                       unsigned int aBufferSize,
+                                       unsigned int aNumResults);
 
 /**
  * @brief Create a new streaming inference state. The streaming state returned
- *        by this function can then be passed to {@link DS_FeedAudioContent()}
- *        and {@link DS_FinishStream()}.
+ *        by this function can then be passed to {@link STT_FeedAudioContent()}
+ *        and {@link STT_FinishStream()}.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param[out] retval an opaque pointer that represents the streaming state. Can
@@ -229,129 +229,129 @@ Metadata* DS_SpeechToTextWithMetadata(ModelState* aCtx,
  *
  * @return Zero for success, non-zero on failure.
  */
-DEEPSPEECH_EXPORT
-int DS_CreateStream(ModelState* aCtx,
-                    StreamingState** retval);
+STT_EXPORT
+int STT_CreateStream(ModelState* aCtx,
+                     StreamingState** retval);
 
 /**
  * @brief Feed audio samples to an ongoing streaming inference.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aSctx A streaming state pointer returned by {@link STT_CreateStream()}.
  * @param aBuffer An array of 16-bit, mono raw audio samples at the
  *                appropriate sample rate (matching what the model was trained on).
  * @param aBufferSize The number of samples in @p aBuffer.
  */
-DEEPSPEECH_EXPORT
-void DS_FeedAudioContent(StreamingState* aSctx,
-                         const short* aBuffer,
-                         unsigned int aBufferSize);
+STT_EXPORT
+void STT_FeedAudioContent(StreamingState* aSctx,
+                          const short* aBuffer,
+                          unsigned int aBufferSize);
 
 /**
  * @brief Compute the intermediate decoding of an ongoing streaming inference.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aSctx A streaming state pointer returned by {@link STT_CreateStream()}.
  *
  * @return The STT intermediate result. The user is responsible for freeing the
- *         string using {@link DS_FreeString()}.
+ *         string using {@link STT_FreeString()}.
  */
-DEEPSPEECH_EXPORT
-char* DS_IntermediateDecode(const StreamingState* aSctx);
+STT_EXPORT
+char* STT_IntermediateDecode(const StreamingState* aSctx);
 
 /**
  * @brief Compute the intermediate decoding of an ongoing streaming inference,
  *        return results including metadata.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aSctx A streaming state pointer returned by {@link STT_CreateStream()}.
  * @param aNumResults The number of candidate transcripts to return.
  *
  * @return Metadata struct containing multiple candidate transcripts. Each transcript
  *         has per-token metadata including timing information. The user is
- *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         responsible for freeing Metadata by calling {@link STT_FreeMetadata()}.
  *         Returns NULL on error.
  */
-DEEPSPEECH_EXPORT
-Metadata* DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
-                                            unsigned int aNumResults);
+STT_EXPORT
+Metadata* STT_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
+                                             unsigned int aNumResults);
 
 /**
  * @brief Compute the final decoding of an ongoing streaming inference and return
  *        the result. Signals the end of an ongoing streaming inference.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aSctx A streaming state pointer returned by {@link STT_CreateStream()}.
  *
  * @return The STT result. The user is responsible for freeing the string using
- *         {@link DS_FreeString()}.
+ *         {@link STT_FreeString()}.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
-DEEPSPEECH_EXPORT
-char* DS_FinishStream(StreamingState* aSctx);
+STT_EXPORT
+char* STT_FinishStream(StreamingState* aSctx);
 
 /**
  * @brief Compute the final decoding of an ongoing streaming inference and return
  *        results including metadata. Signals the end of an ongoing streaming
  *        inference.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aSctx A streaming state pointer returned by {@link STT_CreateStream()}.
  * @param aNumResults The number of candidate transcripts to return.
  *
  * @return Metadata struct containing multiple candidate transcripts. Each transcript
  *         has per-token metadata including timing information. The user is
- *         responsible for freeing Metadata by calling {@link DS_FreeMetadata()}.
+ *         responsible for freeing Metadata by calling {@link STT_FreeMetadata()}.
  *         Returns NULL on error.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
-DEEPSPEECH_EXPORT
-Metadata* DS_FinishStreamWithMetadata(StreamingState* aSctx,
-                                      unsigned int aNumResults);
+STT_EXPORT
+Metadata* STT_FinishStreamWithMetadata(StreamingState* aSctx,
+                                       unsigned int aNumResults);
 
 /**
  * @brief Destroy a streaming state without decoding the computed logits. This
  *        can be used if you no longer need the result of an ongoing streaming
  *        inference and don't want to perform a costly decode operation.
  *
- * @param aSctx A streaming state pointer returned by {@link DS_CreateStream()}.
+ * @param aSctx A streaming state pointer returned by {@link STT_CreateStream()}.
  *
  * @note This method will free the state pointer (@p aSctx).
  */
-DEEPSPEECH_EXPORT
-void DS_FreeStream(StreamingState* aSctx);
+STT_EXPORT
+void STT_FreeStream(StreamingState* aSctx);
 
 /**
  * @brief Free memory allocated for metadata information.
  */
-DEEPSPEECH_EXPORT
-void DS_FreeMetadata(Metadata* m);
+STT_EXPORT
+void STT_FreeMetadata(Metadata* m);
 
 /**
  * @brief Free a char* string returned by the DeepSpeech API.
  */
-DEEPSPEECH_EXPORT
-void DS_FreeString(char* str);
+STT_EXPORT
+void STT_FreeString(char* str);
 
 /**
  * @brief Returns the version of this library. The returned version is a semantic
- *        version (SemVer 2.0.0). The string returned must be freed with {@link DS_FreeString()}.
+ *        version (SemVer 2.0.0). The string returned must be freed with {@link STT_FreeString()}.
  *
  * @return The version string.
  */
-DEEPSPEECH_EXPORT
-char* DS_Version();
+STT_EXPORT
+char* STT_Version();
 
 /**
  * @brief Returns a textual description corresponding to an error code.
- *        The string returned must be freed with @{link DS_FreeString()}.
+ *        The string returned must be freed with @{link STT_FreeString()}.
  *
  * @return The error description.
  */
-DEEPSPEECH_EXPORT
-char* DS_ErrorCodeToErrorMessage(int aErrorCode);
+STT_EXPORT
+char* STT_ErrorCodeToErrorMessage(int aErrorCode);
 
-#undef DEEPSPEECH_EXPORT
+#undef STT_EXPORT
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* DEEPSPEECH_H */
+#endif /* MOZILLA_VOICE_STT_H */

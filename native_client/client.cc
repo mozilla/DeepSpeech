@@ -34,7 +34,7 @@
 #endif // NO_DIR
 #include <vector>
 
-#include "deepspeech.h"
+#include "mozilla_voice_stt.h"
 #include "args.h"
 
 typedef struct {
@@ -168,17 +168,17 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
 
   // sphinx-doc: c_ref_inference_start
   if (extended_output) {
-    Metadata *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, 1);
+    Metadata *result = STT_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, 1);
     res.string = CandidateTranscriptToString(&result->transcripts[0]);
-    DS_FreeMetadata(result);
+    STT_FreeMetadata(result);
   } else if (json_output) {
-    Metadata *result = DS_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, json_candidate_transcripts);
+    Metadata *result = STT_SpeechToTextWithMetadata(aCtx, aBuffer, aBufferSize, json_candidate_transcripts);
     res.string = MetadataToJSON(result);
-    DS_FreeMetadata(result);
+    STT_FreeMetadata(result);
   } else if (stream_size > 0) {
     StreamingState* ctx;
-    int status = DS_CreateStream(aCtx, &ctx);
-    if (status != DS_ERR_OK) {
+    int status = STT_CreateStream(aCtx, &ctx);
+    if (status != STT_ERR_OK) {
       res.string = strdup("");
       return res;
     }
@@ -186,22 +186,22 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
     const char *last = nullptr;
     while (off < aBufferSize) {
       size_t cur = aBufferSize - off > stream_size ? stream_size : aBufferSize - off;
-      DS_FeedAudioContent(ctx, aBuffer + off, cur);
+      STT_FeedAudioContent(ctx, aBuffer + off, cur);
       off += cur;
-      const char* partial = DS_IntermediateDecode(ctx);
+      const char* partial = STT_IntermediateDecode(ctx);
       if (last == nullptr || strcmp(last, partial)) {
         printf("%s\n", partial);
         last = partial;
       } else {
-        DS_FreeString((char *) partial);
+        STT_FreeString((char *) partial);
       }
     }
     if (last != nullptr) {
-      DS_FreeString((char *) last);
+      STT_FreeString((char *) last);
     }
-    res.string = DS_FinishStream(ctx);
+    res.string = STT_FinishStream(ctx);
   } else {
-    res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize);
+    res.string = STT_SpeechToText(aCtx, aBuffer, aBufferSize);
   }
   // sphinx-doc: c_ref_inference_stop
 
@@ -367,7 +367,7 @@ GetAudioBuffer(const char* path, int desired_sample_rate)
 void
 ProcessFile(ModelState* context, const char* path, bool show_times)
 {
-  ds_audio_buffer audio = GetAudioBuffer(path, DS_GetModelSampleRate(context));
+  ds_audio_buffer audio = GetAudioBuffer(path, STT_GetModelSampleRate(context));
 
   // Pass audio to DeepSpeech
   // We take half of buffer_size because buffer is a char* while
@@ -381,7 +381,7 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
 
   if (result.string) {
     printf("%s\n", result.string);
-    DS_FreeString((char*)result.string);
+    STT_FreeString((char*)result.string);
   }
 
   if (show_times) {
@@ -400,16 +400,16 @@ main(int argc, char **argv)
   // Initialise DeepSpeech
   ModelState* ctx;
   // sphinx-doc: c_ref_model_start
-  int status = DS_CreateModel(model, &ctx);
+  int status = STT_CreateModel(model, &ctx);
   if (status != 0) {
-    char* error = DS_ErrorCodeToErrorMessage(status);
+    char* error = STT_ErrorCodeToErrorMessage(status);
     fprintf(stderr, "Could not create model: %s\n", error);
     free(error);
     return 1;
   }
 
   if (set_beamwidth) {
-    status = DS_SetModelBeamWidth(ctx, beam_width);
+    status = STT_SetModelBeamWidth(ctx, beam_width);
     if (status != 0) {
       fprintf(stderr, "Could not set model beam width.\n");
       return 1;
@@ -417,13 +417,13 @@ main(int argc, char **argv)
   }
 
   if (scorer) {
-    status = DS_EnableExternalScorer(ctx, scorer);
+    status = STT_EnableExternalScorer(ctx, scorer);
     if (status != 0) {
       fprintf(stderr, "Could not enable external scorer.\n");
       return 1;
     }
     if (set_alphabeta) {
-      status = DS_SetScorerAlphaBeta(ctx, lm_alpha, lm_beta);
+      status = STT_SetScorerAlphaBeta(ctx, lm_alpha, lm_beta);
       if (status != 0) {
         fprintf(stderr, "Error setting scorer alpha and beta.\n");
         return 1;
@@ -485,7 +485,7 @@ main(int argc, char **argv)
   sox_quit();
 #endif // NO_SOX
 
-  DS_FreeModel(ctx);
+  STT_FreeModel(ctx);
 
   return 0;
 }

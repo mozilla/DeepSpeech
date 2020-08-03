@@ -9,7 +9,7 @@
 import deepspeech_ios.libdeepspeech_Private
 
 public enum DeepSpeechError: Error {
-    // Should be kept in sync with deepspeech.h
+    // Should be kept in sync with mozilla_voice_stt.h
     case noModel(errorCode: Int32)
     case invalidAlphabet(errorCode: Int32)
     case invalidShape(errorCode: Int32)
@@ -58,8 +58,8 @@ extension DeepSpeechError : LocalizedError {
              .failCreateSess(let errorCode),
              .failCreateModel(let errorCode),
              .invalidErrorCode(let errorCode):
-            let result = DS_ErrorCodeToErrorMessage(errorCode)
-            defer { DS_FreeString(result) }
+            let result = STT_ErrorCodeToErrorMessage(errorCode)
+            defer { STT_FreeString(result) }
             return String(cString: result!)
         }
     }
@@ -67,43 +67,43 @@ extension DeepSpeechError : LocalizedError {
 
 private func errorCodeToEnum(errorCode: Int32) -> DeepSpeechError {
     switch Int(errorCode) {
-    case Int(DS_ERR_NO_MODEL.rawValue):
+    case Int(STT_ERR_NO_MODEL.rawValue):
         return DeepSpeechError.noModel(errorCode: errorCode)
-    case Int(DS_ERR_INVALID_ALPHABET.rawValue):
+    case Int(STT_ERR_INVALID_ALPHABET.rawValue):
         return DeepSpeechError.invalidAlphabet(errorCode: errorCode)
-    case Int(DS_ERR_INVALID_SHAPE.rawValue):
+    case Int(STT_ERR_INVALID_SHAPE.rawValue):
         return DeepSpeechError.invalidShape(errorCode: errorCode)
-    case Int(DS_ERR_INVALID_SCORER.rawValue):
+    case Int(STT_ERR_INVALID_SCORER.rawValue):
         return DeepSpeechError.invalidScorer(errorCode: errorCode)
-    case Int(DS_ERR_MODEL_INCOMPATIBLE.rawValue):
+    case Int(STT_ERR_MODEL_INCOMPATIBLE.rawValue):
         return DeepSpeechError.modelIncompatible(errorCode: errorCode)
-    case Int(DS_ERR_SCORER_NOT_ENABLED.rawValue):
+    case Int(STT_ERR_SCORER_NOT_ENABLED.rawValue):
         return DeepSpeechError.scorerNotEnabled(errorCode: errorCode)
-    case Int(DS_ERR_SCORER_UNREADABLE.rawValue):
+    case Int(STT_ERR_SCORER_UNREADABLE.rawValue):
         return DeepSpeechError.scorerUnreadable(errorCode: errorCode)
-    case Int(DS_ERR_SCORER_INVALID_LM.rawValue):
+    case Int(STT_ERR_SCORER_INVALID_LM.rawValue):
         return DeepSpeechError.scorerInvalidLm(errorCode: errorCode)
-    case Int(DS_ERR_SCORER_NO_TRIE.rawValue):
+    case Int(STT_ERR_SCORER_NO_TRIE.rawValue):
         return DeepSpeechError.scorerNoTrie(errorCode: errorCode)
-    case Int(DS_ERR_SCORER_INVALID_TRIE.rawValue):
+    case Int(STT_ERR_SCORER_INVALID_TRIE.rawValue):
         return DeepSpeechError.scorerInvalidTrie(errorCode: errorCode)
-    case Int(DS_ERR_SCORER_VERSION_MISMATCH.rawValue):
+    case Int(STT_ERR_SCORER_VERSION_MISMATCH.rawValue):
         return DeepSpeechError.scorerVersionMismatch(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_INIT_MMAP.rawValue):
+    case Int(STT_ERR_FAIL_INIT_MMAP.rawValue):
         return DeepSpeechError.failInitMmap(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_INIT_SESS.rawValue):
+    case Int(STT_ERR_FAIL_INIT_SESS.rawValue):
         return DeepSpeechError.failInitSess(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_INTERPRETER.rawValue):
+    case Int(STT_ERR_FAIL_INTERPRETER.rawValue):
         return DeepSpeechError.failInterpreter(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_RUN_SESS.rawValue):
+    case Int(STT_ERR_FAIL_RUN_SESS.rawValue):
         return DeepSpeechError.failRunSess(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_CREATE_STREAM.rawValue):
+    case Int(STT_ERR_FAIL_CREATE_STREAM.rawValue):
         return DeepSpeechError.failCreateStream(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_READ_PROTOBUF.rawValue):
+    case Int(STT_ERR_FAIL_READ_PROTOBUF.rawValue):
         return DeepSpeechError.failReadProtobuf(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_CREATE_SESS.rawValue):
+    case Int(STT_ERR_FAIL_CREATE_SESS.rawValue):
         return DeepSpeechError.failCreateSess(errorCode: errorCode)
-    case Int(DS_ERR_FAIL_CREATE_MODEL.rawValue):
+    case Int(STT_ERR_FAIL_CREATE_MODEL.rawValue):
         return DeepSpeechError.failCreateModel(errorCode: errorCode)
     default:
         return DeepSpeechError.invalidErrorCode(errorCode: errorCode)
@@ -111,7 +111,7 @@ private func errorCodeToEnum(errorCode: Int32) -> DeepSpeechError {
 }
 
 private func evaluateErrorCode(errorCode: Int32) throws {
-    if errorCode != Int32(DS_ERR_OK.rawValue) {
+    if errorCode != Int32(STT_ERR_OK.rawValue) {
         throw errorCodeToEnum(errorCode: errorCode)
     }
 }
@@ -182,7 +182,7 @@ public class DeepSpeechStream {
 
     deinit {
         if streamCtx != nil {
-            DS_FreeStream(streamCtx)
+            STT_FreeStream(streamCtx)
             streamCtx = nil
         }
     }
@@ -212,7 +212,7 @@ public class DeepSpeechStream {
     public func feedAudioContent(buffer: UnsafeBufferPointer<Int16>) {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
-        DS_FeedAudioContent(streamCtx, buffer.baseAddress, UInt32(buffer.count))
+        STT_FeedAudioContent(streamCtx, buffer.baseAddress, UInt32(buffer.count))
     }
 
     /** Compute the intermediate decoding of an ongoing streaming inference.
@@ -224,8 +224,8 @@ public class DeepSpeechStream {
     public func intermediateDecode() -> String {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
-        let result = DS_IntermediateDecode(streamCtx)
-        defer { DS_FreeString(result) }
+        let result = STT_IntermediateDecode(streamCtx)
+        defer { STT_FreeString(result) }
         return String(cString: result!)
     }
 
@@ -241,8 +241,8 @@ public class DeepSpeechStream {
     */
     public func intermediateDecodeWithMetadata(numResults: Int) -> DeepSpeechMetadata {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
-        let result = DS_IntermediateDecodeWithMetadata(streamCtx, UInt32(numResults))!
-        defer { DS_FreeMetadata(result) }
+        let result = STT_IntermediateDecodeWithMetadata(streamCtx, UInt32(numResults))!
+        defer { STT_FreeMetadata(result) }
         return DeepSpeechMetadata(fromInternal: result)
     }
 
@@ -258,9 +258,9 @@ public class DeepSpeechStream {
     public func finishStream() -> String {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
-        let result = DS_FinishStream(streamCtx)
+        let result = STT_FinishStream(streamCtx)
         defer {
-            DS_FreeString(result)
+            STT_FreeString(result)
             streamCtx = nil
         }
         return String(cString: result!)
@@ -282,8 +282,8 @@ public class DeepSpeechStream {
     public func finishStreamWithMetadata(numResults: Int) -> DeepSpeechMetadata {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
-        let result = DS_FinishStreamWithMetadata(streamCtx, UInt32(numResults))!
-        defer { DS_FreeMetadata(result) }
+        let result = STT_FinishStreamWithMetadata(streamCtx, UInt32(numResults))!
+        defer { STT_FreeMetadata(result) }
         return DeepSpeechMetadata(fromInternal: result)
     }
 }
@@ -298,23 +298,23 @@ public class DeepSpeechModel {
         - Throws: `DeepSpeechError` on failure.
     */
     public init(modelPath: String) throws {
-        let err = DS_CreateModel(modelPath, &modelCtx)
+        let err = STT_CreateModel(modelPath, &modelCtx)
         try evaluateErrorCode(errorCode: err)
     }
 
     deinit {
-        DS_FreeModel(modelCtx)
+        STT_FreeModel(modelCtx)
         modelCtx = nil
     }
 
-    /** Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
+    /** Get beam width value used by the model. If {@link STT_SetModelBeamWidth}
         was not called before, will return the default value loaded from the
         model file.
 
         - Returns: Beam width value used by the model.
     */
     public func getBeamWidth() -> Int {
-        return Int(DS_GetModelBeamWidth(modelCtx))
+        return Int(STT_GetModelBeamWidth(modelCtx))
     }
 
     /** Set beam width value used by the model.
@@ -326,14 +326,14 @@ public class DeepSpeechModel {
         - Throws: `DeepSpeechError` on failure.
     */
     public func setBeamWidth(beamWidth: Int) throws {
-        let err = DS_SetModelBeamWidth(modelCtx, UInt32(beamWidth))
+        let err = STT_SetModelBeamWidth(modelCtx, UInt32(beamWidth))
         try evaluateErrorCode(errorCode: err)
     }
 
     // The sample rate expected by the model.
     public var sampleRate: Int {
         get {
-            return Int(DS_GetModelSampleRate(modelCtx))
+            return Int(STT_GetModelSampleRate(modelCtx))
         }
     }
 
@@ -344,7 +344,7 @@ public class DeepSpeechModel {
         - Throws: `DeepSpeechError` on failure.
     */
     public func enableExternalScorer(scorerPath: String) throws {
-        let err = DS_EnableExternalScorer(modelCtx, scorerPath)
+        let err = STT_EnableExternalScorer(modelCtx, scorerPath)
         try evaluateErrorCode(errorCode: err)
     }
 
@@ -353,7 +353,7 @@ public class DeepSpeechModel {
         - Throws: `DeepSpeechError` on failure.
     */
     public func disableExternalScorer() throws {
-        let err = DS_DisableExternalScorer(modelCtx)
+        let err = STT_DisableExternalScorer(modelCtx)
         try evaluateErrorCode(errorCode: err)
     }
 
@@ -365,7 +365,7 @@ public class DeepSpeechModel {
         - Throws: `DeepSpeechError` on failure.
     */
     public func setScorerAlphaBeta(alpha: Float, beta: Float) throws {
-        let err = DS_SetScorerAlphaBeta(modelCtx, alpha, beta)
+        let err = STT_SetScorerAlphaBeta(modelCtx, alpha, beta)
         try evaluateErrorCode(errorCode: err)
     }
 
@@ -390,8 +390,8 @@ public class DeepSpeechModel {
         - Returns: The STT result.
     */
     public func speechToText(buffer: UnsafeBufferPointer<Int16>) -> String {
-        let result = DS_SpeechToText(modelCtx, buffer.baseAddress, UInt32(buffer.count))
-        defer { DS_FreeString(result) }
+        let result = STT_SpeechToText(modelCtx, buffer.baseAddress, UInt32(buffer.count))
+        defer { STT_FreeString(result) }
         return String(cString: result!)
     }
 
@@ -424,12 +424,12 @@ public class DeepSpeechModel {
                    Each transcript has per-token metadata including timing information.
    */
     public func speechToTextWithMetadata(buffer: UnsafeBufferPointer<Int16>, numResults: Int) -> DeepSpeechMetadata {
-        let result = DS_SpeechToTextWithMetadata(
+        let result = STT_SpeechToTextWithMetadata(
             modelCtx,
             buffer.baseAddress,
             UInt32(buffer.count),
             UInt32(numResults))!
-        defer { DS_FreeMetadata(result) }
+        defer { STT_FreeMetadata(result) }
         return DeepSpeechMetadata(fromInternal: result)
     }
 
@@ -441,14 +441,14 @@ public class DeepSpeechModel {
     */
     public func createStream() throws -> DeepSpeechStream {
         var streamContext: OpaquePointer!
-        let err = DS_CreateStream(modelCtx, &streamContext)
+        let err = STT_CreateStream(modelCtx, &streamContext)
         try evaluateErrorCode(errorCode: err)
         return DeepSpeechStream(streamContext: streamContext)
     }
 }
 
 public func DeepSpeechVersion() -> String {
-    let result = DS_Version()
-    defer { DS_FreeString(result) }
+    let result = STT_Version()
+    defer { STT_FreeString(result) }
     return String(cString: result!)
 }

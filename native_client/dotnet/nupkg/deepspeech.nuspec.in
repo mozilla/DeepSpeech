@@ -3,7 +3,7 @@
   <metadata>
     <id>$NUPKG_ID</id>
     <version>$NUPKG_VERSION</version>
-    <title>DeepSpeech</title>
+    <title>Mozilla_Voice_STT</title>
     <authors>Mozilla</authors>
     <owners>Mozilla</owners>
     <license type="expression">MPL-2.0</license>

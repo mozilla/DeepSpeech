@@ -14,15 +14,15 @@ download_data
 virtualenv_activate "${pyalias}" "deepspeech"
 
 if [ "$3" = "cuda" ]; then
-  deepspeech_pkg_url=$(get_python_pkg_url "${pyver_pkg}" "${py_unicode_type}" "deepspeech_gpu")
+  deepspeech_pkg_url=$(get_python_pkg_url "${pyver_pkg}" "${py_unicode_type}" "mozilla_voice_stt_gpu")
 else
   deepspeech_pkg_url=$(get_python_pkg_url "${pyver_pkg}" "${py_unicode_type}")
 fi;
 
 LD_LIBRARY_PATH=${PY37_LDPATH}:$LD_LIBRARY_PATH pip install --verbose --only-binary :all: --upgrade ${deepspeech_pkg_url} | cat
 
-which deepspeech
-deepspeech --version
+which mozilla_voice_stt
+mozilla_voice_stt --version
 
 ensure_cuda_usage "$3"
 
