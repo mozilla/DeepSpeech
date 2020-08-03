@@ -18,6 +18,7 @@ build:
     namespace: ${system.gradle_cache.namespace}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-apk-tests.sh x86_64 android-29"
+  workerType: "${docker.dsHighMemTests}"
   metadata:
     name: "DeepSpeech Android 10.0 x86_64 Google Pixel APK/Java tests"
     description: "Testing DeepSpeech APK/Java for Android 10.0 x86_64 Google Pixel, optimized version"

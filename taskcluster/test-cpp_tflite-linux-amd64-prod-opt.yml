@@ -4,6 +4,7 @@ build:
     - "linux-amd64-tflite-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-cpp_tflite-tests-prod.sh 16k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 TFLite C++ prod tests"
     description: "Testing DeepSpeech C++ for Linux/AMD64 on prod model, TFLite, optimized version"

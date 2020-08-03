@@ -4,6 +4,7 @@ build:
     - "linux-amd64-cpu-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-cpp-ds-tests-prod.sh 16k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU C++ prod tests"
     description: "Testing DeepSpeech C++ for Linux/AMD64 on prod model, CPU only, optimized version"

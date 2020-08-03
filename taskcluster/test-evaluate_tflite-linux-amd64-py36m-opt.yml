@@ -6,6 +6,7 @@ build:
   test_model_task: "test-training_16k-linux-amd64-py36m-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-evaluate_tflite.sh 3.6.10:m 16k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU evaluate_tflite.py Py3.6 (16kHz)"
     description: "Test evaluate_tflite.py on Linux/AMD64 using upstream TensorFlow Python 3.6, CPU only, optimized version"

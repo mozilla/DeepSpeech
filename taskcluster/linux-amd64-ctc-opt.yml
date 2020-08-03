@@ -18,6 +18,7 @@ build:
     setup: "taskcluster/tc-true.sh"
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'
+  workerType: "${docker.dsBuild}"
   metadata:
     name: "DeepSpeech CTC Decoder Linux AMD64 CPU"
     description: "Building DeepSpeech CTC Decoder for Linux/AMD64, CPU only, optimized version"

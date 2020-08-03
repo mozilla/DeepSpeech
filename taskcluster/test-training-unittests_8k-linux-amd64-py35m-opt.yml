@@ -1,12 +1,13 @@
 build:
-    template_file: test-linux-opt-base.tyml
-    dependencies:
-      - "linux-amd64-ctc-opt"
-    system_setup:
-      >
-        apt-get -qq update && apt-get -qq -y install ${training.packages_xenial.apt}
-    args:
-      tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-unittests.sh 3.5.8:m"
-    metadata:
-      name: "DeepSpeech on Linux AMD64 CPU training unittests using Python 3.5"
-      description: "Training unittests DeepSpeech LDC93S1 model for Linux/AMD64 using Python 3.5, for CPU only, and optimized version"
+  template_file: test-linux-opt-base.tyml
+  dependencies:
+    - "linux-amd64-ctc-opt"
+  system_setup:
+    >
+      apt-get -qq update && apt-get -qq -y install ${training.packages_xenial.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-unittests.sh 3.5.8:m"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "DeepSpeech on Linux AMD64 CPU training unittests using Python 3.5"
+    description: "Training unittests DeepSpeech LDC93S1 model for Linux/AMD64 using Python 3.5, for CPU only, and optimized version"
