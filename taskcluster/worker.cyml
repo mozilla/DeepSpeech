@@ -4,7 +4,7 @@ taskcluster:
     provisionerId: proj-deepspeech
     workerType: ci
     workerTypeKvm: kvm
-    workerTypeWin: win-b
+    workerTypeWin: win
     workerTypeCuda: win-gpu
   dockerrpi3:
     provisionerId: proj-deepspeech
