@@ -37,8 +37,8 @@ If you want to use the pre-trained English model for performing speech-to-text, 
 
 .. code-block:: bash
 
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.pbmm
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.scorer
+   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.8.0/deepspeech-0.8.0-models.pbmm
+   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.8.0/deepspeech-0.8.0-models.scorer
 
 There are several pre-trained model files available in official releases. Files ending in ``.pbmm`` are compatible with clients and language bindings built against the standard TensorFlow runtime. Usually these packages are simply called ``deepspeech``. These files are also compatible with CUDA enabled clients and language bindings. These packages are usually called ``deepspeech-gpu``. Files ending in ``.tflite`` are compatible with clients and language bindings built against the `TensorFlow Lite runtime <https://www.tensorflow.org/lite/>`_. These models are optimized for size and performance in low power devices. On desktop platforms, the compatible packages are called ``deepspeech-tflite``. On Android and Raspberry Pi, we only publish TensorFlow Lite enabled packages, and they are simply called ``deepspeech``. You can see a full list of supported platforms and which TensorFlow runtime is supported at :ref:`supported-platforms-inference`.
 
@@ -136,7 +136,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   deepspeech --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio my_audio_file.wav
+   deepspeech --model deepspeech-0.8.0-models.pbmm --scorer deepspeech-0.8.0-models.scorer --audio my_audio_file.wav
 
 The ``--scorer`` argument is optional, and represents an external language model to be used when transcribing the audio.
 
@@ -200,7 +200,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   ./deepspeech --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio audio_input.wav
+   ./deepspeech --model deepspeech-0.8.0-models.pbmm --scorer deepspeech-0.8.0-models.scorer --audio audio_input.wav
 
 See the help output with ``./deepspeech -h`` for more details.
 

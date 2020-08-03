@@ -26,8 +26,8 @@ class SpeechRecognitionImpl : NSObject, AVCaptureAudioDataOutputSampleBufferDele
     private var audioData = Data()
     
     override init() {
-        let modelPath = Bundle.main.path(forResource: "deepspeech-0.7.4-models", ofType: "tflite")!
-        let scorerPath = Bundle.main.path(forResource: "deepspeech-0.7.4-models", ofType: "scorer")!
+        let modelPath = Bundle.main.path(forResource: "deepspeech-0.8.0-models", ofType: "tflite")!
+        let scorerPath = Bundle.main.path(forResource: "deepspeech-0.8.0-models", ofType: "scorer")!
 
         model = try! DeepSpeechModel(modelPath: modelPath)
         try! model.enableExternalScorer(scorerPath: scorerPath)
