@@ -10,6 +10,7 @@ build:
     setup: "taskcluster/tc-true.sh"
     build: "taskcluster/android_cache-build.sh x86_64 android-28"
     package: "taskcluster/android_cache-package.sh"
+  workerType: "${docker.smallTask}"
   metadata:
     name: "Builds Android cache x86_64 / android-28"
     description: "Setup an Android SDK / emulator cache for Android / x86_64 android-28"

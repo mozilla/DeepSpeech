@@ -14,6 +14,7 @@ build:
     build: "taskcluster/android-build.sh armeabi-v7a"
     package: "taskcluster/android-package.sh armeabi-v7a"
   nc_asset_name: "native_client.armv7.cpu.android.tar.xz"
+  workerType: "${docker.dsBuild}"
   metadata:
     name: "DeepSpeech Android ARMv7"
     description: "Building DeepSpeech for Android ARMv7, optimized version"

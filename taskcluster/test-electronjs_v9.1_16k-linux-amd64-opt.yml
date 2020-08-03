@@ -10,6 +10,7 @@ build:
       ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_xenial.apt} ${electronjs.packages_xenial.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 9.0.1 16k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU ElectronJS v9.1 tests (16kHz)"
     description: "Testing DeepSpeech for Linux/AMD64 on ElectronJS v9.1, CPU only, optimized version (16kHz)"

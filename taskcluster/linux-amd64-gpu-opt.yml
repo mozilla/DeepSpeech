@@ -20,6 +20,7 @@ build:
     build: "taskcluster/cuda-build.sh"
     package: "taskcluster/package.sh"
   nc_asset_name: "native_client.amd64.cuda.linux.tar.xz"
+  workerType: "${docker.dsBuild}"
   metadata:
     name: "DeepSpeech Linux AMD64 CUDA"
     description: "Building DeepSpeech for Linux/AMD64, CUDA-enabled, optimized version"

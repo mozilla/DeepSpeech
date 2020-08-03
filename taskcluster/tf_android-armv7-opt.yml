@@ -11,6 +11,7 @@ build:
     build: "taskcluster/tf_tc-build.sh --android-armv7"
     package: "taskcluster/tf_tc-package.sh"
   maxRunTime: 14400
+  workerType: "${docker.tfBuild}"
   metadata:
     name: "TensorFlow Android ARMv7"
     description: "Building TensorFlow for Android ARMv7, optimized version"
