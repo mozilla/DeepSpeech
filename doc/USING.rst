@@ -28,7 +28,7 @@ Please refer to your system's documentation on how to install these dependencies
 CUDA dependency
 ^^^^^^^^^^^^^^^
 
-The GPU capable builds (Python, NodeJS, C++, etc) depend on the same CUDA runtime as upstream TensorFlow. Currently with TensorFlow 2.2 it depends on CUDA 10.1 and CuDNN v7.6. `See the TensorFlow documentation <https://www.tensorflow.org/install/gpu>`_.
+The GPU capable builds (Python, NodeJS, C++, etc) depend on CUDA 10.1 and CuDNN v7.6.
 
 Getting the pre-trained model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
