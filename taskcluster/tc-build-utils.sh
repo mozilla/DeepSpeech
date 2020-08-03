@@ -272,9 +272,9 @@ do_deepspeech_netframework_build()
     /p:Platform=x64
 }
 
-do_deepspeech_netframework_wpf_example_build()
+do_deepspeech_netframework_wpf_build()
 {
-  cd ${DS_EXAMPLEDIR}/net_framework
+  cd ${DS_DSDIR}/native_client/dotnet
 
   # Setup dependencies
   nuget install DeepSpeechWPF/packages.config -OutputDirectory DeepSpeechWPF/packages/
