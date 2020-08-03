@@ -8,6 +8,8 @@ Introduction
 
 DeepSpeech uses the `Connectionist Temporal Classification <http://www.cs.toronto.edu/~graves/icml_2006.pdf>`_ loss function. For an excellent explanation of CTC and its usage, see this Distill article: `Sequence Modeling with CTC <https://distill.pub/2017/ctc/>`_. This document assumes the reader is familiar with the concepts described in that article, and describes DeepSpeech specific behaviors that developers building systems with DeepSpeech should know to avoid problems.
 
+Note: Documentation for the tooling for creating custom scorer packages is available in :ref:`scorer-scripts`.
+
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be interpreted as described in `BCP 14 <https://tools.ietf.org/html/bcp14>`_ when, and only when, they appear in all capitals, as shown here.
 
 
@@ -26,7 +28,7 @@ The scripts are geared towards replicating the language model files we release a
 Decoding modes
 ^^^^^^^^^^^^^^
 
-DeepSpeech currently supports two modes of operation with significant differences at both training and decoding time.
+DeepSpeech currently supports two modes of operation with significant differences at both training and decoding time. Note that Bytes output mode is experimental and has not been tested for languages other than Chinese Mandarin.
 
 
 Default mode (alphabet based)
@@ -35,12 +37,14 @@ Default mode (alphabet based)
 The default mode, which uses an alphabet file (specified with ``--alphabet_config_path`` at training and export time) to determine which labels (characters), and how many of them, to predict in the output layer. At decoding time, if using an external scorer, it MUST be word based and MUST be built using the same alphabet file used for training. Word based means the text corpus used to build the scorer should contain words separated by whitespace. For most western languages, this is the default and requires no special steps from the developer when creating the scorer.
 
 
-UTF-8 mode
-^^^^^^^^^^
+Bytes output mode
+^^^^^^^^^^^^^^^^^
 
-In UTF-8 mode the model predicts UTF-8 bytes directly instead of letters from an alphabet file. This idea was proposed in the paper `Bytes Are All You Need <https://arxiv.org/abs/1811.09021>`_. This mode is enabled with the ``--utf8`` flag at training and export time. At training time, the alphabet file is not used. Instead, the model is forced to have 256 labels, with labels 0-254 corresponding to UTF-8 byte values 1-255, and label 255 is used for the CTC blank symbol. If using an external scorer at decoding time, it MUST be built according to the instructions that follow.
+**Note**: Currently, Bytes output mode makes assumptions that hold for Chinese Mandarin models but do not hold for other language targets, such as not predicting spaces.
 
-UTF-8 decoding can be useful for languages with very large alphabets, such as Mandarin written with Simplified Chinese characters. It may also be useful for building multi-language models, or as a base for transfer learning. Currently these cases are untested and unsupported. Note that UTF-8 mode makes assumptions that hold for Mandarin written with Simplified Chinese characters and may not hold for other languages.
+In bytes output mode the model predicts UTF-8 bytes directly instead of letters from an alphabet file. This idea was proposed in the paper `Bytes Are All You Need <https://arxiv.org/abs/1811.09021>`_. This mode is enabled with the ``--utf8`` flag at training and export time. At training time, the alphabet file is not used. Instead, the model is forced to have 256 labels, with labels 0-254 corresponding to UTF-8 byte values 1-255, and label 255 is used for the CTC blank symbol. If using an external scorer at decoding time, it MUST be built according to the instructions that follow.
+
+Bytes output mode can be useful for languages with very large alphabets, such as Mandarin written with Simplified Chinese characters. It may also be useful for building multi-language models, or as a base for transfer learning. Currently these cases are untested and unsupported. Note that bytes output mode makes assumptions that hold for Mandarin written with Simplified Chinese characters and may not hold for other languages.
 
 UTF-8 scorers are character based (more specifically, Unicode codepoint based), but the way they are used is similar to a word based scorer where each "word" is a sequence of UTF-8 bytes representing a single Unicode codepoint. This means that the input text used to create UTF-8 scorers should contain space separated Unicode codepoints. For example, the following input text:
 
@@ -56,13 +60,13 @@ At decoding time, the scorer is queried every time a Unicode codepoint is predic
 
 **Acoustic models trained with ``--utf8`` MUST NOT be used with an alphabet based scorer. Conversely, acoustic models trained with an alphabet file MUST NOT be used with a UTF-8 scorer.**
 
-UTF-8 scorers can be built by using an input corpus with space separated codepoints. If your corpus only contains single codepoints separated by spaces, ``generate_scorer_package`` should automatically enable UTF-8 mode, and it should print the message "Looks like a character based model."
+UTF-8 scorers can be built by using an input corpus with space separated codepoints. If your corpus only contains single codepoints separated by spaces, ``generate_scorer_package`` should automatically enable bytes output mode, and it should print the message "Looks like a character based model."
 
-If the message "Doesn't look like a character based model." is printed, you should double check your inputs to make sure it only contains single codepoints separated by spaces. UTF-8 mode can be forced by specifying the ``--force_utf8`` flag when running ``generate_scorer_package``, but it is NOT RECOMMENDED.
+If the message "Doesn't look like a character based model." is printed, you should double check your inputs to make sure it only contains single codepoints separated by spaces. Bytes output mode can be forced by specifying the ``--force_utf8`` flag when running ``generate_scorer_package``, but it is NOT RECOMMENDED.
 
 See :ref:`scorer-scripts` for more details on using ``generate_scorer_package``.
 
-Because KenLM uses spaces as a word separator, the resulting language model will not include space characters in it. If you wish to use UTF-8 mode but still model spaces, you need to replace spaces in the input corpus with a different character **before** converting it to space separated codepoints. For example:
+Because KenLM uses spaces as a word separator, the resulting language model will not include space characters in it. If you wish to use bytes output mode but still model spaces, you need to replace spaces in the input corpus with a different character **before** converting it to space separated codepoints. For example:
 
 .. code-block:: python
 
