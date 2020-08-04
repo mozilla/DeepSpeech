@@ -231,7 +231,7 @@ do_deepspeech_netframework_build()
   cd ${DS_DSDIR}/native_client/dotnet
 
   # Setup dependencies
-  nuget restore DeepSpeech.sln
+  nuget restore MozillaVoiceStt.sln
 
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"
 
@@ -239,35 +239,35 @@ do_deepspeech_netframework_build()
   # We build the .NET Client for .NET Framework v4.5,v4.6,v4.7
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechClient/DeepSpeechClient.csproj \
+    MozillaVoiceSttClient/MozillaVoiceSttClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFramework="net452" \
     /p:OutputPath=bin/nuget/x64/v4.5
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechClient/DeepSpeechClient.csproj \
+    MozillaVoiceSttClient/MozillaVoiceSttClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFramework="net46" \
     /p:OutputPath=bin/nuget/x64/v4.6
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechClient/DeepSpeechClient.csproj \
+    MozillaVoiceSttClient/MozillaVoiceSttClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFramework="net47" \
     /p:OutputPath=bin/nuget/x64/v4.7
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechClient/DeepSpeechClient.csproj \
+    MozillaVoiceSttClient/MozillaVoiceSttClient.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:TargetFramework="uap10.0" \
     /p:OutputPath=bin/nuget/x64/uap10.0
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechConsole/DeepSpeechConsole.csproj \
+    MozillaVoiceSttConsole/MozillaVoiceSttConsole.csproj \
     /p:Configuration=Release \
     /p:Platform=x64
 }
@@ -277,14 +277,14 @@ do_deepspeech_netframework_wpf_build()
   cd ${DS_DSDIR}/native_client/dotnet
 
   # Setup dependencies
-  nuget install DeepSpeechWPF/packages.config -OutputDirectory DeepSpeechWPF/packages/
+  nuget install MozillaVoiceSttWPF/packages.config -OutputDirectory MozillaVoiceSttWPF/packages/
 
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"
 
   # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
   # Build WPF example
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechWPF/DeepSpeech.WPF.csproj \
+    MozillaVoiceSttWPF/MozillaVoiceStt.WPF.csproj \
     /p:Configuration=Release \
     /p:Platform=x64 \
     /p:OutputPath=bin/x64
@@ -306,16 +306,16 @@ do_nuget_build()
   # We copy the generated clients for .NET into the Nuget framework dirs
 
   mkdir -p nupkg/lib/net45/
-  cp DeepSpeechClient/bin/nuget/x64/v4.5/DeepSpeechClient.dll nupkg/lib/net45/
+  cp MozillaVoiceSttClient/bin/nuget/x64/v4.5/MozillaVoiceSttClient.dll nupkg/lib/net45/
 
   mkdir -p nupkg/lib/net46/
-  cp DeepSpeechClient/bin/nuget/x64/v4.6/DeepSpeechClient.dll nupkg/lib/net46/
+  cp MozillaVoiceSttClient/bin/nuget/x64/v4.6/MozillaVoiceSttClient.dll nupkg/lib/net46/
 
   mkdir -p nupkg/lib/net47/
-  cp DeepSpeechClient/bin/nuget/x64/v4.7/DeepSpeechClient.dll nupkg/lib/net47/
+  cp MozillaVoiceSttClient/bin/nuget/x64/v4.7/MozillaVoiceSttClient.dll nupkg/lib/net47/
 
   mkdir -p nupkg/lib/uap10.0/
-  cp DeepSpeechClient/bin/nuget/x64/uap10.0/DeepSpeechClient.dll nupkg/lib/uap10.0/
+  cp MozillaVoiceSttClient/bin/nuget/x64/uap10.0/MozillaVoiceSttClient.dll nupkg/lib/uap10.0/
 
   PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \
@@ -341,5 +341,5 @@ do_deepspeech_ios_framework_build()
     xcodeArch="arm64"
     ;;
   esac
-  xcodebuild -workspace deepspeech_ios.xcworkspace -scheme deepspeech_ios_test -configuration Release -arch "${xcodeArch}" -sdk "${iosSDK}" -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+  xcodebuild -workspace mozilla_voice_stt.xcworkspace -scheme mozilla_voice_stt_test -configuration Release -arch "${xcodeArch}" -sdk "${iosSDK}" -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 }

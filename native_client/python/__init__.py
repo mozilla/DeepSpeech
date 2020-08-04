@@ -20,7 +20,7 @@ if platform.system().lower() == "windows":
 import mozilla_voice_stt as stt
 
 # rename for backwards compatibility
-from stt.impl import Version as version
+from mozilla_voice_stt.impl import Version as version
 
 class Model(object):
     """
