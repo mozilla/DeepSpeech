@@ -1,0 +1,14 @@
+build:
+  template_file: examples-base.tyml
+  docker_image: "node:12"
+  dependencies:
+    - "linux-amd64-cpu-opt"
+  system_setup:
+    >
+      apt-get -qq update && apt-get -qq -y install ${electronjs.packages_xenial.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/electron/test.sh"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "DeepSpeech examples: ElectronJS/React on NodeJS v12.x"
+    description: "DeepSpeech examples: ElectronJS/React on NodeJS v12.x"
