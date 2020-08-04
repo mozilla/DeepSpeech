@@ -11,6 +11,7 @@ build:
     build: "taskcluster/tf_tc-build.sh --cpu"
     package: "taskcluster/tf_tc-package.sh"
   maxRunTime: 14400
+  workerType: "${docker.tfBuild}"
   metadata:
     name: "TensorFlow Linux AMD64 CPU"
     description: "Building TensorFlow for Linux/AMD64, CPU only, optimized version"

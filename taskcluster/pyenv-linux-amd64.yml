@@ -10,6 +10,7 @@ build:
     setup: "taskcluster/tc-true.sh"
     build: "taskcluster/pyenv-build.sh"
     package: "taskcluster/pyenv-package.sh"
+  workerType: "${docker.dsBuild}"
   metadata:
     name: "Builds Pyenv Linux AMD64"
     description: "Setup a builds Pyenv for Linux/AMD64"

@@ -19,6 +19,7 @@ build:
     build: "taskcluster/host-build.sh tflite"
     package: "taskcluster/package.sh"
   nc_asset_name: "native_client.amd64.tflite.linux.tar.xz"
+  workerType: "${docker.dsBuild}"
   metadata:
     name: "DeepSpeech Linux AMD64 TFLite"
     description: "Building DeepSpeech for Linux/AMD64, TFLite, optimized version"

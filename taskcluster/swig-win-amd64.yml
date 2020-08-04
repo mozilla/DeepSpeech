@@ -16,6 +16,7 @@ build:
     setup: "taskcluster/tc-true.sh"
     build: "taskcluster/build.sh x86_64-w64-mingw32"
     package: "taskcluster/package.sh"
+  workerType: "${docker.dsBuild}"
   metadata:
     name: "SWIG Windows AMD64"
     description: "Building SWIG for Windows/AMD64"

@@ -8,6 +8,7 @@ build:
       apt-get -qq -y install portaudio19-dev pulseaudio
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/mic_vad_streaming/test.sh 3.6.0:m"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech examples: mic VAD streaming Py3.6"
     description: "DeepSpeech examples: mic VAD streaming Python 3.6"

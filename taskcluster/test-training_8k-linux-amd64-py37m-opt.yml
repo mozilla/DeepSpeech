@@ -7,6 +7,7 @@ build:
       apt-get -qq update && apt-get -qq -y install ${training.packages_xenial.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-tests.sh 3.7.6:m 8k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU 8kHz basic training Py3.7"
     description: "Training a DeepSpeech LDC93S1 model for Linux/AMD64 8kHz Python 3.7, CPU only, optimized version"

@@ -4,6 +4,7 @@ build:
     - "linux-amd64-tflite-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python_tflite-tests-prod.sh 3.6.10:m 8k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 TFLite Python v3.6 prod tests (8kHz)"
     description: "Testing DeepSpeech for Linux/AMD64 on Python v3.6 on prod model, TFLite, optimized version (8kHz)"
