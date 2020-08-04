@@ -93,7 +93,7 @@ STT_FOR_EACH_ERROR(DEFINE)
 };
 
 /**
- * @brief An object providing an interface to a trained DeepSpeech model.
+ * @brief An object providing an interface to a trained Mozilla Voice STT model.
  *
  * @param aModelPath The path to the frozen model graph.
  * @param[out] retval a ModelState pointer
@@ -182,7 +182,7 @@ int STT_SetScorerAlphaBeta(ModelState* aCtx,
                            float aBeta);
 
 /**
- * @brief Use the DeepSpeech model to convert speech to text.
+ * @brief Use the Mozilla Voice STT model to convert speech to text.
  *
  * @param aCtx The ModelState pointer for the model to use.
  * @param aBuffer A 16-bit, mono raw audio signal at the appropriate
@@ -198,7 +198,7 @@ char* STT_SpeechToText(ModelState* aCtx,
                        unsigned int aBufferSize);
 
 /**
- * @brief Use the DeepSpeech model to convert speech to text and output results
+ * @brief Use the Mozilla Voice STT model to convert speech to text and output results
  * including metadata.
  *
  * @param aCtx The ModelState pointer for the model to use.
@@ -325,7 +325,7 @@ STT_EXPORT
 void STT_FreeMetadata(Metadata* m);
 
 /**
- * @brief Free a char* string returned by the DeepSpeech API.
+ * @brief Free a char* string returned by the Mozilla Voice STT API.
  */
 STT_EXPORT
 void STT_FreeString(char* str);
