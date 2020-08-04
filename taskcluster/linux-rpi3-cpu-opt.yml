@@ -25,6 +25,7 @@ build:
     setup: "taskcluster/tc-true.sh"
     build: "taskcluster/rpi3-build.sh"
     package: "taskcluster/package.sh"
+  workerType: "${docker.dsBuild}"
   nc_asset_name: "native_client.rpi3.cpu.linux.tar.xz"
   metadata:
     name: "DeepSpeech Linux RPi3/ARMv7 CPU"

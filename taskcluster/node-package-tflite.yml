@@ -11,6 +11,7 @@ build:
   scripts:
     build: "taskcluster/node-build.sh --tflite"
     package: "taskcluster/node-package.sh"
+  workerType: "${docker.smallTask}"
   metadata:
     name: "DeepSpeech NodeJS TFLite package"
     description: "Packaging DeepSpeech TFLite for registry"

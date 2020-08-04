@@ -1,6 +1,6 @@
 taskId: ${taskcluster.taskId}
 provisionerId: ${taskcluster.docker.provisionerId}
-workerType: ${taskcluster.docker.workerType}
+workerType: ${build.workerType}
 taskGroupId: ${taskcluster.taskGroupId}
 schedulerId: ${taskcluster.schedulerId}
 created: { $fromNow: '0 sec' }

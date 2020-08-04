@@ -13,6 +13,7 @@ build:
   scripts:
     build: "taskcluster/node-build.sh"
     package: "taskcluster/node-package.sh"
+  workerType: "${docker.smallTask}"
   metadata:
     name: "DeepSpeech NodeJS CPU package"
     description: "Packaging DeepSpeech CPU for registry"

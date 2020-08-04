@@ -4,6 +4,7 @@ build:
     - "linux-amd64-cpu-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python-tests-prod.sh 3.5.8:m 16k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU Python v3.5 prod tests (16kHz)"
     description: "Testing DeepSpeech for Linux/AMD64 on Python v3.5 on prod model, CPU only, optimized version (16kHz)"

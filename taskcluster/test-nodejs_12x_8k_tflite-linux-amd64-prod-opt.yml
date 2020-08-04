@@ -8,6 +8,7 @@ build:
       ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_xenial.apt}
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node_tflite-tests-prod.sh 12.x 8k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 TFLite NodeJS 12.x prod tests (8kHz)"
     description: "Testing DeepSpeech for Linux/AMD64 on NodeJS v12.x on prod model, TFLite, optimized version (8kHz)"

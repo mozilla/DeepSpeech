@@ -6,6 +6,7 @@ build:
   test_model_task: "test-training_8k-linux-amd64-py36m-opt"
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.7.6:m 8k"
+  workerType: "${docker.dsTests}"
   metadata:
     name: "DeepSpeech Linux AMD64 CPU Python v3.7 tests (8kHz)"
     description: "Testing DeepSpeech for Linux/AMD64 on Python v3.7, CPU only, optimized version (8kHz)"

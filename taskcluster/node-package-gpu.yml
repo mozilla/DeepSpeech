@@ -10,6 +10,7 @@ build:
   scripts:
     build: "taskcluster/node-build.sh --cuda"
     package: "taskcluster/node-package.sh"
+  workerType: "${docker.smallTask}"
   metadata:
     name: "DeepSpeech NodeJS GPU package"
     description: "Packaging DeepSpeech GPU for registry"

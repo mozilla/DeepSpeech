@@ -15,6 +15,7 @@ build:
     setup: "taskcluster/tc-true.sh"
     build: "taskcluster/build.sh"
     package: "taskcluster/package.sh"
+  workerType: "${docker.dsBuild}"
   metadata:
     name: "SWIG Linux AMD64"
     description: "Building SWIG for Linux/AMD64"
