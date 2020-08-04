@@ -1,12 +1,12 @@
-﻿using MozillaVoiceStt.Interfaces;
-using MozillaVoiceStt.Extensions;
+﻿using MozillaVoiceSttClient.Interfaces;
+using MozillaVoiceSttClient.Extensions;
 
 using System;
 using System.IO;
 using MozillaVoiceStt.Enums;
 using MozillaVoiceStt.Models;
 
-namespace MozillaVoiceStt
+namespace MozillaVoiceSttClient
 {
     /// <summary>
     /// Concrete implementation of <see cref="MozillaVoiceStt.Interfaces.IMozillaVoiceSttModel"/>.

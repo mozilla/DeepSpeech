@@ -15,8 +15,8 @@ public class MozillaVoiceSttModel {
     private SWIGTYPE_p_ModelState   _msp;
 
     private void evaluateErrorCode(int errorCode) {
-        STT_Error_Codes code = STT_Error_Codes.swigToEnum(errorCode);
-        if (code != STT_Error_Codes.ERR_OK) {
+        Error_Codes code = Error_Codes.swigToEnum(errorCode);
+        if (code != Error_Codes.ERR_OK) {
             throw new RuntimeException("Error: " + impl.ErrorCodeToErrorMessage(errorCode) + " (0x" + Integer.toHexString(errorCode) + ").");
         }
     }

@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		502AED2D24D9676500E9A4AD /* mozilla_voice_stt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 502AED2C24D9676500E9A4AD /* mozilla_voice_stt.framework */; };
-		502AED3024D9677B00E9A4AD /* mozilla_voice_stt.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 502AED2E24D9677000E9A4AD /* mozilla_voice_stt.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		504EC34324CF4EFD0073C22E /* SpeechRecognitionImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC34124CF4EFD0073C22E /* SpeechRecognitionImpl.swift */; };
 		504EC34424CF4EFD0073C22E /* AudioContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC34224CF4EFD0073C22E /* AudioContext.swift */; };
 		507CD3A324B61FEB00409BBB /* libmozilla_voice_stt.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libmozilla_voice_stt.so */; };
 		507CD3A424B61FFC00409BBB /* libmozilla_voice_stt.so in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libmozilla_voice_stt.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		509DF81924D9B2C200D1026D /* mozilla_voice_stt.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 502AED2C24D9676500E9A4AD /* mozilla_voice_stt.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		50F787F32497683900D52237 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F22497683900D52237 /* AppDelegate.swift */; };
 		50F787F52497683900D52237 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F42497683900D52237 /* SceneDelegate.swift */; };
 		50F787F72497683900D52237 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F62497683900D52237 /* ContentView.swift */; };
@@ -45,7 +45,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				502AED3024D9677B00E9A4AD /* mozilla_voice_stt.framework in Embed Frameworks */,
+				509DF81924D9B2C200D1026D /* mozilla_voice_stt.framework in Embed Frameworks */,
 				507CD3A424B61FFC00409BBB /* libmozilla_voice_stt.so in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -55,7 +55,6 @@
 
 /* Begin PBXFileReference section */
 		502AED2C24D9676500E9A4AD /* mozilla_voice_stt.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = mozilla_voice_stt.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		502AED2E24D9677000E9A4AD /* mozilla_voice_stt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = mozilla_voice_stt.framework; path = "DerivedData/mozilla_voice_stt/Build/Products/Debug-iphoneos/mozilla_voice_stt.framework"; sourceTree = "<group>"; };
 		504EC34124CF4EFD0073C22E /* SpeechRecognitionImpl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionImpl.swift; sourceTree = "<group>"; };
 		504EC34224CF4EFD0073C22E /* AudioContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioContext.swift; sourceTree = "<group>"; };
 		507CD3A224B61FEA00409BBB /* libmozilla_voice_stt.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libmozilla_voice_stt.so; sourceTree = "<group>"; };
@@ -110,7 +109,6 @@
 		50F787E62497683900D52237 = {
 			isa = PBXGroup;
 			children = (
-				502AED2E24D9677000E9A4AD /* mozilla_voice_stt.framework */,
 				50F787F12497683900D52237 /* mozilla_voice_stt_test */,
 				50F787F02497683900D52237 /* Products */,
 				50F2B0FC2498D6C7007CD876 /* Frameworks */,
