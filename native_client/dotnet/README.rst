@@ -1,8 +1,8 @@
 
-Building DeepSpeech native client for Windows
+Building Mozilla Voice STT native client for Windows
 =============================================
 
-Now we can build the native client of DeepSpeech and run inference on Windows using the C# client, to do that we need to compile the ``native_client``.
+Now we can build the native client of Mozilla Voice STT and run inference on Windows using the C# client, to do that we need to compile the ``native_client``.
 
 **Table of Contents**
 
@@ -59,8 +59,8 @@ There should already be a symbolic link, for this example let's suppose that we 
 
    .
    ├── D:\
-   │   ├── cloned                 # Contains DeepSpeech and tensorflow side by side
-   │   │   └── DeepSpeech         # Root of the cloned DeepSpeech
+   │   ├── cloned                 # Contains Mozilla Voice STT and tensorflow side by side
+   │   │   └── DeepSpeech         # Root of the cloned Mozilla Voice STT
    │   │       ├── tensorflow     # Root of the cloned Mozilla's tensorflow 
    └── ...
 
@@ -142,4 +142,4 @@ Be patient, if you enabled AVX/AVX2 and CUDA it will take a long time. Finally y
 Using the generated library
 ---------------------------
 
-As for now we can only use the generated ``libmozilla_voice_stt.so`` with the C# clients, go to `native_client/dotnet/ <https://github.com/mozilla/DeepSpeech/tree/master/native_client/dotnet>`_ in your DeepSpeech directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy ``libmozilla_voice_stt.so`` to the generated ``x64/Debug`` or ``x64/Release`` directory.
+As for now we can only use the generated ``libmozilla_voice_stt.so`` with the C# clients, go to `native_client/dotnet/ <https://github.com/mozilla/DeepSpeech/tree/master/native_client/dotnet>`_ in your Mozilla Voice STT directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy ``libmozilla_voice_stt.so`` to the generated ``x64/Debug`` or ``x64/Release`` directory.
