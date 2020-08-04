@@ -1,6 +1,6 @@
 //
 //  AudioContext.swift
-//  deepspeech_ios_test
+//  mozilla_voice_stt_test
 //
 //  Created by Erik Ziegler on 27.07.20.
 //  Copyright © 2020 Mozilla. All rights reserved.
@@ -11,7 +11,7 @@ import AVFoundation
 import AudioToolbox
 import Accelerate
 
-import deepspeech_ios
+import mozilla_voice_stt
 
 /// Holds audio information used for building waveforms
 final class AudioContext {

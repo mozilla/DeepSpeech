@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:deepspeech_ios_test.xcodeproj">
+      location = "self:mozilla_voice_stt.xcodeproj">
    </FileRef>
 </Workspace>

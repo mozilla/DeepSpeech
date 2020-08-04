@@ -1,14 +1,14 @@
 //
-//  DeepSpeech.swift
-//  deepspeech_ios
+//  MozillaVoiceStt.swift
+//  mozilla_voice_stt
 //
 //  Created by Reuben Morais on 14.06.20.
 //  Copyright © 2020 Mozilla. All rights reserved.
 //
 
-import deepspeech_ios.libdeepspeech_Private
+import mozilla_voice_stt.libmozilla_voice_stt_Private
 
-public enum DeepSpeechError: Error {
+public enum MozillaVoiceSttError: Error {
     // Should be kept in sync with mozilla_voice_stt.h
     case noModel(errorCode: Int32)
     case invalidAlphabet(errorCode: Int32)
@@ -35,7 +35,7 @@ public enum DeepSpeechError: Error {
     case invalidErrorCode(errorCode: Int32)
 }
 
-extension DeepSpeechError : LocalizedError {
+extension MozillaVoiceSttError : LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .noModel(let errorCode),
@@ -65,48 +65,48 @@ extension DeepSpeechError : LocalizedError {
     }
 }
 
-private func errorCodeToEnum(errorCode: Int32) -> DeepSpeechError {
+private func errorCodeToEnum(errorCode: Int32) -> MozillaVoiceSttError {
     switch Int(errorCode) {
     case Int(STT_ERR_NO_MODEL.rawValue):
-        return DeepSpeechError.noModel(errorCode: errorCode)
+        return MozillaVoiceSttError.noModel(errorCode: errorCode)
     case Int(STT_ERR_INVALID_ALPHABET.rawValue):
-        return DeepSpeechError.invalidAlphabet(errorCode: errorCode)
+        return MozillaVoiceSttError.invalidAlphabet(errorCode: errorCode)
     case Int(STT_ERR_INVALID_SHAPE.rawValue):
-        return DeepSpeechError.invalidShape(errorCode: errorCode)
+        return MozillaVoiceSttError.invalidShape(errorCode: errorCode)
     case Int(STT_ERR_INVALID_SCORER.rawValue):
-        return DeepSpeechError.invalidScorer(errorCode: errorCode)
+        return MozillaVoiceSttError.invalidScorer(errorCode: errorCode)
     case Int(STT_ERR_MODEL_INCOMPATIBLE.rawValue):
-        return DeepSpeechError.modelIncompatible(errorCode: errorCode)
+        return MozillaVoiceSttError.modelIncompatible(errorCode: errorCode)
     case Int(STT_ERR_SCORER_NOT_ENABLED.rawValue):
-        return DeepSpeechError.scorerNotEnabled(errorCode: errorCode)
+        return MozillaVoiceSttError.scorerNotEnabled(errorCode: errorCode)
     case Int(STT_ERR_SCORER_UNREADABLE.rawValue):
-        return DeepSpeechError.scorerUnreadable(errorCode: errorCode)
+        return MozillaVoiceSttError.scorerUnreadable(errorCode: errorCode)
     case Int(STT_ERR_SCORER_INVALID_LM.rawValue):
-        return DeepSpeechError.scorerInvalidLm(errorCode: errorCode)
+        return MozillaVoiceSttError.scorerInvalidLm(errorCode: errorCode)
     case Int(STT_ERR_SCORER_NO_TRIE.rawValue):
-        return DeepSpeechError.scorerNoTrie(errorCode: errorCode)
+        return MozillaVoiceSttError.scorerNoTrie(errorCode: errorCode)
     case Int(STT_ERR_SCORER_INVALID_TRIE.rawValue):
-        return DeepSpeechError.scorerInvalidTrie(errorCode: errorCode)
+        return MozillaVoiceSttError.scorerInvalidTrie(errorCode: errorCode)
     case Int(STT_ERR_SCORER_VERSION_MISMATCH.rawValue):
-        return DeepSpeechError.scorerVersionMismatch(errorCode: errorCode)
+        return MozillaVoiceSttError.scorerVersionMismatch(errorCode: errorCode)
     case Int(STT_ERR_FAIL_INIT_MMAP.rawValue):
-        return DeepSpeechError.failInitMmap(errorCode: errorCode)
+        return MozillaVoiceSttError.failInitMmap(errorCode: errorCode)
     case Int(STT_ERR_FAIL_INIT_SESS.rawValue):
-        return DeepSpeechError.failInitSess(errorCode: errorCode)
+        return MozillaVoiceSttError.failInitSess(errorCode: errorCode)
     case Int(STT_ERR_FAIL_INTERPRETER.rawValue):
-        return DeepSpeechError.failInterpreter(errorCode: errorCode)
+        return MozillaVoiceSttError.failInterpreter(errorCode: errorCode)
     case Int(STT_ERR_FAIL_RUN_SESS.rawValue):
-        return DeepSpeechError.failRunSess(errorCode: errorCode)
+        return MozillaVoiceSttError.failRunSess(errorCode: errorCode)
     case Int(STT_ERR_FAIL_CREATE_STREAM.rawValue):
-        return DeepSpeechError.failCreateStream(errorCode: errorCode)
+        return MozillaVoiceSttError.failCreateStream(errorCode: errorCode)
     case Int(STT_ERR_FAIL_READ_PROTOBUF.rawValue):
-        return DeepSpeechError.failReadProtobuf(errorCode: errorCode)
+        return MozillaVoiceSttError.failReadProtobuf(errorCode: errorCode)
     case Int(STT_ERR_FAIL_CREATE_SESS.rawValue):
-        return DeepSpeechError.failCreateSess(errorCode: errorCode)
+        return MozillaVoiceSttError.failCreateSess(errorCode: errorCode)
     case Int(STT_ERR_FAIL_CREATE_MODEL.rawValue):
-        return DeepSpeechError.failCreateModel(errorCode: errorCode)
+        return MozillaVoiceSttError.failCreateModel(errorCode: errorCode)
     default:
-        return DeepSpeechError.invalidErrorCode(errorCode: errorCode)
+        return MozillaVoiceSttError.invalidErrorCode(errorCode: errorCode)
     }
 }
 
@@ -117,7 +117,7 @@ private func evaluateErrorCode(errorCode: Int32) throws {
 }
 
 /// Stores text of an individual token, along with its timing information
-public struct DeepSpeechTokenMetadata {
+public struct MozillaVoiceSttTokenMetadata {
     /// The text corresponding to this token
     let text: String
 
@@ -137,9 +137,9 @@ public struct DeepSpeechTokenMetadata {
 /** A single transcript computed by the model, including a confidence value and
     the metadata for its constituent tokens
 */
-public struct DeepSpeechCandidateTranscript {
-    /// Array of DeepSpeechTokenMetadata objects
-    private(set) var tokens: [DeepSpeechTokenMetadata] = []
+public struct MozillaVoiceSttCandidateTranscript {
+    /// Array of MozillaVoiceSttTokenMetadata objects
+    private(set) var tokens: [MozillaVoiceSttTokenMetadata] = []
 
     /** Approximated confidence value for this transcript. This corresponds to
         both acoustic model and language model scores that contributed to the
@@ -150,16 +150,16 @@ public struct DeepSpeechCandidateTranscript {
     internal init(fromInternal: CandidateTranscript) {
         let tokensBuffer = UnsafeBufferPointer<TokenMetadata>(start: fromInternal.tokens, count: Int(fromInternal.num_tokens))
         for tok in tokensBuffer {
-            tokens.append(DeepSpeechTokenMetadata(fromInternal: tok))
+            tokens.append(MozillaVoiceSttTokenMetadata(fromInternal: tok))
         }
         confidence = fromInternal.confidence
     }
 }
 
-/// An array of DeepSpeechCandidateTranscript objects computed by the model
-public struct DeepSpeechMetadata {
-    /// Array of DeepSpeechCandidateTranscript objects
-    private(set) var transcripts: [DeepSpeechCandidateTranscript] = []
+/// An array of MozillaVoiceSttCandidateTranscript objects computed by the model
+public struct MozillaVoiceSttMetadata {
+    /// Array of MozillaVoiceSttCandidateTranscript objects
+    private(set) var transcripts: [MozillaVoiceSttCandidateTranscript] = []
 
     internal init(fromInternal: UnsafeMutablePointer<Metadata>) {
         let md = fromInternal.pointee
@@ -168,12 +168,12 @@ public struct DeepSpeechMetadata {
             count: Int(md.num_transcripts))
 
         for tr in transcriptsBuffer {
-            transcripts.append(DeepSpeechCandidateTranscript(fromInternal: tr))
+            transcripts.append(MozillaVoiceSttCandidateTranscript(fromInternal: tr))
         }
     }
 }
 
-public class DeepSpeechStream {
+public class MozillaVoiceSttStream {
     private var streamCtx: OpaquePointer!
 
     internal init(streamContext: OpaquePointer) {
@@ -239,11 +239,11 @@ public class DeepSpeechStream {
         - Returns: Metadata struct containing multiple CandidateTranscript structs.
                    Each transcript has per-token metadata including timing information.
     */
-    public func intermediateDecodeWithMetadata(numResults: Int) -> DeepSpeechMetadata {
+    public func intermediateDecodeWithMetadata(numResults: Int) -> MozillaVoiceSttMetadata {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
         let result = STT_IntermediateDecodeWithMetadata(streamCtx, UInt32(numResults))!
         defer { STT_FreeMetadata(result) }
-        return DeepSpeechMetadata(fromInternal: result)
+        return MozillaVoiceSttMetadata(fromInternal: result)
     }
 
     /** Compute the final decoding of an ongoing streaming inference and return
@@ -279,23 +279,23 @@ public class DeepSpeechStream {
 
         - Postcondition: This method will invalidate this streaming context.
     */
-    public func finishStreamWithMetadata(numResults: Int) -> DeepSpeechMetadata {
+    public func finishStreamWithMetadata(numResults: Int) -> MozillaVoiceSttMetadata {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
         let result = STT_FinishStreamWithMetadata(streamCtx, UInt32(numResults))!
         defer { STT_FreeMetadata(result) }
-        return DeepSpeechMetadata(fromInternal: result)
+        return MozillaVoiceSttMetadata(fromInternal: result)
     }
 }
 
-/// An object providing an interface to a trained DeepSpeech model.
-public class DeepSpeechModel {
+/// An object providing an interface to a trained Mozilla Voice STT model.
+public class MozillaVoiceSttModel {
     private var modelCtx: OpaquePointer!
 
     /**
         - Parameter modelPath: The path to the model file.
 
-        - Throws: `DeepSpeechError` on failure.
+        - Throws: `MozillaVoiceSttError` on failure.
     */
     public init(modelPath: String) throws {
         let err = STT_CreateModel(modelPath, &modelCtx)
@@ -323,7 +323,7 @@ public class DeepSpeechModel {
                                width value generates better results at the cost
                                of decoding time.
 
-        - Throws: `DeepSpeechError` on failure.
+        - Throws: `MozillaVoiceSttError` on failure.
     */
     public func setBeamWidth(beamWidth: Int) throws {
         let err = STT_SetModelBeamWidth(modelCtx, UInt32(beamWidth))
@@ -341,7 +341,7 @@ public class DeepSpeechModel {
 
         - Parameter scorerPath: The path to the external scorer file.
 
-        - Throws: `DeepSpeechError` on failure.
+        - Throws: `MozillaVoiceSttError` on failure.
     */
     public func enableExternalScorer(scorerPath: String) throws {
         let err = STT_EnableExternalScorer(modelCtx, scorerPath)
@@ -350,7 +350,7 @@ public class DeepSpeechModel {
 
     /** Disable decoding using an external scorer.
 
-        - Throws: `DeepSpeechError` on failure.
+        - Throws: `MozillaVoiceSttError` on failure.
     */
     public func disableExternalScorer() throws {
         let err = STT_DisableExternalScorer(modelCtx)
@@ -362,14 +362,14 @@ public class DeepSpeechModel {
         - Parameter alpha: The alpha hyperparameter of the decoder. Language model weight.
         - Parameter beta: The beta hyperparameter of the decoder. Word insertion weight.
 
-        - Throws: `DeepSpeechError` on failure.
+        - Throws: `MozillaVoiceSttError` on failure.
     */
     public func setScorerAlphaBeta(alpha: Float, beta: Float) throws {
         let err = STT_SetScorerAlphaBeta(modelCtx, alpha, beta)
         try evaluateErrorCode(errorCode: err)
     }
 
-    /** Use the DeepSpeech model to convert speech to text.
+    /** Use the Mozilla Voice STT model to convert speech to text.
 
         - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
                             sample rate (matching what the model was trained on).
@@ -382,7 +382,7 @@ public class DeepSpeechModel {
         }
     }
 
-    /** Use the DeepSpeech model to convert speech to text.
+    /** Use the Mozilla Voice STT model to convert speech to text.
 
         - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
                             sample rate (matching what the model was trained on).
@@ -395,59 +395,59 @@ public class DeepSpeechModel {
         return String(cString: result!)
     }
 
-    /** Use the DeepSpeech model to convert speech to text and output results
+    /** Use the Mozilla Voice STT model to convert speech to text and output results
         including metadata.
 
         - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
                             sample rate (matching what the model was trained on).
-        - Parameter numResults: The maximum number of DeepSpeechCandidateTranscript
+        - Parameter numResults: The maximum number of MozillaVoiceSttCandidateTranscript
                                 structs to return. Returned value might be smaller than this.
 
         - Returns: Metadata struct containing multiple CandidateTranscript structs.
                    Each transcript has per-token metadata including timing information.
    */
-    public func speechToTextWithMetadata(buffer: Array<Int16>, numResults: Int) -> DeepSpeechMetadata {
-        return buffer.withUnsafeBufferPointer { unsafeBufferPointer -> DeepSpeechMetadata in
+    public func speechToTextWithMetadata(buffer: Array<Int16>, numResults: Int) -> MozillaVoiceSttMetadata {
+        return buffer.withUnsafeBufferPointer { unsafeBufferPointer -> MozillaVoiceSttMetadata in
             return speechToTextWithMetadata(buffer: unsafeBufferPointer, numResults: numResults)
         }
     }
 
-    /** Use the DeepSpeech model to convert speech to text and output results
+    /** Use the Mozilla Voice STT model to convert speech to text and output results
         including metadata.
 
         - Parameter buffer: A 16-bit, mono raw audio signal at the appropriate
                             sample rate (matching what the model was trained on).
-        - Parameter numResults: The maximum number of DeepSpeechCandidateTranscript
+        - Parameter numResults: The maximum number of MozillaVoiceSttCandidateTranscript
                                 structs to return. Returned value might be smaller than this.
 
         - Returns: Metadata struct containing multiple CandidateTranscript structs.
                    Each transcript has per-token metadata including timing information.
    */
-    public func speechToTextWithMetadata(buffer: UnsafeBufferPointer<Int16>, numResults: Int) -> DeepSpeechMetadata {
+    public func speechToTextWithMetadata(buffer: UnsafeBufferPointer<Int16>, numResults: Int) -> MozillaVoiceSttMetadata {
         let result = STT_SpeechToTextWithMetadata(
             modelCtx,
             buffer.baseAddress,
             UInt32(buffer.count),
             UInt32(numResults))!
         defer { STT_FreeMetadata(result) }
-        return DeepSpeechMetadata(fromInternal: result)
+        return MozillaVoiceSttMetadata(fromInternal: result)
     }
 
     /** Create a new streaming inference state.
 
-        - Returns: DeepSpeechStream object representing the streaming state.
+        - Returns: MozillaVoiceSttStream object representing the streaming state.
 
-        - Throws: `DeepSpeechError` on failure.
+        - Throws: `MozillaVoiceSttError` on failure.
     */
-    public func createStream() throws -> DeepSpeechStream {
+    public func createStream() throws -> MozillaVoiceSttStream {
         var streamContext: OpaquePointer!
         let err = STT_CreateStream(modelCtx, &streamContext)
         try evaluateErrorCode(errorCode: err)
-        return DeepSpeechStream(streamContext: streamContext)
+        return MozillaVoiceSttStream(streamContext: streamContext)
     }
 }
 
-public func DeepSpeechVersion() -> String {
+public func MozillaVoiceSttVersion() -> String {
     let result = STT_Version()
     defer { STT_FreeString(result) }
     return String(cString: result!)

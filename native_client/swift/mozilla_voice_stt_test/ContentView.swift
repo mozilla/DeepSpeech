@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  deepspeech_ios_test
+//  mozilla_voice_stt_test
 //
 //  Created by Reuben Morais on 15.06.20.
 //  Copyright © 2020 Mozilla. All rights reserved.
@@ -14,7 +14,7 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Text("DeepSpeech iOS Demo")
+            Text("Mozilla Voice STT iOS Demo")
                 .font(.system(size: 30))
             Button("Recognize files", action: recognizeFiles)
                 .padding(30)

@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		505B136B24960D550007DADA /* deepspeech_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 505B136124960D550007DADA /* deepspeech_ios.framework */; };
-		505B137224960D550007DADA /* deepspeech_ios.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B136424960D550007DADA /* deepspeech_ios.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		505B136B24960D550007DADA /* mozilla_voice_stt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 505B136124960D550007DADA /* mozilla_voice_stt.framework */; };
+		505B137224960D550007DADA /* mozilla_voice_stt_ios.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B136424960D550007DADA /* mozilla_voice_stt_ios.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		505B137D24961AF20007DADA /* mozilla_voice_stt.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B137C24961AF20007DADA /* mozilla_voice_stt.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		505B137F24961BA70007DADA /* DeepSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505B137E24961BA70007DADA /* DeepSpeech.swift */; };
+		505B137F24961BA70007DADA /* MozillaVoiceStt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505B137E24961BA70007DADA /* MozillaVoiceStt.swift */; };
 		507CD39B24B61FA100409BBB /* libmozilla_voice_stt.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD39A24B61FA100409BBB /* libmozilla_voice_stt.so */; };
 /* End PBXBuildFile section */
 
@@ -20,7 +20,7 @@
 			containerPortal = 505B135824960D550007DADA /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 505B136024960D550007DADA;
-			remoteInfo = deepspeech_ios;
+			remoteInfo = mozilla_voice_stt;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -38,13 +38,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		505B136124960D550007DADA /* deepspeech_ios.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = deepspeech_ios.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		505B136424960D550007DADA /* deepspeech_ios.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deepspeech_ios.h; sourceTree = "<group>"; };
+		505B136124960D550007DADA /* mozilla_voice_stt.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = mozilla_voice_stt.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		505B136424960D550007DADA /* mozilla_voice_stt_ios.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mozilla_voice_stt_ios.h; sourceTree = "<group>"; };
 		505B136524960D550007DADA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		505B136A24960D550007DADA /* deepspeech_iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = deepspeech_iosTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		505B137B249619C90007DADA /* deepspeech_ios.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = deepspeech_ios.modulemap; sourceTree = "<group>"; };
+		505B136A24960D550007DADA /* mozilla_voice_sttTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mozilla_voice_sttTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		505B137B249619C90007DADA /* mozilla_voice_stt.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = mozilla_voice_stt.modulemap; sourceTree = "<group>"; };
 		505B137C24961AF20007DADA /* mozilla_voice_stt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mozilla_voice_stt.h; path = ../../mozilla_voice_stt.h; sourceTree = "<group>"; };
-		505B137E24961BA70007DADA /* DeepSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSpeech.swift; sourceTree = "<group>"; };
+		505B137E24961BA70007DADA /* MozillaVoiceStt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MozillaVoiceStt.swift; sourceTree = "<group>"; };
 		507CD39A24B61FA100409BBB /* libmozilla_voice_stt.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libmozilla_voice_stt.so; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -61,7 +61,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				505B136B24960D550007DADA /* deepspeech_ios.framework in Frameworks */,
+				505B136B24960D550007DADA /* mozilla_voice_stt.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,7 +71,7 @@
 		505B135724960D550007DADA = {
 			isa = PBXGroup;
 			children = (
-				505B136324960D550007DADA /* deepspeech_ios */,
+				505B136324960D550007DADA /* mozilla_voice_stt */,
 				505B136224960D550007DADA /* Products */,
 				505B1380249620C60007DADA /* Frameworks */,
 			);
@@ -80,22 +80,22 @@
 		505B136224960D550007DADA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				505B136124960D550007DADA /* deepspeech_ios.framework */,
-				505B136A24960D550007DADA /* deepspeech_iosTests.xctest */,
+				505B136124960D550007DADA /* mozilla_voice_stt.framework */,
+				505B136A24960D550007DADA /* mozilla_voice_sttTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		505B136324960D550007DADA /* deepspeech_ios */ = {
+		505B136324960D550007DADA /* mozilla_voice_stt */ = {
 			isa = PBXGroup;
 			children = (
 				505B137C24961AF20007DADA /* mozilla_voice_stt.h */,
-				505B136424960D550007DADA /* deepspeech_ios.h */,
-				505B137E24961BA70007DADA /* DeepSpeech.swift */,
-				505B137B249619C90007DADA /* deepspeech_ios.modulemap */,
+				505B136424960D550007DADA /* mozilla_voice_stt_ios.h */,
+				505B137E24961BA70007DADA /* MozillaVoiceStt.swift */,
+				505B137B249619C90007DADA /* mozilla_voice_stt.modulemap */,
 				505B136524960D550007DADA /* Info.plist */,
 			);
-			path = deepspeech_ios;
+			path = mozilla_voice_stt;
 			sourceTree = "<group>";
 		};
 		505B1380249620C60007DADA /* Frameworks */ = {
@@ -113,7 +113,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				505B137224960D550007DADA /* deepspeech_ios.h in Headers */,
+				505B137224960D550007DADA /* mozilla_voice_stt_ios.h in Headers */,
 				505B137D24961AF20007DADA /* mozilla_voice_stt.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -121,9 +121,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		505B136024960D550007DADA /* deepspeech_ios */ = {
+		505B136024960D550007DADA /* mozilla_voice_stt */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 505B137524960D550007DADA /* Build configuration list for PBXNativeTarget "deepspeech_ios" */;
+			buildConfigurationList = 505B137524960D550007DADA /* Build configuration list for PBXNativeTarget "mozilla_voice_stt" */;
 			buildPhases = (
 				505B135C24960D550007DADA /* Headers */,
 				505B135D24960D550007DADA /* Sources */,
@@ -135,14 +135,14 @@
 			);
 			dependencies = (
 			);
-			name = deepspeech_ios;
-			productName = deepspeech_ios;
-			productReference = 505B136124960D550007DADA /* deepspeech_ios.framework */;
+			name = mozilla_voice_stt;
+			productName = mozilla_voice_stt;
+			productReference = 505B136124960D550007DADA /* mozilla_voice_stt.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		505B136924960D550007DADA /* deepspeech_iosTests */ = {
+		505B136924960D550007DADA /* mozilla_voice_sttTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 505B137824960D550007DADA /* Build configuration list for PBXNativeTarget "deepspeech_iosTests" */;
+			buildConfigurationList = 505B137824960D550007DADA /* Build configuration list for PBXNativeTarget "mozilla_voice_sttTests" */;
 			buildPhases = (
 				505B136624960D550007DADA /* Sources */,
 				505B136724960D550007DADA /* Frameworks */,
@@ -153,9 +153,9 @@
 			dependencies = (
 				505B136D24960D550007DADA /* PBXTargetDependency */,
 			);
-			name = deepspeech_iosTests;
-			productName = deepspeech_iosTests;
-			productReference = 505B136A24960D550007DADA /* deepspeech_iosTests.xctest */;
+			name = mozilla_voice_sttTests;
+			productName = mozilla_voice_sttTests;
+			productReference = 505B136A24960D550007DADA /* mozilla_voice_sttTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -165,7 +165,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1150;
-				LastUpgradeCheck = 1150;
+				LastUpgradeCheck = 1160;
 				ORGANIZATIONNAME = Mozilla;
 				TargetAttributes = {
 					505B136024960D550007DADA = {
@@ -177,7 +177,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 505B135B24960D550007DADA /* Build configuration list for PBXProject "deepspeech_ios" */;
+			buildConfigurationList = 505B135B24960D550007DADA /* Build configuration list for PBXProject "mozilla_voice_stt" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -190,8 +190,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				505B136024960D550007DADA /* deepspeech_ios */,
-				505B136924960D550007DADA /* deepspeech_iosTests */,
+				505B136024960D550007DADA /* mozilla_voice_stt */,
+				505B136924960D550007DADA /* mozilla_voice_sttTests */,
 			);
 		};
 /* End PBXProject section */
@@ -218,7 +218,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				505B137F24961BA70007DADA /* DeepSpeech.swift in Sources */,
+				505B137F24961BA70007DADA /* MozillaVoiceStt.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,7 +234,7 @@
 /* Begin PBXTargetDependency section */
 		505B136D24960D550007DADA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 505B136024960D550007DADA /* deepspeech_ios */;
+			target = 505B136024960D550007DADA /* mozilla_voice_stt */;
 			targetProxy = 505B136C24960D550007DADA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -364,7 +364,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
@@ -372,7 +372,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = deepspeech_ios/Info.plist;
+				INFOPLIST_FILE = mozilla_voice_stt/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -381,11 +381,11 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/deepspeech_ios",
+					"$(PROJECT_DIR)/mozilla_voice_stt",
 					"$(PROJECT_DIR)",
 				);
-				MODULEMAP_FILE = deepspeech_ios/deepspeech_ios.modulemap;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios";
+				MODULEMAP_FILE = mozilla_voice_stt/mozilla_voice_stt.modulemap;
+				PRODUCT_BUNDLE_IDENTIFIER = org.mozilla.voice.stt;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -398,7 +398,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
@@ -406,7 +406,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = deepspeech_ios/Info.plist;
+				INFOPLIST_FILE = mozilla_voice_stt/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -415,11 +415,11 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/deepspeech_ios",
+					"$(PROJECT_DIR)/mozilla_voice_stt",
 					"$(PROJECT_DIR)",
 				);
-				MODULEMAP_FILE = deepspeech_ios/deepspeech_ios.modulemap;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios";
+				MODULEMAP_FILE = mozilla_voice_stt/mozilla_voice_stt.modulemap;
+				PRODUCT_BUNDLE_IDENTIFIER = org.mozilla.voice.stt;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -432,13 +432,13 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = deepspeech_iosTests/Info.plist;
+				INFOPLIST_FILE = mozilla_voice_sttTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-iosTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.voice.stt-iosTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -450,13 +450,13 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = deepspeech_iosTests/Info.plist;
+				INFOPLIST_FILE = mozilla_voice_sttTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-iosTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.voice.stt-iosTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -466,7 +466,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		505B135B24960D550007DADA /* Build configuration list for PBXProject "deepspeech_ios" */ = {
+		505B135B24960D550007DADA /* Build configuration list for PBXProject "mozilla_voice_stt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				505B137324960D550007DADA /* Debug */,
@@ -475,7 +475,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		505B137524960D550007DADA /* Build configuration list for PBXNativeTarget "deepspeech_ios" */ = {
+		505B137524960D550007DADA /* Build configuration list for PBXNativeTarget "mozilla_voice_stt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				505B137624960D550007DADA /* Debug */,
@@ -484,7 +484,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		505B137824960D550007DADA /* Build configuration list for PBXNativeTarget "deepspeech_iosTests" */ = {
+		505B137824960D550007DADA /* Build configuration list for PBXNativeTarget "mozilla_voice_sttTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				505B137924960D550007DADA /* Debug */,

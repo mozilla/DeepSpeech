@@ -1,0 +1,12 @@
+framework module mozilla_voice_stt {
+  umbrella header "mozilla_voice_stt_ios.h"
+
+  export *
+  module * { export * }
+  
+  explicit module libmozilla_voice_stt_Private {
+      header "mozilla_voice_stt.h"
+      export *
+      link "mozilla_voice_stt"
+  }
+}

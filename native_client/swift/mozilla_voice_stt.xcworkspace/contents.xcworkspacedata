@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:/Users/reubenmorais/Development/DeepSpeech/native_client/swift/mozilla_voice_stt.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:/Users/reubenmorais/Development/DeepSpeech/native_client/swift/mozilla_voice_stt_test.xcodeproj">
+   </FileRef>
+</Workspace>

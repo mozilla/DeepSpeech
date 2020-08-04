@@ -1,6 +1,6 @@
 //
-//  DeepSpeech.swift
-//  deepspeech_ios_test
+//  SpeechRecognitionImpl.swift
+//  mozilla_voice_stt_test
 //
 //  Created by Erik Ziegler on 27.07.20.
 //  Copyright © 2020 Mozilla. All rights reserved.
@@ -11,7 +11,7 @@ import AVFoundation
 import AudioToolbox
 import Accelerate
 
-import deepspeech_ios
+import mozilla_voice_stt
 
 struct FillComplexInputParm {
     var source: UnsafeMutablePointer<Int8>
@@ -19,8 +19,8 @@ struct FillComplexInputParm {
 };
 
 class SpeechRecognitionImpl : NSObject, AVCaptureAudioDataOutputSampleBufferDelegate {
-    private var model: DeepSpeechModel
-    private var stream: DeepSpeechStream?
+    private var model: MozillaVoiceSttModel
+    private var stream: MozillaVoiceSttStream?
     
     private var captureSession = AVCaptureSession()
     private var audioData = Data()
@@ -29,7 +29,7 @@ class SpeechRecognitionImpl : NSObject, AVCaptureAudioDataOutputSampleBufferDele
         let modelPath = Bundle.main.path(forResource: "deepspeech-0.7.4-models", ofType: "tflite")!
         let scorerPath = Bundle.main.path(forResource: "deepspeech-0.7.4-models", ofType: "scorer")!
 
-        model = try! DeepSpeechModel(modelPath: modelPath)
+        model = try! MozillaVoiceSttModel(modelPath: modelPath)
         try! model.enableExternalScorer(scorerPath: scorerPath)
         
         super.init()
@@ -173,7 +173,7 @@ class SpeechRecognitionImpl : NSObject, AVCaptureAudioDataOutputSampleBufferDele
     
     // MARK: Audio file recognition
     
-    private func render(audioContext: AudioContext?, stream: DeepSpeechStream) {
+    private func render(audioContext: AudioContext?, stream: MozillaVoiceSttStream) {
         guard let audioContext = audioContext else {
             fatalError("Couldn't create the audioContext")
         }

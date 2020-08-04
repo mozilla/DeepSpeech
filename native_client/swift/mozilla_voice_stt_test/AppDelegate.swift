@@ -1,6 +1,6 @@
 //
 //  AppDelegate.swift
-//  deepspeech_ios_test
+//  mozilla_voice_stt_test
 //
 //  Created by Reuben Morais on 15.06.20.
 //  Copyright © 2020 Mozilla. All rights reserved.
