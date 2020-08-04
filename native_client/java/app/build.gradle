@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
 
     defaultConfig {
-        applicationId "org.mozilla.deepspeech"
+        applicationId "org.mozilla.voice.stt"
         minSdkVersion 21
         targetSdkVersion 27
         versionName androidGitVersion.name()
@@ -28,7 +28,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':libdeepspeech')
+    implementation project(':libmozillavoicestt')
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     testImplementation 'junit:junit:4.12'
