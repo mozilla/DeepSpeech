@@ -10,7 +10,7 @@ import sys
 import wave
 import json
 
-from mozilla_voice_stt import Model, version
+import mozilla_voice_stt as stt
 from timeit import default_timer as timer
 
 try:
@@ -83,7 +83,7 @@ class VersionAction(argparse.Action):
         super(VersionAction, self).__init__(nargs=0, *args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        print('Mozilla Voice STT ', version())
+        print('Mozilla Voice STT ', stt.version())
         exit(0)
 
 
@@ -114,7 +114,7 @@ def main():
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
     # sphinx-doc: python_ref_model_start
-    ds = Model(args.model)
+    ds = stt.Model(args.model)
     # sphinx-doc: python_ref_model_stop
     model_load_end = timer() - model_load_start
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)
