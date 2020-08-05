@@ -99,7 +99,7 @@ Now, ``cd`` into the ``DeepSpeech/native_client`` directory and use the ``Makefi
 .. code-block::
 
    cd ../DeepSpeech/native_client
-   make deepspeech
+   make mozilla_voice_stt
 
 Installing your own Binaries
 ----------------------------
@@ -121,7 +121,7 @@ Included are a set of generated Python bindings. After following the above build
 
    cd native_client/python
    make bindings
-   pip install dist/deepspeech*
+   pip install dist/mozilla_voice_stt*
 
 The API mirrors the C++ API and is demonstrated in `client.py <python/client.py>`_. Refer to the `C API <c-usage>` for documentation.
 
@@ -175,13 +175,13 @@ And your command line for ``LePotato`` and ``ARM64`` should look like:
 
 While we test only on RPi3 Raspbian Buster and LePotato ARMBian Buster, anything compatible with ``armv7-a cortex-a53`` or ``armv8-a cortex-a53`` should be fine.
 
-The ``deepspeech`` binary can also be cross-built, with ``TARGET=rpi3`` or ``TARGET=rpi3-armv8``. This might require you to setup a system tree using the tool ``multistrap`` and the multitrap configuration files: ``native_client/multistrap_armbian64_buster.conf`` and ``native_client/multistrap_raspbian_buster.conf``.
+The ``mozilla_voice_stt`` binary can also be cross-built, with ``TARGET=rpi3`` or ``TARGET=rpi3-armv8``. This might require you to setup a system tree using the tool ``multistrap`` and the multitrap configuration files: ``native_client/multistrap_armbian64_buster.conf`` and ``native_client/multistrap_raspbian_buster.conf``.
 The path of the system tree can be overridden from the default values defined in ``definitions.mk`` through the ``RASPBIAN`` ``make`` variable.
 
 .. code-block::
 
    cd ../DeepSpeech/native_client
-   make TARGET=<system> deepspeech
+   make TARGET=<system> mozilla_voice_stt
 
 Android devices support
 -----------------------
@@ -236,10 +236,10 @@ Please note that you might have to copy the file to a local Maven repository
 and adapt file naming (when missing, the error message should states what
 filename it expects and where).
 
-Building C++ ``deepspeech`` binary
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Building C++ ``mozilla_voice_stt`` binary
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Building the ``deepspeech`` binary will happen through ``ndk-build`` (ARMv7):
+Building the ``mozilla_voice_stt`` binary will happen through ``ndk-build`` (ARMv7):
 
 .. code-block::
 
@@ -272,13 +272,13 @@ demo of one usage of the application. For example, it's only able to read PCM
 mono 16kHz 16-bits file and it might fail on some WAVE file that are not
 following exactly the specification.
 
-Running ``deepspeech`` via adb
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Running ``mozilla_voice_stt`` via adb
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You should use ``adb push`` to send data to device, please refer to Android
 documentation on how to use that.
 
-Please push Mozilla Voice STT data to ``/sdcard/deepspeech/``\ , including:
+Please push Mozilla Voice STT data to ``/sdcard/mozilla_voice_stt/``\ , including:
 
 
 * ``output_graph.tflite`` which is the TF Lite model
@@ -286,9 +286,9 @@ Please push Mozilla Voice STT data to ``/sdcard/deepspeech/``\ , including:
   the scorer; please be aware that too big scorer will make the device run out
   of memory
 
-Then, push binaries from ``native_client.tar.xz`` to ``/data/local/tmp/ds``\ :
+Then, push binaries from ``native_client.tar.xz`` to ``/data/local/tmp/stt``\ :
 
-* ``deepspeech``
+* ``mozilla_voice_stt``
 * ``libmozilla_voice_stt.so``
 * ``libc++_shared.so``
 
@@ -296,8 +296,8 @@ You should then be able to run as usual, using a shell from ``adb shell``\ :
 
 .. code-block::
 
-   user@device$ cd /data/local/tmp/ds/
-   user@device$ LD_LIBRARY_PATH=$(pwd)/ ./deepspeech [...]
+   user@device$ cd /data/local/tmp/stt/
+   user@device$ LD_LIBRARY_PATH=$(pwd)/ ./mozilla_voice_stt [...]
 
 Please note that Android linker does not support ``rpath`` so you have to set
 ``LD_LIBRARY_PATH``. Properly wrapped / packaged bindings does embed the library

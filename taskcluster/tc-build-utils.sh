@@ -17,9 +17,9 @@ do_deepspeech_python_build()
 
   SETUP_FLAGS=""
   if [ "${package_option}" = "--cuda" ]; then
-    SETUP_FLAGS="--project_name mozilla_voice_stt-gpu"
+    SETUP_FLAGS="--project_name mozilla_voice_stt_cuda"
   elif [ "${package_option}" = "--tflite" ]; then
-    SETUP_FLAGS="--project_name mozilla_voice_stt-tflite"
+    SETUP_FLAGS="--project_name mozilla_voice_stt_tflite"
   fi
 
   for pyver_conf in ${SUPPORTED_PYTHON_VERSIONS}; do
@@ -133,7 +133,7 @@ do_deepspeech_nodejs_build()
   done;
 
   if [ "${rename_to_gpu}" = "--cuda" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt-gpu
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt_cuda
   else
     make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt
   fi
@@ -165,9 +165,9 @@ do_deepspeech_npm_package()
   done;
 
   if [ "${package_option}" = "--cuda" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt-gpu
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt_cuda
   elif [ "${package_option}" = "--tflite" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt-tflite
+    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt_tflite
   else
     make -C native_client/javascript clean npm-pack
   fi

@@ -14,7 +14,7 @@ download_data
 virtualenv_activate "${pyalias}" "deepspeech"
 
 if [ "$3" = "cuda" ]; then
-  deepspeech_pkg_url=$(get_python_pkg_url "${pyver_pkg}" "${py_unicode_type}" "mozilla_voice_stt_gpu")
+  deepspeech_pkg_url=$(get_python_pkg_url "${pyver_pkg}" "${py_unicode_type}" "mozilla_voice_stt_cuda")
 else
   deepspeech_pkg_url=$(get_python_pkg_url "${pyver_pkg}" "${py_unicode_type}")
 fi;
