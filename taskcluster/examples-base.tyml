@@ -26,7 +26,7 @@ then:
       DEEPSPEECH_AUDIO: "https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/audio-0.4.1.tar.gz"
       PIP_DEFAULT_TIMEOUT: "60"
       EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
-      EXAMPLES_CHECKOUT_TARGET: "rename-test"
+      EXAMPLES_CHECKOUT_TARGET: "master"
 
     command:
       - "/bin/bash"

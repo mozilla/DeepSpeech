@@ -1,8 +1,8 @@
 Parallel Optimization
 =====================
 
-This is how we implement optimization of the DeepSpeech model across GPUs on a
-single host. Parallel optimization can take on various forms. For example
+This is how we implement optimization of the Mozilla Voice STT model across GPUs
+on a single host. Parallel optimization can take on various forms. For example
 one can use asynchronous updates of the model, synchronous updates of the model,
 or some combination of the two.
 

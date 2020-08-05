@@ -19,11 +19,8 @@ from six.moves import zip, range
 
 r'''
 This module should be self-contained:
-  - build libmozilla_voice_stt.so with TFLite:
-    - bazel build [...] --define=runtime=tflite [...] //native_client:libmozilla_voice_stt.so
-  - make -C native_client/python/ TFDIR=... bindings
   - setup a virtualenv
-  - pip install native_client/python/dist/deepspeech*.whl
+  - pip install mozilla_voice_stt_tflite
   - pip install -r requirements_eval_tflite.txt
 
 Then run with a TF Lite model, a scorer and a CSV test file

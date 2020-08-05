@@ -1,5 +1,5 @@
-Project DeepSpeech
-==================
+Mozilla Voice STT
+=================
 
 
 .. image:: https://readthedocs.org/projects/deepspeech/badge/?version=latest
@@ -12,7 +12,7 @@ Project DeepSpeech
    :alt: Task Status
 
 
-DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
+Mozilla Voice STT is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Mozilla Voice STT uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
 
 Documentation for installation, usage, and training models are available on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 

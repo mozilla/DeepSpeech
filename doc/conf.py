@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath('../'))
 
-autodoc_mock_imports = ['deepspeech']
+autodoc_mock_imports = ['mozilla_voice_stt']
 
 # This is in fact only relevant on ReadTheDocs, but we want to run the same way
 # on our CI as in RTD to avoid regressions on RTD that we would not catch on
@@ -143,7 +143,7 @@ html_static_path = ['.static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'DeepSpeechdoc'
+htmlhelp_basename = 'sttdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -180,7 +180,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'deepspeech', u'Mozilla Voice STT Documentation',
+    (master_doc, 'mozilla_voice_stt', u'Mozilla Voice STT Documentation',
      [author], 1)
 ]
 

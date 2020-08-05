@@ -21,11 +21,11 @@ Clone the Mozilla Voice STT repository:
 Creating a virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In creating a virtual environment you will create a directory containing a ``python3`` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on ``$HOME/tmp/deepspeech-train-venv``. You can create it using this command:
+In creating a virtual environment you will create a directory containing a ``python3`` binary and everything needed to run Mozilla Voice STT. You can use whatever directory you want. For the purpose of the documentation, we will rely on ``$HOME/tmp/stt-train-venv``. You can create it using this command:
 
 .. code-block::
 
-   $ python3 -m venv $HOME/tmp/deepspeech-train-venv/
+   $ python3 -m venv $HOME/tmp/stt-train-venv/
 
 Once this command completes successfully, the environment will be ready to be activated.
 
@@ -36,7 +36,7 @@ Each time you need to work with Mozilla Voice STT, you have to *activate* this v
 
 .. code-block::
 
-   $ source $HOME/tmp/deepspeech-train-venv/bin/activate
+   $ source $HOME/tmp/stt-train-venv/bin/activate
 
 Installing Mozilla Voice STT Training Code and its dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
