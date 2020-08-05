@@ -140,38 +140,38 @@ system:
       namespace: "project.mozilla-voice-stt.swig.win.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0"
   tensorflow:
     linux_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cpu/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cpu"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.cpu/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.cpu"
     linux_amd64_cuda:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cuda/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cuda"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.cuda/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.cuda"
     linux_armv7:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.arm/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.arm"
     linux_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.arm64/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.arm64"
     darwin_amd64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.osx/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.osx"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.osx/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.osx"
     android_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-arm64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.android-arm64/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.android-arm64"
     android_armv7:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-armv7/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-armv7"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.android-armv7/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.android-armv7"
     win_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.win/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.win"
     win_amd64_cuda:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win-cuda/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win-cuda"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.win-cuda/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.win-cuda"
     ios_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_arm64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.ios_arm64/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.ios_arm64"
     ios_x86_64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_x86_64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_x86_64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.ios_x86_64/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.ios_x86_64"
   username: 'build-user'
   homedir:
     linux: '/home/build-user'

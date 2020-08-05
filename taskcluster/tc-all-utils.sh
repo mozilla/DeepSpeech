@@ -101,7 +101,7 @@ verify_bazel_rebuild()
 
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
-  spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|unconditional execution is requested|Executing genrule //native_client:workspace_status|Compiling native_client/workspace_status.cc|Linking native_client/libmozilla_voice_stt.so' | wc -l)
+  spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|[for host]|unconditional execution is requested|Executing genrule //native_client:workspace_status|Compiling native_client/workspace_status.cc|Linking native_client/libmozilla_voice_stt.so' | wc -l)
   if [ "${spurious_rebuilds}" -ne 0 ]; then
     echo "Bazel rebuilds some file it should not, please check."
 
