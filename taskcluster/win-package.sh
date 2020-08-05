@@ -14,7 +14,7 @@ package_libdeepspeech_as_zip "libmozilla_voice_stt.zip"
 
 cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/dotnet/*.nupkg ${TASKCLUSTER_ARTIFACTS}/
 
-cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/dotnet/DeepSpeechConsole/bin/x64/Release/DeepSpeechConsole.exe ${TASKCLUSTER_ARTIFACTS}/
+cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/dotnet/MozillaVoiceSttConsole/bin/x64/Release/MozillaVoiceSttConsole.exe ${TASKCLUSTER_ARTIFACTS}/
 
 if [ -d ${DS_ROOT_TASK}/DeepSpeech/ds/wheels ]; then
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/wheels/* ${TASKCLUSTER_ARTIFACTS}/

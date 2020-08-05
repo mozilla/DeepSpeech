@@ -3,8 +3,8 @@ using MozillaVoiceSttClient.Extensions;
 
 using System;
 using System.IO;
-using MozillaVoiceStt.Enums;
-using MozillaVoiceStt.Models;
+using MozillaVoiceSttClient.Enums;
+using MozillaVoiceSttClient.Models;
 
 namespace MozillaVoiceSttClient
 {

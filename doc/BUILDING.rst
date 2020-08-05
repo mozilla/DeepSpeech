@@ -193,9 +193,9 @@ Please refer to TensorFlow documentation on how to setup the environment to buil
 Using the library from Android project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We provide uptodate and tested ``libdeepspeech`` usable as an ``AAR`` package,
+We provide up-to-date and tested STT usable as an ``AAR`` package,
 for Android versions starting with 7.0 to 11.0. The package is published on
-`JCenter <https://bintray.com/alissy/org.mozilla.deepspeech/libdeepspeech>`_,
+`JCenter <https://bintray.com/alissy/org.mozilla.voice/stt>`_,
 and the ``JCenter`` repository should be available by default in any Android
 project.  Please make sure your project is setup to pull from this repository.
 You can then include the library by just adding this line to your
@@ -203,7 +203,7 @@ You can then include the library by just adding this line to your
 
 .. code-block::
 
-   implementation 'deepspeech.mozilla.org:libdeepspeech:VERSION@aar'
+   implementation 'voice.mozilla.org:stt:VERSION@aar'
 
 Building ``libmozilla_voice_stt.so``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -220,17 +220,17 @@ Or (ARM64):
 
    bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic --config=android --config=android_arm64 --define=runtime=tflite --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 //native_client:libmozilla_voice_stt.so
 
-Building ``libdeepspeech.aar``
+Building ``libmozillavoicestt.aar``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the unlikely event you have to rebuild the JNI bindings, source code is
-available under the ``libdeepspeech`` subdirectory.  Building depends on shared
+available under the ``libmozillavoicestt`` subdirectory.  Building depends on shared
 object: please ensure to place ``libmozilla_voice_stt.so`` into the
-``libdeepspeech/libs/{arm64-v8a,armeabi-v7a,x86_64}/`` matching subdirectories.
+``libmozillavoicestt/libs/{arm64-v8a,armeabi-v7a,x86_64}/`` matching subdirectories.
 
 Building the bindings is managed by ``gradle`` and should be limited to issuing
-``./gradlew libdeepspeech:build``, producing an ``AAR`` package in
-``./libdeepspeech/build/outputs/aar/``.
+``./gradlew libmozillavoicestt:build``, producing an ``AAR`` package in
+``./libmozillavoicestt/build/outputs/aar/``.
 
 Please note that you might have to copy the file to a local Maven repository
 and adapt file naming (when missing, the error message should states what

@@ -1,4 +1,4 @@
-package org.mozilla.voice.stt;
+package org.mozilla.voice.sttapp;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

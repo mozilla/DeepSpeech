@@ -1,4 +1,4 @@
-package org.mozilla.voice.stt;
+package org.mozilla.voice.sttapp;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("org.mozilla.voice.stt", appContext.getPackageName());
+        assertEquals("org.mozilla.voice.sttapp", appContext.getPackageName());
     }
 }

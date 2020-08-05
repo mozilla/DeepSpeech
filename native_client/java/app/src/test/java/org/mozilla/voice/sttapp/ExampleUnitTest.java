@@ -1,4 +1,4 @@
-package org.mozilla.voice.stt;
+package org.mozilla.voice.sttapp;
 
 import org.junit.Test;
 

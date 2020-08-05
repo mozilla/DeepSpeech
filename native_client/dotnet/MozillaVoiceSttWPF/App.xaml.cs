@@ -1,6 +1,6 @@
 ﻿using CommonServiceLocator;
 using MozillaVoiceStt.WPF.ViewModels;
-using MozillaVoiceStt.Interfaces;
+using MozillaVoiceSttClient.Interfaces;
 using GalaSoft.MvvmLight.Ioc;
 using System.Windows;
 
@@ -19,8 +19,8 @@ namespace MozillaVoiceSttWPF
             try
             {
                 //Register instance of Mozilla Voice STT
-                MozillaVoiceSttClient.Model client =
-                    new MozillaVoiceSttClient.Model("deepspeech-0.8.0-models.pbmm");
+                MozillaVoiceSttClient.MozillaVoiceSttModel client =
+                    new MozillaVoiceSttClient.MozillaVoiceSttModel("deepspeech-0.8.0-models.pbmm");
 
                 SimpleIoc.Default.Register<IMozillaVoiceSttModel>(() => client);
                 SimpleIoc.Default.Register<MainWindowViewModel>();

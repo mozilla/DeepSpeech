@@ -18,10 +18,10 @@ install_nuget()
   mkdir -p "${TASKCLUSTER_TMP_DIR}/ds/"
 
   nuget_pkg_url=$(get_dep_nuget_pkg_url "${nuget}")
-  console_pkg_url=$(get_dep_nuget_pkg_url "DeepSpeechConsole.exe")
+  console_pkg_url=$(get_dep_nuget_pkg_url "MozillaVoiceSttConsole.exe")
 
   ${WGET} -O - "${nuget_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
-  ${WGET} -O - "${console_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
+  ${WGET} -O - "${console_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/MozillaVoiceSttConsole.exe"
 
   nuget sources add -Name repo -Source $(cygpath -w "${TASKCLUSTER_TMP_DIR}/repo/")
 
@@ -37,7 +37,7 @@ install_nuget()
   nuget install NAudio
   cp NAudio*/lib/net35/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
   cp ${PROJECT_NAME}.${DS_VERSION}/build/libmozilla_voice_stt.so ${TASKCLUSTER_TMP_DIR}/ds/
-  cp ${PROJECT_NAME}.${DS_VERSION}/lib/net46/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
+  cp ${PROJECT_NAME}.${DS_VERSION}/lib/net46/MozillaVoiceSttClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/ds/
 

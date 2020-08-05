@@ -341,5 +341,6 @@ do_deepspeech_ios_framework_build()
     xcodeArch="arm64"
     ;;
   esac
+  xcodebuild -workspace mozilla_voice_stt.xcworkspace -list
   xcodebuild -workspace mozilla_voice_stt.xcworkspace -scheme mozilla_voice_stt_test -configuration Release -arch "${xcodeArch}" -sdk "${iosSDK}" -derivedDataPath DerivedData CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 }
