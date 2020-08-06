@@ -2,7 +2,7 @@ NODE_BUILD_TOOL    ?= node-pre-gyp
 NODE_ABI_TARGET    ?= 
 NODE_BUILD_VERBOSE ?= --verbose
 NPM_TOOL           ?= npm
-PROJECT_NAME       ?= mozilla_voice_stt
+PROJECT_NAME       ?= @mozilla-voice/stt
 PROJECT_VERSION    ?= $(shell cat ../../training/deepspeech_training/VERSION | tr -d '\n')
 NPM_ROOT           ?= $(shell npm root)
 
@@ -36,7 +36,7 @@ really-clean: clean clean-npm-pack
 
 package.json: package.json.in
 	sed \
-		-e 's/$$(PROJECT_NAME)/$(PROJECT_NAME)/' \
+		-e 's`$$(PROJECT_NAME)`$(PROJECT_NAME)`' \
 		-e 's/$$(PROJECT_VERSION)/$(PROJECT_VERSION)/' \
 		package.json.in > package.json && cat package.json
 

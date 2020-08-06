@@ -22,5 +22,5 @@ fi;
 
 if [ -f ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/wrapper.tar.gz ]; then
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/wrapper.tar.gz ${TASKCLUSTER_ARTIFACTS}/
-    cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/mozilla_voice_stt*.tgz ${TASKCLUSTER_ARTIFACTS}/
+    cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/mozilla-voice-stt*.tgz ${TASKCLUSTER_ARTIFACTS}/
 fi;

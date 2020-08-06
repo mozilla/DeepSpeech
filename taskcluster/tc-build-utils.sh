@@ -133,9 +133,9 @@ do_deepspeech_nodejs_build()
   done;
 
   if [ "${rename_to_gpu}" = "--cuda" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt_cuda
+    make -C native_client/javascript clean npm-pack PROJECT_NAME="@mozilla-voice/stt-cuda"
   else
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt
+    make -C native_client/javascript clean npm-pack PROJECT_NAME="@mozilla-voice/stt"
   fi
 
   tar -czf native_client/javascript/wrapper.tar.gz \
@@ -165,9 +165,9 @@ do_deepspeech_npm_package()
   done;
 
   if [ "${package_option}" = "--cuda" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt_cuda
+    make -C native_client/javascript clean npm-pack PROJECT_NAME="@mozilla-voice/stt-cuda"
   elif [ "${package_option}" = "--tflite" ]; then
-    make -C native_client/javascript clean npm-pack PROJECT_NAME=mozilla_voice_stt_tflite
+    make -C native_client/javascript clean npm-pack PROJECT_NAME="@mozilla-voice/stt-tflite"
   else
     make -C native_client/javascript clean npm-pack
   fi

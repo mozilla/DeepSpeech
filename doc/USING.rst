@@ -151,7 +151,7 @@ You can download the JS bindings using ``npm``\ :
 
 .. code-block:: bash
 
-   npm install mozilla_voice_stt
+   npm install @mozilla-voice/stt
 
 Please note that as of now, we support:
  - Node.JS versions 4 to 13.
@@ -163,7 +163,7 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can in
 
 .. code-block:: bash
 
-   npm install mozilla_voice_stt_cuda
+   npm install @mozilla-voice/stt-cuda
 
 See the `release notes <https://github.com/mozilla/DeepSpeech/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
 
