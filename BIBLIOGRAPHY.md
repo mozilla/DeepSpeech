@@ -1,5 +1,5 @@
 This file contains a list of papers in chronological order that have been published 
-using Mozilla's DeepSpeech.
+using Mozilla Voice STT.
 
 To appear
 ==========

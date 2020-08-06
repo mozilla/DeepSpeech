@@ -4,7 +4,7 @@
 
 #ifdef __ANDROID__
 #include <android/log.h>
-#define  LOG_TAG    "libdeepspeech"
+#define  LOG_TAG    "libmozilla_voice_stt"
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #else
@@ -159,21 +159,21 @@ int
 TFLiteModelState::init(const char* model_path)
 {
   int err = ModelState::init(model_path);
-  if (err != DS_ERR_OK) {
+  if (err != STT_ERR_OK) {
     return err;
   }
 
   fbmodel_ = tflite::FlatBufferModel::BuildFromFile(model_path);
   if (!fbmodel_) {
     std::cerr << "Error at reading model file " << model_path << std::endl;
-    return DS_ERR_FAIL_INIT_MMAP;
+    return STT_ERR_FAIL_INIT_MMAP;
   }
 
   tflite::ops::builtin::BuiltinOpResolver resolver;
   tflite::InterpreterBuilder(*fbmodel_, resolver)(&interpreter_);
   if (!interpreter_) {
     std::cerr << "Error at InterpreterBuilder for model file " << model_path << std::endl;
-    return DS_ERR_FAIL_INTERPRETER;
+    return STT_ERR_FAIL_INTERPRETER;
   }
 
   LOGD("Trying to detect delegates ...");
@@ -242,13 +242,13 @@ TFLiteModelState::init(const char* model_path)
   TfLiteStatus status = interpreter_->Invoke();
   if (status != kTfLiteOk) {
     std::cerr << "Error running session: " << status << "\n";
-    return DS_ERR_FAIL_INTERPRETER;
+    return STT_ERR_FAIL_INTERPRETER;
   }
 
   int* const graph_version = interpreter_->typed_tensor<int>(metadata_version_idx);
   if (graph_version == nullptr) {
     std::cerr << "Unable to read model file version." << std::endl;
-    return DS_ERR_MODEL_INCOMPATIBLE;
+    return STT_ERR_MODEL_INCOMPATIBLE;
   }
 
   if (*graph_version < ds_graph_version()) {
@@ -258,13 +258,13 @@ TFLiteModelState::init(const char* model_path)
               << "https://github.com/mozilla/DeepSpeech/blob/"
               << ds_git_version() << "/doc/USING.rst#model-compatibility "
               << "for more information" << std::endl;
-    return DS_ERR_MODEL_INCOMPATIBLE;
+    return STT_ERR_MODEL_INCOMPATIBLE;
   }
 
   int* const model_sample_rate = interpreter_->typed_tensor<int>(metadata_sample_rate_idx);
   if (model_sample_rate == nullptr) {
     std::cerr << "Unable to read model sample rate." << std::endl;
-    return DS_ERR_MODEL_INCOMPATIBLE;
+    return STT_ERR_MODEL_INCOMPATIBLE;
   }
 
   sample_rate_ = *model_sample_rate;
@@ -273,7 +273,7 @@ TFLiteModelState::init(const char* model_path)
   int* const win_step_ms = interpreter_->typed_tensor<int>(metadata_feature_win_step_idx);
   if (win_len_ms == nullptr || win_step_ms == nullptr) {
     std::cerr << "Unable to read model feature window informations." << std::endl;
-    return DS_ERR_MODEL_INCOMPATIBLE;
+    return STT_ERR_MODEL_INCOMPATIBLE;
   }
 
   audio_win_len_  = sample_rate_ * (*win_len_ms / 1000.0);
@@ -285,7 +285,7 @@ TFLiteModelState::init(const char* model_path)
   tflite::StringRef serialized_alphabet = tflite::GetString(interpreter_->tensor(metadata_alphabet_idx), 0);
   err = alphabet_.Deserialize(serialized_alphabet.str, serialized_alphabet.len);
   if (err != 0) {
-    return DS_ERR_INVALID_ALPHABET;
+    return STT_ERR_INVALID_ALPHABET;
   }
 
   assert(sample_rate_ > 0);
@@ -310,7 +310,7 @@ TFLiteModelState::init(const char* model_path)
               << " classes in its output. Make sure you're passing an alphabet "
               << "file with the same size as the one used for training."
               << std::endl;
-    return DS_ERR_INVALID_ALPHABET;
+    return STT_ERR_INVALID_ALPHABET;
   }
 
   TfLiteIntArray* dims_c = interpreter_->tensor(previous_state_c_idx_)->dims;
@@ -319,7 +319,7 @@ TFLiteModelState::init(const char* model_path)
   assert(state_size_ > 0);
   state_size_ = dims_c->data[1];
 
-  return DS_ERR_OK;
+  return STT_ERR_OK;
 }
 
 // Copy contents of vec into the tensor with index tensor_idx.

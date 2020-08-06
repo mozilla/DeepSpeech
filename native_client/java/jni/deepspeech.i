@@ -2,7 +2,7 @@
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "../../deepspeech.h"
+#include "../../mozilla_voice_stt.h"
 %}
 
 %include "typemaps.i"
@@ -10,7 +10,7 @@
 %javaconst(1);
 
 %include "arrays_java.i"
-// apply to DS_FeedAudioContent and DS_SpeechToText
+// apply to STT_FeedAudioContent and STT_SpeechToText
 %apply short[] { short* };
 
 %include "cpointer.i"
@@ -43,7 +43,7 @@
   }
 
   ~Metadata() {
-    DS_FreeMetadata(self);
+    STT_FreeMetadata(self);
   }
 }
 
@@ -54,13 +54,13 @@
 %nodefaultctor TokenMetadata;
 %nodefaultdtor TokenMetadata;
 
-%typemap(newfree) char* "DS_FreeString($1);";
-%newobject DS_SpeechToText;
-%newobject DS_IntermediateDecode;
-%newobject DS_FinishStream;
-%newobject DS_ErrorCodeToErrorMessage;
+%typemap(newfree) char* "STT_FreeString($1);";
+%newobject STT_SpeechToText;
+%newobject STT_IntermediateDecode;
+%newobject STT_FinishStream;
+%newobject STT_ErrorCodeToErrorMessage;
 
-%rename ("%(strip:[DS_])s") "";
+%rename ("%(strip:[STT_])s") "";
 
 // make struct members camel case to suit Java conventions
 %rename ("%(camelcase)s", %$ismember) "";
@@ -71,4 +71,4 @@
 %ignore "Metadata::transcripts";
 %ignore "CandidateTranscript::tokens";
 
-%include "../deepspeech.h"
+%include "../mozilla_voice_stt.h"

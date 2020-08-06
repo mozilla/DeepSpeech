@@ -9,20 +9,20 @@ source $(dirname "$0")/tc-tests-utils.sh
 source $(dirname "$0")/tf_tc-vars.sh
 
 BAZEL_TARGETS="
-//native_client:libdeepspeech.so
+//native_client:libmozilla_voice_stt.so
 //native_client:generate_scorer_package
 "
 
 if [ "${package_option}" = "--cuda" ]; then
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=1 ${TF_CUDA_FLAGS}"
     BAZEL_BUILD_FLAGS="${BAZEL_CUDA_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BAZEL_OPT_FLAGS}"
-    PROJECT_NAME="DeepSpeech-GPU"
+    PROJECT_NAME="Mozilla-Voice-STT-GPU"
 elif [ "${package_option}" = "--tflite" ]; then
-    PROJECT_NAME="DeepSpeech-TFLite"
+    PROJECT_NAME="Mozilla-Voice-STT-TFLite"
     BAZEL_BUILD_FLAGS="--define=runtime=tflite ${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS}"
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
 else
-    PROJECT_NAME="DeepSpeech"
+    PROJECT_NAME="Mozilla-Voice-STT"
     BAZEL_BUILD_FLAGS="${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS}"
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=0"
 fi
@@ -32,7 +32,7 @@ SYSTEM_TARGET=host-win
 do_bazel_build
 
 if [ "${package_option}" = "--cuda" ]; then
-    cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-bin/native_client/liblibdeepspeech.so.ifso ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-bin/native_client/libdeepspeech.so.if.lib
+    cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-bin/native_client/liblibmozilla_voice_stt.so.ifso ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-bin/native_client/libmozilla_voice_stt.so.if.lib
 fi
 
 export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin:'/c/Program Files/nodejs/'

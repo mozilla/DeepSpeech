@@ -3,7 +3,7 @@
 External scorer scripts
 =======================
 
-DeepSpeech pre-trained models include an external scorer. This document explains how to reproduce our external scorer, as well as adapt the scripts to create your own.
+Mozilla Voice STT pre-trained models include an external scorer. This document explains how to reproduce our external scorer, as well as adapt the scripts to create your own.
 
 The scorer is composed of two sub-components, a KenLM language model and a trie data structure containing all words in the vocabulary. In order to create the scorer package, first we must create a KenLM language model (using ``data/lm/generate_lm.py``, and then use ``generate_scorer_package`` to create the final package file including the trie data structure.
 
@@ -59,6 +59,6 @@ Building your own scorer can be useful if you're using models in a narrow usage 
 
 The LibriSpeech LM training text used by our scorer is around 4GB uncompressed, which should give an idea of the size of a corpus needed for a reasonable language model for general speech recognition. For more constrained use cases with smaller vocabularies, you don't need as much data, but you should still try to gather as much as you can.
 
-With a text corpus in hand, you can then re-use ``generate_lm.py`` and ``generate_scorer_package`` to create your own scorer that is compatible with DeepSpeech clients and language bindings. Before building the language model, you must first familiarize yourself with the `KenLM toolkit <https://kheafield.com/code/kenlm/>`_. Most of the options exposed by the ``generate_lm.py`` script are simply forwarded to KenLM options of the same name, so you must read the KenLM documentation in order to fully understand their behavior.
+With a text corpus in hand, you can then re-use ``generate_lm.py`` and ``generate_scorer_package`` to create your own scorer that is compatible with Mozilla Voice STT clients and language bindings. Before building the language model, you must first familiarize yourself with the `KenLM toolkit <https://kheafield.com/code/kenlm/>`_. Most of the options exposed by the ``generate_lm.py`` script are simply forwarded to KenLM options of the same name, so you must read the KenLM documentation in order to fully understand their behavior.
 
 After using ``generate_lm.py`` to create a KenLM language model binary file, you can use ``generate_scorer_package`` to create a scorer package as described in the previous section. Note that we have a :github:`lm_optimizer.py script <lm_optimizer.py>` which can be used to find good default values for alpha and beta. To use it, you must first generate a package with any value set for default alpha and beta flags. For this step, it doesn't matter what values you use, as they'll be overridden by ``lm_optimizer.py`` later. Then, use ``lm_optimizer.py`` with this scorer file to find good alpha and beta values. Finally, use ``generate_scorer_package`` again, this time with the new values.

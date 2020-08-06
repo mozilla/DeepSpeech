@@ -14,7 +14,7 @@ const Duplex = require("stream").Duplex;
 
 class VersionAction extends argparse.Action {
   call(parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: string | string[], optionString: string | null) {
-    console.log('DeepSpeech ' + Ds.Version());
+    console.log('Mozilla Voice STT ' + Ds.Version());
     let runtime = 'Node';
     if (process.versions.electron) {
       runtime = 'Electron';
@@ -24,7 +24,7 @@ class VersionAction extends argparse.Action {
   }
 }
 
-let parser = new argparse.ArgumentParser({addHelp: true, description: 'Running DeepSpeech inference.'});
+let parser = new argparse.ArgumentParser({addHelp: true, description: 'Running Mozilla Voice STT inference.'});
 parser.addArgument(['--model'], {required: true, help: 'Path to the model (protocol buffer binary file)'});
 parser.addArgument(['--scorer'], {help: 'Path to the external scorer file'});
 parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file to run (WAV format)'});

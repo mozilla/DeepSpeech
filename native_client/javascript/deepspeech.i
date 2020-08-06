@@ -5,7 +5,7 @@
 #define SWIG_FILE_WITH_INIT
 #include <string.h>
 #include <node_buffer.h>
-#include "deepspeech.h"
+#include "mozilla_voice_stt.h"
 
 using namespace v8;
 using namespace node;
@@ -26,18 +26,18 @@ using namespace node;
   $2 = ($2_ltype)(bufferLength / 2);
 }
 
-// apply to DS_FeedAudioContent and DS_SpeechToText
+// apply to STT_FeedAudioContent and STT_SpeechToText
 %apply (short* IN_ARRAY1, int DIM1) {(const short* aBuffer, unsigned int aBufferSize)};
 
 
 // make sure the string returned by SpeechToText is freed
-%typemap(newfree) char* "DS_FreeString($1);";
+%typemap(newfree) char* "STT_FreeString($1);";
 
-%newobject DS_SpeechToText;
-%newobject DS_IntermediateDecode;
-%newobject DS_FinishStream;
-%newobject DS_Version;
-%newobject DS_ErrorCodeToErrorMessage;
+%newobject STT_SpeechToText;
+%newobject STT_IntermediateDecode;
+%newobject STT_FinishStream;
+%newobject STT_Version;
+%newobject STT_ErrorCodeToErrorMessage;
 
 // convert double pointer retval in CreateModel to an output
 %typemap(in, numinputs=0) ModelState **retval (ModelState *ret) {
@@ -62,7 +62,7 @@ using namespace node;
 %typemap(argout) StreamingState **retval {
   $result = SWIGV8_ARRAY_NEW();
   SWIGV8_AppendOutput($result, SWIG_From_int(result));
-  // not owned, DS_FinishStream deallocates StreamingState
+  // not owned, STT_FinishStream deallocates StreamingState
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
@@ -93,6 +93,6 @@ using namespace node;
 %nodefaultctor TokenMetadata;
 %nodefaultdtor TokenMetadata;
 
-%rename ("%(strip:[DS_])s") "";
+%rename ("%(strip:[STT_])s") "";
 
-%include "../deepspeech.h"
+%include "../mozilla_voice_stt.h"

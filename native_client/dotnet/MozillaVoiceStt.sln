@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MozillaVoiceSttClient", "MozillaVoiceSttClient\MozillaVoiceSttClient.csproj", "{56DE4091-BBBE-47E4-852D-7268B33B971F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MozillaVoiceSttConsole", "MozillaVoiceSttConsole\MozillaVoiceSttConsole.csproj", "{312965E5-C4F6-4D95-BA64-79906B8BC7AC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Debug|x64.ActiveCfg = Debug|x64
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Debug|x64.Build.0 = Debug|x64
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|x64.ActiveCfg = Release|x64
+		{56DE4091-BBBE-47E4-852D-7268B33B971F}.Release|x64.Build.0 = Release|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|x64.ActiveCfg = Debug|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|x64.Build.0 = Debug|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|x64.ActiveCfg = Release|x64
+		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FC035D95-DBFD-4050-885A-A2DD9134B3AD}
+	EndGlobalSection
+EndGlobal

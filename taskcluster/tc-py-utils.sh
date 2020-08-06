@@ -268,7 +268,7 @@ get_python_pkg_url()
 
   local pkgname=$3
   if [ -z "${pkgname}" ]; then
-    pkgname="deepspeech"
+    pkgname="mozilla_voice_stt"
   fi
 
   local root=$4
@@ -286,17 +286,17 @@ get_python_pkg_url()
 get_tflite_python_pkg_name()
 {
   # Default to deepspeech package
-  local _pkgname="deepspeech_tflite"
+  local _pkgname="mozilla_voice_stt_tflite"
 
   ARCH=$(uname -m)
   case "${OS}:${ARCH}" in
       Linux:armv7l|Linux:aarch64)
-          # On linux/arm or linux/aarch64 we don't produce deepspeech_tflite
-          _pkgname="deepspeech"
+          # On linux/arm or linux/aarch64 we don't produce mozilla_voice_stt_tflite
+          _pkgname="mozilla_voice_stt"
       ;;
 
       *)
-          _pkgname="deepspeech_tflite"
+          _pkgname="mozilla_voice_stt_tflite"
       ;;
   esac
 

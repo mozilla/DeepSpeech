@@ -22,8 +22,8 @@ pushd ${HOME}/DeepSpeech/ds
 popd
 set +o pipefail
 
-which deepspeech
-deepspeech --version
+which mozilla_voice_stt
+mozilla_voice_stt --version
 
 pushd ${HOME}/DeepSpeech/ds/
     python bin/import_ldc93s1.py data/smoke_test

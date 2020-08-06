@@ -18,9 +18,9 @@ ifeq ($(findstring _NT,$(OS)),_NT)
 PLATFORM_EXE_SUFFIX := .exe
 endif
 
-DEEPSPEECH_BIN       := deepspeech$(PLATFORM_EXE_SUFFIX)
+DEEPSPEECH_BIN       := mozilla_voice_stt$(PLATFORM_EXE_SUFFIX)
 CFLAGS_DEEPSPEECH    := -std=c++11 -o $(DEEPSPEECH_BIN)
-LINK_DEEPSPEECH      := -ldeepspeech
+LINK_DEEPSPEECH      := -lmozilla_voice_stt
 LINK_PATH_DEEPSPEECH := -L${TFDIR}/bazel-bin/native_client
 
 ifeq ($(TARGET),host)
@@ -53,7 +53,7 @@ TOOL_CC     := cl.exe
 TOOL_CXX    := cl.exe
 TOOL_LD     := link.exe
 TOOL_LIBEXE := lib.exe
-LINK_DEEPSPEECH      := $(TFDIR)\bazel-bin\native_client\libdeepspeech.so.if.lib
+LINK_DEEPSPEECH      := $(TFDIR)\bazel-bin\native_client\libmozilla_voice_stt.so.if.lib
 LINK_PATH_DEEPSPEECH :=
 CFLAGS_DEEPSPEECH    := -nologo -Fe$(DEEPSPEECH_BIN)
 SOX_CFLAGS      :=
@@ -174,7 +174,7 @@ define copy_missing_libs
             new_missing="$$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 | xargs basename -a)"; \
             missing_libs="$$missing_libs $$new_missing"; \
 	elif [ "$(OS)" = "${TC_MSYS_VERSION}" ]; then \
-            missing_libs="libdeepspeech.so"; \
+            missing_libs="libmozilla_voice_stt.so"; \
         else \
             missing_libs="$$missing_libs $$($(LDD) $$lib | grep 'not found' | awk '{ print $$1 }')"; \
         fi; \

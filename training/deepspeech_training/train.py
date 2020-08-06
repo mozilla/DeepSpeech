@@ -677,7 +677,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     mfccs = tf.identity(mfccs, name='mfccs')
 
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
-    # This shape is read by the native_client in DS_CreateModel to know the
+    # This shape is read by the native_client in STT_CreateModel to know the
     # value of n_steps, n_context and n_input. Make sure you update the code
     # there if this shape is changed.
     input_tensor = tfv1.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2 * Config.n_context + 1, Config.n_input], name='input_node')

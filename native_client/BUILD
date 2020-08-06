@@ -96,10 +96,10 @@ cc_library(
 )
 
 tf_cc_shared_object(
-    name = "libdeepspeech.so",
+    name = "libmozilla_voice_stt.so",
     srcs = [
         "deepspeech.cc",
-        "deepspeech.h",
+        "mozilla_voice_stt.h",
         "deepspeech_errors.cc",
         "modelstate.cc",
         "modelstate.h",
@@ -149,7 +149,7 @@ tf_cc_shared_object(
             #"//tensorflow/core:all_kernels",
             ### => Trying to be more fine-grained
             ### Use bin/ops_in_graph.py to list all the ops used by a frozen graph.
-            ### CPU only build, libdeepspeech.so file size reduced by ~50%
+            ### CPU only build, libmozilla_voice_stt.so file size reduced by ~50%
             "//tensorflow/core/kernels:spectrogram_op",  # AudioSpectrogram
             "//tensorflow/core/kernels:bias_op",  # BiasAdd
             "//tensorflow/core/kernels:cast_op",  # Cast
@@ -189,11 +189,11 @@ tf_cc_shared_object(
 )
 
 genrule(
-    name = "libdeepspeech_so_dsym",
-    srcs = [":libdeepspeech.so"],
-    outs = ["libdeepspeech.so.dSYM"],
+    name = "libmozilla_voice_stt_so_dsym",
+    srcs = [":libmozilla_voice_stt.so"],
+    outs = ["libmozilla_voice_stt.so.dSYM"],
     output_to_bindir = True,
-    cmd = "dsymutil $(location :libdeepspeech.so) -o $@"
+    cmd = "dsymutil $(location :libmozilla_voice_stt.so) -o $@"
 )
 
 cc_binary(

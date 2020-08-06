@@ -1,6 +1,6 @@
 absl-py==0.9.0
 attrdict==2.0.1
-deepspeech
+mozilla_voice_stt_tflite
 numpy==1.16.0
 progressbar2==3.47.0
 python-utils==2.3.0

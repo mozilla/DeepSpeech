@@ -11,7 +11,7 @@ using namespace std;
 #include "ctcdecode/decoder_utils.h"
 #include "ctcdecode/scorer.h"
 #include "alphabet.h"
-#include "deepspeech.h"
+#include "mozilla_voice_stt.h"
 
 namespace po = boost::program_options;
 
@@ -66,9 +66,9 @@ create_package(absl::optional<string> alphabet_path,
     scorer.set_utf8_mode(force_utf8.value());
     scorer.reset_params(default_alpha, default_beta);
     int err = scorer.load_lm(lm_path);
-    if (err != DS_ERR_SCORER_NO_TRIE) {
+    if (err != STT_ERR_SCORER_NO_TRIE) {
         cerr << "Error loading language model file: "
-             << DS_ErrorCodeToErrorMessage(err) << "\n";
+             << STT_ErrorCodeToErrorMessage(err) << "\n";
         return 1;
     }
     scorer.fill_dictionary(words);

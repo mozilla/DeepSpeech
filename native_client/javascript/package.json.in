@@ -1,11 +1,11 @@
 {
     "name" : "$(PROJECT_NAME)",
     "version" : "$(PROJECT_VERSION)",
-    "description" : "DeepSpeech NodeJS bindings",
+    "description" : "Mozilla Voice STT NodeJS bindings",
     "main" : "./index.js",
     "types": "./index.d.ts",
     "bin": {
-       "deepspeech": "./client.js"
+       "mozilla_voice_stt": "./client.js"
     },
     "author" : "Mozilla",
     "license": "MPL-2.0",

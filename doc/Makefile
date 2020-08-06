@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = DeepSpeech
+SPHINXPROJ    = Mozilla Voice STT
 SOURCEDIR     = .
 BUILDDIR      = .build
 

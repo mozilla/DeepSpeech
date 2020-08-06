@@ -6,7 +6,7 @@ import argparse
 import numpy as np
 import wave
 
-from deepspeech import Model
+from mozilla_voice_stt import Model
 
 
 def main():

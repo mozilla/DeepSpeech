@@ -26,7 +26,7 @@ int
 TFModelState::init(const char* model_path)
 {
   int err = ModelState::init(model_path);
-  if (err != DS_ERR_OK) {
+  if (err != STT_ERR_OK) {
     return err;
   }
 
@@ -42,7 +42,7 @@ TFModelState::init(const char* model_path)
     status = mmap_env_->InitializeFromFile(model_path);
     if (!status.ok()) {
       std::cerr << status << std::endl;
-      return DS_ERR_FAIL_INIT_MMAP;
+      return STT_ERR_FAIL_INIT_MMAP;
     }
 
     options.config.mutable_graph_options()
@@ -55,7 +55,7 @@ TFModelState::init(const char* model_path)
   status = NewSession(options, &session);
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    return DS_ERR_FAIL_INIT_SESS;
+    return STT_ERR_FAIL_INIT_SESS;
   }
   session_.reset(session);
 
@@ -68,13 +68,13 @@ TFModelState::init(const char* model_path)
   }
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    return DS_ERR_FAIL_READ_PROTOBUF;
+    return STT_ERR_FAIL_READ_PROTOBUF;
   }
 
   status = session_->Create(graph_def_);
   if (!status.ok()) {
     std::cerr << status << std::endl;
-    return DS_ERR_FAIL_CREATE_SESS;
+    return STT_ERR_FAIL_CREATE_SESS;
   }
 
   std::vector<tensorflow::Tensor> version_output;
@@ -83,7 +83,7 @@ TFModelState::init(const char* model_path)
   }, {}, &version_output);
   if (!status.ok()) {
     std::cerr << "Unable to fetch graph version: " << status << std::endl;
-    return DS_ERR_MODEL_INCOMPATIBLE;
+    return STT_ERR_MODEL_INCOMPATIBLE;
   }
 
   int graph_version = version_output[0].scalar<int>()();
@@ -94,7 +94,7 @@ TFModelState::init(const char* model_path)
               << "https://github.com/mozilla/DeepSpeech/blob/"
               << ds_git_version() << "/doc/USING.rst#model-compatibility "
               << "for more information" << std::endl;
-    return DS_ERR_MODEL_INCOMPATIBLE;
+    return STT_ERR_MODEL_INCOMPATIBLE;
   }
 
   std::vector<tensorflow::Tensor> metadata_outputs;
@@ -107,7 +107,7 @@ TFModelState::init(const char* model_path)
   }, {}, &metadata_outputs);
   if (!status.ok()) {
     std::cout << "Unable to fetch metadata: " << status << std::endl;
-    return DS_ERR_MODEL_INCOMPATIBLE;
+    return STT_ERR_MODEL_INCOMPATIBLE;
   }
 
   sample_rate_ = metadata_outputs[0].scalar<int>()();
@@ -121,7 +121,7 @@ TFModelState::init(const char* model_path)
   string serialized_alphabet = metadata_outputs[4].scalar<tensorflow::tstring>()();
   err = alphabet_.Deserialize(serialized_alphabet.data(), serialized_alphabet.size());
   if (err != 0) {
-    return DS_ERR_INVALID_ALPHABET;
+    return STT_ERR_INVALID_ALPHABET;
   }
 
   assert(sample_rate_ > 0);
@@ -155,7 +155,7 @@ TFModelState::init(const char* model_path)
                   << " classes in its output. Make sure you're passing an alphabet "
                   << "file with the same size as the one used for training."
                   << std::endl;
-        return DS_ERR_INVALID_ALPHABET;
+        return STT_ERR_INVALID_ALPHABET;
       }
     }
   }
@@ -165,10 +165,10 @@ TFModelState::init(const char* model_path)
               << "Make sure input_node is a 4D tensor with shape "
               << "[batch_size=1, time, window_size, n_features]."
               << std::endl;
-    return DS_ERR_INVALID_SHAPE;
+    return STT_ERR_INVALID_SHAPE;
   }
 
-  return DS_ERR_OK;
+  return STT_ERR_OK;
 }
 
 Tensor
