@@ -16,7 +16,7 @@ BAZEL_TARGETS="
 if [ "${package_option}" = "--cuda" ]; then
     BAZEL_ENV_FLAGS="TF_NEED_CUDA=1 ${TF_CUDA_FLAGS}"
     BAZEL_BUILD_FLAGS="${BAZEL_CUDA_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BAZEL_OPT_FLAGS}"
-    PROJECT_NAME="Mozilla-Voice-STT-GPU"
+    PROJECT_NAME="Mozilla-Voice-STT-CUDA"
 elif [ "${package_option}" = "--tflite" ]; then
     PROJECT_NAME="Mozilla-Voice-STT-TFLite"
     BAZEL_BUILD_FLAGS="--define=runtime=tflite ${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS}"
