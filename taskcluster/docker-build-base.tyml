@@ -35,7 +35,7 @@ then:
           add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" &&
           apt-get -qq update && apt-get -qq -y install docker-ce && mkdir -p /opt/deepspeech &&
           git clone --quiet ${event.head.repo.url} /opt/deepspeech && cd /opt/deepspeech && git checkout --quiet ${event.head.sha} &&
-          make ${dockerfile} DEEPSPEECH_REPO=${event.head.repo.url} DEEPSPEECH_SHA=${event.head.sha} &&
+          make ${dockerfile} MOZILLA_VOICE_STT_REPO=${event.head.repo.url} MOZILLA_VOICE_STT_SHA=${event.head.sha} &&
           docker build --file ${dockerfile} .
 
     artifacts:

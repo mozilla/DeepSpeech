@@ -1,6 +1,6 @@
 # These environment variables must be set in CircleCI UI
 #
-# DOCKERHUB_REPO - docker hub repo, format: <username>/<repo>
+# DOCKERHUB_MOZILLA_VOICE_REPO - docker hub repo, format: <username>/<repo>
 # DOCKER_USER    - login info for docker hub
 # DOCKER_PASS
 #
@@ -28,8 +28,8 @@ jobs:
           name: Create a Dockerfile.train
           command: |
             make Dockerfile.train \
-                DEEPSPEECH_REPO="https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" \
-                DEEPSPEECH_SHA=$CIRCLE_SHA1
+                MOZILLA_VOICE_STT_REPO="https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" \
+                MOZILLA_VOICE_STT_SHA=$CIRCLE_SHA1
 
       - run:
           name: Build Docker image
@@ -62,14 +62,14 @@ jobs:
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             # deploy master
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              docker tag app:build ${DOCKERHUB_REPO}:latest
-              docker push ${DOCKERHUB_REPO}:latest
+              docker tag app:build ${DOCKERHUB_MOZILLA_VOICE_REPO}:latest
+              docker push ${DOCKERHUB_MOZILLA_VOICE_REPO}:latest
             elif  [ ! -z "${CIRCLE_TAG}" ]; then
             # deploy a release tag...
-              echo "${DOCKERHUB_REPO}:${CIRCLE_TAG}"
-              docker tag app:build "${DOCKERHUB_REPO}:${CIRCLE_TAG}"
+              echo "${DOCKERHUB_MOZILLA_VOICE_REPO}:${CIRCLE_TAG}"
+              docker tag app:build "${DOCKERHUB_MOZILLA_VOICE_REPO}:${CIRCLE_TAG}"
               docker images
-              docker push "${DOCKERHUB_REPO}:${CIRCLE_TAG}"
+              docker push "${DOCKERHUB_MOZILLA_VOICE_REPO}:${CIRCLE_TAG}"
             fi
 
 workflows:

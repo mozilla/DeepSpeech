@@ -88,11 +88,11 @@ This should ensure that you'll re-use the upstream Python 3 TensorFlow GPU-enabl
 
    make Dockerfile.train
 
-If you want to specify a different Mozilla Voice STT repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
+If you want to specify a different Mozilla Voice STT repository / branch, you can pass ``MOZILLA_VOICE_STT_REPO`` or ``MOZILLA_VOICE_STT_SHA`` parameters:
 
 .. code-block:: bash
 
-   make Dockerfile.train DEEPSPEECH_REPO=git://your/fork DEEPSPEECH_SHA=origin/your-branch
+   make Dockerfile.train MOZILLA_VOICE_STT_REPO=git://your/fork MOZILLA_VOICE_STT_SHA=origin/your-branch
 
 Common Voice training data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
