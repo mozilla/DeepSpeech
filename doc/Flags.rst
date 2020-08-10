@@ -8,7 +8,7 @@ Below you can find the definition of all command-line flags supported by the tra
 Flags
 -----
 
-.. literalinclude:: ../training/deepspeech_training/util/flags.py
+.. literalinclude:: ../training/mozilla_voice_stt_training/util/flags.py
    :language: python
    :linenos:
    :lineno-match:

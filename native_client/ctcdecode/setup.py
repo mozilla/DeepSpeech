@@ -51,7 +51,7 @@ def maybe_rebuild(srcs, out_name, build_dir):
                      num_parallel=known_args.num_processes,
                      debug=debug)
 
-project_version = read('../../training/deepspeech_training/VERSION').strip()
+project_version = read('../../training/mozilla_voice_stt_training/VERSION').strip()
 
 build_dir = 'temp_build/temp_build'
 

@@ -13,11 +13,11 @@ import logging
 logging.getLogger('sox').setLevel(logging.ERROR)
 import glob
 
-from deepspeech_training.util.audio import AudioFile
-from deepspeech_training.util.config import Config, initialize_globals
-from deepspeech_training.util.feeding import split_audio_file
-from deepspeech_training.util.flags import create_flags, FLAGS
-from deepspeech_training.util.logging import log_error, log_info, log_progress, create_progressbar
+from mozilla_voice_stt_training.util.audio import AudioFile
+from mozilla_voice_stt_training.util.config import Config, initialize_globals
+from mozilla_voice_stt_training.util.feeding import split_audio_file
+from mozilla_voice_stt_training.util.flags import create_flags, FLAGS
+from mozilla_voice_stt_training.util.logging import log_error, log_info, log_progress, create_progressbar
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from multiprocessing import Process, cpu_count
 
@@ -28,8 +28,8 @@ def fail(message, code=1):
 
 
 def transcribe_file(audio_path, tlog_path):
-    from deepspeech_training.train import create_model  # pylint: disable=cyclic-import,import-outside-toplevel
-    from deepspeech_training.util.checkpoints import load_graph_for_evaluation
+    from mozilla_voice_stt_training.train import create_model  # pylint: disable=cyclic-import,import-outside-toplevel
+    from mozilla_voice_stt_training.util.checkpoints import load_graph_for_evaluation
     initialize_globals()
     scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta, FLAGS.scorer_path, Config.alphabet)
     try:

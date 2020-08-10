@@ -11,8 +11,8 @@ import os
 import sys
 
 from mozilla_voice_stt import Model
-from deepspeech_training.util.evaluate_tools import calculate_and_print_report
-from deepspeech_training.util.flags import create_flags
+from mozilla_voice_stt_training.util.evaluate_tools import calculate_and_print_report
+from mozilla_voice_stt_training.util.flags import create_flags
 from functools import partial
 from multiprocessing import JoinableQueue, Process, cpu_count, Manager
 from six.moves import zip, range

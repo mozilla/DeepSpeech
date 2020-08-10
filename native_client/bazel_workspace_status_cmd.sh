@@ -22,8 +22,8 @@ echo "STABLE_TF_GIT_VERSION ${tf_git_rev}"
 pushd $(dirname "$0")
 ds_git_rev=$(git describe --long --tags)
 echo "STABLE_DS_GIT_VERSION ${ds_git_rev}"
-ds_version=$(cat ../training/deepspeech_training/VERSION)
+ds_version=$(cat ../training/mozilla_voice_stt_training/VERSION)
 echo "STABLE_DS_VERSION ${ds_version}"
-ds_graph_version=$(cat ../training/deepspeech_training/GRAPH_VERSION)
+ds_graph_version=$(cat ../training/mozilla_voice_stt_training/GRAPH_VERSION)
 echo "STABLE_DS_GRAPH_VERSION ${ds_graph_version}"
 popd

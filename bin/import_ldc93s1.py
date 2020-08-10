@@ -4,7 +4,7 @@ import sys
 
 import pandas
 
-from deepspeech_training.util.downloader import maybe_download
+from mozilla_voice_stt_training.util.downloader import maybe_download
 
 
 def _download_and_preprocess_data(data_dir):
