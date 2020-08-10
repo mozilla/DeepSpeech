@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
+import io
 import csv
 import json
+import tarfile
 
 from pathlib import Path
 from functools import partial
@@ -369,6 +371,81 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
     def close(self):
         if self.csv_file:
             self.csv_file.close()
+
+    def __len__(self):
+        return self.counter
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
+class TarWriter:  # pylint: disable=too-many-instance-attributes
+    """Sample collection writer for writing a CSV data-set and all its referenced WAV samples to a tar file"""
+    def __init__(self,
+                 tar_filename,
+                 gz=False,
+                 labeled=True,
+                 include=None):
+        """
+        Parameters
+        ----------
+        tar_filename : str
+            Path to the tar file to write.
+        gz : bool
+            If to compress tar file with gzip.
+        labeled : bool or None
+            If True: Writes labeled samples (util.sample_collections.LabeledSample) only.
+            If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
+        include : str[]
+            List of files to include into tar root.
+        """
+        self.tar = tarfile.open(tar_filename, 'w:gz' if gz else 'w')
+        samples_dir = tarfile.TarInfo('samples')
+        samples_dir.type = tarfile.DIRTYPE
+        self.tar.addfile(samples_dir)
+        if include:
+            for include_path in include:
+                self.tar.add(include_path, recursive=False, arcname=Path(include_path).name)
+        fieldnames = ['wav_filename', 'wav_filesize']
+        self.labeled = labeled
+        if labeled:
+            fieldnames.append('transcript')
+        self.csv_file = io.StringIO()
+        self.csv_writer = csv.DictWriter(self.csv_file, fieldnames=fieldnames)
+        self.csv_writer.writeheader()
+        self.counter = 0
+
+    def __enter__(self):
+        return self
+
+    def add(self, sample):
+        sample_filename = 'samples/sample{0:08d}.wav'.format(self.counter)
+        self.counter += 1
+        sample.change_audio_type(AUDIO_TYPE_PCM)
+        sample_file = io.BytesIO()
+        write_wav(sample_file, sample.audio, audio_format=sample.audio_format)
+        sample_size = sample_file.tell()
+        sample_file.seek(0)
+        sample_tar = tarfile.TarInfo(sample_filename)
+        sample_tar.size = sample_size
+        self.tar.addfile(sample_tar, sample_file)
+        row = {
+            'wav_filename': sample_filename,
+            'wav_filesize': sample_size
+        }
+        if self.labeled:
+            row['transcript'] = sample.transcript
+        self.csv_writer.writerow(row)
+        return sample_filename
+
+    def close(self):
+        if self.csv_file and self.tar:
+            csv_tar = tarfile.TarInfo('samples.csv')
+            csv_tar.size = self.csv_file.tell()
+            self.csv_file.seek(0)
+            self.tar.addfile(csv_tar, io.BytesIO(self.csv_file.read().encode('utf8')))
+        if self.tar:
+            self.tar.close()
 
     def __len__(self):
         return self.counter

@@ -18,6 +18,7 @@ from mozilla_voice_stt_training.util.downloader import SIMPLE_BAR
 from mozilla_voice_stt_training.util.sample_collections import (
     CSVWriter,
     DirectSDBWriter,
+    TarWriter,
     samples_from_sources,
 )
 from mozilla_voice_stt_training.util.augmentations import (
@@ -41,8 +42,12 @@ def build_data_set():
         writer = CSVWriter(CLI_ARGS.target, absolute_paths=CLI_ARGS.absolute_paths, labeled=labeled)
     elif extension == '.sdb':
         writer = DirectSDBWriter(CLI_ARGS.target, audio_type=audio_type, labeled=labeled)
+    elif extension == '.tar':
+        writer = TarWriter(CLI_ARGS.target, labeled=labeled, gz=False, include=CLI_ARGS.include)
+    elif extension == '.tgz' or CLI_ARGS.target.lower().endswith('.tar.gz'):
+        writer = TarWriter(CLI_ARGS.target, labeled=labeled, gz=True, include=CLI_ARGS.include)
     else:
-        print('Unknown extension of target file - has to be either .csv or .sdb')
+        print('Unknown extension of target file - has to be either .csv, .sdb, .tar, .tar.gz or .tgz')
         sys.exit(1)
     with writer:
         samples = samples_from_sources(CLI_ARGS.sources, labeled=not CLI_ARGS.unlabeled)
@@ -71,7 +76,7 @@ def handle_args():
     )
     parser.add_argument(
         'target',
-        help='SDB or CSV file to create'
+        help='SDB, CSV or TAR(.gz) file to create'
     )
     parser.add_argument(
         '--audio-type',
@@ -90,7 +95,7 @@ def handle_args():
     parser.add_argument(
         '--unlabeled',
         action='store_true',
-        help='If to build an SDB with unlabeled (audio only) samples - '
+        help='If to build an data-set with unlabeled (audio only) samples - '
         'typically used for building noise augmentation corpora',
     )
     parser.add_argument(
@@ -102,6 +107,11 @@ def handle_args():
         '--augment',
         action='append',
         help='Add an augmentation operation',
+    )
+    parser.add_argument(
+        '--include',
+        action='append',
+        help='Adds a file to the root directory of .tar(.gz) targets',
     )
     return parser.parse_args()
 
