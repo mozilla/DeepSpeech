@@ -24,7 +24,7 @@ import sox
 
 from mozilla_voice_stt_training.util.downloader import SIMPLE_BAR, maybe_download
 from mozilla_voice_stt_training.util.importers import validate_label_eng as validate_label
-from ds_ctcdecoder import Alphabet
+from mvs_ctcdecoder import Alphabet
 
 SWC_URL = "https://www2.informatik.uni-hamburg.de/nats/pub/SWC/SWC_{language}.tar"
 SWC_ARCHIVE = "SWC_{language}.tar"

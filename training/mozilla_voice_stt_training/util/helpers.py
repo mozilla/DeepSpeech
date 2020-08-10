@@ -44,11 +44,11 @@ def check_ctcdecoder_version():
 
     try:
         # pylint: disable=import-outside-toplevel
-        from ds_ctcdecoder import __version__ as decoder_version
+        from mvs_ctcdecoder import __version__ as decoder_version
     except ImportError as e:
         if e.msg.find('__version__') > 0:
             print("Mozilla Voice STT version ({ds_version}) requires CTC decoder to expose __version__. "
-                  "Please upgrade the ds_ctcdecoder package to version {ds_version}".format(ds_version=ds_version_s))
+                  "Please upgrade the mvs_ctcdecoder package to version {ds_version}".format(ds_version=ds_version_s))
             sys.exit(1)
         raise e
 
