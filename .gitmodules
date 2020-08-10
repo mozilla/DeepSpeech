@@ -1,7 +1,7 @@
 [submodule "doc/examples"]
 	path = doc/examples
-	url = https://github.com/mozilla/DeepSpeech-examples.git
-	branch = master
+	url = https://github.com/mozilla/STT-examples.git
+	branch = r0.8
 [submodule "tensorflow"]
 	path = tensorflow
 	url = https://github.com/mozilla/tensorflow.git
