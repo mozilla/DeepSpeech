@@ -12,7 +12,7 @@ import progressbar
 from sox import Transformer
 from tensorflow.python.platform import gfile
 
-from deepspeech_training.util.downloader import maybe_download
+from mozilla_voice_stt_training.util.downloader import maybe_download
 
 SAMPLE_RATE = 16000
 

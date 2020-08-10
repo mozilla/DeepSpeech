@@ -9,13 +9,13 @@ from multiprocessing import Pool
 import progressbar
 import sox
 
-from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
-from deepspeech_training.util.importers import (
+from mozilla_voice_stt_training.util.downloader import SIMPLE_BAR, maybe_download
+from mozilla_voice_stt_training.util.importers import (
     get_counter,
     get_imported_samples,
     print_import_report,
 )
-from deepspeech_training.util.importers import validate_label_eng as validate_label
+from mozilla_voice_stt_training.util.importers import validate_label_eng as validate_label
 
 FIELDNAMES = ["wav_filename", "wav_filesize", "transcript"]
 SAMPLE_RATE = 16000

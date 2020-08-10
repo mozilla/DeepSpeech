@@ -7,12 +7,12 @@ import optuna
 import sys
 import tensorflow.compat.v1 as tfv1
 
-from deepspeech_training.evaluate import evaluate
-from deepspeech_training.train import create_model
-from deepspeech_training.util.config import Config, initialize_globals
-from deepspeech_training.util.flags import create_flags, FLAGS
-from deepspeech_training.util.logging import log_error
-from deepspeech_training.util.evaluate_tools import wer_cer_batch
+from mozilla_voice_stt_training.evaluate import evaluate
+from mozilla_voice_stt_training.train import create_model
+from mozilla_voice_stt_training.util.config import Config, initialize_globals
+from mozilla_voice_stt_training.util.flags import create_flags, FLAGS
+from mozilla_voice_stt_training.util.logging import log_error
+from mozilla_voice_stt_training.util.evaluate_tools import wer_cer_batch
 from ds_ctcdecoder import Scorer
 
 

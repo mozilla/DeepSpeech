@@ -3,7 +3,7 @@ import argparse
 import functools
 import pandas
 
-from deepspeech_training.util.helpers import secs_to_hours
+from mozilla_voice_stt_training.util.helpers import secs_to_hours
 from pathlib import Path
 
 

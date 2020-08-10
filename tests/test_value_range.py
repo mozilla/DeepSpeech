@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 import tensorflow as tf
-from deepspeech_training.util.helpers import ValueRange, get_value_range, pick_value_from_range, tf_pick_value_from_range
+from mozilla_voice_stt_training.util.helpers import ValueRange, get_value_range, pick_value_from_range, tf_pick_value_from_range
 
 
 class TestValueRange(unittest.TestCase):
