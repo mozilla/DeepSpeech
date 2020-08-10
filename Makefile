@@ -1,8 +1,8 @@
-DEEPSPEECH_REPO ?= https://github.com/mozilla/DeepSpeech.git
-DEEPSPEECH_SHA  ?= origin/master
+MOZILLA_VOICE_STT_REPO ?= https://github.com/mozilla/DeepSpeech.git
+MOZILLA_VOICE_STT_SHA  ?= origin/master
 
 Dockerfile%: Dockerfile%.tmpl
 	sed \
-		-e "s|#DEEPSPEECH_REPO#|$(DEEPSPEECH_REPO)|g" \
-		-e "s|#DEEPSPEECH_SHA#|$(DEEPSPEECH_SHA)|g" \
+		-e "s|#MOZILLA_VOICE_STT_REPO#|$(MOZILLA_VOICE_STT_REPO)|g" \
+		-e "s|#MOZILLA_VOICE_STT_SHA#|$(MOZILLA_VOICE_STT_SHA)|g" \
 		< $< > $@
