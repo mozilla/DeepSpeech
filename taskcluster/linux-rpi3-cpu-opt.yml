@@ -6,9 +6,9 @@ build:
     - "pyenv-linux-amd64"
     - "tf_linux-rpi3-cpu-opt"
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.arm"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.arm"
-    - "index.project.deepspeech.deepspeech.native_client.arm.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.arm"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.arm"
+    - "index.project.mozilla-voice-stt.native_client.arm.${event.head.sha}"
   ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
   system_setup:
     >

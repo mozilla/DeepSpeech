@@ -1,9 +1,9 @@
 build:
   template_file: docs.tyml
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.docs"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.docs"
-    - "index.project.deepspeech.deepspeech.native_client.docs.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.docs"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.docs"
+    - "index.project.mozilla-voice-stt.native_client.docs.${event.head.sha}"
   system_setup:
     >
       ${nodejs.packages_docs_bionic.prep_12} && ${nodejs.packages_docs_bionic.apt_pinning}

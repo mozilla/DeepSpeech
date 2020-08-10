@@ -6,9 +6,9 @@ build:
     - "pyenv-win-amd64"
     - "tf_win-amd64-cpu-opt"
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win-ctc"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win-ctc"
-    - "index.project.deepspeech.deepspeech.native_client.win-ctc.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.win-ctc"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.win-ctc"
+    - "index.project.mozilla-voice-stt.native_client.win-ctc.${event.head.sha}"
   tensorflow: ${system.tensorflow.win_amd64_cpu.url}
   scripts:
     build: 'taskcluster/decoder-build.sh'
