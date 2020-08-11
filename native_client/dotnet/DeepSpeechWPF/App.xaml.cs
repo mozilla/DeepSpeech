@@ -20,7 +20,7 @@ namespace DeepSpeechWPF
             {
                 //Register instance of DeepSpeech
                 DeepSpeechClient.DeepSpeech deepSpeechClient =
-                    new DeepSpeechClient.DeepSpeech("deepspeech-0.8.0-models.pbmm");
+                    new DeepSpeechClient.DeepSpeech("deepspeech-0.8.1-models.pbmm");
 
                 SimpleIoc.Default.Register<IDeepSpeech>(() => deepSpeechClient);
                 SimpleIoc.Default.Register<MainWindowViewModel>();

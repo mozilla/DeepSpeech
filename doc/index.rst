@@ -20,15 +20,15 @@ To install and use DeepSpeech all you have to do is:
    pip3 install deepspeech
 
    # Download pre-trained English model files
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.8.0/deepspeech-0.8.0-models.pbmm
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.8.0/deepspeech-0.8.0-models.scorer
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.8.1/deepspeech-0.8.1-models.pbmm
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.8.1/deepspeech-0.8.1-models.scorer
 
    # Download example audio files
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.8.0/audio-0.8.0.tar.gz
-   tar xvf audio-0.8.0.tar.gz
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.8.1/audio-0.8.1.tar.gz
+   tar xvf audio-0.8.1.tar.gz
 
    # Transcribe an audio file
-   deepspeech --model deepspeech-0.8.0-models.pbmm --scorer deepspeech-0.8.0-models.scorer --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.8.1-models.pbmm --scorer deepspeech-0.8.1-models.scorer --audio audio/2830-3980-0043.wav
 
 A pre-trained English model is available for use and can be downloaded following the instructions in :ref:`the usage docs <usage-docs>`. For the latest release, including pre-trained models and checkpoints, `see the GitHub releases page <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
 
@@ -44,7 +44,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    pip3 install deepspeech-gpu
 
    # Transcribe an audio file.
-   deepspeech --model deepspeech-0.8.0-models.pbmm --scorer deepspeech-0.8.0-models.scorer --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.8.1-models.pbmm --scorer deepspeech-0.8.1-models.scorer --audio audio/2830-3980-0043.wav
 
 Please ensure you have the required :ref:`CUDA dependencies <cuda-deps>`.
 
