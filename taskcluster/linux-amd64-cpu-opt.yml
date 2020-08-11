@@ -6,9 +6,9 @@ build:
     - "pyenv-linux-amd64"
     - "tf_linux-amd64-cpu-opt"
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.cpu"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.cpu"
-    - "index.project.deepspeech.deepspeech.native_client.cpu.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.cpu"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.cpu"
+    - "index.project.mozilla-voice-stt.native_client.cpu.${event.head.sha}"
   system_setup:
     >
       ${nodejs.packages_xenial.prep_12} && ${nodejs.packages_xenial.apt_pinning}

@@ -1,9 +1,9 @@
 build:
   template_file: win-opt-base.tyml
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win"
-    - "index.project.deepspeech.deepspeech.native_client.win.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.win"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.win"
+    - "index.project.mozilla-voice-stt.native_client.win.${event.head.sha}"
   dependencies:
     - "node-gyp-cache"
     - "swig-win-amd64"

@@ -7,9 +7,9 @@ build:
     - "pyenv-darwin-amd64"
     - "tf_ios-arm64-opt"
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.ios_arm64-tflite"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.ios_arm64-tflite"
-    - "index.project.deepspeech.deepspeech.native_client.ios_arm64-tflite.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.ios_arm64-tflite"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.ios_arm64-tflite"
+    - "index.project.mozilla-voice-stt.native_client.ios_arm64-tflite.${event.head.sha}"
   tensorflow: ${system.tensorflow.ios_arm64.url}
   scripts:
     build: "taskcluster/ios-build.sh --arm64"

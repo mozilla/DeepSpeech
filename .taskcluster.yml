@@ -23,8 +23,8 @@ tasks:
 
     scopes: [
       "queue:create-task:highest:proj-deepspeech/*",
-      "queue:route:index.project.deepspeech.*",
-      "index:insert-task:project.deepspeech.*",
+      "queue:route:index.project.mozilla-voice-stt.*",
+      "index:insert-task:project.mozilla-voice-stt.*",
       "queue:scheduler-id:taskcluster-github",
       "generic-worker:cache:deepspeech-macos-pyenv",
       "docker-worker:capability:device:kvm"

@@ -6,9 +6,9 @@ build:
     - "pyenv-linux-amd64"
     - "tf_android-armv7-opt"
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-armv7"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-armv7"
-    - "index.project.deepspeech.deepspeech.native_client.android-armv7.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.android-armv7"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.android-armv7"
+    - "index.project.mozilla-voice-stt.native_client.android-armv7.${event.head.sha}"
   tensorflow: ${system.tensorflow.android_armv7.url}
   scripts:
     build: "taskcluster/android-build.sh armeabi-v7a"

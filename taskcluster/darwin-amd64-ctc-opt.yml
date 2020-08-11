@@ -7,9 +7,9 @@ build:
     - "pyenv-darwin-amd64"
     - "tf_darwin-amd64-opt"
   routes:
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx-ctc"
-    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx-ctc"
-    - "index.project.deepspeech.deepspeech.native_client.osx-ctc.${event.head.sha}"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.osx-ctc"
+    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.osx-ctc"
+    - "index.project.mozilla-voice-stt.native_client.osx-ctc.${event.head.sha}"
   tensorflow: ${system.tensorflow.darwin_amd64.url}
   maxRunTime: 14400
   scripts:
