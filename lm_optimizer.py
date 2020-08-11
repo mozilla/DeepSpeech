@@ -13,7 +13,7 @@ from mozilla_voice_stt_training.util.config import Config, initialize_globals
 from mozilla_voice_stt_training.util.flags import create_flags, FLAGS
 from mozilla_voice_stt_training.util.logging import log_error
 from mozilla_voice_stt_training.util.evaluate_tools import wer_cer_batch
-from ds_ctcdecoder import Scorer
+from mvs_ctcdecoder import Scorer
 
 
 def character_based():

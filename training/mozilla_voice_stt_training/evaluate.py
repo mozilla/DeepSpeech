@@ -12,7 +12,7 @@ import progressbar
 import tensorflow as tf
 import tensorflow.compat.v1 as tfv1
 
-from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
+from mvs_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from six.moves import zip
 
 from .util.config import Config, initialize_globals

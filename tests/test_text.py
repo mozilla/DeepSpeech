@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from ds_ctcdecoder import Alphabet
+from mvs_ctcdecoder import Alphabet
 
 class TestAlphabetParsing(unittest.TestCase):
 
