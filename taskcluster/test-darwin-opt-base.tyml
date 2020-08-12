@@ -46,7 +46,7 @@ then:
           in: >
             export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
             export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
-            (mkdir ../tc-workdir/ || rm -fr ../tc-workdir/*) && cd ../tc-workdir/ &&
+            (rm -fr ../tc-workdir/ ; mkdir ../tc-workdir/) && cd ../tc-workdir/ &&
             export TASKCLUSTER_TASK_DIR="$(pwd)" &&
             export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
             export LC_ALL=C &&

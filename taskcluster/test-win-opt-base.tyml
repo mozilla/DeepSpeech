@@ -51,7 +51,7 @@ then:
           export TASKCLUSTER_NODE_DIR=\"$(cygpath -w $TASKCLUSTER_TASK_DIR/bin)\" &&
           export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
           export PIP_DEFAULT_TIMEOUT=60 &&
-          (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) && cd $TASKCLUSTER_TASK_DIR &&
+          (rm -fr $TASKCLUSTER_TASK_DIR/ ; mkdir $TASKCLUSTER_TASK_DIR) && cd $TASKCLUSTER_TASK_DIR &&
           env &&
           ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
           git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&

@@ -40,7 +40,7 @@ payload:
         export PATH=\"$USERPROFILE/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
         export TASKCLUSTER_ARTIFACTS=\"$(cygpath -u $USERPROFILE/public)\" &&
         export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
-        (mkdir $TASKCLUSTER_TASK_DIR || rm -fr $TASKCLUSTER_TASK_DIR/*) &&
+        (rm -fr $TASKCLUSTER_TASK_DIR/ ; mkdir $TASKCLUSTER_TASK_DIR) &&
         echo \"export TASKCLUSTER_TASK_EXIT_CODE=0\" > $USERPROFILE/tc-exit.sh &&
         env && pacman --noconfirm -S tar && mkdir -p $TASKCLUSTER_ARTIFACTS/ && if [ \"`curl -sSIL -o /dev/null -w %%{http_code} ${build.cache.artifact_url}`\" != \"200\" ]; then git clone --quiet ${build.build_or_cache.repo} $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/ && cd $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir} && git checkout --quiet ${build.build_or_cache.sha} && ${extraSystemConfig} && $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.setup} && $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.build} && $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/${build.scripts.package} && $TASKCLUSTER_TASK_DIR/${build.build_or_cache.dir}/taskcluster/tc-update-index.sh ${taskIndexExpire} taskcluster ${build.cache.artifact_namespace}; fi; echo \"export TASKCLUSTER_TASK_EXIT_CODE=$?\" > $USERPROFILE/tc-exit.sh" | cmd /k
 
