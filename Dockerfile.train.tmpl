@@ -31,9 +31,11 @@ RUN apt-get install -y --no-install-recommends libopus0 libsndfile1
 RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
+RUN echo git clone $MOZILLA_VOICE_STT_REPO
 RUN git clone $MOZILLA_VOICE_STT_REPO
 
-WORKDIR /DeepSpeech
+WORKDIR /STT
+RUN echo git checkout $MOZILLA_VOICE_STT_SHA
 RUN git checkout $MOZILLA_VOICE_STT_SHA
 
 # Build CTC decoder first, to avoid clashes on incompatible versions upgrades
@@ -43,7 +45,7 @@ RUN pip3 install --upgrade native_client/ctcdecode/dist/*.whl
 # Prepare deps
 RUN pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
 
-# Install DeepSpeech
+# Install Mozilla Voice STT
 #  - No need for the decoder since we did it earlier
 #  - There is already correct TensorFlow GPU installed on the base image,
 #    we don't want to break that
@@ -54,7 +56,7 @@ RUN python3 util/taskcluster.py --source tensorflow --branch r1.15 \
         --artifact convert_graphdef_memmapped_format  --target .
 
 # Build KenLM to generate new scorers
-WORKDIR /DeepSpeech/native_client
+WORKDIR /STT/native_client
 RUN rm -rf kenlm && \
 	git clone https://github.com/kpu/kenlm && \
 	cd kenlm && \
@@ -63,6 +65,6 @@ RUN rm -rf kenlm && \
 	cd build && \
 	cmake .. && \
 	make -j $(nproc)
-WORKDIR /DeepSpeech
+WORKDIR /STT
 
 RUN ./bin/run-ldc93s1.sh

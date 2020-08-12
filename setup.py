@@ -98,7 +98,7 @@ def main():
     setup(
         name='mozilla_voice_stt_training',
         version=version,
-        description='Training code for mozilla DeepSpeech',
+        description='Training code for Mozilla Voice STT',
         url='https://github.com/mozilla/STT',
         author='Mozilla',
         license='MPL-2.0',
