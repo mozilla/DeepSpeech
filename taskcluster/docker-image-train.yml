@@ -3,5 +3,5 @@ build:
   dockerfile: "Dockerfile.train"
   workerType: "${docker.dsBuild}"
   metadata:
-    name: "DeepSpeech Docker train"
-    description: "Testing |docker build| of DeepSpeech train image"
+    name: "Mozilla Voice STT Docker train"
+    description: "Testing |docker build| of Mozilla Voice STT train image"

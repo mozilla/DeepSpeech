@@ -12,5 +12,5 @@ build:
     package: "taskcluster/node-package.sh"
   workerType: "${docker.smallTask}"
   metadata:
-    name: "DeepSpeech NodeJS GPU package"
-    description: "Packaging DeepSpeech GPU for registry"
+    name: "Mozilla Voice STT NodeJS GPU package"
+    description: "Packaging Mozilla Voice STT GPU for registry"

@@ -6,5 +6,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-transfer-tests.sh 3.6.10:m"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech Linux AMD64 CPU transfer learning Py3.6"
-    description: "Training a DeepSpeech LDC93S1 model with transfer learning for Linux/AMD64 16kHz Python 3.6, CPU only, optimized version"
+    name: "Mozilla Voice STT Linux AMD64 CPU transfer learning Py3.6"
+    description: "Training a Mozilla Voice STT LDC93S1 model with transfer learning for Linux/AMD64 16kHz Python 3.6, CPU only, optimized version"

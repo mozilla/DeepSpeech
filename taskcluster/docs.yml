@@ -13,5 +13,5 @@ build:
     package: "taskcluster/docs-package.sh"
   workerType: "${docker.smallTask}"
   metadata:
-    name: "DeepSpeech API Documentation"
-    description: "Building DeepSpeech API Documentation"
+    name: "Mozilla Voice STT API Documentation"
+    description: "Building Mozilla Voice STT API Documentation"

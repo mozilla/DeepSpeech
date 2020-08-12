@@ -7,5 +7,5 @@ build:
   args:
     tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-netframework-ds-tests.sh 16k --tflite"
   metadata:
-    name: "DeepSpeech Windows AMD64 TFLite .Net Framework tests"
-    description: "Testing DeepSpeech .Net Framework for Windows/AMD64, TFLite, optimized version"
+    name: "Mozilla Voice STT Windows AMD64 TFLite .Net Framework tests"
+    description: "Testing Mozilla Voice STT .Net Framework for Windows/AMD64, TFLite, optimized version"

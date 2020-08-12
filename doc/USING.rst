@@ -33,12 +33,12 @@ The CUDA capable builds (Python, NodeJS, C++, etc) depend on CUDA 10.1 and CuDNN
 Getting the pre-trained model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the Mozilla Voice STT `releases page <https://github.com/mozilla/DeepSpeech/releases>`_. Alternatively, you can run the following command to download the model files in your current directory:
+If you want to use the pre-trained English model for performing speech-to-text, you can download it (along with other important inference material) from the Mozilla Voice STT `releases page <https://github.com/mozilla/STT/releases>`_. Alternatively, you can run the following command to download the model files in your current directory:
 
 .. code-block:: bash
 
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.pbmm
-   wget https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.scorer
+   wget https://github.com/mozilla/STT/releases/download/v0.8.1/deepspeech-0.8.1-models.pbmm
+   wget https://github.com/mozilla/STT/releases/download/v0.8.1/deepspeech-0.8.1-models.scorer
 
 There are several pre-trained model files available in official releases. Files ending in ``.pbmm`` are compatible with clients and language bindings built against the standard TensorFlow runtime. Usually these packages are simply called ``mozilla_voice_stt``. These files are also compatible with CUDA enabled clients and language bindings. These packages are usually called ``mozilla_voice_stt_cuda``. Files ending in ``.tflite`` are compatible with clients and language bindings built against the `TensorFlow Lite runtime <https://www.tensorflow.org/lite/>`_. These models are optimized for size and performance in low power devices. On desktop platforms, the compatible packages are called ``mozilla_voice_stt_tflite``. On Android and Raspberry Pi, we only publish TensorFlow Lite enabled packages, and they are simply called ``mozilla_voice_stt``. You can see a full list of supported platforms and which TensorFlow runtime is supported at :ref:`supported-platforms-inference`.
 
@@ -122,7 +122,7 @@ Alternatively, if you have a supported NVIDIA GPU on Linux, you can install the 
 
    $ pip3 install mozilla_voice_stt_cuda
 
-See the `release notes <https://github.com/mozilla/DeepSpeech/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
+See the `release notes <https://github.com/mozilla/STT/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
 
 You can update ``mozilla_voice_stt_cuda`` as follows:
 
@@ -136,7 +136,7 @@ Note: the following command assumes you `downloaded the pre-trained model <#gett
 
 .. code-block:: bash
 
-   mozilla_voice_stt --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio my_audio_file.wav
+   mozilla_voice_stt --model deepspeech-0.8.1-models.pbmm --scorer deepspeech-0.8.1-models.scorer --audio my_audio_file.wav
 
 The ``--scorer`` argument is optional, and represents an external language model to be used when transcribing the audio.
 
@@ -165,7 +165,7 @@ Alternatively, if you're using Linux and have a supported NVIDIA GPU, you can in
 
    npm install @mozilla-voice/stt-cuda
 
-See the `release notes <https://github.com/mozilla/DeepSpeech/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
+See the `release notes <https://github.com/mozilla/STT/releases>`_ to find which GPUs are supported. Please ensure you have the required `CUDA dependency <#cuda-dependency>`_.
 
 See the :ref:`TypeScript client <js-api-example>` for an example of how to use the bindings programatically.
 
@@ -194,13 +194,13 @@ also, if you need some binaries different than current master, like ``v0.2.0-alp
 
 The script ``taskcluster.py`` will download ``native_client.tar.xz`` (which includes the ``mozilla_voice_stt`` binary and associated libraries) and extract it into the current folder. Also, ``taskcluster.py`` will download binaries for Linux/x86_64 by default, but you can override that behavior with the ``--arch`` parameter. See the help info with ``python util/taskcluster.py -h`` for more details. Specific branches of Mozilla Voice STT or TensorFlow can be specified as well.
 
-Alternatively you may manually download the ``native_client.tar.xz`` from the [releases](https://github.com/mozilla/DeepSpeech/releases).
+Alternatively you may manually download the ``native_client.tar.xz`` from the [releases](https://github.com/mozilla/STT/releases).
 
 Note: the following command assumes you `downloaded the pre-trained model <#getting-the-pre-trained-model>`_.
 
 .. code-block:: bash
 
-   ./mozilla_voice_stt --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio audio_input.wav
+   ./mozilla_voice_stt --model deepspeech-0.8.1-models.pbmm --scorer deepspeech-0.8.1-models.scorer --audio audio_input.wav
 
 See the help output with ``./mozilla_voice_stt -h`` for more details.
 

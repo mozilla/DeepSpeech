@@ -20,5 +20,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-apk-tests.sh x86_64 android-30"
   workerType: "${docker.dsHighMemTests}"
   metadata:
-    name: "DeepSpeech Android 11.0 x86_64 Google Pixel APK/Java tests"
-    description: "Testing DeepSpeech APK/Java for Android 11.0 x86_64 Google Pixel, optimized version"
+    name: "Mozilla Voice STT Android 11.0 x86_64 Google Pixel APK/Java tests"
+    description: "Testing Mozilla Voice STT APK/Java for Android 11.0 x86_64 Google Pixel, optimized version"

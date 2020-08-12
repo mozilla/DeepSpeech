@@ -11,5 +11,5 @@ build:
   args:
     tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-node-tests.sh 10.x 16k"
   metadata:
-    name: "DeepSpeech OSX AMD64 CPU NodeJS 10.x tests"
-    description: "Testing DeepSpeech for OSX/AMD64 on NodeJS v10.x, CPU only, optimized version"
+    name: "Mozilla Voice STT OSX AMD64 CPU NodeJS 10.x tests"
+    description: "Testing Mozilla Voice STT for OSX/AMD64 on NodeJS v10.x, CPU only, optimized version"

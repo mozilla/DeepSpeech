@@ -8,5 +8,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.5.8:m 16k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech Linux AMD64 CPU Python v3.5 tests (16kHz)"
-    description: "Testing DeepSpeech for Linux/AMD64 on Python v3.5, CPU only, optimized version (16kHz)"
+    name: "Mozilla Voice STT Linux AMD64 CPU Python v3.5 tests (16kHz)"
+    description: "Testing Mozilla Voice STT for Linux/AMD64 on Python v3.5, CPU only, optimized version (16kHz)"

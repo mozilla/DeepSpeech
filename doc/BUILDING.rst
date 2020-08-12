@@ -37,7 +37,7 @@ Clone Mozilla Voice STT source code (TensorFlow will come as a submdule):
 
 .. code-block::
 
-   git clone https://github.com/mozilla/DeepSpeech.git
+   git clone https://github.com/mozilla/STT.git
    git submodule sync tensorflow/
    git submodule update --init tensorflow/
 

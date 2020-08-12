@@ -7,8 +7,8 @@ Mozilla Voice STT
    :alt: Documentation
 
 
-.. image:: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/DeepSpeech/master/badge.svg
-   :target: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/DeepSpeech/master/latest
+.. image:: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/STT/master/badge.svg
+   :target: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/STT/master/latest
    :alt: Task Status
 
 
@@ -16,7 +16,7 @@ Mozilla Voice STT is an open source Speech-To-Text engine, using a model trained
 
 Documentation for installation, usage, and training models are available on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 
-For the latest release, including pre-trained models and checkpoints, `see the latest release on GitHub <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
+For the latest release, including pre-trained models and checkpoints, `see the latest release on GitHub <https://github.com/mozilla/STT/releases/latest>`_.
 
 For contribution guidelines, see `CONTRIBUTING.rst <CONTRIBUTING.rst>`_.
 

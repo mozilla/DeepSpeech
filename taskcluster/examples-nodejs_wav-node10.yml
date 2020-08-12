@@ -7,5 +7,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/nodejs_wav/test.sh"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech examples: NodeJS WAV NodeJS v10.x"
-    description: "DeepSpeech examples: NodeJS WAV NodeJS v10.x"
+    name: "Mozilla Voice STT examples: NodeJS WAV NodeJS v10.x"
+    description: "Mozilla Voice STT examples: NodeJS WAV NodeJS v10.x"

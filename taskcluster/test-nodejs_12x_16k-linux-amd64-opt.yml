@@ -12,5 +12,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 12.x 16k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech Linux AMD64 CPU NodeJS 12.x tests (16kHz)"
-    description: "Testing DeepSpeech for Linux/AMD64 on NodeJS v12.x, CPU only, optimized version (16kHz)"
+    name: "Mozilla Voice STT Linux AMD64 CPU NodeJS 12.x tests (16kHz)"
+    description: "Testing Mozilla Voice STT for Linux/AMD64 on NodeJS v12.x, CPU only, optimized version (16kHz)"

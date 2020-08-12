@@ -6,5 +6,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-single-shot-inference.sh 3.6.10:m"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech Linux AMD64 CPU single-shot inference Py3.6"
-    description: "Single-shot inference a DeepSpeech LDC93S1 checkpoint for Linux/AMD64 using upstream TensorFlow Python 3.6, CPU only, optimized version"
+    name: "Mozilla Voice STT Linux AMD64 CPU single-shot inference Py3.6"
+    description: "Single-shot inference a Mozilla Voice STT LDC93S1 checkpoint for Linux/AMD64 using upstream TensorFlow Python 3.6, CPU only, optimized version"

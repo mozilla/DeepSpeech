@@ -10,5 +10,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/ffmpeg_vad_streaming/test.sh"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v12.x"
-    description: "DeepSpeech examples: ffmpeg VAD Streaming NodeJS v12.x"
+    name: "Mozilla Voice STT examples: ffmpeg VAD Streaming NodeJS v12.x"
+    description: "Mozilla Voice STT examples: ffmpeg VAD Streaming NodeJS v12.x"

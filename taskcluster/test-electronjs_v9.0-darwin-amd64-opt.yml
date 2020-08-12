@@ -11,5 +11,5 @@ build:
   args:
     tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 9.0.1 16k"
   metadata:
-    name: "DeepSpeech OSX AMD64 CPU ElectronJS v9.0 tests"
-    description: "Testing DeepSpeech for OSX/AMD64 on ElectronJS v9.0, CPU only, optimized version"
+    name: "Mozilla Voice STT OSX AMD64 CPU ElectronJS v9.0 tests"
+    description: "Testing Mozilla Voice STT for OSX/AMD64 on ElectronJS v9.0, CPU only, optimized version"

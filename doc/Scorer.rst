@@ -7,7 +7,7 @@ Mozilla Voice STT pre-trained models include an external scorer. This document e
 
 The scorer is composed of two sub-components, a KenLM language model and a trie data structure containing all words in the vocabulary. In order to create the scorer package, first we must create a KenLM language model (using ``data/lm/generate_lm.py``, and then use ``generate_scorer_package`` to create the final package file including the trie data structure.
 
-The ``generate_scorer_package`` binary is part of the native client package that is included with official releases. You can find the appropriate archive for your platform in the `GitHub release downloads <https://github.com/mozilla/DeepSpeech/releases/latest>`_. The native client package is named ``native_client.{arch}.{config}.{plat}.tar.xz``, where ``{arch}`` is the architecture the binary was built for, for example ``amd64`` or ``arm64``, ``config`` is the build configuration, which for building decoder packages does not matter, and ``{plat}`` is the platform the binary was built-for, for example ``linux`` or ``osx``. If you wanted to run the ``generate_scorer_package`` binary on a Linux desktop, you would download ``native_client.amd64.cpu.linux.tar.xz``.
+The ``generate_scorer_package`` binary is part of the native client package that is included with official releases. You can find the appropriate archive for your platform in the `GitHub release downloads <https://github.com/mozilla/STT/releases/latest>`_. The native client package is named ``native_client.{arch}.{config}.{plat}.tar.xz``, where ``{arch}`` is the architecture the binary was built for, for example ``amd64`` or ``arm64``, ``config`` is the build configuration, which for building decoder packages does not matter, and ``{plat}`` is the platform the binary was built-for, for example ``linux`` or ``osx``. If you wanted to run the ``generate_scorer_package`` binary on a Linux desktop, you would download ``native_client.amd64.cpu.linux.tar.xz``.
 
 Reproducing our external scorer
 -------------------------------
@@ -44,7 +44,7 @@ Afterwards you can use ``generate_scorer_package`` to generate the scorer packag
 
     cd data/lm
     # Download and extract appropriate native_client package:
-    curl -LO http://github.com/mozilla/DeepSpeech/releases/...
+    curl -LO http://github.com/mozilla/STT/releases/...
     tar xvf native_client.*.tar.xz
     ./generate_scorer_package --alphabet ../alphabet.txt --lm lm.binary --vocab vocab-500000.txt \
       --package kenlm.scorer --default_alpha 0.931289039105002 --default_beta 1.1834137581510284
