@@ -645,6 +645,9 @@ def train():
                         log_info('Encountered a plateau, reducing learning rate to {}'.format(
                             current_learning_rate))
 
+                        # Reload checkpoint that we use the best_dev weights again
+                        load_or_init_graph_for_training(session)
+
                 if FLAGS.metrics_files:
                     # Read only metrics, not affecting best validation loss tracking
                     for source, init_op in zip(metrics_sources, metrics_init_ops):
