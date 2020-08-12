@@ -8,5 +8,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-cpp-ds-tests.sh 8k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech Linux AMD64 CPU C++ tests (8kHz)"
-    description: "Testing DeepSpeech C++ for Linux/AMD64, CPU only, optimized version (8kHz)"
+    name: "Mozilla Voice STT Linux AMD64 CPU C++ tests (8kHz)"
+    description: "Testing Mozilla Voice STT C++ for Linux/AMD64, CPU only, optimized version (8kHz)"

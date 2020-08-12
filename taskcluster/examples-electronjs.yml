@@ -10,5 +10,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/electron/test.sh"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech examples: ElectronJS/React on NodeJS v12.x"
-    description: "DeepSpeech examples: ElectronJS/React on NodeJS v12.x"
+    name: "Mozilla Voice STT examples: ElectronJS/React on NodeJS v12.x"
+    description: "Mozilla Voice STT examples: ElectronJS/React on NodeJS v12.x"

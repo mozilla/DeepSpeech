@@ -1,4 +1,4 @@
-MOZILLA_VOICE_STT_REPO ?= https://github.com/mozilla/DeepSpeech.git
+MOZILLA_VOICE_STT_REPO ?= https://github.com/mozilla/STT.git
 MOZILLA_VOICE_STT_SHA  ?= origin/master
 
 Dockerfile%: Dockerfile%.tmpl

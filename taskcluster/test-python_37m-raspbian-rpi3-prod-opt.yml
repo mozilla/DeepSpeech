@@ -10,5 +10,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python_tflite-tests-prod.sh 3.7.6:m 16k"
   metadata:
-    name: "DeepSpeech Raspbian RPi3/ARMv7 CPU Python v3.7 prod tests"
-    description: "Testing DeepSpeech for Raspbian RPi3/ARMv7 on prod model Python v3.7, CPU only, optimized version"
+    name: "Mozilla Voice STT Raspbian RPi3/ARMv7 CPU Python v3.7 prod tests"
+    description: "Testing Mozilla Voice STT for Raspbian RPi3/ARMv7 on prod model Python v3.7, CPU only, optimized version"

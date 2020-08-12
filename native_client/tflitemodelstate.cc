@@ -255,7 +255,7 @@ TFLiteModelState::init(const char* model_path)
     std::cerr << "Specified model file version (" << *graph_version << ") is "
               << "incompatible with minimum version supported by this client ("
               << ds_graph_version() << "). See "
-              << "https://github.com/mozilla/DeepSpeech/blob/"
+              << "https://github.com/mozilla/STT/blob/"
               << ds_git_version() << "/doc/USING.rst#model-compatibility "
               << "for more information" << std::endl;
     return STT_ERR_MODEL_INCOMPATIBLE;

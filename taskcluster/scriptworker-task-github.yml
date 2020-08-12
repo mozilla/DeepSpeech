@@ -74,5 +74,5 @@ build:
       - "ios-x86_64-tflite-opt"
       - "ios-arm64-tflite-opt"
   metadata:
-    name: "DeepSpeech GitHub Packages"
-    description: "Trigger Uploading of DeepSpeech Packages to GitHub release page"
+    name: "Mozilla Voice STT GitHub Packages"
+    description: "Trigger Uploading of Mozilla Voice STT Packages to GitHub release page"

@@ -40,5 +40,5 @@ build:
       # - "linux-arm64-cpu-opt" Aarch64 packages are refused by upload.pypi.org
     nuget: []
   metadata:
-    name: "DeepSpeech PyPi Packages"
-    description: "Trigger Uploading of DeepSpeech Packages to PyPi"
+    name: "Mozilla Voice STT PyPi Packages"
+    description: "Trigger Uploading of Mozilla Voice STT Packages to PyPi"

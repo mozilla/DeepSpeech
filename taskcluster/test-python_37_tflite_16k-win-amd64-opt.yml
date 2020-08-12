@@ -10,5 +10,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-python_tflite-tests.sh 3.7.6:m 16k"
   metadata:
-    name: "DeepSpeech Windows AMD64 TFLite Python v3.7 tests (16kHz)"
-    description: "Testing DeepSpeech for Windows/AMD64 on Python v3.7 TFLite, optimized version (16kHz)"
+    name: "Mozilla Voice STT Windows AMD64 TFLite Python v3.7 tests (16kHz)"
+    description: "Testing Mozilla Voice STT for Windows/AMD64 on Python v3.7 TFLite, optimized version (16kHz)"

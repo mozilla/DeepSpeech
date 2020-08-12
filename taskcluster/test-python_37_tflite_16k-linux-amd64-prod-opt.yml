@@ -6,5 +6,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python_tflite-tests-prod.sh 3.7.6:m 16k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech Linux AMD64 TFLite Python v3.7 prod tests (16kHz)"
-    description: "Testing DeepSpeech for Linux/AMD64 on Python v3.7 on prod model, TFLite, optimized version (16kHz)"
+    name: "Mozilla Voice STT Linux AMD64 TFLite Python v3.7 prod tests (16kHz)"
+    description: "Testing Mozilla Voice STT for Linux/AMD64 on Python v3.7 on prod model, TFLite, optimized version (16kHz)"

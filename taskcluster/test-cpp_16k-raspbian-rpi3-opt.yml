@@ -7,5 +7,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-cpp_tflite-ds-tests.sh 16k"
   metadata:
-    name: "DeepSpeech Raspbian RPi3/ARMv7 CPU C++ tests (16kHz)"
-    description: "Testing DeepSpeech C++ for Raspbian RPi3/ARMv7, CPU only, optimized version (16kHz)"
+    name: "Mozilla Voice STT Raspbian RPi3/ARMv7 CPU C++ tests (16kHz)"
+    description: "Testing Mozilla Voice STT C++ for Raspbian RPi3/ARMv7, CPU only, optimized version (16kHz)"

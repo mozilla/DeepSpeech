@@ -16,5 +16,5 @@ build:
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'
   metadata:
-    name: "DeepSpeech CTC Decoder OSX AMD64 CPU"
-    description: "Building DeepSpeech CTC Decoder for OSX AMD64, CPU only, optimized version"
+    name: "Mozilla Voice STT CTC Decoder OSX AMD64 CPU"
+    description: "Building Mozilla Voice STT CTC Decoder for OSX AMD64, CPU only, optimized version"

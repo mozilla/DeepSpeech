@@ -23,5 +23,5 @@ build:
       - "node-package-tflite"
     nuget: []
   metadata:
-    name: "DeepSpeech NPM Packages"
-    description: "Trigger Uploading of DeepSpeech Packages to NPM registry"
+    name: "Mozilla Voice STT NPM Packages"
+    description: "Trigger Uploading of Mozilla Voice STT Packages to NPM registry"

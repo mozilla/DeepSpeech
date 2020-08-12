@@ -9,5 +9,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-train-unittests.sh 3.7.6:m"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "DeepSpeech on Linux AMD64 CPU training unittests using Python 3.7"
-    description: "Training unittests DeepSpeech LDC93S1 model for Linux/AMD64 using Python 3.7, for CPU only, and optimized version"
+    name: "Mozilla Voice STT on Linux AMD64 CPU training unittests using Python 3.7"
+    description: "Training unittests Mozilla Voice STT LDC93S1 model for Linux/AMD64 using Python 3.7, for CPU only, and optimized version"

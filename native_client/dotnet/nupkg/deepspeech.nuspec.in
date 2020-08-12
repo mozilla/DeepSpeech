@@ -7,7 +7,7 @@
     <authors>Mozilla</authors>
     <owners>Mozilla</owners>
     <license type="expression">MPL-2.0</license>
-    <projectUrl>http://github.com/mozilla/DeepSpeech</projectUrl>
+    <projectUrl>http://github.com/mozilla/STT</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A library for running inference with a Mozilla Voice STT model</description>
     <copyright>Copyright (c) 2019 Mozilla Corporation</copyright>

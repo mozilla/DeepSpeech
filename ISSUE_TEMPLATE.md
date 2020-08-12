@@ -1,4 +1,4 @@
-For support and discussions, please use our [Discourse forums](https://discourse.mozilla.org/c/deep-speech).
+For support and discussions, please use our [Discourse forums](https://discourse.mozilla.org/c/mozilla-voice-stt).
 
 If you've found a bug, or have a feature request, then please create an issue with the following information:
 

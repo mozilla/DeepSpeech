@@ -10,5 +10,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 8.0.1 16k cuda"
   metadata:
-    name: "DeepSpeech Windows AMD64 CUDA ElectronJS MultiArch Package v8.0 tests"
-    description: "Testing DeepSpeech for Windows/AMD64 on ElectronJS MultiArch Package v8.0, CUDA, optimized version"
+    name: "Mozilla Voice STT Windows AMD64 CUDA ElectronJS MultiArch Package v8.0 tests"
+    description: "Testing Mozilla Voice STT for Windows/AMD64 on ElectronJS MultiArch Package v8.0, CUDA, optimized version"
