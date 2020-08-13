@@ -322,8 +322,35 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
+                    train_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+
+                    # Filter out layers if we want to freeze some
+                    if FLAGS.freeze_source_layers > 0:
+                        filter_vars = []
+                        if FLAGS.freeze_source_layers <= 5:
+                            filter_vars.append("layer_1")
+                        if FLAGS.freeze_source_layers <= 4:
+                            filter_vars.append("layer_2")
+                        if FLAGS.freeze_source_layers <= 3:
+                            filter_vars.append("layer_3")
+                        if FLAGS.freeze_source_layers <= 2:
+                            filter_vars.append("lstm")
+                        if FLAGS.freeze_source_layers <= 1:
+                            filter_vars.append("layer_5")
+
+                        new_train_vars = list(train_vars)
+                        for fv in filter_vars:
+                            for tv in train_vars:
+                                if fv in tv.name:
+                                    new_train_vars.remove(tv)
+                        train_vars = new_train_vars
+                        msg = "Tower {} -  Training only variables: {}"
+                        print(msg.format(i, [v.name for v in train_vars]))
+                    else:
+                        print("Tower {} - Training all layers".format(i))
+
                     # Compute gradients for model parameters using tower's mini-batch
-                    gradients = optimizer.compute_gradients(avg_loss)
+                    gradients = optimizer.compute_gradients(avg_loss, var_list=train_vars)
 
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
@@ -670,7 +697,6 @@ def train():
                         log_progress('Metrics for epoch %d on %s - loss: %f' % (epoch, source, set_loss))
 
                 print('-' * 80)
-
 
         except KeyboardInterrupt:
             pass

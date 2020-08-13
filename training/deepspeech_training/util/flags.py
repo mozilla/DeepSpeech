@@ -93,6 +93,8 @@ def create_flags():
     # Transfer Learning
 
     f.DEFINE_integer('drop_source_layers', 0, 'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')
+    f.DEFINE_integer('freeze_source_layers', 0, 'use same value as above to freeze the other layers')
+    f.DEFINE_boolean('load_frozen_graph', False, 'Needed to load a graph checkpoint which was trained with "freeze_source_layers" flag. Allows initialization of missing optimization tensors.')
 
     # Exporting
 

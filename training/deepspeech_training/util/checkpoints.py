@@ -46,6 +46,21 @@ def _load_checkpoint(session, checkpoint_path, allow_drop_layers, allow_lr_init=
                       'tensors. Missing variables: {}'.format(missing_var_names))
             sys.exit(1)
 
+    if FLAGS.load_frozen_graph:
+        # After training with "freeze_source_layers" the Adam tensors for the frozen layers aren't
+        # existing anymore because they were not used
+        # Therefore we have to initialize them again to continue training on such checkpoints
+        for v in load_vars:
+            if v.op.name not in vars_in_ckpt:
+                if 'Adam' in v.name:
+                    init_vars.add(v)
+                else:
+                    msg = "Tried to load a frozen checkpoint but there was a missing " \
+                          "variable other than the Adam tensors: {}"
+                    log_error(msg.format(v))
+                    sys.exit(1)
+        load_vars -= init_vars
+
     if allow_drop_layers and FLAGS.drop_source_layers > 0:
         # This transfer learning approach requires supplying
         # the layers which we exclude from the source model.
