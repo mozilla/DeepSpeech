@@ -102,7 +102,7 @@ main(int argc, char** argv)
         ("package", po::value<string>(), "Path to save scorer package.")
         ("default_alpha", po::value<float>(), "Default value of alpha hyperparameter (float).")
         ("default_beta", po::value<float>(), "Default value of beta hyperparameter (float).")
-        ("force_utf8", po::value<bool>(), "Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. See <https://deepspeech.readthedocs.io/en/master/Decoder.html#utf-8-mode> for further explanation.")
+        ("force_utf8", po::value<bool>(), "Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. See <https://mozilla-voice-stt.readthedocs.io/en/master/Decoder.html#utf-8-mode> for further explanation.")
     ;
 
     po::variables_map vm;
