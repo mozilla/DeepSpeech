@@ -7,5 +7,5 @@ This directory contains language-specific data files. Most importantly, you will
 
 2. A script used to generate a binary n-gram language model: ``data/lm/generate_lm.py``.
 
-For more information on how to build these resources from scratch, see the ``External scorer scripts`` section on `deepspeech.readthedocs.io <https://deepspeech.readthedocs.io/>`_.
+For more information on how to build these resources from scratch, see the ``External scorer scripts`` section on `mozilla-voice-stt.readthedocs.io <https://mozilla-voice-stt.readthedocs.io/>`_.
 

@@ -1,1 +1,1 @@
-Full project description and documentation on `https://deepspeech.readthedocs.io/ <https://deepspeech.readthedocs.io/>`_
+Full project description and documentation on `https://mozilla-voice-stt.readthedocs.io/ <https://mozilla-voice-stt.readthedocs.io/>`_
