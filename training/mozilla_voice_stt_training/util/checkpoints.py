@@ -118,7 +118,7 @@ def _load_or_init_impl(session, method_order, allow_drop_layers):
     sys.exit(1)
 
 
-def load_or_init_graph_for_training(session):
+def load_or_init_graph_for_training(session, allow_drop_layers=True):
     '''
     Load variables from checkpoint or initialize variables. By default this will
     try to load the best validating checkpoint, then try the last checkpoint,
@@ -129,7 +129,7 @@ def load_or_init_graph_for_training(session):
         methods = ['best', 'last', 'init']
     else:
         methods = [FLAGS.load_train]
-    _load_or_init_impl(session, methods, allow_drop_layers=True)
+    _load_or_init_impl(session, methods, allow_drop_layers=allow_drop_layers)
 
 
 def load_graph_for_evaluation(session):
