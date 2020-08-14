@@ -646,7 +646,7 @@ def train():
                             current_learning_rate))
 
                         # Reload checkpoint that we use the best_dev weights again
-                        load_or_init_graph_for_training(session)
+                        load_or_init_graph_for_training(session, allow_drop_layers=False)
 
                 if FLAGS.metrics_files:
                     # Read only metrics, not affecting best validation loss tracking
