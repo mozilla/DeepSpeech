@@ -223,12 +223,13 @@ std::vector<Output> ctc_beam_search_decoder(
     size_t beam_size,
     double cutoff_prob,
     size_t cutoff_top_n,
-    std::shared_ptr<Scorer> ext_scorer)
+    std::shared_ptr<Scorer> ext_scorer,
+    size_t num_results)
 {
   DecoderState state;
   state.init(alphabet, beam_size, cutoff_prob, cutoff_top_n, ext_scorer);
   state.next(probs, time_dim, class_dim);
-  return state.decode();
+  return state.decode(num_results);
 }
 
 std::vector<std::vector<Output>>
@@ -244,7 +245,8 @@ ctc_beam_search_decoder_batch(
     size_t num_processes,
     double cutoff_prob,
     size_t cutoff_top_n,
-    std::shared_ptr<Scorer> ext_scorer)
+    std::shared_ptr<Scorer> ext_scorer,
+    size_t num_results)
 {
   VALID_CHECK_GT(num_processes, 0, "num_processes must be nonnegative!");
   VALID_CHECK_EQ(batch_size, seq_lengths_size, "must have one sequence length per batch element");
@@ -262,7 +264,8 @@ ctc_beam_search_decoder_batch(
                                   beam_size,
                                   cutoff_prob,
                                   cutoff_top_n,
-                                  ext_scorer));
+                                  ext_scorer,
+                                  num_results));
   }
 
   // get decoding results
