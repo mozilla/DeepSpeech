@@ -135,6 +135,7 @@ def create_flags():
     # Geometry
 
     f.DEFINE_integer('n_hidden', 2048, 'layer width to use when initialising layers')
+    f.DEFINE_boolean('layer_norm', True, 'wether to use layer-normalization after each fully-connected layer (except the last one)')
 
     # Initialization
 
