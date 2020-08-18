@@ -511,7 +511,7 @@ class CSV(SampleList):
                 if not wav_filename.is_absolute():
                     wav_filename = csv_dir / wav_filename
                 wav_filename = str(wav_filename)
-                wav_filesize = int(row['wav_filesize']) if 'wav_filesize' in row else 0
+                wav_filesize = float(row['wav_filesize']) if 'wav_filesize' in row else 0
                 if labeled:
                     rows.append((wav_filename, wav_filesize, row['transcript']))
                 else:
