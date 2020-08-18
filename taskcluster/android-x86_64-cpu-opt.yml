@@ -4,6 +4,7 @@ build:
     - "swig-linux-amd64"
     - "node-gyp-cache"
     - "pyenv-linux-amd64"
+    - "tf_android-arm64-opt"
   routes:
     - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.android-x86_64"
     - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.android-x86_64"

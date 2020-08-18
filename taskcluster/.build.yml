@@ -26,7 +26,7 @@ build:
   nc_asset_name: 'native_client.tar.xz'
   args:
     tests_cmdline: ''
-  tensorflow_git_desc: 'TensorFlow: v2.2.0-24-g1c1b2b9'
+  tensorflow_git_desc: 'TensorFlow: v2.3.0-4-g4336a5b'
   test_model_task: ''
   homebrew:
     url: ''

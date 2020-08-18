@@ -6,8 +6,8 @@ export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=$(/usr/bin/realpath "${HOME}")
 
-    BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/2.0.0/bazel-2.0.0-installer-linux-x86_64.sh
-    BAZEL_SHA256=2fbdc9c0e3d376697caf0ee3673b7c9475214068c55a01b9744891e131f90b87
+    BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/3.1.0/bazel-3.1.0-installer-linux-x86_64.sh
+    BAZEL_SHA256=7ba815cbac712d061fe728fef958651512ff394b2708e89f79586ec93d1185ed
 
     CUDA_URL=http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run
     CUDA_SHA256=e7c22dc21278eb1b82f34a60ad7640b41ad3943d929bebda3008b72536855d31
@@ -49,8 +49,8 @@ elif [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export TEMP=${TASKCLUSTER_TASK_DIR}/tmp/
     export TMP=${TASKCLUSTER_TASK_DIR}/tmp/
 
-    BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/2.0.0/bazel-2.0.0-windows-x86_64.exe
-    BAZEL_SHA256=cc7b3ff6f4bfd6bc2121a80656afec66ee57713e8b88e9d2fb58b4eddf271268
+    BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/3.1.0/bazel-3.1.0-windows-x86_64.exe
+    BAZEL_SHA256=776db1f4986dacc3eda143932f00f7529f9ee65c7c1c004414c44aaa6419d0e9
 
     CUDA_INSTALL_DIRECTORY=$(cygpath 'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1')
 
@@ -68,8 +68,8 @@ elif [ "${OS}" = "Darwin" ]; then
 
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
 
-    BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/2.0.0/bazel-2.0.0-installer-darwin-x86_64.sh
-    BAZEL_SHA256=c675fa27d99a3114d681db10eb03ded547c40f702b2048c99b8f4ea8e89b9356
+    BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/3.1.0/bazel-3.1.0-installer-darwin-x86_64.sh
+    BAZEL_SHA256=5cfa97031b43432b3c742c80e2e01c41c0acdca7ba1052fc8cf1e291271bc9cd
 
     SHA_SUM="shasum -a 256 -c"
     WGET=wget
@@ -171,6 +171,11 @@ BAZEL_ARM64_FLAGS="--config=rpi3-armv8 --config=rpi3-armv8_opt --copt=-DTFLITE_W
 BAZEL_ANDROID_ARM_FLAGS="--config=android --config=android_arm --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 --copt=-DTFLITE_WITH_RUY_GEMV"
 BAZEL_ANDROID_ARM64_FLAGS="--config=android --config=android_arm64 --action_env ANDROID_NDK_API_LEVEL=21 --cxxopt=-std=c++14 --copt=-D_GLIBCXX_USE_C99 --copt=-DTFLITE_WITH_RUY_GEMV"
 BAZEL_CUDA_FLAGS="--config=cuda"
+if [ "${OS}" = "Linux" ]; then
+    # constexpr usage in tensorflow's absl dep fails badly because of gcc-5
+    # so let's skip that
+    BAZEL_CUDA_FLAGS="${BAZEL_CUDA_FLAGS} --copt=-DNO_CONSTEXPR_FOR_YOU=1"
+fi
 BAZEL_IOS_ARM64_FLAGS="--config=ios_arm64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
 BAZEL_IOS_X86_64_FLAGS="--config=ios_x86_64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
 

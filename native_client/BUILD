@@ -17,6 +17,20 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "rpi3",
+    define_values = {
+        "target_system": "rpi3"
+    },
+)
+
+config_setting(
+    name = "rpi3-armv8",
+    define_values = {
+        "target_system": "rpi3-armv8"
+    },
+)
+
 genrule(
     name = "workspace_status",
     outs = ["workspace_status.cc"],
@@ -132,8 +146,8 @@ tf_cc_shared_object(
         "//tensorflow:macos": [],
         "//tensorflow:ios": ["-fembed-bitcode"],
         "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
-        "//tensorflow:rpi3": LINUX_LINKOPTS,
-        "//tensorflow:rpi3-armv8": LINUX_LINKOPTS,
+        "//native_client:rpi3": LINUX_LINKOPTS,
+        "//native_client:rpi3-armv8": LINUX_LINKOPTS,
         "//tensorflow:windows": [],
         "//conditions:default": [],
     }) + tflite_linkopts(),
