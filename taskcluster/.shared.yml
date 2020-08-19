@@ -152,8 +152,8 @@ system:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.arm64/artifacts/public/home.tar.xz"
       namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.arm64"
     darwin_amd64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.osx/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.osx"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.1.osx/artifacts/public/home.tar.xz"
+      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.1.osx"
     android_arm64:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.android-arm64/artifacts/public/home.tar.xz"
       namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.4336a5b49fa6d650e24dbdba55bcef9581535244.0.android-arm64"
