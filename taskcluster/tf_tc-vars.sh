@@ -191,6 +191,10 @@ else
     BAZEL_EXTRA_FLAGS="--config=noaws --config=nogcp --config=nohdfs --config=nonccl --copt=-fvisibility=hidden"
 fi
 
+if [ "${OS}" = "Darwin" ]; then
+    BAZEL_EXTRA_FLAGS="${BAZEL_EXTRA_FLAGS} --macos_minimum_os 10.10"
+fi
+
 ### Define build targets that we will re-ues in sourcing scripts.
 BUILD_TARGET_LIB_CPP_API="//tensorflow:tensorflow_cc"
 BUILD_TARGET_GRAPH_TRANSFORMS="//tensorflow/tools/graph_transforms:transform_graph"
