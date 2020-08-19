@@ -1,7 +1,7 @@
 build:
   template_file: docker-build-base.tyml
   dockerfile: "Dockerfile.build"
-  workerType: "${docker.dsBuild}"
+  workerType: "${docker.tfBuild}"
   metadata:
     name: "Mozilla Voice STT Docker build"
     description: "Testing |docker build| of Mozilla Voice STT build image"

@@ -1,7 +1,7 @@
 build:
   template_file: docker-build-base.tyml
   dockerfile: "Dockerfile.train"
-  workerType: "${docker.dsBuild}"
+  workerType: "${docker.tfBuild}"
   metadata:
     name: "Mozilla Voice STT Docker train"
     description: "Testing |docker build| of Mozilla Voice STT train image"
