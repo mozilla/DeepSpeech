@@ -29,7 +29,7 @@ from mvs_ctcdecoder import ctc_beam_search_decoder, Scorer
 from .evaluate import evaluate
 from six.moves import zip, range
 from .util.config import Config, initialize_globals
-from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation
+from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation, reload_best_checkpoint
 from .util.evaluate_tools import save_samples_json
 from .util.feeding import create_dataset, audio_to_features, audiofile_to_features
 from .util.flags import create_flags, FLAGS
@@ -646,7 +646,7 @@ def train():
                             current_learning_rate))
 
                         # Reload checkpoint that we use the best_dev weights again
-                        load_or_init_graph_for_training(session, allow_drop_layers=False)
+                        reload_best_checkpoint(session)
 
                 if FLAGS.metrics_files:
                     # Read only metrics, not affecting best validation loss tracking
