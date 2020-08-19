@@ -117,12 +117,15 @@ Running the importer with ``-h`` will show you some additional options.
 Once the import is done, the ``clips`` sub-directory will contain for each required ``.mp3`` an additional ``.wav`` file.
 It will also add the following ``.csv`` files:
 
-
 * ``clips/train.csv``
 * ``clips/dev.csv``
 * ``clips/test.csv``
 
-Entries in CSV files can refer to samples by their absolute or relative paths. Here, the importer produces relative paths.
+The CSV files comprise of the following fields:
+
+* ``wav_filename`` - path of the sample, either absolute or relative. Here, the importer produces relative paths.
+* ``wav_filesize`` - samples size given in bytes, used for sorting the data before training. Expects integer.
+* ``transcript`` - transcription target for the sample.
 
 To use Common Voice data during training, validation and testing, you pass (comma separated combinations of) their filenames into ``--train_files``\ , ``--dev_files``\ , ``--test_files`` parameters of ``DeepSpeech.py``.
 
