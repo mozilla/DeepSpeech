@@ -1,0 +1,14 @@
+build:
+  template_file: test-win-cuda-opt-base.tyml
+  dependencies:
+    - "node-package-gpu"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
+  system_setup:
+    >
+      ${system.sox_win} && ${nodejs.win.prep_12}
+  args:
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 9.2.0 16k cuda"
+  metadata:
+    name: "Mozilla Voice STT Windows AMD64 CUDA ElectronJS MultiArch Package v9.2 tests"
+    description: "Testing Mozilla Voice STT for Windows/AMD64 on ElectronJS MultiArch Package v9.2, CUDA, optimized version"
