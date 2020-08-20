@@ -57,7 +57,7 @@ def words_from_candidate_transcript(metadata):
 
             each_word = dict()
             each_word["word"] = word
-            each_word["start_time "] = round(word_start_time, 4)
+            each_word["start_time"] = round(word_start_time, 4)
             each_word["duration"] = round(word_duration, 4)
 
             word_list.append(each_word)
