@@ -8,7 +8,7 @@ build:
     >
       ${system.sox_win} && ${nodejs.win.prep_12}
   args:
-    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 9.0.1 16k"
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 9.1.0 16k"
   metadata:
     name: "Mozilla Voice STT Windows AMD64 CPU ElectronJS MultiArch Package v9.1 tests"
     description: "Testing Mozilla Voice STT for Windows/AMD64 on ElectronJS MultiArch Package v9.1, CPU only, optimized version"
