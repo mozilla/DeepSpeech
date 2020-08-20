@@ -118,6 +118,10 @@ def _load_or_init_impl(session, method_order, allow_drop_layers):
     sys.exit(1)
 
 
+def reload_best_checkpoint(session):
+    _load_or_init_impl(session, ['best'], allow_drop_layers=False)
+
+
 def load_or_init_graph_for_training(session):
     '''
     Load variables from checkpoint or initialize variables. By default this will
