@@ -152,8 +152,8 @@ system:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm64/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm64"
     darwin_amd64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.osx/artifacts/public/home.tar.xz"
-      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.osx"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.osx/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.osx"
     android_arm64:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-arm64/artifacts/public/home.tar.xz"
       namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-arm64"
