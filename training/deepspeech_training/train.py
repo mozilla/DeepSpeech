@@ -640,17 +640,23 @@ def train():
                         break
 
                     # Reduce learning rate on plateau
+                    # If the learning rate was reduced and there is still no improvement
+                    # wait FLAGS.plateau_epochs before the learning rate is reduced again
                     if (FLAGS.reduce_lr_on_plateau and
                             epochs_without_improvement % FLAGS.plateau_epochs == 0 and epochs_without_improvement > 0):
-                        # If the learning rate was reduced and there is still no improvement
-                        # wait FLAGS.plateau_epochs before the learning rate is reduced again
+
+                        # Reload checkpoint that we use the best_dev weights again
+                        reload_best_checkpoint(session)
+
+                        # Reduce learning rate
                         session.run(reduce_learning_rate_op)
                         current_learning_rate = learning_rate_var.eval()
                         log_info('Encountered a plateau, reducing learning rate to {}'.format(
                             current_learning_rate))
 
-                        # Reload checkpoint that we use the best_dev weights again
-                        reload_best_checkpoint(session)
+                        # Overwrite best checkpoint with new learning rate value
+                        save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step, latest_filename='best_dev_checkpoint')
+                        log_info("Saved best validating model with reduced learning rate to: %s" % (save_path))
 
                 if FLAGS.metrics_files:
                     # Read only metrics, not affecting best validation loss tracking
