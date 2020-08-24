@@ -8,8 +8,8 @@ it is highly advised to use them except if you know what you are doing.
 
 If you'd like to build the Mozilla Voice STT binaries yourself, you'll need the following pre-requisites downloaded and installed:
 
-* `Bazel 2.0.0 <https://github.com/bazelbuild/bazel/releases/tag/2.0.0>`_
-* `General TensorFlow r2.2 requirements <https://www.tensorflow.org/install/source#tested_build_configurations>`_
+* `Bazel 3.1.0 <https://github.com/bazelbuild/bazel/releases/tag/3.1.0>`_
+* `General TensorFlow r2.3 requirements <https://www.tensorflow.org/install/source#tested_build_configurations>`_
 * `libsox <https://sourceforge.net/projects/sox/>`_
 
 It is required to use our fork of TensorFlow since it includes fixes for common problems encountered when building the native client files.
@@ -44,7 +44,7 @@ Clone Mozilla Voice STT source code (TensorFlow will come as a submdule):
 Bazel: Download & Install
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, install Bazel 2.0.0 following the `Bazel installation documentation <https://docs.bazel.build/versions/2.0.0/install.html>`_.
+First, install Bazel 3.1.0 following the `Bazel installation documentation <https://docs.bazel.build/versions/3.1.0/install.html>`_.
 
 TensorFlow: Configure with Bazel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
