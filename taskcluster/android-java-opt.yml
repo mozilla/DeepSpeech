@@ -8,9 +8,9 @@ build:
     - "gradle-cache"
     - "android-cache-sdk-android-27"
   routes:
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.android-apk"
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.android-apk"
-    - "index.project.mozilla-voice-stt.native_client.android-apk.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-apk"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-apk"
+    - "index.project.deepspeech.deepspeech.native_client.android-apk.${event.head.sha}"
   system_setup:
     >
       ${java.packages_xenial.apt}

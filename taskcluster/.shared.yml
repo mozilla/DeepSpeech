@@ -63,115 +63,115 @@ nodejs:
     prep_14: '/usr/bin/wget.exe https://nodejs.org/dist/v14.3.0/node-v14.3.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v14.3.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v14.3.0-win-x64/:$PATH'
 system:
   node_gyp_cache:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.node-gyp-cache.8/artifacts/public/node-gyp-cache.tar.gz'
-    namespace: 'project.mozilla-voice-stt.node-gyp-cache.8'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.8/artifacts/public/node-gyp-cache.tar.gz'
+    namespace: 'project.deepspeech.node-gyp-cache.8'
   homebrew_builds:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.homebrew_builds.8/artifacts/public/homebrew_builds.tar.gz'
-    namespace: 'project.mozilla-voice-stt.homebrew_builds.8'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_builds.8/artifacts/public/homebrew_builds.tar.gz'
+    namespace: 'project.deepspeech.homebrew_builds.8'
   homebrew_tests:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.homebrew_tests.9/artifacts/public/homebrew_tests.tar.gz'
-    namespace: 'project.mozilla-voice-stt.homebrew_tests.9'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_tests.9/artifacts/public/homebrew_tests.tar.gz'
+    namespace: 'project.deepspeech.homebrew_tests.9'
   android_cache:
     arm64_v8a:
       android_24:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.arm64-v8a.android-24.7/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.arm64-v8a.android-24.7'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.arm64-v8a.android-24.7/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.arm64-v8a.android-24.7'
       android_25:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.arm64-v8a.android-25.7/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.arm64-v8a.android-25.7'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.arm64-v8a.android-25.7/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.arm64-v8a.android-25.7'
     armeabi_v7a:
       android_24:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.armeabi-v7a.android-24.7/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.armeabi-v7a.android-24.7'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.armeabi-v7a.android-24.7/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.armeabi-v7a.android-24.7'
       android_25:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.armeabi-v7a.android-25.7/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.armeabi-v7a.android-25.7'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.armeabi-v7a.android-25.7/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.armeabi-v7a.android-25.7'
     x86_64:
       android_24:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.x86_64.android-24.7/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.x86_64.android-24.7'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-24.7/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-24.7'
       android_25:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.x86_64.android-25.7/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.x86_64.android-25.7'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-25.7/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-25.7'
       android_26:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.x86_64.android-26.3/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.x86_64.android-26.3'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-26.3/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-26.3'
       android_27:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.x86_64.android-27.3/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.x86_64.android-27.3'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-27.3/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-27.3'
       android_28:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.x86_64.android-28.3/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.x86_64.android-28.3'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-28.3/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-28.3'
       android_29:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.x86_64.android-29.3/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.x86_64.android-29.3'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-29.3/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-29.3'
       android_30:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.x86_64.android-30.3/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.x86_64.android-30.3'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.x86_64.android-30.3/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.x86_64.android-30.3'
     sdk:
       android_27:
-        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.android_cache.sdk.android-27.7/artifacts/public/android_cache.tar.gz'
-        namespace: 'project.mozilla-voice-stt.android_cache.sdk.android-27.7'
+        url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.android_cache.sdk.android-27.7/artifacts/public/android_cache.tar.gz'
+        namespace: 'project.deepspeech.android_cache.sdk.android-27.7'
   gradle_cache:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.gradle.7/artifacts/public/gradle.tar.gz'
-    namespace: 'project.mozilla-voice-stt.gradle.7'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.gradle.7/artifacts/public/gradle.tar.gz'
+    namespace: 'project.deepspeech.gradle.7'
   pyenv:
     linux:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.pyenv.linux.9/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.mozilla-voice-stt.pyenv.linux.9'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.9/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.linux.9'
     osx:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.pyenv.osx.9/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.mozilla-voice-stt.pyenv.osx.9'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.9/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.osx.9'
     win:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.pyenv.win.8/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.mozilla-voice-stt.pyenv.win.8'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.8/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.win.8'
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "1a4c14945012f1282c2eddc174fb7674d5295de8"
   swig_build:
     linux:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.swig.linux.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
-      namespace: "project.mozilla-voice-stt.swig.linux.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
+      namespace: "project.deepspeech.swig.linux.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0"
     osx:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.swig.darwin.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
-      namespace: "project.mozilla-voice-stt.swig.darwin.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.darwin.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118/artifacts/public/ds-swig.tar.gz"
+      namespace: "project.deepspeech.swig.darwin.amd64.b5fea54d39832d1d132d7dd921b69c0c2c9d5118"
     win:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.swig.win.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
-      namespace: "project.mozilla-voice-stt.swig.win.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
+      namespace: "project.deepspeech.swig.win.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0"
   tensorflow:
     linux_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.cpu/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.cpu"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cpu/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cpu"
     linux_amd64_cuda:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.cuda/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.cuda"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cuda/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.cuda"
     linux_armv7:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.arm/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.arm"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm"
     linux_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.arm64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.arm64"
     darwin_amd64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.osx/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.osx"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.osx/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.osx"
     android_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.android-arm64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.android-arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-arm64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-arm64"
     android_armv7:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.android-armv7/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.android-armv7"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-armv7/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.1.android-armv7"
     win_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.win/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.win"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win"
     win_amd64_cuda:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.win-cuda/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.win-cuda"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win-cuda/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.win-cuda"
     ios_arm64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.ios_arm64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.ios_arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_arm64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_arm64"
     ios_x86_64:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.ios_x86_64/artifacts/public/home.tar.xz"
-      namespace: "project.mozilla-voice-stt.tensorflow.pip.r2.3.23ad988fcde60fb01f9533e95004bbc4877a9143.0.ios_x86_64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_x86_64/artifacts/public/home.tar.xz"
+      namespace: "project.deepspeech.tensorflow.pip.r2.2.1c1b2b9dd9ce767796a8414efbf65da1b67d1622.0.ios_x86_64"
   username: 'build-user'
   homedir:
     linux: '/home/build-user'

@@ -16,9 +16,8 @@ from pkg_resources import parse_version
 
 
 DEFAULT_SCHEMES = {
-    'deepspeech': 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.native_client.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s',
-    'tensorflow': 'https://community-tc.services.mozilla.com/api/index/v1/task/project.mozilla-voice-stt.tensorflow.pip.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s',
-    'tensorflow_r1.15': 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s'
+    'deepspeech': 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.deepspeech.native_client.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s',
+    'tensorflow': 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.tensorflow.pip.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s'
 }
 
 TASKCLUSTER_SCHEME = os.getenv('TASKCLUSTER_SCHEME', DEFAULT_SCHEMES['deepspeech'])
@@ -125,9 +124,6 @@ def main():
         else:
             print('No such scheme: %s' % args.source)
             sys.exit(1)
-
-    if args.artifact == "convert_graphdef_memmapped_format" and args.branch == "r1.15":
-        TASKCLUSTER_SCHEME = DEFAULT_SCHEMES["tensorflow_r1.15"]
 
     maybe_download_tc(target_dir=args.target, tc_url=get_tc_url(args.arch, args.artifact, args.branch))
 

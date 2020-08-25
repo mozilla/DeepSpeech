@@ -11,7 +11,7 @@ created: { $fromNow: '0 sec' }
 deadline: { $fromNow: '1 day' }
 expires: { $fromNow: '6 months' }
 scopes:
-  - "index:insert-task:project.mozilla-voice-stt.*"
+  - "index:insert-task:project.deepspeech.*"
 
 payload:
   maxRunTime: { $eval: to_int(build.maxRunTime) }

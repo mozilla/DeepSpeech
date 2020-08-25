@@ -6,9 +6,9 @@ build:
     - "pyenv-linux-amd64"
     - "tf_android-arm64-opt"
   routes:
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.android-arm64"
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.android-arm64"
-    - "index.project.mozilla-voice-stt.native_client.android-arm64.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-arm64"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-arm64"
+    - "index.project.deepspeech.deepspeech.native_client.android-arm64.${event.head.sha}"
   tensorflow: ${system.tensorflow.android_arm64.url}
   scripts:
     setup: "taskcluster/tc-true.sh"
