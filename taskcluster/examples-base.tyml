@@ -25,8 +25,8 @@ then:
       DEEPSPEECH_MODEL: "https://github.com/reuben/DeepSpeech/releases/download/v0.8.0/models_0.8.tar.gz"
       DEEPSPEECH_AUDIO: "https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/audio-0.4.1.tar.gz"
       PIP_DEFAULT_TIMEOUT: "60"
-      EXAMPLES_CLONE_URL: "https://github.com/mozilla/STT-examples"
-      EXAMPLES_CHECKOUT_TARGET: "master"
+      EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
+      EXAMPLES_CHECKOUT_TARGET: "nodejs-scoped-name"
 
     command:
       - "/bin/bash"
