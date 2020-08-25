@@ -113,7 +113,7 @@ RUN echo "build --spawn_strategy=standalone --genrule_strategy=standalone" \
 
 WORKDIR /
 
-RUN git clone --recursive $DEEPSPEECH_REPO
+RUN git clone --recursive $DEEPSPEECH_REPO DeepSpeech
 WORKDIR /DeepSpeech
 RUN git checkout $DEEPSPEECH_SHA
 RUN git submodule sync tensorflow/

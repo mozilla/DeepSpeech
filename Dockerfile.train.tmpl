@@ -31,7 +31,7 @@ RUN apt-get install -y --no-install-recommends libopus0 libsndfile1
 RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
-RUN git clone $DEEPSPEECH_REPO
+RUN git clone $DEEPSPEECH_REPO DeepSpeech
 
 WORKDIR /DeepSpeech
 RUN git checkout $DEEPSPEECH_SHA
