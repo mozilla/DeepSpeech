@@ -21,14 +21,13 @@ public:
   ~PathTrie();
 
   // get new prefix after appending new char
-  PathTrie* get_path_trie(unsigned int new_char, unsigned int new_timestep, float log_prob_c, bool reset = true);
+  PathTrie* get_path_trie(unsigned int new_char, float log_prob_c, bool reset = true);
 
   // get the prefix data in correct time order from root to current node
-  void get_path_vec(std::vector<unsigned int>& output, std::vector<unsigned int>& timesteps);
+  std::vector<unsigned int> get_path_vec();
 
   // get the prefix data in correct time order from beginning of last grapheme to current node
   PathTrie* get_prev_grapheme(std::vector<unsigned int>& output,
-                              std::vector<unsigned int>& timesteps,
                               const Alphabet& alphabet);
 
   // get the distance from current node to the first codepoint boundary, and the byte value at the boundary
@@ -36,7 +35,6 @@ public:
 
   // get the prefix data in correct time order from beginning of last word to current node
   PathTrie* get_prev_word(std::vector<unsigned int>& output,
-                          std::vector<unsigned int>& timesteps,
                           const Alphabet& alphabet);
 
   // update log probs
@@ -65,7 +63,10 @@ public:
   float score;
   float approx_ctc;
   unsigned int character;
-  unsigned int timestep;
+  std::vector<unsigned int> timesteps;
+  // `timesteps_cur` is a temporary storage for each decoding step. 
+  // At the end of a decoding step, it is moved to `timesteps`.
+  std::vector<unsigned int> timesteps_cur; 
   PathTrie* parent;
 
 private:

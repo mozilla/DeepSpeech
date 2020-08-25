@@ -293,12 +293,12 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
     }
 
     std::vector<unsigned int> prefix_vec;
-    std::vector<unsigned int> prefix_steps;
+    std::vector<unsigned int> prefix_steps = current_node->timesteps;
 
     if (is_utf8_mode_) {
-      new_node = current_node->get_prev_grapheme(prefix_vec, prefix_steps, alphabet_);
+      new_node = current_node->get_prev_grapheme(prefix_vec, alphabet_);
     } else {
-      new_node = current_node->get_prev_word(prefix_vec, prefix_steps, alphabet_);
+      new_node = current_node->get_prev_word(prefix_vec, alphabet_);
     }
     current_node = new_node->parent;
 
