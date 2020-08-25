@@ -31,7 +31,7 @@ def main():
         sys.argv.remove('--project_name')
         sys.argv.pop(project_name_idx)
 
-    with open('../../training/mozilla_voice_stt_training/VERSION', 'r') as ver:
+    with open('../../training/deepspeech_training/VERSION', 'r') as ver:
         project_version = ver.read().strip()
 
     class BuildExtFirst(build):

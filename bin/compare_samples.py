@@ -5,8 +5,8 @@ Tool for comparing two wav samples
 import sys
 import argparse
 
-from mozilla_voice_stt_training.util.audio import AUDIO_TYPE_NP, mean_dbfs
-from mozilla_voice_stt_training.util.sample_collections import load_sample
+from deepspeech_training.util.audio import AUDIO_TYPE_NP, mean_dbfs
+from deepspeech_training.util.sample_collections import load_sample
 
 
 def fail(message):

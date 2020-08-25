@@ -14,8 +14,8 @@ from collections import Counter
 
 import progressbar
 
-from mozilla_voice_stt_training.util.downloader import SIMPLE_BAR, maybe_download
-from mozilla_voice_stt_training.util.importers import validate_label_eng as validate_label
+from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
+from deepspeech_training.util.importers import validate_label_eng as validate_label
 from ds_ctcdecoder import Alphabet
 
 TUDA_VERSION = "v2"

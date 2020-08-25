@@ -12,7 +12,7 @@ import pandas as pd
 from sox import Transformer
 
 import swifter
-from mozilla_voice_stt_training.util.importers import get_importers_parser, get_validate_label
+from deepspeech_training.util.importers import get_importers_parser, get_validate_label
 
 __version__ = "0.1.0"
 _logger = logging.getLogger(__name__)

@@ -96,7 +96,7 @@ def main():
         install_requires = install_requires + tensorflow_pypi_dep
 
     setup(
-        name='mozilla_voice_stt_training',
+        name='deepspeech_training',
         version=version,
         description='Training code for mozilla DeepSpeech',
         url='https://github.com/mozilla/DeepSpeech',
@@ -119,7 +119,7 @@ def main():
         # If there are data files included in your packages that need to be
         # installed, specify them here.
         package_data={
-            'mozilla_voice_stt_training': [
+            'deepspeech_training': [
                 'VERSION',
                 'GRAPH_VERSION',
             ],
