@@ -14,7 +14,7 @@ package_libdeepspeech_as_zip "libmozilla_voice_stt.zip"
 
 if [ -d ${DS_ROOT_TASK}/DeepSpeech/ds/wheels ]; then
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/wheels/* ${TASKCLUSTER_ARTIFACTS}/
-    cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/mozilla-voice-stt*.tgz ${TASKCLUSTER_ARTIFACTS}/
+    cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/mozilla_voice_stt*.tgz ${TASKCLUSTER_ARTIFACTS}/
 fi;
 
 if [ -f ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/javascript/wrapper.tar.gz ]; then
