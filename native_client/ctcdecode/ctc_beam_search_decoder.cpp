@@ -96,24 +96,52 @@ DecoderState::next(const double *probs,
         if (full_beam && log_prob_c + prefix->score < min_cutoff) {
           break;
         }
+        if (prefix->score == -NUM_FLT_INF) {
+          continue;
+        }
+		if (!prefix->is_empty() && prefix->timesteps.empty()) {
+		  // This should never happen. But we report it if it does.
+		  std::cerr<<"error: non-empty prefix has empty timestep sequence"<<std::endl;
+		  continue;
+		}
 
         // blank
         if (c == blank_id_) {
+		  // compute probability of current path
+          float log_p = log_prob_c + prefix->score;
+
+		  // combine current path with previous ones with the same prefix
+		  // the blank label comes last, so we can compare log_prob_nb_cur with log_p
+		  if (prefix->log_prob_nb_cur < log_p) {
+			  prefix->timesteps_cur = prefix->timesteps;
+		  }
           prefix->log_prob_b_cur =
-              log_sum_exp(prefix->log_prob_b_cur, log_prob_c + prefix->score);
+              log_sum_exp(prefix->log_prob_b_cur, log_p);
           continue;
         }
 
         // repeated character
         if (c == prefix->character) {
+		  // compute probability of current path
+          float log_p = log_prob_c + prefix->log_prob_nb_prev;
+
+		  // combine current path with previous ones with the same prefix
+          if (prefix->log_prob_nb_cur < log_p) {
+              prefix->timesteps_cur = prefix->timesteps;
+          }
           prefix->log_prob_nb_cur = log_sum_exp(
-              prefix->log_prob_nb_cur, log_prob_c + prefix->log_prob_nb_prev);
+              prefix->log_prob_nb_cur, log_p);
         }
 
         // get new prefix
-        auto prefix_new = prefix->get_path_trie(c, abs_time_step_, log_prob_c);
+        auto prefix_new = prefix->get_path_trie(c, log_prob_c);
 
         if (prefix_new != nullptr) {
+		  // compute timesteps of current path
+		  std::vector<unsigned int> timesteps_new=prefix->timesteps;
+		  timesteps_new.push_back(abs_time_step_);
+
+		  // compute probability of current path
           float log_p = -NUM_FLT_INF;
 
           if (c == prefix->character &&
@@ -144,6 +172,10 @@ DecoderState::next(const double *probs,
             }
           }
 
+		  // combine current path with previous ones with the same prefix
+          if (prefix_new->log_prob_nb_cur < log_p) {
+              prefix_new->timesteps_cur = timesteps_new;
+          }
           prefix_new->log_prob_nb_cur =
               log_sum_exp(prefix_new->log_prob_nb_cur, log_p);
         }
@@ -205,11 +237,13 @@ DecoderState::decode(size_t num_results) const
   std::vector<Output> outputs;
   outputs.reserve(num_returned);
 
-  for (size_t i = 0; i < num_returned; ++i) {
+  for (PathTrie* prefix : prefixes_copy) {
     Output output;
-    prefixes_copy[i]->get_path_vec(output.tokens, output.timesteps);
-    output.confidence = scores[prefixes_copy[i]];
+    output.tokens     = prefix->get_path_vec();
+	output.timesteps  = prefix->timesteps;
+    output.confidence = scores[prefix];
     outputs.push_back(output);
+	if(outputs.size()>=num_returned) break;
   }
 
   return outputs;
