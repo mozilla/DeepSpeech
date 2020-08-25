@@ -11,7 +11,7 @@ bitrate=$1
 set_ldc_sample_filename "${bitrate}"
 
 if [ "${package_option}" = "cuda" ]; then
-    PROJECT_NAME="Mozilla-Voice-STT-CUDA"
+    PROJECT_NAME="Mozilla-Voice-STT-GPU"
 elif [ "${package_option}" = "--tflite" ]; then
     PROJECT_NAME="Mozilla-Voice-STT-TFLite"
     model_source=${DEEPSPEECH_TEST_MODEL//.pb/.tflite}
