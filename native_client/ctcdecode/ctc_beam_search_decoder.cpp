@@ -226,6 +226,7 @@ std::vector<Output> ctc_beam_search_decoder(
     std::shared_ptr<Scorer> ext_scorer,
     size_t num_results)
 {
+  VALID_CHECK_EQ(alphabet.GetSize()+1, class_dim, "Number of output classes in acoustic model does not match number of labels in the alphabet file. Alphabet file must be the same one that was used to train the acoustic model.");
   DecoderState state;
   state.init(alphabet, beam_size, cutoff_prob, cutoff_top_n, ext_scorer);
   state.next(probs, time_dim, class_dim);
