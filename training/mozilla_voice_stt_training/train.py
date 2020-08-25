@@ -25,7 +25,7 @@ tfv1.logging.set_verbosity({
 }.get(DESIRED_LOG_LEVEL))
 
 from datetime import datetime
-from mvs_ctcdecoder import ctc_beam_search_decoder, Scorer
+from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from .evaluate import evaluate
 from six.moves import zip, range
 from .util.config import Config, initialize_globals

@@ -10,7 +10,7 @@ LDFLAGS_NEEDED += $(RASPBIAN)/lib/aarch64-linux-gnu/libm.so.6
 endif
 
 ifeq ($(OS),Darwin)
-GENERATE_DEBUG_SYMS := dsymutil temp_build/temp_build/mvs_ctcdecoder/_swigwrapper.*.so
+GENERATE_DEBUG_SYMS := dsymutil temp_build/temp_build/ds_ctcdecoder/_swigwrapper.*.so
 else
 GENERATE_DEBUG_SYMS :=
 endif
@@ -28,7 +28,7 @@ THIRD_PARTY := third_party.$(ARCHIVE_EXT)
 all: bindings
 
 clean-keep-third-party:
-	rm -rf dist temp_build mvs_ctcdecoder.egg-info
+	rm -rf dist temp_build ds_ctcdecoder.egg-info
 	rm -f swigwrapper_wrap.cpp swigwrapper.py $(FIRST_PARTY)
 
 clean: clean-keep-third-party

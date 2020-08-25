@@ -18,7 +18,7 @@ from mozilla_voice_stt_training.util.config import Config, initialize_globals
 from mozilla_voice_stt_training.util.feeding import split_audio_file
 from mozilla_voice_stt_training.util.flags import create_flags, FLAGS
 from mozilla_voice_stt_training.util.logging import log_error, log_info, log_progress, create_progressbar
-from mvs_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
+from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from multiprocessing import Process, cpu_count
 
 

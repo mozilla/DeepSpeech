@@ -68,7 +68,7 @@ maybe_rebuild(KENLM_FILES, third_party_build, build_dir)
 maybe_rebuild(CTC_DECODER_FILES, ctc_decoder_build, build_dir)
 
 decoder_module = Extension(
-    name='mvs_ctcdecoder._swigwrapper',
+    name='ds_ctcdecoder._swigwrapper',
     sources=['swigwrapper.i'],
     swig_opts=['-c++', '-extranative'],
     language='c++',
@@ -84,12 +84,12 @@ class BuildExtFirst(build):
                     ('build_scripts', build.has_scripts)]
 
 setup(
-    name='mvs_ctcdecoder',
+    name='ds_ctcdecoder',
     version=project_version,
     description="""DS CTC decoder""",
     cmdclass = {'build': BuildExtFirst},
     ext_modules=[decoder_module],
-    package_dir = {'mvs_ctcdecoder': '.'},
-    py_modules=['mvs_ctcdecoder', 'mvs_ctcdecoder.swigwrapper'],
+    package_dir = {'ds_ctcdecoder': '.'},
+    py_modules=['ds_ctcdecoder', 'ds_ctcdecoder.swigwrapper'],
     install_requires = ['numpy%s' % numpy_min_ver],
 )

@@ -16,7 +16,7 @@ import progressbar
 
 from mozilla_voice_stt_training.util.downloader import SIMPLE_BAR, maybe_download
 from mozilla_voice_stt_training.util.importers import validate_label_eng as validate_label
-from mvs_ctcdecoder import Alphabet
+from ds_ctcdecoder import Alphabet
 
 TUDA_VERSION = "v2"
 TUDA_PACKAGE = "german-speechdata-package-{}".format(TUDA_VERSION)

@@ -34,7 +34,7 @@ def get_tc_decoder_pkg_url(version, artifacts_root):
 
     pyver = ''.join(str(i) for i in sys.version_info[0:2])
 
-    return 'mvs_ctcdecoder @ {artifacts_root}/mvs_ctcdecoder-{ds_version}-cp{pyver}-cp{pyver}{m_or_mu}-{platform}_{arch}.whl'.format(
+    return 'ds_ctcdecoder @ {artifacts_root}/ds_ctcdecoder-{ds_version}-cp{pyver}-cp{pyver}{m_or_mu}-{platform}_{arch}.whl'.format(
         artifacts_root=artifacts_root,
         ds_version=ds_version,
         pyver=pyver,
@@ -70,7 +70,7 @@ def main():
     ]
 
     decoder_pypi_dep = [
-        'mvs_ctcdecoder == {}'.format(version)
+        'ds_ctcdecoder == {}'.format(version)
     ]
 
     tensorflow_pypi_dep = [

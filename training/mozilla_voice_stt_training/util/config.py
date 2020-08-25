@@ -6,7 +6,7 @@ import tensorflow.compat.v1 as tfv1
 
 from attrdict import AttrDict
 from xdg import BaseDirectory as xdg
-from mvs_ctcdecoder import Alphabet, UTF8Alphabet
+from ds_ctcdecoder import Alphabet, UTF8Alphabet
 
 from .flags import FLAGS
 from .gpu import get_available_gpus
