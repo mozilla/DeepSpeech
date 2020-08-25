@@ -8,5 +8,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-cpp_tflite_basic-ds-tests.sh 16k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "Mozilla Voice STT Linux AMD64 TFLite C++ tests (16kHz)"
-    description: "Testing Mozilla Voice STT C++ for Linux/AMD64, TFLite, optimized version (16kHz)"
+    name: "DeepSpeech Linux AMD64 TFLite C++ tests (16kHz)"
+    description: "Testing DeepSpeech C++ for Linux/AMD64, TFLite, optimized version (16kHz)"

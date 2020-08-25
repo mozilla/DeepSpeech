@@ -83,7 +83,7 @@ uploadArchives {
 
             pom.project {
                 description 'Speech recognition library'
-                url 'https://github.com/mozilla/STT'
+                url 'https://github.com/mozilla/DeepSpeech'
 
                 licenses {
                     license {
@@ -102,9 +102,9 @@ uploadArchives {
                 }
 
                 scm {
-                    connection 'https://github.com/mozilla/STT.git'
-                    developerConnection 'https://github.com/mozilla/STT.git'
-                    url 'https://github.com/mozilla/STT'
+                    connection 'https://github.com/mozilla/DeepSpeech.git'
+                    developerConnection 'https://github.com/mozilla/DeepSpeech.git'
+                    url 'https://github.com/mozilla/DeepSpeech'
                 }
             }
 

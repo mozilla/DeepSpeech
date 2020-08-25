@@ -16,5 +16,5 @@ build:
   nc_asset_name: "native_client.amd64.tflite.win.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT Windows AMD64 TFLite"
-    description: "Building Mozilla Voice STT for Windows AMD64, TFLite, optimized version"
+    name: "DeepSpeech Windows AMD64 TFLite"
+    description: "Building DeepSpeech for Windows AMD64, TFLite, optimized version"

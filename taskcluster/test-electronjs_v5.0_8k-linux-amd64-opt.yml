@@ -12,5 +12,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-electron-tests.sh 12.x 5.0.6 8k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "Mozilla Voice STT Linux AMD64 CPU ElectronJS v5.0 tests (8kHz)"
-    description: "Testing Mozilla Voice STT for Linux/AMD64 on ElectronJS v5.0, CPU only, optimized version (8kHz)"
+    name: "DeepSpeech Linux AMD64 CPU ElectronJS v5.0 tests (8kHz)"
+    description: "Testing DeepSpeech for Linux/AMD64 on ElectronJS v5.0, CPU only, optimized version (8kHz)"

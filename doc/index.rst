@@ -20,19 +20,19 @@ To install and use Mozilla Voice STT all you have to do is:
    pip3 install mozilla_voice_stt
 
    # Download pre-trained English model files
-   curl -LO https://github.com/mozilla/STT/releases/download/v0.8.1/deepspeech-0.8.1-models.pbmm
-   curl -LO https://github.com/mozilla/STT/releases/download/v0.8.1/deepspeech-0.8.1-models.scorer
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.pbmm
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/deepspeech-0.7.4-models.scorer
 
    # Download example audio files
-   curl -LO https://github.com/mozilla/STT/releases/download/v0.8.1/audio-0.8.1.tar.gz
-   tar xvf audio-0.8.1.tar.gz
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.4/audio-0.7.4.tar.gz
+   tar xvf audio-0.7.4.tar.gz
 
    # Transcribe an audio file
-   mozilla_voice_stt --model deepspeech-0.8.1-models.pbmm --scorer deepspeech-0.8.1-models.scorer --audio audio/2830-3980-0043.wav
+   mozilla_voice_stt --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio audio/2830-3980-0043.wav
 
-A pre-trained English model is available for use and can be downloaded following the instructions in :ref:`the usage docs <usage-docs>`. For the latest release, including pre-trained models and checkpoints, `see the GitHub releases page <https://github.com/mozilla/STT/releases/latest>`_.
+A pre-trained English model is available for use and can be downloaded following the instructions in :ref:`the usage docs <usage-docs>`. For the latest release, including pre-trained models and checkpoints, `see the GitHub releases page <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
 
-Quicker inference can be performed using a supported NVIDIA GPU on Linux. See the `release notes <https://github.com/mozilla/STT/releases/latest>`_ to find which GPUs are supported. To run ``mozilla_voice_stt`` on a GPU, install the GPU specific package:
+Quicker inference can be performed using a supported NVIDIA GPU on Linux. See the `release notes <https://github.com/mozilla/DeepSpeech/releases/latest>`_ to find which GPUs are supported. To run ``mozilla_voice_stt`` on a GPU, install the GPU specific package:
 
 .. code-block:: bash
 
@@ -44,7 +44,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    pip3 install mozilla_voice_stt_cuda
 
    # Transcribe an audio file.
-   mozilla_voice_stt --model deepspeech-0.8.1-models.pbmm --scorer deepspeech-0.8.1-models.scorer --audio audio/2830-3980-0043.wav
+   mozilla_voice_stt --model deepspeech-0.7.4-models.pbmm --scorer deepspeech-0.7.4-models.scorer --audio audio/2830-3980-0043.wav
 
 Please ensure you have the required :ref:`CUDA dependencies <cuda-deps>`.
 

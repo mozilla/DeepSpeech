@@ -42,11 +42,11 @@ We highly recommend sticking to the recommended versions of CUDA/cuDNN in order 
 Getting the code
 ----------------
 
-We need to clone ``mozilla/STT``.
+We need to clone ``mozilla/DeepSpeech``.
 
 .. code-block:: bash
 
-   git clone https://github.com/mozilla/STT
+   git clone https://github.com/mozilla/DeepSpeech
    git submodule sync tensorflow/
    git submodule update --init tensorflow/
 
@@ -142,4 +142,4 @@ Be patient, if you enabled AVX/AVX2 and CUDA it will take a long time. Finally y
 Using the generated library
 ---------------------------
 
-As for now we can only use the generated ``libmozilla_voice_stt.so`` with the C# clients, go to `native_client/dotnet/ <https://github.com/mozilla/STT/tree/master/native_client/dotnet>`_ in your Mozilla Voice STT directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy ``libmozilla_voice_stt.so`` to the generated ``x64/Debug`` or ``x64/Release`` directory.
+As for now we can only use the generated ``libmozilla_voice_stt.so`` with the C# clients, go to `native_client/dotnet/ <https://github.com/mozilla/DeepSpeech/tree/master/native_client/dotnet>`_ in your Mozilla Voice STT directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy ``libmozilla_voice_stt.so`` to the generated ``x64/Debug`` or ``x64/Release`` directory.

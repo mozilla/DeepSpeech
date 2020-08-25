@@ -16,5 +16,5 @@ build:
   nc_asset_name: "native_client.armv7.cpu.android.tar.xz"
   workerType: "${docker.dsBuild}"
   metadata:
-    name: "Mozilla Voice STT Android ARMv7"
-    description: "Building Mozilla Voice STT for Android ARMv7, optimized version"
+    name: "DeepSpeech Android ARMv7"
+    description: "Building DeepSpeech for Android ARMv7, optimized version"

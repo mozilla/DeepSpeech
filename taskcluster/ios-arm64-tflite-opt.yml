@@ -17,5 +17,5 @@ build:
   nc_asset_name: "native_client.arm64.tflite.ios.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT iOS ARM64 TFLite"
-    description: "Building Mozilla Voice STT for iOS ARM64, TFLite, optimized version"
+    name: "DeepSpeech iOS ARM64 TFLite"
+    description: "Building DeepSpeech for iOS ARM64, TFLite, optimized version"

@@ -20,5 +20,5 @@ build:
       - "win-amd64-gpu-opt"
       - "win-amd64-tflite-opt"
   metadata:
-    name: "Mozilla Voice STT NuGet Packages"
-    description: "Trigger Uploading of Mozilla Voice STT .Net Framework bindings to NuGet"
+    name: "DeepSpeech NuGet Packages"
+    description: "Trigger Uploading of DeepSpeech .Net Framework bindings to NuGet"

@@ -23,7 +23,7 @@ then:
 
     env:
       DEEPSPEECH_MODEL: "https://github.com/reuben/DeepSpeech/releases/download/v0.8.0/models_0.8.tar.gz"
-      DEEPSPEECH_AUDIO: "https://github.com/mozilla/STT/releases/download/v0.8.1/audio-0.8.1.tar.gz"
+      DEEPSPEECH_AUDIO: "https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/audio-0.4.1.tar.gz"
       PIP_DEFAULT_TIMEOUT: "60"
       EXAMPLES_CLONE_URL: "https://github.com/mozilla/STT-examples"
       EXAMPLES_CHECKOUT_TARGET: "master"

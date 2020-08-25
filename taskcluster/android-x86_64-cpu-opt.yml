@@ -16,5 +16,5 @@ build:
   nc_asset_name: "native_client.x86_64.cpu.android.tar.xz"
   workerType: "${docker.dsBuild}"
   metadata:
-    name: "Mozilla Voice STT Android x86_64"
-    description: "Building Mozilla Voice STT for Android x86_64, optimized version"
+    name: "DeepSpeech Android x86_64"
+    description: "Building DeepSpeech for Android x86_64, optimized version"

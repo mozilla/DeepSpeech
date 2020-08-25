@@ -16,7 +16,7 @@ Clone the Mozilla Voice STT repository:
 
 .. code-block:: bash
 
-   git clone https://github.com/mozilla/STT
+   git clone https://github.com/mozilla/DeepSpeech
 
 Creating a virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

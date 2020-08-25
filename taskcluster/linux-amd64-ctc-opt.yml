@@ -20,5 +20,5 @@ build:
     package: 'taskcluster/decoder-package.sh'
   workerType: "${docker.dsBuild}"
   metadata:
-    name: "Mozilla Voice STT CTC Decoder Linux AMD64 CPU"
-    description: "Building Mozilla Voice STT CTC Decoder for Linux/AMD64, CPU only, optimized version"
+    name: "DeepSpeech CTC Decoder Linux AMD64 CPU"
+    description: "Building DeepSpeech CTC Decoder for Linux/AMD64, CPU only, optimized version"

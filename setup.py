@@ -99,7 +99,7 @@ def main():
         name='mozilla_voice_stt_training',
         version=version,
         description='Training code for mozilla DeepSpeech',
-        url='https://github.com/mozilla/STT',
+        url='https://github.com/mozilla/DeepSpeech',
         author='Mozilla',
         license='MPL-2.0',
         # Classifiers help users find your project by categorizing it.

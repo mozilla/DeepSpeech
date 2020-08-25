@@ -17,5 +17,5 @@ build:
   nc_asset_name: "native_client.x86_64.tflite.ios.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT iOS x86_64 TFLite"
-    description: "Building Mozilla Voice STT for iOS x86_64, TFLite, optimized version"
+    name: "DeepSpeech iOS x86_64 TFLite"
+    description: "Building DeepSpeech for iOS x86_64, TFLite, optimized version"

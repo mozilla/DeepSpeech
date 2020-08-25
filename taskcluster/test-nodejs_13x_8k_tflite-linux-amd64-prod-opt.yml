@@ -10,5 +10,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node_tflite-tests-prod.sh 13.x 8k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "Mozilla Voice STT Linux AMD64 TFLite NodeJS 13.x prod tests (8kHz)"
-    description: "Testing Mozilla Voice STT for Linux/AMD64 on NodeJS v13.x on prod model, TFLite, optimized version (8kHz)"
+    name: "DeepSpeech Linux AMD64 TFLite NodeJS 13.x prod tests (8kHz)"
+    description: "Testing DeepSpeech for Linux/AMD64 on NodeJS v13.x on prod model, TFLite, optimized version (8kHz)"

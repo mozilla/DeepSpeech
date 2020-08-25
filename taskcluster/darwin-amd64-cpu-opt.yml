@@ -17,5 +17,5 @@ build:
   nc_asset_name: "native_client.amd64.cpu.osx.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT OSX AMD64 CPU"
-    description: "Building Mozilla Voice STT for OSX AMD64, CPU only, optimized version"
+    name: "DeepSpeech OSX AMD64 CPU"
+    description: "Building DeepSpeech for OSX AMD64, CPU only, optimized version"

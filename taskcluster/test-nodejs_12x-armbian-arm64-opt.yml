@@ -10,5 +10,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node_tflite-tests.sh 12.x 16k"
   metadata:
-    name: "Mozilla Voice STT ARMbian ARM64 Cortex-A53 CPU NodeJS 12.x tests"
-    description: "Testing Mozilla Voice STT for ARMbian ARM64 Cortex-A53 on NodeJS v12.x, CPU only, optimized version"
+    name: "DeepSpeech ARMbian ARM64 Cortex-A53 CPU NodeJS 12.x tests"
+    description: "Testing DeepSpeech for ARMbian ARM64 Cortex-A53 on NodeJS v12.x, CPU only, optimized version"

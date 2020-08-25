@@ -28,5 +28,5 @@ build:
   nc_asset_name: "native_client.arm64.cpu.linux.tar.xz"
   workerType: "${docker.dsBuild}"
   metadata:
-    name: "Mozilla Voice STT Linux ARM64 Cortex-A53 CPU"
-    description: "Building Mozilla Voice STT for Linux ARM64 Cortex-A53, CPU only, optimized version"
+    name: "DeepSpeech Linux ARM64 Cortex-A53 CPU"
+    description: "Building DeepSpeech for Linux ARM64 Cortex-A53, CPU only, optimized version"

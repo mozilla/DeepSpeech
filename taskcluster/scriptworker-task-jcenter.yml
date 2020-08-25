@@ -16,5 +16,5 @@ build:
       - "android-java-opt"
     nuget: []
   metadata:
-    name: "Mozilla Voice STT Android lib Packages"
-    description: "Trigger Uploading of Mozilla Voice STT Android lib to JCenter registry"
+    name: "DeepSpeech Android lib Packages"
+    description: "Trigger Uploading of DeepSpeech Android lib to JCenter registry"

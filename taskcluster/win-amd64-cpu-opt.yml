@@ -16,5 +16,5 @@ build:
   nc_asset_name: "native_client.amd64.cpu.win.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT Windows AMD64 CPU"
-    description: "Building Mozilla Voice STT for Windows AMD64, CPU only, optimized version"
+    name: "DeepSpeech Windows AMD64 CPU"
+    description: "Building DeepSpeech for Windows AMD64, CPU only, optimized version"

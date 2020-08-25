@@ -9,7 +9,7 @@
     },
     "author" : "Mozilla",
     "license": "MPL-2.0",
-    "homepage": "https://github.com/mozilla/STT/tree/v$(PROJECT_VERSION)#project-deepspeech",
+    "homepage": "https://github.com/mozilla/DeepSpeech/tree/v$(PROJECT_VERSION)#project-deepspeech",
     "files": [
        "README.md",
        "client.js",
@@ -18,11 +18,11 @@
        "lib/*"
     ],
     "bugs": {
-       "url": "https://github.com/mozilla/STT/issues"
+       "url": "https://github.com/mozilla/DeepSpeech/issues"
     },
     "repository"   :  {
        "type" : "git",
-       "url"  : "git://github.com/mozilla/STT.git"
+       "url"  : "git://github.com/mozilla/DeepSpeech.git"
     },
     "binary": {
         "module_name" : "deepspeech",

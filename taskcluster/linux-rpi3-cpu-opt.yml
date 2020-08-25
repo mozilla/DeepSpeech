@@ -28,5 +28,5 @@ build:
   workerType: "${docker.dsBuild}"
   nc_asset_name: "native_client.rpi3.cpu.linux.tar.xz"
   metadata:
-    name: "Mozilla Voice STT Linux RPi3/ARMv7 CPU"
-    description: "Building Mozilla Voice STT for Linux RPi3 ARMv7, CPU only, optimized version"
+    name: "DeepSpeech Linux RPi3/ARMv7 CPU"
+    description: "Building DeepSpeech for Linux RPi3 ARMv7, CPU only, optimized version"

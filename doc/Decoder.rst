@@ -22,7 +22,7 @@ The use of an external scorer is fully optional. When an external scorer is not 
 
 Currently, the Mozilla Voice STT external scorer is implemented with `KenLM <https://kheafield.com/code/kenlm/>`_, plus some tooling to package the necessary files and metadata into a single ``.scorer`` package. The tooling lives in ``data/lm/``. The scripts included in ``data/lm/`` can be used and modified to build your own language model based on your particular use case or language. See :ref:`scorer-scripts` for more details on how to reproduce our scorer file as well as create your own.
 
-The scripts are geared towards replicating the language model files we release as part of `Mozilla Voice STT model releases <https://github.com/mozilla/STT/releases/latest>`_, but modifying them to use different datasets or language model construction parameters should be simple.
+The scripts are geared towards replicating the language model files we release as part of `Mozilla Voice STT model releases <https://github.com/mozilla/DeepSpeech/releases/latest>`_, but modifying them to use different datasets or language model construction parameters should be simple.
 
 
 Decoding modes
