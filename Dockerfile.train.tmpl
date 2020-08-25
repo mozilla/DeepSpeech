@@ -3,8 +3,8 @@
 FROM tensorflow/tensorflow:1.15.2-gpu-py3
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV MOZILLA_VOICE_STT_REPO=#MOZILLA_VOICE_STT_REPO#
-ENV MOZILLA_VOICE_STT_SHA=#MOZILLA_VOICE_STT_SHA#
+ENV DEEPSPEECH_REPO=#DEEPSPEECH_REPO#
+ENV DEEPSPEECH_SHA=#DEEPSPEECH_SHA#
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-utils \
@@ -31,10 +31,10 @@ RUN apt-get install -y --no-install-recommends libopus0 libsndfile1
 RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
-RUN git clone $MOZILLA_VOICE_STT_REPO
+RUN git clone $DEEPSPEECH_REPO
 
 WORKDIR /DeepSpeech
-RUN git checkout $MOZILLA_VOICE_STT_SHA
+RUN git checkout $DEEPSPEECH_SHA
 
 # Build CTC decoder first, to avoid clashes on incompatible versions upgrades
 RUN cd native_client/ctcdecode && make NUM_PROCESSES=$(nproc) bindings

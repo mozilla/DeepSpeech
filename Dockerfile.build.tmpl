@@ -3,8 +3,8 @@
 # Need devel version cause we need /usr/include/cudnn.h 
 FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
 
-ENV MOZILLA_VOICE_STT_REPO=#MOZILLA_VOICE_STT_REPO#
-ENV MOZILLA_VOICE_STT_SHA=#MOZILLA_VOICE_STT_SHA#
+ENV DEEPSPEECH_REPO=#DEEPSPEECH_REPO#
+ENV DEEPSPEECH_SHA=#DEEPSPEECH_SHA#
 
 # >> START Install base software
 
@@ -113,9 +113,9 @@ RUN echo "build --spawn_strategy=standalone --genrule_strategy=standalone" \
 
 WORKDIR /
 
-RUN git clone --recursive $MOZILLA_VOICE_STT_REPO
+RUN git clone --recursive $DEEPSPEECH_REPO
 WORKDIR /DeepSpeech
-RUN git checkout $MOZILLA_VOICE_STT_SHA
+RUN git checkout $DEEPSPEECH_SHA
 RUN git submodule sync tensorflow/
 RUN git submodule update --init tensorflow/
 

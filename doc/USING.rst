@@ -219,11 +219,11 @@ You need to generate the Dockerfile from the template using:
 
    make Dockerfile.build
 
-If you want to specify a different Mozilla Voice STT repository / branch, you can pass ``MOZILLA_VOICE_STT_REPO`` or ``MOZILLA_VOICE_STT_SHA`` parameters:
+If you want to specify a different Mozilla Voice STT repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
 
 .. code-block:: bash
 
-   make Dockerfile.build MOZILLA_VOICE_STT_REPO=git://your/fork MOZILLA_VOICE_STT_SHA=origin/your-branch
+   make Dockerfile.build DEEPSPEECH_REPO=git://your/fork DEEPSPEECH_SHA=origin/your-branch
 
 Third party bindings
 ^^^^^^^^^^^^^^^^^^^^
