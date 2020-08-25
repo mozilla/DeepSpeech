@@ -3,13 +3,13 @@
   <metadata>
     <id>$NUPKG_ID</id>
     <version>$NUPKG_VERSION</version>
-    <title>Mozilla.Voice.STT</title>
+    <title>DeepSpeech</title>
     <authors>Mozilla</authors>
     <owners>Mozilla</owners>
     <license type="expression">MPL-2.0</license>
     <projectUrl>http://github.com/mozilla/DeepSpeech</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A library for running inference with a Mozilla Voice STT model</description>
+    <description>A library for running inference with a DeepSpeech model</description>
     <copyright>Copyright (c) 2019 Mozilla Corporation</copyright>
     <tags>native speech speech_recognition</tags>
   </metadata>

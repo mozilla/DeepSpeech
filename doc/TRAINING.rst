@@ -12,7 +12,7 @@ Prerequisites for training a model
 Getting the training code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Clone the Mozilla Voice STT repository:
+Clone the DeepSpeech repository:
 
 .. code-block:: bash
 
@@ -21,25 +21,25 @@ Clone the Mozilla Voice STT repository:
 Creating a virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In creating a virtual environment you will create a directory containing a ``python3`` binary and everything needed to run Mozilla Voice STT. You can use whatever directory you want. For the purpose of the documentation, we will rely on ``$HOME/tmp/stt-train-venv``. You can create it using this command:
+In creating a virtual environment you will create a directory containing a ``python3`` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on ``$HOME/tmp/deepspeech-train-venv``. You can create it using this command:
 
 .. code-block::
 
-   $ python3 -m venv $HOME/tmp/stt-train-venv/
+   $ python3 -m venv $HOME/tmp/deepspeech-train-venv/
 
 Once this command completes successfully, the environment will be ready to be activated.
 
 Activating the environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each time you need to work with Mozilla Voice STT, you have to *activate* this virtual environment. This is done with this simple command:
+Each time you need to work with DeepSpeech, you have to *activate* this virtual environment. This is done with this simple command:
 
 .. code-block::
 
-   $ source $HOME/tmp/stt-train-venv/bin/activate
+   $ source $HOME/tmp/deepspeech-train-venv/bin/activate
 
-Installing Mozilla Voice STT Training Code and its dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing DeepSpeech Training Code and its dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Install the required dependencies using ``pip3``\ :
 
@@ -88,7 +88,7 @@ This should ensure that you'll re-use the upstream Python 3 TensorFlow GPU-enabl
 
    make Dockerfile.train
 
-If you want to specify a different Mozilla Voice STT repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
+If you want to specify a different DeepSpeech repository / branch, you can pass ``DEEPSPEECH_REPO`` or ``DEEPSPEECH_SHA`` parameters:
 
 .. code-block:: bash
 
@@ -105,7 +105,7 @@ After extraction of such a data set, you'll find the following contents:
 * the ``*.tsv`` files output by CorporaCreator for the downloaded language
 * the mp3 audio files they reference in a ``clips`` sub-directory.
 
-For bringing this data into a form that Mozilla Voice STT understands, you have to run the CommonVoice v2.0 importer (\ ``bin/import_cv2.py``\ ):
+For bringing this data into a form that DeepSpeech understands, you have to run the CommonVoice v2.0 importer (\ ``bin/import_cv2.py``\ ):
 
 .. code-block:: bash
 
@@ -150,7 +150,7 @@ For executing pre-configured training scenarios, there is a collection of conven
 
 **If you experience GPU OOM errors while training, try reducing the batch size with the ``--train_batch_size``\ , ``--dev_batch_size`` and ``--test_batch_size`` parameters.**
 
-As a simple first example you can open a terminal, change to the directory of the Mozilla Voice STT checkout, activate the virtualenv created above, and run:
+As a simple first example you can open a terminal, change to the directory of the DeepSpeech checkout, activate the virtualenv created above, and run:
 
 .. code-block:: bash
 
@@ -160,7 +160,7 @@ This script will train on a small sample dataset composed of just a single audio
 
 Feel also free to pass additional (or overriding) ``DeepSpeech.py`` parameters to these scripts. Then, just run the script to train the modified network.
 
-Each dataset has a corresponding importer script in ``bin/`` that can be used to download (if it's freely available) and preprocess the dataset. See ``bin/import_librivox.py`` for an example of how to import and preprocess a large dataset for training with Mozilla Voice STT.
+Each dataset has a corresponding importer script in ``bin/`` that can be used to download (if it's freely available) and preprocess the dataset. See ``bin/import_librivox.py`` for an example of how to import and preprocess a large dataset for training with DeepSpeech.
 
 Some importers might require additional code to properly handled your locale-specific requirements. Such handling is dealt with ``--validate_label_locale`` flag that allows you to source out-of-tree Python script that defines a ``validate_label`` function. Please refer to ``util/importers.py`` for implementation example of that function.
 If you don't provide this argument, the default ``validate_label`` function will be used. This one is only intended for English language, so you might have consistency issues in your data for other languages.
@@ -187,7 +187,7 @@ Mixed precision training makes use of both FP32 and FP16 precisions where approp
 python3 DeepSpeech.py --train_files ./train.csv --dev_files ./dev.csv --test_files ./test.csv --automatic_mixed_precision
 ```
 
-On a Volta generation V100 GPU, automatic mixed precision speeds up Mozilla Voice STT training and evaluation by ~30%-40%.
+On a Volta generation V100 GPU, automatic mixed precision speeds up DeepSpeech training and evaluation by ~30%-40%.
 
 Checkpointing
 ^^^^^^^^^^^^^
@@ -229,9 +229,9 @@ Upon sucessfull run, it should report about conversion of a non-zero number of n
 
 Continuing training from a release model
 ----------------------------------------
-There are currently two supported approaches to make use of a pre-trained Mozilla Voice STT model: fine-tuning or transfer-learning. Choosing which one to use is a simple decision, and it depends on your target dataset. Does your data use the same alphabet as the release model? If "Yes": fine-tune. If "No" use transfer-learning.
+There are currently two supported approaches to make use of a pre-trained DeepSpeech model: fine-tuning or transfer-learning. Choosing which one to use is a simple decision, and it depends on your target dataset. Does your data use the same alphabet as the release model? If "Yes": fine-tune. If "No" use transfer-learning.
 
-If your own data uses the *extact* same alphabet as the English release model (i.e. `a-z` plus `'`) then the release model's output layer will match your data, and you can just fine-tune the existing parameters. However, if you want to use a new alphabet (e.g. Cyrillic `а`, `б`, `д`), the output layer of a release Mozilla Voice STT model will *not* match your data. In this case, you should use transfer-learning (i.e. remove the trained model's output layer, and reinitialize a new output layer that matches your target character set.
+If your own data uses the *extact* same alphabet as the English release model (i.e. `a-z` plus `'`) then the release model's output layer will match your data, and you can just fine-tune the existing parameters. However, if you want to use a new alphabet (e.g. Cyrillic `а`, `б`, `д`), the output layer of a release DeepSpeech model will *not* match your data. In this case, you should use transfer-learning (i.e. remove the trained model's output layer, and reinitialize a new output layer that matches your target character set.
 
 N.B. - If you have access to a pre-trained model which uses UTF-8 bytes at the output layer you can always fine-tune, because any alphabet should be encodable as UTF-8.
 
@@ -263,11 +263,11 @@ If you try to load a release model without following these steps, you'll get an 
 Transfer-Learning (new alphabet)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to continue training an alphabet-based Mozilla Voice STT model (i.e. not a UTF-8 model) on a new language, or if you just want to add new characters to your custom alphabet, you will probably want to use transfer-learning instead of fine-tuning. If you're starting with a pre-trained UTF-8 model -- even if your data comes from a different language or uses a different alphabet -- the model will be able to predict your new transcripts, and you should use fine-tuning instead.
+If you want to continue training an alphabet-based DeepSpeech model (i.e. not a UTF-8 model) on a new language, or if you just want to add new characters to your custom alphabet, you will probably want to use transfer-learning instead of fine-tuning. If you're starting with a pre-trained UTF-8 model -- even if your data comes from a different language or uses a different alphabet -- the model will be able to predict your new transcripts, and you should use fine-tuning instead.
 
-In a nutshell, Mozilla Voice STT's transfer-learning allows you to remove certain layers from a pre-trained model, initialize new layers for your target data, stitch together the old and new layers, and update all layers via gradient descent. You will remove the pre-trained output layer (and optionally more layers) and reinitialize parameters to fit your target alphabet. The simplest case of transfer-learning is when you remove just the output layer.
+In a nutshell, DeepSpeech's transfer-learning allows you to remove certain layers from a pre-trained model, initialize new layers for your target data, stitch together the old and new layers, and update all layers via gradient descent. You will remove the pre-trained output layer (and optionally more layers) and reinitialize parameters to fit your target alphabet. The simplest case of transfer-learning is when you remove just the output layer.
 
-In Mozilla Voice STT's implementation of transfer-learning, all removed layers will be contiguous, starting from the output layer. The key flag you will want to experiment with is ``--drop_source_layers``. This flag accepts an integer from ``1`` to ``5`` and allows you to specify how many layers you want to remove from the pre-trained model. For example, if you supplied ``--drop_source_layers 3``, you will drop the last three layers of the pre-trained model: the output layer, penultimate layer, and LSTM layer. All dropped layers will be reinintialized, and (crucially) the output layer will be defined to match your supplied target alphabet.
+In DeepSpeech's implementation of transfer-learning, all removed layers will be contiguous, starting from the output layer. The key flag you will want to experiment with is ``--drop_source_layers``. This flag accepts an integer from ``1`` to ``5`` and allows you to specify how many layers you want to remove from the pre-trained model. For example, if you supplied ``--drop_source_layers 3``, you will drop the last three layers of the pre-trained model: the output layer, penultimate layer, and LSTM layer. All dropped layers will be reinintialized, and (crucially) the output layer will be defined to match your supplied target alphabet.
 
 You need to specify the location of the pre-trained model with ``--load_checkpoint_dir`` and define where your new model checkpoints will be saved with ``--save_checkpoint_dir``. You need to specify how many layers to remove (aka "drop") from the pre-trained model: ``--drop_source_layers``. You also need to supply your new alphabet file using the standard ``--alphabet_config_path`` (remember, using a new alphabet is the whole reason you want to use transfer-learning).
 
@@ -285,7 +285,8 @@ You need to specify the location of the pre-trained model with ``--load_checkpoi
 UTF-8 mode
 ^^^^^^^^^^
 
-Mozilla Voice STT includes a UTF-8 operating mode which can be useful to model languages with very large alphabets, such as Chinese Mandarin. For details on how it works and how to use it, see :ref:`decoder-docs`.
+DeepSpeech includes a UTF-8 operating mode which can be useful to model languages with very large alphabets, such as Chinese Mandarin. For details on how it works and how to use it, see :ref:`decoder-docs`.
+
 
 .. _training-data-augmentation:
 

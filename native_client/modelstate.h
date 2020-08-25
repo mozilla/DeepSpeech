@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "mozilla_voice_stt.h"
+#include "deepspeech.h"
 #include "alphabet.h"
 
 #include "ctcdecode/scorer.h"
@@ -70,7 +70,7 @@ struct ModelState {
    *
    * @return A Metadata struct containing CandidateTranscript structs.
    * Each represents an candidate transcript, with the first ranked most probable.
-   * The user is responsible for freeing Result by calling STT_FreeMetadata().
+   * The user is responsible for freeing Result by calling DS_FreeMetadata().
    */
   virtual Metadata* decode_metadata(const DecoderState& state,
                                     size_t num_results);

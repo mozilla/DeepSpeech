@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Mozilla Voice STT documentation build configuration file, created by
+# DeepSpeech documentation build configuration file, created by
 # sphinx-quickstart on Thu Feb  2 21:20:39 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath('../'))
 
-autodoc_mock_imports = ['mozilla_voice_stt']
+autodoc_mock_imports = ['deepspeech']
 
 # This is in fact only relevant on ReadTheDocs, but we want to run the same way
 # on our CI as in RTD to avoid regressions on RTD that we would not catch on
@@ -41,7 +41,7 @@ import semver
 
 # -- Project information -----------------------------------------------------
 
-project = u'Mozilla Voice STT'
+project = u'DeepSpeech'
 copyright = '2019-2020, Mozilla Corporation'
 author = 'Mozilla Corporation'
 
@@ -143,7 +143,7 @@ html_static_path = ['.static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'sttdoc'
+htmlhelp_basename = 'DeepSpeechdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -170,7 +170,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Mozilla_Voice_STT.tex', u'Mozilla Voice STT Documentation',
+    (master_doc, 'DeepSpeech.tex', u'DeepSpeech Documentation',
      u'Mozilla Research', 'manual'),
 ]
 
@@ -180,7 +180,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mozilla_voice_stt', u'Mozilla Voice STT Documentation',
+    (master_doc, 'deepspeech', u'DeepSpeech Documentation',
      [author], 1)
 ]
 
@@ -191,8 +191,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Mozilla Voice STT', u'Mozilla Voice STT Documentation',
-     author, 'Mozilla Voice STT', 'One line description of project.',
+    (master_doc, 'DeepSpeech', u'DeepSpeech Documentation',
+     author, 'DeepSpeech', 'One line description of project.',
      'Miscellaneous'),
 ]
 

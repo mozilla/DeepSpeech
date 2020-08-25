@@ -1,29 +1,29 @@
 Java
 ====
 
-MozillaVoiceSttModel
---------------------
+DeepSpeechModel
+---------------
 
-.. doxygenclass:: org::mozilla::voice::stt::MozillaVoiceSttModel
+.. doxygenclass:: org::mozilla::deepspeech::libdeepspeech::DeepSpeechModel
    :project: deepspeech-java
    :members:
 
 Metadata
 --------
 
-.. doxygenclass:: org::mozilla::voice::stt::Metadata
+.. doxygenclass:: org::mozilla::deepspeech::libdeepspeech::Metadata
    :project: deepspeech-java
    :members: getNumTranscripts, getTranscript
 
 CandidateTranscript
 -------------------
 
-.. doxygenclass:: org::mozilla::voice::stt::CandidateTranscript
+.. doxygenclass:: org::mozilla::deepspeech::libdeepspeech::CandidateTranscript
    :project: deepspeech-java
    :members: getNumTokens, getConfidence, getToken
 
 TokenMetadata
 -------------
-.. doxygenclass:: org::mozilla::voice::stt::TokenMetadata
+.. doxygenclass:: org::mozilla::deepspeech::libdeepspeech::TokenMetadata
    :project: deepspeech-java
    :members: getText, getTimestep, getStartTime

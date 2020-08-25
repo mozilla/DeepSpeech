@@ -13,7 +13,7 @@
 
 #include "path_trie.h"
 #include "alphabet.h"
-#include "mozilla_voice_stt.h"
+#include "deepspeech.h"
 
 const double OOV_SCORE = -1000.0;
 const std::string START_TOKEN = "<s>";

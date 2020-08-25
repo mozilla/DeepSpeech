@@ -2,17 +2,17 @@
 ==============
 
 
-MozillaVoiceSttModel Class
---------------------------
+DeepSpeech Class
+----------------
 
-.. doxygenclass:: MozillaVoiceSttClient::MozillaVoiceSttModel
+.. doxygenclass:: DeepSpeechClient::DeepSpeech
    :project: deepspeech-dotnet
    :members:
 
-MozillaVoiceSttStream Class
----------------------------
+DeepSpeechStream Class
+----------------------
 
-.. doxygenclass:: MozillaVoiceSttClient::Models::MozillaVoiceSttStream
+.. doxygenclass:: DeepSpeechClient::Models::DeepSpeechStream
    :project: deepspeech-dotnet
    :members:
 
@@ -21,33 +21,33 @@ ErrorCodes
 
 See also the main definition including descriptions for each error in :ref:`error-codes`.
 
-.. doxygenenum:: MozillaVoiceSttClient::Enums::ErrorCodes
+.. doxygenenum:: DeepSpeechClient::Enums::ErrorCodes
    :project: deepspeech-dotnet
 
 Metadata
 --------
 
-.. doxygenclass:: MozillaVoiceSttClient::Models::Metadata
+.. doxygenclass:: DeepSpeechClient::Models::Metadata
    :project: deepspeech-dotnet
    :members: Transcripts
 
 CandidateTranscript
 -------------------
 
-.. doxygenclass:: MozillaVoiceSttClient::Models::CandidateTranscript
+.. doxygenclass:: DeepSpeechClient::Models::CandidateTranscript
    :project: deepspeech-dotnet
    :members: Tokens, Confidence
 
 TokenMetadata
 -------------
 
-.. doxygenclass:: MozillaVoiceSttClient::Models::TokenMetadata
+.. doxygenclass:: DeepSpeechClient::Models::TokenMetadata
    :project: deepspeech-dotnet
    :members: Text, Timestep, StartTime
 
-IMozillaVoiceSttModel Interface
--------------------------------
+DeepSpeech Interface
+--------------------
 
-.. doxygeninterface:: MozillaVoiceSttClient::Interfaces::IMozillaVoiceSttModel
+.. doxygeninterface:: DeepSpeechClient::Interfaces::IDeepSpeech
    :project: deepspeech-dotnet
    :members:

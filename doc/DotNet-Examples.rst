@@ -1,12 +1,12 @@
 .NET API Usage example
 ======================
 
-Examples are from `native_client/dotnet/MozillaVoiceSttConsole/Program.cs`.
+Examples are from `native_client/dotnet/DeepSpeechConsole/Program.cs`.
 
 Creating a model instance and loading model
 -------------------------------------------
 
-.. literalinclude:: ../native_client/dotnet/MozillaVoiceSttConsole/Program.cs
+.. literalinclude:: ../native_client/dotnet/DeepSpeechConsole/Program.cs
    :language: csharp
    :linenos:
    :lineno-match:
@@ -16,7 +16,7 @@ Creating a model instance and loading model
 Performing inference
 --------------------
 
-.. literalinclude:: ../native_client/dotnet/MozillaVoiceSttConsole/Program.cs
+.. literalinclude:: ../native_client/dotnet/DeepSpeechConsole/Program.cs
    :language: csharp
    :linenos:
    :lineno-match:
@@ -26,4 +26,4 @@ Performing inference
 Full source code
 ----------------
 
-See :download:`Full source code<../native_client/dotnet/MozillaVoiceSttConsole/Program.cs>`.
+See :download:`Full source code<../native_client/dotnet/DeepSpeechConsole/Program.cs>`.

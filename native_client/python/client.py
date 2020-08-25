@@ -10,7 +10,7 @@ import sys
 import wave
 import json
 
-import mozilla_voice_stt as stt
+from deepspeech import Model, version
 from timeit import default_timer as timer
 
 try:
@@ -83,12 +83,12 @@ class VersionAction(argparse.Action):
         super(VersionAction, self).__init__(nargs=0, *args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        print('Mozilla Voice STT ', stt.version())
+        print('DeepSpeech ', version())
         exit(0)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Running Mozilla Voice STT inference.')
+    parser = argparse.ArgumentParser(description='Running DeepSpeech inference.')
     parser.add_argument('--model', required=True,
                         help='Path to the model (protocol buffer binary file)')
     parser.add_argument('--scorer', required=False,
@@ -114,7 +114,7 @@ def main():
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
     model_load_start = timer()
     # sphinx-doc: python_ref_model_start
-    ds = stt.Model(args.model)
+    ds = Model(args.model)
     # sphinx-doc: python_ref_model_stop
     model_load_end = timer() - model_load_start
     print('Loaded model in {:.3}s.'.format(model_load_end), file=sys.stderr)

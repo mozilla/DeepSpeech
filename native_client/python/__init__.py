@@ -17,14 +17,14 @@ if platform.system().lower() == "windows":
         # directory for the dynamic linker
         os.environ['PATH'] = dslib_path + ';' + os.environ['PATH']
 
-import mozilla_voice_stt as stt
+import deepspeech
 
 # rename for backwards compatibility
-from mozilla_voice_stt.impl import Version as version
+from deepspeech.impl import Version as version
 
 class Model(object):
     """
-    Class holding a Mozilla Voice STT model
+    Class holding a DeepSpeech model
 
     :param aModelPath: Path to model file to load
     :type aModelPath: str
@@ -33,14 +33,14 @@ class Model(object):
         # make sure the attribute is there if CreateModel fails
         self._impl = None
 
-        status, impl = stt.impl.CreateModel(model_path)
+        status, impl = deepspeech.impl.CreateModel(model_path)
         if status != 0:
-            raise RuntimeError("CreateModel failed with '{}' (0x{:X})".format(stt.impl.ErrorCodeToErrorMessage(status),status))
+            raise RuntimeError("CreateModel failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
         self._impl = impl
 
     def __del__(self):
         if self._impl:
-            stt.impl.FreeModel(self._impl)
+            deepspeech.impl.FreeModel(self._impl)
             self._impl = None
 
     def beamWidth(self):
@@ -51,7 +51,7 @@ class Model(object):
         :return: Beam width value used by the model.
         :type: int
         """
-        return stt.impl.GetModelBeamWidth(self._impl)
+        return deepspeech.impl.GetModelBeamWidth(self._impl)
 
     def setBeamWidth(self, beam_width):
         """
@@ -63,7 +63,7 @@ class Model(object):
         :return: Zero on success, non-zero on failure.
         :type: int
         """
-        return stt.impl.SetModelBeamWidth(self._impl, beam_width)
+        return deepspeech.impl.SetModelBeamWidth(self._impl, beam_width)
 
     def sampleRate(self):
         """
@@ -72,7 +72,7 @@ class Model(object):
         :return: Sample rate.
         :type: int
         """
-        return stt.impl.GetModelSampleRate(self._impl)
+        return deepspeech.impl.GetModelSampleRate(self._impl)
 
     def enableExternalScorer(self, scorer_path):
         """
@@ -83,9 +83,9 @@ class Model(object):
 
         :throws: RuntimeError on error
         """
-        status = stt.impl.EnableExternalScorer(self._impl, scorer_path)
+        status = deepspeech.impl.EnableExternalScorer(self._impl, scorer_path)
         if status != 0:
-            raise RuntimeError("EnableExternalScorer failed with '{}' (0x{:X})".format(stt.impl.ErrorCodeToErrorMessage(status),status))
+            raise RuntimeError("EnableExternalScorer failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
 
     def disableExternalScorer(self):
         """
@@ -93,7 +93,7 @@ class Model(object):
 
         :return: Zero on success, non-zero on failure.
         """
-        return stt.impl.DisableExternalScorer(self._impl)
+        return deepspeech.impl.DisableExternalScorer(self._impl)
 
     def setScorerAlphaBeta(self, alpha, beta):
         """
@@ -108,11 +108,11 @@ class Model(object):
         :return: Zero on success, non-zero on failure.
         :type: int
         """
-        return stt.impl.SetScorerAlphaBeta(self._impl, alpha, beta)
+        return deepspeech.impl.SetScorerAlphaBeta(self._impl, alpha, beta)
 
     def stt(self, audio_buffer):
         """
-        Use the Mozilla Voice STT model to perform Speech-To-Text.
+        Use the DeepSpeech model to perform Speech-To-Text.
 
         :param audio_buffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type audio_buffer: numpy.int16 array
@@ -120,11 +120,11 @@ class Model(object):
         :return: The STT result.
         :type: str
         """
-        return stt.impl.SpeechToText(self._impl, audio_buffer)
+        return deepspeech.impl.SpeechToText(self._impl, audio_buffer)
 
     def sttWithMetadata(self, audio_buffer, num_results=1):
         """
-        Use the Mozilla Voice STT model to perform Speech-To-Text and return results including metadata.
+        Use the DeepSpeech model to perform Speech-To-Text and return results including metadata.
 
         :param audio_buffer: A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
         :type audio_buffer: numpy.int16 array
@@ -135,7 +135,7 @@ class Model(object):
         :return: Metadata object containing multiple candidate transcripts. Each transcript has per-token metadata including timing information.
         :type: :func:`Metadata`
         """
-        return stt.impl.SpeechToTextWithMetadata(self._impl, audio_buffer, num_results)
+        return deepspeech.impl.SpeechToTextWithMetadata(self._impl, audio_buffer, num_results)
 
     def createStream(self):
         """
@@ -147,15 +147,15 @@ class Model(object):
 
         :throws: RuntimeError on error
         """
-        status, ctx = stt.impl.CreateStream(self._impl)
+        status, ctx = deepspeech.impl.CreateStream(self._impl)
         if status != 0:
-            raise RuntimeError("CreateStream failed with '{}' (0x{:X})".format(stt.impl.ErrorCodeToErrorMessage(status),status))
+            raise RuntimeError("CreateStream failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
         return Stream(ctx)
 
 
 class Stream(object):
     """
-    Class wrapping a Mozilla Voice STT stream. The constructor cannot be called directly.
+    Class wrapping a DeepSpeech stream. The constructor cannot be called directly.
     Use :func:`Model.createStream()`
     """
     def __init__(self, native_stream):
@@ -176,7 +176,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to feed an already finished stream?")
-        stt.impl.FeedAudioContent(self._impl, audio_buffer)
+        deepspeech.impl.FeedAudioContent(self._impl, audio_buffer)
 
     def intermediateDecode(self):
         """
@@ -189,7 +189,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to decode an already finished stream?")
-        return stt.impl.IntermediateDecode(self._impl)
+        return deepspeech.impl.IntermediateDecode(self._impl)
 
     def intermediateDecodeWithMetadata(self, num_results=1):
         """
@@ -205,7 +205,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to decode an already finished stream?")
-        return stt.impl.IntermediateDecodeWithMetadata(self._impl, num_results)
+        return deepspeech.impl.IntermediateDecodeWithMetadata(self._impl, num_results)
 
     def finishStream(self):
         """
@@ -220,7 +220,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to finish an already finished stream?")
-        result = stt.impl.FinishStream(self._impl)
+        result = deepspeech.impl.FinishStream(self._impl)
         self._impl = None
         return result
 
@@ -241,7 +241,7 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to finish an already finished stream?")
-        result = stt.impl.FinishStreamWithMetadata(self._impl, num_results)
+        result = deepspeech.impl.FinishStreamWithMetadata(self._impl, num_results)
         self._impl = None
         return result
 
@@ -254,12 +254,12 @@ class Stream(object):
         """
         if not self._impl:
             raise RuntimeError("Stream object is not valid. Trying to free an already finished stream?")
-        stt.impl.FreeStream(self._impl)
+        deepspeech.impl.FreeStream(self._impl)
         self._impl = None
 
 
 # This is only for documentation purpose
-# Metadata, CandidateTranscript and TokenMetadata should be in sync with native_client/mozilla_voice_stt.h
+# Metadata, CandidateTranscript and TokenMetadata should be in sync with native_client/deepspeech.h
 class TokenMetadata(object):
     """
     Stores each individual character, along with its timing information

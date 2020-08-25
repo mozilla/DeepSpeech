@@ -9,7 +9,7 @@ source $(dirname "$0")/tc-tests-utils.sh
 source $(dirname "$0")/tf_tc-vars.sh
 
 BAZEL_TARGETS="
-//native_client:libmozilla_voice_stt.so
+//native_client:libdeepspeech.so
 "
 
 if [ "${arch}" = "--arm64" ]; then

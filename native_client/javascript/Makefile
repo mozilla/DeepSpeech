@@ -2,7 +2,7 @@ NODE_BUILD_TOOL    ?= node-pre-gyp
 NODE_ABI_TARGET    ?= 
 NODE_BUILD_VERBOSE ?= --verbose
 NPM_TOOL           ?= npm
-PROJECT_NAME       ?= mozilla_voice_stt
+PROJECT_NAME       ?= deepspeech
 PROJECT_VERSION    ?= $(shell cat ../../training/deepspeech_training/VERSION | tr -d '\n')
 NPM_ROOT           ?= $(shell npm root)
 
@@ -28,7 +28,7 @@ clean:
 	rm -rf ./build/
 
 clean-npm-pack:
-	rm -fr ./$(PROJECT_NAME)-*.tgz
+	rm -fr ./deepspeech-*.tgz
 
 really-clean: clean clean-npm-pack
 	rm -fr ./node_modules/

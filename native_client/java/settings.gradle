@@ -1,1 +1,1 @@
-include ':app', ':libmozillavoicestt'
+include ':app', ':libdeepspeech'

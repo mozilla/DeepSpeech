@@ -10,7 +10,7 @@ import csv
 import os
 import sys
 
-from mozilla_voice_stt import Model
+from deepspeech import Model
 from deepspeech_training.util.evaluate_tools import calculate_and_print_report
 from deepspeech_training.util.flags import create_flags
 from functools import partial
@@ -19,8 +19,11 @@ from six.moves import zip, range
 
 r'''
 This module should be self-contained:
+  - build libdeepspeech.so with TFLite:
+    - bazel build [...] --define=runtime=tflite [...] //native_client:libdeepspeech.so
+  - make -C native_client/python/ TFDIR=... bindings
   - setup a virtualenv
-  - pip install mozilla_voice_stt_tflite
+  - pip install native_client/python/dist/deepspeech*.whl
   - pip install -r requirements_eval_tflite.txt
 
 Then run with a TF Lite model, a scorer and a CSV test file

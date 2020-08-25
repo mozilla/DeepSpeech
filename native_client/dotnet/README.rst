@@ -1,8 +1,8 @@
 
-Building Mozilla Voice STT native client for Windows
+Building DeepSpeech native client for Windows
 =============================================
 
-Now we can build the native client of Mozilla Voice STT and run inference on Windows using the C# client, to do that we need to compile the ``native_client``.
+Now we can build the native client of DeepSpeech and run inference on Windows using the C# client, to do that we need to compile the ``native_client``.
 
 **Table of Contents**
 
@@ -59,8 +59,8 @@ There should already be a symbolic link, for this example let's suppose that we 
 
    .
    ├── D:\
-   │   ├── cloned                 # Contains Mozilla Voice STT and tensorflow side by side
-   │   │   └── DeepSpeech         # Root of the cloned Mozilla Voice STT
+   │   ├── cloned                 # Contains DeepSpeech and tensorflow side by side
+   │   │   └── DeepSpeech         # Root of the cloned DeepSpeech
    │   │       ├── tensorflow     # Root of the cloned Mozilla's tensorflow 
    └── ...
 
@@ -126,7 +126,7 @@ We will add AVX/AVX2 support in the command, please make sure that your CPU supp
 
 .. code-block:: bash
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" -c opt --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libmozilla_voice_stt.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" -c opt --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libdeepspeech.so
 
 GPU with CUDA
 ~~~~~~~~~~~~~
@@ -135,11 +135,11 @@ If you enabled CUDA in `configure.py <https://github.com/mozilla/tensorflow/blob
 
 .. code-block:: bash
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" -c opt --config=cuda --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libmozilla_voice_stt.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" -c opt --config=cuda --copt=/arch:AVX --copt=/arch:AVX2 //native_client:libdeepspeech.so
 
-Be patient, if you enabled AVX/AVX2 and CUDA it will take a long time. Finally you should see it stops and shows the path to the generated ``libmozilla_voice_stt.so``.
+Be patient, if you enabled AVX/AVX2 and CUDA it will take a long time. Finally you should see it stops and shows the path to the generated ``libdeepspeech.so``.
 
 Using the generated library
 ---------------------------
 
-As for now we can only use the generated ``libmozilla_voice_stt.so`` with the C# clients, go to `native_client/dotnet/ <https://github.com/mozilla/DeepSpeech/tree/master/native_client/dotnet>`_ in your Mozilla Voice STT directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy ``libmozilla_voice_stt.so`` to the generated ``x64/Debug`` or ``x64/Release`` directory.
+As for now we can only use the generated ``libdeepspeech.so`` with the C# clients, go to `native_client/dotnet/ <https://github.com/mozilla/DeepSpeech/tree/master/native_client/dotnet>`_ in your DeepSpeech directory and open the Visual Studio solution, then we need to build in debug or release mode, finally we just need to copy ``libdeepspeech.so`` to the generated ``x64/Debug`` or ``x64/Release`` directory.

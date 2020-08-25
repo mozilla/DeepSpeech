@@ -2,7 +2,7 @@
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "mozilla_voice_stt.h"
+#include "deepspeech.h"
 %}
 
 %include "numpy.i"
@@ -10,7 +10,7 @@
 import_array();
 %}
 
-// apply NumPy conversion typemap to STT_FeedAudioContent and STT_SpeechToText
+// apply NumPy conversion typemap to DS_FeedAudioContent and DS_SpeechToText
 %apply (short* IN_ARRAY1, int DIM1) {(const short* aBuffer, unsigned int aBufferSize)};
 
 %typemap(in, numinputs=0) ModelState **retval (ModelState *ret) {
@@ -19,7 +19,7 @@ import_array();
 }
 
 %typemap(argout) ModelState **retval {
-  // not owned, Python wrapper in __init__.py calls STT_FreeModel
+  // not owned, Python wrapper in __init__.py calls DS_FreeModel
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
@@ -29,7 +29,7 @@ import_array();
 }
 
 %typemap(argout) StreamingState **retval {
-  // not owned, STT_FinishStream deallocates StreamingState
+  // not owned, DS_FinishStream deallocates StreamingState
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
 }
 
@@ -104,7 +104,7 @@ static PyObject *parent_reference() {
 
 %extend struct Metadata {
   ~Metadata() {
-    STT_FreeMetadata($self);
+    DS_FreeMetadata($self);
   }
 }
 
@@ -115,14 +115,14 @@ static PyObject *parent_reference() {
 %nodefaultctor TokenMetadata;
 %nodefaultdtor TokenMetadata;
 
-%typemap(newfree) char* "STT_FreeString($1);";
+%typemap(newfree) char* "DS_FreeString($1);";
 
-%newobject STT_SpeechToText;
-%newobject STT_IntermediateDecode;
-%newobject STT_FinishStream;
-%newobject STT_Version;
-%newobject STT_ErrorCodeToErrorMessage;
+%newobject DS_SpeechToText;
+%newobject DS_IntermediateDecode;
+%newobject DS_FinishStream;
+%newobject DS_Version;
+%newobject DS_ErrorCodeToErrorMessage;
 
-%rename ("%(strip:[STT_])s") "";
+%rename ("%(strip:[DS_])s") "";
 
-%include "../mozilla_voice_stt.h"
+%include "../deepspeech.h"
