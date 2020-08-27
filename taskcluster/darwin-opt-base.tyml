@@ -1,6 +1,6 @@
 taskId: ${taskcluster.taskId}
 provisionerId: ${taskcluster.generic.provisionerId}
-workerType: ${taskcluster.generic.workerType}
+workerType: ${macOS.dsBuild}
 taskGroupId: ${taskcluster.taskGroupId}
 schedulerId: ${taskcluster.schedulerId}
 dependencies:
