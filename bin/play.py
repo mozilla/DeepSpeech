@@ -9,9 +9,9 @@ import sys
 import random
 import argparse
 
-from mozilla_voice_stt_training.util.audio import LOADABLE_AUDIO_EXTENSIONS, AUDIO_TYPE_PCM, AUDIO_TYPE_WAV
-from mozilla_voice_stt_training.util.sample_collections import SampleList, LabeledSample, samples_from_source
-from mozilla_voice_stt_training.util.augmentations import parse_augmentations, apply_sample_augmentations, SampleAugmentation
+from deepspeech_training.util.audio import LOADABLE_AUDIO_EXTENSIONS, AUDIO_TYPE_PCM, AUDIO_TYPE_WAV
+from deepspeech_training.util.sample_collections import SampleList, LabeledSample, samples_from_source
+from deepspeech_training.util.augmentations import parse_augmentations, apply_sample_augmentations, SampleAugmentation
 
 
 def get_samples_in_play_order():

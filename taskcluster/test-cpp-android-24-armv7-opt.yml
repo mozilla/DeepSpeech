@@ -12,5 +12,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-android-ds-tests.sh armeabi-v7a android-24 16k"
   workerType: "${docker.dsHighMemTests}"
   metadata:
-    name: "Mozilla Voice STT Android 7.0 ARMv7 Google Pixel C++ tests"
-    description: "Testing Mozilla Voice STT C++ for Android 7.0 ARMv7 Google Pixel, optimized version"
+    name: "DeepSpeech Android 7.0 ARMv7 Google Pixel C++ tests"
+    description: "Testing DeepSpeech C++ for Android 7.0 ARMv7 Google Pixel, optimized version"

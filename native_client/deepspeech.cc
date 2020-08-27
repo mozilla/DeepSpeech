@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include "mozilla_voice_stt.h"
+#include "deepspeech.h"
 #include "alphabet.h"
 #include "modelstate.h"
 
@@ -25,7 +25,7 @@
 
 #ifdef __ANDROID__
 #include <android/log.h>
-#define  LOG_TAG    "libmozilla_voice_stt"
+#define  LOG_TAG    "libdeepspeech"
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #else
@@ -263,23 +263,23 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 }
 
 int
-STT_CreateModel(const char* aModelPath,
+DS_CreateModel(const char* aModelPath,
                ModelState** retval)
 {
   *retval = nullptr;
 
   std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
-  std::cerr << "Mozilla Voice STT: " << ds_git_version() << std::endl;
+  std::cerr << "DeepSpeech: " << ds_git_version() << std::endl;
 #ifdef __ANDROID__
   LOGE("TensorFlow: %s", tf_local_git_version());
   LOGD("TensorFlow: %s", tf_local_git_version());
-  LOGE("Mozilla Voice STT: %s", ds_git_version());
-  LOGD("Mozilla Voice STT: %s", ds_git_version());
+  LOGE("DeepSpeech: %s", ds_git_version());
+  LOGD("DeepSpeech: %s", ds_git_version());
 #endif
 
   if (!aModelPath || strlen(aModelPath) < 1) {
     std::cerr << "No model specified, cannot continue." << std::endl;
-    return STT_ERR_NO_MODEL;
+    return DS_ERR_NO_MODEL;
   }
 
   std::unique_ptr<ModelState> model(
@@ -292,79 +292,79 @@ STT_CreateModel(const char* aModelPath,
 
   if (!model) {
     std::cerr << "Could not allocate model state." << std::endl;
-    return STT_ERR_FAIL_CREATE_MODEL;
+    return DS_ERR_FAIL_CREATE_MODEL;
   }
 
   int err = model->init(aModelPath);
-  if (err != STT_ERR_OK) {
+  if (err != DS_ERR_OK) {
     return err;
   }
 
   *retval = model.release();
-  return STT_ERR_OK;
+  return DS_ERR_OK;
 }
 
 unsigned int
-STT_GetModelBeamWidth(const ModelState* aCtx)
+DS_GetModelBeamWidth(const ModelState* aCtx)
 {
   return aCtx->beam_width_;
 }
 
 int
-STT_SetModelBeamWidth(ModelState* aCtx, unsigned int aBeamWidth)
+DS_SetModelBeamWidth(ModelState* aCtx, unsigned int aBeamWidth)
 {
   aCtx->beam_width_ = aBeamWidth;
   return 0;
 }
 
 int
-STT_GetModelSampleRate(const ModelState* aCtx)
+DS_GetModelSampleRate(const ModelState* aCtx)
 {
   return aCtx->sample_rate_;
 }
 
 void
-STT_FreeModel(ModelState* ctx)
+DS_FreeModel(ModelState* ctx)
 {
   delete ctx;
 }
 
 int
-STT_EnableExternalScorer(ModelState* aCtx,
+DS_EnableExternalScorer(ModelState* aCtx,
                         const char* aScorerPath)
 {
   std::unique_ptr<Scorer> scorer(new Scorer());
   int err = scorer->init(aScorerPath, aCtx->alphabet_);
   if (err != 0) {
-    return STT_ERR_INVALID_SCORER;
+    return DS_ERR_INVALID_SCORER;
   }
   aCtx->scorer_ = std::move(scorer);
-  return STT_ERR_OK;
+  return DS_ERR_OK;
 }
 
 int
-STT_DisableExternalScorer(ModelState* aCtx)
+DS_DisableExternalScorer(ModelState* aCtx)
 {
   if (aCtx->scorer_) {
     aCtx->scorer_.reset();
-    return STT_ERR_OK;
+    return DS_ERR_OK;
   }
-  return STT_ERR_SCORER_NOT_ENABLED;
+  return DS_ERR_SCORER_NOT_ENABLED;
 }
 
-int STT_SetScorerAlphaBeta(ModelState* aCtx,
+int DS_SetScorerAlphaBeta(ModelState* aCtx,
                           float aAlpha,
                           float aBeta)
 {
   if (aCtx->scorer_) {
     aCtx->scorer_->reset_params(aAlpha, aBeta);
-    return STT_ERR_OK;
+    return DS_ERR_OK;
   }
-  return STT_ERR_SCORER_NOT_ENABLED;
+  return DS_ERR_SCORER_NOT_ENABLED;
 }
 
 int
-STT_CreateStream(ModelState* aCtx,
+DS_CreateStream(ModelState* aCtx,
                 StreamingState** retval)
 {
   *retval = nullptr;
@@ -372,7 +372,7 @@ STT_CreateStream(ModelState* aCtx,
   std::unique_ptr<StreamingState> ctx(new StreamingState());
   if (!ctx) {
     std::cerr << "Could not allocate streaming state." << std::endl;
-    return STT_ERR_FAIL_CREATE_STREAM;
+    return DS_ERR_FAIL_CREATE_STREAM;
   }
 
   ctx->audio_buffer_.reserve(aCtx->audio_win_len_);
@@ -393,11 +393,11 @@ STT_CreateStream(ModelState* aCtx,
                            aCtx->scorer_);
 
   *retval = ctx.release();
-  return STT_ERR_OK;
+  return DS_ERR_OK;
 }
 
 void
-STT_FeedAudioContent(StreamingState* aSctx,
+DS_FeedAudioContent(StreamingState* aSctx,
                     const short* aBuffer,
                     unsigned int aBufferSize)
 {
@@ -405,32 +405,32 @@ STT_FeedAudioContent(StreamingState* aSctx,
 }
 
 char*
-STT_IntermediateDecode(const StreamingState* aSctx)
+DS_IntermediateDecode(const StreamingState* aSctx)
 {
   return aSctx->intermediateDecode();
 }
 
 Metadata*
-STT_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
+DS_IntermediateDecodeWithMetadata(const StreamingState* aSctx,
                                   unsigned int aNumResults)
 {
   return aSctx->intermediateDecodeWithMetadata(aNumResults);
 }
 
 char*
-STT_FinishStream(StreamingState* aSctx)
+DS_FinishStream(StreamingState* aSctx)
 {
   char* str = aSctx->finishStream();
-  STT_FreeStream(aSctx);
+  DS_FreeStream(aSctx);
   return str;
 }
 
 Metadata*
-STT_FinishStreamWithMetadata(StreamingState* aSctx, 
+DS_FinishStreamWithMetadata(StreamingState* aSctx, 
                             unsigned int aNumResults)
 {
   Metadata* result = aSctx->finishStreamWithMetadata(aNumResults);
-  STT_FreeStream(aSctx);
+  DS_FreeStream(aSctx);
   return result;
 }
 
@@ -440,41 +440,41 @@ CreateStreamAndFeedAudioContent(ModelState* aCtx,
                                 unsigned int aBufferSize)
 {
   StreamingState* ctx;
-  int status = STT_CreateStream(aCtx, &ctx);
-  if (status != STT_ERR_OK) {
+  int status = DS_CreateStream(aCtx, &ctx);
+  if (status != DS_ERR_OK) {
     return nullptr;
   }
-  STT_FeedAudioContent(ctx, aBuffer, aBufferSize);
+  DS_FeedAudioContent(ctx, aBuffer, aBufferSize);
   return ctx;
 }
 
 char*
-STT_SpeechToText(ModelState* aCtx,
+DS_SpeechToText(ModelState* aCtx,
                 const short* aBuffer,
                 unsigned int aBufferSize)
 {
   StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
-  return STT_FinishStream(ctx);
+  return DS_FinishStream(ctx);
 }
 
 Metadata*
-STT_SpeechToTextWithMetadata(ModelState* aCtx,
+DS_SpeechToTextWithMetadata(ModelState* aCtx,
                             const short* aBuffer,
                             unsigned int aBufferSize,
                             unsigned int aNumResults)
 {
   StreamingState* ctx = CreateStreamAndFeedAudioContent(aCtx, aBuffer, aBufferSize);
-  return STT_FinishStreamWithMetadata(ctx, aNumResults);
+  return DS_FinishStreamWithMetadata(ctx, aNumResults);
 }
 
 void
-STT_FreeStream(StreamingState* aSctx)
+DS_FreeStream(StreamingState* aSctx)
 {
   delete aSctx;
 }
 
 void
-STT_FreeMetadata(Metadata* m)
+DS_FreeMetadata(Metadata* m)
 {
   if (m) {
     for (int i = 0; i < m->num_transcripts; ++i) {
@@ -491,13 +491,13 @@ STT_FreeMetadata(Metadata* m)
 }
 
 void
-STT_FreeString(char* str)
+DS_FreeString(char* str)
 {
   free(str);
 }
 
 char*
-STT_Version()
+DS_Version()
 {
   return strdup(ds_version());
 }

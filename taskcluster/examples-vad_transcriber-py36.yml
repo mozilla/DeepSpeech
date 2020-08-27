@@ -7,5 +7,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/vad_transcriber/test.sh 3.6.0:m"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "Mozilla Voice STT examples: VAD transcriber Py3.6"
-    description: "Mozilla Voice STT examples: VAD transcriberaming Python 3.6"
+    name: "DeepSpeech examples: VAD transcriber Py3.6"
+    description: "DeepSpeech examples: VAD transcriberaming Python 3.6"

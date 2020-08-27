@@ -7,9 +7,9 @@ build:
     - "pyenv-darwin-amd64"
     - "tf_darwin-amd64-opt"
   routes:
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.osx-tflite"
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.osx-tflite"
-    - "index.project.mozilla-voice-stt.native_client.osx-tflite.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.osx-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.osx-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.osx-tflite.${event.head.sha}"
   tensorflow: ${system.tensorflow.darwin_amd64.url}
   scripts:
     build: "taskcluster/host-build.sh tflite"
@@ -17,5 +17,5 @@ build:
   nc_asset_name: "native_client.amd64.tflite.osx.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT OSX AMD64 TFLite"
-    description: "Building Mozilla Voice STT for OSX AMD64, TFLite, optimized version"
+    name: "DeepSpeech OSX AMD64 TFLite"
+    description: "Building DeepSpeech for OSX AMD64, TFLite, optimized version"

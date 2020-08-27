@@ -6,13 +6,13 @@ build:
     - "pyenv-win-amd64"
     - "tf_win-amd64-cpu-opt"
   routes:
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.win-ctc"
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.win-ctc"
-    - "index.project.mozilla-voice-stt.native_client.win-ctc.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win-ctc"
+    - "index.project.deepspeech.deepspeech.native_client.win-ctc.${event.head.sha}"
   tensorflow: ${system.tensorflow.win_amd64_cpu.url}
   scripts:
     build: 'taskcluster/decoder-build.sh'
     package: 'taskcluster/decoder-package.sh'
   metadata:
-    name: "Mozilla Voice STT CTC Decoder Windows AMD64 CPU"
-    description: "Building Mozilla Voice STT CTC Decoder for Windows/AMD64, CPU only, optimized version"
+    name: "DeepSpeech CTC Decoder Windows AMD64 CPU"
+    description: "Building DeepSpeech CTC Decoder for Windows/AMD64, CPU only, optimized version"

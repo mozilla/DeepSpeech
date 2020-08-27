@@ -8,20 +8,20 @@ import argparse
 import progressbar
 from pathlib import Path
 
-from mozilla_voice_stt_training.util.audio import (
+from deepspeech_training.util.audio import (
     AUDIO_TYPE_PCM,
     AUDIO_TYPE_OPUS,
     AUDIO_TYPE_WAV,
     change_audio_types,
 )
-from mozilla_voice_stt_training.util.downloader import SIMPLE_BAR
-from mozilla_voice_stt_training.util.sample_collections import (
+from deepspeech_training.util.downloader import SIMPLE_BAR
+from deepspeech_training.util.sample_collections import (
     CSVWriter,
     DirectSDBWriter,
     TarWriter,
     samples_from_sources,
 )
-from mozilla_voice_stt_training.util.augmentations import (
+from deepspeech_training.util.augmentations import (
     parse_augmentations,
     apply_sample_augmentations,
     SampleAugmentation

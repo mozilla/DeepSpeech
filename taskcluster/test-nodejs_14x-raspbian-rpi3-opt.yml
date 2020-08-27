@@ -10,5 +10,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node_tflite-tests.sh 14.x 16k"
   metadata:
-    name: "Mozilla Voice STT Raspbian RPi3/ARMv7 CPU NodeJS 14.x tests"
-    description: "Testing Mozilla Voice STT for Raspbian RPi3/ARMv7 on NodeJS v14.x, CPU only, optimized version"
+    name: "DeepSpeech Raspbian RPi3/ARMv7 CPU NodeJS 14.x tests"
+    description: "Testing DeepSpeech for Raspbian RPi3/ARMv7 on NodeJS v14.x, CPU only, optimized version"

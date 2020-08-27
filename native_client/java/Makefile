@@ -2,7 +2,7 @@
 
 include ../definitions.mk
 
-ARCHS := $(shell grep 'ABI_FILTERS' libmozillavoicestt/gradle.properties | cut -d'=' -f2 | sed -e 's/;/ /g')
+ARCHS := $(shell grep 'ABI_FILTERS' libdeepspeech/gradle.properties | cut -d'=' -f2 | sed -e 's/;/ /g')
 GRADLE ?= ./gradlew
 
 all: apk
@@ -14,13 +14,13 @@ apk-clean:
 	$(GRADLE) clean
 
 libs-clean:
-	rm -fr libmozillavoicestt/libs/*/libmozilla_voice_stt.so
+	rm -fr libdeepspeech/libs/*/libdeepspeech.so
 
-libmozillavoicestt/libs/%/libmozilla_voice_stt.so:
-	-mkdir libmozillavoicestt/libs/$*/
-	cp ${TFDIR}/bazel-out/$*-*/bin/native_client/libmozilla_voice_stt.so libmozillavoicestt/libs/$*/
+libdeepspeech/libs/%/libdeepspeech.so:
+	-mkdir libdeepspeech/libs/$*/
+	cp ${TFDIR}/bazel-out/$*-*/bin/native_client/libdeepspeech.so libdeepspeech/libs/$*/
 
-apk: apk-clean bindings $(patsubst %,libmozillavoicestt/libs/%/libmozilla_voice_stt.so,$(ARCHS))
+apk: apk-clean bindings $(patsubst %,libdeepspeech/libs/%/libdeepspeech.so,$(ARCHS))
 	$(GRADLE) build
 
 maven-bundle: apk
@@ -28,4 +28,4 @@ maven-bundle: apk
 	$(GRADLE) zipMavenArtifacts
 
 bindings: clean ds-swig
-	$(DS_SWIG_ENV) swig -c++ -java -package org.mozilla.voice.stt -outdir libmozillavoicestt/src/main/java/org/mozilla/voice/stt/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i
+	$(DS_SWIG_ENV) swig -c++ -java -package org.mozilla.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/mozilla/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i

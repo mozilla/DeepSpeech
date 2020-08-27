@@ -7,5 +7,5 @@ build:
   args:
     tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-cppwin-ds-tests.sh 16k"
   metadata:
-    name: "Mozilla Voice STT Windows AMD64 CPU C++ tests (16kHz)"
-    description: "Testing Mozilla Voice STT C++ for Windows/AMD64, CPU only, optimized version (16kHz)"
+    name: "DeepSpeech Windows AMD64 CPU C++ tests (16kHz)"
+    description: "Testing DeepSpeech C++ for Windows/AMD64, CPU only, optimized version (16kHz)"

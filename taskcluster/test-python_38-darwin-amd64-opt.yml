@@ -8,5 +8,5 @@ build:
   args:
     tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-python-tests.sh 3.8.1: 16k"
   metadata:
-    name: "Mozilla Voice STT OSX AMD64 CPU Python v3.8 tests"
-    description: "Testing Mozilla Voice STT for OSX/AMD64 on Python v3.8.1:m, CPU only, optimized version"
+    name: "DeepSpeech OSX AMD64 CPU Python v3.8 tests"
+    description: "Testing DeepSpeech for OSX/AMD64 on Python v3.8.1:m, CPU only, optimized version"

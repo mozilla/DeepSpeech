@@ -13,7 +13,7 @@ from os import makedirs, path
 import pandas
 from bs4 import BeautifulSoup
 from tensorflow.python.platform import gfile
-from mozilla_voice_stt_training.util.downloader import maybe_download
+from deepspeech_training.util.downloader import maybe_download
 
 """The number of jobs to run in parallel"""
 NUM_PARALLEL = 8

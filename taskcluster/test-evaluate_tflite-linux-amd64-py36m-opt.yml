@@ -8,5 +8,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-evaluate_tflite.sh 3.6.10:m 16k"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "Mozilla Voice STT Linux AMD64 CPU evaluate_tflite.py Py3.6 (16kHz)"
+    name: "DeepSpeech Linux AMD64 CPU evaluate_tflite.py Py3.6 (16kHz)"
     description: "Test evaluate_tflite.py on Linux/AMD64 using upstream TensorFlow Python 3.6, CPU only, optimized version"

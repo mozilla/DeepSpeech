@@ -192,7 +192,7 @@ else
 fi
 
 if [ "${OS}" = "Darwin" ]; then
-    BAZEL_EXTRA_FLAGS="${BAZEL_EXTRA_FLAGS} --macos_minimum_os 10.10"
+    BAZEL_EXTRA_FLAGS="${BAZEL_EXTRA_FLAGS} --macos_minimum_os 10.10 --macos_sdk_version 10.15"
 fi
 
 ### Define build targets that we will re-ues in sourcing scripts.

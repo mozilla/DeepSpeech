@@ -10,5 +10,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-python_tflite-tests-prod.sh 3.7.6:m 16k"
   metadata:
-    name: "Mozilla Voice STT ARMbian ARM64 Cortex-A53 CPU Python v3.7 prod tests"
-    description: "Testing Mozilla Voice STT for ARMbian ARM64 Cortex-A53 on prod model Python v3.7, CPU only, optimized version"
+    name: "DeepSpeech ARMbian ARM64 Cortex-A53 CPU Python v3.7 prod tests"
+    description: "Testing DeepSpeech for ARMbian ARM64 Cortex-A53 on prod model Python v3.7, CPU only, optimized version"

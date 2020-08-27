@@ -26,7 +26,7 @@ ModelState::~ModelState()
 int
 ModelState::init(const char* model_path)
 {
-  return STT_ERR_OK;
+  return DS_ERR_OK;
 }
 
 char*

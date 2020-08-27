@@ -1,9 +1,9 @@
 build:
   template_file: win-opt-base.tyml
   routes:
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.win"
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.win"
-    - "index.project.mozilla-voice-stt.native_client.win.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.win"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.win"
+    - "index.project.deepspeech.deepspeech.native_client.win.${event.head.sha}"
   dependencies:
     - "node-gyp-cache"
     - "swig-win-amd64"
@@ -16,5 +16,5 @@ build:
   nc_asset_name: "native_client.amd64.cpu.win.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT Windows AMD64 CPU"
-    description: "Building Mozilla Voice STT for Windows AMD64, CPU only, optimized version"
+    name: "DeepSpeech Windows AMD64 CPU"
+    description: "Building DeepSpeech for Windows AMD64, CPU only, optimized version"

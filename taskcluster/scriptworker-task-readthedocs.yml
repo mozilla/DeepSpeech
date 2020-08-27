@@ -15,5 +15,5 @@ build:
     javascript: []
     nuget: []
   metadata:
-    name: "Mozilla Voice STT ReadTheDocs build & version update"
+    name: "DeepSpeech ReadTheDocs build & version update"
     description: "Trigger building of new version on ReadTheDocs and update default version"

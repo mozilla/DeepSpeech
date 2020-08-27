@@ -62,7 +62,7 @@ export interface Metadata {
 }
 
 /**
- * Provides an interface to a Mozilla Voice STT stream. The constructor cannot be called
+ * Provides an interface to a DeepSpeech stream. The constructor cannot be called
  * directly, use :js:func:`Model.createStream`.
  */
 class Stream {
@@ -136,7 +136,7 @@ class Stream {
 }
 
 /**
- * An object providing an interface to a trained Mozilla Voice STT model.
+ * An object providing an interface to a trained DeepSpeech model.
  */
 export class Model {
     /** @internal */
@@ -233,7 +233,7 @@ export class Model {
     }
 
     /**
-     * Use the Mozilla Voice STT model to perform Speech-To-Text.
+     * Use the DeepSpeech model to perform Speech-To-Text.
      *
      * @param aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).
      *
@@ -244,7 +244,7 @@ export class Model {
     }
 
     /**
-     * Use the Mozilla Voice STT model to perform Speech-To-Text and output metadata
+     * Use the DeepSpeech model to perform Speech-To-Text and output metadata
      * about the results.
      *
      * @param aBuffer A 16-bit, mono raw audio signal at the appropriate sample rate (matching what the model was trained on).

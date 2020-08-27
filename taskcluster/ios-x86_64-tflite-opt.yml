@@ -7,9 +7,9 @@ build:
     - "pyenv-darwin-amd64"
     - "tf_ios-x86_64-opt"
   routes:
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.ios_x86_64-tflite"
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.ios_x86_64-tflite"
-    - "index.project.mozilla-voice-stt.native_client.ios_x86_64-tflite.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.ios_x86_64-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.ios_x86_64-tflite"
+    - "index.project.deepspeech.deepspeech.native_client.ios_x86_64-tflite.${event.head.sha}"
   tensorflow: ${system.tensorflow.ios_x86_64.url}
   scripts:
     build: "taskcluster/ios-build.sh --x86_64"
@@ -17,5 +17,5 @@ build:
   nc_asset_name: "native_client.x86_64.tflite.ios.tar.xz"
   maxRunTime: 14400
   metadata:
-    name: "Mozilla Voice STT iOS x86_64 TFLite"
-    description: "Building Mozilla Voice STT for iOS x86_64, TFLite, optimized version"
+    name: "DeepSpeech iOS x86_64 TFLite"
+    description: "Building DeepSpeech for iOS x86_64, TFLite, optimized version"

@@ -6,9 +6,9 @@ build:
     - "pyenv-linux-amd64"
     - "tf_android-arm64-opt"
   routes:
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.android-x86_64"
-    - "index.project.mozilla-voice-stt.native_client.${event.head.branchortag}.${event.head.sha}.android-x86_64"
-    - "index.project.mozilla-voice-stt.native_client.android-x86_64.${event.head.sha}"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-x86_64"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-x86_64"
+    - "index.project.deepspeech.deepspeech.native_client.android-x86_64.${event.head.sha}"
   tensorflow: ${system.tensorflow.android_arm64.url}
   scripts:
     build: "taskcluster/android-build.sh x86_64"
@@ -16,5 +16,5 @@ build:
   nc_asset_name: "native_client.x86_64.cpu.android.tar.xz"
   workerType: "${docker.dsBuild}"
   metadata:
-    name: "Mozilla Voice STT Android x86_64"
-    description: "Building Mozilla Voice STT for Android x86_64, optimized version"
+    name: "DeepSpeech Android x86_64"
+    description: "Building DeepSpeech for Android x86_64, optimized version"

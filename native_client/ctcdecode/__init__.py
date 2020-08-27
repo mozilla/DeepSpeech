@@ -10,7 +10,7 @@ __version__ = swigwrapper.__version__.decode('utf-8')
 # Hack: import error codes by matching on their names, as SWIG unfortunately
 # does not support binding enums to Python in a scoped manner yet.
 for symbol in dir(swigwrapper):
-    if symbol.startswith('STT_ERR_'):
+    if symbol.startswith('DS_ERR_'):
         globals()[symbol] = getattr(swigwrapper, symbol)
 
 class Scorer(swigwrapper.Scorer):

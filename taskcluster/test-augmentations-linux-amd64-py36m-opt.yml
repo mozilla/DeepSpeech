@@ -9,5 +9,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-augmentation-tests.sh 3.6.10:m"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "Mozilla Voice STT Linux AMD64 CPU signal augmentations Py3.6"
+    name: "DeepSpeech Linux AMD64 CPU signal augmentations Py3.6"
     description: "Augmenting LDC93S1 sample in different ways for Linux/AMD64 16kHz Python 3.6, CPU only, optimized version"

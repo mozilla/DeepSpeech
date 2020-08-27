@@ -10,5 +10,5 @@ build:
   args:
     tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 13.x 16k"
   metadata:
-    name: "Mozilla Voice STT Windows AMD64 CPU NodeJS 13.x tests"
-    description: "Testing Mozilla Voice STT for Windows/AMD64 on NodeJS v13.x, CPU only, optimized version"
+    name: "DeepSpeech Windows AMD64 CPU NodeJS 13.x tests"
+    description: "Testing DeepSpeech for Windows/AMD64 on NodeJS v13.x, CPU only, optimized version"

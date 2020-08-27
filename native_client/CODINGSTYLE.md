@@ -1,5 +1,5 @@
 This file contains some notes on coding style within the C++ portion of the
-Mozilla Voice STT project. It is very much a work in progress and incomplete.
+DeepSpeech project. It is very much a work in progress and incomplete.
 
 General
 =======

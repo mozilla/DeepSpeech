@@ -11,7 +11,7 @@ using namespace std;
 #include "ctcdecode/decoder_utils.h"
 #include "ctcdecode/scorer.h"
 #include "alphabet.h"
-#include "mozilla_voice_stt.h"
+#include "deepspeech.h"
 
 namespace po = boost::program_options;
 
@@ -66,9 +66,9 @@ create_package(absl::optional<string> alphabet_path,
     scorer.set_utf8_mode(force_utf8.value());
     scorer.reset_params(default_alpha, default_beta);
     int err = scorer.load_lm(lm_path);
-    if (err != STT_ERR_SCORER_NO_TRIE) {
+    if (err != DS_ERR_SCORER_NO_TRIE) {
         cerr << "Error loading language model file: "
-             << STT_ErrorCodeToErrorMessage(err) << "\n";
+             << DS_ErrorCodeToErrorMessage(err) << "\n";
         return 1;
     }
     scorer.fill_dictionary(words);
@@ -102,7 +102,7 @@ main(int argc, char** argv)
         ("package", po::value<string>(), "Path to save scorer package.")
         ("default_alpha", po::value<float>(), "Default value of alpha hyperparameter (float).")
         ("default_beta", po::value<float>(), "Default value of beta hyperparameter (float).")
-        ("force_utf8", po::value<bool>(), "Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. See <https://mozilla-voice-stt.readthedocs.io/en/master/Decoder.html#utf-8-mode> for further explanation.")
+        ("force_utf8", po::value<bool>(), "Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. See <https://deepspeech.readthedocs.io/en/master/Decoder.html#utf-8-mode> for further explanation.")
     ;
 
     po::variables_map vm;

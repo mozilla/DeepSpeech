@@ -1,7 +1,7 @@
 import unittest
 
 from argparse import Namespace
-from mozilla_voice_stt_training.util.importers import validate_label_eng, get_validate_label
+from deepspeech_training.util.importers import validate_label_eng, get_validate_label
 from pathlib import Path
 
 def from_here(path):

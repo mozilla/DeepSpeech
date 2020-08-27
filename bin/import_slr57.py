@@ -9,15 +9,15 @@ from multiprocessing import Pool
 
 import progressbar
 
-from mozilla_voice_stt_training.util.downloader import SIMPLE_BAR, maybe_download
-from mozilla_voice_stt_training.util.importers import (
+from deepspeech_training.util.downloader import SIMPLE_BAR, maybe_download
+from deepspeech_training.util.importers import (
     get_counter,
     get_imported_samples,
     get_importers_parser,
     get_validate_label,
     print_import_report,
 )
-from mvs_ctcdecoder import Alphabet
+from ds_ctcdecoder import Alphabet
 
 FIELDNAMES = ["wav_filename", "wav_filesize", "transcript"]
 SAMPLE_RATE = 16000

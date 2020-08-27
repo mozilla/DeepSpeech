@@ -5,7 +5,7 @@ set -xe
 force_java_apk_x86_64()
 {
   cd ${DS_DSDIR}/native_client/java/
-  cat <<EOF > libmozillavoicestt/gradle.properties
+  cat <<EOF > libdeepspeech/gradle.properties
 ABI_FILTERS = x86_64
 EOF
 }
@@ -37,9 +37,9 @@ do_deepspeech_java_apk_build()
         nc_dir="x86_64"
       fi;
 
-      mkdir native_client/java/libmozillavoicestt/libs/${nc_dir}
+      mkdir native_client/java/libdeepspeech/libs/${nc_dir}
 
-      curl -L https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/native_client.tar.xz | tar -C native_client/java/libmozillavoicestt/libs/${nc_dir}/ -Jxvf - libmozilla_voice_stt.so
+      curl -L https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/native_client.tar.xz | tar -C native_client/java/libdeepspeech/libs/${nc_dir}/ -Jxvf - libdeepspeech.so
     fi;
   done;
 
@@ -56,7 +56,7 @@ android_run_tests()
 
   adb shell ls -hal /data/local/tmp/test/
 
-  ./gradlew --console=plain libmozillavoicestt:connectedAndroidTest
+  ./gradlew --console=plain libdeepspeech:connectedAndroidTest
 }
 
 android_sdk_accept_licenses()

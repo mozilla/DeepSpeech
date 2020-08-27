@@ -10,5 +10,5 @@ build:
     tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/mic_vad_streaming/test.sh 3.7.0:m"
   workerType: "${docker.dsTests}"
   metadata:
-    name: "Mozilla Voice STT examples: mic VAD streaming Py3.7"
-    description: "Mozilla Voice STT examples: mic VAD streaming Python 3.7"
+    name: "DeepSpeech examples: mic VAD streaming Py3.7"
+    description: "DeepSpeech examples: mic VAD streaming Python 3.7"
