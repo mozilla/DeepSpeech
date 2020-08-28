@@ -192,3 +192,10 @@ docker:
   dsTestsBeta: 'ci-ds-tests-b'
   dsHighMemTests: 'ci-ds-mem-tests'
   dsHighMemTestsBeta: 'ci-ds-mem-tests-b'
+macOS:
+  tfBuild: 'ds-macos-tf-build'
+  tfBuildBeta: 'ds-macos-tf-build-b'
+  dsBuild: 'ds-macos-ds-build'
+  dsBuildBeta: 'ds-macos-ds-build-b'
+  dsTests: 'ds-macos-ds-tests'
+  dsTestsBeta: 'ds-macos-ds-tests-b'

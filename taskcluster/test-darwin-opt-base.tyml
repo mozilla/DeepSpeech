@@ -2,7 +2,7 @@ $if: '(event.event != "push") && (event.event != "tag")'
 then:
   taskId: ${taskcluster.taskId}
   provisionerId: ${taskcluster.generic.provisionerId}
-  workerType: ${taskcluster.generic.workerType}
+  workerType: ${macOS.dsTests}
   taskGroupId: ${taskcluster.taskGroupId}
   schedulerId: ${taskcluster.schedulerId}
   dependencies:

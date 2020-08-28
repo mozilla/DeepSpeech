@@ -10,9 +10,6 @@ build:
   routes: []
   maxRunTime: 3600
   docker_image: "ubuntu:16.04"
-  generic:
-    workerType: 'ds-macos-light'
-  workerType: ''
   system_setup:
     >
       true
