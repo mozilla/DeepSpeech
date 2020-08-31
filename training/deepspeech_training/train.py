@@ -642,9 +642,11 @@ def train():
                     # Reduce learning rate on plateau
                     # If the learning rate was reduced and there is still no improvement
                     # wait FLAGS.plateau_epochs before the learning rate is reduced again
-                    if (FLAGS.reduce_lr_on_plateau and
-                            epochs_without_improvement % FLAGS.plateau_epochs == 0 and epochs_without_improvement > 0):
-
+                    if (
+                        FLAGS.reduce_lr_on_plateau
+                        and epochs_without_improvement > 0
+                        and epochs_without_improvement % FLAGS.plateau_epochs == 0
+                    ):
                         # Reload checkpoint that we use the best_dev weights again
                         reload_best_checkpoint(session)
 
