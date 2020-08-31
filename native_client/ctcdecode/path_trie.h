@@ -24,7 +24,7 @@ public:
   PathTrie* get_path_trie(unsigned int new_char, float log_prob_c, bool reset = true);
 
   // get the prefix data in correct time order from root to current node
-  std::vector<unsigned int> get_path_vec();
+  void get_path_vec(std::vector<unsigned int>& output);
 
   // get the prefix data in correct time order from beginning of last grapheme to current node
   PathTrie* get_prev_grapheme(std::vector<unsigned int>& output,

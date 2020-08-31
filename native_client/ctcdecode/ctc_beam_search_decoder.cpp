@@ -232,7 +232,7 @@ DecoderState::decode(size_t num_results) const
 
   for (PathTrie* prefix : prefixes_copy) {
     Output output;
-    output.tokens     = prefix->get_path_vec();
+    prefix->get_path_vec(output.tokens);
     output.timesteps  = prefix->timesteps;
     output.confidence = scores[prefix];
     outputs.push_back(output);
