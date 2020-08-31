@@ -43,6 +43,35 @@ set_ldc_sample_filename()
   esac
 }
 
+get_dependency_url()
+{
+  local _file=$1
+  all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+
+  for dep in ${all_deps}; do
+    local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${_file}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
+    if [ "${has_artifact}" = "True" ]; then
+      echo "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/${_file}"
+      exit 0
+    fi;
+  done;
+
+  echo ""
+}
+
+download_dependency_file()
+{
+  local _file=$1
+  url=$(get_dependency_url "${_file}")
+
+  if [ -z "${url}" ]; then
+    echo "Unable to find an URL for ${_file}"
+    exit 1
+  fi;
+
+  ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${url}"
+}
+
 download_data()
 {
   ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source}"

@@ -52,6 +52,10 @@ pushd ${HOME}/DeepSpeech/ds/
     time ./bin/run-tc-ldc93s1_tflite.sh "${sample_rate}"
 popd
 
+tar -cf - \
+    -C /tmp/ckpt/ . \
+    | ${XZ} > ${TASKCLUSTER_ARTIFACTS}/checkpoint.tar.xz
+
 cp /tmp/train/output_graph.pb ${TASKCLUSTER_ARTIFACTS}
 cp /tmp/train_tflite/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}
 
