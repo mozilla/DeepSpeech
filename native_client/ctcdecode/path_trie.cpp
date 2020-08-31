@@ -157,6 +157,11 @@ PathTrie* PathTrie::get_prev_word(std::vector<unsigned int>& output,
 }
 
 void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
+  // previous_timesteps might point to ancestors' timesteps
+  // therefore, children must be uptaded first
+  for (auto child : children_) {
+    child.second->iterate_to_vec(output);
+  }
   if (exists_) {
     log_prob_b_prev = log_prob_b_cur;
     log_prob_nb_prev = log_prob_nb_cur;
@@ -166,13 +171,13 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
 
     score = log_sum_exp(log_prob_b_prev, log_prob_nb_prev);
 
-    timesteps = std::move(timesteps_cur);
-    timesteps_cur.clear();
+    if (previous_timesteps != nullptr) {
+      timesteps = *previous_timesteps;
+      timesteps.push_back(new_timestep);
+    }
+    previous_timesteps=nullptr;
 
     output.push_back(this);
-  }
-  for (auto child : children_) {
-    child.second->iterate_to_vec(output);
   }
 }
 
