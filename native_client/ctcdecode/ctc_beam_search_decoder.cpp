@@ -99,22 +99,22 @@ DecoderState::next(const double *probs,
         if (prefix->score == -NUM_FLT_INF) {
           continue;
         }
-		if (!prefix->is_empty() && prefix->timesteps.empty()) {
-		  // This should never happen. But we report it if it does.
-		  std::cerr<<"error: non-empty prefix has empty timestep sequence"<<std::endl;
-		  continue;
-		}
+        if (!prefix->is_empty() && prefix->timesteps.empty()) {
+          // This should never happen. But we report it if it does.
+          std::cerr<<"error: non-empty prefix has empty timestep sequence"<<std::endl;
+          continue;
+        }
 
         // blank
         if (c == blank_id_) {
-		  // compute probability of current path
+          // compute probability of current path
           float log_p = log_prob_c + prefix->score;
 
-		  // combine current path with previous ones with the same prefix
-		  // the blank label comes last, so we can compare log_prob_nb_cur with log_p
-		  if (prefix->log_prob_nb_cur < log_p) {
-			  prefix->timesteps_cur = prefix->timesteps;
-		  }
+          // combine current path with previous ones with the same prefix
+          // the blank label comes last, so we can compare log_prob_nb_cur with log_p
+          if (prefix->log_prob_nb_cur < log_p) {
+              prefix->timesteps_cur = prefix->timesteps;
+          }
           prefix->log_prob_b_cur =
               log_sum_exp(prefix->log_prob_b_cur, log_p);
           continue;
@@ -122,10 +122,10 @@ DecoderState::next(const double *probs,
 
         // repeated character
         if (c == prefix->character) {
-		  // compute probability of current path
+          // compute probability of current path
           float log_p = log_prob_c + prefix->log_prob_nb_prev;
 
-		  // combine current path with previous ones with the same prefix
+          // combine current path with previous ones with the same prefix
           if (prefix->log_prob_nb_cur < log_p) {
               prefix->timesteps_cur = prefix->timesteps;
           }
@@ -137,11 +137,11 @@ DecoderState::next(const double *probs,
         auto prefix_new = prefix->get_path_trie(c, log_prob_c);
 
         if (prefix_new != nullptr) {
-		  // compute timesteps of current path
-		  std::vector<unsigned int> timesteps_new=prefix->timesteps;
-		  timesteps_new.push_back(abs_time_step_);
+          // compute timesteps of current path
+          std::vector<unsigned int> timesteps_new=prefix->timesteps;
+          timesteps_new.push_back(abs_time_step_);
 
-		  // compute probability of current path
+          // compute probability of current path
           float log_p = -NUM_FLT_INF;
 
           if (c == prefix->character &&
@@ -172,7 +172,7 @@ DecoderState::next(const double *probs,
             }
           }
 
-		  // combine current path with previous ones with the same prefix
+          // combine current path with previous ones with the same prefix
           if (prefix_new->log_prob_nb_cur < log_p) {
               prefix_new->timesteps_cur = timesteps_new;
           }
@@ -240,10 +240,10 @@ DecoderState::decode(size_t num_results) const
   for (PathTrie* prefix : prefixes_copy) {
     Output output;
     output.tokens     = prefix->get_path_vec();
-	output.timesteps  = prefix->timesteps;
+    output.timesteps  = prefix->timesteps;
     output.confidence = scores[prefix];
     outputs.push_back(output);
-	if(outputs.size()>=num_returned) break;
+    if(outputs.size()>=num_returned) break;
   }
 
   return outputs;

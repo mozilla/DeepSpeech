@@ -101,11 +101,11 @@ PathTrie* PathTrie::get_path_trie(unsigned int new_char, float cur_log_prob_c, b
 
 std::vector<unsigned int> PathTrie::get_path_vec() {
   if (parent == nullptr) {
-	return std::vector<unsigned int>{};
+    return std::vector<unsigned int>{};
   }
   std::vector<unsigned int> output_tokens=parent->get_path_vec();
   if (character != ROOT_) {
-  	output_tokens.push_back(character);
+      output_tokens.push_back(character);
   }
   return output_tokens;
 }
@@ -166,8 +166,8 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
 
     score = log_sum_exp(log_prob_b_prev, log_prob_nb_prev);
 
-	timesteps = std::move(timesteps_cur);
-	timesteps_cur.clear();
+    timesteps = std::move(timesteps_cur);
+    timesteps_cur.clear();
 
     output.push_back(this);
   }
