@@ -64,9 +64,11 @@ public:
   float approx_ctc;
   unsigned int character;
   std::vector<unsigned int> timesteps;
-  // `timesteps_cur` is a temporary storage for each decoding step. 
-  // At the end of a decoding step, it is moved to `timesteps`.
-  std::vector<unsigned int> timesteps_cur; 
+
+  // timestep temporary storage for each decoding step. 
+  std::vector<unsigned int>* previous_timesteps=nullptr; 
+  unsigned int new_timestep;
+
   PathTrie* parent;
 
 private:

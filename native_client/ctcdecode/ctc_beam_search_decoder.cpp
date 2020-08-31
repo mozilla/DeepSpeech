@@ -106,7 +106,8 @@ DecoderState::next(const double *probs,
           // combine current path with previous ones with the same prefix
           // the blank label comes last, so we can compare log_prob_nb_cur with log_p
           if (prefix->log_prob_nb_cur < log_p) {
-              prefix->timesteps_cur = prefix->timesteps;
+            // keep current timesteps
+            prefix->previous_timesteps = nullptr;
           }
           prefix->log_prob_b_cur =
               log_sum_exp(prefix->log_prob_b_cur, log_p);
@@ -120,7 +121,8 @@ DecoderState::next(const double *probs,
 
           // combine current path with previous ones with the same prefix
           if (prefix->log_prob_nb_cur < log_p) {
-              prefix->timesteps_cur = prefix->timesteps;
+            // keep current timesteps
+            prefix->previous_timesteps = nullptr;
           }
           prefix->log_prob_nb_cur = log_sum_exp(
               prefix->log_prob_nb_cur, log_p);
@@ -130,10 +132,6 @@ DecoderState::next(const double *probs,
         auto prefix_new = prefix->get_path_trie(c, log_prob_c);
 
         if (prefix_new != nullptr) {
-          // compute timesteps of current path
-          std::vector<unsigned int> timesteps_new=prefix->timesteps;
-          timesteps_new.push_back(abs_time_step_);
-
           // compute probability of current path
           float log_p = -NUM_FLT_INF;
 
@@ -167,7 +165,10 @@ DecoderState::next(const double *probs,
 
           // combine current path with previous ones with the same prefix
           if (prefix_new->log_prob_nb_cur < log_p) {
-              prefix_new->timesteps_cur = timesteps_new;
+            // record data needed to update timesteps
+            // the actual update will be done if nothing better is found
+            prefix_new->previous_timesteps = &prefix->timesteps;
+            prefix_new->new_timestep = abs_time_step_;
           }
           prefix_new->log_prob_nb_cur =
               log_sum_exp(prefix_new->log_prob_nb_cur, log_p);
