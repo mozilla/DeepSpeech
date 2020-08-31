@@ -99,15 +99,13 @@ PathTrie* PathTrie::get_path_trie(unsigned int new_char, float cur_log_prob_c, b
   }
 }
 
-std::vector<unsigned int> PathTrie::get_path_vec() {
-  if (parent == nullptr) {
-    return std::vector<unsigned int>{};
+void PathTrie::get_path_vec(std::vector<unsigned int>& output) {
+  // Recursive call: recurse back until stop condition, then append data in
+  // correct order as we walk back down the stack in the lines below.
+  if (parent != nullptr) {
+    parent->get_path_vec(output);
+    output.push_back(character);
   }
-  std::vector<unsigned int> output_tokens=parent->get_path_vec();
-  if (character != ROOT_) {
-      output_tokens.push_back(character);
-  }
-  return output_tokens;
 }
 
 PathTrie* PathTrie::get_prev_grapheme(std::vector<unsigned int>& output,
