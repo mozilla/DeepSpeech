@@ -104,6 +104,8 @@ void PathTrie::get_path_vec(std::vector<unsigned int>& output) {
   // correct order as we walk back down the stack in the lines below.
   if (parent != nullptr) {
     parent->get_path_vec(output);
+  }
+  if (character != ROOT_) {
     output.push_back(character);
   }
 }
