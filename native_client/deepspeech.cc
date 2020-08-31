@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <set>
 
 #include "deepspeech.h"
 #include "alphabet.h"
@@ -342,6 +343,34 @@ DS_EnableExternalScorer(ModelState* aCtx,
   return DS_ERR_OK;
 }
 
+
+int
+DS_EnableHotWords(ModelState* aCtx,
+                  const char* aHotWords)
+{
+
+  std::string hot_words_(aHotWords);
+  std::size_t last = 0;
+  std::size_t next = 0;
+  std::string delim = ",";
+  while ((next = hot_words_.find(delim, last)) != string::npos) {
+    aCtx->hot_words_.insert(hot_words_.substr(last, next-last));
+    last = next + 1;
+  }
+  aCtx->hot_words_.insert(hot_words_.substr(last));
+
+  return DS_ERR_OK;
+}
+
+int
+DS_EnableBoostCoefficient(ModelState* aCtx,
+                  float aBoostCoefficient)
+{
+  aCtx->boost_coefficient_ = aBoostCoefficient;
+
+  return DS_ERR_OK;
+}
+
 int
 DS_DisableExternalScorer(ModelState* aCtx)
 {
@@ -390,7 +419,9 @@ DS_CreateStream(ModelState* aCtx,
                            aCtx->beam_width_,
                            cutoff_prob,
                            cutoff_top_n,
-                           aCtx->scorer_);
+                           aCtx->scorer_,
+                           aCtx->hot_words_,
+                           aCtx->boost_coefficient_);
 
   *retval = ctx.release();
   return DS_ERR_OK;

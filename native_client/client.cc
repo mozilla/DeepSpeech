@@ -416,6 +416,23 @@ main(int argc, char **argv)
     }
   }
 
+
+  if (hot_words) {
+    status = DS_EnableHotWords(ctx, hot_words);
+    if (status != 0) {
+      fprintf(stderr, "Could not enable hot words.\n");
+      return 1;
+    }
+  }
+
+  if (boost_coefficient) {
+    status = DS_EnableBoostCoefficient(ctx, boost_coefficient);
+    if (status != 0) {
+      fprintf(stderr, "Could not set boost coefficient.\n");
+      return 1;
+    }
+  }
+
   if (scorer) {
     status = DS_EnableExternalScorer(ctx, scorer);
     if (status != 0) {

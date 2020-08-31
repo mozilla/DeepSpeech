@@ -22,6 +22,8 @@ class DecoderState {
   std::vector<PathTrie*> prefixes_;
   std::unique_ptr<PathTrie> prefix_root_;
   TimestepTreeNode timestep_tree_root_{nullptr, 0};
+  std::set<std::string> hot_words_;
+  float boost_coefficient_;
 
 public:
   DecoderState() = default;
@@ -48,7 +50,9 @@ public:
            size_t beam_size,
            double cutoff_prob,
            size_t cutoff_top_n,
-           std::shared_ptr<Scorer> ext_scorer);
+           std::shared_ptr<Scorer> ext_scorer,
+           std::set<std::string> hot_words,
+           float boost_coefficient);
 
   /* Send data to the decoder
    *
@@ -88,6 +92,10 @@ public:
  *     ext_scorer: External scorer to evaluate a prefix, which consists of
  *                 n-gram language model scoring and word insertion term.
  *                 Default null, decoding the input sample without scorer.
+ *     hot_words: A list of hot-words, which will get their probs boosted
+ *     boost_coefficient: A floating-point number between (0,1).
+ *                        This is used to scale the score from the scorer.
+ *                        0.0 == 100% probability (because using neg. logs).
  *     num_results: Number of beams to return.
  * Return:
  *     A vector where each element is a pair of score and decoding result,
@@ -103,6 +111,8 @@ std::vector<Output> ctc_beam_search_decoder(
     double cutoff_prob,
     size_t cutoff_top_n,
     std::shared_ptr<Scorer> ext_scorer,
+    std::set<std::string> hot_words,
+    float boost_coefficient,
     size_t num_results=1);
 
 /* CTC Beam Search Decoder for batch data
@@ -117,6 +127,10 @@ std::vector<Output> ctc_beam_search_decoder(
  *     ext_scorer: External scorer to evaluate a prefix, which consists of
  *                 n-gram language model scoring and word insertion term.
  *                 Default null, decoding the input sample without scorer.
+ *     hot_words: A list of hot-words, which will get their probs boosted
+ *     boost_coefficient: A floating-point number between (0,1).
+ *                        This is used to scale the score from the scorer.
+ *                        0.0 == 100% probability (because using neg. logs).
  *     num_results: Number of beams to return.
  * Return:
  *     A 2-D vector where each element is a vector of beam search decoding
@@ -136,6 +150,8 @@ ctc_beam_search_decoder_batch(
     double cutoff_prob,
     size_t cutoff_top_n,
     std::shared_ptr<Scorer> ext_scorer,
+    std::set<std::string> hot_words,
+    float boost_coefficient,
     size_t num_results=1);
 
 #endif  // CTC_BEAM_SEARCH_DECODER_H_
