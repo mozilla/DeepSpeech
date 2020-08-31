@@ -4,15 +4,17 @@ set -ex
 
 source $(dirname $0)/tf_tc-vars.sh
 
-install_cuda=
-if [ "$1" = "--cuda" ]; then
-    install_cuda=yes
-fi
-
 install_android=
-if [ "$1" = "--android" ]; then
+install_cuda=
+case "$1" in
+    "--linux-cuda"|"--windows-cuda")
+    install_cuda=yes
+    ;;
+
+    "--android-armv7"|"--android-arm64")
     install_android=yes
-fi
+    ;;
+esac
 
 # $1 url
 # $2 sha256

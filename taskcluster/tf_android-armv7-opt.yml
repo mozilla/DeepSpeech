@@ -7,7 +7,7 @@ build:
     >
       ${tensorflow.packages_xenial.apt} && ${java.packages_xenial.apt}
   scripts:
-    setup: "taskcluster/tf_tc-setup.sh --android"
+    setup: "taskcluster/tf_tc-setup.sh --android-armv7"
     build: "taskcluster/tf_tc-build.sh --android-armv7"
     package: "taskcluster/tf_tc-package.sh"
   maxRunTime: 14400

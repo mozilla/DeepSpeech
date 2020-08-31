@@ -8,7 +8,7 @@ build:
       ${tensorflow.packages_win.pacman} && ${tensorflow.packages_win.msys64}
   scripts:
     setup: "taskcluster/tf_tc-setup.sh"
-    build: "taskcluster/tf_tc-build.sh --cpu"
+    build: "taskcluster/tf_tc-build.sh --windows-cpu"
     package: "taskcluster/tf_tc-package.sh"
   maxRunTime: 14400
   metadata:
