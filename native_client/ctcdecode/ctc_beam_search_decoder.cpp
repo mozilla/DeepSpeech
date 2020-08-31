@@ -96,11 +96,7 @@ DecoderState::next(const double *probs,
         if (full_beam && log_prob_c + prefix->score < min_cutoff) {
           break;
         }
-        if (!prefix->is_empty() && prefix->timesteps.empty()) {
-          // This should never happen. But we report it if it does.
-          std::cerr<<"error: non-empty prefix has empty timestep sequence"<<std::endl;
-          continue;
-        }
+        assert(prefix->is_empty() || !prefix->timesteps.empty());
 
         // blank
         if (c == blank_id_) {
