@@ -6,7 +6,7 @@ build:
   workerType: ${macOS.tfBuild}
   scripts:
     setup: "taskcluster/tf_tc-setup.sh"
-    build: "taskcluster/tf_tc-build.sh --cpu"
+    build: "taskcluster/tf_tc-build.sh --darwin-cpu"
     package: "taskcluster/tf_tc-package.sh"
   maxRunTime: 28800
   metadata:
