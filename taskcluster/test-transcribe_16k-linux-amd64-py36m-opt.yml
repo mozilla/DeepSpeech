@@ -1,0 +1,13 @@
+build:
+  template_file: test-linux-opt-base.tyml
+  dependencies:
+    - "test-training_16k-linux-amd64-py36m-opt"
+  system_setup:
+    >
+      apt-get -qq update && apt-get -qq -y install ${training.packages_xenial.apt} ${python.packages_xenial.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-transcribe-tests.sh 3.6.10:m 16k"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CPU 16kHz transcribe Py3.6"
+    description: "Transcribe a DeepSpeech LDC93S1 model for Linux/AMD64 16kHz Python 3.6, CPU only, optimized version"
