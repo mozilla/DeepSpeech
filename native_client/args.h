@@ -60,10 +60,10 @@ void PrintHelp(const char* bin)
     "\t--json\t\t\t\tExtended output, shows word timings as JSON\n"
     "\t--candidate_transcripts NUMBER\tNumber of candidate transcripts to include in JSON output\n"
     "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
-    "\t--help\t\t\t\tShow help\n"
-    "\t--version\t\t\tPrint version and exits\n"
     "\t--hot_words\t\t\tHot words separated by commas\n"
-    "\t--boost_coefficient\t\t\tThe coefficient to boost the hot_words\n";
+    "\t--boost_coefficient\t\t\tThe coefficient to boost the hot_words\n"
+    "\t--help\t\t\t\tShow help\n"
+    "\t--version\t\t\tPrint version and exits\n";
     char* version = DS_Version();
     std::cerr << "DeepSpeech " << version << "\n";
     DS_FreeString(version);
@@ -72,7 +72,7 @@ void PrintHelp(const char* bin)
 
 bool ProcessArgs(int argc, char** argv)
 {
-    const char* const short_opts = "m:l:a:b:c:d:tejs:vh:w:f";
+    const char* const short_opts = "m:l:a:b:c:d:tejs:w:f:vh";
     const option long_opts[] = {
             {"model", required_argument, nullptr, 'm'},
             {"scorer", required_argument, nullptr, 'l'},
