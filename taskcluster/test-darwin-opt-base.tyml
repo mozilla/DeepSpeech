@@ -46,17 +46,14 @@ then:
           in: >
             export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
             export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
-            (rm -fr ../tc-workdir/ ; mkdir ../tc-workdir/) && cd ../tc-workdir/ &&
-            export TASKCLUSTER_TASK_DIR="$(pwd)" &&
+            (rm -f ../tc-workdir; ln -s $TASKCLUSTER_ORIG_TASKDIR ../tc-workdir && cd ../tc-workdir) &&
+            export TASKCLUSTER_TASK_DIR="${system.homedir.osx_task}" &&
             export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
             export LC_ALL=C &&
             export MACOSX_DEPLOYMENT_TARGET=10.10 &&
             export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/ &&
             export PIP_DEFAULT_TIMEOUT=60 &&
             env &&
-            trap "export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-            cd $TASKCLUSTER_ORIG_TASKDIR/ && rm -fr $TASKCLUSTER_TASK_DIR/ &&
-            exit $TASKCLUSTER_TASK_EXIT_CODE" 0 &&
             git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
             cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
             cd $TASKCLUSTER_TASK_DIR &&

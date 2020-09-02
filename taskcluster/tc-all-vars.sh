@@ -5,13 +5,11 @@ set -xe
 export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
     export DS_ROOT_TASK=${HOME}
-    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
     export DS_CPU_COUNT=$(nproc)
 fi;
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
-    export PYENV_ROOT="${TASKCLUSTER_TASK_DIR}/pyenv-root"
     export PLATFORM_EXE_SUFFIX=.exe
     export DS_CPU_COUNT=$(nproc)
 
@@ -22,7 +20,6 @@ fi;
 if [ "${OS}" = "Darwin" ]; then
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export DS_CPU_COUNT=$(sysctl hw.ncpu |cut -d' ' -f2)
-    export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
 
     export HOMEBREW_NO_AUTO_UPDATE=1
     export BREW_URL=https://github.com/Homebrew/brew/tarball/2.2.17
@@ -58,6 +55,8 @@ export DS_VERSION="$(cat ${DS_DSDIR}/training/deepspeech_training/VERSION)"
 export GRADLE_USER_HOME=${DS_ROOT_TASK}/gradle-cache
 export ANDROID_SDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/SDK/
 export ANDROID_NDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/android-ndk-r18b/
+
+export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
 
 WGET=${WGET:-"wget"}
 TAR=${TAR:-"tar"}

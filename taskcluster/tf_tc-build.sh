@@ -36,10 +36,10 @@ pushd ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/
         echo "" | TF_SET_ANDROID_WORKSPACE=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_ANDROID_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--ios-arm64")
-        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_IOS_ARM64_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_IOS_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--ios-x86_64")
-        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_IOS_X86_64_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_IOS_X86_64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     esac
 

@@ -37,11 +37,6 @@ if [ "${OS}" = "Darwin" ]; then
     TAR_EXCLUDE="--exclude=./dls/* --exclude=./public/* --exclude=./generic-worker/* --exclude=./homebrew/* --exclude=./homebrew.cache/* --exclude=./homebrew.logs/*"
 fi;
 
-# Make a tar of
-#  - /home/build-user/ (linux
-#  - /Users/build-user/TaskCluster/HeavyTasks/X/ (OSX)
-#  - C:\builds\tc-workdir\ (windows)
-
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export PATH=$PATH:'/c/Program Files/7-Zip/'
     pushd ${DS_ROOT_TASK}

@@ -41,8 +41,8 @@ elif [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
 
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export BAZEL_VC='C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC'
-    export BAZEL_SH='C:\builds\tc-workdir\msys64\usr\bin\bash'
-    export TC_WIN_BUILD_PATH='C:\builds\tc-workdir\msys64\usr\bin;C:\Python36'
+    export BAZEL_SH=$(cygpath -w "${DS_ROOT_TASK}")'\msys64\usr\bin\bash'
+    export TC_WIN_BUILD_PATH=$(cygpath -w "${DS_ROOT_TASK}")'\msys64\usr\bin;C:\Python36'
     export MSYS2_ARG_CONV_EXCL='//'
 
     mkdir -p ${TASKCLUSTER_TASK_DIR}/tmp/
@@ -158,6 +158,9 @@ mkdir -p ${BAZEL_OUTPUT_CACHE_INSTANCE} || true
 BAZEL_OUTPUT_USER_ROOT="--output_user_root ${BAZEL_OUTPUT_CACHE_DIR} --output_base ${BAZEL_OUTPUT_CACHE_INSTANCE}"
 export BAZEL_OUTPUT_USER_ROOT
 
+BAZEL_DISK_CACHE="${DS_ROOT_TASK}/bazel-disk-cache/"
+mkdir -p ${BAZEL_DISK_CACHE}
+
 NVCC_COMPUTE="3.5"
 
 ### Define build parameters/env variables that we will re-ues in sourcing scripts.
@@ -194,6 +197,8 @@ fi
 if [ "${OS}" = "Darwin" ]; then
     BAZEL_EXTRA_FLAGS="${BAZEL_EXTRA_FLAGS} --macos_minimum_os 10.10 --macos_sdk_version 10.15"
 fi
+
+BAZEL_EXTRA_FLAGS="${BAZEL_EXTRA_FLAGS} --disk_cache=${BAZEL_DISK_CACHE}"
 
 ### Define build targets that we will re-ues in sourcing scripts.
 BUILD_TARGET_LIB_CPP_API="//tensorflow:tensorflow_cc"

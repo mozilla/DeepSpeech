@@ -9,6 +9,8 @@ unset PYTHONPATH
 
 export PATH="${PYENV_ROOT}/bin:$PATH"
 
+maybe_force_homebrew_curl
+
 install_pyenv "${PYENV_ROOT}"
 install_pyenv_virtualenv "$(pyenv root)/plugins/pyenv-virtualenv"
 

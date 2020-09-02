@@ -45,13 +45,13 @@ then:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
           .\msys64\usr\bin\bash.exe --login -cxe "export LC_ALL=C &&
-          export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
+          export PATH=\"${system.homedir.win}/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
           export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
-          export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
+          export TASKCLUSTER_TASK_DIR=\"${system.homedir.win}/\" &&
           export TASKCLUSTER_NODE_DIR=\"$(cygpath -w $TASKCLUSTER_TASK_DIR/bin)\" &&
           export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
           export PIP_DEFAULT_TIMEOUT=60 &&
-          (rm -fr $TASKCLUSTER_TASK_DIR/ ; mkdir $TASKCLUSTER_TASK_DIR) && cd $TASKCLUSTER_TASK_DIR &&
+          (rm -f ${system.homedir.win} ; ln -s $USERPROFILE ${system.homedir.win} && cd $TASKCLUSTER_TASK_DIR) &&
           env &&
           ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
           git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
@@ -61,8 +61,7 @@ then:
           pacman --noconfirm -S tar vim &&
           ${extraSystemSetup} &&
           /bin/bash ${build.args.tests_cmdline} ;
-          export TASKCLUSTER_TASK_EXIT_CODE=$? &&
-          cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE"
+          export TASKCLUSTER_TASK_EXIT_CODE=$? && exit $TASKCLUSTER_TASK_EXIT_CODE"
 
     mounts:
       - file: msys2-base-x86_64.tar.xz

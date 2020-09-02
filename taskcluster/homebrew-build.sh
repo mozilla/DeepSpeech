@@ -17,6 +17,8 @@ if [ -z "${TASKCLUSTER_TASK_DIR}" ]; then
   exit 1
 fi
 
+maybe_force_homebrew_curl
+
 do_prepare_homebrew()
 {
   local _brew_instance=$1
@@ -40,7 +42,7 @@ do_prepare_homebrew()
     curl -L ${BREW_URL} | tar xz --strip 1 -C "${_brew_instance}"
   fi;
 
-  check_homebrew "${_brew_instance}"
+  #check_homebrew "${_brew_instance}"
 
   # Then we force onto a specific well-known commit
   mkdir -p "$(brew --prefix)/Library/Taps/homebrew/homebrew-core"

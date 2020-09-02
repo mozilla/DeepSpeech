@@ -43,10 +43,10 @@ payload:
     - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
     - echo .\msys64\usr\bin\bash.exe --login -cxe "
       export LC_ALL=C &&
-      export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files (x86)/Windows Kits/10/bin/x64/:/c/Program Files/dotnet/:$PATH\" &&
+      export PATH=\"${system.homedir.win}/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:/c/Program Files (x86)/Windows Kits/10/bin/x64/:/c/Program Files/dotnet/:$PATH\" &&
       export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
-      export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
-      (rm -fr $TASKCLUSTER_TASK_DIR/ ; mkdir $TASKCLUSTER_TASK_DIR) && cd $TASKCLUSTER_TASK_DIR &&
+      export TASKCLUSTER_TASK_DIR=\"${system.homedir.win}/\" &&
+      (rm -f ${system.homedir.win} ; ln -s $USERPROFILE ${system.homedir.win} && cd $TASKCLUSTER_TASK_DIR) &&
       env &&
       ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
       (7z x -txz -so $USERPROFILE/home.tar.xz | 7z x -aoa -ttar -si ) &&
@@ -63,7 +63,7 @@ payload:
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
       $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.package} ;
       echo \"export TASKCLUSTER_TASK_EXIT_CODE=$?\" > $USERPROFILE/tc-exit.sh &&
-      cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE" | cmd
+      exit $TASKCLUSTER_TASK_EXIT_CODE" | cmd
       /k ""C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"" x64
 
     - .\msys64\usr\bin\bash.exe --login -cxe "source $USERPROFILE/tc-exit.sh &&

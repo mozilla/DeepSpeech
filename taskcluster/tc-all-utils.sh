@@ -151,3 +151,13 @@ verify_bazel_rebuild()
     exit 1
   fi;
 }
+
+# Required because of https://github.com/Homebrew/brew/issues/7667
+# This is breaking at least pyenv rebuild from GNU mirrors
+maybe_force_homebrew_curl()
+{
+  local _os=$(uname)
+  if [ "${_os}" = "Darwin" ]; then
+    export HOMEBREW_FORCE_BREWED_CURL=1
+  fi;
+}

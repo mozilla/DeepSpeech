@@ -30,8 +30,8 @@ payload:
         in: >
           export TASKCLUSTER_ARTIFACTS="$(pwd)/public/" &&
           export TASKCLUSTER_ORIG_TASKDIR="$(pwd)" &&
-          (rm -fr ../tc-workdir/ ; mkdir ../tc-workdir/) && cd ../tc-workdir/ &&
-          export TASKCLUSTER_TASK_DIR="$(pwd)" &&
+          (rm -f ../tc-workdir; ln -s $TASKCLUSTER_ORIG_TASKDIR ../tc-workdir && cd ../tc-workdir) &&
+          export TASKCLUSTER_TASK_DIR="${system.homedir.osx_task}" &&
           export LC_ALL=C &&
           export MACOSX_DEPLOYMENT_TARGET=10.10 &&
           env &&
