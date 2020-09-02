@@ -14,32 +14,36 @@ pushd ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/
     # Force toolchain sync (useful on macOS ?)
     bazel ${BAZEL_OUTPUT_USER_ROOT} sync --configure
 
-    OPT_OR_DBG=${2:-opt}
+    MAYBE_DEBUG=$2
+    OPT_OR_DBG="-c opt"
+    if [ "${MAYBE_DEBUG}" = "dbg" ]; then
+	OPT_OR_DBG="-c dbg"
+    fi;
 
     case "$1" in
     "--linux-cpu"|"--darwin-cpu"|"--windows-cpu")
-        echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LIB_CPP_API} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LIB_CPP_API} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--linux-cuda"|"--windows-cuda")
-        eval "export ${TF_CUDA_FLAGS}" && (echo "" | TF_NEED_CUDA=1 ./configure) && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_CUDA_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BAZEL_OPT_FLAGS} ${BUILD_TARGET_LIB_CPP_API}
+        eval "export ${TF_CUDA_FLAGS}" && (echo "" | TF_NEED_CUDA=1 ./configure) && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_CUDA_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BAZEL_OPT_FLAGS} ${BUILD_TARGET_LIB_CPP_API}
         ;;
     "--linux-arm")
-        echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_ARM_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_ARM_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--linux-arm64")
-        echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--android-armv7")
-        echo "" | TF_SET_ANDROID_WORKSPACE=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_ANDROID_ARM_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_SET_ANDROID_WORKSPACE=1 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_ANDROID_ARM_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--android-arm64")
-        echo "" | TF_SET_ANDROID_WORKSPACE=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_ANDROID_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_SET_ANDROID_WORKSPACE=1 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_ANDROID_ARM64_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--ios-arm64")
-        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_IOS_ARM64_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_IOS_ARM64_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--ios-x86_64")
-        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} -c ${OPT_OR_DBG} ${BAZEL_IOS_X86_64_FLAGS} ${BUILD_TARGET_LITE_LIB}
+        echo "" | TF_NEED_CUDA=0 TF_CONFIGURE_IOS=1 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_IOS_X86_64_FLAGS} ${BUILD_TARGET_LITE_LIB}
         ;;
     esac
 

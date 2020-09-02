@@ -1,0 +1,18 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: ${system.tensorflow_gcc9.linux_amd64_cpu.url}
+    artifact_namespace: ${system.tensorflow_gcc9.linux_amd64_cpu.namespace}
+  docker_image: "ubuntu:20.04"
+  system_config:
+    >
+      ${tensorflow.packages_bionic.apt} && ${java.packages_bionic.apt}
+  scripts:
+    setup: "taskcluster/tf_tc-setup.sh"
+    build: "taskcluster/tf_tc-build.sh --linux-cpu --py3"
+    package: "taskcluster/tf_tc-package.sh"
+  maxRunTime: 14400
+  workerType: "${docker.tfBuild}"
+  metadata:
+    name: "TensorFlow Linux AMD64 CPU opt/gcc9"
+    description: "Building TensorFlow for Linux/AMD64, CPU only, opt/gcc9"
