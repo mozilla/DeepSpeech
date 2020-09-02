@@ -6,7 +6,6 @@
 #include <limits>
 #include <map>
 #include <utility>
-#include <set>
 
 #include "decoder_utils.h"
 #include "ThreadPool.h"
@@ -20,8 +19,7 @@ DecoderState::init(const Alphabet& alphabet,
                    double cutoff_prob,
                    size_t cutoff_top_n,
                    std::shared_ptr<Scorer> ext_scorer,
-                   std::set<std::string> hot_words,
-                   float boost_coefficient)
+                   std::map<std::string, float> hot_words)
 {
   // assign special ids
   abs_time_step_ = 0;
@@ -33,7 +31,6 @@ DecoderState::init(const Alphabet& alphabet,
   cutoff_top_n_ = cutoff_top_n;
   ext_scorer_ = ext_scorer;
   hot_words_ = hot_words;
-  boost_coefficient_ = boost_coefficient;
   start_expanding_ = false;
 
   // init prefixes' root
@@ -166,17 +163,20 @@ DecoderState::next(const double *probs,
               std::vector<std::string> ngram;
               ngram = ext_scorer_->make_ngram(prefix_to_score);
 
-              // hot_boost == 1.0 == no boost at all
+              // when hot_boost is 1.0, there is no boost at all
               float hot_boost = 1.0;
               if (!hot_words_.empty()) {
+		std::map<std::string, float>::iterator iter;
                 // increase prob of prefix for every word
                 // that matches a word in the hot-words list
                 for (std::string word : ngram) {
-                  if ( hot_words_.find(word) != hot_words_.end() ) {
+		  iter = hot_words_.find(word);
+                  if ( iter != hot_words_.end() ) {
                     // increase the log_cond_prob(prefix|LM)
                     // since the log_cond_prob is negative, we multiply by
                     // a float <1.0 to increase.
-                    hot_boost *= boost_coefficient_;
+		    float boost iter->second;
+                    hot_boost *= boost 
                   }
                 }
               }
@@ -277,13 +277,12 @@ std::vector<Output> ctc_beam_search_decoder(
     double cutoff_prob,
     size_t cutoff_top_n,
     std::shared_ptr<Scorer> ext_scorer,
-    std::set<std::string> hot_words,
-    float boost_coefficient,
+    std::map<std::string, float> hot_words,
     size_t num_results)
 {
   VALID_CHECK_EQ(alphabet.GetSize()+1, class_dim, "Number of output classes in acoustic model does not match number of labels in the alphabet file. Alphabet file must be the same one that was used to train the acoustic model.");
   DecoderState state;
-  state.init(alphabet, beam_size, cutoff_prob, cutoff_top_n, ext_scorer, hot_words, boost_coefficient);
+  state.init(alphabet, beam_size, cutoff_prob, cutoff_top_n, ext_scorer, hot_words);
   state.next(probs, time_dim, class_dim);
   return state.decode(num_results);
 }
@@ -302,8 +301,7 @@ ctc_beam_search_decoder_batch(
     double cutoff_prob,
     size_t cutoff_top_n,
     std::shared_ptr<Scorer> ext_scorer,
-    std::set<std::string> hot_words,
-    float boost_coefficient,
+    std::map<std::string, float> hot_words,
     size_t num_results)
 {
   VALID_CHECK_GT(num_processes, 0, "num_processes must be nonnegative!");
@@ -324,7 +322,6 @@ ctc_beam_search_decoder_batch(
                                   cutoff_top_n,
                                   ext_scorer,
                                   hot_words,
-                                  boost_coefficient,
                                   num_results));
   }
 

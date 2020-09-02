@@ -390,6 +390,18 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
   }
 }
 
+std::vector<std::string>
+splitString(std::string in_string, std::string delim)
+{
+  std::vector<std::string> out_vector;
+  std::size_t last = 0;
+  std::size_t next = 0;
+  while ((next = in_string.find(delim, last)) != string::npos) {
+    out_vector.push_back(in_string.substr(last, next-last));
+  }
+  return out_vector;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -418,18 +430,16 @@ main(int argc, char **argv)
 
 
   if (hot_words) {
-    status = DS_EnableHotWords(ctx, hot_words);
-    if (status != 0) {
-      fprintf(stderr, "Could not enable hot words.\n");
-      return 1;
-    }
-  }
-
-  if (boost_coefficient) {
-    status = DS_EnableBoostCoefficient(ctx, boost_coefficient);
-    if (status != 0) {
-      fprintf(stderr, "Could not set boost coefficient.\n");
-      return 1;
+    std::vector<std::string> hot_words_ = splitString(hot_words, ",");
+    for(string hot_word_ : hot_words_){
+      std::vector<std::string> pair_ = splitString(hot_word_, ":");
+      std::string word = pair_[0];
+      float boost_coefficient = pair_[1];
+      status = DS_AddHotWord(ctx, word, boost_coefficient);
+      if (status != 0) {
+	fprintf(stderr, "Could not enable hot words.\n");
+	return 1;
+      }
     }
   }
 

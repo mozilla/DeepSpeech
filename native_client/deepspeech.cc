@@ -349,25 +349,7 @@ DS_AddHotWord(ModelState* aCtx,
 	      const char* word,
 	      float boostCoefficient)
 {
-  std::string hot_words_(aHotWords);
-  std::size_t last = 0;
-  std::size_t next = 0;
-  std::string delim = ",";
-  while ((next = hot_words_.find(delim, last)) != string::npos) {
-    aCtx->hot_words_.insert(hot_words_.substr(last, next-last));
-    last = next + 1;
-  }
-  aCtx->hot_words_.insert(hot_words_.substr(last));
-
-  return DS_ERR_OK;
-}
-
-int
-DS_EnableBoostCoefficient(ModelState* aCtx,
-                  float aBoostCoefficient)
-{
-  aCtx->boost_coefficient_ = aBoostCoefficient;
-
+  aCtx->hot_words_.insert(word, boostCoefficient);
   return DS_ERR_OK;
 }
 
@@ -420,8 +402,7 @@ DS_CreateStream(ModelState* aCtx,
                            cutoff_prob,
                            cutoff_top_n,
                            aCtx->scorer_,
-                           aCtx->hot_words_,
-                           aCtx->boost_coefficient_);
+                           aCtx->hot_words_);
 
   *retval = ctx.release();
   return DS_ERR_OK;
