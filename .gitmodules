@@ -4,4 +4,4 @@
 	branch = master
 [submodule "tensorflow"]
 	path = tensorflow
-	url = https://github.com/mozilla/tensorflow.git
+	url = https://github.com/lissyx/tensorflow.git
