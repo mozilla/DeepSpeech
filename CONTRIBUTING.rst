@@ -18,7 +18,7 @@ You've found a bug and you were able to squash it! Great job! Please write a sho
 Documentation PR
 ^^^^^^^^^^^^^^^^
 
-If you're just making updates or changes to the documentation, there's no need to run all of DeepSpeech's tests for Contiguous Itegration (i.e. Taskcluster tests). In this case, at the end of your short but clear commit message, you should add `X-DeepSpeech: NOBUILD`. This will trigger the CI tests to skip your PR, saving both time and compute.
+If you're just making updates or changes to the documentation, there's no need to run all of DeepSpeech's tests for Contiguous Itegration (i.e. Taskcluster tests). In this case, at the end of your short but clear commit message, you should add **X-DeepSpeech: NOBUILD**. This will trigger the CI tests to skip your PR, saving both time and compute.
 
 New Feature PR
 ^^^^^^^^^^^^^^
@@ -29,7 +29,7 @@ The DeepSpeech codebase is made of many connected parts. There is Python code fo
 
 Whenever you add a new feature to DeepSpeech and what to contribute that feature back to the project, here are some things to keep in mind:
 
-1. You've made changes to the core C++ code. You should minimally also make neccesary changes to the C client (i.e. `args.h` and `client.cc`). The bindings for Python, Java, and Javascript are SWIG generated, so you don't need to worry about these. The bindings for .NET and Swift are, however, not generated automatically. It would be best if you also made the necessary manual changes to these bindings as well, but don't worry if you are unable to do so.
+1. You've made changes to the core C++ code. You should minimally also make neccesary changes to the C client (i.e. **args.h** and **client.cc**). The bindings for Python, Java, and Javascript are SWIG generated, so you don't need to worry about these. The bindings for .NET and Swift are, however, not generated automatically. It would be best if you also made the necessary manual changes to these bindings as well, but don't worry if you are unable to do so.
 2. You've made changes to the training Python code. Make sure you run a linter (described below).
 
 Python Linter
