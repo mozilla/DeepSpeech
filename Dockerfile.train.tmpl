@@ -41,7 +41,7 @@ RUN cd native_client/ctcdecode && make NUM_PROCESSES=$(nproc) bindings
 RUN pip3 install --upgrade native_client/ctcdecode/dist/*.whl
 
 # Prepare deps
-RUN pip3 install --upgrade pip==20.0.2 wheel==0.34.2 setuptools==46.1.3
+RUN pip3 install --upgrade pip==20.2.2 wheel==0.34.2 setuptools==49.6.0
 
 # Install DeepSpeech
 #  - No need for the decoder since we did it earlier
