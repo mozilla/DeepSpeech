@@ -345,10 +345,10 @@ DS_EnableExternalScorer(ModelState* aCtx,
 
 
 int
-DS_EnableHotWords(ModelState* aCtx,
-                  const char* aHotWords)
+DS_AddHotWord(ModelState* aCtx,
+	      const char* word,
+	      float boostCoefficient)
 {
-
   std::string hot_words_(aHotWords);
   std::size_t last = 0;
   std::size_t next = 0;
