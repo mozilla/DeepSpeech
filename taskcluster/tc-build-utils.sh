@@ -181,21 +181,26 @@ do_deepspeech_npm_package()
 
 do_bazel_build()
 {
+  local _opt_or_dbg=${1:-"opt"}
+
   cd ${DS_TFDIR}
   eval "export ${BAZEL_ENV_FLAGS}"
 
-  if is_patched_bazel; then
-    find ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar -T -
+  if [ "${_opt_or_dbg}" = "opt" ]; then
+    if is_patched_bazel; then
+      find ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar -T -
+    fi;
   fi;
 
   bazel ${BAZEL_OUTPUT_USER_ROOT} build \
-    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
+    -s --explain bazel_monolithic.log --verbose_explanations --experimental_strict_action_env --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c ${_opt_or_dbg} ${BAZEL_BUILD_FLAGS} ${BAZEL_TARGETS}
 
-  if is_patched_bazel; then
-    find ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar -T -
+  if [ "${_opt_or_dbg}" = "opt" ]; then
+    if is_patched_bazel; then
+      find ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar -T -
+    fi;
+    verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel_monolithic.log"
   fi;
-
-  verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel_monolithic.log"
 }
 
 shutdown_bazel()

@@ -1,0 +1,20 @@
+build:
+  template_file: linux-opt-base.tyml
+  dependencies:
+    - "swig-linux-amd64"
+    - "node-gyp-cache"
+    - "pyenv-linux-amd64"
+    - "tf_android-arm64-dbg"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-x86_64-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-x86_64-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.android-x86_64-dbg.${event.head.sha}"
+  tensorflow: ${system.tensorflow_dbg.android_arm64.url}
+  scripts:
+    build: "taskcluster/android-build-dbg.sh x86_64"
+    package: "taskcluster/android-package.sh x86_64"
+  nc_asset_name: "native_client.x86_64.cpu.android_dbg.tar.xz"
+  workerType: "${docker.dsBuild}"
+  metadata:
+    name: "DeepSpeech Android x86_64 debug"
+    description: "Building DeepSpeech for Android x86_64, debug version"

@@ -122,7 +122,16 @@ export GCC_HOST_COMPILER_PATH=/usr/bin/gcc
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export PYTHON_BIN_PATH=C:/Python36/python.exe
 else
-    export PYTHON_BIN_PATH=/usr/bin/python2.7
+    if [ "${OS}" = "Linux" ]; then
+        source /etc/os-release
+        if [ "${ID}" = "ubuntu" -a "${VERSION_ID}" = "20.04" ]; then
+            export PYTHON_BIN_PATH=/usr/bin/python3
+	else
+            export PYTHON_BIN_PATH=/usr/bin/python2.7
+	fi
+    else
+        export PYTHON_BIN_PATH=/usr/bin/python2.7
+    fi
 fi
 
 ## Below, define or export some build variables
@@ -137,17 +146,15 @@ fi
 # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html for targetting specific CPUs
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    CC_OPT_FLAGS="/arch:AVX"
+    OPT_FLAGS="/arch:AVX"
 else
-    CC_OPT_FLAGS="-mtune=generic -march=x86-64 -msse -msse2 -msse3 -msse4.1 -msse4.2 -mavx"
+    OPT_FLAGS="-mtune=generic -march=x86-64 -msse -msse2 -msse3 -msse4.1 -msse4.2 -mavx"
 fi
 BAZEL_OPT_FLAGS=""
-for flag in ${CC_OPT_FLAGS};
+for flag in ${OPT_FLAGS};
 do
     BAZEL_OPT_FLAGS="${BAZEL_OPT_FLAGS} --copt=${flag}"
 done;
-
-export CC_OPT_FLAGS
 
 BAZEL_OUTPUT_CACHE_DIR="${DS_ROOT_TASK}/.bazel_cache/"
 BAZEL_OUTPUT_CACHE_INSTANCE="${BAZEL_OUTPUT_CACHE_DIR}/output/"
