@@ -175,7 +175,7 @@ DecoderState::next(const double *probs,
                     // increase the log_cond_prob(prefix|LM)
                     // since the log_cond_prob is negative, we multiply by
                     // a float <1.0 to increase.
-		    float boost iter->second;
+		    float boost = iter->second;
                     hot_boost *= boost 
                   }
                 }
