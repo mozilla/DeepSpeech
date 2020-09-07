@@ -10,6 +10,27 @@
 #include "fst/fstlib.h"
 #include "alphabet.h"
 
+/* Tree structure with parent and children information
+ * It is used to store the timesteps data for the PathTrie below
+ */
+template<class DataT>
+struct TreeNode{
+	std::shared_ptr<TreeNode<DataT>> parent;
+    std::vector<std::shared_ptr<TreeNode<DataT>>> children;
+
+    DataT data;
+
+    TreeNode(std::shared_ptr<TreeNode<DataT>> const& parent_, DataT const& data_): parent{parent_}, data{data_} {}
+};
+
+template<class NodeDataT, class ChildDataT>
+std::shared_ptr<TreeNode<NodeDataT>> add_child(std::shared_ptr<TreeNode<NodeDataT>> const& node, ChildDataT&& data_);
+
+template<class DataT>
+std::vector<DataT> get_history(TreeNode<DataT>*);
+
+using TimestepTreeNode=TreeNode<unsigned int>;
+
 /* Trie tree for prefix storing and manipulating, with a dictionary in
  * finite-state transducer for spelling correction.
  */
@@ -63,10 +84,10 @@ public:
   float score;
   float approx_ctc;
   unsigned int character;
-  std::vector<unsigned int> timesteps;
+  std::shared_ptr<TimestepTreeNode> timesteps;
 
   // timestep temporary storage for each decoding step. 
-  std::vector<unsigned int>* previous_timesteps=nullptr; 
+  std::shared_ptr<TimestepTreeNode> previous_timesteps=nullptr; 
   unsigned int new_timestep;
 
   PathTrie* parent;
@@ -83,5 +104,27 @@ private:
   FstType::StateId dictionary_state_;
   std::shared_ptr<fst::SortedMatcher<FstType>> matcher_;
 };
+
+// TreeNode implementation
+template<class NodeDataT, class ChildDataT>
+std::shared_ptr<TreeNode<NodeDataT>> add_child(std::shared_ptr<TreeNode<NodeDataT>> const& node, ChildDataT&& data_){
+    node->children.push_back(std::make_shared<TreeNode<NodeDataT>>(node, std::forward<ChildDataT>(data_)));
+    return node->children.back();
+}
+
+template<class DataT>
+void get_history_helper(std::shared_ptr<TreeNode<DataT>> const& tree_node, std::vector<DataT>* output){
+    if(tree_node==nullptr) return;
+	assert(tree_node->parent != tree_node);
+    get_history_helper(tree_node->parent, output);
+    output->push_back(tree_node->data);
+}
+template<class DataT>
+std::vector<DataT> get_history(std::shared_ptr<TreeNode<DataT>> const& tree_node){
+    std::vector<DataT> output;
+    get_history_helper(tree_node, &output);
+    return output;
+}
+
 
 #endif  // PATH_TRIE_H

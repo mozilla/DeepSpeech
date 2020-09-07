@@ -36,6 +36,8 @@ DecoderState::init(const Alphabet& alphabet,
   root->score = root->log_prob_b_prev = 0.0;
   prefix_root_.reset(root);
   prefixes_.push_back(root);
+  
+  timestep_tree_root_=std::make_shared<TimestepTreeNode>(nullptr, 0);
 
   if (ext_scorer && (bool)(ext_scorer_->dictionary)) {
     // no need for std::make_shared<>() since Copy() does 'new' behind the doors
@@ -96,7 +98,7 @@ DecoderState::next(const double *probs,
         if (full_beam && log_prob_c + prefix->score < min_cutoff) {
           break;
         }
-        assert(prefix->is_empty() || !prefix->timesteps.empty());
+        assert(prefix->is_empty() || prefix->timesteps!=nullptr);
 
         // blank
         if (c == blank_id_) {
@@ -167,7 +169,7 @@ DecoderState::next(const double *probs,
           if (prefix_new->log_prob_nb_cur < log_p) {
             // record data needed to update timesteps
             // the actual update will be done if nothing better is found
-            prefix_new->previous_timesteps = &prefix->timesteps;
+            prefix_new->previous_timesteps = prefix->timesteps;
             prefix_new->new_timestep = abs_time_step_;
           }
           prefix_new->log_prob_nb_cur =
@@ -179,6 +181,11 @@ DecoderState::next(const double *probs,
     // update log probs
     prefixes_.clear();
     prefix_root_->iterate_to_vec(prefixes_);
+    if (abs_time_step_ == 0) {
+      for (PathTrie* prefix:prefixes_) {
+        prefix->timesteps = timestep_tree_root_;
+      }
+    }
 
     // only preserve top beam_size prefixes
     if (prefixes_.size() > beam_size_) {
@@ -234,7 +241,7 @@ DecoderState::decode(size_t num_results) const
   for (PathTrie* prefix : prefixes_copy) {
     Output output;
     prefix->get_path_vec(output.tokens);
-    output.timesteps  = prefix->timesteps;
+    output.timesteps  = get_history(prefix->timesteps);
     output.confidence = scores[prefix];
     outputs.push_back(output);
     if(outputs.size()>=num_returned) break;
