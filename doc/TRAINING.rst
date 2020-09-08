@@ -12,11 +12,17 @@ Prerequisites for training a model
 Getting the training code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Clone the DeepSpeech repository:
+Clone the master branch from Github:
 
 .. code-block:: bash
 
    git clone https://github.com/mozilla/DeepSpeech
+   
+Switch to latest release (e.g. 0.8.2) as master is under development:
+
+.. code-block:: bash
+
+   git checkout tags/v0.8.2
 
 Creating a virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
