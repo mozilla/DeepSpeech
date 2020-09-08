@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import csv
 import os
+import sys
 import subprocess
 import tarfile
 from glob import glob
