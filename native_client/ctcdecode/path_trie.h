@@ -9,6 +9,7 @@
 
 #include "fst/fstlib.h"
 #include "alphabet.h"
+#include "object_pool.h"
 
 /* Tree structure with parent and children information
  * It is used to store the timesteps data for the PathTrie below
@@ -108,7 +109,8 @@ private:
 // TreeNode implementation
 template<class NodeDataT, class ChildDataT>
 std::shared_ptr<TreeNode<NodeDataT>> add_child(std::shared_ptr<TreeNode<NodeDataT>> const& node, ChildDataT&& data_){
-    node->children.push_back(std::make_shared<TreeNode<NodeDataT>>(node, std::forward<ChildDataT>(data_)));
+	static godefv::memory::object_pool_t<TreeNode<NodeDataT>> tree_node_pool;
+	node->children.emplace_back(tree_node_pool.make_unique(node, std::forward<ChildDataT>(data_)));
     return node->children.back();
 }
 
