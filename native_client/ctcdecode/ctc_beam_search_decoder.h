@@ -21,7 +21,7 @@ class DecoderState {
   std::shared_ptr<Scorer> ext_scorer_;
   std::vector<PathTrie*> prefixes_;
   std::unique_ptr<PathTrie> prefix_root_;
-  std::shared_ptr<TimestepTreeNode> timestep_tree_root_;
+  TimestepTreeNode timestep_tree_root_{nullptr, 0};
 
 public:
   DecoderState() = default;

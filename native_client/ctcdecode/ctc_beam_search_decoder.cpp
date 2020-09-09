@@ -37,8 +37,6 @@ DecoderState::init(const Alphabet& alphabet,
   prefix_root_.reset(root);
   prefixes_.push_back(root);
   
-  timestep_tree_root_=std::make_shared<TimestepTreeNode>(nullptr, 0);
-
   if (ext_scorer && (bool)(ext_scorer_->dictionary)) {
     // no need for std::make_shared<>() since Copy() does 'new' behind the doors
     auto dict_ptr = std::shared_ptr<PathTrie::FstType>(ext_scorer->dictionary->Copy(true));
@@ -183,7 +181,7 @@ DecoderState::next(const double *probs,
     prefix_root_->iterate_to_vec(prefixes_);
     if (abs_time_step_ == 0) {
       for (PathTrie* prefix:prefixes_) {
-        prefix->timesteps = timestep_tree_root_;
+        prefix->timesteps = &timestep_tree_root_;
       }
     }
 

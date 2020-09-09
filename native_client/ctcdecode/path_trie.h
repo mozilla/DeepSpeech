@@ -16,16 +16,16 @@
  */
 template<class DataT>
 struct TreeNode{
-	std::shared_ptr<TreeNode<DataT>> parent;
-    std::vector<std::shared_ptr<TreeNode<DataT>>> children;
+	TreeNode<DataT>* parent;
+    std::vector<std::unique_ptr< TreeNode<DataT>, godefv::memory::object_pool_deleter_t<TreeNode<DataT>> >> children;
 
     DataT data;
 
-    TreeNode(std::shared_ptr<TreeNode<DataT>> const& parent_, DataT const& data_): parent{parent_}, data{data_} {}
+    TreeNode(TreeNode<DataT>* parent_, DataT const& data_): parent{parent_}, data{data_} {}
 };
 
 template<class NodeDataT, class ChildDataT>
-std::shared_ptr<TreeNode<NodeDataT>> add_child(std::shared_ptr<TreeNode<NodeDataT>> const& node, ChildDataT&& data_);
+TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* node, ChildDataT&& data_);
 
 template<class DataT>
 std::vector<DataT> get_history(TreeNode<DataT>*);
@@ -85,10 +85,10 @@ public:
   float score;
   float approx_ctc;
   unsigned int character;
-  std::shared_ptr<TimestepTreeNode> timesteps;
+  TimestepTreeNode* timesteps=nullptr;
 
   // timestep temporary storage for each decoding step. 
-  std::shared_ptr<TimestepTreeNode> previous_timesteps=nullptr; 
+  TimestepTreeNode* previous_timesteps=nullptr; 
   unsigned int new_timestep;
 
   PathTrie* parent;
@@ -108,21 +108,21 @@ private:
 
 // TreeNode implementation
 template<class NodeDataT, class ChildDataT>
-std::shared_ptr<TreeNode<NodeDataT>> add_child(std::shared_ptr<TreeNode<NodeDataT>> const& node, ChildDataT&& data_){
+TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* node, ChildDataT&& data_){
 	static godefv::memory::object_pool_t<TreeNode<NodeDataT>> tree_node_pool;
-	node->children.emplace_back(tree_node_pool.make_unique(node, std::forward<ChildDataT>(data_)));
-    return node->children.back();
+	node->children.push_back(tree_node_pool.make_unique(node, std::forward<ChildDataT>(data_)));
+    return node->children.back().get();
 }
 
 template<class DataT>
-void get_history_helper(std::shared_ptr<TreeNode<DataT>> const& tree_node, std::vector<DataT>* output){
+void get_history_helper(TreeNode<DataT>* tree_node, std::vector<DataT>* output){
     if(tree_node==nullptr) return;
 	assert(tree_node->parent != tree_node);
     get_history_helper(tree_node->parent, output);
     output->push_back(tree_node->data);
 }
 template<class DataT>
-std::vector<DataT> get_history(std::shared_ptr<TreeNode<DataT>> const& tree_node){
+std::vector<DataT> get_history(TreeNode<DataT>* tree_node){
     std::vector<DataT> output;
     get_history_helper(tree_node, &output);
     return output;

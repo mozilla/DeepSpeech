@@ -175,7 +175,7 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
       timesteps = nullptr;
       for (auto const& child : previous_timesteps->children) {
         if (child->data == new_timestep) {
-            timesteps=child;
+            timesteps = child.get();
             break;
         }
       }
