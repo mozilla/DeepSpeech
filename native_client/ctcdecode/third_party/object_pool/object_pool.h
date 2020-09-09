@@ -8,9 +8,29 @@
 
 namespace godefv{ namespace memory{
 
+template<class Object, template<class T> class Allocator = std::allocator, std::size_t ChunkSize = 1024>
+class object_pool_t;
+
+//! Custom deleter to recycle the deleted pointers. 
+template<class Object, template<class T> class Allocator = std::allocator, std::size_t ChunkSize = 1024>
+struct object_pool_deleter_t{
+private:
+	object_pool_t<Object, Allocator, ChunkSize>* object_pool_ptr;
+public:
+	explicit object_pool_deleter_t(decltype(object_pool_ptr) input_object_pool_ptr) :
+		object_pool_ptr(input_object_pool_ptr)
+	{}
+
+	//! When a pointer provided by the ObjectPool is deleted, its memory is converted to an object slot to be recycled. 
+	void operator()(Object* object_ptr)
+	{
+		object_pool_ptr->delete_object(object_ptr);
+	}
+};
+
 //! Allocates instances of Object efficiently (constant time and log((maximum number of Objects used at the same time)/ChunkSize) calls to malloc in the whole lifetime of the object pool). 
 //! When an instance returned by the object pool is destroyed, its allocated memory is recycled by the object pool. Defragmenting the object pool to free memory is not possible. 
-template<class Object, template<class T> class Allocator = std::allocator, std::size_t ChunkSize = 1024>
+template<class Object, template<class T> class Allocator, std::size_t ChunkSize>
 class object_pool_t{
 	//! An object slot is an uninitialized memory space of the same size as Object. 
 	//! It is initially "free". It can then be "used" to construct an Object in place and the pointer to it is returned by the object pool. When the pointer is destroyed, the object slot is "recycled" and can be used again but it is not "free" anymore because "free" object slots are contiguous in memory.
@@ -28,25 +48,15 @@ class object_pool_t{
 	object_slot_t* free_object_slots_begin; 
 	object_slot_t* free_object_slots_end; 
 
-	//! Custom deleter to recycle the deleted pointers. 
-	struct deleter_t{
-	private:
-		object_pool_t<Object, Allocator, ChunkSize>* object_pool_ptr;
-	public:
-		explicit deleter_t(decltype(object_pool_ptr) input_object_pool_ptr) :
-			object_pool_ptr(input_object_pool_ptr)
-		{}
-
-		//! When a pointer provided by the ObjectPool is deleted, its memory is converted to an object slot to be recycled. 
-		void operator()(Object* object_ptr)
-		{
-			object_ptr->~Object();
-			object_pool_ptr->recycled_object_slots.push_back(reinterpret_cast<object_slot_t*>(object_ptr));
-		}
-	};
+	void delete_object(Object* object_ptr){
+		object_ptr->~Object();
+		recycled_object_slots.push_back(reinterpret_cast<object_slot_t*>(object_ptr));
+	}
+	friend object_pool_deleter_t<Object, Allocator, ChunkSize>;
 
 public:
 	using object_t = Object;
+	using deleter_t = object_pool_deleter_t<Object, Allocator, ChunkSize>;
 	using object_unique_ptr_t = std::unique_ptr<object_t, deleter_t>; //!< The type returned by the object pool.
 
 	object_pool_t(Allocator<chunk_t> const& allocator = Allocator<chunk_t>{}) :
