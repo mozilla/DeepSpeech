@@ -33,6 +33,8 @@
 #include <unistd.h>
 #endif // NO_DIR
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include "deepspeech.h"
 #include "args.h"
@@ -416,7 +418,19 @@ main(int argc, char **argv)
   // Initialise DeepSpeech
   ModelState* ctx;
   // sphinx-doc: c_ref_model_start
-  int status = DS_CreateModel(model, &ctx);
+  int status;
+  if (init_from_array_of_bytes){
+    // Reading model file to a char * buffer
+    std::ifstream is( model, std::ios::binary );
+    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(is), {});
+    std::string bufferS(buffer.begin(), buffer.end());
+    std::cout<<"Loading from buffer"<<std::endl;
+    status = DS_CreateModel_(bufferS, true, &ctx);
+  }else {
+    // Keep old method due to backwards compatibility
+    status = DS_CreateModel(model, &ctx);
+  }
+  
   if (status != 0) {
     char* error = DS_ErrorCodeToErrorMessage(status);
     fprintf(stderr, "Could not create model: %s\n", error);

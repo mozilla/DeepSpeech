@@ -31,7 +31,7 @@ struct ModelState {
   ModelState();
   virtual ~ModelState();
 
-  virtual int init(const char* model_path);
+  virtual int init(const std::string &model_string, bool init_from_bytes);
 
   virtual void compute_mfcc(const std::vector<float>& audio_buffer, std::vector<float>& mfcc_output) = 0;
 

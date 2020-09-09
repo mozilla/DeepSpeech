@@ -266,6 +266,14 @@ int
 DS_CreateModel(const char* aModelPath,
                ModelState** retval)
 {
+  return DS_CreateModel_(aModelPath, false, retval);
+}
+
+int
+DS_CreateModel_(const std::string &aModelString,
+                bool init_from_bytes,
+                ModelState** retval)
+{
   *retval = nullptr;
 
   std::cerr << "TensorFlow: " << tf_local_git_version() << std::endl;
@@ -277,7 +285,7 @@ DS_CreateModel(const char* aModelPath,
   LOGD("DeepSpeech: %s", ds_git_version());
 #endif
 
-  if (!aModelPath || strlen(aModelPath) < 1) {
+  if (aModelString.length() < 1) {
     std::cerr << "No model specified, cannot continue." << std::endl;
     return DS_ERR_NO_MODEL;
   }
@@ -294,8 +302,8 @@ DS_CreateModel(const char* aModelPath,
     std::cerr << "Could not allocate model state." << std::endl;
     return DS_ERR_FAIL_CREATE_MODEL;
   }
-
-  int err = model->init(aModelPath);
+  
+  int err = model->init(aModelString, init_from_bytes);
   if (err != DS_ERR_OK) {
     return err;
   }

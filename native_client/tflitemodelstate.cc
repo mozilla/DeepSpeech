@@ -156,23 +156,40 @@ getTfliteDelegates()
 }
 
 int
-TFLiteModelState::init(const char* model_path)
+TFLiteModelState::init(const std::string &model_string, bool init_from_bytes)
 {
-  int err = ModelState::init(model_path);
+  int err = ModelState::init(model_string, init_from_bytes);
   if (err != DS_ERR_OK) {
     return err;
   }
 
-  fbmodel_ = tflite::FlatBufferModel::BuildFromFile(model_path);
-  if (!fbmodel_) {
-    std::cerr << "Error at reading model file " << model_path << std::endl;
-    return DS_ERR_FAIL_INIT_MMAP;
+  if (init_from_bytes){
+    char *tmp_buffer = new char[model_string.size()];
+    std::copy(model_string.begin(), model_string.end(), tmp_buffer);
+    // Using c_str does not work
+    fbmodel_ = tflite::FlatBufferModel::VerifyAndBuildFromBuffer(tmp_buffer,model_string.size());
+    if (!fbmodel_) {
+      std::cerr << "Error at reading model buffer " << std::endl;
+      return DS_ERR_FAIL_INIT_MMAP;
+    }
+  } else {
+    fbmodel_ = tflite::FlatBufferModel::BuildFromFile(model_string.c_str());
+    if (!fbmodel_) {
+      std::cerr << "Error at reading model file " << model_string << std::endl;
+      return DS_ERR_FAIL_INIT_MMAP;
+    }
   }
+
 
   tflite::ops::builtin::BuiltinOpResolver resolver;
   tflite::InterpreterBuilder(*fbmodel_, resolver)(&interpreter_);
   if (!interpreter_) {
-    std::cerr << "Error at InterpreterBuilder for model file " << model_path << std::endl;
+    if (init_from_bytes) {
+      std::cerr << "Error at InterpreterBuilder for model buffer " << std::endl;
+    } else {
+      std::cerr << "Error at InterpreterBuilder for model file " << model_string << std::endl;
+    }
+    
     return DS_ERR_FAIL_INTERPRETER;
   }
 

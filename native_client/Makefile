@@ -19,7 +19,7 @@ clean:
 	rm -f deepspeech
 
 $(DEEPSPEECH_BIN): client.cc Makefile
-	$(CXX) $(CFLAGS) $(CFLAGS_DEEPSPEECH) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS)
+	$(CXX) $(CFLAGS) $(CFLAGS_DEEPSPEECH) $(SOX_CFLAGS) client.cc $(LDFLAGS) $(SOX_LDFLAGS) -llzma -lbz2
 ifeq ($(OS),Darwin)
 	install_name_tool -change bazel-out/local-opt/bin/native_client/libdeepspeech.so @rpath/libdeepspeech.so deepspeech
 endif
