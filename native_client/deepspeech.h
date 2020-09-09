@@ -1,6 +1,8 @@
 #ifndef DEEPSPEECH_H
 #define DEEPSPEECH_H
 
+#include <string>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,7 +98,7 @@ DS_FOR_EACH_ERROR(DEFINE)
 };
 
 /**
- * @brief An object providing an interface to a trained DeepSpeech model.
+ * @brief An object providing an interface to a trained DeepSpeech model. Maintained for not breaking backwards compatibility
  *
  * @param aModelPath The path to the frozen model graph.
  * @param[out] retval a ModelState pointer
@@ -106,6 +108,20 @@ DS_FOR_EACH_ERROR(DEFINE)
 DEEPSPEECH_EXPORT
 int DS_CreateModel(const char* aModelPath,
                    ModelState** retval);
+
+/**
+ * @brief An object providing an interface to a trained DeepSpeech model.
+ *
+ * @param aModelString The path/string for initializing the model graph.
+ * @param init_from_bytes Wheter the model will be initialized using path or array of bytes.
+ * @param[out] retval a ModelState pointer
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_CreateModel_(const std::string &aModelString,
+                    bool init_from_bytes,
+                    ModelState** retval);
 
 /**
  * @brief Get beam width value used by the model. If {@link DS_SetModelBeamWidth}

@@ -18,7 +18,7 @@ struct TFModelState : public ModelState
   TFModelState();
   virtual ~TFModelState();
 
-  virtual int init(const char* model_path) override;
+  virtual int init(const std::string &model_string, bool init_from_bytes) override;
 
   virtual void infer(const std::vector<float>& mfcc,
                      unsigned int n_frames,

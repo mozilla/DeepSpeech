@@ -24,7 +24,7 @@ ModelState::~ModelState()
 }
 
 int
-ModelState::init(const char* model_path)
+ModelState::init(const std::string &model_string, bool init_from_bytes)
 {
   return DS_ERR_OK;
 }
