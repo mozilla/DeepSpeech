@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <set>
 
 #include "deepspeech.h"
 #include "alphabet.h"
