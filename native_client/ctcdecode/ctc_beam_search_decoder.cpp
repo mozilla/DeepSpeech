@@ -163,8 +163,7 @@ DecoderState::next(const double *probs,
               std::vector<std::string> ngram;
               ngram = ext_scorer_->make_ngram(prefix_to_score);
 
-              // when hot_boost is 1.0, there is no boost at all
-              float hot_boost = 1.0;
+              float hot_boost = 0.0;
               if (!hot_words_.empty()) {
                 std::map<std::string, float>::iterator iter;
                 // increase prob of prefix for every word
@@ -173,16 +172,13 @@ DecoderState::next(const double *probs,
                   iter = hot_words_.find(word);
                   if ( iter != hot_words_.end() ) {
                     // increase the log_cond_prob(prefix|LM)
-                    // since the log_cond_prob is negative, we multiply by
-                    // a float <1.0 to increase.
-                    float boost = iter->second;
-                    hot_boost *= boost;
+                    hot_boost += iter->second;
                   }
                 }
               }
 
               bool bos = ngram.size() < ext_scorer_->get_max_order();
-              score = ( ext_scorer_->get_log_cond_prob(ngram, bos) * hot_boost ) * ext_scorer_->alpha;
+              score = ( ext_scorer_->get_log_cond_prob(ngram, bos) + hot_boost ) * ext_scorer_->alpha;
               log_p += score;
               log_p += ext_scorer_->beta;
             }

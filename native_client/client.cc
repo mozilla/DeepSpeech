@@ -440,8 +440,7 @@ main(int argc, char **argv)
     for ( std::string hot_word_ : hot_words_ ) {
       std::vector<std::string> pair_ = SplitStringOnDelim(hot_word_, ":");
       const char* word = (pair_[0]).c_str();
-      const char* boost = (pair_[1]).c_str();
-      float boost_coefficient = strtof(boost,0);
+      float boost_coefficient = strtof((pair_[1]).c_str(),0);
       status = DS_AddHotWord(ctx, word, boost_coefficient);
       if (status != 0) {
 	fprintf(stderr, "Could not enable hot words.\n");
