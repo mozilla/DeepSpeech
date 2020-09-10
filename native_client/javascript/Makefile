@@ -47,13 +47,13 @@ configure: deepspeech_wrap.cxx package.json npm-dev
 	PATH="$(NODE_MODULES_BIN):${PATH}" $(NODE_BUILD_TOOL) configure $(NODE_BUILD_VERBOSE)
 
 build: configure deepspeech_wrap.cxx
-	PATH="$(NODE_MODULES_BIN):${PATH}" AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(RPATH_NODEJS) $(LDFLAGS)" LIBS=$(LIBS) $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DIST_URL) --no-color rebuild $(NODE_BUILD_VERBOSE)
+	PATH="$(NODE_MODULES_BIN):${PATH}" AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(RPATH_NODEJS) $(LDFLAGS)" LIBS=$(LIBS) $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DEVDIR) $(NODE_DIST_URL) --no-color rebuild $(NODE_BUILD_VERBOSE)
 
 copy-deps: build
 	$(call copy_missing_libs,lib/binding/*/*/*/deepspeech.node,lib/binding/*/*/)
 
 node-wrapper: copy-deps build
-	PATH="$(NODE_MODULES_BIN):${PATH}" $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DIST_URL) --no-color package $(NODE_BUILD_VERBOSE)
+	PATH="$(NODE_MODULES_BIN):${PATH}" $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DEVDIR) $(NODE_DIST_URL) --no-color package $(NODE_BUILD_VERBOSE)
 
 npm-pack: clean package.json index.ts npm-dev
 	PATH="$(NODE_MODULES_BIN):${PATH}" tsc && $(NPM_TOOL) pack $(NODE_BUILD_VERBOSE)

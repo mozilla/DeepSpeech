@@ -112,12 +112,17 @@ do_deepspeech_nodejs_build()
 
   export PATH="${PYTHON27}:$PATH"
 
+  devDir=$DS_ROOT_TASK/node-gyp-cache/
+  nodejsDevDir=${devDir}/nodejs/
+  electronjsDevDir=${devDir}/electronjs/
+
   for node in ${SUPPORTED_NODEJS_BUILD_VERSIONS}; do
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" make -C native_client/javascript \
       TARGET=${SYSTEM_TARGET} \
       RASPBIAN=${SYSTEM_RASPBIAN} \
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$node \
+      NODE_DEVDIR=--devdir=${nodejsDevDir} \
       clean node-wrapper
   done;
 
@@ -128,6 +133,7 @@ do_deepspeech_nodejs_build()
       TFDIR=${DS_TFDIR} \
       NODE_ABI_TARGET=--target=$electron \
       NODE_DIST_URL=--disturl=https://electronjs.org/headers \
+      NODE_DEVDIR=--devdir=${electronjsDevDir} \
       NODE_RUNTIME=--runtime=electron \
       clean node-wrapper
   done;
