@@ -127,7 +127,7 @@ def ctc_beam_search_decoder(probs_seq,
     """
     beam_results = swigwrapper.ctc_beam_search_decoder(
         probs_seq, alphabet, beam_size, cutoff_prob, cutoff_top_n,
-        scorer, num_results)
+        scorer, hot_words, num_results)
     beam_results = [(res.confidence, alphabet.Decode(res.tokens)) for res in beam_results]
     return beam_results
 
