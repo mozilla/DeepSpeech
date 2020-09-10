@@ -63,8 +63,8 @@ nodejs:
     prep_14: '/usr/bin/wget.exe https://nodejs.org/dist/v14.3.0/node-v14.3.0-win-x64.zip && ""C:\Program Files\7-zip\7z.exe"" x -o$TASKCLUSTER_NODE_DIR -tzip -aoa node-v14.3.0-win-x64.zip && rm node-*.zip && export PATH=$TASKCLUSTER_TASK_DIR/bin/node-v14.3.0-win-x64/:$PATH'
 system:
   node_gyp_cache:
-    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.8/artifacts/public/node-gyp-cache.tar.gz'
-    namespace: 'project.deepspeech.node-gyp-cache.8'
+    url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.node-gyp-cache.10/artifacts/public/node-gyp-cache.tar.gz'
+    namespace: 'project.deepspeech.node-gyp-cache.10'
   homebrew_builds:
     url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.homebrew_builds.8/artifacts/public/homebrew_builds.tar.gz'
     namespace: 'project.deepspeech.homebrew_builds.8'
