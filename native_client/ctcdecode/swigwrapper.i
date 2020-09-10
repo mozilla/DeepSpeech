@@ -23,6 +23,7 @@ namespace std {
     %template(UnsignedIntVector) vector<unsigned int>;
     %template(OutputVector) vector<Output>;
     %template(OutputVectorVector) vector<vector<Output>>;
+    %template(Map) map<string, float>;
 }
 
 %shared_ptr(Scorer);
