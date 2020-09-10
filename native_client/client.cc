@@ -397,9 +397,7 @@ SplitStringOnDelim(std::string in_string, std::string delim)
   char * tmp_str = new char[in_string.size() + 1];
   std::copy(in_string.begin(), in_string.end(), tmp_str);
   tmp_str[in_string.size()] = '\0';
-  const char* token;
-  token = strtok(tmp_str, delim.c_str());
-  // out_vector.push_back(token);
+  const char* token = strtok(tmp_str, delim.c_str());
   while( token != NULL ) {
     out_vector.push_back(token);
     token = strtok(NULL, delim.c_str());
@@ -443,8 +441,8 @@ main(int argc, char **argv)
       float boost_coefficient = strtof((pair_[1]).c_str(),0);
       status = DS_AddHotWord(ctx, word, boost_coefficient);
       if (status != 0) {
-	fprintf(stderr, "Could not enable hot words.\n");
-	return 1;
+        fprintf(stderr, "Could not enable hot words.\n");
+        return 1;
       }
     }
   }
