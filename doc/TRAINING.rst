@@ -12,12 +12,12 @@ Prerequisites for training a model
 Getting the training code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Clone the latest released stable branch from Github (e.g. 0.8.2, check `here <https://github.com/mozilla/DeepSpeech/releases>`_ for current version) to start with as the master branch is under active development and might produce errors: 
+Clone the latest released stable branch from Github (e.g. 0.8.2, check `here <https://github.com/mozilla/DeepSpeech/releases>`_): 
 
 .. code-block:: bash
 
    git clone --branch v0.8.2 https://github.com/mozilla/DeepSpeech
-   
+
 If you plan on committing code or you want to report bugs, please use the master branch.
 
 Creating a virtual environment
@@ -113,7 +113,7 @@ For bringing this data into a form that DeepSpeech understands, you have to run 
 
    bin/import_cv2.py --filter_alphabet path/to/some/alphabet.txt /path/to/extracted/language/archive
 
-Providing a filter alphabet is optional. It will exclude all samples whose transcripts contain characters not in the specified alphabet. 
+Providing a filter alphabet is optional. It will exclude all samples whose transcripts contain characters not in the specified alphabet.
 Running the importer with ``-h`` will show you some additional options.
 
 Once the import is done, the ``clips`` sub-directory will contain for each required ``.mp3`` an additional ``.wav`` file.
