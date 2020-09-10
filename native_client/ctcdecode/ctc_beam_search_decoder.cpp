@@ -166,17 +166,17 @@ DecoderState::next(const double *probs,
               // when hot_boost is 1.0, there is no boost at all
               float hot_boost = 1.0;
               if (!hot_words_.empty()) {
-		std::map<std::string, float>::iterator iter;
+                std::map<std::string, float>::iterator iter;
                 // increase prob of prefix for every word
                 // that matches a word in the hot-words list
                 for (std::string word : ngram) {
-		  iter = hot_words_.find(word);
+                  iter = hot_words_.find(word);
                   if ( iter != hot_words_.end() ) {
                     // increase the log_cond_prob(prefix|LM)
                     // since the log_cond_prob is negative, we multiply by
                     // a float <1.0 to increase.
-		    float boost = iter->second;
-                    hot_boost *= boost 
+                    float boost = iter->second;
+                    hot_boost *= boost;
                   }
                 }
               }

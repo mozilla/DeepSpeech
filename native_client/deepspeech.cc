@@ -349,7 +349,7 @@ DS_AddHotWord(ModelState* aCtx,
 	      const char* word,
 	      float boostCoefficient)
 {
-  aCtx->hot_words_->insert(word, boostCoefficient);
+  aCtx->hot_words_.insert( std::pair<std::string,float> (word, boostCoefficient) );
   return DS_ERR_OK;
 }
 

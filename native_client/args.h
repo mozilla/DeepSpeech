@@ -40,8 +40,6 @@ int stream_size = 0;
 
 char* hot_words = NULL;
 
-float boost_coefficient = 0.f;
-
 void PrintHelp(const char* bin)
 {
     std::cout <<
@@ -61,7 +59,6 @@ void PrintHelp(const char* bin)
     "\t--candidate_transcripts NUMBER\tNumber of candidate transcripts to include in JSON output\n"
     "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
     "\t--hot_words\t\t\tHot words separated by commas\n"
-    "\t--boost_coefficient\t\t\tThe coefficient to boost the hot_words\n"
     "\t--help\t\t\t\tShow help\n"
     "\t--version\t\t\tPrint version and exits\n";
     char* version = DS_Version();
@@ -72,7 +69,7 @@ void PrintHelp(const char* bin)
 
 bool ProcessArgs(int argc, char** argv)
 {
-    const char* const short_opts = "m:l:a:b:c:d:tejs:w:f:vh";
+    const char* const short_opts = "m:l:a:b:c:d:tejs:w:vh";
     const option long_opts[] = {
             {"model", required_argument, nullptr, 'm'},
             {"scorer", required_argument, nullptr, 'l'},
@@ -86,7 +83,6 @@ bool ProcessArgs(int argc, char** argv)
             {"candidate_transcripts", required_argument, nullptr, 150},
             {"stream", required_argument, nullptr, 's'},
             {"hot_words", required_argument, nullptr, 'w'},
-            {"boost_coefficient", required_argument, nullptr, 'f'},
             {"version", no_argument, nullptr, 'v'},
             {"help", no_argument, nullptr, 'h'},
             {nullptr, no_argument, nullptr, 0}
@@ -154,10 +150,6 @@ bool ProcessArgs(int argc, char** argv)
 
         case 'w':
             hot_words = optarg;
-            break;
-
-        case 'f':
-            boost_coefficient = atof(optarg);
             break;
 
         case 'h': // -h or --help

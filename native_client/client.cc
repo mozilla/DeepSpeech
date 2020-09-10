@@ -391,14 +391,20 @@ ProcessFile(ModelState* context, const char* path, bool show_times)
 }
 
 std::vector<std::string>
-splitString(std::string in_string, std::string delim)
+SplitStringOnDelim(std::string in_string, std::string delim)
 {
   std::vector<std::string> out_vector;
-  std::size_t last = 0;
-  std::size_t next = 0;
-  while ((next = in_string.find(delim, last)) != string::npos) {
-    out_vector.push_back(in_string.substr(last, next-last));
+  char * tmp_str = new char[in_string.size() + 1];
+  std::copy(in_string.begin(), in_string.end(), tmp_str);
+  tmp_str[in_string.size()] = '\0';
+  const char* token;
+  token = strtok(tmp_str, delim.c_str());
+  // out_vector.push_back(token);
+  while( token != NULL ) {
+    out_vector.push_back(token);
+    token = strtok(NULL, delim.c_str());
   }
+  delete[] tmp_str;
   return out_vector;
 }
 
@@ -430,11 +436,12 @@ main(int argc, char **argv)
 
 
   if (hot_words) {
-    std::vector<std::string> hot_words_ = splitString(hot_words, ",");
-    for(string hot_word_ : hot_words_){
-      std::vector<std::string> pair_ = splitString(hot_word_, ":");
-      std::string word = pair_[0];
-      float boost_coefficient = pair_[1];
+    std::vector<std::string> hot_words_ = SplitStringOnDelim(hot_words, ",");
+    for ( std::string hot_word_ : hot_words_ ) {
+      std::vector<std::string> pair_ = SplitStringOnDelim(hot_word_, ":");
+      const char* word = (pair_[0]).c_str();
+      const char* boost = (pair_[1]).c_str();
+      float boost_coefficient = strtof(boost,0);
       status = DS_AddHotWord(ctx, word, boost_coefficient);
       if (status != 0) {
 	fprintf(stderr, "Could not enable hot words.\n");
