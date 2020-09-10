@@ -94,8 +94,7 @@ public:
  *                 Default null, decoding the input sample without scorer.
  *     hot_words: A map of hot-words and their corresponding boost co-efficient
  *                The hot-word is a string and the boost coefficient is a 
- *                floating-point number between (0,1). The boost is used 
- *                to scale the score from the scorer.
+ *                floating-point number.
  *     num_results: Number of beams to return.
  * Return:
  *     A vector where each element is a pair of score and decoding result,
@@ -128,8 +127,7 @@ std::vector<Output> ctc_beam_search_decoder(
  *                 Default null, decoding the input sample without scorer.
  *     hot_words: A map of hot-words and their corresponding boost co-efficient
  *                The hot-word is a string and the boost coefficient is a 
- *                floating-point number between (0,1). The boost is used 
- *                to scale the score from the scorer.
+ *                floating-point number.
  *     num_results: Number of beams to return.
  * Return:
  *     A 2-D vector where each element is a vector of beam search decoding

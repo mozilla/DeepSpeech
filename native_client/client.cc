@@ -432,7 +432,6 @@ main(int argc, char **argv)
     }
   }
 
-
   if (hot_words) {
     std::vector<std::string> hot_words_ = SplitStringOnDelim(hot_words, ",");
     for ( std::string hot_word_ : hot_words_ ) {

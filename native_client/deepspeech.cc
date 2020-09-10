@@ -343,7 +343,6 @@ DS_EnableExternalScorer(ModelState* aCtx,
   return DS_ERR_OK;
 }
 
-
 int
 DS_AddHotWord(ModelState* aCtx,
 	      const char* word,
