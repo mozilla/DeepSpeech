@@ -345,9 +345,9 @@ DS_EnableExternalScorer(ModelState* aCtx,
 int
 DS_AddHotWord(ModelState* aCtx,
 	      const char* word,
-	      float boostCoefficient)
+	      float boost)
 {
-  aCtx->hot_words_.insert( std::pair<std::string,float> (word, boostCoefficient) );
+  aCtx->hot_words_.insert( std::pair<std::string,float> (word, boost) );
   return DS_ERR_OK;
 }
 

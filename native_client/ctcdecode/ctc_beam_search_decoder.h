@@ -92,9 +92,8 @@ public:
  *     ext_scorer: External scorer to evaluate a prefix, which consists of
  *                 n-gram language model scoring and word insertion term.
  *                 Default null, decoding the input sample without scorer.
- *     hot_words: A map of hot-words and their corresponding boost co-efficient
- *                The hot-word is a string and the boost coefficient is a 
- *                floating-point number.
+ *     hot_words: A map of hot-words and their corresponding boosts
+ *                The hot-word is a string and the boost is a float.
  *     num_results: Number of beams to return.
  * Return:
  *     A vector where each element is a pair of score and decoding result,
@@ -125,9 +124,8 @@ std::vector<Output> ctc_beam_search_decoder(
  *     ext_scorer: External scorer to evaluate a prefix, which consists of
  *                 n-gram language model scoring and word insertion term.
  *                 Default null, decoding the input sample without scorer.
- *     hot_words: A map of hot-words and their corresponding boost co-efficient
- *                The hot-word is a string and the boost coefficient is a 
- *                floating-point number.
+ *     hot_words: A map of hot-words and their corresponding boosts
+ *                The hot-word is a string and the boost is a float.
  *     num_results: Number of beams to return.
  * Return:
  *     A 2-D vector where each element is a vector of beam search decoding

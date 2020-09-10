@@ -158,18 +158,18 @@ int DS_EnableExternalScorer(ModelState* aCtx,
                             const char* aScorerPath);
 
 /**
- * @brief Add a hot-word and its boosting coefficient.
+ * @brief Add a hot-word and its boost.
  *
  * @param aCtx The ModelState pointer for the model being changed.
  * @param word The hot word.
- * @param boostCoefficient the boosting coefficient.
+ * @param boost The additive boost.
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
 DEEPSPEECH_EXPORT
 int DS_AddHotWord(ModelState* aCtx,
 		  const char* word,
-		  float boostCoefficient);
+		  float boost);
 
 /**
  * @brief Disable decoding using an external scorer.
