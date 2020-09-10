@@ -147,7 +147,7 @@ ctc_beam_search_decoder_batch(
     double cutoff_prob,
     size_t cutoff_top_n,
     std::shared_ptr<Scorer> ext_scorer,
-    std::set<std::string, float> hot_words,
+    std::map<std::string, float> hot_words,
     size_t num_results=1);
 
 #endif  // CTC_BEAM_SEARCH_DECODER_H_
