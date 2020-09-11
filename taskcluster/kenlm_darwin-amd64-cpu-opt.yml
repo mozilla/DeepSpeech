@@ -1,0 +1,13 @@
+build:
+  template_file: generic_tc_caching-darwin-opt-base.tyml
+  cache:
+    artifact_url: ${system.kenlm.darwin_amd64_cpu.url}
+    artifact_namespace: ${system.kenlm.darwin_amd64_cpu.namespace}
+  scripts:
+    setup: "taskcluster/kenlm_tc-setup.sh --macos-amd64"
+    build: "taskcluster/kenlm_tc-build.sh --macos-amd64"
+    package: "taskcluster/kenlm_tc-package.sh"
+  workerType: ${macOS.dsBuild}
+  metadata:
+    name: "KenLM macOS AMD64 CPU"
+    description: "Building KenLM for macOS/AMD64, CPU only, optimized version"

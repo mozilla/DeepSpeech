@@ -1,0 +1,17 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: ${system.kenlm.android_x86_64_cpu.url}
+    artifact_namespace: ${system.kenlm.android_x86_64_cpu.namespace}
+  system_config:
+    >
+      ${kenlm.packages_android.apt}
+  docker_image: "ubuntu:20.04"
+  scripts:
+    setup: "taskcluster/kenlm_tc-setup.sh --android-x86_64"
+    build: "taskcluster/kenlm_tc-build.sh --android-x86_64"
+    package: "taskcluster/kenlm_tc-package.sh"
+  workerType: "${docker.dsBuild}"
+  metadata:
+    name: "KenLM Android x86_64 CPU"
+    description: "Building KenLM for Android/x86_64, CPU only, optimized version"

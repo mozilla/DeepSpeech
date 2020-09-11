@@ -1,0 +1,11 @@
+build:
+  template_file: test-linux-opt-base.tyml
+  dependencies:
+    - "linux-amd64-cpu-opt"
+    - "kenlm_linux-amd64-cpu-opt"
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-scorer-tests.sh ${system.kenlm.linux_amd64_cpu.url} 3.6.10:m"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "Testing DeepSpeech Linux AMD64 CPU generate scorer"
+    description: "Generate a DeepSpeech Scorer for Linux/AMD64, CPU only, optimized version"

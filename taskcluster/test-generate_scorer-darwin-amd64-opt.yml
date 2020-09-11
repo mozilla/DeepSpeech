@@ -1,0 +1,11 @@
+build:
+  template_file: test-darwin-opt-base.tyml
+  dependencies:
+    - "darwin-amd64-cpu-opt"
+    - "kenlm_darwin-amd64-cpu-opt"
+  args:
+    tests_cmdline: "$TASKCLUSTER_TASK_DIR/DeepSpeech/ds/taskcluster/tc-scorer-tests.sh ${system.kenlm.darwin_amd64_cpu.url} 3.6.10:m"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "Testing DeepSpeech macOS AMD64 CPU generate scorer"
+    description: "Generate a DeepSpeech Scorer for macOS/AMD64, CPU only, optimized version"

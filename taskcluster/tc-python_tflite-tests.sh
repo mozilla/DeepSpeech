@@ -14,10 +14,6 @@ model_name=$(basename "${model_source}")
 model_name_mmap=$(basename "${model_source}")
 model_source_mmap=${DEEPSPEECH_PROD_MODEL_MMAP//.pbmm/.tflite}
 
-if [ ! -z "${DEEPSPEECH_ARTIFACTS_TFLITE_ROOT}" ]; then
-    export DEEPSPEECH_ARTIFACTS_ROOT=${DEEPSPEECH_ARTIFACTS_TFLITE_ROOT}
-fi;
-
 download_data
 
 maybe_setup_virtualenv_cross_arm "${pyalias}" "deepspeech"

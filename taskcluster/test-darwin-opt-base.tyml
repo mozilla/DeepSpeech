@@ -30,8 +30,6 @@ then:
         darwin_amd64_build: { $eval: as_slugid("darwin-amd64-cpu-opt") }
         darwin_amd64_tflite: { $eval: as_slugid("darwin-amd64-tflite-opt") }
       in:
-        DEEPSPEECH_ARTIFACTS_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${darwin_amd64_build}/artifacts/public
-        DEEPSPEECH_ARTIFACTS_TFLITE_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${darwin_amd64_tflite}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
         DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
         DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm

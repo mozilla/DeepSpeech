@@ -63,6 +63,7 @@ WGET=${WGET:-"wget"}
 TAR=${TAR:-"tar"}
 XZ=${XZ:-"pixz -9"}
 UNXZ=${UNXZ:-"pixz -d"}
+UNGZ=${UNGZ:-"gunzip"}
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
   WGET=/usr/bin/wget.exe

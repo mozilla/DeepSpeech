@@ -271,16 +271,11 @@ get_python_pkg_url()
     pkgname="deepspeech"
   fi
 
-  local root=$4
-  if [ -z "${root}" ]; then
-    root="${DEEPSPEECH_ARTIFACTS_ROOT}"
-  fi
-
   local platform=$(python -c 'import sys; import platform; plat = platform.system().lower(); arch = platform.machine().lower(); plat = "manylinux1" if plat == "linux" and arch == "x86_64" else plat; plat = "macosx_10_10" if plat == "darwin" else plat; plat = "win" if plat == "windows" else plat; sys.stdout.write("%s_%s" % (plat, platform.machine().lower()));')
   local whl_ds_version="$(python -c 'from pkg_resources import parse_version; print(parse_version("'${DS_VERSION}'"))')"
   local deepspeech_pkg="${pkgname}-${whl_ds_version}-cp${pyver_pkg}-cp${pyver_pkg}${py_unicode_type}-${platform}.whl"
 
-  echo "${root}/${deepspeech_pkg}"
+  echo "$(get_dependency_url ${deepspeech_pkg})"
 }
 
 get_tflite_python_pkg_name()

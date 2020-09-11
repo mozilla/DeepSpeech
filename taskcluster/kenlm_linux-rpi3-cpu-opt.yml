@@ -1,0 +1,16 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: ${system.kenlm.linux_rpi3_cpu.url}
+    artifact_namespace: ${system.kenlm.linux_rpi3_cpu.namespace}
+  system_setup:
+    >
+      apt-get -qq update && apt-get -qq -y install cmake wget pixz bzip2 multistrap
+  scripts:
+    setup: "taskcluster/kenlm_tc-setup.sh --linux-rpi3"
+    build: "taskcluster/kenlm_tc-build.sh --linux-rpi3"
+    package: "taskcluster/kenlm_tc-package.sh"
+  workerType: "${docker.dsBuild}"
+  metadata:
+    name: "KenLM Linux RPi3 CPU"
+    description: "Building KenLM for Linux/RPi3, CPU only, optimized version"

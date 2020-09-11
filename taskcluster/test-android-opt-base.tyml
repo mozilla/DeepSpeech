@@ -33,8 +33,6 @@ then:
         android_arm64_build: { $eval: as_slugid("android-arm64-cpu-opt") }
         android_armv7_build: { $eval: as_slugid("android-armv7-cpu-opt") }
       in:
-        DEEPSPEECH_ARTIFACTS_ROOT_ARM64: https://community-tc.services.mozilla.com/api/queue/v1/task/${android_arm64_build}/artifacts/public
-        DEEPSPEECH_ARTIFACTS_ROOT_ARMV7: https://community-tc.services.mozilla.com/api/queue/v1/task/${android_armv7_build}/artifacts/public
         DEEPSPEECH_TEST_MODEL: https://community-tc.services.mozilla.com/api/queue/v1/task/${training}/artifacts/public/output_graph.pb
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
 
@@ -45,7 +43,7 @@ then:
       - $let:
           extraSystemSetup: { $eval: strip(str(build.system_setup)) }
         in: >
-          apt-get -qq update && apt-get -qq -y install git gnupg pixz sox sudo wget unzip software-properties-common xvfb &&
+          apt-get -qq update && apt-get -qq -y install curl git gnupg pixz python-simplejson sox sudo wget unzip software-properties-common xvfb &&
           add-apt-repository --yes ppa:openjdk-r/ppa && apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y --force-yes install openjdk-8-jdk && java -version && update-ca-certificates -f &&
           ${extraSystemSetup} && chmod 777 /dev/kvm &&
           adduser --system --home ${system.homedir.linux} ${system.username} &&

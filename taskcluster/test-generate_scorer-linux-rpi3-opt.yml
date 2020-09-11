@@ -1,0 +1,14 @@
+build:
+  template_file: test-raspbian-opt-base.tyml
+  dependencies:
+    - "linux-rpi3-cpu-opt"
+    - "kenlm_linux-rpi3-cpu-opt"
+  system_setup:
+    >
+      apt-get -qq -y install ${python.packages_buster.apt}
+  args:
+          tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-scorer-tests.sh ${system.kenlm.linux_rpi3_cpu.url} 3.7.6:m"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "Testing DeepSpeech Linux RPi3 CPU generate scorer"
+    description: "Generate a DeepSpeech Scorer for Linux/RPi3, CPU only, optimized version"

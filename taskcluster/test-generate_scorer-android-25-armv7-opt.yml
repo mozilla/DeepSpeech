@@ -1,0 +1,15 @@
+build:
+  template_file: test-android-opt-base.tyml
+  dependencies:
+    - "android-armv7-cpu-opt"
+    - "kenlm_android-armv7-cpu-opt"
+    - "android-cache-armeabi-v7a-android-25"
+  cache:
+    url: ${system.android_cache.armeabi_v7a.android_25.url}
+    namespace: ${system.android_cache.armeabi_v7a.android_25.namespace}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-scorer-tests.sh ${system.kenlm.android_armv7_cpu.url} android armeabi-v7a android-25"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "Testing DeepSpeech Android 7.1 ARMv7 CPU generate scorer"
+    description: "Generate a DeepSpeech Scorer for Android 7.1/ARMv7, CPU only, optimized version"
