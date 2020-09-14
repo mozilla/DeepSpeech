@@ -22,10 +22,7 @@ class DecoderState {
   std::vector<PathTrie*> prefixes_;
   std::unique_ptr<PathTrie> prefix_root_;
   TimestepTreeNode timestep_tree_root_{nullptr, 0};
-  std::set<std::string> hot_words_;
-  float boost_coefficient_;
-  std::map<std::string, float> hot_words_;
-  std::unorded_map<std::string, float> hot_words_;
+  std::unordered_map<std::string, float> hot_words_;
 
 public:
   DecoderState() = default;
@@ -53,7 +50,7 @@ public:
            double cutoff_prob,
            size_t cutoff_top_n,
            std::shared_ptr<Scorer> ext_scorer,
-           std::unorded_map<std::string, float> hot_words);
+           std::unordered_map<std::string, float> hot_words);
 
   /* Send data to the decoder
    *
@@ -110,7 +107,7 @@ std::vector<Output> ctc_beam_search_decoder(
     double cutoff_prob,
     size_t cutoff_top_n,
     std::shared_ptr<Scorer> ext_scorer,
-    std::unorded_map<std::string, float> hot_words,
+    std::unordered_map<std::string, float> hot_words,
     size_t num_results=1);
 
 /* CTC Beam Search Decoder for batch data
@@ -146,7 +143,7 @@ ctc_beam_search_decoder_batch(
     double cutoff_prob,
     size_t cutoff_top_n,
     std::shared_ptr<Scorer> ext_scorer,
-    std::unorded_map<std::string, float> hot_words,
+    std::unordered_map<std::string, float> hot_words,
     size_t num_results=1);
 
 #endif  // CTC_BEAM_SEARCH_DECODER_H_
