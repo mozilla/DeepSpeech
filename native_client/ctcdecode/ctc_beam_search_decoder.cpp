@@ -96,7 +96,7 @@ DecoderState::next(const double *probs,
         if (full_beam && log_prob_c + prefix->score < min_cutoff) {
           break;
         }
-        assert(prefix->is_empty() || prefix->timesteps!=nullptr);
+        assert(prefix->is_empty() || prefix->timesteps != nullptr);
 
         // blank
         if (c == blank_id_) {
@@ -242,7 +242,7 @@ DecoderState::decode(size_t num_results) const
     output.timesteps  = get_history(prefix->timesteps);
     output.confidence = scores[prefix];
     outputs.push_back(output);
-    if(outputs.size()>=num_returned) break;
+    if (outputs.size() >= num_returned) break;
   }
 
   return outputs;

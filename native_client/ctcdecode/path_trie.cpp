@@ -179,11 +179,11 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
             break;
         }
       }
-      if (timesteps == nullptr){
+      if (timesteps == nullptr) {
           timesteps = add_child(previous_timesteps, new_timestep);
       }
     }
-    previous_timesteps=nullptr;
+    previous_timesteps = nullptr;
 
     output.push_back(this);
   }
