@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 from . import swigwrapper # pylint: disable=import-self
 from .swigwrapper import UTF8Alphabet
+from .swigwrapper import Map
 
 # This module is built with SWIG_PYTHON_STRICT_BYTE_CHAR so we must handle
 # string encoding explicitly, here and throughout this file.
