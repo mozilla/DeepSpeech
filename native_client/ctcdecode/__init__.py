@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 
 from . import swigwrapper # pylint: disable=import-self
 from .swigwrapper import UTF8Alphabet
-from .swigwrapper import Map
 
 # This module is built with SWIG_PYTHON_STRICT_BYTE_CHAR so we must handle
 # string encoding explicitly, here and throughout this file.
@@ -97,7 +96,7 @@ def ctc_beam_search_decoder(probs_seq,
                             cutoff_prob=1.0,
                             cutoff_top_n=40,
                             scorer=None,
-                            hot_words=None,
+                            hot_words=dict(),
                             num_results=1):
     """Wrapper for the CTC Beam Search Decoder.
 
@@ -141,7 +140,7 @@ def ctc_beam_search_decoder_batch(probs_seq,
                                   cutoff_prob=1.0,
                                   cutoff_top_n=40,
                                   scorer=None,
-                                  hot_words=None,
+                                  hot_words=dict(),
                                   num_results=1):
     """Wrapper for the batched CTC beam search decoder.
 

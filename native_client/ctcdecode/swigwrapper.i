@@ -27,7 +27,6 @@ namespace std {
 }
 
 %shared_ptr(Scorer);
-%shared_ptr(Map);
 
 // Convert NumPy arrays to pointer+lengths
 %apply (double* IN_ARRAY2, int DIM1, int DIM2) {(const double *probs, int time_dim, int class_dim)};
