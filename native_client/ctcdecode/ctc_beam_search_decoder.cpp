@@ -96,6 +96,9 @@ DecoderState::next(const double *probs,
         if (full_beam && log_prob_c + prefix->score < min_cutoff) {
           break;
         }
+        if (prefix->score == -NUM_FLT_INF) {
+          continue;
+        }
         assert(prefix->is_empty() || prefix->timesteps != nullptr);
 
         // blank
