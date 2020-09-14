@@ -347,8 +347,11 @@ DS_AddHotWord(ModelState* aCtx,
 	      const char* word,
 	      float boost)
 {
-  aCtx->hot_words_.insert( std::pair<std::string,float> (word, boost) );
-  return DS_ERR_OK;
+  if (aCtx->scorer_) {
+    aCtx->hot_words_.insert( std::pair<std::string,float> (word, boost) );
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
 }
 
 int

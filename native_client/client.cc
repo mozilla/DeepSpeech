@@ -432,20 +432,6 @@ main(int argc, char **argv)
     }
   }
 
-  if (hot_words) {
-    std::vector<std::string> hot_words_ = SplitStringOnDelim(hot_words, ",");
-    for ( std::string hot_word_ : hot_words_ ) {
-      std::vector<std::string> pair_ = SplitStringOnDelim(hot_word_, ":");
-      const char* word = (pair_[0]).c_str();
-      float boost = strtof((pair_[1]).c_str(),0);
-      status = DS_AddHotWord(ctx, word, boost);
-      if (status != 0) {
-        fprintf(stderr, "Could not enable hot words.\n");
-        return 1;
-      }
-    }
-  }
-
   if (scorer) {
     status = DS_EnableExternalScorer(ctx, scorer);
     if (status != 0) {
@@ -461,6 +447,20 @@ main(int argc, char **argv)
     }
   }
   // sphinx-doc: c_ref_model_stop
+
+  if (hot_words) {
+    std::vector<std::string> hot_words_ = SplitStringOnDelim(hot_words, ",");
+    for ( std::string hot_word_ : hot_words_ ) {
+      std::vector<std::string> pair_ = SplitStringOnDelim(hot_word_, ":");
+      const char* word = (pair_[0]).c_str();
+      float boost = strtof((pair_[1]).c_str(),0);
+      status = DS_AddHotWord(ctx, word, boost);
+      if (status != 0) {
+        fprintf(stderr, "Could not enable hot words.\n");
+        return 1;
+      }
+    }
+  }
 
 #ifndef NO_SOX
   // Initialise SOX
