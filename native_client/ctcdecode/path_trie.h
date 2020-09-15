@@ -28,7 +28,7 @@ template<class NodeDataT, class ChildDataT>
 TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* node, ChildDataT&& data_);
 
 template<class DataT>
-std::vector<DataT> get_history(TreeNode<DataT>*);
+std::vector<DataT> get_history(TreeNode<DataT> const*, TreeNode<DataT> const* = nullptr);
 
 using TimestepTreeNode = TreeNode<unsigned int>;
 
@@ -115,16 +115,17 @@ TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* node, ChildDataT&& data_) {
 }
 
 template<class DataT>
-void get_history_helper(TreeNode<DataT>* tree_node, std::vector<DataT>* output) {
-    if (tree_node == nullptr) return;
+void get_history_helper(TreeNode<DataT> const* tree_node, TreeNode<DataT> const* root, std::vector<DataT>* output) {
+    if (tree_node == root) return;
+    assert(tree_node != nullptr);
     assert(tree_node->parent != tree_node);
-    get_history_helper(tree_node->parent, output);
+    get_history_helper(tree_node->parent, root, output);
     output->push_back(tree_node->data);
 }
 template<class DataT>
-std::vector<DataT> get_history(TreeNode<DataT>* tree_node) {
+std::vector<DataT> get_history(TreeNode<DataT> const* tree_node, TreeNode<DataT> const* root) {
     std::vector<DataT> output;
-    get_history_helper(tree_node, &output);
+    get_history_helper(tree_node, root, &output);
     return output;
 }
 
