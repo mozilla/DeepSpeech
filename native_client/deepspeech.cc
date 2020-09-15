@@ -344,11 +344,32 @@ DS_EnableExternalScorer(ModelState* aCtx,
 
 int
 DS_AddHotWord(ModelState* aCtx,
-	      const char* word,
-	      float boost)
+              const char* word,
+              float boost)
 {
   if (aCtx->scorer_) {
     aCtx->hot_words_.insert( std::pair<std::string,float> (word, boost) );
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
+}
+
+int
+DS_EraseHotWord(ModelState* aCtx,
+                const char* word)
+{
+  if (aCtx->scorer_) {
+    aCtx->hot_words_.erase(word);
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
+}
+
+int
+DS_ClearHotWords(ModelState* aCtx)
+{
+  if (aCtx->scorer_) {
+    aCtx->hot_words_.clear();
     return DS_ERR_OK;
   }
   return DS_ERR_SCORER_NOT_ENABLED;

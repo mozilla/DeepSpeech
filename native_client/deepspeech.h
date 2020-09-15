@@ -168,8 +168,30 @@ int DS_EnableExternalScorer(ModelState* aCtx,
  */
 DEEPSPEECH_EXPORT
 int DS_AddHotWord(ModelState* aCtx,
-		  const char* word,
-		  float boost);
+                  const char* word,
+                  float boost);
+
+/**
+ * @brief Remove entry for a hot-word from the hot-words map.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param word The hot word.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT
+int DS_EraseHotWord(ModelState* aCtx,
+                    const char* word);
+
+/**
+ * @brief Removes all elements from the hot-words map.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT
+int DS_ClearHotWords(ModelState* aCtx);
 
 /**
  * @brief Disable decoding using an external scorer.
