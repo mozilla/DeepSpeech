@@ -43,7 +43,7 @@ def maybe_download(archive_url, target_dir, ldc_dataset):
     ldc_path = archive_url + ldc_dataset
     if not os.path.exists(target_dir):
         print('No path "%s" - creating ...' % target_dir)
-        makedirs(target_dir)
+        os.makedirs(target_dir)
 
     if not os.path.exists(archive_path):
         print('No archive "%s" - downloading...' % archive_path)
