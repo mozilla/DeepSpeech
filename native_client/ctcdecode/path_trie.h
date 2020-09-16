@@ -109,7 +109,7 @@ private:
 // TreeNode implementation
 template<class NodeDataT, class ChildDataT>
 TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* node, ChildDataT&& data_) {
-    static godefv::memory::object_pool_t<TreeNode<NodeDataT>> tree_node_pool;
+    static thread_local godefv::memory::object_pool_t<TreeNode<NodeDataT>> tree_node_pool;
     node->children.push_back(tree_node_pool.make_unique(node, std::forward<ChildDataT>(data_)));
     return node->children.back().get();
 }
