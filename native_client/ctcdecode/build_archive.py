@@ -26,7 +26,8 @@ INCLUDES = [
     '..',
     '../kenlm',
     OPENFST_DIR + '/src/include',
-    'third_party/ThreadPool'
+    'third_party/ThreadPool',
+    'third_party/object_pool'
 ]
 
 KENLM_FILES = (glob.glob('../kenlm/util/*.cc')

@@ -18,7 +18,6 @@ PathTrie::PathTrie() {
 
   ROOT_ = -1;
   character = ROOT_;
-  timestep = 0;
   exists_ = true;
   parent = nullptr;
 
@@ -35,7 +34,7 @@ PathTrie::~PathTrie() {
   }
 }
 
-PathTrie* PathTrie::get_path_trie(unsigned int new_char, unsigned int new_timestep, float cur_log_prob_c, bool reset) {
+PathTrie* PathTrie::get_path_trie(unsigned int new_char, float cur_log_prob_c, bool reset) {
   auto child = children_.begin();
   for (; child != children_.end(); ++child) {
     if (child->first == new_char) {
@@ -67,7 +66,6 @@ PathTrie* PathTrie::get_path_trie(unsigned int new_char, unsigned int new_timest
       } else {
         PathTrie* new_path = new PathTrie;
         new_path->character = new_char;
-        new_path->timestep = new_timestep;
         new_path->parent = this;
         new_path->dictionary_ = dictionary_;
         new_path->has_dictionary_ = true;
@@ -93,7 +91,6 @@ PathTrie* PathTrie::get_path_trie(unsigned int new_char, unsigned int new_timest
     } else {
       PathTrie* new_path = new PathTrie;
       new_path->character = new_char;
-      new_path->timestep = new_timestep;
       new_path->parent = this;
       new_path->log_prob_c = cur_log_prob_c;
       children_.push_back(std::make_pair(new_char, new_path));
@@ -102,20 +99,18 @@ PathTrie* PathTrie::get_path_trie(unsigned int new_char, unsigned int new_timest
   }
 }
 
-void PathTrie::get_path_vec(std::vector<unsigned int>& output, std::vector<unsigned int>& timesteps) {
+void PathTrie::get_path_vec(std::vector<unsigned int>& output) {
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
   if (parent != nullptr) {
-    parent->get_path_vec(output, timesteps);
+    parent->get_path_vec(output);
   }
   if (character != ROOT_) {
     output.push_back(character);
-    timesteps.push_back(timestep);
   }
 }
 
 PathTrie* PathTrie::get_prev_grapheme(std::vector<unsigned int>& output,
-                                      std::vector<unsigned int>& timesteps,
                                       const Alphabet& alphabet)
 {
   PathTrie* stop = this;
@@ -125,10 +120,9 @@ PathTrie* PathTrie::get_prev_grapheme(std::vector<unsigned int>& output,
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
   if (!byte_is_codepoint_boundary(alphabet.DecodeSingle(character)[0])) {
-    stop = parent->get_prev_grapheme(output, timesteps, alphabet);
+    stop = parent->get_prev_grapheme(output, alphabet);
   }
   output.push_back(character);
-  timesteps.push_back(timestep);
   return stop;
 }
 
@@ -147,7 +141,6 @@ int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte,
 }
 
 PathTrie* PathTrie::get_prev_word(std::vector<unsigned int>& output,
-                                  std::vector<unsigned int>& timesteps,
                                   const Alphabet& alphabet)
 {
   PathTrie* stop = this;
@@ -157,14 +150,18 @@ PathTrie* PathTrie::get_prev_word(std::vector<unsigned int>& output,
   // Recursive call: recurse back until stop condition, then append data in
   // correct order as we walk back down the stack in the lines below.
   if (parent != nullptr) {
-    stop = parent->get_prev_word(output, timesteps, alphabet);
+    stop = parent->get_prev_word(output, alphabet);
   }
   output.push_back(character);
-  timesteps.push_back(timestep);
   return stop;
 }
 
 void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
+  // previous_timesteps might point to ancestors' timesteps
+  // therefore, children must be uptaded first
+  for (auto child : children_) {
+    child.second->iterate_to_vec(output);
+  }
   if (exists_) {
     log_prob_b_prev = log_prob_b_cur;
     log_prob_nb_prev = log_prob_nb_cur;
@@ -173,10 +170,22 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
     log_prob_nb_cur = -NUM_FLT_INF;
 
     score = log_sum_exp(log_prob_b_prev, log_prob_nb_prev);
+
+    if (previous_timesteps != nullptr) {
+      timesteps = nullptr;
+      for (auto const& child : previous_timesteps->children) {
+        if (child->data == new_timestep) {
+            timesteps = child.get();
+            break;
+        }
+      }
+      if (timesteps == nullptr) {
+          timesteps = add_child(previous_timesteps, new_timestep);
+      }
+    }
+    previous_timesteps = nullptr;
+
     output.push_back(this);
-  }
-  for (auto child : children_) {
-    child.second->iterate_to_vec(output);
   }
 }
 
@@ -229,8 +238,8 @@ void PathTrie::print(const Alphabet& a) {
     }
   }
   printf("\ntimesteps:\t ");
-  for (PathTrie* el : chain) {
-    printf("%d ", el->timestep);
+  for (unsigned int timestep : get_history(timesteps)) {
+    printf("%d ", timestep);
   }
   printf("\n");
   printf("transcript:\t %s\n", tr.c_str());

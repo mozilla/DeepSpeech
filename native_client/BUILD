@@ -100,6 +100,7 @@ cc_library(
     includes = [
         ".",
         "ctcdecode/third_party/ThreadPool",
+        "ctcdecode/third_party/object_pool",
     ] + OPENFST_INCLUDES_PLATFORM,
     deps = [":kenlm"],
     linkopts = [
