@@ -235,14 +235,13 @@ DecoderState::decode(size_t num_results) const
   std::vector<Output> outputs;
   outputs.reserve(num_returned);
 
-  for (PathTrie* prefix : prefixes_copy) {
+  for (size_t i = 0; i < num_returned; ++i) {
     Output output;
-    prefix->get_path_vec(output.tokens);
-    output.timesteps  = get_history(prefix->timesteps, &timestep_tree_root_);
+    prefixes_copy[i]->get_path_vec(output.tokens);
+    output.timesteps  = get_history(prefixes_copy[i]->timesteps, &timestep_tree_root_);
     assert(output.tokens.size() == output.timesteps.size());
-    output.confidence = scores[prefix];
+    output.confidence = scores[prefixes_copy[i]];
     outputs.push_back(output);
-    if (outputs.size() >= num_returned) break;
   }
 
   return outputs;
