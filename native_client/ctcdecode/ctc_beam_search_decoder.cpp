@@ -37,7 +37,7 @@ DecoderState::init(const Alphabet& alphabet,
   prefix_root_.reset(root);
   prefix_root_->timesteps = &timestep_tree_root_;
   prefixes_.push_back(root);
-  
+
   if (ext_scorer && (bool)(ext_scorer_->dictionary)) {
     // no need for std::make_shared<>() since Copy() does 'new' behind the doors
     auto dict_ptr = std::shared_ptr<PathTrie::FstType>(ext_scorer->dictionary->Copy(true));

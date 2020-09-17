@@ -24,11 +24,17 @@ struct TreeNode {
     TreeNode(TreeNode<DataT>* parent_, DataT const& data_): parent{parent_}, data{data_} {}
 };
 
+/* Creates a new TreeNode<NodeDataT> with given data as a child to the given node.
+ * Returns a pointer to the created node. This pointer remains valid as long as the child is not destroyed.
+ */
 template<class NodeDataT, class ChildDataT>
-TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* node, ChildDataT&& data_);
+TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* tree_node, ChildDataT&& data);
 
+/* Returns the sequence of tree node's data from the given root (exclusive) to the given tree_node (inclusive).
+ * By default (if no root is provided), the full sequence from the root of the tree is returned.
+ */
 template<class DataT>
-std::vector<DataT> get_history(TreeNode<DataT> const*, TreeNode<DataT> const* = nullptr);
+std::vector<DataT> get_history(TreeNode<DataT> const* tree_node, TreeNode<DataT> const* root = nullptr);
 
 using TimestepTreeNode = TreeNode<unsigned int>;
 
@@ -108,10 +114,10 @@ private:
 
 // TreeNode implementation
 template<class NodeDataT, class ChildDataT>
-TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* node, ChildDataT&& data_) {
+TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* tree_node, ChildDataT&& data) {
     static thread_local godefv::memory::object_pool_t<TreeNode<NodeDataT>> tree_node_pool;
-    node->children.push_back(tree_node_pool.make_unique(node, std::forward<ChildDataT>(data_)));
-    return node->children.back().get();
+    tree_node->children.push_back(tree_node_pool.make_unique(tree_node, std::forward<ChildDataT>(data)));
+    return tree_node->children.back().get();
 }
 
 template<class DataT>
