@@ -17,7 +17,7 @@
 template<class DataT>
 struct TreeNode {
     TreeNode<DataT>* parent;
-    std::vector<std::unique_ptr< TreeNode<DataT>, godefv::memory::object_pool_deleter_t<TreeNode<DataT>> >> children;
+    std::vector<std::unique_ptr< TreeNode<DataT>, godefv::object_pool_deleter_t<TreeNode<DataT>> >> children;
 
     DataT data;
 
@@ -115,7 +115,7 @@ private:
 // TreeNode implementation
 template<class NodeDataT, class ChildDataT>
 TreeNode<NodeDataT>* add_child(TreeNode<NodeDataT>* tree_node, ChildDataT&& data) {
-    static thread_local godefv::memory::object_pool_t<TreeNode<NodeDataT>> tree_node_pool;
+    static thread_local godefv::object_pool_t<TreeNode<NodeDataT>> tree_node_pool;
     tree_node->children.push_back(tree_node_pool.make_unique(tree_node, std::forward<ChildDataT>(data)));
     return tree_node->children.back().get();
 }

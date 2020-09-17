@@ -3,10 +3,11 @@
 
 #include <memory>
 
-namespace godefv{ namespace memory{
+namespace godefv{
 
 //! A deleter to deallocate memory which have been allocated by the given allocator.
-template <class Allocator> struct allocator_deleter_t
+template<class Allocator> 
+struct allocator_deleter_t
 {
 	allocator_deleter_t(Allocator const& allocator) :
 		mAllocator{ allocator }
@@ -23,17 +24,16 @@ private:
 
 //! A smart pointer like std::unique_ptr but templated on an allocator instead of a deleter.
 //! The deleter is deduced from the given allocator.
-template <class T, class Allocator = std::allocator<T>>
-class unique_ptr_t : public std::unique_ptr<T, allocator_deleter_t<Allocator>>
+template<class T, class Allocator = std::allocator<T>>
+struct unique_ptr_t : public std::unique_ptr<T, allocator_deleter_t<Allocator>>
 {
 	using base_t = std::unique_ptr<T, allocator_deleter_t<Allocator>>;
 
-public:
 	unique_ptr_t(Allocator allocator = Allocator{}) :
 		base_t{ allocator.allocate(1), allocator_deleter_t<Allocator>{ allocator } }
 	{}
 };
 
-}} // namespace godefv::memory 
+} // namespace godefv 
 
 #endif // GODEFV_MEMORY_ALLOCATED_UNIQUE_PTR_H 

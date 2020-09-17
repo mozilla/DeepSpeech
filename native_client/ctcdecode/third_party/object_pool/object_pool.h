@@ -6,12 +6,13 @@
 #include <vector>
 #include <array>
 
-namespace godefv{ namespace memory{
+namespace godefv{
 
+// Forward declaration
 template<class Object, template<class T> class Allocator = std::allocator, std::size_t ChunkSize = 1024>
 class object_pool_t;
 
-//! Custom deleter to recycle the deleted pointers. 
+//! Custom deleter to recycle the deleted pointers of the object_pool_t. 
 template<class Object, template<class T> class Allocator = std::allocator, std::size_t ChunkSize = 1024>
 struct object_pool_deleter_t{
 private:
@@ -21,7 +22,6 @@ public:
 		object_pool_ptr(input_object_pool_ptr)
 	{}
 
-	//! When a pointer provided by the ObjectPool is deleted, its memory is converted to an object slot to be recycled. 
 	void operator()(Object* object_ptr)
 	{
 		object_pool_ptr->delete_object(object_ptr);
@@ -48,6 +48,7 @@ class object_pool_t{
 	object_slot_t* free_object_slots_begin; 
 	object_slot_t* free_object_slots_end; 
 
+	//! When a pointer provided by the ObjectPool is deleted, its memory is converted to an object slot to be recycled. 
 	void delete_object(Object* object_ptr){
 		object_ptr->~Object();
 		recycled_object_slots.push_back(reinterpret_cast<object_slot_t*>(object_ptr));
@@ -60,8 +61,8 @@ public:
 	using object_unique_ptr_t = std::unique_ptr<object_t, deleter_t>; //!< The type returned by the object pool.
 
 	object_pool_t(Allocator<chunk_t> const& allocator = Allocator<chunk_t>{}) :
-		free_object_slots_begin{ free_object_slots_end }, // At the begining, set the 2 iterators at the same value to simulate a full pool.
-		chunk_allocator{ allocator }
+		chunk_allocator{ allocator },
+		free_object_slots_begin{ free_object_slots_end } // At the begining, set the 2 iterators at the same value to simulate a full pool.
 	{}
 
 	//! Returns a unique pointer to an object_t using an unused object slot from the object pool. 
@@ -102,6 +103,6 @@ public:
 	}
 };
 
-}} /* namespace godefv::memory */
+} /* namespace godefv */
 
 #endif /* GODEFV_MEMORY_OBJECT_POOL_H */
