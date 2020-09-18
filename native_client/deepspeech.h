@@ -81,7 +81,10 @@ typedef struct Metadata {
   APPLY(DS_ERR_FAIL_CREATE_STREAM,      0x3004, "Error creating the stream.") \
   APPLY(DS_ERR_FAIL_READ_PROTOBUF,      0x3005, "Error reading the proto buffer model file.") \
   APPLY(DS_ERR_FAIL_CREATE_SESS,        0x3006, "Failed to create session.") \
-  APPLY(DS_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.")
+  APPLY(DS_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.") \
+  APPLY(DS_ERR_FAIL_INSERT_HOTWORD,     0x3008, "Could not insert hot-word.") \
+  APPLY(DS_ERR_FAIL_CLEAR_HOTWORD,      0x3009, "Could not clear hot-words.") \
+  APPLY(DS_ERR_FAIL_ERASE_HOTWORD,      0x3010, "Could not erase hot-word.")
 
 // sphinx-doc: error_code_listing_end
 
