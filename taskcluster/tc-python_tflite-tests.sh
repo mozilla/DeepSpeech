@@ -33,4 +33,6 @@ deepspeech --version
 
 run_all_inference_tests
 
+run_hotword_tests
+
 virtualenv_deactivate "${pyalias}" "deepspeech"

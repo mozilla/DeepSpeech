@@ -18,3 +18,5 @@ run_all_inference_tests
 run_multi_inference_tests
 
 run_cpp_only_inference_tests
+
+run_hotword_tests
