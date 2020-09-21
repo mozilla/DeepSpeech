@@ -348,8 +348,10 @@ DS_AddHotWord(ModelState* aCtx,
               float boost)
 {
   if (aCtx->scorer_) {
-    std::unordered_map::iterator iter, bool err = aCtx->hot_words_.insert( std::pair<std::string,float> (word, boost) );
-    if (err != 0) {
+    const int size_before = aCtx->hot_words_.size();
+    aCtx->hot_words_.insert( std::pair<std::string,float> (word, boost) );
+    const int size_after = aCtx->hot_words_.size();
+    if (size_before == size_after) {
       return DS_ERR_FAIL_INSERT_HOTWORD;
     }
     return DS_ERR_OK;
@@ -362,8 +364,10 @@ DS_EraseHotWord(ModelState* aCtx,
                 const char* word)
 {
   if (aCtx->scorer_) {
+    const int size_before = aCtx->hot_words_.size();
     int err = aCtx->hot_words_.erase(word);
-    if (err != 0) {
+    const int size_after = aCtx->hot_words_.size();
+    if (size_before == size_after) {
       return DS_ERR_FAIL_ERASE_HOTWORD;
     }
     return DS_ERR_OK;
@@ -375,8 +379,9 @@ int
 DS_ClearHotWords(ModelState* aCtx)
 {
   if (aCtx->scorer_) {
-    int err = aCtx->hot_words_.clear();
-    if (err != 0) {
+    aCtx->hot_words_.clear();
+    const int size_after = aCtx->hot_words_.size();
+    if (size_after != 0) {
       return DS_ERR_FAIL_CLEAR_HOTWORD;
     }
     return DS_ERR_OK;
