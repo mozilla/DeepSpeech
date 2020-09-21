@@ -455,7 +455,7 @@ main(int argc, char **argv)
       const char* word = (pair_[0]).c_str();
       // the strtof function will return 0 in case of non numeric characters
       // so, check the boost string before we turn it into a float
-      bool boost_is_valid = (pair_[1].find_first_not_of(".0123456789") == std::string::npos);
+      bool boost_is_valid = (pair_[1].find_first_not_of("-.0123456789") == std::string::npos);
       float boost = strtof((pair_[1]).c_str(),0);
       status = DS_AddHotWord(ctx, word, boost);
       if (status != 0 || !boost_is_valid) {
