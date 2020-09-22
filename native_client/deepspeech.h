@@ -177,6 +177,20 @@ int DS_EnableExternalScorer(ModelState* aCtx,
                             const char* aScorerPath);
 
 /**
+ * @brief Enable decoding using an external scorer.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param aScorerString The path/array_of_bytes to initialize the external scorer.
+ * @param init_from_bytes Wheter the scorer will be initialized by file or array of bytes.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT                  
+int DS_EnableExternalScorer_(ModelState* aCtx,
+                             const std::string &aScorerString,
+                             bool init_from_bytes);
+
+/**
  * @brief Add a hot-word and its boost.
  *
  * @param aCtx The ModelState pointer for the model being changed.
@@ -211,6 +225,8 @@ int DS_EraseHotWord(ModelState* aCtx,
  */
 DEEPSPEECH_EXPORT
 int DS_ClearHotWords(ModelState* aCtx);
+
+
 
 /**
  * @brief Disable decoding using an external scorer.

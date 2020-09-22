@@ -341,8 +341,18 @@ int
 DS_EnableExternalScorer(ModelState* aCtx,
                         const char* aScorerPath)
 {
+  return DS_EnableExternalScorer_(aCtx, aScorerPath, false);
+}
+
+int
+DS_EnableExternalScorer_(ModelState* aCtx,
+                         const std::string &aScorerString,
+                         bool init_from_bytes)
+{
   std::unique_ptr<Scorer> scorer(new Scorer());
-  int err = scorer->init(aScorerPath, aCtx->alphabet_);
+
+  int err = scorer->init(aScorerString, init_from_bytes, aCtx->alphabet_);
+  
   if (err != 0) {
     return DS_ERR_INVALID_SCORER;
   }

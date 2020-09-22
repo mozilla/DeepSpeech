@@ -20,6 +20,10 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <io.h>
+#include <stdio.h>
+#include <conio.h>
+#include <tchar.h>
+
 #else
 #include <sys/mman.h>
 #include <unistd.h>
@@ -56,17 +60,17 @@ template <class T> T RoundUpPow2(T value, T mult) {
 }
 } // namespace
 
-scoped_memory::scoped_memory(std::size_t size, bool zeroed) : data_(NULL), size_(0), source_(NONE_ALLOCATED) {
+scoped_memory::scoped_memory(std::size_t size, bool zeroed, bool load_from_memory) : data_(NULL), size_(0), source_(NONE_ALLOCATED), load_from_memory_(load_from_memory) {
   HugeMalloc(size, zeroed, *this);
 }
 
 void scoped_memory::reset(void *data, std::size_t size, Alloc source) {
   switch(source_) {
     case MMAP_ROUND_UP_ALLOCATED:
-      scoped_mmap(data_, RoundUpPow2(size_, (std::size_t)SizePage()));
+      scoped_mmap(data_, RoundUpPow2(size_, (std::size_t)SizePage()), load_from_memory_);
       break;
     case MMAP_ALLOCATED:
-      scoped_mmap(data_, size_);
+      scoped_mmap(data_, size_, load_from_memory_);
       break;
     case MALLOC_ALLOCATED:
       free(data_);
@@ -129,6 +133,46 @@ void *MapOrThrow(std::size_t size, bool for_write, int flags, bool prefault, int
 #endif
   return ret;
 }
+
+void *MapOrThrow(std::size_t size, bool for_write, int flags, bool prefault, char *file_data, uint64_t offset) {
+#ifdef MAP_POPULATE // Linux specific
+  if (prefault) {
+    flags |= MAP_POPULATE;
+  }
+#endif
+#if defined(_WIN32) || defined(_WIN64)
+  
+  TCHAR szName[]=TEXT("Global\\LanguageModelMapping");
+
+  int protectC = for_write ? PAGE_READWRITE : PAGE_READONLY;
+  int protectM = for_write ? FILE_MAP_WRITE : FILE_MAP_READ;
+  uint64_t total_size = size + offset;
+  // HANDLE hMapping = CreateFileMapping((HANDLE)_get_osfhandle(fd), NULL, protectC, total_size >> 32, static_cast<DWORD>(total_size), NULL);
+
+  HANDLE hMapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, total_size >> 32, static_cast<DWORD>(total_size), szName);
+  UTIL_THROW_IF(!hMapping, ErrnoException, "CreateFileMapping failed");
+  // LPVOID ret = MapViewOfFile(hMapping, protectM, offset >> 32, offset, size);
+
+  LPVOID ret = MapViewOfFile(hMapping, FILE_MAP_ALL_ACCESS, offset >> 32, offset, size);
+
+  if (ret == NULL){
+      std::cerr<< "ret NULL" << GetLastError() <<  std::endl;
+  }
+  
+  CloseHandle(hMapping);
+  UTIL_THROW_IF(!ret, ErrnoException, "MapViewOfFile failed");
+  CopyMemory((PVOID)ret, file_data, total_size);
+#else
+  // int protect = for_write ? (PROT_READ | PROT_WRITE) : PROT_READ;
+  int protect = PROT_READ | PROT_WRITE;
+  void *ret;
+  flags = MAP_ANONYMOUS|MAP_SHARED;
+  UTIL_THROW_IF((ret = mmap(NULL, size, protect, flags, -1, offset)) == MAP_FAILED, ErrnoException, "mmap failed for size " << size << " at offset " << offset);
+  memcpy(ret, file_data, size);
+#endif
+  return ret;
+}
+
 
 void SyncOrThrow(void *start, size_t length) {
 #if defined(_WIN32) || defined(_WIN64)
@@ -322,6 +366,38 @@ void MapRead(LoadMethod method, int fd, uint64_t offset, std::size_t size, scope
       break;
   }
 }
+
+void MapRead(LoadMethod method, char *file_data, uint64_t offset, std::size_t size, scoped_memory &out) {  
+  switch (method) {
+    case LAZY:
+      out.reset(MapOrThrow(size, false, kFileFlags, false, file_data, offset), size, scoped_memory::MMAP_ALLOCATED);
+      break;
+    case POPULATE_OR_LAZY:
+#ifdef MAP_POPULATE
+    case POPULATE_OR_READ:
+#endif
+      out.reset(MapOrThrow(size, false, kFileFlags, true, file_data, offset), size, scoped_memory::MMAP_ALLOCATED);
+      break;
+#ifndef MAP_POPULATE
+    case POPULATE_OR_READ:
+#endif
+    case READ:
+      HugeMalloc(size, false, out);
+      file_data += offset;
+      #if defined(_WIN32) || defined(_WIN64)
+        CopyMemory(out.get(), file_data, size);
+      #else
+        std::memcpy(out.get(), file_data, size);
+      #endif
+      break;
+    case PARALLEL_READ:
+      HugeMalloc(size, false, out);
+      file_data += offset;
+      std::memcpy(out.get(), file_data, size);
+      break;
+  }
+}
+
 
 void *MapZeroedWrite(int fd, std::size_t size) {
   ResizeOrThrow(fd, 0);

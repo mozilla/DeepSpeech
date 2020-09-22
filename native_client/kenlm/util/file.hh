@@ -134,6 +134,7 @@ void WriteOrThrow(FILE *to, const void *data, std::size_t size);
  * above.
  */
 void ErsatzPRead(int fd, void *to, std::size_t size, uint64_t off);
+void ErsatzPRead(char *file_data, void *to_void, std::size_t size, uint64_t off);
 void ErsatzPWrite(int fd, const void *data_void, std::size_t size, uint64_t off);
 
 void FSyncOrThrow(int fd);

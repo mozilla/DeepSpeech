@@ -421,11 +421,10 @@ main(int argc, char **argv)
   int status;
   if (init_from_array_of_bytes){
     // Reading model file to a char * buffer
-    std::ifstream is( model, std::ios::binary );
-    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(is), {});
-    std::string bufferS(buffer.begin(), buffer.end());
-    std::cout<<"Loading from buffer"<<std::endl;
-    status = DS_CreateModel_(bufferS, true, &ctx);
+    std::ifstream is_model( model, std::ios::binary );
+    std::stringstream buffer_model;
+    buffer_model << is_model.rdbuf();
+    status = DS_CreateModel_(buffer_model.str(), true, &ctx);
   }else {
     // Keep old method due to backwards compatibility
     status = DS_CreateModel(model, &ctx);
@@ -447,7 +446,17 @@ main(int argc, char **argv)
   }
 
   if (scorer) {
-    status = DS_EnableExternalScorer(ctx, scorer);
+    if (init_from_array_of_bytes){
+      // Reading scorer file to a string buffer
+      std::ifstream is_scorer(scorer, std::ios::binary );
+      std::stringstream buffer_scorer;
+      buffer_scorer << is_scorer.rdbuf();
+      status = DS_EnableExternalScorer_(ctx, buffer_scorer.str(), true);
+    } else {
+      // Keep old method due to backwards compatibility
+      status = DS_EnableExternalScorer(ctx, scorer);
+    }
+    
     if (status != 0) {
       fprintf(stderr, "Could not enable external scorer.\n");
       return 1;
