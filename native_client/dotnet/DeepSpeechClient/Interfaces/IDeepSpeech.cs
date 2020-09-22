@@ -45,6 +45,27 @@ namespace DeepSpeechClient.Interfaces
         unsafe void EnableExternalScorer(string aScorerPath);
 
         /// <summary>
+        /// Add a hot-word.
+        /// </summary>
+        /// <param name="aWord">Some word</param>
+        /// <param name="aBoost">Some boost</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        unsafe void AddHotWord(string aWord, float aBoost);
+
+        /// <summary>
+        /// Erase entry for a hot-word.
+        /// </summary>
+        /// <param name="aWord">Some word</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        unsafe void EraseHotWord(string aWord);
+
+        /// <summary>
+        /// Clear all hot-words.
+        /// </summary>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        unsafe void ClearHotWords();
+
+        /// <summary>
         /// Disable decoding using an external scorer.
         /// </summary>
         /// <exception cref="ArgumentException">Thrown when an external scorer is not enabled.</exception>

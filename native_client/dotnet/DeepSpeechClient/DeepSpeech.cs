@@ -80,7 +80,7 @@ namespace DeepSpeechClient
         /// <param name="aWord">Some word</param>
         /// <param name="aBoost">Some boost</param>
         /// <exception cref="ArgumentException">Thrown on failure.</exception>
-        public unsafe void addHotWord(string aWord, float aBoost)
+        public unsafe void AddHotWord(string aWord, float aBoost)
         {
             var resultCode = NativeImp.DS_AddHotWord(_modelStatePP, aWord, aBoost);
             EvaluateResultCode(resultCode);
@@ -91,7 +91,7 @@ namespace DeepSpeechClient
         /// </summary>
         /// <param name="aWord">Some word</param>
         /// <exception cref="ArgumentException">Thrown on failure.</exception>
-        public unsafe void eraseHotWord(string aWord)
+        public unsafe void EraseHotWord(string aWord)
         {
             var resultCode = NativeImp.DS_EraseHotWord(_modelStatePP, aWord);
             EvaluateResultCode(resultCode);
@@ -101,7 +101,7 @@ namespace DeepSpeechClient
         /// Clear all hot-words.
         /// </summary>
         /// <exception cref="ArgumentException">Thrown on failure.</exception>
-        public unsafe void clearHotWords()
+        public unsafe void ClearHotWords()
         {
             var resultCode = NativeImp.DS_ClearHotWords(_modelStatePP);
             EvaluateResultCode(resultCode);
