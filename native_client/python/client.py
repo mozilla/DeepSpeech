@@ -110,7 +110,7 @@ def main():
     parser.add_argument('--candidate_transcripts', type=int, default=3,
                         help='Number of candidate transcripts to include in JSON output')
     parser.add_argument('--hot_words', type=str,
-                        help='Hot words and their boosts.')
+                        help='Hot-words and their boosts.')
     args = parser.parse_args()
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)

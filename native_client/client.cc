@@ -459,7 +459,7 @@ main(int argc, char **argv)
       float boost = strtof((pair_[1]).c_str(),0);
       status = DS_AddHotWord(ctx, word, boost);
       if (status != 0 || !boost_is_valid) {
-        fprintf(stderr, "Could not enable hot words.\n");
+        fprintf(stderr, "Could not enable hot-word.\n");
         return 1;
       }
     }

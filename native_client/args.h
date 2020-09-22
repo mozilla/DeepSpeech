@@ -58,7 +58,7 @@ void PrintHelp(const char* bin)
     "\t--json\t\t\t\tExtended output, shows word timings as JSON\n"
     "\t--candidate_transcripts NUMBER\tNumber of candidate transcripts to include in JSON output\n"
     "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
-    "\t--hot_words\t\t\tHot words separated by commas\n"
+    "\t--hot_words\t\t\tHot-words and their boosts. Word:Boost pairs are comma-separated\n"
     "\t--help\t\t\t\tShow help\n"
     "\t--version\t\t\tPrint version and exits\n";
     char* version = DS_Version();

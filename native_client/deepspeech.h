@@ -164,8 +164,8 @@ int DS_EnableExternalScorer(ModelState* aCtx,
  * @brief Add a hot-word and its boost.
  *
  * @param aCtx The ModelState pointer for the model being changed.
- * @param word The hot word.
- * @param boost The additive boost.
+ * @param word The hot-word.
+ * @param boost The boost.
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
@@ -178,7 +178,7 @@ int DS_AddHotWord(ModelState* aCtx,
  * @brief Remove entry for a hot-word from the hot-words map.
  *
  * @param aCtx The ModelState pointer for the model being changed.
- * @param word The hot word.
+ * @param word The hot-word.
  *
  * @return Zero on success, non-zero on failure (invalid arguments).
  */
