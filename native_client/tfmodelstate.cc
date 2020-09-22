@@ -24,16 +24,8 @@ TFModelState::~TFModelState()
 
 int loadGraphFromBinaryData(Env* env, const std::string& data,
                           ::tensorflow::protobuf::MessageLite* proto) {  
-      std::string model_buffer;
-
-    std::ifstream graph_input_stream;
-
-    graph_input_stream.open("../exported_model/output_graph.pb", std::ios::binary);
-    model_buffer = std::string((std::istreambuf_iterator<char>(graph_input_stream)),
-                    (std::istreambuf_iterator<char>()));
-    graph_input_stream.close();
-
-  if (!proto->ParseFromString(model_buffer)) {
+                            
+  if (!proto->ParseFromString(data)) {
     std::cerr << "Can't parse data as binary proto" << std::endl;
     return -1;
   }
@@ -43,11 +35,6 @@ int loadGraphFromBinaryData(Env* env, const std::string& data,
 int
 TFModelState::init(const std::string &model_string, bool init_from_bytes)
 {
-  if (init_from_bytes){
-    std::cerr << "=============== Init model from bytes"<<std::endl;
-  } else {
-    std::cerr << "=============== Init model from path"<<std::endl;
-  }
   int err = ModelState::init(model_string, init_from_bytes);
   if (err != DS_ERR_OK) {
     return err;
