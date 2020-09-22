@@ -204,7 +204,7 @@ export class Model {
      *
      * @throws on error
      */
-    addHotWord(aWord: string): void {
+    eraseHotWord(aWord: string): void {
         const status = binding.eraseHotWord(this._impl, aWord);
         if (status !== 0) {
             throw `eraseHotWord failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
