@@ -24,7 +24,7 @@ class BinaryFormat;
 class DontQuantize {
   public:
     static const ModelType kModelTypeAdd = static_cast<ModelType>(0);
-    static void UpdateConfigFromBinary(const BinaryFormat &, uint64_t, Config &) {}
+    static void UpdateConfigFromBinary(const BinaryFormat &, uint64_t, Config &, bool) {}
     static uint64_t Size(uint8_t /*order*/, const Config &/*config*/) { return 0; }
     static uint8_t MiddleBits(const Config &/*config*/) { return 63; }
     static uint8_t LongestBits(const Config &/*config*/) { return 31; }
@@ -137,7 +137,7 @@ class SeparatelyQuantize {
   public:
     static const ModelType kModelTypeAdd = kQuantAdd;
 
-    static void UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config);
+    static void UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config, bool load_from_memory);
 
     static uint64_t Size(uint8_t order, const Config &config) {
       uint64_t longest_table = (static_cast<uint64_t>(1) << static_cast<uint64_t>(config.prob_bits)) * sizeof(float);

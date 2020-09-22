@@ -29,22 +29,24 @@ static const int32_t FILE_VERSION = 6;
 
 int
 Scorer::init(const std::string& lm_path,
+             bool load_from_bytes,
              const Alphabet& alphabet)
 {
   set_alphabet(alphabet);
-  return load_lm(lm_path);
+  return load_lm(lm_path, load_from_bytes);
 }
 
 int
 Scorer::init(const std::string& lm_path,
+             bool load_from_bytes,
              const std::string& alphabet_config_path)
 {
-  int err = alphabet_.init(alphabet_config_path.c_str());
+  int err = alphabet_.init(alphabet_config_path.c_str()); // Do we need to make this initiable from bytes?
   if (err != 0) {
     return err;
   }
   setup_char_map();
-  return load_lm(lm_path);
+  return load_lm(lm_path, load_from_bytes);
 }
 
 void
@@ -69,45 +71,60 @@ void Scorer::setup_char_map()
   }
 }
 
-int Scorer::load_lm(const std::string& lm_path)
+int Scorer::load_lm(const std::string& lm_string, bool load_from_bytes)
 {
-  // Check if file is readable to avoid KenLM throwing an exception
-  const char* filename = lm_path.c_str();
-  if (access(filename, R_OK) != 0) {
-    return DS_ERR_SCORER_UNREADABLE;
-  }
+  if (!load_from_bytes){
+      // Check if file is readable to avoid KenLM throwing an exception
+      const char* filename = lm_string.c_str();
+      if (access(filename, R_OK) != 0) {
+        return DS_ERR_SCORER_UNREADABLE;
+      }
 
-  // Check if the file format is valid to avoid KenLM throwing an exception
-  lm::ngram::ModelType model_type;
-  if (!lm::ngram::RecognizeBinary(filename, model_type)) {
-    return DS_ERR_SCORER_INVALID_LM;
+      // Check if the file format is valid to avoid KenLM throwing an exception
+      lm::ngram::ModelType model_type;
+      if (!lm::ngram::RecognizeBinary(filename, model_type)) {
+        return DS_ERR_SCORER_INVALID_LM;
+      }
   }
 
   // Load the LM
   lm::ngram::Config config;
   config.load_method = util::LoadMethod::LAZY;
-  language_model_.reset(lm::ngram::LoadVirtual(filename, config));
+  if (load_from_bytes){
+    language_model_.reset(lm::ngram::LoadVirtual(lm_string.c_str(), lm_string.size(), config));
+  } else {
+    language_model_.reset(lm::ngram::LoadVirtual(lm_string.c_str(), config));
+  }
+  
   max_order_ = language_model_->Order();
-
-  uint64_t package_size;
-  {
-    util::scoped_fd fd(util::OpenReadOrThrow(filename));
-    package_size = util::SizeFile(fd.get());
-  }
+  std::stringstream stst;
   uint64_t trie_offset = language_model_->GetEndOfSearchOffset();
-  if (package_size <= trie_offset) {
-    // File ends without a trie structure
-    return DS_ERR_SCORER_NO_TRIE;
+
+  if (!load_from_bytes){
+    uint64_t package_size;
+    {
+      util::scoped_fd fd(util::OpenReadOrThrow(lm_string.c_str()));
+      package_size = util::SizeFile(fd.get());
+    }
+
+    if (package_size <= trie_offset) {
+      // File ends without a trie structure
+      return DS_ERR_SCORER_NO_TRIE;
+    }
+    // Read metadata and trie from file
+    std::ifstream fin(lm_string.c_str(), std::ios::binary);
+    stst<<fin.rdbuf();
+  } else {
+    stst = std::stringstream(lm_string);
   }
 
-  // Read metadata and trie from file
-  std::ifstream fin(lm_path, std::ios::binary);
-  fin.seekg(trie_offset);
-  return load_trie(fin, lm_path);
+  stst.seekg(trie_offset);
+  return load_trie(stst, lm_string, load_from_bytes);
 }
 
-int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
+int Scorer::load_trie(std::stringstream& fin, const std::string& file_path, bool load_from_bytes)
 {
+
   int magic;
   fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
   if (magic != MAGIC) {
@@ -140,9 +157,13 @@ int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
   reset_params(alpha, beta);
 
   fst::FstReadOptions opt;
-  opt.mode = fst::FstReadOptions::MAP;
-  opt.source = file_path;
-  dictionary.reset(FstType::Read(fin, opt));
+  if (load_from_bytes) {
+    dictionary.reset(fst::ConstFst<fst::StdArc>::Read(fin, opt));
+  } else {
+    opt.mode = fst::FstReadOptions::MAP;
+    opt.source = file_path;
+    dictionary.reset(FstType::Read(fin, opt));
+  }
   return DS_ERR_OK;
 }
 

@@ -17,9 +17,13 @@ DontBhiksha::DontBhiksha(const void * /*base*/, uint64_t /*max_offset*/, uint64_
 const uint8_t kArrayBhikshaVersion = 0;
 
 // TODO: put this in binary file header instead when I change the binary file format again.
-void ArrayBhiksha::UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config) {
+void ArrayBhiksha::UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config, bool load_from_bytes) {
   uint8_t buffer[2];
-  file.ReadForConfig(buffer, 2, offset);
+  if(load_from_bytes){
+    file.ReadForConfig(buffer, 2, offset, load_from_bytes);
+  } else {
+    file.ReadForConfig(buffer, 2, offset);
+  }
   uint8_t version = buffer[0];
   uint8_t configured_bits = buffer[1];
   if (version != kArrayBhikshaVersion) UTIL_THROW(FormatLoadException, "This file has sorted array compression version " << (unsigned) version << " but the code expects version " << (unsigned)kArrayBhikshaVersion);
