@@ -225,7 +225,7 @@ public class DeepSpeechModel {
      *
      */
     public void addHotWord(String word, float boost) {
-        evaluateErrorCode(impl.AddHotWord(word, boost));
+        evaluateErrorCode(impl.AddHotWord(this._msp, word, boost));
     }
     /**
      * @brief Erase a hot-word
@@ -236,7 +236,7 @@ public class DeepSpeechModel {
      *
      */
     public void eraseHotWord(String word) {
-        evaluateErrorCode(impl.EraseHotWord(word));
+        evaluateErrorCode(impl.EraseHotWord(this._msp, word));
     }
     /**
      * @brief Clear all hot-words.
@@ -245,6 +245,6 @@ public class DeepSpeechModel {
      *
      */
     public void clearHotWords() {
-        evaluateErrorCode(impl.ClearHotWords());
+        evaluateErrorCode(impl.ClearHotWords(this._msp));
     }
 }
