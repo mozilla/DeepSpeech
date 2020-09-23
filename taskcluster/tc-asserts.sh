@@ -527,7 +527,7 @@ run_multi_inference_tests()
 run_hotword_tests()
 {
   set +e
-  hotwords_decode=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --hot_words "foo:0.0,bar:-0.1" 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  hotwords_decode=$(${DS_BINARY_PREFIX}deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --hot_words "foo:0.0,bar:-0.1" 2>${TASKCLUSTER_TMP_DIR}/stderr)
   status=$?
   set -e
   assert_correct_ldc93s1_lm "${hotwords_decode}" "$status"
