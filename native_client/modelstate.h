@@ -17,6 +17,7 @@ struct ModelState {
 
   Alphabet alphabet_;
   std::shared_ptr<Scorer> scorer_;
+  std::unordered_map<std::string, float> hot_words_;
   unsigned int beam_width_;
   unsigned int n_steps_;
   unsigned int n_context_;

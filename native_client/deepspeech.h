@@ -81,7 +81,10 @@ typedef struct Metadata {
   APPLY(DS_ERR_FAIL_CREATE_STREAM,      0x3004, "Error creating the stream.") \
   APPLY(DS_ERR_FAIL_READ_PROTOBUF,      0x3005, "Error reading the proto buffer model file.") \
   APPLY(DS_ERR_FAIL_CREATE_SESS,        0x3006, "Failed to create session.") \
-  APPLY(DS_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.")
+  APPLY(DS_ERR_FAIL_CREATE_MODEL,       0x3007, "Could not allocate model state.") \
+  APPLY(DS_ERR_FAIL_INSERT_HOTWORD,     0x3008, "Could not insert hot-word.") \
+  APPLY(DS_ERR_FAIL_CLEAR_HOTWORD,      0x3009, "Could not clear hot-words.") \
+  APPLY(DS_ERR_FAIL_ERASE_HOTWORD,      0x3010, "Could not erase hot-word.")
 
 // sphinx-doc: error_code_listing_end
 
@@ -156,6 +159,42 @@ void DS_FreeModel(ModelState* ctx);
 DEEPSPEECH_EXPORT
 int DS_EnableExternalScorer(ModelState* aCtx,
                             const char* aScorerPath);
+
+/**
+ * @brief Add a hot-word and its boost.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param word The hot-word.
+ * @param boost The boost.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT
+int DS_AddHotWord(ModelState* aCtx,
+                  const char* word,
+                  float boost);
+
+/**
+ * @brief Remove entry for a hot-word from the hot-words map.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param word The hot-word.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT
+int DS_EraseHotWord(ModelState* aCtx,
+                    const char* word);
+
+/**
+ * @brief Removes all elements from the hot-words map.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT
+int DS_ClearHotWords(ModelState* aCtx);
 
 /**
  * @brief Disable decoding using an external scorer.

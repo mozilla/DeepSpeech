@@ -206,6 +206,10 @@ android_setup_ndk_data()
     ${TASKCLUSTER_TMP_DIR}/${model_name} \
     ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} \
     ${ANDROID_TMP_DIR}/ds/
+
+  if [ -f "${TASKCLUSTER_TMP_DIR}/kenlm.scorer" ]; then
+    adb push ${TASKCLUSTER_TMP_DIR}/kenlm.scorer ${ANDROID_TMP_DIR}/ds/
+  fi
 }
 
 android_setup_apk_data()

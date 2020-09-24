@@ -343,6 +343,53 @@ DS_EnableExternalScorer(ModelState* aCtx,
 }
 
 int
+DS_AddHotWord(ModelState* aCtx,
+              const char* word,
+              float boost)
+{
+  if (aCtx->scorer_) {
+    const int size_before = aCtx->hot_words_.size();
+    aCtx->hot_words_.insert( std::pair<std::string,float> (word, boost) );
+    const int size_after = aCtx->hot_words_.size();
+    if (size_before == size_after) {
+      return DS_ERR_FAIL_INSERT_HOTWORD;
+    }
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
+}
+
+int
+DS_EraseHotWord(ModelState* aCtx,
+                const char* word)
+{
+  if (aCtx->scorer_) {
+    const int size_before = aCtx->hot_words_.size();
+    int err = aCtx->hot_words_.erase(word);
+    const int size_after = aCtx->hot_words_.size();
+    if (size_before == size_after) {
+      return DS_ERR_FAIL_ERASE_HOTWORD;
+    }
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
+}
+
+int
+DS_ClearHotWords(ModelState* aCtx)
+{
+  if (aCtx->scorer_) {
+    aCtx->hot_words_.clear();
+    const int size_after = aCtx->hot_words_.size();
+    if (size_after != 0) {
+      return DS_ERR_FAIL_CLEAR_HOTWORD;
+    }
+    return DS_ERR_OK;
+  }
+  return DS_ERR_SCORER_NOT_ENABLED;
+}
+
+int
 DS_DisableExternalScorer(ModelState* aCtx)
 {
   if (aCtx->scorer_) {
@@ -390,7 +437,8 @@ DS_CreateStream(ModelState* aCtx,
                            aCtx->beam_width_,
                            cutoff_prob,
                            cutoff_top_n,
-                           aCtx->scorer_);
+                           aCtx->scorer_,
+                           aCtx->hot_words_);
 
   *retval = ctx.release();
   return DS_ERR_OK;

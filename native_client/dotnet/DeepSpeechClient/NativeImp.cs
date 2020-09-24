@@ -42,6 +42,18 @@ namespace DeepSpeechClient
             string aScorerPath);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern ErrorCodes DS_AddHotWord(IntPtr** aCtx,
+            string aWord,
+            float aBoost);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern ErrorCodes DS_EraseHotWord(IntPtr** aCtx,
+            string aWord);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
+        internal static unsafe extern ErrorCodes DS_ClearHotWords(IntPtr** aCtx);
+
+        [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]
         internal static unsafe extern ErrorCodes DS_DisableExternalScorer(IntPtr** aCtx);
 
         [DllImport("libdeepspeech.so", CallingConvention = CallingConvention.Cdecl)]

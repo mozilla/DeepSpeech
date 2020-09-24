@@ -96,6 +96,7 @@ def ctc_beam_search_decoder(probs_seq,
                             cutoff_prob=1.0,
                             cutoff_top_n=40,
                             scorer=None,
+                            hot_words=dict(),
                             num_results=1):
     """Wrapper for the CTC Beam Search Decoder.
 
@@ -116,6 +117,8 @@ def ctc_beam_search_decoder(probs_seq,
     :param scorer: External scorer for partially decoded sentence, e.g. word
                    count or language model.
     :type scorer: Scorer
+    :param hot_words: Map of words (keys) to their assigned boosts (values)
+    :type hot_words: map{string:float}
     :param num_results: Number of beams to return.
     :type num_results: int
     :return: List of tuples of confidence and sentence as decoding
@@ -124,7 +127,7 @@ def ctc_beam_search_decoder(probs_seq,
     """
     beam_results = swigwrapper.ctc_beam_search_decoder(
         probs_seq, alphabet, beam_size, cutoff_prob, cutoff_top_n,
-        scorer, num_results)
+        scorer, hot_words, num_results)
     beam_results = [(res.confidence, alphabet.Decode(res.tokens)) for res in beam_results]
     return beam_results
 
@@ -137,6 +140,7 @@ def ctc_beam_search_decoder_batch(probs_seq,
                                   cutoff_prob=1.0,
                                   cutoff_top_n=40,
                                   scorer=None,
+                                  hot_words=dict(),
                                   num_results=1):
     """Wrapper for the batched CTC beam search decoder.
 
@@ -161,13 +165,15 @@ def ctc_beam_search_decoder_batch(probs_seq,
     :param scorer: External scorer for partially decoded sentence, e.g. word
                    count or language model.
     :type scorer: Scorer
+    :param hot_words: Map of words (keys) to their assigned boosts (values)
+    :type hot_words: map{string:float}
     :param num_results: Number of beams to return.
     :type num_results: int
     :return: List of tuples of confidence and sentence as decoding
              results, in descending order of the confidence.
     :rtype: list
     """
-    batch_beam_results = swigwrapper.ctc_beam_search_decoder_batch(probs_seq, seq_lengths, alphabet, beam_size, num_processes, cutoff_prob, cutoff_top_n, scorer, num_results)
+    batch_beam_results = swigwrapper.ctc_beam_search_decoder_batch(probs_seq, seq_lengths, alphabet, beam_size, num_processes, cutoff_prob, cutoff_top_n, scorer, hot_words, num_results)
     batch_beam_results = [
         [(res.confidence, alphabet.Decode(res.tokens)) for res in beam_results]
         for beam_results in batch_beam_results

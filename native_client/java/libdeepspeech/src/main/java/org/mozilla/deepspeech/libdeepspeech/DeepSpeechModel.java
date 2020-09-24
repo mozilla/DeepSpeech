@@ -215,4 +215,36 @@ public class DeepSpeechModel {
     public Metadata finishStreamWithMetadata(DeepSpeechStreamingState ctx, int num_results) {
         return impl.FinishStreamWithMetadata(ctx.get(), num_results);
     }
+    /**
+     * @brief Add a hot-word
+     *
+     * @param word
+     * @param boost
+     *
+     * @throws RuntimeException on failure.
+     *
+     */
+    public void addHotWord(String word, float boost) {
+        evaluateErrorCode(impl.AddHotWord(this._msp, word, boost));
+    }
+    /**
+     * @brief Erase a hot-word
+     *
+     * @param word
+     *
+     * @throws RuntimeException on failure.
+     *
+     */
+    public void eraseHotWord(String word) {
+        evaluateErrorCode(impl.EraseHotWord(this._msp, word));
+    }
+    /**
+     * @brief Clear all hot-words.
+     *
+     * @throws RuntimeException on failure.
+     *
+     */
+    public void clearHotWords() {
+        evaluateErrorCode(impl.ClearHotWords(this._msp));
+    }
 }

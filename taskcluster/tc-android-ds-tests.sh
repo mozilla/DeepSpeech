@@ -30,4 +30,6 @@ android_setup_ndk_data
 
 run_tflite_basic_inference_tests
 
+run_android_hotword_tests
+
 android_stop_emulator

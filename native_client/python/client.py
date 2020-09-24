@@ -109,6 +109,8 @@ def main():
                         help='Output json from metadata with timestamp of each word')
     parser.add_argument('--candidate_transcripts', type=int, default=3,
                         help='Number of candidate transcripts to include in JSON output')
+    parser.add_argument('--hot_words', type=str,
+                        help='Hot-words and their boosts.')
     args = parser.parse_args()
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
@@ -133,6 +135,12 @@ def main():
 
         if args.lm_alpha and args.lm_beta:
             ds.setScorerAlphaBeta(args.lm_alpha, args.lm_beta)
+
+    if args.hot_words:
+        print('Adding hot-words', file=sys.stderr)
+        for word_boost in args.hot_words.split(','):
+            word,boost = word_boost.split(':')
+            ds.addHotWord(word,float(boost))
 
     fin = wave.open(args.audio, 'rb')
     fs_orig = fin.getframerate()

@@ -95,6 +95,45 @@ class Model(object):
         """
         return deepspeech.impl.DisableExternalScorer(self._impl)
 
+    def addHotWord(self, word, boost):
+        """
+        Add a word and its boost for decoding.
+
+        :param word: the hot-word
+        :type word: str
+
+        :param word: the boost
+        :type word: float
+
+        :throws: RuntimeError on error
+        """
+        status = deepspeech.impl.AddHotWord(self._impl, word, boost)
+        if status != 0:
+            raise RuntimeError("AddHotWord failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+
+    def eraseHotWord(self, word):
+        """
+        Remove entry for word from hot-words dict.
+
+        :param word: the hot-word
+        :type word: str
+
+        :throws: RuntimeError on error
+        """
+        status = deepspeech.impl.EraseHotWord(self._impl, word)
+        if status != 0:
+            raise RuntimeError("EraseHotWord failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+
+    def clearHotWords(self):
+        """
+        Remove all entries from hot-words dict.
+
+        :throws: RuntimeError on error
+        """
+        status = deepspeech.impl.ClearHotWords(self._impl)
+        if status != 0:
+            raise RuntimeError("ClearHotWords failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+
     def setScorerAlphaBeta(self, alpha, beta):
         """
         Set hyperparameters alpha and beta of the external scorer.

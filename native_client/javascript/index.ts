@@ -183,6 +183,47 @@ export class Model {
     }
 
     /**
+     * Add a hot-word and its boost
+     *
+     * @param aWord word
+     * @param aBoost boost
+     *
+     * @throws on error
+     */
+     addHotWord(aWord: string, aBoost: number): void {
+        const status = binding.addHotWord(this._impl, aWord, aBoost);
+        if (status !== 0) {
+            throw `addHotWord failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
+        }
+    }
+
+    /**
+     * Erase entry for hot-word
+     *
+     * @param aWord word
+     *
+     * @throws on error
+     */
+    eraseHotWord(aWord: string): void {
+        const status = binding.eraseHotWord(this._impl, aWord);
+        if (status !== 0) {
+            throw `eraseHotWord failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
+        }
+    }
+
+    /**
+     * Clear all hot-word entries
+     *
+     * @throws on error
+     */
+    clearHotWords(): void {
+        const status = binding.clearHotWords(this._impl);
+        if (status !== 0) {
+            throw `clearHotWord failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
+        }
+    }
+
+    /**
      * Return the sample rate expected by the model.
      *
      * @return Sample rate.
