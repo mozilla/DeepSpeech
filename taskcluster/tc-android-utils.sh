@@ -208,7 +208,7 @@ android_setup_ndk_data()
     ${ANDROID_TMP_DIR}/ds/
 
   if [ -f "${TASKCLUSTER_TMP_DIR}/kenlm.scorer" ]; then
-      adb push ${TASKCLUSTER_TMP_DIR}/kenlm.scorer ${ANDROID_TMP_DIR}/ds/
+    adb push ${TASKCLUSTER_TMP_DIR}/kenlm.scorer ${ANDROID_TMP_DIR}/ds/
   fi
 }
 
