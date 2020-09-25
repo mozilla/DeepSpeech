@@ -43,6 +43,9 @@ RUN pip3 install --upgrade native_client/ctcdecode/dist/*.whl
 # Prepare deps
 RUN pip3 install --upgrade pip==20.2.2 wheel==0.34.2 setuptools==49.6.0
 
+# FIXME: Hack because no 1.15.4 Docker image
+RUN pip3 install --upgrade tensorflow-gpu==1.15.4
+
 # Install DeepSpeech
 #  - No need for the decoder since we did it earlier
 #  - There is already correct TensorFlow GPU installed on the base image,
