@@ -270,6 +270,13 @@ DS_CreateModel(const char* aModelPath,
 }
 
 int
+DS_CreateModelFromBuffer(const std::string &aModelBuffer,
+                         ModelState** retval)
+{
+  return DS_CreateModel_(aModelBuffer, true, retval);
+}
+
+int
 DS_CreateModel_(const std::string &aModelString,
                 bool init_from_bytes,
                 ModelState** retval)
@@ -342,6 +349,13 @@ DS_EnableExternalScorer(ModelState* aCtx,
                         const char* aScorerPath)
 {
   return DS_EnableExternalScorer_(aCtx, aScorerPath, false);
+}
+
+int
+DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
+                                  const std::string &aScorerBuffer)
+{
+  return DS_EnableExternalScorer_(aCtx, aScorerBuffer, true);
 }
 
 int
