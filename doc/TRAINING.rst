@@ -67,7 +67,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 .. code-block:: bash
 
    pip3 uninstall tensorflow
-   pip3 install 'tensorflow-gpu==1.15.2'
+   pip3 install 'tensorflow-gpu==1.15.4'
 
 Please ensure you have the required :ref:`CUDA dependency <cuda-deps>`.
 
