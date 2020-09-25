@@ -110,6 +110,19 @@ int DS_CreateModel(const char* aModelPath,
                    ModelState** retval);
 
 /**
+ * @brief An object providing an interface to a trained DeepSpeech model, loaded from buffer.
+ *
+ * @param aModelBuffer The buffer containing the content of frozen model graph.
+ * @param[out] retval a ModelState pointer
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_CreateModelFromBuffer(const std::string &aModelBuffer,
+                             ModelState** retval);
+
+
+/**
  * @brief An object providing an interface to a trained DeepSpeech model.
  *
  * @param aModelString The path/string for initializing the model graph.
@@ -175,6 +188,18 @@ void DS_FreeModel(ModelState* ctx);
 DEEPSPEECH_EXPORT
 int DS_EnableExternalScorer(ModelState* aCtx,
                             const char* aScorerPath);
+
+/**
+ * @brief Enable decoding using an external scorer loaded from buffer.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param aScorerBuffer The buffer containing the content of an external-scorer file.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT
+int DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
+                                      const std::string &aScorerBuffer);
 
 /**
  * @brief Enable decoding using an external scorer.

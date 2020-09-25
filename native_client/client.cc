@@ -461,7 +461,7 @@ main(int argc, char **argv)
     std::ifstream is_model( model, std::ios::binary );
     std::stringstream buffer_model;
     buffer_model << is_model.rdbuf();
-    status = DS_CreateModel_(buffer_model.str(), true, &ctx);
+    status = DS_CreateModelFromBuffer(buffer_model.str(), &ctx);
   }else {
     // Keep old method due to backwards compatibility
     status = DS_CreateModel(model, &ctx);
@@ -488,7 +488,7 @@ main(int argc, char **argv)
       std::ifstream is_scorer(scorer, std::ios::binary );
       std::stringstream buffer_scorer;
       buffer_scorer << is_scorer.rdbuf();
-      status = DS_EnableExternalScorer_(ctx, buffer_scorer.str(), true);
+      status = DS_EnableExternalScorerFromBuffer(ctx, buffer_scorer.str());
     } else {
       // Keep old method due to backwards compatibility
       status = DS_EnableExternalScorer(ctx, scorer);

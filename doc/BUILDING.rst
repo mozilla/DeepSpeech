@@ -73,7 +73,7 @@ You can now use Bazel to build the main DeepSpeech library, ``libdeepspeech.so``
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=1" --copt=-fvisibility=hidden //native_client:libdeepspeech.so
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
@@ -87,7 +87,7 @@ Using the example from above you can build the library and that binary at the sa
 
 .. code-block::
 
-   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=1" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_scorer_package
+   bazel build --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh" --config=monolithic -c opt --copt=-O3 --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --copt=-fvisibility=hidden //native_client:libdeepspeech.so //native_client:generate_scorer_package
 
 The generated binaries will be saved to ``bazel-bin/native_client/``.
 
