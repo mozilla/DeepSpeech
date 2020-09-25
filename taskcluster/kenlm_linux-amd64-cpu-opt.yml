@@ -1,0 +1,16 @@
+build:
+  template_file: generic_tc_caching-linux-opt-base.tyml
+  cache:
+    artifact_url: ${system.kenlm.linux_amd64_cpu.url}
+    artifact_namespace: ${system.kenlm.linux_amd64_cpu.namespace}
+  system_config:
+    >
+      ${kenlm.packages_xenial.apt}
+  scripts:
+    setup: "taskcluster/kenlm_tc-setup.sh --linux-amd64"
+    build: "taskcluster/kenlm_tc-build.sh --linux-amd64"
+    package: "taskcluster/kenlm_tc-package.sh"
+  workerType: "${docker.dsBuild}"
+  metadata:
+    name: "KenLM Linux AMD64 CPU"
+    description: "Building KenLM for Linux/AMD64, CPU only, optimized version"

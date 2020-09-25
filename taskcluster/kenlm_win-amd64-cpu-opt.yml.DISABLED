@@ -1,0 +1,12 @@
+build:
+  template_file: generic_tc_caching-win-opt-base.tyml
+  cache:
+    artifact_url: ${system.kenlm.win_amd64_cpu.url}
+    artifact_namespace: ${system.kenlm.win_amd64_cpu.namespace}
+  scripts:
+    setup: "taskcluster/kenlm_tc-setup.sh --windows-amd64"
+    build: "taskcluster/kenlm_tc-build.sh --windows-amd64"
+    package: "taskcluster/kenlm_tc-package.sh"
+  metadata:
+    name: "KenLM Windows AMD64 CPU"
+    description: "Building KenLM for Windows/AMD64, CPU only, optimized version"

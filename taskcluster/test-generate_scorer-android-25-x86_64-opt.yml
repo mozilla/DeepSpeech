@@ -1,0 +1,15 @@
+build:
+  template_file: test-android-opt-base.tyml
+  dependencies:
+    - "android-x86_64-cpu-opt"
+    - "kenlm_android-x86_64-cpu-opt"
+    - "android-cache-x86_64-android-25"
+  cache:
+    url: ${system.android_cache.x86_64.android_25.url}
+    namespace: ${system.android_cache.x86_64.android_25.namespace}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-scorer-tests.sh ${system.kenlm.android_x86_64_cpu.url} android x86_64 android-25"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "Testing DeepSpeech Android 7.1 x86-64 CPU generate scorer"
+    description: "Generate a DeepSpeech Scorer for Android 7.1/x86-64, CPU only, optimized version"

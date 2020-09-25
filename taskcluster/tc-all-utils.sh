@@ -19,9 +19,29 @@ generic_download_tarxz()
   ${WGET} ${url} -O - | ${UNXZ} | ${TAR} -C ${target_dir} -xf -
 }
 
+generic_download_targz()
+{
+  target_dir=$1
+  url=$2
+
+  if [ -z "${target_dir}" -o -z "${url}" ]; then
+    echo "Empty name for target directory or URL:"
+    echo " target_dir=${target_dir}"
+    echo " url=${url}"
+    exit 1
+  fi;
+
+  mkdir -p ${target_dir} || true
+
+  ${WGET} ${url} -O - | ${UNGZ} | ${TAR} -C ${target_dir} -xf -
+}
+
 download_native_client_files()
 {
-  generic_download_tarxz "$1" "${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz"
+  local _target_dir=$1
+  local _nc_url=$(get_dependency_url "native_client.tar.xz")
+
+  generic_download_tarxz "${_target_dir}" "${_nc_url}"
 }
 
 set_ldc_sample_filename()

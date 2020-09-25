@@ -119,7 +119,7 @@ android_setup_emulator()
   fi
 
   export PATH=${ANDROID_SDK_HOME}/tools/bin/:${ANDROID_SDK_HOME}/platform-tools/:$PATH
-  export DS_BINARY_PREFIX="adb shell LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
+  export DS_BINARY_PREFIX="adb shell TMP=${ANDROID_TMP_DIR}/ LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
 
   # Pipe yes in case of license being shown
   yes | sdkmanager --update
@@ -141,7 +141,7 @@ android_start_emulator()
   local _api_level=${2:-android-25}
 
   export PATH=${ANDROID_SDK_HOME}/tools/bin/:${ANDROID_SDK_HOME}/platform-tools/:$PATH
-  export DS_BINARY_PREFIX="adb shell LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
+  export DS_BINARY_PREFIX="adb shell TMP=${ANDROID_TMP_DIR}/ LD_LIBRARY_PATH=${ANDROID_TMP_DIR}/ds/ ${ANDROID_TMP_DIR}/ds/"
 
   # minutes (2 minutes by default)
   export ADB_INSTALL_TIMEOUT=8

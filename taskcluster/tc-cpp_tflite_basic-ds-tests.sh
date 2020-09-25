@@ -9,7 +9,6 @@ set_ldc_sample_filename "${bitrate}"
 
 model_source=${DEEPSPEECH_TEST_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
-export DEEPSPEECH_ARTIFACTS_ROOT=${DEEPSPEECH_ARTIFACTS_TFLITE_ROOT}
 export DATA_TMP_DIR=${TASKCLUSTER_TMP_DIR}
 
 download_material "${TASKCLUSTER_TMP_DIR}/ds"
