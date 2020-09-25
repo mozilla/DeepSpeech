@@ -74,7 +74,7 @@ def main():
     ]
 
     tensorflow_pypi_dep = [
-        'tensorflow == 1.15.2'
+        'tensorflow == 1.15.4'
     ]
 
     # Due to pip craziness environment variables are the only consistent way to
