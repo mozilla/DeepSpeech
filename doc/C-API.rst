@@ -28,7 +28,7 @@ See also the list of error codes including descriptions for each error in :ref:`
 .. doxygenfunction:: DS_EraseHotWord
    :project: deepspeech-c
 
-.. doxygenfunction:: DS_ClearHotWord
+.. doxygenfunction:: DS_ClearHotWords
    :project: deepspeech-c
 
 .. doxygenfunction:: DS_SetScorerAlphaBeta
