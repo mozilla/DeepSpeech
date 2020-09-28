@@ -100,7 +100,7 @@ protected:
   // necessary setup after setting alphabet
   void setup_char_map();
 
-  int load_trie(std::stringstream& fin, const std::string& file_path, bool load_from_bytes);
+  int load_trie(std::stringstream& fin, const std::string& file_path, bool load_from_bytes=false);
 
 private:
   std::unique_ptr<lm::base::Model> language_model_;
