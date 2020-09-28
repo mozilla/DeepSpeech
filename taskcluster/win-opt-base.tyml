@@ -34,6 +34,7 @@ payload:
     MSYS: 'winsymlinks:nativestrict'
     EXAMPLES_CLONE_URL: "https://github.com/mozilla/STT-examples"
     EXAMPLES_CHECKOUT_TARGET: "r0.8"
+    GIT_LFS_SKIP_SMUDGE: '1'
 
   command:
     - >-

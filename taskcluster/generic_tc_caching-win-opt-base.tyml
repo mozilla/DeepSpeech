@@ -24,6 +24,7 @@ payload:
   env:
     TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
     MSYS: 'winsymlinks:nativestrict'
+    GIT_LFS_SKIP_SMUDGE: '1'
 
   command:
     - >-
