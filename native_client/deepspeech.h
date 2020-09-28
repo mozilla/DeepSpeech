@@ -123,20 +123,6 @@ int DS_CreateModelFromBuffer(const std::string &aModelBuffer,
 
 
 /**
- * @brief An object providing an interface to a trained DeepSpeech model.
- *
- * @param aModelString The path/string for initializing the model graph.
- * @param init_from_bytes Wheter the model will be initialized using path or array of bytes.
- * @param[out] retval a ModelState pointer
- *
- * @return Zero on success, non-zero on failure.
- */
-DEEPSPEECH_EXPORT
-int DS_CreateModel_(const std::string &aModelString,
-                    bool init_from_bytes,
-                    ModelState** retval);
-
-/**
  * @brief Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
  *        was not called before, will return the default value loaded from the
  *        model file.
@@ -201,19 +187,6 @@ DEEPSPEECH_EXPORT
 int DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
                                       const std::string &aScorerBuffer);
 
-/**
- * @brief Enable decoding using an external scorer.
- *
- * @param aCtx The ModelState pointer for the model being changed.
- * @param aScorerString The path/array_of_bytes to initialize the external scorer.
- * @param init_from_bytes Wheter the scorer will be initialized by file or array of bytes.
- *
- * @return Zero on success, non-zero on failure (invalid arguments).
- */
-DEEPSPEECH_EXPORT                  
-int DS_EnableExternalScorer_(ModelState* aCtx,
-                             const std::string &aScorerString,
-                             bool init_from_bytes);
 
 /**
  * @brief Add a hot-word and its boost.
