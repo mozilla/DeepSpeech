@@ -180,7 +180,6 @@ TFLiteModelState::init(const std::string &model_string, bool init_from_bytes)
     }
   }
 
-
   tflite::ops::builtin::BuiltinOpResolver resolver;
   tflite::InterpreterBuilder(*fbmodel_, resolver)(&interpreter_);
   if (!interpreter_) {
