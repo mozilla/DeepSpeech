@@ -263,20 +263,6 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 }
 
 int
-DS_CreateModel(const char* aModelPath,
-               ModelState** retval)
-{
-  return DS_CreateModel_(aModelPath, false, retval);
-}
-
-int
-DS_CreateModelFromBuffer(const std::string &aModelBuffer,
-                         ModelState** retval)
-{
-  return DS_CreateModel_(aModelBuffer, true, retval);
-}
-
-int
 DS_CreateModel_(const std::string &aModelString,
                 bool init_from_bytes,
                 ModelState** retval)
@@ -319,6 +305,21 @@ DS_CreateModel_(const std::string &aModelString,
   return DS_ERR_OK;
 }
 
+int
+DS_CreateModel(const char* aModelPath,
+               ModelState** retval)
+{
+  return DS_CreateModel_(aModelPath, false, retval);
+}
+
+int
+DS_CreateModelFromBuffer(const std::string &aModelBuffer,
+                         ModelState** retval)
+{
+  return DS_CreateModel_(aModelBuffer, true, retval);
+}
+
+
 unsigned int
 DS_GetModelBeamWidth(const ModelState* aCtx)
 {
@@ -345,20 +346,6 @@ DS_FreeModel(ModelState* ctx)
 }
 
 int
-DS_EnableExternalScorer(ModelState* aCtx,
-                        const char* aScorerPath)
-{
-  return DS_EnableExternalScorer_(aCtx, aScorerPath, false);
-}
-
-int
-DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
-                                  const std::string &aScorerBuffer)
-{
-  return DS_EnableExternalScorer_(aCtx, aScorerBuffer, true);
-}
-
-int
 DS_EnableExternalScorer_(ModelState* aCtx,
                          const std::string &aScorerString,
                          bool init_from_bytes)
@@ -372,6 +359,20 @@ DS_EnableExternalScorer_(ModelState* aCtx,
   }
   aCtx->scorer_ = std::move(scorer);
   return DS_ERR_OK;
+}
+
+int
+DS_EnableExternalScorer(ModelState* aCtx,
+                        const char* aScorerPath)
+{
+  return DS_EnableExternalScorer_(aCtx, aScorerPath, false);
+}
+
+int
+DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
+                                  const std::string &aScorerBuffer)
+{
+  return DS_EnableExternalScorer_(aCtx, aScorerBuffer, true);
 }
 
 int
