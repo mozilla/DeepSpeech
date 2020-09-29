@@ -184,16 +184,21 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
     }
     size_t off = 0;
     const char *last = nullptr;
+    const char *prev = nullptr;
     while (off < aBufferSize) {
       size_t cur = aBufferSize - off > stream_size ? stream_size : aBufferSize - off;
       DS_FeedAudioContent(ctx, aBuffer + off, cur);
       off += cur;
+      prev = last;
       const char* partial = DS_IntermediateDecode(ctx);
       if (last == nullptr || strcmp(last, partial)) {
         printf("%s\n", partial);
         last = partial;
       } else {
         DS_FreeString((char *) partial);
+      }
+      if (prev != nullptr && prev != last) {
+        DS_FreeString((char *) prev);
       }
     }
     if (last != nullptr) {
