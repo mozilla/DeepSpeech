@@ -86,7 +86,7 @@ public:
   void fill_dictionary(const std::unordered_set<std::string> &vocabulary);
 
   // load language model from given path
-  int load_lm(const std::string &lm_path, bool load_from_bytes);
+  int load_lm(const std::string &lm_path, bool load_from_bytes=false);
 
   // language model weight
   double alpha = 0.;
