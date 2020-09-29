@@ -30,8 +30,16 @@ CXXFLAGS        :=
 LDFLAGS         :=
 SOX_CFLAGS      := `pkg-config --cflags sox`
 ifeq ($(OS),Linux)
+MAGIC_LINK_LZMA := $(shell objdump -tTC /usr/lib/`uname -m`-linux-gnu/libmagic.so | grep lzma | grep '*UND*' | wc -l)
+ifneq ($(MAGIC_LINK_LZMA),0)
+MAYBE_LINK_LZMA := -llzma
+endif # MAGIC_LINK_LZMA
+MAGIC_LINK_BZ2  := $(shell objdump -tTC /usr/lib/`uname -m`-linux-gnu/libmagic.so | grep BZ2 | grep '*UND*' | wc -l)
+ifneq ($(MAGIC_LINK_BZ2),0)
+MAYBE_LINK_BZ2  := -lbz2
+endif # MAGIC_LINK_BZ2
 SOX_CFLAGS      += -fopenmp
-SOX_LDFLAGS     := -Wl,-Bstatic `pkg-config --static --libs sox` -lgsm `pkg-config --static --libs libpng | cut -d' ' -f1` -lz -lmagic -lltdl -Wl,-Bdynamic -ldl
+SOX_LDFLAGS     := -Wl,-Bstatic `pkg-config --static --libs sox` -lgsm `pkg-config --static --libs libpng | cut -d' ' -f1` -lz -lmagic $(MAYBE_LINK_LZMA) $(MAYBE_LINK_BZ2) -lltdl -Wl,-Bdynamic -ldl
 else ifeq ($(OS),Darwin)
 LIBSOX_PATH             := $(shell echo `pkg-config --libs-only-L sox | sed -e 's/^-L//'`/lib`pkg-config --libs-only-l sox | sed -e 's/^-l//'`.dylib)
 LIBOPUSFILE_PATH        := $(shell echo `pkg-config --libs-only-L opusfile | sed -e 's/^-L//'`/lib`pkg-config --libs-only-l opusfile | sed -e 's/^-l//'`.dylib)
