@@ -1,0 +1,10 @@
+{
+   deepspeech_tflite_error_reporter
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_Znwm
+   fun:_ZN6tflite20DefaultErrorReporterEv
+   fun:_ZN16TFLiteModelState4initEPKc
+   fun:DS_CreateModel
+   fun:main
+}

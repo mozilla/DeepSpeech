@@ -34,6 +34,7 @@ then:
         DECODER_ARTIFACTS_ROOT: https://community-tc.services.mozilla.com/api/queue/v1/task/${linux_amd64_ctc}/artifacts/public
         PIP_DEFAULT_TIMEOUT: "60"
         EXPECTED_TENSORFLOW_VERSION: "${build.tensorflow_git_desc}"
+        DEBIAN_FRONTEND: "noninteractive"
 
     command:
       - "/bin/bash"
