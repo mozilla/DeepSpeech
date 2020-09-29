@@ -22,6 +22,9 @@ source ${tc_tests_utils}/tc-node-utils.sh
 # Scoping of .Net-related tooling
 source ${tc_tests_utils}/tc-dotnet-utils.sh
 
+# For checking with valgrind
+source ${tc_tests_utils}/tc-valgrind-utils.sh
+
 # Functions that controls directly the build process
 source ${tc_tests_utils}/tc-build-utils.sh
 
