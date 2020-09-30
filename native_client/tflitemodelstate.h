@@ -31,7 +31,7 @@ struct TFLiteModelState : public ModelState
   TFLiteModelState();
   virtual ~TFLiteModelState();
 
-  virtual int init(const std::string &model_string, bool init_from_bytes) override;
+  virtual int init(const char* model_string, bool init_from_bytes, size_t bufferSize) override;
 
   virtual void compute_mfcc(const std::vector<float>& audio_buffer,
                             std::vector<float>& mfcc_output) override;

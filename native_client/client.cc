@@ -454,6 +454,7 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
+  std::string buffer_model_str;
   // sphinx-doc: c_ref_model_start
   int status;
   if (init_from_array_of_bytes){
@@ -461,7 +462,8 @@ main(int argc, char **argv)
     std::ifstream is_model( model, std::ios::binary );
     std::stringstream buffer_model;
     buffer_model << is_model.rdbuf();
-    status = DS_CreateModelFromBuffer(buffer_model.str(), &ctx);
+    buffer_model_str = buffer_model.str();
+    status = DS_CreateModelFromBuffer(buffer_model_str.c_str(), buffer_model_str.size(), &ctx);
   }else {
     // Keep old method due to backwards compatibility
     status = DS_CreateModel(model, &ctx);
@@ -488,7 +490,8 @@ main(int argc, char **argv)
       std::ifstream is_scorer(scorer, std::ios::binary );
       std::stringstream buffer_scorer;
       buffer_scorer << is_scorer.rdbuf();
-      status = DS_EnableExternalScorerFromBuffer(ctx, buffer_scorer.str());
+      std::string tmp_str_scorer = buffer_scorer.str();
+      status = DS_EnableExternalScorerFromBuffer(ctx, tmp_str_scorer.c_str(), tmp_str_scorer.size());
     } else {
       // Keep old method due to backwards compatibility
       status = DS_EnableExternalScorer(ctx, scorer);

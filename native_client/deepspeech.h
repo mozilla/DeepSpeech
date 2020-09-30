@@ -76,6 +76,7 @@ typedef struct Metadata {
   APPLY(DS_ERR_SCORER_NO_TRIE,          0x2007, "Reached end of scorer file before loading vocabulary trie.") \
   APPLY(DS_ERR_SCORER_INVALID_TRIE,     0x2008, "Invalid magic in trie header.") \
   APPLY(DS_ERR_SCORER_VERSION_MISMATCH, 0x2009, "Scorer file version does not match expected version.") \
+  APPLY(DS_ERR_MODEL_NOT_SUP_BUFFER,    0x2010, "Load from buffer does not support memorymaped models.") \
   APPLY(DS_ERR_FAIL_INIT_MMAP,          0x3000, "Failed to initialize memory mapped model.") \
   APPLY(DS_ERR_FAIL_INIT_SESS,          0x3001, "Failed to initialize the session.") \
   APPLY(DS_ERR_FAIL_INTERPRETER,        0x3002, "Interpreter failed.") \
@@ -118,7 +119,8 @@ int DS_CreateModel(const char* aModelPath,
  * @return Zero on success, non-zero on failure.
  */
 DEEPSPEECH_EXPORT
-int DS_CreateModelFromBuffer(const std::string &aModelBuffer,
+int DS_CreateModelFromBuffer(const char* aModelBuffer,
+                             size_t bufferSize,
                              ModelState** retval);
 
 
@@ -185,7 +187,8 @@ int DS_EnableExternalScorer(ModelState* aCtx,
  */
 DEEPSPEECH_EXPORT
 int DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
-                                      const std::string &aScorerBuffer);
+                                      const char* aScorerBuffer,
+                                      size_t bufferSize);
 
 
 /**

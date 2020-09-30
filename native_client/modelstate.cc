@@ -24,7 +24,7 @@ ModelState::~ModelState()
 }
 
 int
-ModelState::init(const std::string &model_string, bool init_from_bytes)
+ModelState::init(const char* model_string, bool init_from_bytes, size_t bufferSize)
 {
   return DS_ERR_OK;
 }

@@ -22,10 +22,11 @@ TFModelState::~TFModelState()
   }
 }
 
-int loadGraphFromBinaryData(Env* env, const std::string& data,
+int loadGraphFromBinaryData(Env* env, const char* data, size_t bufferSize,
                           ::tensorflow::protobuf::MessageLite* proto) {  
                             
-  if (!proto->ParseFromString(data)) {
+  std::string dataString(data, bufferSize);
+  if (!proto->ParseFromString(dataString)) {
     std::cerr << "Can't parse data as binary proto" << std::endl;
     return -1;
   }
@@ -33,9 +34,9 @@ int loadGraphFromBinaryData(Env* env, const std::string& data,
 }
 
 int
-TFModelState::init(const std::string &model_string, bool init_from_bytes)
+TFModelState::init(const char* model_string, bool init_from_bytes, size_t bufferSize)
 {
-  int err = ModelState::init(model_string, init_from_bytes);
+  int err = ModelState::init(model_string, init_from_bytes, bufferSize);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -46,16 +47,16 @@ TFModelState::init(const std::string &model_string, bool init_from_bytes)
   mmap_env_.reset(new MemmappedEnv(Env::Default()));
   bool is_mmap = false;
   if (init_from_bytes) {
-    int loadGraphStatus = loadGraphFromBinaryData(Env::Default(), model_string, &graph_def_);
+    int loadGraphStatus = loadGraphFromBinaryData(mmap_env_.get(), model_string, bufferSize, &graph_def_);
     if (loadGraphStatus != 0) {
       return DS_ERR_FAIL_CREATE_SESS;
     }
   } else {
-    is_mmap = model_string.find(".pbmm") != std::string::npos;
+    is_mmap = std::string(model_string).find(".pbmm") != std::string::npos;
     if (!is_mmap) {
       std::cerr << "Warning: reading entire model file into memory. Transform model file into an mmapped graph to reduce heap usage." << std::endl;
     } else {
-      status = mmap_env_->InitializeFromFile(model_string.c_str());
+      status = mmap_env_->InitializeFromFile(model_string);
       if (!status.ok()) {
         std::cerr << status << std::endl;
         return DS_ERR_FAIL_INIT_MMAP;
@@ -77,14 +78,17 @@ TFModelState::init(const std::string &model_string, bool init_from_bytes)
   session_.reset(session);
 
   if (init_from_bytes){
-    // Need some help
+    if( is_mmap) {
+      std::cerr << "Load from buffer does not support .pbmm models." << std::endl;
+      return DS_ERR_MODEL_NOT_SUP_BUFFER;
+    }
   } else {
     if (is_mmap) {
       status = ReadBinaryProto(mmap_env_.get(),
                                MemmappedFileSystem::kMemmappedPackageDefaultGraphDef,
                                &graph_def_);
     } else {
-      status = ReadBinaryProto(Env::Default(), model_string.c_str(), &graph_def_);
+      status = ReadBinaryProto(Env::Default(), model_string, &graph_def_);
     }
   }
 

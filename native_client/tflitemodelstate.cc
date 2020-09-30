@@ -156,24 +156,21 @@ getTfliteDelegates()
 }
 
 int
-TFLiteModelState::init(const std::string &model_string, bool init_from_bytes)
+TFLiteModelState::init(const char *model_string, bool init_from_bytes, size_t bufferSize)
 {
-  int err = ModelState::init(model_string, init_from_bytes);
+  int err = ModelState::init(model_string, init_from_bytes, bufferSize);
   if (err != DS_ERR_OK) {
     return err;
   }
-
+  
   if (init_from_bytes){
-    char *tmp_buffer = new char[model_string.size()];
-    std::copy(model_string.begin(), model_string.end(), tmp_buffer);
-    // Using c_str does not work
-    fbmodel_ = tflite::FlatBufferModel::VerifyAndBuildFromBuffer(tmp_buffer,model_string.size());
+    fbmodel_ = tflite::FlatBufferModel::VerifyAndBuildFromBuffer(model_string, bufferSize);
     if (!fbmodel_) {
       std::cerr << "Error at reading model buffer " << std::endl;
       return DS_ERR_FAIL_INIT_MMAP;
     }
   } else {
-    fbmodel_ = tflite::FlatBufferModel::BuildFromFile(model_string.c_str());
+    fbmodel_ = tflite::FlatBufferModel::BuildFromFile(model_string);
     if (!fbmodel_) {
       std::cerr << "Error at reading model file " << model_string << std::endl;
       return DS_ERR_FAIL_INIT_MMAP;
@@ -334,7 +331,6 @@ TFLiteModelState::init(const std::string &model_string, bool init_from_bytes)
   assert(dims_c->data[1] == dims_h->data[1]);
   assert(state_size_ > 0);
   state_size_ = dims_c->data[1];
-
   return DS_ERR_OK;
 }
 
