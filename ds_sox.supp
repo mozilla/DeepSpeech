@@ -1,0 +1,42 @@
+{
+   sox_effect_gain
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:realloc
+   fun:lsx_realloc
+   fun:lsx_usage_lines
+   fun:lsx_gain_effect_fn
+   fun:sox_find_effect
+   fun:_Z14GetAudioBufferPKci
+   fun:_Z11ProcessFileP10ModelStatePKcb
+   fun:main
+}
+{
+   sox_effect_rate
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:realloc
+   fun:lsx_realloc
+   fun:lsx_usage_lines
+   fun:lsx_rate_effect_fn
+   fun:sox_find_effect
+   fun:_Z14GetAudioBufferPKci
+   fun:_Z11ProcessFileP10ModelStatePKcb
+   fun:main
+}
+{
+   sox_effect_flanger
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:realloc
+   fun:lsx_realloc
+   fun:lsx_usage_lines
+   fun:lsx_flanger_effect_fn
+   fun:sox_find_effect
+   fun:_Z14GetAudioBufferPKci
+   fun:_Z11ProcessFileP10ModelStatePKcb
+   fun:main
+}

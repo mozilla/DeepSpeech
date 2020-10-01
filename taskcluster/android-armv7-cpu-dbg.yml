@@ -1,0 +1,20 @@
+build:
+  template_file: linux-opt-base.tyml
+  dependencies:
+    - "swig-linux-amd64"
+    - "node-gyp-cache"
+    - "pyenv-linux-amd64"
+    - "tf_android-armv7-dbg"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.android-armv7-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.android-armv7-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.android-armv7-dbg.${event.head.sha}"
+  tensorflow: ${system.tensorflow_dbg.android_armv7.url}
+  scripts:
+    build: "taskcluster/android-build-dbg.sh armeabi-v7a"
+    package: "taskcluster/android-package.sh armeabi-v7a"
+  nc_asset_name: "native_client.armv7.cpu.android_dbg.tar.xz"
+  workerType: "${docker.dsBuild}"
+  metadata:
+    name: "DeepSpeech Android ARMv7 debug"
+    description: "Building DeepSpeech for Android ARMv7, debug version"

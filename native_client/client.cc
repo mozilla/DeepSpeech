@@ -205,6 +205,38 @@ LocalDsSTT(ModelState* aCtx, const short* aBuffer, size_t aBufferSize,
       DS_FreeString((char *) last);
     }
     res.string = DS_FinishStream(ctx);
+  } else if (extended_stream_size > 0) {
+    StreamingState* ctx;
+    int status = DS_CreateStream(aCtx, &ctx);
+    if (status != DS_ERR_OK) {
+      res.string = strdup("");
+      return res;
+    }
+    size_t off = 0;
+    const char *last = nullptr;
+    const char *prev = nullptr;
+    while (off < aBufferSize) {
+      size_t cur = aBufferSize - off > extended_stream_size ? extended_stream_size : aBufferSize - off;
+      DS_FeedAudioContent(ctx, aBuffer + off, cur);
+      off += cur;
+      prev = last;
+      const Metadata* result = DS_IntermediateDecodeWithMetadata(ctx, 1);
+      const char* partial = CandidateTranscriptToString(&result->transcripts[0]);
+      if (last == nullptr || strcmp(last, partial)) {
+        printf("%s\n", partial);
+       last = partial;
+      } else {
+        free((char *) partial);
+      }
+      if (prev != nullptr && prev != last) {
+        free((char *) prev);
+      }
+      DS_FreeMetadata((Metadata *)result);
+    }
+    const Metadata* result = DS_FinishStreamWithMetadata(ctx, 1);
+    res.string = CandidateTranscriptToString(&result->transcripts[0]);
+    DS_FreeMetadata((Metadata *)result);
+    free((char *) last);
   } else {
     res.string = DS_SpeechToText(aCtx, aBuffer, aBufferSize);
   }

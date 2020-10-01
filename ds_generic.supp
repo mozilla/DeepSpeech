@@ -1,0 +1,7 @@
+{
+   libgomp_malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/*/libgomp.so.1.0.0
+}

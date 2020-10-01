@@ -1,0 +1,30 @@
+build:
+  template_file: linux-opt-base.tyml
+  dependencies:
+    - "swig-linux-amd64"
+    - "node-gyp-cache"
+    - "pyenv-linux-amd64"
+    - "tf_linux-rpi3-cpu-dbg"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.arm-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.arm-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.arm-dbg.${event.head.sha}"
+  ## multistrap 2.2.0-ubuntu1 is broken in 14.04: https://bugs.launchpad.net/ubuntu/+source/multistrap/+bug/1313787
+  system_setup:
+    >
+      apt-get -qq -y install gdebi git pixz &&
+      wget http://mirrors.kernel.org/ubuntu/pool/universe/m/multistrap/multistrap_2.2.0ubuntu2_all.deb -O /tmp/multistrap_2.2.0ubuntu2_all.deb &&
+      echo "y" | gdebi /tmp/multistrap_2.2.0ubuntu2_all.deb
+  system_config:
+    >
+      multistrap -d /tmp/multistrap-raspbian-buster/ -f ${system.homedir.linux}/DeepSpeech/ds/native_client/multistrap_raspbian_buster.conf
+  tensorflow: ${system.tensorflow.linux_armv7.url}
+  scripts:
+    setup: "taskcluster/tc-true.sh"
+    build: "taskcluster/rpi3-build-dbg.sh"
+    package: "taskcluster/package.sh"
+  workerType: "${docker.dsBuild}"
+  nc_asset_name: "native_client.rpi3.cpu.linux_dbg.tar.xz"
+  metadata:
+    name: "DeepSpeech Linux RPi3/ARMv7 CPU debug"
+    description: "Building DeepSpeech for Linux RPi3 ARMv7, CPU only, debug version"

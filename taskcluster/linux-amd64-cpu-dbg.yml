@@ -1,0 +1,25 @@
+build:
+  template_file: linux-opt-base.tyml
+  dependencies:
+    - "swig-linux-amd64"
+    - "node-gyp-cache"
+    - "pyenv-linux-amd64"
+    - "tf_linux-amd64-cpu_gcc9"
+  routes:
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.cpu-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.${event.head.branchortag}.${event.head.sha}.cpu-dbg"
+    - "index.project.deepspeech.deepspeech.native_client.cpu-dbg.${event.head.sha}"
+  tensorflow: ${system.tensorflow_gcc9.linux_amd64_cpu.url}
+  docker_image: "ubuntu:20.04"
+  system_config:
+    >
+      ${deepspeech.packages_bionic.apt}
+  scripts:
+    setup: "taskcluster/tc-true.sh"
+    build: "taskcluster/host-build-dbg.sh"
+    package: "taskcluster/package.sh"
+  nc_asset_name: "native_client.amd64.cpu.linux_dbg.tar.xz"
+  workerType: "${docker.tfBuild}"
+  metadata:
+    name: "DeepSpeech Linux AMD64 CPU Debug"
+    description: "Building DeepSpeech for Linux/AMD64, CPU only, debug version"

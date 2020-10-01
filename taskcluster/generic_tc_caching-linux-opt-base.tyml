@@ -16,6 +16,9 @@ payload:
   features:
     taskclusterProxy: true
 
+  env:
+    DEBIAN_FRONTEND: "noninteractive"
+
   command:
     - "/bin/bash"
     - "--login"
