@@ -29,7 +29,7 @@ from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from .evaluate import evaluate
 from six.moves import zip, range
 from .util.config import Config, initialize_globals
-from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation, reload_best_checkpoint
+from .util.checkpoints import drop_freeze_number_to_layers, load_or_init_graph_for_training, load_graph_for_evaluation, reload_best_checkpoint
 from .util.evaluate_tools import save_samples_json
 from .util.feeding import create_dataset, audio_to_features, audiofile_to_features
 from .util.flags import create_flags, FLAGS
@@ -326,18 +326,7 @@ def get_tower_results(iterator, optimizer, dropout_rates):
 
                     # Filter out layers if we want to freeze some
                     if FLAGS.freeze_source_layers > 0:
-                        filter_vars = []
-                        if FLAGS.freeze_source_layers <= 5:
-                            filter_vars.append("layer_1")
-                        if FLAGS.freeze_source_layers <= 4:
-                            filter_vars.append("layer_2")
-                        if FLAGS.freeze_source_layers <= 3:
-                            filter_vars.append("layer_3")
-                        if FLAGS.freeze_source_layers <= 2:
-                            filter_vars.append("lstm")
-                        if FLAGS.freeze_source_layers <= 1:
-                            filter_vars.append("layer_5")
-
+                        filter_vars = drop_freeze_number_to_layers(FLAGS.freeze_source_layers, "freeze")
                         new_train_vars = list(train_vars)
                         for fv in filter_vars:
                             for tv in train_vars:

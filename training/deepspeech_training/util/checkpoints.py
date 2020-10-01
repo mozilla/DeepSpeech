@@ -1,9 +1,9 @@
 import sys
-import tensorflow as tf
+
 import tensorflow.compat.v1 as tfv1
 
 from .flags import FLAGS
-from .logging import log_info, log_error, log_warn
+from .logging import log_error, log_info, log_warn
 
 
 def _load_checkpoint(session, checkpoint_path, allow_drop_layers, allow_lr_init=True):
@@ -19,47 +19,33 @@ def _load_checkpoint(session, checkpoint_path, allow_drop_layers, allow_lr_init=
     # compatibility with older checkpoints.
     lr_var = set(v for v in load_vars if v.op.name == 'learning_rate')
     if lr_var and ('learning_rate' not in vars_in_ckpt or
-                    (FLAGS.force_initialize_learning_rate and allow_lr_init)):
+                   (FLAGS.force_initialize_learning_rate and allow_lr_init)):
         assert len(lr_var) <= 1
         load_vars -= lr_var
         init_vars |= lr_var
 
-    if FLAGS.load_cudnn:
-        # Initialize training from a CuDNN RNN checkpoint
-        # Identify the variables which we cannot load, and set them
-        # for initialization
-        missing_vars = set()
-        for v in load_vars:
-            if v.op.name not in vars_in_ckpt:
-                log_warn('CUDNN variable not found: %s' % (v.op.name))
-                missing_vars.add(v)
+    # After training with "freeze_source_layers" the Adam moment tensors for the frozen layers
+    # are missing because they were not used. This might also occur when loading a cudnn checkpoint
+    # Therefore we have to initialize them again to continue training on such checkpoints
+    print_msg = False
+    for v in load_vars:
+        if v.op.name not in vars_in_ckpt:
+            if 'Adam' in v.name:
                 init_vars.add(v)
+                print_msg = True
+    if print_msg:
+        msg = "Some Adam tensors are missing, they will be initialized automatically."
+        log_info(msg)
+    load_vars -= init_vars
 
-        load_vars -= init_vars
-
-        # Check that the only missing variables (i.e. those to be initialised)
-        # are the Adam moment tensors, if they aren't then we have an issue
-        missing_var_names = [v.op.name for v in missing_vars]
-        if any('Adam' not in v for v in missing_var_names):
-            log_error('Tried to load a CuDNN RNN checkpoint but there were '
-                      'more missing variables than just the Adam moment '
-                      'tensors. Missing variables: {}'.format(missing_var_names))
-            sys.exit(1)
-
-    if FLAGS.load_frozen_graph:
-        # After training with "freeze_source_layers" the Adam tensors for the frozen layers aren't
-        # existing anymore because they were not used
-        # Therefore we have to initialize them again to continue training on such checkpoints
+    if FLAGS.load_cudnn:
+        # Check all required tensors are included in the cudnn checkpoint we want to load
         for v in load_vars:
-            if v.op.name not in vars_in_ckpt:
-                if 'Adam' in v.name:
-                    init_vars.add(v)
-                else:
-                    msg = "Tried to load a frozen checkpoint but there was a missing " \
-                          "variable other than the Adam tensors: {}"
-                    log_error(msg.format(v))
-                    sys.exit(1)
-        load_vars -= init_vars
+            if v.op.name not in vars_in_ckpt and 'Adam' not in v.op.name:
+                msg = 'Tried to load a CuDNN RNN checkpoint but there was a missing' \
+                      ' variable other than an Adam moment tensor: {}'
+                log_error(msg.format(v.op.name))
+                sys.exit(1)
 
     if allow_drop_layers and FLAGS.drop_source_layers > 0:
         # This transfer learning approach requires supplying
@@ -74,7 +60,7 @@ def _load_checkpoint(session, checkpoint_path, allow_drop_layers, allow_lr_init=
                      'dropping only 5 layers.')
             FLAGS.drop_source_layers = 5
 
-        dropped_layers = ['2', '3', 'lstm', '5', '6'][-1 * int(FLAGS.drop_source_layers):]
+        dropped_layers = drop_freeze_number_to_layers(FLAGS.drop_source_layers, "drop")
         # Initialize all variables needed for DS, but not loaded from ckpt
         for v in load_vars:
             if any(layer in v.op.name for layer in dropped_layers):
@@ -88,6 +74,24 @@ def _load_checkpoint(session, checkpoint_path, allow_drop_layers, allow_lr_init=
     for v in sorted(init_vars, key=lambda v: v.op.name):
         log_info('Initializing variable: %s' % (v.op.name))
         session.run(v.initializer)
+
+
+def drop_freeze_number_to_layers(drop_freeze_number, mode):
+    """ Convert number of layers to drop or freeze into layer names """
+
+    if drop_freeze_number >= 6:
+        log_warn('The checkpoint only has 6 layers, but you are trying '
+                 'to drop or freeze all of them or more. Continuing with 5 layers.')
+        drop_freeze_number = 5
+
+    layer_keys = ["layer_1", "layer_2", "layer_3", "lstm", "layer_5", "layer_6"]
+    if mode == "drop":
+        layer_keys = layer_keys[-1 * int(drop_freeze_number):]
+    elif mode == "freeze":
+        layer_keys = layer_keys[:-1 * int(drop_freeze_number)]
+    else:
+        raise ValueError
+    return layer_keys
 
 
 def _checkpoint_path_or_none(checkpoint_filename):
