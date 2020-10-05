@@ -98,6 +98,7 @@ download_data()
   ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source_mmap}"
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/pruned_lm.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer
+  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/pruned_lm.bytes.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.bytes.scorer
   cp -R ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
 }
 
