@@ -31,6 +31,7 @@ parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file t
 parser.addArgument(['--version'], {action: VersionAction, nargs: 0, help: 'Print version and exits'});
 parser.addArgument(['--extended'], {action: 'storeTrue', help: 'Output string from extended metadata'});
 parser.addArgument(['--stream'], {action: 'storeTrue', help: 'Use streaming code path (for tests)'});
+parser.addArgument(['--hot_words'], {help: 'Hot-words and their boosts. Word:Boost pairs are comma-separated'});
 let args = parser.parseArgs();
 
 function totalTime(hrtimeValue: number[]): string {
@@ -69,6 +70,14 @@ if (args['scorer']) {
   if (args['lm_alpha'] && args['lm_beta']) {
     model.setScorerAlphaBeta(args['lm_alpha'], args['lm_beta']);
   }
+}
+
+if (args['hot_words']) {
+	console.error('Adding hot-words %s', args['hot_words']);
+	for (let word_boost of args['hot_words'].split(',')) {
+		let word = word_boost.split(':');
+		model.addHotWord(word[0], parseFloat(word[1]));
+	}
 }
 
 const buffer = Fs.readFileSync(args['audio']);
