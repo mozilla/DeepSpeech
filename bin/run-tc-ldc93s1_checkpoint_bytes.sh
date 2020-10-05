@@ -19,7 +19,7 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --dev_files ${ldc93s1_csv} --dev_batch_size 1 \
   --test_files ${ldc93s1_csv} --test_batch_size 1 \
   --n_hidden 100 --epochs 1 \
-  --max_to_keep 1 --checkpoint_dir '/tmp/ckpt_bytes' --utf8 \
+  --max_to_keep 1 --checkpoint_dir '/tmp/ckpt_bytes' --bytes_output_mode \
   --learning_rate 0.001 --dropout_rate 0.05 \
   --scorer_path 'data/smoke_test/pruned_lm.bytes.scorer' | tee /tmp/resume.log
 

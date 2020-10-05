@@ -83,7 +83,7 @@ def initialize_globals():
     if not c.available_devices:
         c.available_devices = [c.cpu_device]
 
-    if FLAGS.utf8:
+    if FLAGS.bytes_output_mode:
         c.alphabet = UTF8Alphabet()
     else:
         c.alphabet = Alphabet(os.path.abspath(FLAGS.alphabet_config_path))

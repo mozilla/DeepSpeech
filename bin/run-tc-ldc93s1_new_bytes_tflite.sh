@@ -21,6 +21,6 @@ python -u DeepSpeech.py --noshow_progressbar \
   --checkpoint_dir '/tmp/ckpt_bytes' \
   --export_dir '/tmp/train_bytes_tflite' \
   --scorer_path 'data/smoke_test/pruned_lm.bytes.scorer' \
-  --utf8 \
+  --bytes_output_mode \
   --audio_sample_rate ${audio_sample_rate} \
   --export_tflite

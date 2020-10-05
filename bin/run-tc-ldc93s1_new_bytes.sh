@@ -27,4 +27,4 @@ python -u DeepSpeech.py --noshow_progressbar --noearly_stop \
   --learning_rate 0.001 --dropout_rate 0.05  --export_dir '/tmp/train_bytes' \
   --scorer_path 'data/smoke_test/pruned_lm.bytes.scorer' \
   --audio_sample_rate ${audio_sample_rate} \
-  --utf8
+  --bytes_output_mode

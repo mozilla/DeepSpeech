@@ -42,7 +42,7 @@ Bytes output mode
 
 **Note**: Currently, Bytes output mode makes assumptions that hold for Chinese Mandarin models but do not hold for other language targets, such as not predicting spaces.
 
-In bytes output mode the model predicts UTF-8 bytes directly instead of letters from an alphabet file. This idea was proposed in the paper `Bytes Are All You Need <https://arxiv.org/abs/1811.09021>`_. This mode is enabled with the ``--utf8`` flag at training and export time. At training time, the alphabet file is not used. Instead, the model is forced to have 256 labels, with labels 0-254 corresponding to UTF-8 byte values 1-255, and label 255 is used for the CTC blank symbol. If using an external scorer at decoding time, it MUST be built according to the instructions that follow.
+In bytes output mode the model predicts UTF-8 bytes directly instead of letters from an alphabet file. This idea was proposed in the paper `Bytes Are All You Need <https://arxiv.org/abs/1811.09021>`_. This mode is enabled with the ``--bytes_output_mode`` flag at training and export time. At training time, the alphabet file is not used. Instead, the model is forced to have 256 labels, with labels 0-254 corresponding to UTF-8 byte values 1-255, and label 255 is used for the CTC blank symbol. If using an external scorer at decoding time, it MUST be built according to the instructions that follow.
 
 Bytes output mode can be useful for languages with very large alphabets, such as Mandarin written with Simplified Chinese characters. It may also be useful for building multi-language models, or as a base for transfer learning. Currently these cases are untested and unsupported. Note that bytes output mode makes assumptions that hold for Mandarin written with Simplified Chinese characters and may not hold for other languages.
 
@@ -58,7 +58,7 @@ corresponds to the following three "words", or UTF-8 byte sequences:
 
 At decoding time, the scorer is queried every time a Unicode codepoint is predicted, instead of when a space character is predicted. From the language modeling perspective, this is a character based model. From the implementation perspective, this is a word based model, because each character is composed of multiple labels.
 
-**Acoustic models trained with ``--utf8`` MUST NOT be used with an alphabet based scorer. Conversely, acoustic models trained with an alphabet file MUST NOT be used with a UTF-8 scorer.**
+**Acoustic models trained with ``--bytes_output_mode`` MUST NOT be used with an alphabet based scorer. Conversely, acoustic models trained with an alphabet file MUST NOT be used with a UTF-8 scorer.**
 
 UTF-8 scorers can be built by using an input corpus with space separated codepoints. If your corpus only contains single codepoints separated by spaces, ``generate_scorer_package`` should automatically enable bytes output mode, and it should print the message "Looks like a character based model."
 

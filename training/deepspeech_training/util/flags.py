@@ -156,7 +156,7 @@ def create_flags():
 
     # Decoder
 
-    f.DEFINE_boolean('utf8', False, 'enable UTF-8 mode. When this is used the model outputs UTF-8 sequences directly rather than using an alphabet mapping.')
+    f.DEFINE_boolean('bytes_output_mode', False, 'enable Bytes Output Mode mode. When this is used the model outputs UTF-8 byte values directly rather than using an alphabet mapping. The --alphabet_config_path option will be ignored. See the training documentation for more details.')
     f.DEFINE_string('alphabet_config_path', 'data/alphabet.txt', 'path to the configuration file specifying the alphabet used by the network. See the comment in data/alphabet.txt for a description of the format.')
     f.DEFINE_string('scorer_path', '', 'path to the external scorer file.')
     f.DEFINE_alias('scorer', 'scorer_path')
