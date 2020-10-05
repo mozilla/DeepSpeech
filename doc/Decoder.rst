@@ -62,7 +62,7 @@ At decoding time, the scorer is queried every time a Unicode codepoint is predic
 
 UTF-8 scorers can be built by using an input corpus with space separated codepoints. If your corpus only contains single codepoints separated by spaces, ``generate_scorer_package`` should automatically enable bytes output mode, and it should print the message "Looks like a character based model."
 
-If the message "Doesn't look like a character based model." is printed, you should double check your inputs to make sure it only contains single codepoints separated by spaces. Bytes output mode can be forced by specifying the ``--force_utf8`` flag when running ``generate_scorer_package``, but it is NOT RECOMMENDED.
+If the message "Doesn't look like a character based model." is printed, you should double check your inputs to make sure it only contains single codepoints separated by spaces. Bytes output mode can be forced by specifying the ``--force_bytes_output_mode`` flag when running ``generate_scorer_package``, but it is NOT RECOMMENDED.
 
 See :ref:`scorer-scripts` for more details on using ``generate_scorer_package``.
 
