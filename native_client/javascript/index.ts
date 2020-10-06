@@ -191,7 +191,7 @@ export class Model {
      * @throws on error
      */
      addHotWord(aWord: string, aBoost: number): void {
-        const status = binding.addHotWord(this._impl, aWord, aBoost);
+        const status = binding.AddHotWord(this._impl, aWord, aBoost);
         if (status !== 0) {
             throw `addHotWord failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
         }
@@ -205,7 +205,7 @@ export class Model {
      * @throws on error
      */
     eraseHotWord(aWord: string): void {
-        const status = binding.eraseHotWord(this._impl, aWord);
+        const status = binding.EraseHotWord(this._impl, aWord);
         if (status !== 0) {
             throw `eraseHotWord failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
         }
@@ -217,7 +217,7 @@ export class Model {
      * @throws on error
      */
     clearHotWords(): void {
-        const status = binding.clearHotWords(this._impl);
+        const status = binding.ClearHotWords(this._impl);
         if (status !== 0) {
             throw `clearHotWord failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
         }
