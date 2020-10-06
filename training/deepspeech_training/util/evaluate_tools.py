@@ -72,7 +72,7 @@ def calculate_and_print_report(wav_filenames, labels, decodings, losses, dataset
     samples.sort(key=lambda s: s.loss, reverse=True)
 
     # Then order by ascending WER/CER
-    if FLAGS.utf8:
+    if FLAGS.bytes_output_mode:
         samples.sort(key=lambda s: s.cer)
     else:
         samples.sort(key=lambda s: s.wer)

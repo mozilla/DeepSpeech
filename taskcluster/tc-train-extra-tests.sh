@@ -54,10 +54,30 @@ pushd ${HOME}/DeepSpeech/ds/
 
     # Test --metrics_files training argument
     time ./bin/run-tc-ldc93s1_new_metrics.sh 2 "${sample_rate}"
+
+    # Test training with bytes output mode
+    time ./bin/run-tc-ldc93s1_new_bytes.sh 200 "${sample_rate}"
+    time ./bin/run-tc-ldc93s1_new_bytes_tflite.sh "${sample_rate}"
 popd
 
+# Save exported model artifacts from bytes output mode training
+cp /tmp/train_bytes/output_graph.pb ${TASKCLUSTER_ARTIFACTS}/output_graph.pb
+cp /tmp/train_bytes_tflite/output_graph.tflite ${TASKCLUSTER_ARTIFACTS}/output_graph.tflite
+
 pushd ${HOME}/DeepSpeech/ds/
+    python util/taskcluster.py --source tensorflow --artifact convert_graphdef_memmapped_format --branch r1.15 --target /tmp/
+popd
+
+/tmp/convert_graphdef_memmapped_format --in_graph=/tmp/train_bytes/output_graph.pb --out_graph=/tmp/train_bytes/output_graph.pbmm
+cp /tmp/train_bytes/output_graph.pbmm ${TASKCLUSTER_ARTIFACTS}
+
+# Test resuming from checkpoints created above
+pushd ${HOME}/DeepSpeech/ds/
+    # SDB, resuming from checkpoint
     time ./bin/run-tc-ldc93s1_checkpoint_sdb.sh
+
+    # Bytes output mode, resuming from checkpoint
+    time ./bin/run-tc-ldc93s1_checkpoint_bytes.sh
 popd
 
 virtualenv_deactivate "${pyalias}" "deepspeech"

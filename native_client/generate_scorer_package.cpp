@@ -20,7 +20,7 @@ create_package(absl::optional<string> alphabet_path,
                string lm_path,
                string vocab_path,
                string package_path,
-               absl::optional<bool> force_utf8,
+               absl::optional<bool> force_bytes_output_mode,
                float default_alpha,
                float default_beta)
 {
@@ -43,27 +43,27 @@ create_package(absl::optional<string> alphabet_path,
          << (vocab_looks_char_based ? "Looks" : "Doesn't look")
          << " like a character based (Bytes Are All You Need) model.\n";
 
-    if (!force_utf8.has_value()) {
-        force_utf8 = vocab_looks_char_based;
-        cerr << "--force_utf8 was not specified, using value "
+    if (!force_bytes_output_mode.has_value()) {
+        force_bytes_output_mode = vocab_looks_char_based;
+        cerr << "--force_bytes_output_mode was not specified, using value "
              << "infered from vocabulary contents: "
              << (vocab_looks_char_based ? "true" : "false") << "\n";
     }
 
-    if (!force_utf8.value() && !alphabet_path.has_value()) {
+    if (!force_bytes_output_mode.value() && !alphabet_path.has_value()) {
         cerr << "No --alphabet file specified, not using bytes output mode, can't continue.\n";
         return 1;
     }
 
     Scorer scorer;
-    if (force_utf8.value()) {
+    if (force_bytes_output_mode.value()) {
         scorer.set_alphabet(UTF8Alphabet());
     } else {
         Alphabet alphabet;
         alphabet.init(alphabet_path->c_str());
         scorer.set_alphabet(alphabet);
     }
-    scorer.set_utf8_mode(force_utf8.value());
+    scorer.set_utf8_mode(force_bytes_output_mode.value());
     scorer.reset_params(default_alpha, default_beta);
     int err = scorer.load_lm(lm_path);
     if (err != DS_ERR_SCORER_NO_TRIE) {
@@ -96,13 +96,13 @@ main(int argc, char** argv)
     po::options_description desc("Options");
     desc.add_options()
         ("help", "show help message")
-        ("alphabet", po::value<string>(), "Path of alphabet file to use for vocabulary construction. Words with characters not in the alphabet will not be included in the vocabulary. Optional if using UTF-8 mode.")
+        ("alphabet", po::value<string>(), "Path of alphabet file to use for vocabulary construction. Words with characters not in the alphabet will not be included in the vocabulary. Optional if using bytes output mode.")
         ("lm", po::value<string>(), "Path of KenLM binary LM file. Must be built without including the vocabulary (use the -v flag). See generate_lm.py for how to create a binary LM.")
         ("vocab", po::value<string>(), "Path of vocabulary file. Must contain words separated by whitespace.")
         ("package", po::value<string>(), "Path to save scorer package.")
         ("default_alpha", po::value<float>(), "Default value of alpha hyperparameter (float).")
         ("default_beta", po::value<float>(), "Default value of beta hyperparameter (float).")
-        ("force_utf8", po::value<bool>(), "Boolean flag, force set or unset UTF-8 mode in the scorer package. If not set, infers from the vocabulary. See <https://deepspeech.readthedocs.io/en/master/Decoder.html#utf-8-mode> for further explanation.")
+        ("force_bytes_output_mode", po::value<bool>(), "Boolean flag, force set or unset bytes output mode in the scorer package. If not set, infers from the vocabulary. See <https://deepspeech.readthedocs.io/en/master/Decoder.html#bytes-output-mode> for further explanation.")
     ;
 
     po::variables_map vm;
@@ -122,10 +122,10 @@ main(int argc, char** argv)
         }
     }
 
-    // Parse optional --force_utf8
-    absl::optional<bool> force_utf8 = absl::nullopt;
-    if (vm.count("force_utf8")) {
-        force_utf8 = vm["force_utf8"].as<bool>();
+    // Parse optional --force_bytes_output_mode
+    absl::optional<bool> force_bytes_output_mode = absl::nullopt;
+    if (vm.count("force_bytes_output_mode")) {
+        force_bytes_output_mode = vm["force_bytes_output_mode"].as<bool>();
     }
 
     // Parse optional --alphabet
@@ -138,7 +138,7 @@ main(int argc, char** argv)
                    vm["lm"].as<string>(),
                    vm["vocab"].as<string>(),
                    vm["package"].as<string>(),
-                   force_utf8,
+                   force_bytes_output_mode,
                    vm["default_alpha"].as<float>(),
                    vm["default_beta"].as<float>());
 
