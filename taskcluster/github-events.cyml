@@ -12,4 +12,4 @@ taskcluster:
         - push
         - tag
       branches:
-        - master
+        - r0.9
