@@ -102,8 +102,8 @@ class Model(object):
         :param word: the hot-word
         :type word: str
 
-        :param word: the boost
-        :type word: float
+        :param boost: the boost
+        :type boost: float
 
         :throws: RuntimeError on error
         """
