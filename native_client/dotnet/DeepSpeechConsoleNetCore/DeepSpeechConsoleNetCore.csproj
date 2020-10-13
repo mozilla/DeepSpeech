@@ -6,12 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="arctic_a0024.wav" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="arctic_a0024.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="..\..\..\data\smoke_test\arctic_a0024.wav" Link="arctic_a0024.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

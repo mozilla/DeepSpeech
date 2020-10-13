@@ -62,7 +62,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="arctic_a0024.wav">
+    <Content Include="..\..\..\data\smoke_test\arctic_a0024.wav">
+      <Link>arctic_a0024.wav</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
