@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	  <OutputType>Library</OutputType>
-    <TargetFrameworks>net452;net46;net47;uap10.0</TargetFrameworks>
+    <TargetFrameworks>net452;net46;net47;uap10.0;netstandard2.1;netcoreapp3.1</TargetFrameworks>
     <Platforms>x64</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
