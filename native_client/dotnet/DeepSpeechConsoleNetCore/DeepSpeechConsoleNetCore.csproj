@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\..\data\smoke_test\arctic_a0024.wav" Link="arctic_a0024.wav">
+    <Content Include="..\..\..\data\smoke_test\new-home-in-the-stars-16k.wav" Link="new-home-in-the-stars-16k.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
