@@ -1,8 +1,8 @@
 
-Building DeepSpeech native client for Windows
+Building DeepSpeech native client for Windows/Linux/OSX using C#
 =============================================
 
-Now we can build the native client of DeepSpeech and run inference on Windows using the C# client, to do that we need to compile the ``native_client``.
+Now we can build the native client of DeepSpeech and run inference on Windows/Linux/OSX using the C# client, to do that we need to compile the ``native_client``.
 
 **Table of Contents**
 
@@ -28,7 +28,8 @@ Prerequisites
 -------------
 
 
-* Windows 10
+* Windows 10 (Linux or OSX without UWP and NET Framework support using .NET Core)
+* `.NET Core SDK <https://dotnet.microsoft.com/download/dotnet-core/3.1>`_
 * `Windows 10 SDK <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk>`_
 * `Visual Studio 2019 Community <https://visualstudio.microsoft.com/vs/community/>`_ 
 * `TensorFlow Windows pre-requisites <https://www.tensorflow.org/install/source_windows>`_
@@ -118,6 +119,13 @@ Building the native_client
 There's one last command to run before building, you need to run the `configure.py <https://github.com/mozilla/tensorflow/blob/master/configure.py>`_ inside ``tensorflow`` cloned directory.
 
 At this point we are ready to start building the ``native_client``, go to ``tensorflow`` sub-directory, following our examples should be ``D:\cloned\DeepSpeech\tensorflow``.  
+
+
+.NET Core
+~~~~~~~~~
+
+To run it on different platforms - build appropriate ``.so`` file for windows/linux/osx etc. using official `docs <https://deepspeech.readthedocs.io/en/latest/BUILDING.html>`_
+
 
 CPU
 ~~~
