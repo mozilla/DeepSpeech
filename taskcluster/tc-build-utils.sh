@@ -247,7 +247,7 @@ do_deepspeech_netframework_build()
   MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"
 
   # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
-  # We build the .NET Client for .NET Framework v4.5,v4.6,v4.7
+  # We build the .NET Client for .NET Framework v4.5,v4.6,v4.7, netstandard2.1, netcoreapp3.1
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechClient/DeepSpeechClient.csproj \
@@ -276,11 +276,30 @@ do_deepspeech_netframework_build()
     /p:Platform=x64 \
     /p:TargetFramework="uap10.0" \
     /p:OutputPath=bin/nuget/x64/uap10.0
+	
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform="Any CPU" \
+    /p:TargetFramework="netcoreapp3.1" \
+    /p:OutputPath="bin/nuget/Any CPU/netcoreapp3.1"
+
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechClient/DeepSpeechClient.csproj \
+    /p:Configuration=Release \
+    /p:Platform="Any CPU" \
+    /p:TargetFramework="netstandard2.1" \
+    /p:OutputPath="bin/nuget/Any CPU/netstandard2.1"
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
     /p:Configuration=Release \
     /p:Platform=x64
+	
+  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    DeepSpeechConsoleNetCore/DeepSpeechConsoleNetCore.csproj \
+    /p:Configuration=Release \
+    /p:Platform="Any CPU"
 }
 
 do_deepspeech_netframework_wpf_build()
@@ -312,7 +331,13 @@ do_nuget_build()
 
   cd ${DS_DSDIR}/native_client/dotnet
 
-  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/build
+  # We copy the generated SO files into the Nuget runtime dirs
+
+  mkdir -p nupkg/runtimes/win-x64/native/  
+  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/runtimes/win-x64/native/    
+  
+  mkdir -p nupkg/runtimes/win-arm64/native/
+  cp ${DS_TFDIR}/bazel-bin/native_client/libdeepspeech.so nupkg/runtimes/win-arm64/native/
 
   # We copy the generated clients for .NET into the Nuget framework dirs
 
@@ -327,6 +352,12 @@ do_nuget_build()
 
   mkdir -p nupkg/lib/uap10.0/
   cp DeepSpeechClient/bin/nuget/x64/uap10.0/DeepSpeechClient.dll nupkg/lib/uap10.0/
+  
+  mkdir -p nupkg/lib/netcoreapp3.1/
+  cp "DeepSpeechClient/bin/nuget/Any CPU/netcoreapp3.1/DeepSpeechClient.dll" nupkg/lib/netcoreapp3.1/
+
+  mkdir -p nupkg/lib/netstandard2.1/
+  cp "DeepSpeechClient/bin/nuget/Any CPU/netstandard2.1/DeepSpeechClient.dll" nupkg/lib/netstandard2.1/
 
   PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \
