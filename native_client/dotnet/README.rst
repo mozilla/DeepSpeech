@@ -124,7 +124,7 @@ At this point we are ready to start building the ``native_client``, go to ``tens
 .NET Core
 ~~~~~~~~~
 
-To run it on different platforms - build appropriate ``.so`` file for windows/linux/osx etc. using official `docs <https://deepspeech.readthedocs.io/en/latest/BUILDING.html>`_
+To run it on different platforms - build appropriate ``.so`` file for windows/linux/osx etc. using official `docs <build-native-client>`_
 
 
 CPU
