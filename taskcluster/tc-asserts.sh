@@ -342,6 +342,29 @@ run_netframework_inference_tests()
   assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
 }
 
+run_netcore_inference_tests()
+{
+  set +e
+  phrase_pbmodel_nolm=$(DeepSpeechConsoleNetCore.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_nolm=$(DeepSpeechConsoleNetCore.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} --extended yes 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_nolm=$(DeepSpeechConsoleNetCore.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1 "${phrase_pbmodel_nolm}" "$?"
+
+  set +e
+  phrase_pbmodel_withlm=$(DeepSpeechConsoleNetCore.exe --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer --audio ${TASKCLUSTER_TMP_DIR}/${ldc93s1_sample_filename} 2>${TASKCLUSTER_TMP_DIR}/stderr)
+  set -e
+  assert_working_ldc93s1_lm "${phrase_pbmodel_withlm}" "$?"
+}
+
 run_electronjs_inference_tests()
 {
   set +e
