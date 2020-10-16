@@ -124,7 +124,7 @@ At this point we are ready to start building the ``native_client``, go to ``tens
 .NET Core
 ~~~~~~~~~
 
-To run it on different platforms - build appropriate ``.so`` file for windows/linux/osx etc. using official :ref:`build-native-client`
+To run it on different platforms - build appropriate ``.so`` file for windows/linux/osx etc. using official :any:`build-native-client`
 
 
 CPU
