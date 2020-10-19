@@ -322,6 +322,7 @@ do_deepspeech_netstandard_build()
       DeepSpeechClient/DeepSpeechClient.csproj \
       /p:Configuration=Release \
       /p:TargetFramework="netstandard2.1" \
+      /p:Platform="Any CPU" \
       /p:OutputPath=bin/nuget/AnyCPU/netstandard2.1
 }
 
@@ -342,6 +343,7 @@ do_deepspeech_netcore_build()
       DeepSpeechClient/DeepSpeechClient.csproj \
       /p:Configuration=Release \
       /p:TargetFramework="netcoreapp3.1" \
+      /p:Platform="Any CPU" \
       /p:OutputPath=bin/nuget/AnyCPU/netcoreapp3.1
 
 	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
