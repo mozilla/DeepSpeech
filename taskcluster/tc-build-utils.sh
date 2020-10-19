@@ -277,30 +277,14 @@ do_deepspeech_netframework_build()
     /p:TargetFramework="uap10.0" \
     /p:OutputPath=bin/nuget/x64/uap10.0
 	
-  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechClient/DeepSpeechClient.csproj \
-    /p:Configuration=Release \
-    /p:Platform="Any CPU" \
-    /p:TargetFramework="netcoreapp3.1" \
-    /p:OutputPath="bin/nuget/Any CPU/netcoreapp3.1"
-
-  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechClient/DeepSpeechClient.csproj \
-    /p:Configuration=Release \
-    /p:Platform="Any CPU" \
-    /p:TargetFramework="netstandard2.1" \
-    /p:OutputPath="bin/nuget/Any CPU/netstandard2.1"
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
     /p:Configuration=Release \
     /p:Platform=x64
 	
-  MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
-    DeepSpeechConsoleNetCore/DeepSpeechConsoleNetCore.csproj \
-    /p:Configuration=Release \
-    /p:Platform="Any CPU"
 }
+
 
 do_deepspeech_netframework_wpf_build()
 {
@@ -320,6 +304,52 @@ do_deepspeech_netframework_wpf_build()
     /p:OutputPath=bin/x64
 
 }
+
+
+do_deepspeech_netstandard_build()
+{
+	cd ${DS_DSDIR}/native_client/dotnet
+	
+	# Setup dependencies
+	nuget restore DeepSpeech.sln
+
+	MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"	
+	
+	# We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
+	# We build the .NET Client for NetStandard2.1	
+	
+	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+      DeepSpeechClient/DeepSpeechClient.csproj \
+      /p:Configuration=Release \
+      /p:TargetFramework="netstandard2.1" \
+      /p:OutputPath=bin/nuget/AnyCPU/netstandard2.1
+}
+
+
+do_deepspeech_netcore_build()
+{
+	cd ${DS_DSDIR}/native_client/dotnet
+	
+	# Setup dependencies
+	nuget restore DeepSpeech.sln
+
+	MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"	
+	
+	# We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
+	# We build the .NET Client for NetCore 3.1
+	
+	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+      DeepSpeechClient/DeepSpeechClient.csproj \
+      /p:Configuration=Release \
+      /p:TargetFramework="netcoreapp3.1" \
+      /p:OutputPath=bin/nuget/AnyCPU/netcoreapp3.1
+
+	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+      DeepSpeechConsoleNetCore/DeepSpeechConsoleNetCore.csproj \
+  	  /p:Configuration=Release \
+	  
+}
+
 
 do_nuget_build()
 {
@@ -354,10 +384,10 @@ do_nuget_build()
   cp DeepSpeechClient/bin/nuget/x64/uap10.0/DeepSpeechClient.dll nupkg/lib/uap10.0/
   
   mkdir -p nupkg/lib/netcoreapp3.1/
-  cp "DeepSpeechClient/bin/nuget/Any CPU/netcoreapp3.1/DeepSpeechClient.dll" nupkg/lib/netcoreapp3.1/
+  cp DeepSpeechClient/bin/nuget/AnyCPU/netcoreapp3.1/DeepSpeechClient.dll nupkg/lib/netcoreapp3.1/
 
   mkdir -p nupkg/lib/netstandard2.1/
-  cp "DeepSpeechClient/bin/nuget/Any CPU/netstandard2.1/DeepSpeechClient.dll" nupkg/lib/netstandard2.1/
+  cp DeepSpeechClient/bin/nuget/AnyCPU/netstandard2.1/DeepSpeechClient.dll nupkg/lib/netstandard2.1/
 
   PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \

@@ -49,6 +49,10 @@ do_deepspeech_nodejs_build "${package_option}"
 
 do_deepspeech_netframework_build
 
+do_deepspeech_netstandard_build
+
+do_deepspeech_netcore_build
+
 do_deepspeech_netframework_wpf_build
 
 do_nuget_build "${PROJECT_NAME}"

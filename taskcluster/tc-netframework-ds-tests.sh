@@ -30,5 +30,4 @@ ensure_cuda_usage "$2"
 
 run_netframework_inference_tests
 
-DS_BINARY_FILE="DeepSpeechConsoleNetCore.exe"
 run_netcore_inference_tests
