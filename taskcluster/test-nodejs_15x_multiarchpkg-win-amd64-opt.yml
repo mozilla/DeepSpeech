@@ -1,0 +1,14 @@
+build:
+  template_file: test-win-opt-base.tyml
+  dependencies:
+    - "node-package-cpu"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
+  system_setup:
+    >
+      ${system.sox_win} && ${nodejs.win.prep_15}
+  args:
+    tests_cmdline: "${system.homedir.win}/DeepSpeech/ds/taskcluster/tc-node-tests.sh 15.x 16k"
+  metadata:
+    name: "DeepSpeech Windows AMD64 CPU NodeJS MultiArch Package 15.x tests"
+    description: "Testing DeepSpeech for Windows/AMD64 on NodeJS MultiArch Package v15.x, CPU only, optimized version"
