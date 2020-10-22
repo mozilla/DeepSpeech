@@ -316,7 +316,7 @@ do_deepspeech_netstandard_build()
 	MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"	
 	
 	# We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
-	# We build the .NET Client for NetStandard2.1	
+	# We build the .NET Client for netstandard2.1 and netstandard2.0
 	
 	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
       DeepSpeechClient/DeepSpeechClient.csproj \
@@ -324,6 +324,13 @@ do_deepspeech_netstandard_build()
       /p:TargetFramework="netstandard2.1" \
       /p:Platform="Any CPU" \
       /p:OutputPath=bin/nuget/AnyCPU/netstandard2.1
+	  
+	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+      DeepSpeechClient/DeepSpeechClient.csproj \
+      /p:Configuration=Release \
+      /p:TargetFramework="netstandard2.0" \
+      /p:Platform="Any CPU" \
+      /p:OutputPath=bin/nuget/AnyCPU/netstandard2.0
 }
 
 
@@ -390,6 +397,9 @@ do_nuget_build()
 
   mkdir -p nupkg/lib/netstandard2.1/
   cp DeepSpeechClient/bin/nuget/AnyCPU/netstandard2.1/DeepSpeechClient.dll nupkg/lib/netstandard2.1/
+  
+  mkdir -p nupkg/lib/netstandard2.0/
+  cp DeepSpeechClient/bin/nuget/AnyCPU/netstandard2.0/DeepSpeechClient.dll nupkg/lib/netstandard2.0/
 
   PROJECT_VERSION=$(strip "${DS_VERSION}")
   sed \
