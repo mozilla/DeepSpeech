@@ -38,3 +38,5 @@ doc/xml-c
 doc/xml-java
 doc/xml-dotnet
 convert_graphdef_memmapped_format
+.idea/
+venv

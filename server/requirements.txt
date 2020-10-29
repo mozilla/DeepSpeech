@@ -1,0 +1,7 @@
+setuptools~=45.2.0
+deepspeech~=0.8.2
+black>=20.8b1
+ffmpeg-python==0.2.0
+sanic==20.3.0
+pyhocon==0.3.54
+numpy~=1.17.0
