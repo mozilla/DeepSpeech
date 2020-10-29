@@ -23,7 +23,7 @@ app = Sanic("deepspeech_server")
 
 
 @app.route("/", methods=["GET"])
-async def healthcheck(request):
+async def healthcheck(_):
     return response.text("Welcome to DeepSpeech Server!")
 
 
@@ -39,7 +39,7 @@ async def stt(request, ws):
 
         await ws.send(json.dumps(Response(text, inference_end).__dict__))
         logger.debug(f"Completed {request.method} request at {request.path} in {inference_end} seconds")
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.debug(f"Failed to process {request.method} request at {request.path}. The exception is: {str(e)}.")
         await ws.send(json.dumps(Error("Something went wrong").__dict__))
 
