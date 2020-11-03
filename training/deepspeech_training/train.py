@@ -730,7 +730,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         logits = tf.squeeze(logits, [1])
 
     # Apply softmax for CTC decoder
-    logits = tf.nn.softmax(logits, name='logits')
+    probs = tf.nn.softmax(logits, name='logits')
 
     if batch_size <= 0:
         if tflite:
@@ -743,7 +743,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
                 'input_lengths': seq_length,
             },
             {
-                'outputs': logits,
+                'outputs': probs,
             },
             layers
         )
@@ -763,7 +763,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         inputs['input_lengths'] = seq_length
 
     outputs = {
-        'outputs': logits,
+        'outputs': probs,
         'new_state_c': new_state_c,
         'new_state_h': new_state_h,
         'mfccs': mfccs,
@@ -900,21 +900,21 @@ def do_single_file_inference(input_file_path):
         features = create_overlapping_windows(features).eval(session=session)
         features_len = features_len.eval(session=session)
 
-        logits = outputs['outputs'].eval(feed_dict={
+        probs = outputs['outputs'].eval(feed_dict={
             inputs['input']: features,
             inputs['input_lengths']: features_len,
             inputs['previous_state_c']: previous_state_c,
             inputs['previous_state_h']: previous_state_h,
         }, session=session)
 
-        logits = np.squeeze(logits)
+        probs = np.squeeze(probs)
 
         if FLAGS.scorer_path:
             scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                             FLAGS.scorer_path, Config.alphabet)
         else:
             scorer = None
-        decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width,
+        decoded = ctc_beam_search_decoder(probs, Config.alphabet, FLAGS.beam_width,
                                           scorer=scorer, cutoff_prob=FLAGS.cutoff_prob,
                                           cutoff_top_n=FLAGS.cutoff_top_n)
         # Print highest probability result
