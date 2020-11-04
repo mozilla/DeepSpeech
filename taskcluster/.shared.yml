@@ -137,14 +137,14 @@ system:
     namespace: 'project.deepspeech.gradle.7'
   pyenv:
     linux:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.9/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.linux.9'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.linux.10/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.linux.10'
     osx:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.9/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.osx.9'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.osx.10/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.osx.10'
     win:
-      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.8/artifacts/public/pyenv.tar.gz'
-      namespace: 'project.deepspeech.pyenv.win.8'
+      url: 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.pyenv.win.9/artifacts/public/pyenv.tar.gz'
+      namespace: 'project.deepspeech.pyenv.win.9'
   kenlm:
     android_arm64_cpu:
       url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.android-arm64/artifacts/public/kenlm.tar.gz"
