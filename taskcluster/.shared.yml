@@ -147,29 +147,29 @@ system:
       namespace: 'project.deepspeech.pyenv.win.18'
   kenlm:
     android_arm64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.android-arm64/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.android-arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.android-arm64/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.android-arm64"
     android_armv7_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.android-armv7/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.android-armv7"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.android-armv7/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.android-armv7"
     android_x86_64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.android-x86_64/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.android-x86_64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.android-x86_64/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.android-x86_64"
     linux_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.cpu/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.cpu"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.cpu/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.cpu"
     linux_arm64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.arm64/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.arm64"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.arm64/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.arm64"
     linux_rpi3_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.rpi3/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.rpi3"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.rpi3/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.rpi3"
     darwin_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.osx/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.osx"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.osx/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.osx"
     win_amd64_cpu:
-      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.win/artifacts/public/kenlm.tar.gz"
-      namespace: "project.deepspeech.kenlm.689a25aae9171b3ea46bd80d4189f540f35f1a02.4.win"
+      url: "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.win/artifacts/public/kenlm.tar.gz"
+      namespace: "project.deepspeech.kenlm.0c4dd4e8a29a9bcaf22d971a83f4974f1a16d6d9.0.win"
   swig:
     repo: "https://github.com/lissyx/swig"
     sha1: "fec7d5d3179833e37759ffc6532f86344982e26a"
