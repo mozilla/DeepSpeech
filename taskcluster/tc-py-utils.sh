@@ -24,7 +24,7 @@ install_pyenv()
   fi
 
   pushd ${PYENV_ROOT}
-    git checkout --quiet 20a1f0cd7a3d2f95800d8e0d5863b4e98f25f4df
+    git checkout --quiet 806b30d6ce5b263a765648fbcdd68266833b7289
   popd
 
   if [ ! -d "${PYENV_ROOT}/plugins/pyenv-alias" ]; then
