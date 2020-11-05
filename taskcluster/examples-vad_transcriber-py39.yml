@@ -1,0 +1,11 @@
+build:
+  template_file: examples-base.tyml
+  docker_image: "python:3.9"
+  dependencies:
+    - "linux-amd64-cpu-opt"
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/examples/vad_transcriber/test.sh 3.9.0:"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "DeepSpeech examples: VAD transcriber Py3.9"
+    description: "DeepSpeech examples: VAD transcriber streaming Python 3.9"
