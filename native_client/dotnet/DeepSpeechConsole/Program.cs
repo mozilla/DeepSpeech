@@ -74,8 +74,8 @@ namespace CSharpExamples
                         string[] word_boosts = hotwords.Split(sep);
                         foreach(string word_boost in word_boosts)
                         {   
-                            char[] sep = {':'};
-                            string[] word = word_boost.Split(sep);
+                            char[] sep1 = {':'};
+                            string[] word = word_boost.Split(sep1);
                             sttClient.AddHotWord(word[0], float.Parse(word[1]));
                         }
                     }
