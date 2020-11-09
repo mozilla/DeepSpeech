@@ -70,11 +70,13 @@ namespace CSharpExamples
                     if(hotwords != null)
                     {
                         Console.WriteLine($"Adding hot-words {hotwords}");
-                        string[] word_boosts = hotwords.split(",");
+                        char[] sep =[','];
+                        string[] word_boosts = hotwords.Split(sep);
                         foreach(string word_boost in word_boosts)
-                        {
-                            string[] word = word_boost.split(":");
-                            model.AddHotWord(word[0], float.Parse(word[1]));
+                        {   
+                            char[] sep =[':'];
+                            string[] word = word_boost.Split(sep);
+                            sttClient.AddHotWord(word[0], float.Parse(word[1]));
                         }
                     }
                     

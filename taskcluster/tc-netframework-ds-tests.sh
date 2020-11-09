@@ -29,3 +29,5 @@ DS_BINARY_FILE="DeepSpeechConsole.exe"
 ensure_cuda_usage "$2"
 
 run_netframework_inference_tests
+
+run_hotword_tests
