@@ -70,11 +70,11 @@ namespace CSharpExamples
                     if(hotwords != null)
                     {
                         Console.WriteLine($"Adding hot-words {hotwords}");
-                        char[] sep =[','];
+                        char[] sep = {','};
                         string[] word_boosts = hotwords.Split(sep);
                         foreach(string word_boost in word_boosts)
                         {   
-                            char[] sep =[':'];
+                            char[] sep = {':'};
                             string[] word = word_boost.Split(sep);
                             sttClient.AddHotWord(word[0], float.Parse(word[1]));
                         }
