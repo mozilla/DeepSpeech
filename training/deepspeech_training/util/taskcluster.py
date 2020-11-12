@@ -14,6 +14,7 @@ import sys
 
 from pkg_resources import parse_version
 
+from .io import isdir_remote, open_remote
 
 DEFAULT_SCHEMES = {
     'deepspeech': 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.deepspeech.native_client.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s',
@@ -48,7 +49,7 @@ def maybe_download_tc(target_dir, tc_url, progress=True):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise e
-    assert os.path.isdir(os.path.dirname(target_dir))
+    assert isdir_remote(os.path.dirname(target_dir))
 
     tc_filename = os.path.basename(tc_url)
     target_file = os.path.join(target_dir, tc_filename)
@@ -61,7 +62,7 @@ def maybe_download_tc(target_dir, tc_url, progress=True):
         print('File already exists: %s' % target_file)
 
     if is_gzip:
-        with open(target_file, "r+b") as frw:
+        with open_remote(target_file, "r+b") as frw:
             decompressed = gzip.decompress(frw.read())
             frw.seek(0)
             frw.write(decompressed)
@@ -75,7 +76,7 @@ def maybe_download_tc_bin(**kwargs):
     os.chmod(final_file, final_stat.st_mode | stat.S_IEXEC)
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open_remote(os.path.join(os.path.dirname(__file__), fname)).read()
 
 def main():
     parser = argparse.ArgumentParser(description='Tooling to ease downloading of components from TaskCluster.')
