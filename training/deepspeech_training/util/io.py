@@ -15,7 +15,7 @@ def path_exists_remote(path):
     if path.startswith("gs://"):
         from tensorflow.io import gfile
         return gfile.exists(path)
-    return path_exists_remotes(path)
+    return os.path.exists(path)
 
 
 def open_remote(path, mode):
@@ -42,7 +42,7 @@ def isdir_remote(path):
     if path.startswith("gs://"):
         from tensorflow.io import gfile
         return gfile.isdir(path)
-    return isdir_remote(path)
+    return os.path.isdir(path)
 
 
 def listdir_remote(path):
