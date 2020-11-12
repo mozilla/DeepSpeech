@@ -13,7 +13,7 @@ from .gpu import get_available_gpus
 from .logging import log_error, log_warn
 from .helpers import parse_file_size
 from .augmentations import parse_augmentations
-from .util.io import path_exists_remote
+from .io import path_exists_remote
 
 class ConfigSingleton:
     _config = None
