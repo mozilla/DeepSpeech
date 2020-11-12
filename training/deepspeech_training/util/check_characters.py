@@ -19,6 +19,7 @@ import csv
 import os
 import sys
 import unicodedata
+from .util.io import open_remote
 
 def main():
     parser = argparse.ArgumentParser()
@@ -34,7 +35,7 @@ def main():
 
     all_text = set()
     for in_file in in_files:
-        with open(in_file, "r") as csv_file:
+        with open_remote(in_file, "r") as csv_file:
             reader = csv.reader(csv_file)
             try:
                 next(reader, None)  # skip the file header (i.e. "transcript")
