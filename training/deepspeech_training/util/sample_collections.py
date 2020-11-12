@@ -18,6 +18,7 @@ from .audio import (
     get_audio_type_from_extension,
     write_wav
 )
+from .io import open_remote
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4
@@ -80,7 +81,7 @@ def load_sample(filename, label=None):
     audio_type = get_audio_type_from_extension(ext)
     if audio_type is None:
         raise ValueError('Unknown audio type extension "{}"'.format(ext))
-    with open(filename, 'rb') as audio_file:
+    with open_remote(filename, 'rb') as audio_file:
         if label is None:
             return Sample(audio_type, audio_file.read(), sample_id=filename)
         return LabeledSample(audio_type, audio_file.read(), label, sample_id=filename)
@@ -119,7 +120,7 @@ class DirectSDBWriter:
             raise ValueError('Audio type "{}" not supported'.format(audio_type))
         self.audio_type = audio_type
         self.bitrate = bitrate
-        self.sdb_file = open(sdb_filename, 'wb', buffering=buffering)
+        self.sdb_file = open_remote(sdb_filename, 'wb', buffering=buffering)
         self.offsets = []
         self.num_samples = 0
 
@@ -215,7 +216,7 @@ class SDB:  # pylint: disable=too-many-instance-attributes
         """
         self.sdb_filename = sdb_filename
         self.id_prefix = sdb_filename if id_prefix is None else id_prefix
-        self.sdb_file = open(sdb_filename, 'rb', buffering=REVERSE_BUFFER_SIZE if reverse else buffering)
+        self.sdb_file = open_remote(sdb_filename, 'rb', buffering=REVERSE_BUFFER_SIZE if reverse else buffering)
         self.offsets = []
         if self.sdb_file.read(len(MAGIC)) != MAGIC:
             raise RuntimeError('No Sample Database')
@@ -345,7 +346,7 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
         self.labeled = labeled
         if labeled:
             fieldnames.append('transcript')
-        self.csv_file = open(csv_filename, 'w', encoding='utf-8', newline='')
+        self.csv_file = open_remote(csv_filename, 'w', encoding='utf-8', newline='')
         self.csv_writer = csv.DictWriter(self.csv_file, fieldnames=fieldnames)
         self.csv_writer.writeheader()
         self.counter = 0
@@ -399,7 +400,7 @@ class TarWriter:  # pylint: disable=too-many-instance-attributes
         include : str[]
             List of files to include into tar root.
         """
-        self.tar = tarfile.open(tar_filename, 'w:gz' if gz else 'w')
+        self.tar = tarfile.open_remote(tar_filename, 'w:gz' if gz else 'w')
         samples_dir = tarfile.TarInfo('samples')
         samples_dir.type = tarfile.DIRTYPE
         self.tar.addfile(samples_dir)
@@ -499,7 +500,7 @@ class CSV(SampleList):
         """
         rows = []
         csv_dir = Path(csv_filename).parent
-        with open(csv_filename, 'r', encoding='utf8') as csv_file:
+        with open_remote(csv_filename, 'r', encoding='utf8') as csv_file:
             reader = csv.DictReader(csv_file)
             if 'transcript' in reader.fieldnames:
                 if labeled is None:
