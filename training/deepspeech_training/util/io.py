@@ -13,7 +13,7 @@ def is_remote_path(path):
     Returns True iff the path is one of the remote formats that this
     module supports
     """
-    return path.startswith('gs://') or path.starts_with('hdfs://')
+    return path.startswith('gs://') or path.startswith('hdfs://')
 
 
 def path_exists_remote(path):
