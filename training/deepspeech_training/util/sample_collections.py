@@ -18,7 +18,7 @@ from .audio import (
     get_audio_type_from_extension,
     write_wav
 )
-from .io import open_remote
+from .io import open_remote, is_remote_path
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4
@@ -499,7 +499,6 @@ class CSV(SampleList):
             If the order of the samples should be reversed
         """
         rows = []
-        csv_dir = Path(csv_filename).parent
         with open_remote(csv_filename, 'r', encoding='utf8') as csv_file:
             reader = csv.DictReader(csv_file)
             if 'transcript' in reader.fieldnames:
@@ -509,9 +508,12 @@ class CSV(SampleList):
                 raise RuntimeError('No transcript data (missing CSV column)')
             for row in reader:
                 wav_filename = Path(row['wav_filename'])
-                if not wav_filename.is_absolute():
-                    wav_filename = csv_dir / wav_filename
-                wav_filename = str(wav_filename)
+                if not wav_filename.is_absolute() and not is_remote_path(row['wav_filename']):
+                    wav_filename = Path(csv_filename).parent / wav_filename
+                    wav_filename = str(wav_filename)
+                else:
+                    # Pathlib otherwise removes a / from filenames like hdfs://
+                    wav_filename = row['wav_filename']
                 wav_filesize = int(row['wav_filesize']) if 'wav_filesize' in row else 0
                 if labeled:
                     rows.append((wav_filename, wav_filesize, row['transcript']))
