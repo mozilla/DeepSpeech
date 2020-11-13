@@ -336,7 +336,8 @@ def read_opus(opus_file):
 
 
 def write_wav(wav_file, pcm_data, audio_format=DEFAULT_FORMAT):
-    with wave.open_remote(wav_file, 'wb') as wav_file_writer:
+    # wav_file is already a file-pointer here
+    with wave.open(wav_file, 'wb') as wav_file_writer:
         wav_file_writer.setframerate(audio_format.rate)
         wav_file_writer.setnchannels(audio_format.channels)
         wav_file_writer.setsampwidth(audio_format.width)
@@ -345,7 +346,7 @@ def write_wav(wav_file, pcm_data, audio_format=DEFAULT_FORMAT):
 
 def read_wav(wav_file):
     wav_file.seek(0)
-    with wave.open_remote(wav_file, 'rb') as wav_file_reader:
+    with wave.open(wav_file, 'rb') as wav_file_reader:
         audio_format = read_audio_format_from_wav_file(wav_file_reader)
         pcm_data = wav_file_reader.readframes(wav_file_reader.getnframes())
         return audio_format, pcm_data
@@ -369,7 +370,7 @@ def write_audio(audio_type, audio_file, pcm_data, audio_format=DEFAULT_FORMAT, b
 
 def read_wav_duration(wav_file):
     wav_file.seek(0)
-    with wave.open_remote(wav_file, 'rb') as wav_file_reader:
+    with wave.open(wav_file, 'rb') as wav_file_reader:
         return wav_file_reader.getnframes() / wav_file_reader.getframerate()
 
 
