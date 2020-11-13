@@ -2,7 +2,7 @@ import requests
 import progressbar
 
 from os import path, makedirs
-from .io import open_remote, path_exists_remote
+from .io import open_remote, path_exists_remote, is_remote_path
 
 SIMPLE_BAR = ['Progress ', progressbar.Bar(), ' ', progressbar.Percentage(), ' completed']
 
@@ -10,7 +10,7 @@ def maybe_download(archive_name, target_dir, archive_url):
     # If archive file does not exist, download it...
     archive_path = path.join(target_dir, archive_name)
 
-    if not path_exists_remote(target_dir):
+    if not is_remote_path(target_dir) and not path.exists(target_dir):
         print('No path "%s" - creating ...' % target_dir)
         makedirs(target_dir)
 
