@@ -875,8 +875,12 @@ def export():
 def package_zip():
     # --export_dir path/to/export/LANG_CODE/ => path/to/export/LANG_CODE.zip
     export_dir = os.path.join(os.path.abspath(FLAGS.export_dir), '') # Force ending '/'
-    zip_filename = os.path.dirname(export_dir)
+    if is_remote_path(export_dir):
+        log_error("Cannot package remote path zip %s. Please do this manually." % export_dir)
+        return
 
+    zip_filename = os.path.dirname(export_dir)
+    
     shutil.copy(FLAGS.scorer_path, export_dir)
 
     archive = shutil.make_archive(zip_filename, 'zip', export_dir)
