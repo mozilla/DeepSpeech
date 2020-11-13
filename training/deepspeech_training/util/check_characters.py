@@ -28,7 +28,7 @@ def main():
     parser.add_argument("-alpha", "--alphabet-format", help="Bool. Print in format for alphabet.txt", action="store_true")
     parser.add_argument("-unicode", "--disable-unicode-variants", help="Bool. DISABLE check for unicode consistency (use with --alphabet-format)", action="store_true")
     args = parser.parse_args()
-    in_files = [os.path.abspath(i) for i in args.csv_files.split(",")]
+    in_files = args.csv_files.split(",")
 
     print("### Reading in the following transcript files: ###")
     print("### {} ###".format(in_files))
