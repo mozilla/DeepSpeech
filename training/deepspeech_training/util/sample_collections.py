@@ -334,6 +334,8 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
             If True: Writes labeled samples (util.sample_collections.LabeledSample) only.
             If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
         """
+
+        # TODO: This all breaks with remote paths
         self.csv_filename = Path(csv_filename)
         self.csv_base_dir = self.csv_filename.parent.resolve().absolute()
         self.set_name = self.csv_filename.stem
