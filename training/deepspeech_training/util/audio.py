@@ -171,6 +171,7 @@ class AudioFile:
         self.open_file = None
         self.open_wav = None
         self.tmp_file_path = None
+        self.tmp_src_file_path = None
 
     def __enter__(self):
         if self.audio_path.endswith('.wav'):
