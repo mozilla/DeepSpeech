@@ -72,13 +72,11 @@ class PackedSample:
         self.label = label
 
     def unpack(self):
-        print("Unpacking sample: %s" % self.filename)
         with open_remote(self.filename, 'rb') as audio_file:
             data = audio_file.read()
         if self.label is None:
             s = Sample(self.audio_type, data, sample_id=self.filename)
         s = LabeledSample(self.audio_type, data, self.label, sample_id=self.filename)
-        print("unpacked!")
         return s
 
 def load_sample(filename, label=None):
@@ -99,7 +97,6 @@ def load_sample(filename, label=None):
     util.sample_collections.PackedSample, a wrapper object, on which calling unpack() will return
         util.audio.Sample instance if label is None, else util.sample_collections.LabeledSample instance
     """
-    print("loading sample!")
     ext = os.path.splitext(filename)[1].lower()
     audio_type = get_audio_type_from_extension(ext)
     if audio_type is None:
