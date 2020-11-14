@@ -350,9 +350,9 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
         labeled : bool or None
             If True: Writes labeled samples (util.sample_collections.LabeledSample) only.
             If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
+        
+        Currently only works with local files (not gs:// or hdfs://...)
         """
-
-        # TODO: This all breaks with remote paths
         self.csv_filename = Path(csv_filename)
         self.csv_base_dir = self.csv_filename.parent.resolve().absolute()
         self.set_name = self.csv_filename.stem
@@ -400,7 +400,7 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
 
 
 class TarWriter:  # pylint: disable=too-many-instance-attributes
-    """Sample collection writer for writing a CSV data-set and all its referenced WAV samples to a tar file"""
+    """Sample collection writer for writing a CSV data-set and all its referenced WAV samples to a tar file."""
     def __init__(self,
                  tar_filename,
                  gz=False,
@@ -418,8 +418,10 @@ class TarWriter:  # pylint: disable=too-many-instance-attributes
             If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
         include : str[]
             List of files to include into tar root.
+
+        Currently only works with local files (not gs:// or hdfs://...)
         """
-        self.tar = tarfile.open_remote(tar_filename, 'w:gz' if gz else 'w')
+        self.tar = tarfile.open(tar_filename, 'w:gz' if gz else 'w')
         samples_dir = tarfile.TarInfo('samples')
         samples_dir.type = tarfile.DIRTYPE
         self.tar.addfile(samples_dir)
