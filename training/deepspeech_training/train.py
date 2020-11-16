@@ -775,7 +775,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
 
 
 def file_relative_read(fname):
-    return open_remote(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
 def export():
