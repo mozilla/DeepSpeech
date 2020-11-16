@@ -103,11 +103,6 @@ class LimitingPool:
             self.processed -= 1
             yield obj
 
-    def imap_unordered(self, fun, it):
-        for obj in self.pool.imap_unordered(fun, self._limit(it)):
-            self.processed -= 1
-            yield obj
-
     def terminate(self):
         self.pool.terminate()
 
