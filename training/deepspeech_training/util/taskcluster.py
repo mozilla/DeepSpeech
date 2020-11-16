@@ -76,7 +76,7 @@ def maybe_download_tc_bin(**kwargs):
     os.chmod(final_file, final_stat.st_mode | stat.S_IEXEC)
 
 def read(fname):
-    return open_remote(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 def main():
     parser = argparse.ArgumentParser(description='Tooling to ease downloading of components from TaskCluster.')
