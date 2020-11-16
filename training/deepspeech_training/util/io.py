@@ -34,7 +34,7 @@ def copy_remote(src, dst, overwrite=False):
 
 def open_remote(path, mode='r', buffering=-1, encoding=None, newline=None, closefd=True, opener=None):
     """
-    Wrapper around open_remote() method that can handle remote paths like `gs://...`
+    Wrapper around open() method that can handle remote paths like `gs://...`
     off Google Cloud using Tensorflow's IO helpers.
 
     buffering, encoding, newline, closefd, and opener are ignored for remote files
@@ -75,7 +75,7 @@ def glob_remote(filename):
 
 def remove_remote(filename):
     """
-    Wrapper that can remove_remote local and remote files like `gs://...`
+    Wrapper that can remove local and remote files like `gs://...`
     """
     # Conditional import
     return gfile.remove_remote(filename)
