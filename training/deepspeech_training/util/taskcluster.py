@@ -14,6 +14,7 @@ import sys
 
 from pkg_resources import parse_version
 
+from .io import isdir_remote, open_remote, is_remote_path
 
 DEFAULT_SCHEMES = {
     'deepspeech': 'https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.deepspeech.native_client.%(branch_name)s.%(arch_string)s/artifacts/public/%(artifact_name)s',
@@ -42,13 +43,13 @@ def maybe_download_tc(target_dir, tc_url, progress=True):
 
     assert target_dir is not None
 
-    target_dir = os.path.abspath(target_dir)
-    try:
-        os.makedirs(target_dir)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise e
-    assert os.path.isdir(os.path.dirname(target_dir))
+    if not is_remote_path(target_dir):
+        try:
+            os.makedirs(target_dir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise e
+        assert os.path.isdir(os.path.dirname(target_dir))
 
     tc_filename = os.path.basename(tc_url)
     target_file = os.path.join(target_dir, tc_filename)
@@ -61,7 +62,7 @@ def maybe_download_tc(target_dir, tc_url, progress=True):
         print('File already exists: %s' % target_file)
 
     if is_gzip:
-        with open(target_file, "r+b") as frw:
+        with open_remote(target_file, "r+b") as frw:
             decompressed = gzip.decompress(frw.read())
             frw.seek(0)
             frw.write(decompressed)
