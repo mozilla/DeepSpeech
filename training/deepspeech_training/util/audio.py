@@ -118,15 +118,19 @@ class Sample:
         self.audio_type = new_audio_type
 
 
-def _change_audio_type(sample_and_audio_type):
-    sample, audio_type, bitrate = sample_and_audio_type
+def _unpack_and_change_audio_type(sample_and_audio_type):
+    packed_sample, audio_type, bitrate = sample_and_audio_type
+    if hasattr(sample, 'unpack'):
+        sample = packed_sample.unpack()
+    else:
+        sample = packed_sample
     sample.change_audio_type(audio_type, bitrate=bitrate)
     return sample
 
 
-def change_audio_types(samples, audio_type=AUDIO_TYPE_PCM, bitrate=None, processes=None, process_ahead=None):
+def change_audio_types(packed_samples, audio_type=AUDIO_TYPE_PCM, bitrate=None, processes=None, process_ahead=None):
     with LimitingPool(processes=processes, process_ahead=process_ahead) as pool:
-        yield from pool.imap(_change_audio_type, map(lambda s: (s, audio_type, bitrate), samples))
+        yield from pool.imap(_unpack_and_change_audio_type, map(lambda s: (s, audio_type, bitrate), packed_samples))
 
 
 def get_audio_type_from_extension(ext):

@@ -811,7 +811,7 @@ def export():
         load_graph_for_evaluation(session)
 
         output_filename = FLAGS.export_file_name + '.pb'
-        if FLAGS.remove_remote_export:
+        if FLAGS.remove_export:
             if isdir_remote(FLAGS.export_dir):
                 log_info('Removing old export')
                 remove_remote(FLAGS.export_dir)

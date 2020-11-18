@@ -152,7 +152,10 @@ def _init_augmentation_worker(preparation_context):
 
 def _load_and_augment_sample(timed_sample, context=None):
     sample, clock = timed_sample
-    realized_sample = sample.unpack()
+    if hasattr(sample, 'unpack'):
+        realized_sample = sample.unpack()
+    else:
+        realized_sample = sample
     return _augment_sample((realized_sample, clock), context)
 
 
