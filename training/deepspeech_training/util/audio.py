@@ -120,7 +120,10 @@ class Sample:
 
 def _unpack_and_change_audio_type(sample_and_audio_type):
     packed_sample, audio_type, bitrate = sample_and_audio_type
-    sample = packed_sample.unpack()
+    if hasattr(sample, 'unpack'):
+        sample = packed_sample.unpack()
+    else:
+        sample = packed_sample
     sample.change_audio_type(audio_type, bitrate=bitrate)
     return sample
 
