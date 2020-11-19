@@ -12,7 +12,6 @@ set_ldc_sample_filename "${bitrate}"
 model_source=${DEEPSPEECH_TEST_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
 model_name_mmap=$(basename "${model_source}")
-model_source_mmap=${DEEPSPEECH_PROD_MODEL_MMAP//.pbmm/.tflite}
 
 download_data
 
