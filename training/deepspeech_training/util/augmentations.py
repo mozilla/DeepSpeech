@@ -150,12 +150,6 @@ def _init_augmentation_worker(preparation_context):
     AUGMENTATION_CONTEXT = preparation_context
 
 
-def _load_and_augment_sample(timed_sample, context=None):
-    sample, clock = timed_sample
-    realized_sample = sample.unpack()
-    return _augment_sample((realized_sample, clock), context)
-
-
 def _augment_sample(timed_sample, context=None):
     context = AUGMENTATION_CONTEXT if context is None else context
     sample, clock = timed_sample
@@ -219,12 +213,12 @@ def apply_sample_augmentations(samples,
         context = AugmentationContext(audio_type, augmentations)
         if process_ahead == 0:
             for timed_sample in timed_samples():
-                yield _load_and_augment_sample(timed_sample, context=context)
+                yield _augment_sample(timed_sample, context=context)
         else:
             with LimitingPool(process_ahead=process_ahead,
                               initializer=_init_augmentation_worker,
                               initargs=(context,)) as pool:
-                yield from pool.imap(_load_and_augment_sample, timed_samples())
+                yield from pool.imap(_augment_sample, timed_samples())
     finally:
         for augmentation in augmentations:
             augmentation.stop()

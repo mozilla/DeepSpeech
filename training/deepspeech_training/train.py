@@ -35,7 +35,6 @@ from .util.feeding import create_dataset, audio_to_features, audiofile_to_featur
 from .util.flags import create_flags, FLAGS
 from .util.helpers import check_ctcdecoder_version, ExceptionBox
 from .util.logging import create_progressbar, log_debug, log_error, log_info, log_progress, log_warn
-from .util.io import open_remote, remove_remote, listdir_remote, is_remote_path, isdir_remote
 
 check_ctcdecoder_version()
 
@@ -513,10 +512,9 @@ def train():
     best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
 
     # Save flags next to checkpoints
-    if not is_remote_path(FLAGS.save_checkpoint_dir):
-        os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
+    os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
     flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
-    with open_remote(flags_file, 'w') as fout:
+    with open(flags_file, 'w') as fout:
         fout.write(FLAGS.flags_into_string())
 
     with tfv1.Session(config=Config.session_config) as session:
@@ -543,7 +541,7 @@ def train():
                 feature_cache_index = FLAGS.feature_cache + '.index'
                 if epoch % FLAGS.cache_for_epochs == 0 and os.path.isfile(feature_cache_index):
                     log_info('Invalidating feature cache')
-                    remove_remote(feature_cache_index)  # this will let TF also overwrite the related cache data files
+                    os.remove(feature_cache_index)  # this will let TF also overwrite the related cache data files
 
             # Setup progress bar
             class LossWidget(progressbar.widgets.FormatLabel):
@@ -811,14 +809,14 @@ def export():
         load_graph_for_evaluation(session)
 
         output_filename = FLAGS.export_file_name + '.pb'
-        if FLAGS.remove_remote_export:
-            if isdir_remote(FLAGS.export_dir):
+        if FLAGS.remove_export:
+            if os.path.isdir(FLAGS.export_dir):
                 log_info('Removing old export')
-                remove_remote(FLAGS.export_dir)
+                shutil.rmtree(FLAGS.export_dir)
 
         output_graph_path = os.path.join(FLAGS.export_dir, output_filename)
 
-        if not is_remote_path(FLAGS.export_dir) and not os.path.isdir(FLAGS.export_dir):
+        if not os.path.isdir(FLAGS.export_dir):
             os.makedirs(FLAGS.export_dir)
 
         frozen_graph = tfv1.graph_util.convert_variables_to_constants(
@@ -831,7 +829,7 @@ def export():
             dest_nodes=output_names)
 
         if not FLAGS.export_tflite:
-            with open_remote(output_graph_path, 'wb') as fout:
+            with open(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())
         else:
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
@@ -842,7 +840,7 @@ def export():
             converter.allow_custom_ops = True
             tflite_model = converter.convert()
 
-            with open_remote(output_tflite_path, 'wb') as fout:
+            with open(output_tflite_path, 'wb') as fout:
                 fout.write(tflite_model)
 
         log_info('Models exported at %s' % (FLAGS.export_dir))
@@ -853,7 +851,7 @@ def export():
         FLAGS.export_model_version))
 
     model_runtime = 'tflite' if FLAGS.export_tflite else 'tensorflow'
-    with open_remote(metadata_fname, 'w') as f:
+    with open(metadata_fname, 'w') as f:
         f.write('---\n')
         f.write('author: {}\n'.format(FLAGS.export_author_id))
         f.write('model_name: {}\n'.format(FLAGS.export_model_name))
@@ -875,12 +873,8 @@ def export():
 def package_zip():
     # --export_dir path/to/export/LANG_CODE/ => path/to/export/LANG_CODE.zip
     export_dir = os.path.join(os.path.abspath(FLAGS.export_dir), '') # Force ending '/'
-    if is_remote_path(export_dir):
-        log_error("Cannot package remote path zip %s. Please do this manually." % export_dir)
-        return
-
     zip_filename = os.path.dirname(export_dir)
-    
+
     shutil.copy(FLAGS.scorer_path, export_dir)
 
     archive = shutil.make_archive(zip_filename, 'zip', export_dir)
@@ -965,7 +959,7 @@ def main(_):
         tfv1.reset_default_graph()
         FLAGS.export_tflite = True
 
-        if listdir_remote(FLAGS.export_dir):
+        if os.listdir(FLAGS.export_dir):
             log_error('Directory {} is not empty, please fix this.'.format(FLAGS.export_dir))
             sys.exit(1)
 
