@@ -15,8 +15,8 @@ def fail(message):
 
 
 def compare_samples():
-    sample1 = load_sample(CLI_ARGS.sample1).unpack()
-    sample2 = load_sample(CLI_ARGS.sample2).unpack()
+    sample1 = load_sample(CLI_ARGS.sample1)
+    sample2 = load_sample(CLI_ARGS.sample2)
     if sample1.audio_format != sample2.audio_format:
         fail('Samples differ on: audio-format ({} and {})'.format(sample1.audio_format, sample2.audio_format))
     if sample1.duration != sample2.duration:
