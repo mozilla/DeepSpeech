@@ -69,7 +69,7 @@ typedef struct Metadata {
   APPLY(DS_ERR_INVALID_SCORER,          0x2002, "Invalid scorer file.") \
   APPLY(DS_ERR_MODEL_INCOMPATIBLE,      0x2003, "Incompatible model.") \
   APPLY(DS_ERR_SCORER_NOT_ENABLED,      0x2004, "External scorer is not enabled.") \
-  APPLY(DS_ERR_SCORER_UNREADABLE,       0x2005, "Could not read scorer file.") \
+  APPLY(DS_ERR_SCORER_UNREADABLE,       0x2005, "Could not read language model (lm.binary) file.") \
   APPLY(DS_ERR_SCORER_INVALID_LM,       0x2006, "Could not recognize language model header in scorer.") \
   APPLY(DS_ERR_SCORER_NO_TRIE,          0x2007, "Reached end of scorer file before loading vocabulary trie.") \
   APPLY(DS_ERR_SCORER_INVALID_TRIE,     0x2008, "Invalid magic in trie header.") \
