@@ -68,7 +68,8 @@ create_package(absl::optional<string> alphabet_path,
     int err = scorer.load_lm(lm_path);
     if (err != DS_ERR_SCORER_NO_TRIE) {
         cerr << "Error loading language model file: "
-             << DS_ErrorCodeToErrorMessage(err) << "\n";
+             << (err == DS_ERR_SCORER_UNREADABLE ? "Can't open binary LM file." : DS_ErrorCodeToErrorMessage(err))
+             << "\n";
         return 1;
     }
     scorer.fill_dictionary(words);
