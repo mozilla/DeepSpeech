@@ -3,6 +3,7 @@
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_shared_object")
 load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 load(
     "@org_tensorflow//tensorflow/lite:build_def.bzl",
@@ -110,8 +111,8 @@ cc_library(
     ],
 )
 
-tf_cc_shared_object(
-    name = "libdeepspeech.so",
+cc_library(
+    name = "deepspeech_bundle",
     srcs = [
         "deepspeech.cc",
         "deepspeech.h",
@@ -201,6 +202,19 @@ tf_cc_shared_object(
     }) + if_cuda([
         "//tensorflow/core:core",
     ]) + [":decoder"],
+)
+
+tf_cc_shared_object(
+    name = "libdeepspeech.so",
+    deps = [":deepspeech_bundle"],
+)
+
+ios_static_framework(
+    name = "deepspeech_ios",
+    deps = [":deepspeech_bundle"],
+    families = ["iphone", "ipad"],
+    minimum_os_version = "9.0",
+    linkopts = ["-lstdc++"],
 )
 
 genrule(
