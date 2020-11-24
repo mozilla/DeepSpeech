@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.license      = "Mozilla Public License 2.0"
   s.authors      = "Mozilla et al."
 
-  s.platforms    = { :ios => "x13.5" }
+  s.platforms    = { :ios => "13.5" }
 
   # TODO: Consider what we want to do here
   s.source       = { :git => "", :tag => "#{s.version}" }
