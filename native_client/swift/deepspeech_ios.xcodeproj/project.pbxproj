@@ -11,7 +11,7 @@
 		505B137224960D550007DADA /* deepspeech_ios.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B136424960D550007DADA /* deepspeech_ios.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		505B137D24961AF20007DADA /* deepspeech.h in Headers */ = {isa = PBXBuildFile; fileRef = 505B137C24961AF20007DADA /* deepspeech.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		505B137F24961BA70007DADA /* DeepSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505B137E24961BA70007DADA /* DeepSpeech.swift */; };
-		507CD39B24B61FA100409BBB /* libdeepspeech.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD39A24B61FA100409BBB /* libdeepspeech.so */; };
+		AD2FD0F925678F8800314F2E /* deepspeech_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD2FD0F825678F8800314F2E /* deepspeech_ios.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,7 +45,7 @@
 		505B137B249619C90007DADA /* deepspeech_ios.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = deepspeech_ios.modulemap; sourceTree = "<group>"; };
 		505B137C24961AF20007DADA /* deepspeech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = deepspeech.h; path = ../../deepspeech.h; sourceTree = "<group>"; };
 		505B137E24961BA70007DADA /* DeepSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSpeech.swift; sourceTree = "<group>"; };
-		507CD39A24B61FA100409BBB /* libdeepspeech.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libdeepspeech.so; sourceTree = "<group>"; };
+		AD2FD0F825678F8800314F2E /* deepspeech_ios.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = deepspeech_ios.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,7 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				507CD39B24B61FA100409BBB /* libdeepspeech.so in Frameworks */,
+				AD2FD0F925678F8800314F2E /* deepspeech_ios.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -101,7 +101,7 @@
 		505B1380249620C60007DADA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				507CD39A24B61FA100409BBB /* libdeepspeech.so */,
+				AD2FD0F825678F8800314F2E /* deepspeech_ios.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -296,8 +296,10 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -352,8 +354,10 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -372,6 +376,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = deepspeech_ios/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -386,6 +394,7 @@
 				);
 				MODULEMAP_FILE = deepspeech_ios/deepspeech_ios.modulemap;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios";
+				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -406,6 +415,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = deepspeech_ios/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -420,6 +433,7 @@
 				);
 				MODULEMAP_FILE = deepspeech_ios/deepspeech_ios.modulemap;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios";
+				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
