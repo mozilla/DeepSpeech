@@ -10,10 +10,6 @@ mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
 cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
-package_native_client "native_client.tar.xz"
-
-package_libdeepspeech_as_zip "libdeepspeech.zip"
-
 case $arch in
 "--x86_64")
   release_folder="Release-iphonesimulator"
