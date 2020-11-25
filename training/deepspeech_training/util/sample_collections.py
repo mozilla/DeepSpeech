@@ -8,7 +8,7 @@ import tarfile
 from pathlib import Path
 from functools import partial
 
-from .helpers import KILOBYTE, MEGABYTE, GIGABYTE, Interleaved
+from .helpers import KILOBYTE, MEGABYTE, GIGABYTE, Interleaved, LenMap
 from .audio import (
     Sample,
     DEFAULT_FORMAT,
@@ -610,7 +610,7 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None, re
         return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled, reverse=reverse)
 
     # Otherwise, if we wish to interleave based on duration, we have to unpack the audio (on the fly)
-    cols = [map(lambda ps: (ps.unpack() if hasattr(ps, 'unpack') else ps),
+    cols = [LenMap(lambda ps: (ps.unpack() if hasattr(ps, 'unpack') else ps),
                 samples_from_source(source, buffering=buffering, labeled=labeled, reverse=reverse))
             for source in sample_sources]
 
