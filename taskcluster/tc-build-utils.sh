@@ -340,8 +340,7 @@ do_nuget_build()
 do_deepspeech_ios_framework_build()
 {
   arch=$1
-  unzip ${DS_TFDIR}/bazel-bin/native_client/deepspeech_ios.zip
-  mv ${DS_TFDIR}/bazel-bin/native_client/deepspeech_ios.framework ${DS_DSDIR}/native_client/swift/deepspeech_ios.framework
+  unzip ${DS_TFDIR}/bazel-bin/native_client/deepspeech_ios.zip -d ${DS_DSDIR}/native_client/swift
   cd ${DS_DSDIR}/native_client/swift
   case $arch in
   "--x86_64")
