@@ -578,6 +578,11 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None, re
     Loads and combines samples from a list of source files. Sources are combined in an interleaving way to
     keep default sample order from shortest to longest.
 
+    Note that when using distributed training, it is much faster to call this function with single pre-
+    sorted sample source, because this allows for parallelization of the file I/O. (If this function is
+    called with multiple sources, the samples have to be unpacked on a single parent process to allow
+    for reading their durations.)
+
     Parameters
     ----------
     sample_sources : list of str
@@ -594,13 +599,19 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None, re
 
     Returns
     -------
-    iterable of util.sample_collections.LabeledSample (labeled=True) or util.audio.Sample (labeled=False) supporting len
+    iterable of util.sample_collections.PackedSample if a single collection is provided, wrapping
+        LabeledSample (labeled=True) or util.audio.Sample (labeled=False) supporting len
+    or LabeledSample / util.audio.Sample directly, if multiple collections are provided
     """
     sample_sources = list(sample_sources)
     if len(sample_sources) == 0:
         raise ValueError('No files')
     if len(sample_sources) == 1:
         return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled, reverse=reverse)
-    cols = [samples_from_source(source, buffering=buffering, labeled=labeled, reverse=reverse)
+
+    # Otherwise, if we wish to interleave based on duration, we have to unpack the audio (on the fly)
+    cols = [map(lambda ps: (ps.unpack() if hasattr(ps, 'unpack') else ps),
+                samples_from_source(source, buffering=buffering, labeled=labeled, reverse=reverse))
             for source in sample_sources]
+
     return Interleaved(*cols, key=lambda s: s.duration, reverse=reverse)
