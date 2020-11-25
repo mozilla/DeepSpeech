@@ -152,10 +152,7 @@ def _init_augmentation_worker(preparation_context):
 
 def _load_and_augment_sample(timed_sample, context=None):
     sample, clock = timed_sample
-    if hasattr(sample, 'unpack'):
-        realized_sample = sample.unpack()
-    else:
-        realized_sample = sample
+    realized_sample = _unpack_maybe(sample)
     return _augment_sample((realized_sample, clock), context)
 
 
@@ -246,6 +243,17 @@ def _enqueue_overlay_samples(sample_source, queue, buffering=BUFFER_SIZE):
             queue.put(sample)
 
 
+def _unpack_maybe(sample):
+    """
+    Loads the supplied sample from disk (or the network) if the audio isn't loaded in to memory already.
+    """
+    if hasattr(sample, 'unpack'):
+        realized_sample = sample.unpack()
+    else:
+        realized_sample = sample
+    return realized_sample
+
+
 class Overlay(SampleAugmentation):
     """See "Overlay augmentation" in training documentation"""
     def __init__(self, source, p=1.0, snr=3.0, layers=1):
@@ -265,6 +273,7 @@ class Overlay(SampleAugmentation):
         self.enqueue_process.start()
 
     def apply(self, sample, clock=0.0):
+        sample = _unpack_maybe(sample)
         sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
         n_layers = pick_value_from_range(self.layers, clock=clock)
         audio = sample.audio
@@ -274,6 +283,7 @@ class Overlay(SampleAugmentation):
             while overlay_offset < len(audio):
                 if self.current_sample is None:
                     next_overlay_sample = self.queue.get()
+                    next_overlay_sample = _unpack_maybe(next_overlay_sample)
                     next_overlay_sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
                     self.current_sample = next_overlay_sample.audio
                 n_required = len(audio) - overlay_offset
