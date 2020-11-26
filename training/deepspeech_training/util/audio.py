@@ -179,7 +179,7 @@ class AudioFile:
 
     def __enter__(self):
         if self.audio_path.endswith('.wav'):
-            self.open_file = open_remote(self.audio_path, 'r')
+            self.open_file = open_remote(self.audio_path, 'rb')
             self.open_wav = wave.open(self.open_file)
             if read_audio_format_from_wav_file(self.open_wav) == self.audio_format:
                 if self.as_path:
@@ -200,7 +200,7 @@ class AudioFile:
         convert_audio(self.audio_path, self.tmp_file_path, file_type='wav', audio_format=self.audio_format)
         if self.as_path:
             return self.tmp_file_path
-        self.open_wav = wave.open(self.tmp_file_path, 'r')
+        self.open_wav = wave.open(self.tmp_file_path, 'rb')
         return self.open_wav
 
     def __exit__(self, *args):
