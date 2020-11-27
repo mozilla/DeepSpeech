@@ -46,7 +46,7 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    # Transcribe an audio file.
    deepspeech --model deepspeech-0.9.1-models.pbmm --scorer deepspeech-0.9.1-models.scorer --audio audio/2830-3980-0043.wav
 
-Please ensure you have the required :ref:`CUDA dependencies <cuda-deps>`.
+Please ensure you have the required :ref:`CUDA dependencies <cuda-inference-deps>`.
 
 See the output of ``deepspeech -h`` for more information on the use of ``deepspeech``. (If you experience problems running ``deepspeech``, please check :ref:`required runtime dependencies <runtime-deps>`).
 
