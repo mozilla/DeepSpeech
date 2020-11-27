@@ -23,10 +23,10 @@ Running ``deepspeech`` might, see below, require some runtime dependencies to be
 
 Please refer to your system's documentation on how to install these dependencies.
 
-.. _cuda-deps:
+.. _cuda-inference-deps:
 
-CUDA dependency
-^^^^^^^^^^^^^^^
+CUDA dependency (inference)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The GPU capable builds (Python, NodeJS, C++, etc) depend on CUDA 10.1 and CuDNN v7.6.
 
