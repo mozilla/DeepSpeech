@@ -32,6 +32,8 @@ public class BasicTest {
     public static final String modelFile    = "/data/local/tmp/test/output_graph.tflite";
     public static final String scorerFile   = "/data/local/tmp/test/kenlm.scorer";
     public static final String wavFile      = "/data/local/tmp/test/LDC93S1.wav";
+    public static final String[] word       = {"friend", "enemy", "family"};
+    public static final float[] boost       = {1.5f, 0f, -20.4f};
 
     private char readLEChar(RandomAccessFile f) throws IOException {
         byte b1 = f.readByte();
@@ -148,5 +150,36 @@ public class BasicTest {
         String decoded = doSTT(m, true);
         assertEquals("she had your dark suit in greasy wash water all year", decoded);
         m.freeModel();
+    }
+
+    @Test
+    public void loadDeepSpeech_HotWord_withLM() {
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        m.enableExternalScorer(scorerFile);
+
+        for(int i = 0; i < word.length; i++) {
+            m.addHotWord(word[i], boost[i]);
+            String decoded = doSTT(m, false);
+            assertEquals("she had your dark suit in greasy wash water all year", decoded);
+            m.eraseHotWord(word[i]);
+        }
+
+        m.freeModel();
+    }
+
+    @Test
+    public void loadDeepSpeech_HotWord_noLM() {
+        DeepSpeechModel m = new DeepSpeechModel(modelFile);
+        try {
+            m.addHotWord(word[0], boost[0]);
+            assert(false);
+        }
+        catch(Exception e) {
+            assertEquals("Error: External scorer is not enabled. (0x2004).", e.getMessage());
+        }
+        finally {
+            m.freeModel();
+            assert(true);
+        }
     }
 }

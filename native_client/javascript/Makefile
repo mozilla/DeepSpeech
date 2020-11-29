@@ -6,11 +6,14 @@ PROJECT_NAME       ?= deepspeech
 PROJECT_VERSION    ?= $(shell cat ../../training/deepspeech_training/VERSION | tr -d '\n')
 NPM_ROOT           ?= $(shell npm root)
 
+NODE_PRE_GYP_ABI_CROSSWALK_FILE ?= $(NPM_ROOT)/../abi_crosswalk_priv.json
+
 NODE_MODULES_BIN   ?= $(NPM_ROOT)/.bin/
 ifeq ($(findstring _NT,$(OS)),_NT)
 # On Windows, we seem to need both in PATH for node-pre-gyp as well as tsc
 # they do not get installed the same way.
 NODE_MODULES_BIN   := $(shell cygpath -u $(NPM_ROOT)/.bin/):$(shell cygpath -u `dirname "$(NPM_ROOT)"`)
+NODE_PRE_GYP_ABI_CROSSWALK_FILE := $(shell cygpath -u $(NPM_ROOT)/../abi_crosswalk_priv.json)
 endif
 
 include ../definitions.mk
@@ -47,13 +50,13 @@ configure: deepspeech_wrap.cxx package.json npm-dev
 	PATH="$(NODE_MODULES_BIN):${PATH}" $(NODE_BUILD_TOOL) configure $(NODE_BUILD_VERBOSE)
 
 build: configure deepspeech_wrap.cxx
-	PATH="$(NODE_MODULES_BIN):${PATH}" AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(RPATH_NODEJS) $(LDFLAGS)" LIBS=$(LIBS) $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DEVDIR) $(NODE_DIST_URL) --no-color rebuild $(NODE_BUILD_VERBOSE)
+	PATH="$(NODE_MODULES_BIN):${PATH}" NODE_PRE_GYP_ABI_CROSSWALK=$(NODE_PRE_GYP_ABI_CROSSWALK_FILE) AS=$(AS) CC=$(CC) CXX=$(CXX) LD=$(LD) CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(RPATH_NODEJS) $(LDFLAGS)" LIBS=$(LIBS) $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DEVDIR) $(NODE_DIST_URL) --no-color rebuild $(NODE_BUILD_VERBOSE)
 
 copy-deps: build
 	$(call copy_missing_libs,lib/binding/*/*/*/deepspeech.node,lib/binding/*/*/)
 
 node-wrapper: copy-deps build
-	PATH="$(NODE_MODULES_BIN):${PATH}" $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DEVDIR) $(NODE_DIST_URL) --no-color package $(NODE_BUILD_VERBOSE)
+	PATH="$(NODE_MODULES_BIN):${PATH}" NODE_PRE_GYP_ABI_CROSSWALK=$(NODE_PRE_GYP_ABI_CROSSWALK_FILE) $(NODE_BUILD_TOOL) $(NODE_PLATFORM_TARGET) $(NODE_RUNTIME) $(NODE_ABI_TARGET) $(NODE_DEVDIR) $(NODE_DIST_URL) --no-color package $(NODE_BUILD_VERBOSE)
 
 npm-pack: clean package.json index.ts npm-dev
 	PATH="$(NODE_MODULES_BIN):${PATH}" tsc && $(NPM_TOOL) pack $(NODE_BUILD_VERBOSE)

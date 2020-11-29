@@ -94,11 +94,16 @@ download_dependency_file()
 
 download_data()
 {
-  ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source}"
-  ${WGET} -P "${TASKCLUSTER_TMP_DIR}" "${model_source_mmap}"
+  local _model_source_file=$(basename "${model_source}")
+  ${WGET} "${model_source}" -O - | gunzip --force > "${TASKCLUSTER_TMP_DIR}/${_model_source_file}"
+
+  local _model_source_mmap_file=$(basename "${model_source_mmap}")
+  ${WGET} "${model_source_mmap}" -O - | gunzip --force > "${TASKCLUSTER_TMP_DIR}/${_model_source_mmap_file}"
+
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/pruned_lm.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/pruned_lm.bytes.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.bytes.scorer
+
   cp -R ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
 }
 

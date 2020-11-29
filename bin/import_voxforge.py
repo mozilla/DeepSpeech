@@ -2,6 +2,7 @@
 import codecs
 import os
 import re
+import sys
 import tarfile
 import threading
 import unicodedata

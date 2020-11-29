@@ -1,0 +1,16 @@
+build:
+  template_file: test-linux-opt-base.tyml
+  docker_image: "ubuntu:16.04"
+  dependencies:
+    - "node-package-tflite"
+    - "test-training_16k-linux-amd64-py36m-opt"
+  test_model_task: "test-training_16k-linux-amd64-py36m-opt"
+  system_setup:
+    >
+      ${nodejs.packages_xenial.prep_15} && ${nodejs.packages_xenial.apt_pinning} && apt-get -qq update && apt-get -qq -y install ${nodejs.packages_xenial.apt}
+  args:
+    tests_cmdline: "${system.homedir.linux}/DeepSpeech/ds/taskcluster/tc-node_tflite-tests.sh 15.x 16k"
+  workerType: "${docker.dsTests}"
+  metadata:
+    name: "DeepSpeech Linux AMD64 TFLite NodeJS MultiArch Package 15.x tests (16kHz)"
+    description: "Testing DeepSpeech for Linux/AMD64 on NodeJS MultiArch Package v15.x, TFLite only, optimized version (16kHz)"

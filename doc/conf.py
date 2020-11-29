@@ -30,7 +30,11 @@ autodoc_mock_imports = ['deepspeech']
 # on our CI as in RTD to avoid regressions on RTD that we would not catch on
 # TaskCluster
 import subprocess
+parent = subprocess.check_output("cd ../ && pwd", shell=True).decode().strip()
+os.environ["PATH"] = os.path.join(parent, 'node_modules', '.bin') + ':' + os.environ["PATH"]
 subprocess.check_call('cd ../ && npm install typedoc@0.17.4 typescript@3.8.3 @types/node@13.9.x', shell=True)
+subprocess.check_call('env', shell=True)
+subprocess.check_call('which typedoc', shell=True)
 subprocess.check_call('cd ../ && doxygen doc/doxygen-c.conf', shell=True)
 subprocess.check_call('cd ../ && doxygen doc/doxygen-java.conf', shell=True)
 subprocess.check_call('cd ../ && doxygen doc/doxygen-dotnet.conf', shell=True)

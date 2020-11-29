@@ -16,7 +16,7 @@ if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export DS_CPU_COUNT=$(nproc)
 
     # Those are the versions available on NuGet.org
-    export SUPPORTED_PYTHON_VERSIONS="3.5.4:ucs2 3.6.8:ucs2 3.7.6:ucs2 3.8.1:ucs2"
+    export SUPPORTED_PYTHON_VERSIONS="3.5.4:ucs2 3.6.8:ucs2 3.7.6:ucs2 3.8.1:ucs2 3.9.0:ucs2"
 fi;
 
 if [ "${OS}" = "Darwin" ]; then
@@ -79,7 +79,7 @@ model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 
 ldc93s1_sample_filename=''
 
-SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.8:ucs2 3.6.10:ucs2 3.7.6:ucs2 3.8.1:ucs2}
+SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.8:ucs2 3.6.10:ucs2 3.7.6:ucs2 3.8.1:ucs2 3.9.0:ucs2}
 
 # When updating NodeJS / ElectronJS supported versions, do not forget to increment
 # deepspeech.node-gyp-cache.<X> in both `system.node_gyp_cache` (taskcluster/.shared.yml)
@@ -87,7 +87,7 @@ SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-3.5.8:ucs2 3.6.10:ucs2 3.
 #
 # Also, builds should always target first major branch release to ensure proper binary compatibility
 # and tests should always target latest major branch release version
-SUPPORTED_NODEJS_BUILD_VERSIONS=${SUPPORTED_NODEJS_BUILD_VERSIONS:-10.0.0 11.0.0 12.7.0 13.0.0 14.0.0}
-SUPPORTED_NODEJS_TESTS_VERSIONS=${SUPPORTED_NODEJS_TESTS_VERSIONS:-10.20.1 11.15.0 12.17.0 13.14.0 14.3.0}
+SUPPORTED_NODEJS_BUILD_VERSIONS=${SUPPORTED_NODEJS_BUILD_VERSIONS:-10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0}
+SUPPORTED_NODEJS_TESTS_VERSIONS=${SUPPORTED_NODEJS_TESTS_VERSIONS:-10.20.1 11.15.0 12.17.0 13.14.0 14.3.0 15.0.0}
 
-SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0}
+SUPPORTED_ELECTRONJS_VERSIONS=${SUPPORTED_ELECTRONJS_VERSIONS:-5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0}

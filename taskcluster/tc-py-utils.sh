@@ -24,7 +24,7 @@ install_pyenv()
   fi
 
   pushd ${PYENV_ROOT}
-    git checkout --quiet 20a1f0cd7a3d2f95800d8e0d5863b4e98f25f4df
+    git checkout --quiet 806b30d6ce5b263a765648fbcdd68266833b7289
   popd
 
   if [ ! -d "${PYENV_ROOT}/plugins/pyenv-alias" ]; then
@@ -213,6 +213,10 @@ maybe_numpy_min_version()
                     export NUMPY_BUILD_VERSION="==1.17.3"
                     export NUMPY_DEP_VERSION=">=1.17.3"
                 ;;
+                3.9*)
+                    export NUMPY_BUILD_VERSION="==1.19.4"
+                    export NUMPY_DEP_VERSION=">=1.19.4"
+                ;;
             esac
         ;;
 
@@ -229,6 +233,10 @@ maybe_numpy_min_version()
                 3.8*)
                     export NUMPY_BUILD_VERSION="==1.17.3"
                     export NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
+                ;;
+                3.9*)
+                    export NUMPY_BUILD_VERSION="==1.19.4"
+                    export NUMPY_DEP_VERSION=">=1.19.4"
                 ;;
             esac
         ;;
@@ -250,6 +258,10 @@ maybe_numpy_min_version()
                 3.8*)
                     export NUMPY_BUILD_VERSION="==1.17.3"
                     export NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
+                ;;
+                3.9*)
+                    export NUMPY_BUILD_VERSION="==1.19.4"
+                    export NUMPY_DEP_VERSION=">=1.19.4"
                 ;;
             esac
         ;;
@@ -310,7 +322,7 @@ extract_python_versions()
 
   local _pyver=$(echo "${_pyver_full}" | cut -d':' -f1)
 
-  # 3.8.x => 38
+  # 3.8.x => 38 / 3.9.x => 39 
   local _pyver_pkg=$(echo "${_pyver}" | cut -d'.' -f1,2 | tr -d '.')
 
   # https://www.python.org/dev/peps/pep-3149/#proposal
@@ -321,7 +333,7 @@ extract_python_versions()
     local _pyconf="ucs2"
   elif [ "${_py_unicode_type}" = "mu" ]; then
     local _pyconf="ucs4"
-  elif [ "${_py_unicode_type}" = "" ]; then # valid for Python 3.8
+  elif [ "${_py_unicode_type}" = "" ]; then # valid for Python 3.8 and 3.9
     local _pyconf="ucs2"
   fi;
 
