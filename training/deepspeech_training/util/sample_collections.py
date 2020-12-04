@@ -621,7 +621,7 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None, re
     if len(sample_sources) == 1:
         return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled, reverse=reverse)
 
-    # Otherwise, if we wish to interleave based on duration, we have to unpack the audio (on the fly)
+    # If we wish to interleave based on duration, we have to unpack the audio (on the fly)
     cols = [LenMap(
         unpack_maybe, samples_from_source(source, buffering=buffering, labeled=labeled, reverse=reverse))
         for source in sample_sources]
