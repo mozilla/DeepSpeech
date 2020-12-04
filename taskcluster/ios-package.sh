@@ -22,5 +22,5 @@ case $arch in
 esac
 
 ${TAR} -cf - \
-       -C ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/swift/DerivedData/Build/Products/${release_folder}/ deepspeech_ios.framework \
+       -C ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/swift/DerivedData/Build/Products/${release_folder}/deepspeech_ios.framework \
        | ${XZ} > "${TASKCLUSTER_ARTIFACTS}/${artifact_name}"
