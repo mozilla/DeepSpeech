@@ -152,7 +152,7 @@ cc_library(
         "//native_client:rpi3-armv8": LINUX_LINKOPTS,
         "//tensorflow:windows": [],
         "//conditions:default": [],
-    }) + tflite_linkopts() + ["-lstdc++"],
+    }) + tflite_linkopts(),
     deps = select({
         "//native_client:tflite": [
             "//tensorflow/lite/kernels:builtin_ops",
@@ -214,6 +214,7 @@ ios_static_framework(
     deps = [":deepspeech_bundle"],
     families = ["iphone", "ipad"],
     minimum_os_version = "9.0",
+    linkopts = ["-lstdc++"],
 )
 
 genrule(
