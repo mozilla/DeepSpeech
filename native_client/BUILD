@@ -1,6 +1,6 @@
 # Description: Deepspeech native client library.
 
-load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_shared_object")
+load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_shared_object", "tf_copts", "lrt_if_needed")
 load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
@@ -131,7 +131,7 @@ cc_library(
             "tfmodelstate.cc",
         ],
     }),
-    copts = select({
+    copts = tf_copts() + select({
         # -fvisibility=hidden is not required on Windows, MSCV hides all declarations by default
         "//tensorflow:windows": ["/w"],
         # -Wno-sign-compare to silent a lot of warnings from tensorflow itself,
@@ -144,7 +144,7 @@ cc_library(
         "//native_client:tflite": ["-DUSE_TFLITE"],
         "//conditions:default": ["-UUSE_TFLITE"],
     }) + tflite_copts(),
-    linkopts = select({
+    linkopts = lrt_if_needed() + select({
         "//tensorflow:macos": [],
         "//tensorflow:ios": ["-fembed-bitcode"],
         "//tensorflow:linux_x86_64": LINUX_LINKOPTS,
