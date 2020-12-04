@@ -79,6 +79,18 @@ class PackedSample:
         s = LabeledSample(self.audio_type, data, self.label, sample_id=self.filename)
         return s
 
+
+def unpack_maybe(sample):
+    """
+    Loads the supplied sample from disk (or the network) if the audio isn't loaded in to memory already.
+    """
+    if hasattr(sample, 'unpack'):
+        realized_sample = sample.unpack()
+    else:
+        realized_sample = sample
+    return realized_sample
+
+
 def load_sample(filename, label=None):
     """
     Loads audio-file as a (labeled or unlabeled) sample
