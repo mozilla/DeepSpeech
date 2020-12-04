@@ -13,8 +13,7 @@ KILOBYTE = 1 * KILO
 MEGABYTE = KILO * KILOBYTE
 GIGABYTE = KILO * MEGABYTE
 TERABYTE = KILO * GIGABYTE
-SIZE_PREFIX_LOOKUP = {'k': KILOBYTE,
-                      'm': MEGABYTE, 'g': GIGABYTE, 't': TERABYTE}
+SIZE_PREFIX_LOOKUP = {'k': KILOBYTE, 'm': MEGABYTE, 'g': GIGABYTE, 't': TERABYTE}
 
 ValueRange = namedtuple('ValueRange', 'start end r')
 
@@ -41,8 +40,7 @@ def secs_to_hours(secs):
 
 
 def check_ctcdecoder_version():
-    ds_version_s = open(os.path.join(os.path.dirname(
-        __file__), '../VERSION')).read().strip()
+    ds_version_s = open(os.path.join(os.path.dirname(__file__), '../VERSION')).read().strip()
 
     try:
         # pylint: disable=import-outside-toplevel
@@ -67,7 +65,6 @@ class Interleaved:
     """Collection that lazily combines sorted collections in an interleaving fashion.
     During iteration the next smallest element from all the sorted collections is always picked.
     The collections must support iter() and len()."""
-
     def __init__(self, *iterables, key=lambda obj: obj, reverse=False):
         self.iterables = iterables
         self.key = key
@@ -86,7 +83,6 @@ class LenMap:
     Wrapper around python map() output object that preserves the original collection length
     by implementing __len__.
     """
-
     def __init__(self, fn, iterable):
         try:
             self.length = len(iterable)
@@ -100,7 +96,7 @@ class LenMap:
 
     def __next__(self):
         return self.mapobj.__next__()
-
+    
     def __getitem__(self, key):
         return self.mapobj.__getitem__(key)
 
@@ -112,13 +108,11 @@ class LimitingPool:
     """Limits unbound ahead-processing of multiprocessing.Pool's imap method
     before items get consumed by the iteration caller.
     This prevents OOM issues in situations where items represent larger memory allocations."""
-
     def __init__(self, processes=None, initializer=None, initargs=None, process_ahead=None, sleeping_for=0.1):
         self.process_ahead = os.cpu_count() if process_ahead is None else process_ahead
         self.sleeping_for = sleeping_for
         self.processed = 0
-        self.pool = Pool(processes=processes,
-                         initializer=initializer, initargs=initargs)
+        self.pool = Pool(processes=processes, initializer=initializer, initargs=initargs)
 
     def __enter__(self):
         return self
@@ -145,7 +139,6 @@ class LimitingPool:
 class ExceptionBox:
     """Helper class for passing-back and re-raising an exception from inside a TensorFlow dataset generator.
     Used in conjunction with `remember_exception`."""
-
     def __init__(self):
         self.exception = None
 
@@ -216,8 +209,7 @@ def tf_pick_value_from_range(value_range, clock=None, double_precision=False):
     value = tf.random.stateless_uniform([],
                                         minval=value - value_range.r,
                                         maxval=value + value_range.r,
-                                        seed=(clock * tf.int32.min,
-                                              clock * tf.int32.max),
+                                        seed=(clock * tf.int32.min, clock * tf.int32.max),
                                         dtype=tf.float64)
     if isinstance(value_range.start, int):
         return tf.cast(tf.math.round(value), tf.int64 if double_precision else tf.int32)
