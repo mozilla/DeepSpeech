@@ -10,9 +10,10 @@ Pod::Spec.new do |s|
   s.authors      = "Mozilla et al."
 
   s.platforms    = { :ios => "9.0" }
+  s.source       = { :git => "https://github.com/mozilla/DeepSpeech.git", :tag => "v#{s.version}" }
 
-  # TODO: Consider what we want to do here
-  s.source       = { :git => "", :tag => "#{s.version}" }
-  s.vendored_frameworks = "build/Release-iphoneos/deepspeech_ios.framework"
-  s.source_files = "deepspeech_ios/**/*.{h,m,mm,swift}"
+  # Assuming taskcluster build location. Depending on your Xcode setup, this might be in
+  # build/Release-iphoneos/deepspeech_ios.framework instead.
+  s.vendored_frameworks = "native_client/swift/DerivedData/Build/Products/Release-iphoneos/deepspeech_ios.framework"
+  s.source_files = "native_client/swift/deepspeech_ios/**/*.{h,m,mm,swift}"
 end
