@@ -212,7 +212,7 @@ tf_cc_shared_object(
 ios_static_framework(
     name = "deepspeech_ios",
     deps = [":deepspeech_bundle"],
-    families = ["iphone","ipad"],
+    families = ["iphone", "ipad"],
     minimum_os_version = "9.0",
 )
 
