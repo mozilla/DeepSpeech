@@ -96,7 +96,7 @@ class LenMap:
 
     def __next__(self):
         return self.mapobj.__next__()
-    
+
     def __getitem__(self, key):
         return self.mapobj.__getitem__(key)
 
