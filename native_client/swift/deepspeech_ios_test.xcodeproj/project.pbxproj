@@ -11,8 +11,6 @@
 		504EC34424CF4EFD0073C22E /* AudioContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC34224CF4EFD0073C22E /* AudioContext.swift */; };
 		504EC34524CF4F4F0073C22E /* deepspeech_ios.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A024B61FE400409BBB /* deepspeech_ios.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		507CD3A124B61FE400409BBB /* deepspeech_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A024B61FE400409BBB /* deepspeech_ios.framework */; };
-		507CD3A324B61FEB00409BBB /* libdeepspeech.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; };
-		507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 507CD3A224B61FEA00409BBB /* libdeepspeech.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		50F787F32497683900D52237 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F22497683900D52237 /* AppDelegate.swift */; };
 		50F787F52497683900D52237 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F42497683900D52237 /* SceneDelegate.swift */; };
 		50F787F72497683900D52237 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F787F62497683900D52237 /* ContentView.swift */; };
@@ -48,7 +46,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				504EC34524CF4F4F0073C22E /* deepspeech_ios.framework in Embed Frameworks */,
-				507CD3A424B61FFC00409BBB /* libdeepspeech.so in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -81,7 +78,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				507CD3A324B61FEB00409BBB /* libdeepspeech.so in Frameworks */,
 				507CD3A124B61FE400409BBB /* deepspeech_ios.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
