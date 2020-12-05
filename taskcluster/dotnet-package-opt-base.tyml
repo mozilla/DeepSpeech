@@ -81,8 +81,9 @@ then:
 		  
 
   artifacts:
-    - type: "directory"
-      path: "public/"
+    "public":
+      type: "directory"
+      path: "/tmp/artifacts/"
       expires:
         $if: '(event.event == "push") || (event.event == "tag")'
         then: { $fromNow: '6 months' }
