@@ -16,6 +16,8 @@ cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/dotnet/*.nupkg ${TASKCLUSTER_ARTI
 
 cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/dotnet/DeepSpeechConsole/bin/x64/Release/DeepSpeechConsole.exe ${TASKCLUSTER_ARTIFACTS}/
 
+cp ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/dotnet/DeepSpeechConsoleNetCore/bin/Release/netcoreapp3.1/DeepSpeechConsoleNetCore.exe ${TASKCLUSTER_ARTIFACTS}/
+
 if [ -d ${DS_ROOT_TASK}/DeepSpeech/ds/wheels ]; then
     cp ${DS_ROOT_TASK}/DeepSpeech/ds/wheels/* ${TASKCLUSTER_ARTIFACTS}/
 fi;

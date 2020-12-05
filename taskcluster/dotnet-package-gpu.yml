@@ -1,0 +1,12 @@
+build:
+  template_file: dotnet-package-opt-base.tyml
+  dependencies:
+    - "linux-amd64-gpu-opt"
+    - "win-amd64-gpu-opt"
+  scripts:
+    build: "taskcluster/dotnet-build.sh --cuda"
+    package: "taskcluster/dotnet-package.sh"
+  workerType: "${docker.smallTask}"
+  metadata:
+    name: "DeepSpeech NodeJS GPU package"
+    description: "Packaging DeepSpeech GPU for registry"

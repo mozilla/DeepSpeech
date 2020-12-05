@@ -1,0 +1,15 @@
+build:
+  template_file: dotnet-package-opt-base.tyml
+  dependencies:
+    - "darwin-amd64-cpu-opt"
+    - "linux-amd64-cpu-opt"
+    - "linux-rpi3-cpu-opt"
+    - "linux-arm64-cpu-opt"
+    - "win-amd64-cpu-opt"
+  scripts:
+    build: "taskcluster/dotnet-build.sh"
+    package: "taskcluster/dotnet-package.sh"
+  workerType: "${docker.smallTask}"
+  metadata:
+    name: "DeepSpeech NodeJS CPU package"
+    description: "Packaging DeepSpeech CPU for registry"

@@ -1,0 +1,91 @@
+$if: 'event.event in build.allowed'
+then:
+  taskId: ${taskcluster.taskId}
+  provisionerId: ${taskcluster.docker.provisionerId}
+  workerType: ${build.workerType}
+  taskGroupId: ${taskcluster.taskGroupId}
+  schedulerId: ${taskcluster.schedulerId}
+  dependencies:
+    $map: { $eval: build.dependencies }
+    each(b):
+      $eval: as_slugid(b)
+  created: { $fromNow: '0 sec' }
+  deadline: { $fromNow: '1 day' }
+  expires:
+    $if: '(event.event == "push") || (event.event == "tag")'
+    then: { $fromNow: '6 months' }
+    else: { $fromNow: '7 days' }
+
+  extra:
+    nc_asset_name: { $eval: build.nc_asset_name }
+    github:
+      $if: '(event.event == "push") || (event.event == "tag")'
+      then: { $eval: taskcluster.github_events.merge }
+      else: { $eval: taskcluster.github_events.pull_request }
+
+  routes:
+    $if: '(event.event == "push") || (event.event == "tag")'
+    then:
+      { $eval: build.routes }
+
+  payload:
+    maxRunTime: { $eval: to_int(build.maxRunTime) }
+	
+  env:
+   TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
+   MSYS: 'winsymlinks:nativestrict'
+   GIT_LFS_SKIP_SMUDGE: '1'
+
+    command:
+      - >-
+        "C:\Program Files\7-zip\7z.exe" x -txz -so msys2-base-x86_64.tar.xz |
+        "C:\Program Files\7-zip\7z.exe" x -o%USERPROFILE% -ttar -aoa -si
+      - .\msys64\usr\bin\bash.exe --login -cx "export THIS_BASH_PID=$$; ps -ef | grep '[?]' | awk '{print $2}' | grep -v $THIS_BASH_PID | xargs -r kill; exit 0"
+      - .\msys64\usr\bin\bash.exe --login -cx "pacman -Syu --noconfirm"
+      - $let:
+          extraSystemSetup: { $eval: strip(str(build.system_setup)) }
+        in: >
+          .\msys64\usr\bin\bash.exe --login -cxe "export LC_ALL=C &&
+          export PATH=\"/c/builds/tc-workdir/msys64/usr/bin:/c/Python36:/c/Program Files/Git/bin:/c/Program Files/7-Zip/:$PATH\" &&
+          export TASKCLUSTER_ARTIFACTS=\"$USERPROFILE/public\" &&
+          export TASKCLUSTER_TASK_DIR=\"/c/builds/tc-workdir/\" &&
+          export TASKCLUSTER_TMP_DIR="$TASKCLUSTER_TASK_DIR/tmp" &&
+          export PIP_DEFAULT_TIMEOUT=60 &&
+          (rm -fr $TASKCLUSTER_TASK_DIR/ ; mkdir $TASKCLUSTER_TASK_DIR) && cd $TASKCLUSTER_TASK_DIR &&
+          env &&
+          ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
+          git clone --quiet ${event.head.repo.url} $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/ &&
+          cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git checkout --quiet ${event.head.sha} &&
+          cd $TASKCLUSTER_TASK_DIR &&
+          (mkdir pyenv-root/ && 7z x -so $USERPROFILE/pyenv.tar.gz | 7z x -opyenv-root/ -aoa -ttar -si ) &&
+          pacman --noconfirm -S tar vim &&
+          ${extraSystemSetup} &&
+          export TASKCLUSTER_TASK_EXIT_CODE=$? &&
+          cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE"
+		  
+		  
+    artifacts:
+      "public":
+        type: "directory"
+        path: "/tmp/artifacts/"
+        expires:
+          $if: '(event.event == "push") || (event.event == "tag")'
+          then: { $fromNow: '6 months' }
+          else: { $fromNow: '7 days' }
+  
+  
+  mounts:
+    - file: msys2-base-x86_64.tar.xz
+      content:
+        sha256: ${system.msys2.sha}
+        url: ${system.msys2.url}
+    - file: pyenv.tar.gz
+      content:
+        url: ${system.pyenv.win.url}
+
+
+  metadata:
+    name: ${build.metadata.name}
+    description: ${build.metadata.description}
+    owner: ${event.head.user.email}
+    source: ${event.head.repo.url}

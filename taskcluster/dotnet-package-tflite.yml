@@ -1,0 +1,13 @@
+build:
+  template_file: dotnet-package-opt-base.tyml
+  dependencies:
+    - "darwin-amd64-tflite-opt"
+    - "linux-amd64-tflite-opt"
+    - "win-amd64-tflite-opt"
+  scripts:
+    build: "taskcluster/dotnet-build.sh --tflite"
+    package: "taskcluster/dotnet-package.sh"
+  workerType: "${docker.smallTask}"
+  metadata:
+    name: "DeepSpeech NodeJS TFLite package"
+    description: "Packaging DeepSpeech TFLite for registry"
