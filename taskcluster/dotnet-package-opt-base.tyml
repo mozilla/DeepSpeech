@@ -32,9 +32,9 @@ then:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
 	
   env:
-   TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
-   MSYS: 'winsymlinks:nativestrict'
-   GIT_LFS_SKIP_SMUDGE: '1'
+    TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
+    MSYS: 'winsymlinks:nativestrict'
+    GIT_LFS_SKIP_SMUDGE: '1'
 
   command:
     - >-
@@ -68,15 +68,7 @@ then:
     - .\msys64\usr\bin\bash.exe --login -cxe "source $USERPROFILE/tc-exit.sh &&
       exit $TASKCLUSTER_TASK_EXIT_CODE"
 		  
-		  
-  artifacts:
-    - type: "directory"
-      path: "/tmp/artifacts/"
-      expires:
-        $if: '(event.event == "push") || (event.event == "tag")'
-        then: { $fromNow: '6 months' }
-        else: { $fromNow: '7 days' }
-  
+
   
   mounts:
     - file: msys2-base-x86_64.tar.xz
@@ -86,7 +78,15 @@ then:
     - file: pyenv.tar.gz
       content:
         url: ${system.pyenv.win.url}
+		  
 
+  artifacts:
+    - type: "directory"
+      path: "public/"
+      expires:
+        $if: '(event.event == "push") || (event.event == "tag")'
+        then: { $fromNow: '6 months' }
+        else: { $fromNow: '7 days' }
 
   metadata:
     name: ${build.metadata.name}
