@@ -9,7 +9,13 @@ install_nuget()
     exit "Please call with a valid PROJECT_NAME"
     exit 1
   fi;
-
+  
+  ConsolePkgName=$2
+  if [ -z "${ConsolePkgName}" ]; then
+    exit "Please call with a valid Console Project name (DeepSpeechConsole.exe or DeepSpeechConsoleNetCore.exe)"
+    exit 1
+  fi;
+  
   nuget="${PROJECT_NAME}.${DS_VERSION}.nupkg"
 
   export PATH=$PATH:$(cygpath ${ChocolateyInstall})/bin
@@ -18,10 +24,10 @@ install_nuget()
   mkdir -p "${TASKCLUSTER_TMP_DIR}/ds/"
 
   nuget_pkg_url=$(get_dep_nuget_pkg_url "${nuget}")
-  console_pkg_url=$(get_dep_nuget_pkg_url "DeepSpeechConsole.exe")
+  console_pkg_url=$(get_dep_nuget_pkg_url "${ConsolePkgName}")
 
   ${WGET} -O - "${nuget_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/${PROJECT_NAME}.${DS_VERSION}.nupkg"
-  ${WGET} -O - "${console_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/DeepSpeechConsole.exe"
+  ${WGET} -O - "${console_pkg_url}" | gunzip > "${TASKCLUSTER_TMP_DIR}/ds/${ConsolePkgName}"
 
   nuget sources add -Name repo -Source $(cygpath -w "${TASKCLUSTER_TMP_DIR}/repo/")
 
@@ -35,9 +41,18 @@ install_nuget()
   ls -halR "${PROJECT_NAME}.${DS_VERSION}"
 
   nuget install NAudio
-  cp NAudio*/lib/net35/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
-  cp ${PROJECT_NAME}.${DS_VERSION}/runtimes/win-x64/native/libdeepspeech.so ${TASKCLUSTER_TMP_DIR}/ds/
-  cp ${PROJECT_NAME}.${DS_VERSION}/lib/net46/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
+  if [ "${ConsolePkgName}" = "DeepSpeechConsole.exe" ]; then
+    cp NAudio*/lib/net35/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
+    cp ${PROJECT_NAME}.${DS_VERSION}/runtimes/win-x64/native/libdeepspeech.so ${TASKCLUSTER_TMP_DIR}/ds/
+    cp ${PROJECT_NAME}.${DS_VERSION}/lib/net46/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
+  elif [ "${ConsolePkgName}" = "DeepSpeechConsoleNetCore.exe" ]; then
+    cp NAudio*/lib/netstandard2.0/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
+    cp ${PROJECT_NAME}.${DS_VERSION}/runtimes/win-x64/native/libdeepspeech.so ${TASKCLUSTER_TMP_DIR}/ds/
+    cp ${PROJECT_NAME}.${DS_VERSION}/lib/netcoreapp3.1/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
+  else
+    exit "Please call with a valid Console Project name (DeepSpeechConsole.exe or DeepSpeechConsoleNetCore.exe)"
+    exit 1
+  fi
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/ds/
 
