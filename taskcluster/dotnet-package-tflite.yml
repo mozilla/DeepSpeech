@@ -9,5 +9,5 @@ build:
     package: "taskcluster/dotnet-package.sh"
   workerType: "${docker.smallTask}"
   metadata:
-    name: "DeepSpeech NodeJS TFLite package"
+    name: "DeepSpeech dotnet TFLite package"
     description: "Packaging DeepSpeech TFLite for registry"

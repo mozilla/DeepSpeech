@@ -11,5 +11,5 @@ build:
     package: "taskcluster/dotnet-package.sh"
   workerType: "${docker.smallTask}"
   metadata:
-    name: "DeepSpeech NodeJS CPU package"
+    name: "DeepSpeech dotnet CPU package"
     description: "Packaging DeepSpeech CPU for registry"

@@ -8,5 +8,5 @@ build:
     package: "taskcluster/dotnet-package.sh"
   workerType: "${docker.smallTask}"
   metadata:
-    name: "DeepSpeech NodeJS GPU package"
+    name: "DeepSpeech dotnet GPU package"
     description: "Packaging DeepSpeech GPU for registry"
