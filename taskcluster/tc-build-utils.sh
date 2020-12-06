@@ -276,13 +276,13 @@ do_deepspeech_netframework_build()
     /p:Platform=x64 \
     /p:TargetFramework="uap10.0" \
     /p:OutputPath=bin/nuget/x64/uap10.0
-	
+
 
   MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
     DeepSpeechConsole/DeepSpeechConsole.csproj \
     /p:Configuration=Release \
     /p:Platform=x64
-	
+
 }
 
 
@@ -308,24 +308,24 @@ do_deepspeech_netframework_wpf_build()
 
 do_deepspeech_netstandard_build()
 {
-	cd ${DS_DSDIR}/native_client/dotnet
-	
-	# Setup dependencies
-	nuget restore DeepSpeech.sln
+    cd ${DS_DSDIR}/native_client/dotnet
 
-	MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"	
-	
-	# We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
-	# We build the .NET Client for netstandard2.1 and netstandard2.0
-	
-	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    # Setup dependencies
+    nuget restore DeepSpeech.sln
+
+    MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"	
+
+    # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
+    # We build the .NET Client for netstandard2.1 and netstandard2.0
+    
+    MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
       DeepSpeechClient/DeepSpeechClient.csproj \
       /p:Configuration=Release \
       /p:TargetFramework="netstandard2.1" \
       /p:Platform="Any CPU" \
       /p:OutputPath=bin/nuget/AnyCPU/netstandard2.1
-	  
-	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+      
+    MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
       DeepSpeechClient/DeepSpeechClient.csproj \
       /p:Configuration=Release \
       /p:TargetFramework="netstandard2.0" \
@@ -336,27 +336,27 @@ do_deepspeech_netstandard_build()
 
 do_deepspeech_netcore_build()
 {
-	cd ${DS_DSDIR}/native_client/dotnet
-	
-	# Setup dependencies
-	nuget restore DeepSpeech.sln
+    cd ${DS_DSDIR}/native_client/dotnet
+    
+    # Setup dependencies
+    nuget restore DeepSpeech.sln
 
-	MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"	
-	
-	# We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
-	# We build the .NET Client for NetCore 3.1
-	
-	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    MSBUILD="$(cygpath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe')"	
+    
+    # We need MSYS2_ARG_CONV_EXCL='/' otherwise the '/' of CLI parameters gets mangled and disappears
+    # We build the .NET Client for NetCore 3.1
+
+    MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
       DeepSpeechClient/DeepSpeechClient.csproj \
       /p:Configuration=Release \
       /p:TargetFramework="netcoreapp3.1" \
       /p:Platform="Any CPU" \
       /p:OutputPath=bin/nuget/AnyCPU/netcoreapp3.1
 
-	MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
+    MSYS2_ARG_CONV_EXCL='/' "${MSBUILD}" \
       DeepSpeechConsoleNetCore/DeepSpeechConsoleNetCore.csproj \
-  	  /p:Configuration=Release \
-	  
+      /p:Configuration=Release \
+  
 }
 
 
@@ -437,18 +437,18 @@ do_nuget_repackage()
   
   for dep in ${all_deps}; do
     local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'libdeepspeech.zip'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
-	
-	cd ${DS_DSDIR}/native_client/dotnet
-	${WGET} -O - "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/libdeepspeech.zip"
-	
+
+    cd ${DS_DSDIR}/native_client/dotnet
+    ${WGET} -O - "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/libdeepspeech.zip"
+
     if [ "${has_artifact}" = "True" ]; then
       if [ "${package_option}" = "--cuda" ]; then
         do_nuget_gpu_repackage "${dep}"
-	  elif [ "${package_option}" = "--tflite" ]; then
+      elif [ "${package_option}" = "--tflite" ]; then
         do_nuget_tfile_repackage "${dep}"
-	  else
-	    do_nuget_cpu_repackage "${dep}"
-	  fi
+      else
+        do_nuget_cpu_repackage "${dep}"
+      fi
     fi;
   done;
 
@@ -469,20 +469,20 @@ do_nuget_cpu_repackage()
 
   if [ "${dep}" = "darwin-amd64-cpu-opt" ]; then
     mkdir -p nupkg/runtimes/osx-x64/native/
-  	cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/osx-x64/native
-	gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
+    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/osx-x64/native
+    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   elif [ "${dep}" = "linux-amd64-cpu-opt" ]; then
-	mkdir -p nupkg/runtimes/linux-x64/native/
+    mkdir -p nupkg/runtimes/linux-x64/native/
     cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-x64/native
     gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   elif [ "${dep}" = "linux-rpi3-cpu-opt" ]; then
     mkdir -p nupkg/runtimes/linux-arm/native/
-	cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-arm/native
-	gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
+    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-arm/native
+    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   elif [ "${dep}" = "linux-arm64-cpu-opt" ]; then
     mkdir -p nupkg/runtimes/linux-arm64/native/
-	cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-arm64/native
-	gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
+    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-arm64/native
+    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   fi;
 }
 
@@ -492,16 +492,16 @@ do_nuget_tfile_repackage()
 
   if [ "${dep}" = "darwin-amd64-tflite-opt" ]; then
     mkdir -p nupkg/runtimes/osx-x64/native/
-  	cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/osx-x64/native
-	gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
+    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/osx-x64/native
+    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   elif [ "${dep}" = "linux-amd64-tflite-opt" ]; then
-	mkdir -p nupkg/runtimes/linux-x64/native/
+    mkdir -p nupkg/runtimes/linux-x64/native/
     cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-x64/native
     gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   elif [ "${dep}" = "win-amd64-tflite-opt" ]; then
     mkdir -p nupkg/runtimes/win-x64/native/
-	cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/win-x64/native
-	gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
+    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/win-x64/native
+    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   fi;
 }
 
@@ -510,13 +510,13 @@ do_nuget_gpu_repackage()
   dep=$1
 
   if [ "${dep}" = "linux-amd64-gpu-opt" ]; then
-	mkdir -p nupkg/runtimes/linux-x64/native/
+    mkdir -p nupkg/runtimes/linux-x64/native/
     cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-x64/native
     gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   elif [ "${dep}" = "win-amd64-gpu-opt" ]; then
     mkdir -p nupkg/runtimes/win-x64/native/
-	cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/win-x64/native
-	gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
+    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/win-x64/native
+    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   fi;
 }
 

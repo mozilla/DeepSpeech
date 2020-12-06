@@ -30,7 +30,7 @@ then:
 
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
-	
+
   env:
     TC_MSYS_VERSION: 'MSYS_NT-6.3-9600'
     MSYS: 'winsymlinks:nativestrict'
@@ -67,7 +67,7 @@ then:
   
     - .\msys64\usr\bin\bash.exe --login -cxe "source $USERPROFILE/tc-exit.sh &&
       exit $TASKCLUSTER_TASK_EXIT_CODE"
-		  
+  
 
   
   mounts:
@@ -78,7 +78,7 @@ then:
     - file: pyenv.tar.gz
       content:
         url: ${system.pyenv.win.url}
-		  
+  
 
   artifacts:
     - type: "directory"
