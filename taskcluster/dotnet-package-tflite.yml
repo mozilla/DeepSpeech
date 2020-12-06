@@ -7,7 +7,6 @@ build:
   scripts:
     build: "taskcluster/dotnet-build.sh --tflite"
     package: "taskcluster/dotnet-package.sh"
-  workerType: "${docker.smallTask}"
   metadata:
     name: "DeepSpeech dotnet TFLite package"
     description: "Packaging DeepSpeech TFLite for registry"

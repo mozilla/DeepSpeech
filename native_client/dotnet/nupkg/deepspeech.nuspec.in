@@ -17,5 +17,6 @@
     <file src="build\**" target="build/"/>
     <file src="lib\**" target="lib/"/>
     <file src="tools\**" target="tools/"/>
+    <file src="runtimes\**" target="runtimes/"/>
   </files>
 </package>

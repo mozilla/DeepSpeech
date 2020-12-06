@@ -9,7 +9,6 @@ build:
   scripts:
     build: "taskcluster/dotnet-build.sh"
     package: "taskcluster/dotnet-package.sh"
-  workerType: "${docker.smallTask}"
   metadata:
     name: "DeepSpeech dotnet CPU package"
     description: "Packaging DeepSpeech CPU for registry"

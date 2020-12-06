@@ -6,7 +6,6 @@ build:
   scripts:
     build: "taskcluster/dotnet-build.sh --cuda"
     package: "taskcluster/dotnet-package.sh"
-  workerType: "${docker.smallTask}"
   metadata:
     name: "DeepSpeech dotnet GPU package"
     description: "Packaging DeepSpeech GPU for registry"

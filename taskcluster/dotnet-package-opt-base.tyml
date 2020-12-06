@@ -2,7 +2,7 @@ $if: 'event.event in build.allowed'
 then:
   taskId: ${taskcluster.taskId}
   provisionerId: ${taskcluster.docker.provisionerId}
-  workerType: ${build.workerType}
+  workerType: ${taskcluster.docker.workerTypeWin}
   taskGroupId: ${taskcluster.taskGroupId}
   schedulerId: ${taskcluster.schedulerId}
   dependencies:
@@ -64,12 +64,9 @@ then:
         echo \"export TASKCLUSTER_TASK_EXIT_CODE=$?\" > $USERPROFILE/tc-exit.sh &&
         cd $TASKCLUSTER_TASK_DIR/../ && rm -fr tc-workdir/ && exit $TASKCLUSTER_TASK_EXIT_CODE" | cmd
         /k ""C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"" x64
-  
       - .\msys64\usr\bin\bash.exe --login -cxe "source $USERPROFILE/tc-exit.sh &&
         exit $TASKCLUSTER_TASK_EXIT_CODE"
-  
 
-  
     mounts:
       - file: msys2-base-x86_64.tar.xz
         content:
@@ -78,7 +75,6 @@ then:
       - file: pyenv.tar.gz
         content:
           url: ${system.pyenv.win.url}
-  
 
     artifacts:
       - type: "directory"
