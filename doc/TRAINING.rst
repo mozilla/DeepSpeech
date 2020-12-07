@@ -245,7 +245,7 @@ N.B. - If you have access to a pre-trained model which uses UTF-8 bytes at the o
 Fine-Tuning (same alphabet)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you'd like to use one of the pre-trained models released by Mozilla to bootstrap your training process (fine tuning), you can do so by using the ``--checkpoint_dir`` flag in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
+If you'd like to use one of the pre-trained models to bootstrap your training process (fine tuning), you can do so by using the ``--checkpoint_dir`` flag in ``DeepSpeech.py``. Specify the path where you downloaded the checkpoint from the release, and training will resume from the pre-trained model.
 
 For example, if you want to fine tune the entire graph using your own data in ``my-train.csv``\ , ``my-dev.csv`` and ``my-test.csv``\ , for three epochs, you can something like the following, tuning the hyperparameters as needed:
 

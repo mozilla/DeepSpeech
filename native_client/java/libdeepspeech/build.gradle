@@ -96,7 +96,7 @@ uploadArchives {
                 developers {
                     developer {
                         id 'deepspeech'
-                        name 'Mozilla DeepSpeech Team'
+                        name 'DeepSpeech authors'
                         email 'deepspeechs@lists.mozilla.org'
                     }
                 }
