@@ -1,4 +1,4 @@
-package org.mozilla.deepspeech;
+package org.deepspeech;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
 
-import org.mozilla.deepspeech.libdeepspeech.DeepSpeechModel;
+import org.deepspeech.libdeepspeech.DeepSpeechModel;
 
 public class DeepSpeechActivity extends AppCompatActivity {
 

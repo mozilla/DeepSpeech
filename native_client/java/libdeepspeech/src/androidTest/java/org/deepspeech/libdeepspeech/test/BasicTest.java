@@ -1,4 +1,4 @@
-package org.mozilla.deepspeech.libdeepspeech.test;
+package org.deepspeech.libdeepspeech.test;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -11,8 +11,8 @@ import org.junit.runners.MethodSorters;
 
 import static org.junit.Assert.*;
 
-import org.mozilla.deepspeech.libdeepspeech.DeepSpeechModel;
-import org.mozilla.deepspeech.libdeepspeech.CandidateTranscript;
+import org.deepspeech.libdeepspeech.DeepSpeechModel;
+import org.deepspeech.libdeepspeech.CandidateTranscript;
 
 import java.io.RandomAccessFile;
 import java.io.FileNotFoundException;
@@ -54,7 +54,7 @@ public class BasicTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("org.mozilla.deepspeech.libdeepspeech.test", appContext.getPackageName());
+        assertEquals("org.deepspeech.libdeepspeech.test", appContext.getPackageName());
     }
 
     @Test
