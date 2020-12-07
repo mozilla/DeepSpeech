@@ -15,16 +15,18 @@ Prerequisites for training a model
 Getting the training code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Clone the latest released stable branch from Github (e.g. 0.8.2, check `here <https://github.com/mozilla/DeepSpeech/releases>`_): 
+Clone the latest released stable branch from Github (e.g. 0.9.2, check `here <https://github.com/mozilla/DeepSpeech/releases>`_):
 
 .. code-block:: bash
 
-   git clone --branch v0.8.2 https://github.com/mozilla/DeepSpeech
+   git clone --branch v0.9.2 https://github.com/mozilla/DeepSpeech
 
 If you plan on committing code or you want to report bugs, please use the master branch.
 
 Creating a virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Throughout the documentation we assume you are using **virtualenv** to manage your Python environments. This setup is the one used and recommended by the project authors and is the easiest way to make sure you won't run into environment issues. If you're using **Anaconda, Miniconda or Mamba**, first read the instructions at :ref:`training-with-conda` and then continue from the installation step below.
 
 In creating a virtual environment you will create a directory containing a ``python3`` binary and everything needed to run deepspeech. You can use whatever directory you want. For the purpose of the documentation, we will rely on ``$HOME/tmp/deepspeech-train-venv``. You can create it using this command:
 
@@ -527,3 +529,17 @@ Example of creating a pre-augmented test set:
           --augment overlay[source=noise.sdb,layers=1,snr=20~10] \
           --augment resample[rate=12000:8000~4000] \
           test.sdb test-augmented.sdb
+
+.. _training-with-conda:
+
+Training from an Anaconda or miniconda environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Keep in mind that none of the core authors use Anaconda or miniconda, so this setup is not guaranteed to work. If you experience problems, try using a non-conda setup first. We're happy to accept pull requests fixing any incompatibilities with conda setups, but we will not offer any support ourselves beyond reviewing pull requests.
+
+To prevent common problems, make sure you **always use a separate environment when setting things up for training**:
+
+.. code-block:: bash
+
+   (base) $ conda create -n deepspeech python=3.7
+   (base) $ conda activate deepspeech
