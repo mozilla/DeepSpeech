@@ -8,7 +8,7 @@ import numpy as np
 from multiprocessing import Queue, Process
 from .audio import gain_db_to_ratio, max_dbfs, normalize_audio, AUDIO_TYPE_NP, AUDIO_TYPE_PCM, AUDIO_TYPE_OPUS
 from .helpers import LimitingPool, int_range, float_range, pick_value_from_range, tf_pick_value_from_range, MEGABYTE
-from .sample_collections import samples_from_source
+from .sample_collections import samples_from_source, unpack_maybe
 
 BUFFER_SIZE = 1 * MEGABYTE
 SPEC_PARSER = re.compile(r'^(?P<cls>[a-z_]+)(\[(?P<params>.*)\])?$')
@@ -150,6 +150,12 @@ def _init_augmentation_worker(preparation_context):
     AUGMENTATION_CONTEXT = preparation_context
 
 
+def _load_and_augment_sample(timed_sample, context=None):
+    sample, clock = timed_sample
+    realized_sample = unpack_maybe(sample)
+    return _augment_sample((realized_sample, clock), context)
+
+
 def _augment_sample(timed_sample, context=None):
     context = AUGMENTATION_CONTEXT if context is None else context
     sample, clock = timed_sample
@@ -213,12 +219,12 @@ def apply_sample_augmentations(samples,
         context = AugmentationContext(audio_type, augmentations)
         if process_ahead == 0:
             for timed_sample in timed_samples():
-                yield _augment_sample(timed_sample, context=context)
+                yield _load_and_augment_sample(timed_sample, context=context)
         else:
             with LimitingPool(process_ahead=process_ahead,
                               initializer=_init_augmentation_worker,
                               initargs=(context,)) as pool:
-                yield from pool.imap(_augment_sample, timed_samples())
+                yield from pool.imap(_load_and_augment_sample, timed_samples())
     finally:
         for augmentation in augmentations:
             augmentation.stop()
@@ -256,6 +262,7 @@ class Overlay(SampleAugmentation):
         self.enqueue_process.start()
 
     def apply(self, sample, clock=0.0):
+        sample = unpack_maybe(sample)
         sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
         n_layers = pick_value_from_range(self.layers, clock=clock)
         audio = sample.audio
@@ -265,6 +272,7 @@ class Overlay(SampleAugmentation):
             while overlay_offset < len(audio):
                 if self.current_sample is None:
                     next_overlay_sample = self.queue.get()
+                    next_overlay_sample = unpack_maybe(next_overlay_sample)
                     next_overlay_sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
                     self.current_sample = next_overlay_sample.audio
                 n_required = len(audio) - overlay_offset
