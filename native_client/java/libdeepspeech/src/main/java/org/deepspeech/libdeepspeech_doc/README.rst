@@ -8,4 +8,4 @@ To update, please install SWIG (4.0 at least) and then run from native_client/ja
 
 .. code-block::
 
-   swig -c++ -java -doxygen -package org.mozilla.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/mozilla/deepspeech/libdeepspeech_doc -o jni/deepspeech_wrap.cpp jni/deepspeech.i
+   swig -c++ -java -doxygen -package org.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/deepspeech/libdeepspeech_doc -o jni/deepspeech_wrap.cpp jni/deepspeech.i

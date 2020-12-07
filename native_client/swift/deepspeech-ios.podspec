@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.summary      = "DeepSpeech"
   s.homepage     = "https://github.com/mozilla/DeepSpeech"
   s.license      = "Mozilla Public License 2.0"
-  s.authors      = "Mozilla et al."
+  s.authors      = "DeepSpeech authors"
 
   s.platforms    = { :ios => "9.0" }
   s.source       = { :git => "https://github.com/mozilla/DeepSpeech.git", :tag => "v#{s.version}" }

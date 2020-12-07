@@ -61,7 +61,7 @@ There should already be a symbolic link, for this example let's suppose that we 
    ├── D:\
    │   ├── cloned                 # Contains DeepSpeech and tensorflow side by side
    │   │   └── DeepSpeech         # Root of the cloned DeepSpeech
-   │   │       ├── tensorflow     # Root of the cloned Mozilla's tensorflow 
+   │   │       ├── tensorflow     # Root of the cloned mozilla/tensorflow 
    └── ...
 
 

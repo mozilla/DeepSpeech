@@ -46,8 +46,8 @@ import semver
 # -- Project information -----------------------------------------------------
 
 project = u'DeepSpeech'
-copyright = '2019-2020, Mozilla Corporation'
-author = 'Mozilla Corporation'
+copyright = '2019-2020 Mozilla Corporation, 2020 DeepSpeech authors'
+author = 'DeepSpeech authors'
 
 with open('../VERSION', 'r') as ver:
     v = ver.read().strip()
@@ -175,7 +175,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'DeepSpeech.tex', u'DeepSpeech Documentation',
-     u'Mozilla Research', 'manual'),
+     u'DeepSpeech authors', 'manual'),
 ]
 
 
