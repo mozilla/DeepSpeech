@@ -306,9 +306,9 @@ export class Model {
     }
 
     /**
-     * Create a new streaming inference state. One can then call :js:func:`Stream.feedAudioContent` and :js:func:`Stream.finishStream` on the returned stream object.
+     * Create a new streaming inference state. One can then call :js:func:`StreamImpl.feedAudioContent` and :js:func:`StreamImpl.finishStream` on the returned stream object.
      *
-     * @return a :js:func:`Stream` object that represents the streaming state.
+     * @return a :js:func:`StreamImpl` object that represents the streaming state.
      *
      * @throws on error
      */
@@ -334,7 +334,7 @@ export function FreeModel(model: Model): void {
 /**
  * Free memory allocated for metadata information.
  *
- * @param metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`Stream.finishStreamWithMetadata`
+ * @param metadata Object containing metadata as returned by :js:func:`Model.sttWithMetadata` or :js:func:`StreamImpl.finishStreamWithMetadata`
  */
 export function FreeMetadata(metadata: Metadata): void {
     binding.FreeMetadata(metadata);
