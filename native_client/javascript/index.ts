@@ -65,7 +65,7 @@ export interface Metadata {
  * Provides an interface to a DeepSpeech stream. The constructor cannot be called
  * directly, use :js:func:`Model.createStream`.
  */
-class Stream {
+class StreamImpl {
     /** @internal */
     _impl: any;
 
@@ -134,6 +134,12 @@ class Stream {
         return result;
     }
 }
+/**
+ * Exposes the type of Stream without actually exposing the class.
+ * Because the Stream class should not be instantiated directly, 
+ * but instead be created via :js:func:`Model.createStream`.
+ */
+export type Stream = StreamImpl;
 
 /**
  * An object providing an interface to a trained DeepSpeech model.
@@ -306,12 +312,12 @@ export class Model {
      *
      * @throws on error
      */
-    createStream(): Stream {
+    createStream(): StreamImpl {
         const [status, ctx] = binding.CreateStream(this._impl);
         if (status !== 0) {
             throw `CreateStream failed: ${binding.ErrorCodeToErrorMessage(status)} (0x${status.toString(16)})`;
         }
-        return new Stream(ctx);
+        return new StreamImpl(ctx);
     }
 }
 
@@ -341,7 +347,7 @@ export function FreeMetadata(metadata: Metadata): void {
  *
  * @param stream A streaming state pointer returned by :js:func:`Model.createStream`.
  */
-export function FreeStream(stream: Stream): void {
+export function FreeStream(stream: StreamImpl): void {
     binding.FreeStream(stream._impl);
 }
 
