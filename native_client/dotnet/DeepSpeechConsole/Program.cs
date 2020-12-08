@@ -37,12 +37,14 @@ namespace CSharpExamples
             string model = null;
             string scorer = null;
             string audio = null;
+            string hotwords = null;
             bool extended = false;
             if (args.Length > 0)
             {
                 model = GetArgument(args, "--model");
                 scorer = GetArgument(args, "--scorer");
                 audio = GetArgument(args, "--audio");
+                hotwords = GetArgument(args, "--hot_words");
                 extended = !string.IsNullOrWhiteSpace(GetArgument(args, "--extended"));
             }
 
@@ -63,6 +65,19 @@ namespace CSharpExamples
                     {
                         Console.WriteLine("Loading scorer...");
                         sttClient.EnableExternalScorer(scorer ?? "kenlm.scorer");
+                    }
+
+                    if(hotwords != null)
+                    {
+                        Console.WriteLine($"Adding hot-words {hotwords}");
+                        char[] sep = {','};
+                        string[] word_boosts = hotwords.Split(sep);
+                        foreach(string word_boost in word_boosts)
+                        {
+                            char[] sep1 = {':'};
+                            string[] word = word_boost.Split(sep1);
+                            sttClient.AddHotWord(word[0], float.Parse(word[1]));
+                        }
                     }
 
                     string audioFile = audio ?? "arctic_a0024.wav";
