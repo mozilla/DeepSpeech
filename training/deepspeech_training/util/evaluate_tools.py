@@ -10,7 +10,7 @@ from attrdict import AttrDict
 
 from .flags import FLAGS
 from .text import levenshtein
-
+from .io import open_remote
 
 def pmap(fun, iterable):
     pool = Pool()
@@ -124,5 +124,5 @@ def save_samples_json(samples, output_path):
         We set ensure_ascii=True to prevent json from escaping non-ASCII chars
         in the texts.
     '''
-    with open(output_path, 'w') as fout:
+    with open_remote(output_path, 'w') as fout:
         json.dump(samples, fout, default=float, ensure_ascii=False, indent=2)

@@ -98,9 +98,9 @@ def main():
     setup(
         name='deepspeech_training',
         version=version,
-        description='Training code for mozilla DeepSpeech',
+        description='Training code for DeepSpeech',
         url='https://github.com/mozilla/DeepSpeech',
-        author='Mozilla',
+        author='DeepSpeech authors',
         license='MPL-2.0',
         # Classifiers help users find your project by categorizing it.
         #

@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
 
     defaultConfig {
-        applicationId "org.mozilla.deepspeech"
+        applicationId "org.deepspeech"
         minSdkVersion 21
         targetSdkVersion 27
         versionName androidGitVersion.name()

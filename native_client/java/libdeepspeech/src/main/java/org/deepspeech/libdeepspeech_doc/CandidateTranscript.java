@@ -6,7 +6,7 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.mozilla.deepspeech.libdeepspeech;
+package org.deepspeech.libdeepspeech;
 
 /**
  * A single transcript computed by the model, including a confidence<br>

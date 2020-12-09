@@ -6,7 +6,7 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.mozilla.deepspeech.libdeepspeech;
+package org.deepspeech.libdeepspeech;
 
 /**
  * An array of CandidateTranscript objects computed by the model.

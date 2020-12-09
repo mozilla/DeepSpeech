@@ -33,6 +33,12 @@ Whenever you add a new feature to DeepSpeech and what to contribute that feature
 2. You've made changes to the Python code. Make sure you run a linter (described below).
 3. Make sure your new feature doesn't regress the project. If you've added a significant feature or amount of code, you want to be sure your new feature doesn't create performance issues. For example, if you've made a change to the DeepSpeech decoder, you should know that inference performance doesn't drop in terms of latency, accuracy, or memory usage. Unless you're proposing a new decoding algorithm, you probably don't have to worry about affecting accuracy. However, it's very possible you've affected latency or memory usage. You should run local performance tests to make sure no bugs have crept in. There are lots of tools to check latency and memory usage, and you should use what is most comfortable for you and gets the job done. If you're on Linux, you might find [[perf](https://perf.wiki.kernel.org/index.php/Main_Page)] to be a useful tool. You can use sample WAV files for testing which are provided in the `DeepSpeech/data/` directory.
 
+Requesting review on your PR
+----------------------------
+
+Generally, a code owner will be notified of your pull request and will either review it or ask some other code owner for their review. If you'd like to proactively request review as you open the PR, see the the CODE_OWNERS.rst file which describes who's an appropriate reviewer depending on which parts of the code you're changing.
+
+
 Python Linter
 -------------
 

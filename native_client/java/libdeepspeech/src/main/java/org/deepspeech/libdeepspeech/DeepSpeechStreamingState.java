@@ -1,4 +1,4 @@
-package org.mozilla.deepspeech.libdeepspeech;
+package org.deepspeech.libdeepspeech;
 
 public final class DeepSpeechStreamingState {
     private SWIGTYPE_p_StreamingState _sp;

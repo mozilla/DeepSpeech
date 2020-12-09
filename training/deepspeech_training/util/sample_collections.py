@@ -8,7 +8,7 @@ import tarfile
 from pathlib import Path
 from functools import partial
 
-from .helpers import KILOBYTE, MEGABYTE, GIGABYTE, Interleaved
+from .helpers import KILOBYTE, MEGABYTE, GIGABYTE, Interleaved, LenMap
 from .audio import (
     Sample,
     DEFAULT_FORMAT,
@@ -18,6 +18,7 @@ from .audio import (
     get_audio_type_from_extension,
     write_wav
 )
+from .io import open_remote, is_remote_path
 
 BIG_ENDIAN = 'big'
 INT_SIZE = 4
@@ -59,6 +60,37 @@ class LabeledSample(Sample):
         self.transcript = transcript
 
 
+class PackedSample:
+    """
+    A wrapper that we can carry around in an iterator and pass to a child process in order to
+    have the child process do the loading/unpacking of the sample, allowing for parallel file
+    I/O.
+    """
+    def __init__(self, filename, audio_type, label):
+        self.filename = filename
+        self.audio_type = audio_type
+        self.label = label
+
+    def unpack(self):
+        with open_remote(self.filename, 'rb') as audio_file:
+            data = audio_file.read()
+        if self.label is None:
+            s = Sample(self.audio_type, data, sample_id=self.filename)
+        s = LabeledSample(self.audio_type, data, self.label, sample_id=self.filename)
+        return s
+
+
+def unpack_maybe(sample):
+    """
+    Loads the supplied sample from disk (or the network) if the audio isn't loaded in to memory already.
+    """
+    if hasattr(sample, 'unpack'):
+        realized_sample = sample.unpack()
+    else:
+        realized_sample = sample
+    return realized_sample
+
+
 def load_sample(filename, label=None):
     """
     Loads audio-file as a (labeled or unlabeled) sample
@@ -69,21 +101,19 @@ def load_sample(filename, label=None):
         Filename of the audio-file to load as sample
     label : str
         Label (transcript) of the sample.
-        If None: return util.audio.Sample instance
-        Otherwise: return util.sample_collections.LabeledSample instance
+        If None: returned result.unpack() will return util.audio.Sample instance
+        Otherwise: returned result.unpack()  util.sample_collections.LabeledSample instance
 
     Returns
     -------
-    util.audio.Sample instance if label is None, else util.sample_collections.LabeledSample instance
+    util.sample_collections.PackedSample, a wrapper object, on which calling unpack() will return
+        util.audio.Sample instance if label is None, else util.sample_collections.LabeledSample instance
     """
     ext = os.path.splitext(filename)[1].lower()
     audio_type = get_audio_type_from_extension(ext)
     if audio_type is None:
         raise ValueError('Unknown audio type extension "{}"'.format(ext))
-    with open(filename, 'rb') as audio_file:
-        if label is None:
-            return Sample(audio_type, audio_file.read(), sample_id=filename)
-        return LabeledSample(audio_type, audio_file.read(), label, sample_id=filename)
+    return PackedSample(filename, audio_type, label)
 
 
 class DirectSDBWriter:
@@ -119,7 +149,7 @@ class DirectSDBWriter:
             raise ValueError('Audio type "{}" not supported'.format(audio_type))
         self.audio_type = audio_type
         self.bitrate = bitrate
-        self.sdb_file = open(sdb_filename, 'wb', buffering=buffering)
+        self.sdb_file = open_remote(sdb_filename, 'wb', buffering=buffering)
         self.offsets = []
         self.num_samples = 0
 
@@ -215,7 +245,7 @@ class SDB:  # pylint: disable=too-many-instance-attributes
         """
         self.sdb_filename = sdb_filename
         self.id_prefix = sdb_filename if id_prefix is None else id_prefix
-        self.sdb_file = open(sdb_filename, 'rb', buffering=REVERSE_BUFFER_SIZE if reverse else buffering)
+        self.sdb_file = open_remote(sdb_filename, 'rb', buffering=REVERSE_BUFFER_SIZE if reverse else buffering)
         self.offsets = []
         if self.sdb_file.read(len(MAGIC)) != MAGIC:
             raise RuntimeError('No Sample Database')
@@ -332,6 +362,8 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
         labeled : bool or None
             If True: Writes labeled samples (util.sample_collections.LabeledSample) only.
             If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
+        
+        Currently only works with local files (not gs:// or hdfs://...)
         """
         self.csv_filename = Path(csv_filename)
         self.csv_base_dir = self.csv_filename.parent.resolve().absolute()
@@ -345,7 +377,7 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
         self.labeled = labeled
         if labeled:
             fieldnames.append('transcript')
-        self.csv_file = open(csv_filename, 'w', encoding='utf-8', newline='')
+        self.csv_file = open_remote(csv_filename, 'w', encoding='utf-8', newline='')
         self.csv_writer = csv.DictWriter(self.csv_file, fieldnames=fieldnames)
         self.csv_writer.writeheader()
         self.counter = 0
@@ -380,7 +412,7 @@ class CSVWriter:  # pylint: disable=too-many-instance-attributes
 
 
 class TarWriter:  # pylint: disable=too-many-instance-attributes
-    """Sample collection writer for writing a CSV data-set and all its referenced WAV samples to a tar file"""
+    """Sample collection writer for writing a CSV data-set and all its referenced WAV samples to a tar file."""
     def __init__(self,
                  tar_filename,
                  gz=False,
@@ -398,6 +430,8 @@ class TarWriter:  # pylint: disable=too-many-instance-attributes
             If False: Ignores transcripts (if available) and writes (unlabeled) util.audio.Sample instances.
         include : str[]
             List of files to include into tar root.
+
+        Currently only works with local files (not gs:// or hdfs://...)
         """
         self.tar = tarfile.open(tar_filename, 'w:gz' if gz else 'w')
         samples_dir = tarfile.TarInfo('samples')
@@ -498,8 +532,7 @@ class CSV(SampleList):
             If the order of the samples should be reversed
         """
         rows = []
-        csv_dir = Path(csv_filename).parent
-        with open(csv_filename, 'r', encoding='utf8') as csv_file:
+        with open_remote(csv_filename, 'r', encoding='utf8') as csv_file:
             reader = csv.DictReader(csv_file)
             if 'transcript' in reader.fieldnames:
                 if labeled is None:
@@ -508,9 +541,12 @@ class CSV(SampleList):
                 raise RuntimeError('No transcript data (missing CSV column)')
             for row in reader:
                 wav_filename = Path(row['wav_filename'])
-                if not wav_filename.is_absolute():
-                    wav_filename = csv_dir / wav_filename
-                wav_filename = str(wav_filename)
+                if not wav_filename.is_absolute() and not is_remote_path(row['wav_filename']):
+                    wav_filename = Path(csv_filename).parent / wav_filename
+                    wav_filename = str(wav_filename)
+                else:
+                    # Pathlib otherwise removes a / from filenames like hdfs://
+                    wav_filename = row['wav_filename']
                 wav_filesize = int(row['wav_filesize']) if 'wav_filesize' in row else 0
                 if labeled:
                     rows.append((wav_filename, wav_filesize, row['transcript']))
@@ -554,6 +590,11 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None, re
     Loads and combines samples from a list of source files. Sources are combined in an interleaving way to
     keep default sample order from shortest to longest.
 
+    Note that when using distributed training, it is much faster to call this function with single pre-
+    sorted sample source, because this allows for parallelization of the file I/O. (If this function is
+    called with multiple sources, the samples have to be unpacked on a single parent process to allow
+    for reading their durations.)
+
     Parameters
     ----------
     sample_sources : list of str
@@ -570,13 +611,20 @@ def samples_from_sources(sample_sources, buffering=BUFFER_SIZE, labeled=None, re
 
     Returns
     -------
-    iterable of util.sample_collections.LabeledSample (labeled=True) or util.audio.Sample (labeled=False) supporting len
+    iterable of util.sample_collections.PackedSample if a single collection is provided, wrapping
+        LabeledSample (labeled=True) or util.audio.Sample (labeled=False) supporting len
+    or LabeledSample / util.audio.Sample directly, if multiple collections are provided
     """
     sample_sources = list(sample_sources)
     if len(sample_sources) == 0:
         raise ValueError('No files')
     if len(sample_sources) == 1:
         return samples_from_source(sample_sources[0], buffering=buffering, labeled=labeled, reverse=reverse)
-    cols = [samples_from_source(source, buffering=buffering, labeled=labeled, reverse=reverse)
-            for source in sample_sources]
+
+    # If we wish to interleave based on duration, we have to unpack the audio. Note that this unpacking should
+    # be done lazily onn the fly so that it respects the LimitingPool logic used in the feeding code.
+    cols = [LenMap(
+        unpack_maybe, samples_from_source(source, buffering=buffering, labeled=labeled, reverse=reverse))
+        for source in sample_sources]
+
     return Interleaved(*cols, key=lambda s: s.duration, reverse=reverse)

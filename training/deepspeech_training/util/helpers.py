@@ -78,6 +78,32 @@ class Interleaved:
         return self.len
 
 
+class LenMap:
+    """
+    Wrapper around python map() output object that preserves the original collection length
+    by implementing __len__.
+    """
+    def __init__(self, fn, iterable):
+        try:
+            self.length = len(iterable)
+        except TypeError:
+            self.length = None
+        self.mapobj = map(fn, iterable)
+
+    def __iter__(self):
+        self.mapobj = self.mapobj.__iter__()
+        return self
+
+    def __next__(self):
+        return self.mapobj.__next__()
+
+    def __getitem__(self, key):
+        return self.mapobj.__getitem__(key)
+
+    def __len__(self):
+        return self.length
+
+
 class LimitingPool:
     """Limits unbound ahead-processing of multiprocessing.Pool's imap method
     before items get consumed by the iteration caller.

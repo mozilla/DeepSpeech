@@ -10,7 +10,7 @@ Model
 Stream
 ------
 
-.. js:autoclass:: Stream
+.. js:autoclass:: StreamImpl
    :members:
 
 Module exported methods
