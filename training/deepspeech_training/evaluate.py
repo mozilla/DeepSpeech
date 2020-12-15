@@ -133,6 +133,13 @@ def evaluate(test_csvs, create_model):
         return samples
 
 
+def test():
+    from .train import create_model # pylint: disable=cyclic-import,import-outside-toplevel
+    samples = evaluate(FLAGS.test_files.split(','), create_model)
+    if FLAGS.test_output_file:
+        save_samples_json(samples, FLAGS.test_output_file)
+
+
 def main(_):
     initialize_globals()
 
@@ -141,16 +148,13 @@ def main(_):
                   'the --test_files flag.')
         sys.exit(1)
 
-    from .train import create_model # pylint: disable=cyclic-import,import-outside-toplevel
-    samples = evaluate(FLAGS.test_files.split(','), create_model)
-
-    if FLAGS.test_output_file:
-        save_samples_json(samples, FLAGS.test_output_file)
+    test()
 
 
 def run_script():
     create_flags()
     absl.app.run(main)
+
 
 if __name__ == '__main__':
     run_script()

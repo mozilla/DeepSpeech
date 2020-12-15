@@ -15,6 +15,7 @@ from .helpers import parse_file_size
 from .augmentations import parse_augmentations
 from .io import path_exists_remote
 
+
 class ConfigSingleton:
     _config = None
 
