@@ -15,10 +15,6 @@ then:
   scopes:
     - "docker-worker:capability:device:kvm"
 
-  extra:
-    github:
-      { $eval: taskcluster.github_events.pull_request }
-
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
     image: "ubuntu:18.04"
