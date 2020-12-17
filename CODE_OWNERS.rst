@@ -1,14 +1,20 @@
-DeepSpeech code owners
-======================
+DeepSpeech code owners / governance system
+==========================================
 
-This file describes reviewers who are active on the project and which parts of the code they have expertise on (and interest in). If you're making changes to the code and are wondering who's an appropriate person to talk to, this list will tell you who to ping.
+DeepSpeech is run under a governance system inspired by the [Mozilla module ownership system](https://www.mozilla.org/about/governance/policies/module-ownership/). The project is roughly divided into modules, and each module has its own owners, which are responsible for reviewing pull requests and deciding on technical direction for their modules. Module ownership authority is given to people who have worked extensively on areas of the project.
 
-There's overlap in the areas of expertise of each reviewer, and in particular when looking at which files are covered by each area, there is a lot of overlap. Don't worry about getting it exactly right when requesting review, any code owner will be happy to redirect the request to a more appropriate question.
+Module owners also have the authority of naming other module owners or appointing module peers, which are people with authority to review pull requests in that module. They can also sub-divide their module into sub-modules with their own owners.
 
-Global reviewers
+The work of the various module owners and peers is overseen by the global owners, which are responsible for making final decisions in case there's conflict between owners as well as set the direction for the project as a whole.
+
+This file describes module owners who are active on the project and which parts of the code they have expertise on (and interest in). If you're making changes to the code and are wondering who's an appropriate person to talk to, this list will tell you who to ping.
+
+There's overlap in the areas of expertise of each owner, and in particular when looking at which files are covered by each area, there is a lot of overlap. Don't worry about getting it exactly right when requesting review, any code owner will be happy to redirect the request to a more appropriate person.
+
+Global owners
 ----------------
 
-These are people who have worked on the project extensively and are familiar with all or most parts of it. Their expertise and review guidance is trusted by other code owners to cover their own areas of expertise. In case of conflicting opinions from other reviewers, global reviewers will make a final decision.
+These are people who have worked on the project extensively and are familiar with all or most parts of it. Their expertise and review guidance is trusted by other code owners to cover their own areas of expertise. In case of conflicting opinions from other owners, global owners will make a final decision.
 
 - Alexandre Lissy (@lissyx)
 - Reuben Morais (@reuben)
