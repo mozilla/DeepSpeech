@@ -11,6 +11,7 @@ tasks:
           action: "pull_request.${event.action}"
           login: ${event.pull_request.user.login}
           ref: ${event.pull_request.head.ref}
+          branch_or_tag: ${event.pull_request.head.ref} # requires no special treatment for PRs
           sha: ${event.pull_request.head.sha}
           clone_url: ${event.pull_request.head.repo.clone_url}
         else:
@@ -19,7 +20,8 @@ tasks:
             then: "tag"
             else: "push"
           login: ${event.pusher.name}
-          ref:
+          ref: ${event.ref}
+          branch_or_tag:
             $if: 'event.ref[:10] == "refs/tags/"'
             then: ${event.ref[10:]}
             else: ${event.ref[11:]} # then it's refs/heads/...
@@ -57,7 +59,7 @@ tasks:
             GITHUB_HEAD_USER_EMAIL: ${metadata.github.login}@users.noreply.github.com
             GITHUB_EVENT: ${metadata.github.action}
             GITHUB_HEAD_REPO_URL: ${metadata.github.clone_url}
-            GITHUB_HEAD_BRANCH: ${metadata.github.ref}
+            GITHUB_HEAD_BRANCH: ${metadata.github.branch_or_tag}
             GITHUB_HEAD_REF: ${metadata.github.ref}
             GITHUB_HEAD_SHA: ${metadata.github.sha}
 
