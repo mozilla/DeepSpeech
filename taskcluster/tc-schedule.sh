@@ -1,11 +1,6 @@
 #!/bin/bash
 set -ex
 
-# Set environment variables passed in arguments
-for line in $@; do
-  eval "$line"
-done
-
 curdir=$(dirname "$0")/
 
 pip3 install --quiet --user --upgrade pip
@@ -40,19 +35,9 @@ GITHUB_HEAD_USER_EMAIL="email" \
 python3 ${curdir}/tc-decision.py --dry
 
 # Create a new env variable for usage in TaskCluster .yml files
-GITHUB_HEAD_BRANCHORTAG="${GITHUB_HEAD_BRANCH}${GITHUB_HEAD_TAG}"
+export GITHUB_HEAD_BRANCHORTAG="${GITHUB_HEAD_BRANCH}${GITHUB_HEAD_TAG}"
 
 # Quick hack because tc-decision uses GITHUB_HEAD_BRANCH
-GITHUB_HEAD_BRANCH="${GITHUB_HEAD_BRANCH}${GITHUB_HEAD_TAG}"
+export GITHUB_HEAD_BRANCH="${GITHUB_HEAD_BRANCH}${GITHUB_HEAD_TAG}"
 
-# Forward all variables to tc-decision.py
-GITHUB_EVENT="$GITHUB_EVENT" \
-TASK_ID="$TASK_ID" \
-GITHUB_HEAD_BRANCHORTAG="${GITHUB_HEAD_BRANCHORTAAG}" \
-GITHUB_HEAD_BRANCH="${GITHUB_HEAD_BRANCH}" \
-GITHUB_HEAD_REF="$GITHUB_HEAD_REF" \
-GITHUB_HEAD_SHA="$GITHUB_HEAD_SHA" \
-GITHUB_HEAD_REPO_URL="$GITHUB_HEAD_REPO_URL" \
-GITHUB_HEAD_USER_LOGIN="$GITHUB_HEAD_USER_LOGIN" \
-GITHUB_HEAD_USER_EMAIL="$GITHUB_HEAD_USER_EMAIL" \
 python3 ${curdir}/tc-decision.py
