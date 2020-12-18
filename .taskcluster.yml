@@ -19,7 +19,10 @@ tasks:
             then: "tag"
             else: "push"
           login: ${event.pusher.name}
-          ref: ${event.ref}
+          ref:
+            $if: 'event.ref[:10] == "refs/tags/"'
+            then: ${event.ref[10:]}
+            else: ${event.ref[11:]} # then it's refs/heads/...
           sha: ${event.after}
           clone_url: ${event.repository.clone_url}
   in:
