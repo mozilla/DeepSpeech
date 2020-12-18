@@ -16,12 +16,6 @@ then:
     then: { $fromNow: '6 months' }
     else: { $fromNow: '7 days' }
 
-  extra:
-    github:
-      $if: '(event.event == "push") || (event.event == "tag")'
-      then: { $eval: taskcluster.github_events.merge }
-      else: { $eval: taskcluster.github_events.pull_request }
-
   routes:
     { $eval: build.routes }
 

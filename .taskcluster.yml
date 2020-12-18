@@ -1,65 +1,91 @@
-# The version is always required
-version: 0
-# Top level metadata is always required
-metadata:
-  name: "DeepSpeech"
-  description: "DeepSpeech builds"
-  owner: "{{ event.head.user.email }}" # the user who sent the pr/push e-mail will be inserted here
-  source: "{{ event.head.repo.url }}"  # the repo where the pr came from will be inserted here
+version: 1
+policy:
+  pullRequests: collaborators_quiet
 tasks:
-  - provisionerId: "proj-deepspeech"
-    workerType: "ci-decision-task"
-    extra:
-      github:
-        env: true
-        events:
-          - pull_request.opened
-          - pull_request.synchronize
-          - pull_request.reopened
-          - push
-          - tag
-        branches:
-          - master
-
-    scopes: [
-      "queue:create-task:highest:proj-deepspeech/*",
-      "queue:route:index.project.deepspeech.*",
-      "index:insert-task:project.deepspeech.*",
-      "queue:scheduler-id:taskcluster-github",
-      "generic-worker:cache:deepspeech-macos-pyenv",
-      "docker-worker:capability:device:kvm"
-    ]
-
-    payload:
-      maxRunTime: 600
-      image: "ubuntu:16.04"
-
-      features:
-        taskclusterProxy: true
-
-      env:
-        TC_DECISION_SHA: ef67832e6657f43e139a10f37eb326a7d9d96dad
-
-      command:
-        - "/bin/bash"
-        - "--login"
-        - "-cxe"
-        - >
-          echo "deb http://archive.ubuntu.com/ubuntu/ xenial-updates main" > /etc/apt/sources.list.d/xenial-updates.list &&
-          apt-get -qq update && apt-get -qq -y install git python3-pip curl sudo &&
-          adduser --system --home /home/build-user build-user &&
-          cd /home/build-user/ &&
-          echo -e "#!/bin/bash\nset -xe\nenv && id && mkdir ~/DeepSpeech/ && git clone --quiet {{event.head.repo.url}} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet {{event.head.sha}}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
-          sudo -H -u build-user /bin/bash /tmp/clone.sh &&
-          sudo -H -u build-user --preserve-env /bin/bash /home/build-user/DeepSpeech/ds/taskcluster/tc-schedule.sh
-      artifacts:
-        "public":
-          type: "directory"
-          path: "/tmp/artifacts/"
-          expires: "{{ '7 days' | $fromNow }}"
-    # Each task also requires explicit metadata
+  $let:
     metadata:
-      name: "DeepSpeech Decision Task"
-      description: "DeepSpeech Decision Task: triggers everything."
-      owner: "{{ event.head.user.email }}"
-      source: "{{ event.head.repo.url }}"
+      task_id: {$eval: as_slugid("decision_task")}
+      github:
+        $if: 'tasks_for == "github-pull-request"'
+        then:
+          action: "pull_request.${event.action}"
+          login: ${event.pull_request.user.login}
+          ref: ${event.pull_request.head.ref}
+          sha: ${event.pull_request.head.sha}
+          clone_url: ${event.pull_request.head.repo.clone_url}
+        else:
+          action:
+            $if: 'event.ref[:10] == "refs/tags/"'
+            then: "tag"
+            else: "push"
+          login: ${event.pusher.name}
+          ref: ${event.ref}
+          sha: ${event.after}
+          clone_url: ${event.repository.clone_url}
+  in:
+    $let:
+      decision_task:
+        taskId: ${metadata.task_id}
+        created: {$fromNow: ''}
+        deadline: {$fromNow: '60 minutes'}
+
+        provisionerId: "proj-deepspeech"
+        workerType: "ci-decision-task"
+
+        scopes: [
+          "queue:create-task:highest:proj-deepspeech/*",
+          "queue:route:index.project.deepspeech.*",
+          "index:insert-task:project.deepspeech.*",
+          "queue:scheduler-id:taskcluster-github",
+          "generic-worker:cache:deepspeech-macos-pyenv",
+          "docker-worker:capability:device:kvm"
+        ]
+
+        payload:
+          maxRunTime: 600
+          image: "ubuntu:16.04"
+
+          features:
+            taskclusterProxy: true
+
+          env:
+            TASK_ID: ${metadata.task_id}
+            GITHUB_HEAD_USER_LOGIN: ${metadata.github.login}
+            GITHUB_HEAD_USER_EMAIL: ${metadata.github.login}@users.noreply.github.com
+            GITHUB_EVENT: ${metadata.github.action}
+            GITHUB_HEAD_REPO_URL: ${metadata.github.clone_url}
+            GITHUB_HEAD_BRANCH: ${metadata.github.ref}
+            GITHUB_HEAD_REF: ${metadata.github.ref}
+            GITHUB_HEAD_SHA: ${metadata.github.sha}
+
+          command:
+            - "/bin/bash"
+            - "--login"
+            - "-cxe"
+            - >
+              echo "deb http://archive.ubuntu.com/ubuntu/ xenial-updates main" > /etc/apt/sources.list.d/xenial-updates.list &&
+              apt-get -qq update && apt-get -qq -y install git python3-pip curl sudo &&
+              adduser --system --home /home/build-user build-user &&
+              cd /home/build-user/ &&
+              echo -e "#!/bin/bash\nset -xe\nenv && id && mkdir ~/DeepSpeech/ && git clone --quiet ${metadata.github.clone_url} ~/DeepSpeech/ds/ && cd ~/DeepSpeech/ds && git checkout --quiet ${metadata.github.ref}" > /tmp/clone.sh && chmod +x /tmp/clone.sh &&
+              sudo -H -u build-user /bin/bash /tmp/clone.sh &&
+              sudo -H -u build-user --preserve-env /bin/bash /home/build-user/DeepSpeech/ds/taskcluster/tc-schedule.sh
+          artifacts:
+            "public":
+              type: "directory"
+              path: "/tmp/artifacts/"
+              expires: {$fromNow: '7 days'}
+
+        metadata:
+          name: "DeepSpeech decision task"
+          description: "DeepSpeech decision task"
+          owner: "${metadata.github.login}@users.noreply.github.com"
+          source: "${metadata.github.clone_url}"
+    in:
+      $flattenDeep:
+      - $if: 'tasks_for == "github-pull-request" && event["action"] in ["opened", "reopened", "synchronize"]'
+        then: {$eval: decision_task}
+      - $if: 'tasks_for == "github-push" && event.ref == "refs/heads/master"'
+        then: {$eval: decision_task}
+      - $if: 'tasks_for == "github-push" && event.ref[:10] == "refs/tags/"'
+        then: {$eval: decision_task}
