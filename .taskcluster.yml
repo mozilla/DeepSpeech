@@ -60,6 +60,7 @@ tasks:
             GITHUB_EVENT: ${metadata.github.action}
             GITHUB_HEAD_REPO_URL: ${metadata.github.clone_url}
             GITHUB_HEAD_BRANCH: ${metadata.github.branch_or_tag}
+            GITHUB_HEAD_TAG: ${metadata.github.branch_or_tag}
             GITHUB_HEAD_REF: ${metadata.github.ref}
             GITHUB_HEAD_SHA: ${metadata.github.sha}
 
