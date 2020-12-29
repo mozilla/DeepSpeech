@@ -50,6 +50,10 @@ def initialize_globals():
         FLAGS.dropout_rate2 = FLAGS.dropout_rate
     if FLAGS.dropout_rate3 < 0:
         FLAGS.dropout_rate3 = FLAGS.dropout_rate
+    if FLAGS.dropout_rate4 < 0:
+        FLAGS.dropout_rate4 = FLAGS.dropout_rate
+    if FLAGS.dropout_rate5 < 0:
+        FLAGS.dropout_rate5 = FLAGS.dropout_rate
     if FLAGS.dropout_rate6 < 0:
         FLAGS.dropout_rate6 = FLAGS.dropout_rate
 
@@ -126,7 +130,7 @@ def initialize_globals():
                   ''.format(FLAGS.feature_win_len, FLAGS.feature_win_len / 1000, FLAGS.audio_sample_rate))
         sys.exit(1)
 
-    c.audio_window_samples = FLAGS.audio_sample_rate * (FLAGS.feature_win_len / 1000)
+    c.audio_window_samples = int(FLAGS.audio_sample_rate * (FLAGS.feature_win_len / 1000))
 
     # Stride for feature computations in samples
     if (FLAGS.feature_win_step * FLAGS.audio_sample_rate) % 1000 != 0:
@@ -136,7 +140,7 @@ def initialize_globals():
                   ''.format(FLAGS.feature_win_step, FLAGS.feature_win_step / 1000, FLAGS.audio_sample_rate))
         sys.exit(1)
 
-    c.audio_step_samples = FLAGS.audio_sample_rate * (FLAGS.feature_win_step / 1000)
+    c.audio_step_samples = int(FLAGS.audio_sample_rate * (FLAGS.feature_win_step / 1000))
 
     if FLAGS.one_shot_infer:
         if not path_exists_remote(FLAGS.one_shot_infer):

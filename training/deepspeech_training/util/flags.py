@@ -35,12 +35,12 @@ def create_flags():
 
     f.DEFINE_integer('epochs', 75, 'how many epochs (complete runs through the train files) to train for')
 
-    f.DEFINE_float('dropout_rate', 0.05, 'dropout rate for feedforward layers')
+    f.DEFINE_float('dropout_rate', 0.05, 'dropout rate for layer 1, and default for other feedforward layers')
     f.DEFINE_float('dropout_rate2', -1.0, 'dropout rate for layer 2 - defaults to dropout_rate')
     f.DEFINE_float('dropout_rate3', -1.0, 'dropout rate for layer 3 - defaults to dropout_rate')
-    f.DEFINE_float('dropout_rate4', 0.0, 'dropout rate for layer 4 - defaults to 0.0')
-    f.DEFINE_float('dropout_rate5', 0.0, 'dropout rate for layer 5 - defaults to 0.0')
-    f.DEFINE_float('dropout_rate6', -1.0, 'dropout rate for layer 6 - defaults to dropout_rate')
+    f.DEFINE_float('dropout_rate4', 0.0, 'dropout rate for RNN layer - defaults to 0.0')
+    f.DEFINE_float('dropout_rate5', -1.0, 'dropout rate for layer 5 - defaults to dropout_rate')
+    f.DEFINE_float('dropout_rate6', 0.0, 'dropout rate for output layer - defaults to 0.0')
 
     f.DEFINE_float('relu_clip', 20.0, 'ReLU clipping value for non-recurrent layers')
 

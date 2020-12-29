@@ -43,47 +43,44 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
     return [alphabet.Decode(res) for res in results]
 
 
-def evaluate(test_csvs, create_model):
+def evaluate(test_csvs, model_ctor):
     if FLAGS.scorer_path:
         scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                         FLAGS.scorer_path, Config.alphabet)
     else:
         scorer = None
 
-    test_sets = [create_dataset([csv],
-                                batch_size=FLAGS.test_batch_size,
-                                train_phase=False,
-                                reverse=FLAGS.reverse_test,
-                                limit=FLAGS.limit_test) for csv in test_csvs]
-    iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(test_sets[0]),
-                                                 tfv1.data.get_output_shapes(test_sets[0]),
-                                                 output_classes=tfv1.data.get_output_classes(test_sets[0]))
-    test_init_ops = [iterator.make_initializer(test_set) for test_set in test_sets]
-
-    batch_wav_filename, (batch_x, batch_x_len), batch_y = iterator.get_next()
-
-    # One rate per layer
-    no_dropout = [None] * 6
-    logits, _ = create_model(batch_x=batch_x,
-                             seq_length=batch_x_len,
-                             dropout=no_dropout)
-
-    # Transpose to batch major and apply softmax for decoder
-    transposed = tf.nn.softmax(tf.transpose(a=logits, perm=[1, 0, 2]))
-
-    loss = tfv1.nn.ctc_loss(labels=batch_y,
-                            inputs=logits,
-                            sequence_length=batch_x_len)
-
-    tfv1.train.get_or_create_global_step()
-
-    # Get number of accessible CPU cores for this process
-    try:
-        num_processes = cpu_count()
-    except NotImplementedError:
-        num_processes = 1
-
     with tfv1.Session(config=Config.session_config) as session:
+        test_sets = [create_dataset([csv],
+                                    batch_size=FLAGS.test_batch_size,
+                                    train_phase=False,
+                                    reverse=FLAGS.reverse_test,
+                                    limit=FLAGS.limit_test) for csv in test_csvs]
+        iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(test_sets[0]),
+                                                     tfv1.data.get_output_shapes(test_sets[0]),
+                                                     output_classes=tfv1.data.get_output_classes(test_sets[0]))
+        test_init_ops = [iterator.make_initializer(test_set) for test_set in test_sets]
+
+        batch_wav_filename, (batch_x, batch_x_len), batch_y = iterator.get_next()
+
+        model = model_ctor()
+        logits, _ = model(batch_x)
+
+        # Apply softmax and transpose to batch major for batch decoder
+        transposed = tf.transpose(tf.nn.softmax(logits), [1, 0, 2])
+
+        loss = tfv1.nn.ctc_loss(labels=batch_y,
+                                inputs=logits,
+                                sequence_length=batch_x_len)
+
+        tfv1.train.get_or_create_global_step()
+
+        # Get number of accessible CPU cores for this process
+        try:
+            num_processes = cpu_count()
+        except NotImplementedError:
+            num_processes = 1
+
         load_graph_for_evaluation(session)
 
         def run_test(init_op, dataset):
@@ -141,8 +138,8 @@ def main(_):
                   'the --test_files flag.')
         sys.exit(1)
 
-    from .train import create_model # pylint: disable=cyclic-import,import-outside-toplevel
-    samples = evaluate(FLAGS.test_files.split(','), create_model)
+    from .train import Model # pylint: disable=cyclic-import,import-outside-toplevel
+    samples = evaluate(FLAGS.test_files.split(','), Model)
 
     if FLAGS.test_output_file:
         save_samples_json(samples, FLAGS.test_output_file)

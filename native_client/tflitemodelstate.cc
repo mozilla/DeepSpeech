@@ -362,8 +362,8 @@ TFLiteModelState::infer(const vector<float>& mfcc,
 {
   const size_t num_classes = alphabet_.GetSize() + 1; // +1 for blank
 
-  // Feeding input_node
-  copy_vector_to_tensor(mfcc, input_node_idx_, n_frames*mfcc_feats_per_timestep_);
+  // Feeding input_node, zeroing remaining timesteps in case of a partial batch
+  copy_vector_to_tensor(mfcc, input_node_idx_, n_steps_*mfcc_feats_per_timestep_);
 
   // Feeding previous_state_c, previous_state_h
   assert(previous_state_c.size() == state_size_);
