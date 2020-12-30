@@ -65,6 +65,6 @@ else()
   message(WARNING "Not building interpolation. Eigen3 was not found.")
   message(STATUS "To install Eigen3 in your home directory, copy paste this:\n"
       "export EIGEN3_ROOT=$HOME/eigen-eigen-07105f7124f9\n"
-      "(cd $HOME; wget -O - https://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2 |tar xj)\n"
+      "(cd $HOME; wget -O - https://gitlab.com/libeigen/eigen/-/archive/3.3.8/eigen-3.3.8.tar.bz2 |tar xj)\n"
       "rm CMakeCache.txt\n")
 endif()
