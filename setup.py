@@ -67,6 +67,7 @@ def main():
         'llvmlite == 0.31.0', # for numba==0.47.0
         'librosa',
         'soundfile',
+        'tensorflow_addons >= 0.12.0',
     ]
 
     decoder_pypi_dep = [
