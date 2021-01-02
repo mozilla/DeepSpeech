@@ -636,7 +636,6 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # value of n_steps, n_context and n_input. Make sure you update the code
     # there if this shape is changed.
     input_tensor = tfv1.placeholder(tf.float32, [batch_size, n_steps if n_steps > 0 else None, 2 * Config.n_context + 1, Config.n_input], name='input_node')
-    seq_length = tfv1.placeholder(tf.int32, [batch_size], name='input_lengths')
 
     if batch_size <= 0:
         # no state management since n_step is expected to be dynamic too (see below)
@@ -668,7 +667,6 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         return (
             {
                 'input': input_tensor,
-                'input_lengths': seq_length,
             },
             {
                 'outputs': probs,
@@ -687,9 +685,6 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         'previous_state_h': previous_state_h,
         'input_samples': input_samples,
     }
-
-    if not FLAGS.export_tflite:
-        inputs['input_lengths'] = seq_length
 
     outputs = {
         'outputs': probs,
@@ -844,7 +839,6 @@ def do_single_file_inference(input_file_path):
                 (outputs['outputs'], outputs['new_state_c'], outputs['new_state_h']),
                 feed_dict={
                     inputs['input']: input_chunk,
-                    inputs['input_lengths']: [chunk_len],
                     inputs['previous_state_c']: previous_state_c,
                     inputs['previous_state_h']: previous_state_h,
                 })

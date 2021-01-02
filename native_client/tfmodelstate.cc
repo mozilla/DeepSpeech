@@ -213,14 +213,10 @@ TFModelState::infer(const std::vector<float>& mfcc,
   Tensor previous_state_c_t = tensor_from_vector(previous_state_c, TensorShape({BATCH_SIZE, (long long)state_size_}));
   Tensor previous_state_h_t = tensor_from_vector(previous_state_h, TensorShape({BATCH_SIZE, (long long)state_size_}));
 
-  Tensor input_lengths(DT_INT32, TensorShape({1}));
-  input_lengths.scalar<int>()() = n_frames;
-
   vector<Tensor> outputs;
   Status status = session_->Run(
     {
      {"input_node", input},
-     {"input_lengths", input_lengths},
      {"previous_state_c", previous_state_c_t},
      {"previous_state_h", previous_state_h_t}
     },
