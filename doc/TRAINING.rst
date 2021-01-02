@@ -10,7 +10,7 @@ Prerequisites for training a model
 
 * `Python 3.6 <https://www.python.org/>`_
 * Mac or Linux environment
-* CUDA 10.0 / CuDNN v7.6 per `Dockerfile <https://hub.docker.com/layers/tensorflow/tensorflow/1.15.4-gpu-py3/images/sha256-a5255ae38bcce7c7610816c778244309f8b8d1576e2c0023c685c011392958d7?context=explore>`_.
+* CUDA 10.1 / CuDNN v7.6 per `Dockerfile <https://hub.docker.com/layers/tensorflow/tensorflow/2.3.1-gpu/images/sha256-1d0736e46ae9a961c2111394a43e0bfd266e6151a90d613b6f86229cf01e40e5?context=explore  >`_.
 
 Getting the training code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -72,7 +72,7 @@ If you have a capable (NVIDIA, at least 8GB of VRAM) GPU, it is highly recommend
 .. code-block:: bash
 
    pip3 uninstall tensorflow
-   pip3 install 'tensorflow-gpu==1.15.4'
+   pip3 install 'tensorflow-gpu==2.3.1'
 
 Please ensure you have the required `CUDA dependency <https://www.tensorflow.org/install/source#gpu>`_ and/or :ref:`Prerequisites <cuda-training-deps>`.
 
@@ -83,7 +83,7 @@ It has been reported for some people failure at training:
    tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution algorithm. This is probably because cuDNN failed to initialize, so try looking to see if a warning log message was printed above.
         [[{{node tower_0/conv1d/Conv2D}}]]
 
-Setting the ``TF_FORCE_GPU_ALLOW_GROWTH`` environment variable to ``true`` seems to help in such cases. This could also be due to an incorrect version of libcudnn. Double check your versions with the :ref:`TensorFlow 1.15 documentation <cuda-training-deps>`.
+Setting the ``TF_FORCE_GPU_ALLOW_GROWTH`` environment variable to ``true`` seems to help in such cases. This could also be due to an incorrect version of libcudnn. Double check your versions with the :ref:`TensorFlow 2.3 documentation <cuda-training-deps>`.
 
 Basic Dockerfile for training
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
