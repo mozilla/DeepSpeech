@@ -15,11 +15,11 @@ Prerequisites for training a model
 Getting the training code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Clone the latest released stable branch from Github (e.g. 0.9.2, check `here <https://github.com/mozilla/DeepSpeech/releases>`_):
+Clone the latest released stable branch from Github (e.g. 0.9.3, check `here <https://github.com/mozilla/DeepSpeech/releases>`_):
 
 .. code-block:: bash
 
-   git clone --branch v0.9.2 https://github.com/mozilla/DeepSpeech
+   git clone --branch v0.9.3 https://github.com/mozilla/DeepSpeech
 
 If you plan on committing code or you want to report bugs, please use the master branch.
 
