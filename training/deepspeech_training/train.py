@@ -98,7 +98,7 @@ class Dense(tf.keras.layers.Dense):
 
 class Model(tf.keras.Model):
     def __init__(self, dropout_rates=None, overlap=True, unroll=False, masking=True):
-        super().__init__()
+        super().__init__(name='DeepSpeech_v{}'.format(int(file_relative_read('GRAPH_VERSION').strip())))
 
         if dropout_rates is None:
             dropout_rates = defaultdict(lambda: 0.)
