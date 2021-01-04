@@ -21,7 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         wget \
 	sox \
 	libsox-dev \
-	libsox-fmt-all	
+	libsox-fmt-all \
+	vim \
+	nano
 
 # We need to remove it because it's breaking deepspeech install later with
 # weird errors about setuptools
