@@ -39,7 +39,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         sox \
         unzip \
         wget \
-        zlib1g-dev
+        zlib1g-dev \
+	vim \
+	nano
 
 RUN update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
