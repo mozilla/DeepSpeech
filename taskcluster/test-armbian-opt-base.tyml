@@ -17,6 +17,11 @@ then:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
     image: "arm64v8/debian:buster-20200422"
 
+    artifact_dependencies:
+      $map: { $eval: build.dependencies }
+      each(b):
+        $eval: as_slugid(b)
+
     env:
       $let:
         training: { $eval: as_slugid(build.test_model_task) }

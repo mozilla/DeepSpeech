@@ -20,6 +20,11 @@ then:
   payload:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
 
+    artifact_dependencies:
+      $map: { $eval: build.dependencies }
+      each(b):
+        $eval: as_slugid(b)
+
     env:
       $let:
         training: { $eval: as_slugid(build.test_model_task) }

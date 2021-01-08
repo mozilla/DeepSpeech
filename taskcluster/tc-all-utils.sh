@@ -66,7 +66,7 @@ set_ldc_sample_filename()
 get_dependency_url()
 {
   local _file=$1
-  all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["payload"]["artifact_dependencies"]));')"
 
   for dep in ${all_deps}; do
     local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${_file}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
@@ -77,6 +77,8 @@ get_dependency_url()
   done;
 
   echo ""
+  # This should not be reached, it means we could not find the needed dependency URL
+  exit 1
 }
 
 download_dependency_file()

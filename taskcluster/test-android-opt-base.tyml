@@ -19,6 +19,11 @@ then:
     maxRunTime: { $eval: to_int(build.maxRunTime) }
     image: "ubuntu:18.04"
 
+    artifact_dependencies:
+      $map: { $eval: build.dependencies }
+      each(b):
+        $eval: as_slugid(b)
+
     capabilities:
       devices:
         kvm: true
