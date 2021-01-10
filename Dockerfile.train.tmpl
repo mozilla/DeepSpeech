@@ -1,5 +1,9 @@
 # Please refer to the TRAINING documentation, "Basic Dockerfile for training"
 
+# Pull in CUDA so that the GPU can be accessed from within the Docker container 
+FROM nvidia/cuda:10.2-base
+CMD nvidia-smi
+
 FROM tensorflow/tensorflow:1.15.4-gpu-py3
 ENV DEBIAN_FRONTEND=noninteractive
 
