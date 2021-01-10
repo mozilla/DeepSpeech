@@ -50,22 +50,23 @@ def main():
         version = fin.read().strip()
 
     install_requires_base = [
-        'numpy',
-        'progressbar2',
-        'six',
-        'pyxdg',
-        'attrdict',
         'absl-py',
-        'semver',
-        'opuslib == 2.0.0',
-        'optuna',
-        'sox',
+        'attrdict',
         'bs4',
-        'pandas',
-        'requests',
-        'numba == 0.47.0', # ships py3.5 wheel
-        'llvmlite == 0.31.0', # for numba==0.47.0
         'librosa',
+        'llvmlite == 0.31.0', # for numba==0.47.0
+        'numba == 0.47.0', # ships py3.5 wheel
+        'numpy',
+        'optuna',
+        'opuslib == 2.0.0',
+        'pandas',
+        'progressbar2',
+        'pyogg >= 0.6.14a1',
+        'pyxdg',
+        'requests',
+        'semver',
+        'six',
+        'sox',
         'soundfile',
     ]
 

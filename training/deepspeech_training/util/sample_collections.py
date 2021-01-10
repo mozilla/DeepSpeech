@@ -15,7 +15,7 @@ from .audio import (
     AUDIO_TYPE_PCM,
     AUDIO_TYPE_OPUS,
     SERIALIZABLE_AUDIO_TYPES,
-    get_audio_type_from_extension,
+    get_loadable_audio_type_from_extension,
     write_wav
 )
 from .io import open_remote, is_remote_path
@@ -110,7 +110,7 @@ def load_sample(filename, label=None):
         util.audio.Sample instance if label is None, else util.sample_collections.LabeledSample instance
     """
     ext = os.path.splitext(filename)[1].lower()
-    audio_type = get_audio_type_from_extension(ext)
+    audio_type = get_loadable_audio_type_from_extension(ext)
     if audio_type is None:
         raise ValueError('Unknown audio type extension "{}"'.format(ext))
     return PackedSample(filename, audio_type, label)

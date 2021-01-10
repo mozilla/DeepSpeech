@@ -9,14 +9,14 @@ import sys
 import random
 import argparse
 
-from deepspeech_training.util.audio import LOADABLE_AUDIO_EXTENSIONS, AUDIO_TYPE_PCM, AUDIO_TYPE_WAV
+from deepspeech_training.util.audio import get_loadable_audio_type_from_extension, AUDIO_TYPE_PCM, AUDIO_TYPE_WAV
 from deepspeech_training.util.sample_collections import SampleList, LabeledSample, samples_from_source
 from deepspeech_training.util.augmentations import parse_augmentations, apply_sample_augmentations, SampleAugmentation
 
 
 def get_samples_in_play_order():
     ext = os.path.splitext(CLI_ARGS.source)[1].lower()
-    if ext in LOADABLE_AUDIO_EXTENSIONS:
+    if get_loadable_audio_type_from_extension(ext):
         samples = SampleList([(CLI_ARGS.source, 0)], labeled=False)
     else:
         samples = samples_from_source(CLI_ARGS.source, buffering=0)
