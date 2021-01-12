@@ -20,6 +20,7 @@ from deepspeech_training.util.flags import create_flags, FLAGS
 from deepspeech_training.util.logging import log_error, log_info, log_progress, create_progressbar
 from ds_ctcdecoder import ctc_beam_search_decoder_batch, Scorer
 from multiprocessing import Process, cpu_count
+from tqdm import tqdm
 
 
 def fail(message, code=1):
@@ -74,7 +75,7 @@ def transcribe_file(audio_path, tlog_path):
 
 def transcribe_many(src_paths,dst_paths):
     pbar = create_progressbar(prefix='Transcribing files | ', max_value=len(src_paths)).start()
-    for i in range(len(src_paths)):
+    for i in tqdm(range(len(src_paths)),desc='Loading'):
         p = Process(target=transcribe_file, args=(src_paths[i], dst_paths[i]))
         p.start()
         p.join()
