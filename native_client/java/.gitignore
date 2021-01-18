@@ -6,7 +6,7 @@ libdeepspeech/libs/*.so
 libdeepspeech/build/
 
 #Make/CMake
-Makefile
+Makefile/
 libdeepspeech/CMakeFiles/
 libdeepspeech/cmake_install.cmake
 libdeepspeech/CMakeCache.txt

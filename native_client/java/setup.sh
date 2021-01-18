@@ -57,6 +57,12 @@ fi
 #Checks are complete
 printf "${GREEN}OK${NC}\n"
 
+#Make the environment ready
+cp Makefile Makefile.android
+cp build.gradle.standalone build.gradle
+cp libdeepspeech/build.gradle.standalone libdeepspeech/build.gradle
+cp libdeepspeech/CMakeLists_standalone.txt libdeepspeech/CMakeLists.txt
+
 #Create the .cpp file for the bindings
 printf "Creating bindings..."
 swig -c++ -java -package org.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i >/dev/null || fail "Swig"
@@ -67,8 +73,7 @@ printf "Compiling libdeepspeech-jni.so..."
 #We move into the libdeepspeech directory, to avoid funky behaviour
 cd libdeepspeech
 
-#Copy the java cmake file to just the cmake file, and subsitute __JAVA_HOME__ in it.
-cp CMakeLists_java.txt CMakeLists.txt
+#Substitute __JAVA_HOME__
 sed -i 's|__JAVA_HOME__|'$JAVA_HOME'|g' CMakeLists.txt || fail "Sed"
 
 #Generate the Makefiles and Make it!
@@ -84,15 +89,25 @@ cd ..
 
 printf "${GREEN}OK${NC}\n"
 
-#Lastly we want to copy all the important bits together into one folder to make life easier for the user
-printf "Finishing up..."
+#Copy all the important bits to a single directory, easier for the user
+printf "Collecting artifacts..."
 mkdir -p build
 cp libdeepspeech/libdeepspeech-jni.so build/
 cp libdeepspeech/libs/libdeepspeech.so build/
 cp libdeepspeech/build/libs/libdeepspeech.jar build/
+printf "${GREEN}OK${NC}\n"
 
-#Delete the temporay cmake file
+printf "Cleaning up..."
+#Delete the temporay files
 rm -rf libdeepspeech/CMakeLists.txt
+rm -rf libdeepspeech/build.gradle
+rm -rf build.gradle
+
+#Restore Android cmake
+mv Makefile.android Makefile
+
+#Other cleanup
+rm -rf libdeepspeech/cmake_install.cmake libdeepspeech/CMakeCache.txt libdeepspeech/libdeepspeech-jni.so libdeepspeech/Makefile libdeepspeech/build/ libdeepspeech/CMakeFiles/
 
 printf "${GREEN}OK${NC}\n\n"
 

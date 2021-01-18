@@ -39,6 +39,65 @@ dependencies {
 - At this moment, this will only run on x86-64 Linux.
 
 ### Example usage
+`LibDeepSpeech.java` example
+```java
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+
+import org.deepspeech.libdeepspeech.DeepSpeechModel;
+
+//This class facilitates the loading of the native libraries.
+//The implementation in here works with the Gradle guide provided in the README.md document.
+//However you can modify this to whatever you wish.
+public class LibDeepSpeech extends DeepSpeechModel {
+	
+	public LibDeepSpeech(String modelPath) {		
+		loadNativeLibs();
+		super.loadModel(modelPath);
+	}
+	
+	@Override
+	public void loadNativeLibs() {
+        String jniName = "libdeepspeech-jni.so";
+        String libName = "libdeepspeech.so";
+        
+        System.out.println("Setting up DeepSpeech...");
+        
+        URL jniUrl = DeepSpeechModel.class.getResource("/jni/x86_64/" + jniName);
+        URL libUrl = DeepSpeechModel.class.getResource("/jni/x86_64/" + libName);
+        File tmpDir = null;
+		try {
+			tmpDir = Files.createTempDirectory("libdeepspeech").toFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        tmpDir.deleteOnExit();
+    	
+        File jniTmpFile = new File(tmpDir, jniName);
+        jniTmpFile.deleteOnExit();
+        File libTmpFile = new File(tmpDir, libName);
+        libTmpFile.deleteOnExit();
+        
+        try (
+        		InputStream jniIn = jniUrl.openStream();
+        		InputStream libIn = libUrl.openStream();
+        ) {
+            Files.copy(jniIn, jniTmpFile.toPath());
+            Files.copy(libIn, libTmpFile.toPath());
+        } catch (IOException e) {
+			e.printStackTrace();
+		}
+                
+        System.load(jniTmpFile.getAbsolutePath());
+        System.load(libTmpFile.getAbsolutePath());
+	}
+}
+```
+
+`DeepSpeechExample.java`
 ```java
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -46,17 +105,15 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.deepspeech.libdeepspeech.DeepSpeechModel;
-
 public class DeepSpeechExample {
-    private DeepSpeechModel deepSpeechModel = null
+    private LibDeepSpeech deepSpeechModel = null
 
     private final String TF_MODEL = "PATH_TO_YOUR_TENSORFLOW_MODEL";
     private final int BEAM_WIDTH = 50;
 
     public void createModel(String tensorFlowModel) {
         if(this.deepSpeechModel == null) {
-            this.deepSpeechModel = new DeepSpeechModel(tensorFlowModel);
+            this.deepSpeechModel = new LibDeepSpeech(tensorFlowModel);
             this.deepSpeechModel.setBeamWidth(BEAM_WIDTH);
         }
     }

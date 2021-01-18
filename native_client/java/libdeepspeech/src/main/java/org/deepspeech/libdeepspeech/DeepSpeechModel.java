@@ -9,39 +9,9 @@ import java.nio.file.Files;
 /**
  * @brief Exposes a DeepSpeech model in Java
  **/
-public class DeepSpeechModel {
+public abstract class DeepSpeechModel {
 
-    static {
-        String jniName = "libdeepspeech-jni.so";
-        String libName = "libdeepspeech.so";
-        URL jniUrl = DeepSpeechModel.class.getResource("/jni/x86_64/" + jniName);
-        URL libUrl = DeepSpeechModel.class.getResource("/jni/x86_64/" + libName);
-        File tmpDir = null;
-		try {
-			tmpDir = Files.createTempDirectory("libdeepspeech").toFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-        tmpDir.deleteOnExit();
-    	
-        File jniTmpFile = new File(tmpDir, jniName);
-        jniTmpFile.deleteOnExit();
-        File libTmpFile = new File(tmpDir, libName);
-        libTmpFile.deleteOnExit();
-        
-        try (
-        		InputStream jniIn = jniUrl.openStream();
-        		InputStream libIn = libUrl.openStream();
-        ) {
-            Files.copy(jniIn, jniTmpFile.toPath());
-            Files.copy(libIn, libTmpFile.toPath());
-        } catch (IOException e) {
-			e.printStackTrace();
-		}
-        
-        System.load(jniTmpFile.getAbsolutePath());
-        System.load(libTmpFile.getAbsolutePath());
-    }
+    public abstract void loadNativeLibs();
 
     // FIXME: We should have something better than those SWIGTYPE_*
     private SWIGTYPE_p_p_ModelState _mspp;
@@ -63,7 +33,7 @@ public class DeepSpeechModel {
     *
     * @throws RuntimeException on failure.
     */
-    public DeepSpeechModel(String modelPath) {
+    public void loadModel(String modelPath) {
         this._mspp = impl.new_modelstatep();
         evaluateErrorCode(impl.CreateModel(modelPath, this._mspp));
         this._msp  = impl.modelstatep_value(this._mspp);
