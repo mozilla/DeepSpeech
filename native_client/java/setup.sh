@@ -1,4 +1,5 @@
 #!/bin/sh
+#This script is for standalone java only
 
 #You, the user, should set this if it differes from what is set here!
 JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64
@@ -66,8 +67,8 @@ printf "Compiling libdeepspeech-jni.so..."
 #We move into the libdeepspeech directory, to avoid funky behaviour
 cd libdeepspeech
 
-#We need to set the path to JAVA_HOME in the CMakeLists file, so back it up and do that
-cp CMakeLists.txt CMakeLists.txt.bak
+#Copy the java cmake file to just the cmake file, and subsitute __JAVA_HOME__ in it.
+cp CMakeLists_java.txt CMakeLists.txt
 sed -i 's|__JAVA_HOME__|'$JAVA_HOME'|g' CMakeLists.txt || fail "Sed"
 
 #Generate the Makefiles and Make it!
@@ -77,6 +78,7 @@ printf "${GREEN}OK${NC}\n"
 
 #Create the JAR to include into other projects
 printf "Compiling Java bindings..."
+
 cd ..
 ./gradlew build >/dev/null || fail "Gradle"
 
@@ -89,8 +91,8 @@ cp libdeepspeech/libdeepspeech-jni.so build/
 cp libdeepspeech/libs/libdeepspeech.so build/
 cp libdeepspeech/build/libs/libdeepspeech.jar build/
 
-#Restore the original CMake file
-mv libdeepspeech/CMakeLists.txt.bak libdeepspeech/CMakeLists.txt
+#Delete the temporay cmake file
+rm -rf libdeepspeech/CMakeLists.txt
 
 printf "${GREEN}OK${NC}\n\n"
 

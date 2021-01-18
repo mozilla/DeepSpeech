@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 
 set(JAVA_AWT_INCLUDE_PATH NotNeeded)
 
-set(JAVA_HOME /usr/lib/jvm/java-1.11.0-openjdk-amd64)
+set(JAVA_HOME __JAVA_HOME__)
 
 find_package(Java REQUIRED)
 find_package(JNI REQUIRED)
 include(UseJava)
 
-include_directories( ${CMAKE_JAVA_} /usr/lib/jvm/java-1.11.0-openjdk-amd64/include /usr/lib/jvm/java-1.11.0-openjdk-amd64/include/linux )
+include_directories( ${CMAKE_JAVA_} __JAVA_HOME__/include __JAVA_HOME__/include/linux )
 
 add_library( deepspeech-jni SHARED ../jni/deepspeech_wrap.cpp )
 

@@ -1,13 +1,46 @@
 package org.deepspeech.libdeepspeech;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+
 /**
  * @brief Exposes a DeepSpeech model in Java
  **/
 public class DeepSpeechModel {
 
     static {
-        System.loadLibrary("deepspeech-jni");
-        System.loadLibrary("deepspeech");
+        String jniName = "libdeepspeech-jni.so";
+        String libName = "libdeepspeech.so";
+        URL jniUrl = DeepSpeechModel.class.getResource("/jni/x86_64/" + jniName);
+        URL libUrl = DeepSpeechModel.class.getResource("/jni/x86_64/" + libName);
+        File tmpDir = null;
+		try {
+			tmpDir = Files.createTempDirectory("libdeepspeech").toFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        tmpDir.deleteOnExit();
+    	
+        File jniTmpFile = new File(tmpDir, jniName);
+        jniTmpFile.deleteOnExit();
+        File libTmpFile = new File(tmpDir, libName);
+        libTmpFile.deleteOnExit();
+        
+        try (
+        		InputStream jniIn = jniUrl.openStream();
+        		InputStream libIn = libUrl.openStream();
+        ) {
+            Files.copy(jniIn, jniTmpFile.toPath());
+            Files.copy(libIn, libTmpFile.toPath());
+        } catch (IOException e) {
+			e.printStackTrace();
+		}
+        
+        System.load(jniTmpFile.getAbsolutePath());
+        System.load(libTmpFile.getAbsolutePath());
     }
 
     // FIXME: We should have something better than those SWIGTYPE_*

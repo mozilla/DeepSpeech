@@ -1,50 +1,7 @@
-apply plugin: 'com.android.library'
 apply plugin: 'maven'
+apply plugin: 'java'
 
-android {
-    compileSdkVersion 27
-
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 27
-        versionName androidGitVersion.name()
-        versionCode androidGitVersion.code()
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-        setProperty("archivesBaseName", "${archivesBaseName}-${dsVersionString}")
-
-        ndk {
-            abiFilters = []
-            abiFilters.addAll(ABI_FILTERS.split(';').collect{it as String})
-        }
-
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-            }
-        }
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
-    }
-
-    adbOptions {
-        timeOutInMs 15 * 60 * 1000  // 10 minutes
-        installOptions "-d","-t"
-    }
-
-    // Avoid scanning libdeepspeech_doc
+allprojects {
     sourceSets {
         main.java.srcDirs = [ 'src/main/java/org/deepspeech/libdeepspeech/' ]
     }
@@ -54,9 +11,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     testImplementation 'junit:junit:4.12'
-
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
 task printABIs {
@@ -64,7 +18,7 @@ task printABIs {
 }
 
 task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
+    from sourceSets.main.output
     classifier = 'sources'
 }
 

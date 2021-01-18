@@ -1,11 +1,21 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches/build_file_checksums.ser
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
+#User input
+libdeepspeech/libs/*.so
+
+#Gradle
+.gradle/
+libdeepspeech/build/
+
+#Make/CMake
+Makefile
+libdeepspeech/CMakeFiles/
+libdeepspeech/cmake_install.cmake
+libdeepspeech/CMakeCache.txt
+libdeepspeech/Makefile
+libdeepspeech/libdeepspeech-jni.so
+
+#SWIG
+jni/*.cpp
+jni/*.o
+
+#Setup.sh output
+build/

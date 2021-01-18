@@ -1,1 +1,1 @@
-include ':app', ':libdeepspeech'
+include ':libdeepspeech'
