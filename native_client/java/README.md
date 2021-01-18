@@ -1,22 +1,31 @@
 # Java bindings
-## Android bindings
 Full project description and documentation on GitHub: [https://github.com/mozilla/DeepSpeech](https://github.com/mozilla/DeepSpeech).
 
-?
+## Android bindings
+For use with Android
+
+### Preparation
+1. Rename `./build.gradle.android` to `build.gradle`
+2. Rename `./libdeepspeech/build.gradle.android` to `build.gradle` 
+3. Rename `./libdeepspeech/CMakeLists_android.txt` to `CMakeLists.txt`
+
+### Build
+1. In `./` run `make`
+
+>Note: The current example app in `./App` is not up to date with the latest changes to the bindings!
 
 ## Standalone Java Bindings for DeepSpeech
-Does not rely on Android!
-
-Full project description and documentation on GitHub: [https://github.com/mozilla/DeepSpeech](https://github.com/mozilla/DeepSpeech).
+For use with standalone Java
 
 ### Setup
-1. Get `libdeepspeech.so` by compiling or (from here)[], and copy it into `./native_client/java_standalone/libdeepspeech/libs/`
+1. Get `libdeepspeech.so` by compiling or (from here)[], and copy it into `./libdeepspeech/libs/`
 2. Run `setup.sh` as root or with `sudo`
-3. You can now find the files needed for your project at `./native_client/java_standalone/build/`
+3. You can now find the files needed for your project at `./build/`
 
 ### Adding DeepSpeech to your Java project
-1. Copy `libdeepspeech.jar` from `./native_client/java_standalone/build/` into `{YOUR PROJECT ROOT}/libs/`
-2. Copy '*.so' from `./native_client/java_standalone/build/` into `{YOUR PROJECT ROOT}/src/main/resources/jni/x86_64/`
+>Note: You can do this on your own way too, but this works with the example usage code provided below.
+1. Copy `libdeepspeech.jar` from `./build/` into `{YOUR PROJECT ROOT}/libs/`
+2. Copy '*.so' from `./build/` into `{YOUR PROJECT ROOT}/src/main/resources/jni/x86_64/`
 3. Modify your `build.gradle` file to include:
 ```groovy
 plugins {
