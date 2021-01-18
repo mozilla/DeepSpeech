@@ -28,7 +28,7 @@ def audio_to_features(audio, sample_rate, transcript=None, clock=0.0, train_phas
                 lambda: tf.no_op(),
                 name='matching_sample_rate')
 
-    if train_phase and augmentations is not None:
+    if train_phase and augmentations:
         audio = apply_graph_augmentations('signal', audio, augmentations, transcript=transcript, clock=clock)
 
     spectrogram = contrib_audio.audio_spectrogram(audio,
@@ -36,7 +36,7 @@ def audio_to_features(audio, sample_rate, transcript=None, clock=0.0, train_phas
                                                   stride=Config.audio_step_samples,
                                                   magnitude_squared=True)
 
-    if train_phase and augmentations is not None:
+    if train_phase and augmentations:
         spectrogram = apply_graph_augmentations('spectrogram', spectrogram, augmentations, transcript=transcript, clock=clock)
 
     features = contrib_audio.mfcc(spectrogram=spectrogram,
@@ -45,7 +45,7 @@ def audio_to_features(audio, sample_rate, transcript=None, clock=0.0, train_phas
                                   upper_frequency_limit=FLAGS.audio_sample_rate / 2)
     features = tf.reshape(features, [-1, Config.n_input])
 
-    if train_phase and augmentations is not None:
+    if train_phase and augmentations:
         features = apply_graph_augmentations('features', features, augmentations, transcript=transcript, clock=clock)
 
     return features, tf.shape(input=features)[0]

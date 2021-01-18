@@ -53,9 +53,6 @@ def main():
         'absl-py',
         'attrdict',
         'bs4',
-        'librosa',
-        'llvmlite == 0.31.0', # for numba==0.47.0
-        'numba == 0.47.0', # ships py3.5 wheel
         'numpy',
         'optuna',
         'opuslib == 2.0.0',
@@ -63,6 +60,7 @@ def main():
         'progressbar2',
         'pyogg >= 0.6.14a1',
         'pyxdg',
+        'resampy >= 0.2.2',
         'requests',
         'semver',
         'six',

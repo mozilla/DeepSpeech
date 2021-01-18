@@ -3,6 +3,7 @@ import os
 import re
 import math
 import random
+import resampy
 import numpy as np
 
 from multiprocessing import Queue, Process
@@ -129,7 +130,7 @@ def apply_graph_augmentations(domain, tensor, augmentations, transcript=None, cl
     Tensor of type float32
         The augmented spectrogram
     """
-    if augmentations is not None:
+    if augmentations:
         for augmentation in augmentations:
             if isinstance(augmentation, GraphAugmentation):
                 tensor = augmentation.maybe_apply(domain, tensor, transcript=transcript, clock=clock)
@@ -348,24 +349,25 @@ class Resample(SampleAugmentation):
         self.rate = int_range(rate)
 
     def apply(self, sample, clock=0.0):
-        # late binding librosa and its dependencies
-        # pre-importing sklearn fixes https://github.com/scikit-learn/scikit-learn/issues/14485
-        import sklearn  # pylint: disable=import-outside-toplevel
-        from librosa.core import resample  # pylint: disable=import-outside-toplevel
         sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
         rate = pick_value_from_range(self.rate, clock=clock)
-        audio = sample.audio
-        orig_len = len(audio)
-        audio = np.swapaxes(audio, 0, 1)
-        if audio.shape[0] < 2:
-            # since v0.8 librosa enforces a shape of (samples,) instead of (channels, samples) for mono samples
-            resampled = resample(audio[0], sample.audio_format.rate, rate)
-            audio[0] = resample(resampled, rate, sample.audio_format.rate)[:orig_len]
-        else:
-            audio = resample(audio, sample.audio_format.rate, rate)
-            audio = resample(audio, rate, sample.audio_format.rate)
-        audio = np.swapaxes(audio, 0, 1)[0:orig_len]
-        sample.audio = audio
+        orig_len = len(sample.audio)
+        resampled = resampy.resample(sample.audio, sample.audio_format.rate, rate, axis=0, filter='kaiser_fast')
+        sample.audio = resampy.resample(resampled, rate, sample.audio_format.rate, axis=0, filter='kaiser_fast')[:orig_len]
+
+
+class NormalizeSampleRate(SampleAugmentation):
+    def __init__(self, rate):
+        super().__init__(p=1.0)
+        self.rate = rate
+
+    def apply(self, sample, clock=0.0):
+        if sample.audio_format.rate == self.rate:
+            return
+
+        sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
+        sample.audio = resampy.resample(sample.audio, sample.audio_format.rate, self.rate, axis=0, filter='kaiser_fast')
+        sample.audio_format = sample.audio_format._replace(rate=self.rate)
 
 
 class Volume(SampleAugmentation):
