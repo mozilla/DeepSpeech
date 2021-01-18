@@ -1,0 +1,18 @@
+#User input
+libdeepspeech/libs/*.so
+
+#Gradle
+.gradle/
+libdeepspeech/build
+
+#Make/CMake
+Makefile
+libdeepspeech/CMakeFiles/
+libdeepspeech/cmake_install.cmake
+libdeepspeech/CMakeCache.txt
+libdeepspeech/Makefile
+libdeepspeech/libdeepspeech-jni.so
+
+#SWIG
+jni/*.cpp
+jni/*.o
