@@ -11,7 +11,6 @@ from functools import partial
 from .helpers import KILOBYTE, MEGABYTE, GIGABYTE, Interleaved, LenMap
 from .audio import (
     Sample,
-    DEFAULT_FORMAT,
     AUDIO_TYPE_PCM,
     AUDIO_TYPE_OPUS,
     SERIALIZABLE_AUDIO_TYPES,
@@ -40,7 +39,7 @@ CONTENT_TYPE_TRANSCRIPT = 'transcript'
 class LabeledSample(Sample):
     """In-memory labeled audio sample representing an utterance.
     Derived from util.audio.Sample and used by sample collection readers and writers."""
-    def __init__(self, audio_type, raw_data, transcript, audio_format=DEFAULT_FORMAT, sample_id=None):
+    def __init__(self, audio_type, raw_data, transcript, audio_format=None, sample_id=None):
         """
         Parameters
         ----------

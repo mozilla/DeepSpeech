@@ -76,6 +76,8 @@ class Sample:
         if audio_type in SERIALIZABLE_AUDIO_TYPES:
             self.audio = raw_data if isinstance(raw_data, io.BytesIO) else io.BytesIO(raw_data)
             self.duration = read_duration(audio_type, self.audio)
+            if not self.audio_format:
+                self.audio_format = read_format(audio_type, self.audio)
         else:
             self.audio = raw_data
             if self.audio_format is None:
@@ -518,6 +520,51 @@ def read_duration(audio_type, audio_file):
         return read_opus_duration(audio_file)
     if audio_type == AUDIO_TYPE_OGG_OPUS:
         return read_ogg_opus_duration(audio_file)
+    raise ValueError('Unsupported audio type: {}'.format(audio_type))
+
+
+def read_wav_format(wav_file):
+    wav_file.seek(0)
+    with wave.open(wav_file, 'rb') as wav_file_reader:
+        return read_audio_format_from_wav_file(wav_file_reader)
+
+
+def read_opus_format(opus_file):
+    _, audio_format = read_opus_header(opus_file)
+    return audio_format
+
+
+def read_ogg_opus_format(ogg_file):
+    error = ctypes.c_int()
+    ogg_file_buffer = ogg_file.getbuffer()
+    ubyte_array = ctypes.c_ubyte * len(ogg_file_buffer)
+    opusfile = pyogg.opus.op_open_memory(
+        ubyte_array.from_buffer(ogg_file_buffer),
+        len(ogg_file_buffer),
+        ctypes.pointer(error)
+    )
+
+    if error.value != 0:
+        raise ValueError(
+            ("Ogg/Opus buffer could not be read."
+             "Error code: {}").format(error.value)
+        )
+
+    channel_count = pyogg.opus.op_channel_count(opusfile, -1)
+    pyogg.opus.op_free(opusfile)
+
+    sample_rate = 48000 # opus files are always 48kHz
+    sample_width = 2 # always 16-bit
+    return AudioFormat(sample_rate, channel_count, sample_width)
+
+
+def read_format(audio_type, audio_file):
+    if audio_type == AUDIO_TYPE_WAV:
+        return read_wav_format(audio_file)
+    if audio_type == AUDIO_TYPE_OPUS:
+        return read_opus_format(audio_file)
+    if audio_type == AUDIO_TYPE_OGG_OPUS:
+        return read_ogg_opus_format(audio_file)
     raise ValueError('Unsupported audio type: {}'.format(audio_type))
 
 
