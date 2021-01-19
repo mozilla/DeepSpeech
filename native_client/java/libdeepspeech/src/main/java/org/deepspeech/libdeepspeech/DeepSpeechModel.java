@@ -9,9 +9,28 @@ import java.nio.file.Files;
 /**
  * @brief Exposes a DeepSpeech model in Java
  **/
-public abstract class DeepSpeechModel {
+public class DeepSpeechModel {
 
-    public abstract void loadNativeLibs();
+    /**
+    * Create a new DeepSpeechModel object and load the native libraries.<br>
+    * Use on: Android
+    */
+    public DeepSpeechModel() {
+        System.loadLibrary("deepspeech-jni");
+        System.loadLibrary("deepspeech");
+    }
+
+    /**
+    * Create a new DeepSpeechModel object.<br>
+    * Use on: Android, Standalone
+    * @param loadNativeLibrariesManually if true, the native libraries will not be loaded. The developer must do this manually then.
+    */
+    public DeepSpeechModel(boolean loadNativeLibrariesManually) {
+        if(!loadNativeLibrariesManually) {
+            System.loadLibrary("deepspeech-jni");
+            System.loadLibrary("deepspeech");
+        }
+    }
 
     // FIXME: We should have something better than those SWIGTYPE_*
     private SWIGTYPE_p_p_ModelState _mspp;

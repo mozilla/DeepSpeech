@@ -65,7 +65,7 @@ cp libdeepspeech/CMakeLists_standalone.txt libdeepspeech/CMakeLists.txt
 
 #Create the .cpp file for the bindings
 printf "Creating bindings..."
-swig -c++ -java -package org.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i >/dev/null || fail "Swig"
+swig -c++ -java -package org.deepspeech.libdeepspeech -outdir libdeepspeech/src/main/java/org/deepspeech/libdeepspeech/ -o jni/deepspeech_wrap.cpp jni/deepspeech.i >/dev/null 2>&1 || fail "Swig"
 printf "${GREEN}OK${NC}\n"
 
 printf "Compiling libdeepspeech-jni.so..."
@@ -81,9 +81,8 @@ cmake . >/dev/null || fail "CMake"
 make >/dev/null || fail "Make"
 printf "${GREEN}OK${NC}\n"
 
-#Create the JAR to include into other projects
 printf "Compiling Java bindings..."
-
+#Create the JAR to include into other projects
 cd ..
 ./gradlew build >/dev/null || fail "Gradle"
 
@@ -92,13 +91,14 @@ printf "${GREEN}OK${NC}\n"
 #Copy all the important bits to a single directory, easier for the user
 printf "Collecting artifacts..."
 mkdir -p build
-cp libdeepspeech/libdeepspeech-jni.so build/
+mv libdeepspeech/libdeepspeech-jni.so build/
 cp libdeepspeech/libs/libdeepspeech.so build/
 cp libdeepspeech/build/libs/libdeepspeech.jar build/
 printf "${GREEN}OK${NC}\n"
 
 printf "Cleaning up..."
-#Delete the temporay files
+
+#Delete copied files which are no longer needed
 rm -rf libdeepspeech/CMakeLists.txt
 rm -rf libdeepspeech/build.gradle
 rm -rf build.gradle
@@ -106,8 +106,14 @@ rm -rf build.gradle
 #Restore Android cmake
 mv Makefile.android Makefile
 
-#Other cleanup
-rm -rf libdeepspeech/cmake_install.cmake libdeepspeech/CMakeCache.txt libdeepspeech/libdeepspeech-jni.so libdeepspeech/Makefile libdeepspeech/build/ libdeepspeech/CMakeFiles/
+#SWIG files
+rm -rf jni/deepspeech_wrap.cpp jni/deepspeech_wrap.o
+
+#CMake files
+rm -rf libdeepspeech/cmake_install.cmake libdeepspeech/CMakeCache.txt libdeepspeech/Makefile libdeepspeech/CMakeFiles/
+
+#Gradle
+rm -rf libdeepspeech/build/
 
 printf "${GREEN}OK${NC}\n\n"
 
