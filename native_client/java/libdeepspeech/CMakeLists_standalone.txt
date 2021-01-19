@@ -12,9 +12,9 @@ include_directories( ${CMAKE_JAVA_} __JAVA_HOME__/include __JAVA_HOME__/include/
 
 add_library( deepspeech-jni SHARED ../jni/deepspeech_wrap.cpp )
 
-find_library(deepspeech-lib NAMES deepspeech PATHS ${CMAKE_SOURCE_DIR}/libs/ REQUIRED)
+find_library(deepspeech-lib NAMES deepspeech PATHS ${CMAKE_SOURCE_DIR}/libs/x86_64/ REQUIRED)
 message(STATUS ${deepspeech-lib})
 
-add_custom_command( TARGET deepspeech-jni POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/libdeepspeech.so $ENV{CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libdeepspeech.so )
+add_custom_command( TARGET deepspeech-jni POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/x86_64/libdeepspeech.so ${CMAKE_SOURCE_DIR}/libdeepspeech.so )
 
 target_link_libraries( deepspeech-jni ${deepspeech-lib} )

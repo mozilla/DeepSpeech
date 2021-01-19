@@ -128,7 +128,7 @@ public class DeepSpeechModel {
         evaluateErrorCode(impl.SetScorerAlphaBeta(this._msp, alpha, beta));
     }
 
-   /*
+   /**
     * @brief Use the DeepSpeech model to perform Speech-To-Text.
     *
     * @param buffer A 16-bit, mono raw audio signal at the appropriate

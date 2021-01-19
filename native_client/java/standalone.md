@@ -1,7 +1,4 @@
-### Setup
-1. Get `libdeepspeech.so` by compiling or (from here)[], and copy it into `./libdeepspeech/libs/`
-2. Run `setup.sh` as root or with `sudo`
-3. You can now find the files needed for your project at `./build/`
+# DeepSpeech for standalone Java
 
 ### Adding DeepSpeech to your Java project
 >Note: You can do this on your own way too, but this works with the example usage code provided below.
