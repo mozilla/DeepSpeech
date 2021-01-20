@@ -24,6 +24,7 @@ def create_flags():
     f.DEFINE_integer('feature_win_len', 32, 'feature extraction audio window length in milliseconds')
     f.DEFINE_integer('feature_win_step', 20, 'feature extraction window step length in milliseconds')
     f.DEFINE_integer('audio_sample_rate', 16000, 'sample rate value expected by model')
+    f.DEFINE_boolean('normalize_sample_rate', True, 'normalize sample rate of all train_files to --audio_sample_rate')
 
     # Data Augmentation
     # ================

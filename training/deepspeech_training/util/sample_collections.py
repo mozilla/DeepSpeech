@@ -11,11 +11,10 @@ from functools import partial
 from .helpers import KILOBYTE, MEGABYTE, GIGABYTE, Interleaved, LenMap
 from .audio import (
     Sample,
-    DEFAULT_FORMAT,
     AUDIO_TYPE_PCM,
     AUDIO_TYPE_OPUS,
     SERIALIZABLE_AUDIO_TYPES,
-    get_audio_type_from_extension,
+    get_loadable_audio_type_from_extension,
     write_wav
 )
 from .io import open_remote, is_remote_path
@@ -40,7 +39,7 @@ CONTENT_TYPE_TRANSCRIPT = 'transcript'
 class LabeledSample(Sample):
     """In-memory labeled audio sample representing an utterance.
     Derived from util.audio.Sample and used by sample collection readers and writers."""
-    def __init__(self, audio_type, raw_data, transcript, audio_format=DEFAULT_FORMAT, sample_id=None):
+    def __init__(self, audio_type, raw_data, transcript, audio_format=None, sample_id=None):
         """
         Parameters
         ----------
@@ -110,7 +109,7 @@ def load_sample(filename, label=None):
         util.audio.Sample instance if label is None, else util.sample_collections.LabeledSample instance
     """
     ext = os.path.splitext(filename)[1].lower()
-    audio_type = get_audio_type_from_extension(ext)
+    audio_type = get_loadable_audio_type_from_extension(ext)
     if audio_type is None:
         raise ValueError('Unknown audio type extension "{}"'.format(ext))
     return PackedSample(filename, audio_type, label)

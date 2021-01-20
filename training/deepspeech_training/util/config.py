@@ -12,7 +12,7 @@ from .flags import FLAGS
 from .gpu import get_available_gpus
 from .logging import log_error, log_warn
 from .helpers import parse_file_size
-from .augmentations import parse_augmentations
+from .augmentations import parse_augmentations, NormalizeSampleRate
 from .io import path_exists_remote
 
 class ConfigSingleton:
@@ -33,10 +33,13 @@ def initialize_globals():
 
     # Augmentations
     c.augmentations = parse_augmentations(FLAGS.augment)
-    if len(c.augmentations) > 0 and FLAGS.feature_cache and FLAGS.cache_for_epochs == 0:
+    if c.augmentations and FLAGS.feature_cache and FLAGS.cache_for_epochs == 0:
         log_warn('Due to current feature-cache settings the exact same sample augmentations of the first '
                  'epoch will be repeated on all following epochs. This could lead to unintended over-fitting. '
                  'You could use --cache_for_epochs <n_epochs> to invalidate the cache after a given number of epochs.')
+
+    if FLAGS.normalize_sample_rate:
+        c.augmentations = [NormalizeSampleRate(FLAGS.audio_sample_rate)] + c['augmentations']
 
     # Caching
     if FLAGS.cache_for_epochs == 1:
