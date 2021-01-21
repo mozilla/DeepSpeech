@@ -153,7 +153,7 @@ To build the ``ds_ctcdecoder`` package, you'll need the general requirements lis
 Building CTC Decoder for training on unsupported platforms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We only support building CTC Decoder on x86 and arm architectures.
+We only support building CTC Decoder on x86-64 architecture.
 However, we offer some hints on building the CTC decoder on other
 architectures, and you might find some help in our `discourse <https://discourse.mozilla.org/>`.
 
