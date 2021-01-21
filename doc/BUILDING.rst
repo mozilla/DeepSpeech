@@ -327,3 +327,33 @@ much performance gains do you get in your applications, how you had to change
 the model to make it work with a delegate, etc.
 
 See :ref:`the support / contact details <support>`
+
+
+Building CTC Decoder for training on unsupported platforms
+----------------------------------------------------------
+Alongside linux on x86 and arm, macOS and windows there also exists a lot of
+other architectures which are not offically supported by the DeepSpeech team.
+
+Nevertheless, we offer some hits for other architectures provided by users.
+If you have problems, ask in our `discourse <https://discourse.mozilla.org/>`.
+
+Feedback on improving this section or usage on other architectures is welcome.
+
+Since, * `SWIG >= 3.0.12 <http://www.swig.org/>`_ does not include our patches please use
+https://github.com/lissyx/swig/tree/taskcluster for building SWIG from source.
+
+You can supply your prebuild SWIG using ``SWIG_DIST_URL``
+
+Moreover you may have to change ``PYTHON_PLATFORM_NAME`` corresponding to your platform.
+
+.. code-block::
+
+    # PowerPC (ppc64le)
+    PYTHON_PLATFORM_NAME="--plat-name linux_ppc64le"
+
+
+Complete build command:
+
+.. code-block::
+
+    SWIG_DIST_URL=[...] PYTHON_PLATFORM_NAME=[...] make bindings
