@@ -119,13 +119,13 @@ private func evaluateErrorCode(errorCode: Int32) throws {
 /// Stores text of an individual token, along with its timing information
 public struct DeepSpeechTokenMetadata {
     /// The text corresponding to this token
-    let text: String
+    public let text: String
 
     /// Position of the token in units of 20ms
-    let timestep: Int
+    public let timestep: Int
 
     /// Position of the token in seconds
-    let startTime: Float
+    public let startTime: Float
 
     internal init(fromInternal: TokenMetadata) {
         text = String(cString: fromInternal.text)
@@ -139,7 +139,7 @@ public struct DeepSpeechTokenMetadata {
 */
 public struct DeepSpeechCandidateTranscript {
     /// Array of DeepSpeechTokenMetadata objects
-    private(set) var tokens: [DeepSpeechTokenMetadata] = []
+    public private(set) var tokens: [DeepSpeechTokenMetadata] = []
 
     /** Approximated confidence value for this transcript. This corresponds to
         both acoustic model and language model scores that contributed to the
@@ -159,7 +159,7 @@ public struct DeepSpeechCandidateTranscript {
 /// An array of DeepSpeechCandidateTranscript objects computed by the model
 public struct DeepSpeechMetadata {
     /// Array of DeepSpeechCandidateTranscript objects
-    private(set) var transcripts: [DeepSpeechCandidateTranscript] = []
+    public private(set) var transcripts: [DeepSpeechCandidateTranscript] = []
 
     internal init(fromInternal: UnsafeMutablePointer<Metadata>) {
         let md = fromInternal.pointee
