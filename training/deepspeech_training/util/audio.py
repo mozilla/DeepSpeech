@@ -174,6 +174,10 @@ def convert_audio(src_audio_path, dst_audio_path, file_type=None, audio_format=D
 
 
 class AudioFile:
+    """
+    Audio data file wrapper that ensures that the file is loaded with the correct sample rate, channels,
+    and width, and converts the file on the fly otherwise.
+    """
     def __init__(self, audio_path, as_path=False, audio_format=DEFAULT_FORMAT):
         self.audio_path = audio_path
         self.audio_format = audio_format
@@ -199,8 +203,8 @@ class AudioFile:
         # If the format isn't right, copy the file to local tmp dir and do the conversion on disk
         if is_remote_path(self.audio_path):
             _, self.tmp_src_file_path = tempfile.mkstemp(suffix='.wav')
-            copy_remote(self.audio_path, self.tmp_src_file_path)
-            self.audio_path = self.tmp_file_path
+            copy_remote(self.audio_path, self.tmp_src_file_path, True)
+            self.audio_path = self.tmp_src_file_path
 
         _, self.tmp_file_path = tempfile.mkstemp(suffix='.wav')
         convert_audio(self.audio_path, self.tmp_file_path, file_type='wav', audio_format=self.audio_format)
