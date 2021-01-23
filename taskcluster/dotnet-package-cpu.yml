@@ -10,5 +10,5 @@ build:
     build: "taskcluster/dotnet-build.sh"
     package: "taskcluster/dotnet-package.sh"
   metadata:
-    name: "DeepSpeech dotnet CPU package"
-    description: "Packaging DeepSpeech CPU for registry"
+    name: "DeepSpeech .NET CPU package"
+    description: "Packaging DeepSpeech CPU nuget"

@@ -8,5 +8,5 @@ build:
     build: "taskcluster/dotnet-build.sh --tflite"
     package: "taskcluster/dotnet-package.sh"
   metadata:
-    name: "DeepSpeech dotnet TFLite package"
-    description: "Packaging DeepSpeech TFLite for registry"
+    name: "DeepSpeech .NET TFLite package"
+    description: "Packaging DeepSpeech TFLite nuget"

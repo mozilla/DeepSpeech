@@ -63,7 +63,7 @@ install_nuget()
 get_dep_nuget_pkg_url()
 {
   local deepspeech_pkg=$1
-  local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  local all_deps=get_all_deps_from_task
 
   for dep in ${all_deps}; do
     local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'${deepspeech_pkg}'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
@@ -76,4 +76,11 @@ get_dep_nuget_pkg_url()
   echo ""
   # This should not be reached, otherwise it means we could not find a matching nodejs package
   exit 1
+}
+
+
+get_all_deps_from_task()
+{
+  echo "$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  exit 0
 }

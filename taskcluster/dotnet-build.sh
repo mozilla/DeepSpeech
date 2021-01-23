@@ -17,4 +17,4 @@ else
     PROJECT_NAME="DeepSpeech"
 fi
 
-do_nuget_repackage "${package_option}" "${PROJECT_NAME}"
+do_nuget_repackage "${PROJECT_NAME}"

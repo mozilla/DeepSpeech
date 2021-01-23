@@ -7,5 +7,5 @@ build:
     build: "taskcluster/dotnet-build.sh --cuda"
     package: "taskcluster/dotnet-package.sh"
   metadata:
-    name: "DeepSpeech dotnet GPU package"
-    description: "Packaging DeepSpeech GPU for registry"
+    name: "DeepSpeech .NET GPU package"
+    description: "Packaging DeepSpeech GPU nuget"

@@ -412,8 +412,7 @@ do_nuget_build()
 
 do_nuget_repackage()
 {
-  package_option=$1
-  PROJECT_NAME=$2
+  PROJECT_NAME=$1
   
   if [ -z "${PROJECT_NAME}" ]; then
     exit "Please call with a valid PROJECT_NAME"
@@ -433,7 +432,8 @@ do_nuget_repackage()
   cd ${DS_DSDIR}/native_client/dotnet/nupkg
   gunzip > "${DS_DSDIR}/native_client/dotnet/${nuget}"
   
-  local all_deps="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${TASK_ID} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["dependencies"]));')"
+  
+  local all_deps=get_all_deps_from_task
   
   for dep in ${all_deps}; do
     local has_artifact=$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts | python -c 'import json; import sys; has_artifact = True in [ e["name"].find("'libdeepspeech.zip'") > 0 for e in json.loads(sys.stdin.read())["artifacts"] ]; print(has_artifact)')
@@ -442,13 +442,8 @@ do_nuget_repackage()
     ${WGET} -O - "https://community-tc.services.mozilla.com/api/queue/v1/task/${dep}/artifacts/public/libdeepspeech.zip"
 
     if [ "${has_artifact}" = "True" ]; then
-      if [ "${package_option}" = "--cuda" ]; then
-        do_nuget_gpu_repackage "${dep}"
-      elif [ "${package_option}" = "--tflite" ]; then
-        do_nuget_tfile_repackage "${dep}"
-      else
-        do_nuget_cpu_repackage "${dep}"
-      fi
+      local extraAssetName="$(curl -s https://community-tc.services.mozilla.com/api/queue/v1/task/${dep} | python -c 'import json; import sys; print(" ".join(json.loads(sys.stdin.read())["extra"]["nc_asset_name"]));')"
+      do_nuget_generic_repackage "${extraAssetName}"
     fi;
   done;
 
@@ -463,59 +458,25 @@ do_nuget_repackage()
   nuget pack nupkg/deepspeech.nuspec
 }
 
-do_nuget_cpu_repackage()
+do_nuget_generic_repackage()
 {
-  dep=$1
-
-  if [ "${dep}" = "darwin-amd64-cpu-opt" ]; then
+  assetName=$1
+  
+  if [ "${assetName}" = "native_client.amd64.cpu.osx.tar.xz" ]; then
     mkdir -p nupkg/runtimes/osx-x64/native/
     cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/osx-x64/native
     gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  elif [ "${dep}" = "linux-amd64-cpu-opt" ]; then
+  elif [ "${assetName}" = "native_client.amd64.cpu.linux.tar.xz" ]; then
     mkdir -p nupkg/runtimes/linux-x64/native/
     cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-x64/native
     gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  elif [ "${dep}" = "linux-rpi3-cpu-opt" ]; then
+  elif [ "${assetName}" = "native_client.rpi3.cpu.linux.tar.xz" ]; then
     mkdir -p nupkg/runtimes/linux-arm/native/
     cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-arm/native
     gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  elif [ "${dep}" = "linux-arm64-cpu-opt" ]; then
+  elif [ "${assetName}" = "native_client.arm64.cpu.linux.tar.xz" ]; then
     mkdir -p nupkg/runtimes/linux-arm64/native/
     cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-arm64/native
-    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  fi;
-}
-
-do_nuget_tfile_repackage()
-{
-  dep=$1
-
-  if [ "${dep}" = "darwin-amd64-tflite-opt" ]; then
-    mkdir -p nupkg/runtimes/osx-x64/native/
-    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/osx-x64/native
-    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  elif [ "${dep}" = "linux-amd64-tflite-opt" ]; then
-    mkdir -p nupkg/runtimes/linux-x64/native/
-    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-x64/native
-    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  elif [ "${dep}" = "win-amd64-tflite-opt" ]; then
-    mkdir -p nupkg/runtimes/win-x64/native/
-    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/win-x64/native
-    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  fi;
-}
-
-do_nuget_gpu_repackage()
-{
-  dep=$1
-
-  if [ "${dep}" = "linux-amd64-gpu-opt" ]; then
-    mkdir -p nupkg/runtimes/linux-x64/native/
-    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/linux-x64/native
-    gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
-  elif [ "${dep}" = "win-amd64-gpu-opt" ]; then
-    mkdir -p nupkg/runtimes/win-x64/native/
-    cd ${DS_DSDIR}/native_client/dotnet/nupkg/runtimes/win-x64/native
     gunzip > "${DS_DSDIR}/native_client/dotnet/libdeepspeech.zip"
   fi;
 }
