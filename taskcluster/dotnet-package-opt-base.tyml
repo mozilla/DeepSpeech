@@ -50,13 +50,11 @@ then:
         (rm -fr $TASKCLUSTER_TASK_DIR/ ; mkdir $TASKCLUSTER_TASK_DIR) && cd $TASKCLUSTER_TASK_DIR &&
         env &&
         ln -s $USERPROFILE/msys64 $TASKCLUSTER_TASK_DIR/msys64 &&
-        (7z x -txz -so $USERPROFILE/home.tar.xz | 7z x -aoa -ttar -si ) &&
         cd $TASKCLUSTER_TASK_DIR/DeepSpeech/ds && git remote set-url origin ${event.head.repo.url} && git fetch origin && git checkout --quiet ${event.head.sha} &&
         git submodule --quiet sync tensorflow/ && git submodule --quiet update tensorflow/ &&
         (rm $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tensorflow/native_client || true) &&
         ln -s $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/native_client/ $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/tensorflow/native_client &&
         cd $TASKCLUSTER_TASK_DIR &&
-        (mkdir pyenv-root/ && 7z x -so $USERPROFILE/pyenv.tar.gz | 7z x -opyenv-root/ -aoa -ttar -si ) &&
         pacman --noconfirm -S tar make &&
         pacman --noconfirm -S zip &&
         $TASKCLUSTER_TASK_DIR/DeepSpeech/ds/${build.scripts.build} &&
@@ -72,9 +70,6 @@ then:
         content:
           sha256: ${system.msys2.sha}
           url: ${system.msys2.url}
-      - file: pyenv.tar.gz
-        content:
-          url: ${system.pyenv.win.url}
 
     artifacts:
       - type: "directory"
