@@ -1,4 +1,4 @@
-package org.mozilla.deepspeech;
+package org.deepspeech;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("org.mozilla.deepspeech", appContext.getPackageName());
+        assertEquals("org.deepspeech", appContext.getPackageName());
     }
 }

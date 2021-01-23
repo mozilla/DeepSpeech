@@ -6,7 +6,7 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.mozilla.deepspeech.libdeepspeech;
+package org.deepspeech.libdeepspeech;
 
 /**
  * Stores text of an individual token, along with its timing information

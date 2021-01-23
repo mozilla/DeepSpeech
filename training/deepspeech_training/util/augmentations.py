@@ -3,12 +3,13 @@ import os
 import re
 import math
 import random
+import resampy
 import numpy as np
 
 from multiprocessing import Queue, Process
 from .audio import gain_db_to_ratio, max_dbfs, normalize_audio, AUDIO_TYPE_NP, AUDIO_TYPE_PCM, AUDIO_TYPE_OPUS
 from .helpers import LimitingPool, int_range, float_range, pick_value_from_range, tf_pick_value_from_range, MEGABYTE
-from .sample_collections import samples_from_source
+from .sample_collections import samples_from_source, unpack_maybe
 
 BUFFER_SIZE = 1 * MEGABYTE
 SPEC_PARSER = re.compile(r'^(?P<cls>[a-z_]+)(\[(?P<params>.*)\])?$')
@@ -129,7 +130,7 @@ def apply_graph_augmentations(domain, tensor, augmentations, transcript=None, cl
     Tensor of type float32
         The augmented spectrogram
     """
-    if augmentations is not None:
+    if augmentations:
         for augmentation in augmentations:
             if isinstance(augmentation, GraphAugmentation):
                 tensor = augmentation.maybe_apply(domain, tensor, transcript=transcript, clock=clock)
@@ -148,6 +149,12 @@ AUGMENTATION_CONTEXT = None
 def _init_augmentation_worker(preparation_context):
     global AUGMENTATION_CONTEXT  # pylint: disable=global-statement
     AUGMENTATION_CONTEXT = preparation_context
+
+
+def _load_and_augment_sample(timed_sample, context=None):
+    sample, clock = timed_sample
+    realized_sample = unpack_maybe(sample)
+    return _augment_sample((realized_sample, clock), context)
 
 
 def _augment_sample(timed_sample, context=None):
@@ -213,12 +220,12 @@ def apply_sample_augmentations(samples,
         context = AugmentationContext(audio_type, augmentations)
         if process_ahead == 0:
             for timed_sample in timed_samples():
-                yield _augment_sample(timed_sample, context=context)
+                yield _load_and_augment_sample(timed_sample, context=context)
         else:
             with LimitingPool(process_ahead=process_ahead,
                               initializer=_init_augmentation_worker,
                               initargs=(context,)) as pool:
-                yield from pool.imap(_augment_sample, timed_samples())
+                yield from pool.imap(_load_and_augment_sample, timed_samples())
     finally:
         for augmentation in augmentations:
             augmentation.stop()
@@ -256,6 +263,7 @@ class Overlay(SampleAugmentation):
         self.enqueue_process.start()
 
     def apply(self, sample, clock=0.0):
+        sample = unpack_maybe(sample)
         sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
         n_layers = pick_value_from_range(self.layers, clock=clock)
         audio = sample.audio
@@ -265,6 +273,7 @@ class Overlay(SampleAugmentation):
             while overlay_offset < len(audio):
                 if self.current_sample is None:
                     next_overlay_sample = self.queue.get()
+                    next_overlay_sample = unpack_maybe(next_overlay_sample)
                     next_overlay_sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
                     self.current_sample = next_overlay_sample.audio
                 n_required = len(audio) - overlay_offset
@@ -340,24 +349,25 @@ class Resample(SampleAugmentation):
         self.rate = int_range(rate)
 
     def apply(self, sample, clock=0.0):
-        # late binding librosa and its dependencies
-        # pre-importing sklearn fixes https://github.com/scikit-learn/scikit-learn/issues/14485
-        import sklearn  # pylint: disable=import-outside-toplevel
-        from librosa.core import resample  # pylint: disable=import-outside-toplevel
         sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
         rate = pick_value_from_range(self.rate, clock=clock)
-        audio = sample.audio
-        orig_len = len(audio)
-        audio = np.swapaxes(audio, 0, 1)
-        if audio.shape[0] < 2:
-            # since v0.8 librosa enforces a shape of (samples,) instead of (channels, samples) for mono samples
-            resampled = resample(audio[0], sample.audio_format.rate, rate)
-            audio[0] = resample(resampled, rate, sample.audio_format.rate)[:orig_len]
-        else:
-            audio = resample(audio, sample.audio_format.rate, rate)
-            audio = resample(audio, rate, sample.audio_format.rate)
-        audio = np.swapaxes(audio, 0, 1)[0:orig_len]
-        sample.audio = audio
+        orig_len = len(sample.audio)
+        resampled = resampy.resample(sample.audio, sample.audio_format.rate, rate, axis=0, filter='kaiser_fast')
+        sample.audio = resampy.resample(resampled, rate, sample.audio_format.rate, axis=0, filter='kaiser_fast')[:orig_len]
+
+
+class NormalizeSampleRate(SampleAugmentation):
+    def __init__(self, rate):
+        super().__init__(p=1.0)
+        self.rate = rate
+
+    def apply(self, sample, clock=0.0):
+        if sample.audio_format.rate == self.rate:
+            return
+
+        sample.change_audio_type(new_audio_type=AUDIO_TYPE_NP)
+        sample.audio = resampy.resample(sample.audio, sample.audio_format.rate, self.rate, axis=0, filter='kaiser_fast')
+        sample.audio_format = sample.audio_format._replace(rate=self.rate)
 
 
 class Volume(SampleAugmentation):

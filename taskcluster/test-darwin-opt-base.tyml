@@ -13,10 +13,6 @@ then:
   deadline: { $fromNow: '1 day' }
   expires: { $fromNow: '7 days' }
 
-  extra:
-    github:
-      { $eval: taskcluster.github_events.pull_request }
-
   scopes: [
     "generic-worker:cache:deepspeech-macos-pyenv",
   ]

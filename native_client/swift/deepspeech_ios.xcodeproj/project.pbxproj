@@ -395,7 +395,7 @@
 					"$(PROJECT_DIR)",
 				);
 				MODULEMAP_FILE = deepspeech_ios/deepspeech_ios.modulemap;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.deepspeech.deepspeech-ios";
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -434,7 +434,7 @@
 					"$(PROJECT_DIR)",
 				);
 				MODULEMAP_FILE = deepspeech_ios/deepspeech_ios.modulemap;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.deepspeech.deepspeech-ios";
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -454,7 +454,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-iosTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.deepspeech.deepspeech-iosTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -472,7 +472,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.mozilla.deepspeech-iosTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.deepspeech.deepspeech-iosTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

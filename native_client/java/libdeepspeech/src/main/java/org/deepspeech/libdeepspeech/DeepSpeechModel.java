@@ -1,4 +1,4 @@
-package org.mozilla.deepspeech.libdeepspeech;
+package org.deepspeech.libdeepspeech;
 
 /**
  * @brief Exposes a DeepSpeech model in Java

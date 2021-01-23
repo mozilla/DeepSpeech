@@ -30,9 +30,12 @@ ensure_cuda_usage "$2"
 
 run_netframework_inference_tests
 
+
 install_nuget "${PROJECT_NAME}" "DeepSpeechConsoleNetCore.exe"
 
 DS_BINARY_FILE="DeepSpeechConsoleNetCore.exe"
 ensure_cuda_usage "$2"
 
 run_netcore_inference_tests
+
+run_hotword_tests

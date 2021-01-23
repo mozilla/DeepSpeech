@@ -149,6 +149,37 @@ To build the ``ds_ctcdecoder`` package, you'll need the general requirements lis
    make bindings NUM_PROCESSES=8
    pip install dist/*.whl
 
+
+Building CTC Decoder for training on unsupported platforms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We only support building CTC Decoder on x86-64 architecture.
+However, we offer some hints on building the CTC decoder on other
+architectures, and you might find some help in our `discourse <https://discourse.mozilla.org/>`.
+
+Feedback on improving this section or usage on other architectures is welcome.
+
+First, you need to build SWIG from scratch.
+Since `SWIG >= 3.0.12 <http://www.swig.org/>`_ does not include our patches please use
+https://github.com/lissyx/swig/tree/taskcluster for building SWIG from source.
+
+You can supply your prebuild SWIG using ``SWIG_DIST_URL``
+
+Moreover you may have to change ``PYTHON_PLATFORM_NAME`` corresponding to your platform.
+
+.. code-block::
+
+    # PowerPC (ppc64le)
+    PYTHON_PLATFORM_NAME="--plat-name linux_ppc64le"
+
+
+Complete build command:
+
+.. code-block::
+
+    SWIG_DIST_URL=[...] PYTHON_PLATFORM_NAME=[...] make bindings
+    pip install dist/*.whl
+
 Cross-building
 --------------
 

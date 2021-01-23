@@ -4,6 +4,7 @@ Tool for comparing two wav samples
 """
 import sys
 import argparse
+import numpy as np
 
 from deepspeech_training.util.audio import AUDIO_TYPE_NP, mean_dbfs
 from deepspeech_training.util.sample_collections import load_sample
@@ -15,15 +16,19 @@ def fail(message):
 
 
 def compare_samples():
-    sample1 = load_sample(CLI_ARGS.sample1)
-    sample2 = load_sample(CLI_ARGS.sample2)
+    sample1 = load_sample(CLI_ARGS.sample1).unpack()
+    sample2 = load_sample(CLI_ARGS.sample2).unpack()
     if sample1.audio_format != sample2.audio_format:
         fail('Samples differ on: audio-format ({} and {})'.format(sample1.audio_format, sample2.audio_format))
-    if sample1.duration != sample2.duration:
+    if abs(sample1.duration - sample2.duration) > 0.001:
         fail('Samples differ on: duration ({} and {})'.format(sample1.duration, sample2.duration))
     sample1.change_audio_type(AUDIO_TYPE_NP)
     sample2.change_audio_type(AUDIO_TYPE_NP)
-    audio_diff = sample1.audio - sample2.audio
+    samples = [sample1, sample2]
+    largest = np.argmax([sample1.audio.shape[0], sample2.audio.shape[0]])
+    smallest = (largest + 1) % 2
+    samples[largest].audio = samples[largest].audio[:len(samples[smallest].audio)]
+    audio_diff = samples[largest].audio - samples[smallest].audio
     diff_dbfs = mean_dbfs(audio_diff)
     differ_msg = 'Samples differ on: sample data ({:0.2f} dB difference) '.format(diff_dbfs)
     equal_msg = 'Samples are considered equal ({:0.2f} dB difference)'.format(diff_dbfs)

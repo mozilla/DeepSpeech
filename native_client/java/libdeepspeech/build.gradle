@@ -46,7 +46,7 @@ android {
 
     // Avoid scanning libdeepspeech_doc
     sourceSets {
-        main.java.srcDirs = [ 'src/main/java/org/mozilla/deepspeech/libdeepspeech/' ]
+        main.java.srcDirs = [ 'src/main/java/org/deepspeech/libdeepspeech/' ]
     }
 }
 
@@ -77,7 +77,7 @@ uploadArchives {
         mavenDeployer {
             pom.packaging  = 'aar'
             pom.name       = 'libdeepspeech'
-            pom.groupId    = 'org.mozilla.deepspeech'
+            pom.groupId    = 'org.deepspeech'
             pom.artifactId = 'libdeepspeech'
             pom.version    = dsVersionString + (project.hasProperty('snapshot') ? '-SNAPSHOT' : '')
 
@@ -96,7 +96,7 @@ uploadArchives {
                 developers {
                     developer {
                         id 'deepspeech'
-                        name 'Mozilla DeepSpeech Team'
+                        name 'DeepSpeech authors'
                         email 'deepspeechs@lists.mozilla.org'
                     }
                 }

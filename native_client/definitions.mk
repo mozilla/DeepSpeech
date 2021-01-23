@@ -51,7 +51,7 @@ SOX_LDFLAGS     := `pkg-config --libs sox`
 endif # OS others
 PYTHON_PACKAGES := numpy${NUMPY_BUILD_VERSION}
 ifeq ($(OS),Linux)
-PYTHON_PLATFORM_NAME := --plat-name manylinux1_x86_64
+PYTHON_PLATFORM_NAME ?= --plat-name manylinux1_x86_64
 endif
 endif
 
@@ -206,7 +206,8 @@ define copy_missing_libs
     fi;
 endef
 
-SWIG_DIST_URL ?= 
+SWIG_DIST_URL ?=
+ifeq ($(SWIG_DIST_URL),)
 ifeq ($(findstring Linux,$(OS)),Linux)
 SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
 else ifeq ($(findstring Darwin,$(OS)),Darwin)
@@ -215,7 +216,8 @@ else ifeq ($(findstring _NT,$(OS)),_NT)
 SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
 else
 $(error There is no prebuilt SWIG available for your platform. Please produce one and set SWIG_DIST_URL.)
-endif
+endif # findstring()
+endif # ($(SWIG_DIST_URL),)
 
 # Should point to native_client/ subdir by default
 SWIG_ROOT ?= $(abspath $(shell dirname "$(lastword $(MAKEFILE_LIST))"))/ds-swig
