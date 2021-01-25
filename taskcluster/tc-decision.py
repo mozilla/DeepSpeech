@@ -83,7 +83,7 @@ def load_specific_contextFile(file):
 
     try:
         with open(os.path.join(TASKS_ROOT, file)) as src:
-            specific_context = yaml.load(src)
+            specific_context = yaml.safe_load(src)
 
         if specific_context is None:
             specific_context = {}
@@ -104,7 +104,7 @@ def create_task_payload(build, base_context):
 
     build_context = defaultValues_build_context()
     with open(build) as src:
-        build_context['build'].update(yaml.load(src)['build'])
+        build_context['build'].update(yaml.safe_load(src)['build'])
 
     # Be able to use what has been defined in base_context
     # e.g., the {${event.head.branch}}
@@ -117,12 +117,12 @@ def create_task_payload(build, base_context):
     }
 
     with open(os.path.join(TASKS_ROOT, build_context['build']['template_file'])) as src:
-        template = yaml.load(src)
+        template = yaml.safe_load(src)
 
     contextes = merge_dicts({}, base_context, template_context, build_context)
     for one_context in glob(os.path.join(TASKS_ROOT, '*.cyml')):
         with open(one_context) as src:
-            contextes = merge_dicts(contextes, yaml.load(src))
+            contextes = merge_dicts(contextes, yaml.safe_load(src))
 
     return jsone.render(template, contextes)
 
