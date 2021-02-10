@@ -12,7 +12,7 @@ Currently, it provides three methods for the Model class:
 Exact API binding for the language you are using can be found in API Reference.
 
 Example 
------------------
+-------
 To use hot-word boosting just add hot-words of your choice before performing an inference to a ``Model``. You can also erase boosting of a chosen word or clear it for all hot-words.
 
 .. code-block:: python
