@@ -98,11 +98,13 @@ class Model(object):
     def addHotWord(self, word, boost):
         """
         Add a word and its boost for decoding.
+        
+        Words that don't occur in the scorer (e.g. proper nouns) or strings that contain spaces won't be taken into account.
 
         :param word: the hot-word
         :type word: str
 
-        :param boost: the boost
+        :param boost: Positive boost value increases and negative reduces chance of a word occuring in a transcription. Excessive positive boost might lead to splitting up of letters of the word following the hot-word.
         :type boost: float
 
         :throws: RuntimeError on error

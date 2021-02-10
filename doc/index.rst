@@ -111,6 +111,8 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
    NodeJS-Examples
 
    Python-Examples
+   
+   HotWordBoosting-Examples
 
    Contributed-Examples
 
