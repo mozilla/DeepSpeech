@@ -13,7 +13,7 @@ Exact API binding for the language you are using can be found in API Reference.
 
 Example 
 -----------------
-To use hot-word boosting before performing an inference just add hot-words of your choice. You can also erase boosting of a chosen word or clear boosting for all hot-words.
+To use hot-word boosting just add hot-words of your choice before performing an inference to a ``Model``. You can also erase boosting of a chosen word or clear it for all hot-words.
 
 .. code-block:: python
 
@@ -23,7 +23,7 @@ To use hot-word boosting before performing an inference just add hot-words of yo
 	...
 	print(ds.stt(audio))
 	
-Adding boost value to a word many times or erasing hot-word without previously boosting it will result in error.
+Adding boost value to a word many times or erasing hot-word without previously boosting it results in an error.
 
 General usage
 -------------
