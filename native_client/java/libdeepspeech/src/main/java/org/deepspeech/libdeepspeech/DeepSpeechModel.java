@@ -218,12 +218,11 @@ public class DeepSpeechModel {
     /**
      * @brief Add a hot-word.
      *
-     * Positive value boosting increases and negative reduces chance of a word occuring in a transcription.
      * Excessive positive boost might lead to splitting up of letters of the word following the hot-word.
      * Words that don't occur in the scorer (e.g. proper nouns) or strings that contain spaces won't be taken into account.
      *
      * @param word
-     * @param boost
+     * @param boost Positive value increases and negative reduces chance of a word occuring in a transcription.
      *
      * @throws RuntimeException on failure.
      *
