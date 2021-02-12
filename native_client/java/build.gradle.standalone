@@ -1,0 +1,29 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+    }
+}
+
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
+dependencies {
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+ext {
+    dsVersionString = rootProject.file('../../VERSION').text.trim()
+}

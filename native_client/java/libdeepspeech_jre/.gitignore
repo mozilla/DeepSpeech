@@ -1,0 +1,13 @@
+src/main/java/org/deepspeech/libdeepspeech/*.java
+!src/main/java/org/deepspeech/libdeepspeech/DeepSpeechModel.java
+!src/main/java/org/deepspeech/libdeepspeech/DeepSpeechStreamingState.java
+
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+
+build/
+
+libs/*
+*.so
