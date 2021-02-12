@@ -189,10 +189,12 @@ export class Model {
     }
 
     /**
-     * Add a hot-word and its boost
+     * Add a hot-word and its boost.
+     *
+     * Words that don't occur in the scorer (e.g. proper nouns) or strings that contain spaces won't be taken into account.
      *
      * @param aWord word
-     * @param aBoost boost
+     * @param aBoost boost Positive value increases and negative reduces chance of a word occuring in a transcription. Excessive positive boost might lead to splitting up of letters of the word following the hot-word.
      *
      * @throws on error
      */
