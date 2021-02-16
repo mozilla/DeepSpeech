@@ -77,7 +77,7 @@ def main():
     ]
 
     horovod_pypi_dep = [
-        'horovod'
+        'horovod[tensorflow] == 0.21.3'
     ]
 
     # Due to pip craziness environment variables are the only consistent way to
@@ -98,10 +98,10 @@ def main():
     else:
         install_requires = install_requires + tensorflow_pypi_dep
 
-    if os.environ.get('DS_NOHOROVOD', ''):
-        install_requires = install_requires
-    else:
+    if os.environ.get('DS_WITH_HOROVOD', ''):
         install_requires = install_requires + horovod_pypi_dep
+    else:
+        install_requires = install_requires
 
 
     setup(
