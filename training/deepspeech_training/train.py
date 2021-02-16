@@ -413,280 +413,12 @@ def log_grads_and_vars(grads_and_vars):
 def train():
     exception_box = ExceptionBox()
 
-    # Create training and validation datasets
-    train_set = create_dataset(FLAGS.train_files.split(','),
-                               batch_size=FLAGS.train_batch_size,
-                               epochs=FLAGS.epochs,
-                               augmentations=Config.augmentations,
-                               cache_path=FLAGS.feature_cache,
-                               train_phase=True,
-                               exception_box=exception_box,
-                               process_ahead=len(Config.available_devices) * FLAGS.train_batch_size * 2,
-                               reverse=FLAGS.reverse_train,
-                               limit=FLAGS.limit_train,
-                               buffering=FLAGS.read_buffer,
-                               split_dataset=False)
-
-    iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
-                                                 tfv1.data.get_output_shapes(train_set),
-                                                 output_classes=tfv1.data.get_output_classes(train_set))
-
-    # Make initialization ops for switching between the two sets
-    train_init_op = iterator.make_initializer(train_set)
-
-    if FLAGS.dev_files:
-        dev_sources = FLAGS.dev_files.split(',')
-        dev_sets = [create_dataset([source],
-                                   batch_size=FLAGS.dev_batch_size,
-                                   train_phase=False,
-                                   exception_box=exception_box,
-                                   process_ahead=len(Config.available_devices) * FLAGS.dev_batch_size * 2,
-                                   reverse=FLAGS.reverse_dev,
-                                   limit=FLAGS.limit_dev,
-                                   buffering=FLAGS.read_buffer,
-                                   split_dataset=False) for source in dev_sources]
-        dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
-
-    if FLAGS.metrics_files:
-        metrics_sources = FLAGS.metrics_files.split(',')
-        metrics_sets = [create_dataset([source],
-                                       batch_size=FLAGS.dev_batch_size,
-                                       train_phase=False,
-                                       exception_box=exception_box,
-                                       process_ahead=len(Config.available_devices) * FLAGS.dev_batch_size * 2,
-                                       reverse=FLAGS.reverse_dev,
-                                       limit=FLAGS.limit_dev,
-                                       buffering=FLAGS.read_buffer,
-                                       split_dataset=False) for source in metrics_sources]
-        metrics_init_ops = [iterator.make_initializer(metrics_set) for metrics_set in metrics_sets]
-
-    # Dropout
-    dropout_rates = [tfv1.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
-    dropout_feed_dict = {
-        dropout_rates[0]: FLAGS.dropout_rate,
-        dropout_rates[1]: FLAGS.dropout_rate2,
-        dropout_rates[2]: FLAGS.dropout_rate3,
-        dropout_rates[3]: FLAGS.dropout_rate4,
-        dropout_rates[4]: FLAGS.dropout_rate5,
-        dropout_rates[5]: FLAGS.dropout_rate6,
-    }
-    no_dropout_feed_dict = {
-        rate: 0. for rate in dropout_rates
-    }
-
-    # Building the graph
-    learning_rate_var = tfv1.get_variable('learning_rate', initializer=FLAGS.learning_rate, trainable=False)
-    reduce_learning_rate_op = learning_rate_var.assign(tf.multiply(learning_rate_var, FLAGS.plateau_reduction))
-    optimizer = create_optimizer(learning_rate_var)
-
-    # Enable mixed precision training
-    if FLAGS.automatic_mixed_precision:
-        log_info('Enabling automatic mixed precision training.')
-        optimizer = tfv1.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
-
-    gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates)
-
-    # Average tower gradients across GPUs
-    avg_tower_gradients = average_gradients(gradients)
-    log_grads_and_vars(avg_tower_gradients)
-
-    # global_step is automagically incremented by the optimizer
-    global_step = tfv1.train.get_or_create_global_step()
-    apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
-
-    # Summaries
-    step_summaries_op = tfv1.summary.merge_all('step_summaries')
-    step_summary_writers = {
-        'train': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'train'), max_queue=120),
-        'dev': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'dev'), max_queue=120),
-        'metrics': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'metrics'), max_queue=120),
-    }
-
-    human_readable_set_names = {
-        'train': 'Training',
-        'dev': 'Validation',
-        'metrics': 'Metrics',
-    }
-
-    # Checkpointing
-    checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
-    checkpoint_path = os.path.join(FLAGS.save_checkpoint_dir, 'train')
-
-    best_dev_saver = tfv1.train.Saver(max_to_keep=1)
-    best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
-
-    # Save flags next to checkpoints
-    if not is_remote_path(FLAGS.save_checkpoint_dir):
-        os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
-    flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
-    with open_remote(flags_file, 'w') as fout:
-        fout.write(FLAGS.flags_into_string())
-
-    with tfv1.Session(config=Config.session_config) as session:
-        log_debug('Session opened.')
-
-        # Prevent further graph changes
-        tfv1.get_default_graph().finalize()
-
-        # Load checkpoint or initialize variables
-        load_or_init_graph_for_training(session)
-
-        def run_set(set_name, epoch, init_op, dataset=None):
-            is_train = set_name == 'train'
-            train_op = apply_gradient_op if is_train else []
-            feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
-
-            total_loss = 0.0
-            step_count = 0
-
-            step_summary_writer = step_summary_writers.get(set_name)
-            checkpoint_time = time.time()
-
-            if is_train and FLAGS.cache_for_epochs > 0 and FLAGS.feature_cache:
-                feature_cache_index = FLAGS.feature_cache + '.index'
-                if epoch % FLAGS.cache_for_epochs == 0 and os.path.isfile(feature_cache_index):
-                    log_info('Invalidating feature cache')
-                    remove_remote(feature_cache_index)  # this will let TF also overwrite the related cache data files
-
-            # Setup progress bar
-            class LossWidget(progressbar.widgets.FormatLabel):
-                def __init__(self):
-                    progressbar.widgets.FormatLabel.__init__(self, format='Loss: %(mean_loss)f')
-
-                def __call__(self, progress, data, **kwargs):
-                    data['mean_loss'] = total_loss / step_count if step_count else 0.0
-                    return progressbar.widgets.FormatLabel.__call__(self, progress, data, **kwargs)
-
-            prefix = 'Epoch {} | {:>10}'.format(epoch, human_readable_set_names[set_name])
-            widgets = [' | ', progressbar.widgets.Timer(),
-                       ' | Steps: ', progressbar.widgets.Counter(),
-                       ' | ', LossWidget()]
-            suffix = ' | Dataset: {}'.format(dataset) if dataset else None
-            pbar = create_progressbar(prefix=prefix, widgets=widgets, suffix=suffix).start()
-
-            # Initialize iterator to the appropriate dataset
-            session.run(init_op)
-
-            # Batch loop
-            while True:
-                try:
-                    _, current_step, batch_loss, problem_files, step_summary = \
-                        session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
-                                    feed_dict=feed_dict)
-                    exception_box.raise_if_set()
-                except tf.errors.OutOfRangeError:
-                    exception_box.raise_if_set()
-                    break
-
-                if problem_files.size > 0:
-                    problem_files = [f.decode('utf8') for f in problem_files[..., 0]]
-                    log_error('The following files caused an infinite (or NaN) '
-                              'loss: {}'.format(','.join(problem_files)))
-
-                total_loss += batch_loss
-                step_count += 1
-
-                pbar.update(step_count)
-
-                step_summary_writer.add_summary(step_summary, current_step)
-
-                if is_train and FLAGS.checkpoint_secs > 0 and time.time() - checkpoint_time > FLAGS.checkpoint_secs:
-                    checkpoint_saver.save(session, checkpoint_path, global_step=current_step)
-                    checkpoint_time = time.time()
-
-            pbar.finish()
-            mean_loss = total_loss / step_count if step_count > 0 else 0.0
-            return mean_loss, step_count
-
-        log_info('STARTING Optimization')
-        train_start_time = datetime.utcnow()
-        best_dev_loss = float('inf')
-        dev_losses = []
-        epochs_without_improvement = 0
-        try:
-            for epoch in range(FLAGS.epochs):
-                # Training
-                log_progress('Training epoch %d...' % epoch)
-                train_loss, _ = run_set('train', epoch, train_init_op)
-                log_progress('Finished training epoch %d - loss: %f' % (epoch, train_loss))
-                checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
-
-                if FLAGS.dev_files:
-                    # Validation
-                    dev_loss = 0.0
-                    total_steps = 0
-                    for source, init_op in zip(dev_sources, dev_init_ops):
-                        log_progress('Validating epoch %d on %s...' % (epoch, source))
-                        set_loss, steps = run_set('dev', epoch, init_op, dataset=source)
-                        dev_loss += set_loss * steps
-                        total_steps += steps
-                        log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, source, set_loss))
-
-                    dev_loss = dev_loss / total_steps
-                    dev_losses.append(dev_loss)
-
-                    # Count epochs without an improvement for early stopping and reduction of learning rate on a plateau
-                    # the improvement has to be greater than FLAGS.es_min_delta
-                    if dev_loss > best_dev_loss - FLAGS.es_min_delta:
-                        epochs_without_improvement += 1
-                    else:
-                        epochs_without_improvement = 0
-
-                    # Save new best model
-                    if dev_loss < best_dev_loss:
-                        best_dev_loss = dev_loss
-                        save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step, latest_filename='best_dev_checkpoint')
-                        log_info("Saved new best validating model with loss %f to: %s" % (best_dev_loss, save_path))
-
-                    # Early stopping
-                    if FLAGS.early_stop and epochs_without_improvement == FLAGS.es_epochs:
-                        log_info('Early stop triggered as the loss did not improve the last {} epochs'.format(
-                            epochs_without_improvement))
-                        break
-
-                    # Reduce learning rate on plateau
-                    # If the learning rate was reduced and there is still no improvement
-                    # wait FLAGS.plateau_epochs before the learning rate is reduced again
-                    if (
-                        FLAGS.reduce_lr_on_plateau
-                        and epochs_without_improvement > 0
-                        and epochs_without_improvement % FLAGS.plateau_epochs == 0
-                    ):
-                        # Reload checkpoint that we use the best_dev weights again
-                        reload_best_checkpoint(session)
-
-                        # Reduce learning rate
-                        session.run(reduce_learning_rate_op)
-                        current_learning_rate = learning_rate_var.eval()
-                        log_info('Encountered a plateau, reducing learning rate to {}'.format(
-                            current_learning_rate))
-
-                        # Overwrite best checkpoint with new learning rate value
-                        save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step, latest_filename='best_dev_checkpoint')
-                        log_info("Saved best validating model with reduced learning rate to: %s" % (save_path))
-
-                if FLAGS.metrics_files:
-                    # Read only metrics, not affecting best validation loss tracking
-                    for source, init_op in zip(metrics_sources, metrics_init_ops):
-                        log_progress('Metrics for epoch %d on %s...' % (epoch, source))
-                        set_loss, _ = run_set('metrics', epoch, init_op, dataset=source)
-                        log_progress('Metrics for epoch %d on %s - loss: %f' % (epoch, source, set_loss))
-
-                print('-' * 80)
-
-
-        except KeyboardInterrupt:
-            pass
-        log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
-    log_debug('Session closed.')
-
-def train_with_horovod():
-
-    import horovod.tensorflow as hvd
-
-    exception_box = ExceptionBox()
+    if FLAGS.horovod:
+        import horovod.tensorflow as hvd
 
     # Create training and validation datasets
+    split_dataset = FLAGS.horovod
+
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
                                epochs=FLAGS.epochs,
@@ -698,7 +430,7 @@ def train_with_horovod():
                                reverse=FLAGS.reverse_train,
                                limit=FLAGS.limit_train,
                                buffering=FLAGS.read_buffer,
-                               split_dataset=True)
+                               split_dataset=split_dataset)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -717,7 +449,7 @@ def train_with_horovod():
                                    reverse=FLAGS.reverse_dev,
                                    limit=FLAGS.limit_dev,
                                    buffering=FLAGS.read_buffer,
-                                   split_dataset=True) for source in dev_sources]
+                                   split_dataset=split_dataset) for source in dev_sources]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
 
     if FLAGS.metrics_files:
@@ -730,7 +462,7 @@ def train_with_horovod():
                                        reverse=FLAGS.reverse_dev,
                                        limit=FLAGS.limit_dev,
                                        buffering=FLAGS.read_buffer,
-                                       split_dataset=True) for source in metrics_sources]
+                                       split_dataset=split_dataset) for source in metrics_sources]
         metrics_init_ops = [iterator.make_initializer(metrics_set) for metrics_set in metrics_sets]
 
     # Dropout
@@ -750,25 +482,38 @@ def train_with_horovod():
     # Building the graph
     learning_rate_var = tfv1.get_variable('learning_rate', initializer=FLAGS.learning_rate, trainable=False)
     reduce_learning_rate_op = learning_rate_var.assign(tf.multiply(learning_rate_var, FLAGS.plateau_reduction))
-
-    # Effective batch size in synchronous distributed training is scaled by the number of workers. An increase in learning rate compensates for the increased batch size.
-    optimizer = create_optimizer(learning_rate_var * hvd.size())
-    optimizer = hvd.DistributedOptimizer(optimizer)
+    if FLAGS.horovod:
+        # Effective batch size in synchronous distributed training is scaled by the number of workers. An increase in learning rate compensates for the increased batch size.
+        optimizer = create_optimizer(learning_rate_var * hvd.size())
+        optimizer = hvd.DistributedOptimizer(optimizer)
+    else:
+        optimizer = create_optimizer(learning_rate_var)
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info('Enabling automatic mixed precision training.')
         optimizer = tfv1.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
 
-    loss, non_finite_files = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=False)
-    gradients = optimizer.compute_gradients(loss)
+    if FLAGS.horovod:
+        loss, non_finite_files = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=False)
+        gradients = optimizer.compute_gradients(loss)
 
-    tfv1.summary.scalar(name='step_loss', tensor=loss, collections=['step_summaries'])
-    log_grads_and_vars(gradients)
+        tfv1.summary.scalar(name='step_loss', tensor=loss, collections=['step_summaries'])
+        log_grads_and_vars(gradients)
 
-    # global_step is automagically incremented by the optimizer
-    global_step = tfv1.train.get_or_create_global_step()
-    apply_gradient_op = optimizer.apply_gradients(gradients, global_step=global_step)
+        # global_step is automagically incremented by the optimizer
+        global_step = tfv1.train.get_or_create_global_step()
+        apply_gradient_op = optimizer.apply_gradients(gradients, global_step=global_step)
+    else:
+        gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates)
+
+        # Average tower gradients across GPUs
+        avg_tower_gradients = average_gradients(gradients)
+        log_grads_and_vars(avg_tower_gradients)
+
+        # global_step is automagically incremented by the optimizer
+        global_step = tfv1.train.get_or_create_global_step()
+        apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
     # Summaries
     step_summaries_op = tfv1.summary.merge_all('step_summaries')
@@ -799,7 +544,8 @@ def train_with_horovod():
         with open_remote(flags_file, 'w') as fout:
             fout.write(FLAGS.flags_into_string())
 
-    bcast = hvd.broadcast_global_variables(0)
+    if FLAGS.horovod:
+        bcast = hvd.broadcast_global_variables(0)
 
     with tfv1.Session(config=Config.session_config) as session:
         log_debug('Session opened.')
@@ -809,7 +555,8 @@ def train_with_horovod():
 
         # Load checkpoint or initialize variables
         load_or_init_graph_for_training(session)
-        bcast.run()
+        if FLAGS.horovod:
+            bcast.run()
 
         def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
@@ -838,7 +585,6 @@ def train_with_horovod():
                     return progressbar.widgets.FormatLabel.__call__(self, progress, data, **kwargs)
 
             if Config.is_master_process:
-                # TODO endl seems not to work with horovod
                 prefix = 'Epoch {} | {:>10}'.format(epoch, human_readable_set_names[set_name])
                 widgets = [' | ', progressbar.widgets.Timer(),
                            ' | Steps: ', progressbar.widgets.Counter(),
@@ -870,13 +616,15 @@ def train_with_horovod():
 
                 if Config.is_master_process:
                     pbar.update(step_count)
+
                     step_summary_writer.add_summary(step_summary, current_step)
 
                     if is_train and FLAGS.checkpoint_secs > 0 and time.time() - checkpoint_time > FLAGS.checkpoint_secs:
                         checkpoint_saver.save(session, checkpoint_path, global_step=current_step)
                         checkpoint_time = time.time()
 
-                    pbar.finish()
+            if Config.is_master_process:
+                pbar.finish()
             mean_loss = total_loss / step_count if step_count > 0 else 0.0
             return mean_loss, step_count
 
@@ -937,9 +685,9 @@ def train_with_horovod():
                     # If the learning rate was reduced and there is still no improvement
                     # wait FLAGS.plateau_epochs before the learning rate is reduced again
                     if (
-                            FLAGS.reduce_lr_on_plateau
-                            and epochs_without_improvement > 0
-                            and epochs_without_improvement % FLAGS.plateau_epochs == 0
+                        FLAGS.reduce_lr_on_plateau
+                        and epochs_without_improvement > 0
+                        and epochs_without_improvement % FLAGS.plateau_epochs == 0
                     ):
                         # Reload checkpoint that we use the best_dev weights again
                         reload_best_checkpoint(session)
@@ -949,33 +697,30 @@ def train_with_horovod():
                         current_learning_rate = learning_rate_var.eval()
                         if Config.is_master_process:
                             log_info('Encountered a plateau, reducing learning rate to {}'.format(
-                            current_learning_rate))
+                                current_learning_rate))
 
                             # Overwrite best checkpoint with new learning rate value
                             save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step,
                                                             latest_filename='best_dev_checkpoint')
                             log_info("Saved best validating model with reduced learning rate to: %s" % (save_path))
 
-                    if FLAGS.metrics_files:
-                        # Read only metrics, not affecting best validation loss tracking
-                        for source, init_op in zip(metrics_sources, metrics_init_ops):
-                            if Config.is_master_process:
-                                log_progress('Metrics for epoch %d on %s...' % (epoch, source))
-                            set_loss, _ = run_set('metrics', epoch, init_op, dataset=source)
-                            if Config.is_master_process:
-                                log_progress('Metrics for epoch %d on %s - loss: %f' % (epoch, source, set_loss))
+                if FLAGS.metrics_files:
+                    # Read only metrics, not affecting best validation loss tracking
+                    for source, init_op in zip(metrics_sources, metrics_init_ops):
+                        if Config.is_master_process:
+                            log_progress('Metrics for epoch %d on %s...' % (epoch, source))
+                        set_loss, _ = run_set('metrics', epoch, init_op, dataset=source)
+                        if Config.is_master_process:
+                            log_progress('Metrics for epoch %d on %s - loss: %f' % (epoch, source, set_loss))
 
-                if Config.is_master_process:
-                    print('-' * 80)
+                print('-' * 80)
 
 
         except KeyboardInterrupt:
             pass
         if Config.is_master_process:
             log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
-    if Config.is_master_process:
-        log_debug('Session closed.')
-
+    log_debug('Session closed.')
 
 
 def test():
@@ -1252,10 +997,7 @@ def main(_):
         tfv1.reset_default_graph()
         tfv1.set_random_seed(FLAGS.random_seed)
 
-        if FLAGS.horovod:
-            train_with_horovod()
-        else:
-            train()
+        train()
 
     if Config.is_master_process:
         if FLAGS.test_files:
