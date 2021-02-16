@@ -76,6 +76,10 @@ def main():
         'tensorflow == 1.15.4'
     ]
 
+    horovod_pypi_dep = [
+        'horovod'
+    ]
+
     # Due to pip craziness environment variables are the only consistent way to
     # get options into this script when doing `pip install`.
     tc_decoder_artifacts_root = os.environ.get('DECODER_ARTIFACTS_ROOT', '')
@@ -93,6 +97,12 @@ def main():
         install_requires = install_requires
     else:
         install_requires = install_requires + tensorflow_pypi_dep
+
+    if os.environ.get('DS_NOHOROVOD', ''):
+        install_requires = install_requires
+    else:
+        install_requires = install_requires + horovod_pypi_dep
+
 
     setup(
         name='deepspeech_training',
