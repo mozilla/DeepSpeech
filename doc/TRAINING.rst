@@ -203,9 +203,15 @@ If you have a capable compute architecture, it is possible to distribute the tra
 Horovod is capable of using MPI and NVIDIA's NCCL for highly optimized inter-process communication.
 It also offers `Gloo <https://github.com/facebookincubator/gloo>`_ as an easy-to-setup communication backend.
 
-For more information about setup or tuning of Horovod please visit `Horovod's Github <https://github.com/horovod/horovod>`_.
+For more information about setup or tuning of Horovod please visit `Horovod's documentation <https://horovod.readthedocs.io/en/stable/summary_include.html>`_.
 
-To train on 4 machines using 4 GPUs each:
+Horovod is expected to run on heterogeneous systems (e.g. different number and model type of GPUs per machine).
+However, this can cause unpredictable problems and user interaction in training code is needed.
+Therefore, we do only support homogenous systems, which means same hardware and also same software configuration (OS, drivers, MPI, NCCL, TensorFlow, ...) on each machine.
+The only exception is different number of GPUs per machine, since this can be controlled by ``horovodrun -H``.
+
+Detailed documentation how to run Horovod is provided `here <https://horovod.readthedocs.io/en/stable/running.html>`_.
+The short command to train on 4 machines using 4 GPUs each:
 
 .. code-block:: bash
 
