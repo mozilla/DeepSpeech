@@ -814,6 +814,10 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         'new_state_c': new_state_c,
         'new_state_h': new_state_h,
         'mfccs': mfccs,
+
+        # Expose internal layers for downstream applications
+        'layer_3': layers['layer_3'],
+        'layer_5': layers['layer_5']
     }
 
     return inputs, outputs, layers
