@@ -62,6 +62,8 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 
    BUILDING
 
+   BUILDING_DotNet
+
 .. include:: ../SUPPORT.rst
 
 .. toctree::

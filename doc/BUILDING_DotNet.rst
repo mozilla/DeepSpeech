@@ -1,3 +1,4 @@
+.. _build-native-client-dotnet:
 
 Building DeepSpeech native client for Windows
 =============================================
@@ -30,7 +31,8 @@ Prerequisites
 
 * Windows 10
 * `Windows 10 SDK <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk>`_
-* `Visual Studio 2019 Community <https://visualstudio.microsoft.com/vs/community/>`_ 
+* `Visual Studio 2019 Community <https://visualstudio.microsoft.com/vs/community/>`_ v16.5.4.0
+* `Visual Studio 2019 BuildTools <https://visualstudio.microsoft.com/vs/community/>`_ v16.5.4.0
 * `TensorFlow Windows pre-requisites <https://www.tensorflow.org/install/source_windows>`_
 
 Inside the Visual Studio Installer enable ``MS Build Tools`` and ``VC++ 2019 v16.00 (v160) toolset for desktop``.
