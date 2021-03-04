@@ -34,7 +34,7 @@ install_nuget()
 
   ls -halR "${PROJECT_NAME}.${DS_VERSION}"
 
-  nuget install NAudio
+  nuget install NAudio -Version 1.10.0
   cp NAudio*/lib/net35/NAudio.dll ${TASKCLUSTER_TMP_DIR}/ds/
   cp ${PROJECT_NAME}.${DS_VERSION}/build/libdeepspeech.so ${TASKCLUSTER_TMP_DIR}/ds/
   cp ${PROJECT_NAME}.${DS_VERSION}/lib/net46/DeepSpeechClient.dll ${TASKCLUSTER_TMP_DIR}/ds/
