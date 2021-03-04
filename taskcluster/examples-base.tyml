@@ -22,8 +22,8 @@ then:
     image: ${build.docker_image}
 
     env:
-      DEEPSPEECH_MODEL: "https://github.com/reuben/DeepSpeech/releases/download/v0.8.0/models_0.8.tar.gz"
-      DEEPSPEECH_AUDIO: "https://github.com/mozilla/DeepSpeech/releases/download/v0.4.1/audio-0.4.1.tar.gz"
+      DEEPSPEECH_MODEL: "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/models_0.9.tar.gz"
+      DEEPSPEECH_AUDIO: "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/audio-0.9.3.tar.gz"
       PIP_DEFAULT_TIMEOUT: "60"
       EXAMPLES_CLONE_URL: "https://github.com/mozilla/DeepSpeech-examples"
       EXAMPLES_CHECKOUT_TARGET: "r0.9"
