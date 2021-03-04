@@ -169,33 +169,33 @@ cc_library(
             "//tensorflow/core/kernels:spectrogram_op",  # AudioSpectrogram
             "//tensorflow/core/kernels:bias_op",  # BiasAdd
             "//tensorflow/core/kernels:cast_op",  # Cast
-            "//tensorflow/core/kernels:concat_op",  # ConcatV2
             "//tensorflow/core/kernels:constant_op",  # Const, Placeholder
-            "//tensorflow/core/kernels:shape_ops",  # ExpandDims, Shape
-            "//tensorflow/core/kernels:gather_nd_op",  # GatherNd
+            "//tensorflow/core/kernels:shape_ops",  # ExpandDims
             "//tensorflow/core/kernels:identity_op",  # Identity
             "//tensorflow/core/kernels:immutable_constant_op",  # ImmutableConst (used in memmapped models)
-            "//tensorflow/core/kernels:deepspeech_cwise_ops",  # Less, Minimum, Mul
+            "//tensorflow/core/kernels:deepspeech_cwise_ops",  # Minimum, Mul, SelectV2, NotEqual
             "//tensorflow/core/kernels:matmul_op",  # MatMul
-            "//tensorflow/core/kernels:reduction_ops",  # Max
             "//tensorflow/core/kernels:mfcc_op",  # Mfcc
             "//tensorflow/core/kernels:no_op",  # NoOp
             "//tensorflow/core/kernels:pack_op",  # Pack
-            "//tensorflow/core/kernels:sequence_ops",  # Range
             "//tensorflow/core/kernels:relu_op",  # Relu
             "//tensorflow/core/kernels:reshape_op",  # Reshape
+            "//tensorflow/core/kernels:reduction_ops",  # Any
             "//tensorflow/core/kernels:softmax_op",  # Softmax
+            "//tensorflow/core/kernels:strided_slice_op",  # StridedSlice
+            "//tensorflow/core/kernels:slice_op",  # Slice
+            "//tensorflow/core/kernels:split_op",  # Split
             "//tensorflow/core/kernels:tile_ops",  # Tile
             "//tensorflow/core/kernels:transpose_op",  # Transpose
-            "//tensorflow/core/kernels:rnn_ops",  # BlockLSTM
+            "//tensorflow/core/kernels:unpack_op",  # Unpack
             # And we also need the op libs for these ops used in the model:
             "//tensorflow/core:audio_ops_op_lib",  # AudioSpectrogram, Mfcc
-            "//tensorflow/core:rnn_ops_op_lib",  # BlockLSTM
-            "//tensorflow/core:math_ops_op_lib",  # Cast, Less, Max, MatMul, Minimum, Range
-            "//tensorflow/core:array_ops_op_lib",  # ConcatV2, Const, ExpandDims, Fill, GatherNd, Identity, Pack, Placeholder, Reshape, Tile, Transpose
+            "//tensorflow/core:math_ops_op_lib",  # MatMul, Minimum
+            "//tensorflow/core:array_ops_op_lib",  # Const, ExpandDims, Identity, Pack, Placeholder, Reshape, Tile, Transpose
             "//tensorflow/core:no_op_op_lib",  # NoOp
             "//tensorflow/core:nn_ops_op_lib",  # Relu, Softmax, BiasAdd
             # And op libs for these ops brought in by dependencies of dependencies to silence unknown OpKernel warnings:
+            "//tensorflow/core:state_ops_op_lib",  # Variable, VariableV2, TemporaryVariable, DestroyTemporaryVariable, IsVariableInitialized
             "//tensorflow/core:dataset_ops_op_lib",  # UnwrapDatasetVariant, WrapDatasetVariant
             "//tensorflow/core:sendrecv_ops_op_lib",  # _HostRecv, _HostSend, _Recv, _Send
         ],
