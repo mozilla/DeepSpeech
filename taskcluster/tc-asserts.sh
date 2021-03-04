@@ -216,18 +216,18 @@ assert_correct_ldc93s1_prodmodel()
   fi;
 
   if [ "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had to do suit in greasy wash water all year" "$2"
+    assert_correct_inference "$1" "she had r dark suit a greasy wash water all year" "$2"
   fi;
 }
 
 assert_correct_ldc93s1_prodtflitemodel()
 {
   if [ -z "$3" -o "$3" = "16k" ]; then
-    assert_correct_inference "$1" "she had her dark suit in greasy wash water all year" "$2"
+    assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
   fi;
 
   if [ "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had to do so in greasy wash water all year" "$2"
+    assert_correct_inference "$1" "she had r dark suit a greasy wash water all year" "$2"
   fi;
 }
 
@@ -238,7 +238,7 @@ assert_correct_ldc93s1_prodmodel_stereo_44k()
 
 assert_correct_ldc93s1_prodtflitemodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had her dark suit in greasy wash water all year" "$2"
+  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
 }
 
 assert_correct_warning_upsampling()
@@ -444,7 +444,7 @@ run_prod_concurrent_stream_tests()
   output2=$(echo "${output}" | tail -n 1)
 
   assert_correct_ldc93s1_prodmodel "${output1}" "${status}" "16k"
-  assert_correct_inference "${output2}" "we must find a new home in the stars" "${status}"
+  assert_correct_inference "${output2}" "she a rare a rarer as he" "${status}"
 }
 
 run_prod_inference_tests()

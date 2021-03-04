@@ -158,7 +158,7 @@ PathTrie* PathTrie::get_prev_word(std::vector<unsigned int>& output,
 
 void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
   // previous_timesteps might point to ancestors' timesteps
-  // therefore, children must be uptaded first
+  // therefore, children must be updated first
   for (auto child : children_) {
     child.second->iterate_to_vec(output);
   }
