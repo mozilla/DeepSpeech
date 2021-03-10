@@ -6,9 +6,9 @@ source $(dirname $0)/tf_tc-vars.sh
 
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
-cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel_*.log ${TASKCLUSTER_ARTIFACTS}
+cp ${DS_ROOT_TASK}/tensorflow/bazel_*.log ${TASKCLUSTER_ARTIFACTS} || true
 
-OUTPUT_ROOT="${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-bin"
+OUTPUT_ROOT="${DS_ROOT_TASK}/tensorflow/bazel-bin"
 
 for output_bin in                                                            \
     tensorflow/lite/experimental/c/libtensorflowlite_c.so                    \

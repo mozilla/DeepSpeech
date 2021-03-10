@@ -4,7 +4,7 @@ set -ex
 
 source $(dirname $0)/tf_tc-vars.sh
 
-pushd ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/
+pushd ${DS_ROOT_TASK}/tensorflow/
     BAZEL_BUILD="bazel ${BAZEL_OUTPUT_USER_ROOT} build -s --explain bazel_monolithic_tf.log --verbose_explanations --experimental_strict_action_env --config=monolithic"
 
     # Start a bazel process to ensure reliability on Windows and avoid:

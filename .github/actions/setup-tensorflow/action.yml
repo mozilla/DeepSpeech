@@ -1,0 +1,7 @@
+name: "Setup TensorFlow"
+description: "Setup TensorFlow Build"
+runs:
+  using: "composite"
+  steps:
+    - run: ./taskcluster/tf_tc-setup.sh
+      shell: bash

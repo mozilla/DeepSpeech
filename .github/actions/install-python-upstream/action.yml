@@ -1,0 +1,18 @@
+name: "Install Python"
+description: "Installing an upstream python release"
+inputs:
+  version:
+    description: "Python version"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: curl https://www.python.org/ftp/python/${{ inputs.version }}/python-${{ inputs.version }}-macosx10.9.pkg -o "python.pkg"
+    - shell: bash
+      run: sudo installer -verbose -pkg python.pkg -target /
+    - shell: bash
+      run: |
+        which python3
+        python3 --version
+        python3 -c "import sysconfig; print(sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET'))"

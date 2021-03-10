@@ -1,0 +1,7 @@
+name: "Package TensorFlow"
+description: "Package TensorFlow Build"
+runs:
+  using: "composite"
+  steps:
+    - run: ./taskcluster/tf_tc-package.sh
+      shell: bash

@@ -49,9 +49,9 @@ export ANDROID_TMP_DIR=/data/local/tmp
 
 mkdir -p ${TASKCLUSTER_TMP_DIR} || true
 
-export DS_TFDIR=${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow
-export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
-export DS_EXAMPLEDIR=${DS_ROOT_TASK}/DeepSpeech/examples
+export DS_TFDIR=${DS_ROOT_TASK}/tensorflow
+export DS_DSDIR=${DS_ROOT_TASK}/
+export DS_EXAMPLEDIR=${DS_ROOT_TASK}/examples
 
 export DS_VERSION="$(cat ${DS_DSDIR}/training/deepspeech_training/VERSION)"
 
@@ -61,9 +61,14 @@ export ANDROID_NDK_HOME=${DS_ROOT_TASK}/DeepSpeech/Android/android-ndk-r18b/
 
 WGET=${WGET:-"wget"}
 TAR=${TAR:-"tar"}
-XZ=${XZ:-"pixz -9"}
-UNXZ=${UNXZ:-"pixz -d"}
+XZ=${XZ:-"xz -9 -T0"}
+ZIP=${ZIP:-"zip"}
+UNXZ=${UNXZ:-"xz -T0 -d"}
 UNGZ=${UNGZ:-"gunzip"}
+
+if [ "${OS}" = "Darwin" ]; then
+  TAR="gtar"
+fi
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
   WGET=/usr/bin/wget.exe
