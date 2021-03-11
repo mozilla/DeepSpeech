@@ -6,6 +6,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepSpeechClient", "DeepSpe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSpeechConsole", "DeepSpeechConsole\DeepSpeechConsole.csproj", "{312965E5-C4F6-4D95-BA64-79906B8BC7AC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepSpeechConsoleNetCore", "DeepSpeechConsoleNetCore\DeepSpeechConsoleNetCore.csproj", "{913D0781-3DCD-43F1-988D-F26622FA0D2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -20,6 +22,10 @@ Global
 		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Debug|x64.Build.0 = Debug|x64
 		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|x64.ActiveCfg = Release|x64
 		{312965E5-C4F6-4D95-BA64-79906B8BC7AC}.Release|x64.Build.0 = Release|x64
+		{913D0781-3DCD-43F1-988D-F26622FA0D2B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{913D0781-3DCD-43F1-988D-F26622FA0D2B}.Debug|x64.Build.0 = Debug|Any CPU
+		{913D0781-3DCD-43F1-988D-F26622FA0D2B}.Release|x64.ActiveCfg = Release|Any CPU
+		{913D0781-3DCD-43F1-988D-F26622FA0D2B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

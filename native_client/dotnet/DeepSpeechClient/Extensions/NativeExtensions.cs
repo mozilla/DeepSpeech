@@ -56,7 +56,7 @@ namespace DeepSpeechClient.Extensions
             managedTranscript.Confidence = transcript.confidence;
 
             //we need to manually read each item from the native ptr using its size
-            var sizeOfTokenMetadata = Marshal.SizeOf(typeof(TokenMetadata));
+            var sizeOfTokenMetadata = Marshal.SizeOf<TokenMetadata>();
             for (int i = 0; i < transcript.num_tokens; i++)
             {
                 managedTranscript.Tokens[i] = transcript.tokens.PtrToTokenMetadata();
@@ -79,7 +79,7 @@ namespace DeepSpeechClient.Extensions
             managedMetadata.Transcripts = new Models.CandidateTranscript[metadata.num_transcripts];
 
             //we need to manually read each item from the native ptr using its size
-            var sizeOfCandidateTranscript = Marshal.SizeOf(typeof(CandidateTranscript));
+            var sizeOfCandidateTranscript = Marshal.SizeOf<CandidateTranscript>();
             for (int i = 0; i < metadata.num_transcripts; i++)
             {
                 managedMetadata.Transcripts[i] = metadata.transcripts.PtrToCandidateTranscript();
