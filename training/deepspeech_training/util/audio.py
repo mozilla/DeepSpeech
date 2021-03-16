@@ -579,17 +579,18 @@ def get_dtype(audio_format):
 
 
 def pcm_to_np(pcm_data, audio_format=DEFAULT_FORMAT):
-    if audio_format.channels != 1:
-        raise ValueError('Mono-channel audio required')
+    # Handles both mono and stero audio
     dtype = get_dtype(audio_format)
     samples = np.frombuffer(pcm_data, dtype=dtype)
     samples = samples.astype(np.float32) / np.iinfo(dtype).max
-    return np.expand_dims(samples, axis=1)
+
+    if audio_format.channels == 1:
+        return np.expand_dims(samples, axis=1)
+    else:
+        return samples
 
 
 def np_to_pcm(np_data, audio_format=DEFAULT_FORMAT):
-    if audio_format.channels != 1:
-        raise ValueError('Mono-channel audio required')
     dtype = get_dtype(audio_format)
     np_data = np_data.squeeze()
     np_data = np_data * np.iinfo(dtype).max
