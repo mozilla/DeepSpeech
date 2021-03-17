@@ -579,15 +579,23 @@ def get_dtype(audio_format):
 
 
 def pcm_to_np(pcm_data, audio_format=DEFAULT_FORMAT):
+    """
+    Converts PCM data (e.g. read from a wavfile) into a mono numpy column vector
+    with values in the range [0.0, 1.0].
+    """
     # Handles both mono and stero audio
     dtype = get_dtype(audio_format)
     samples = np.frombuffer(pcm_data, dtype=dtype)
+
+    # Read interleaved channels
+    nchannels = audio_format.channels
+    samples = samples.reshape((int(len(samples)/nchannels), nchannels))
+    
+    # Convert to 0.0-1.0 range
     samples = samples.astype(np.float32) / np.iinfo(dtype).max
 
-    if audio_format.channels == 1:
-        return np.expand_dims(samples, axis=1)
-    else:
-        return samples
+    # Average multi-channel clips into mono and turn into column vector
+    return np.expand_dims(np.mean(samples, axis=1), axis=1)
 
 
 def np_to_pcm(np_data, audio_format=DEFAULT_FORMAT):
