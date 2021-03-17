@@ -73,8 +73,7 @@ def evaluate(test_csvs, create_model):
 
     loss = tfv1.nn.ctc_loss(labels=batch_y,
                             inputs=logits,
-                            sequence_length=batch_x_len,
-                            ignore_longer_outputs_than_inputs=True)
+                            sequence_length=batch_x_len)
 
     tfv1.train.get_or_create_global_step()
 
