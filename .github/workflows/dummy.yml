@@ -1,7 +1,0 @@
-name: dummy
-on: [push]
-jobs:
-  hello:
-    runs-on: ubuntu-18.04
-    steps:
-      - run: echo "Hello world"
