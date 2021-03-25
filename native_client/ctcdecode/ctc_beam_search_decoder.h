@@ -16,12 +16,17 @@ class DecoderState {
   size_t beam_size_;
   double cutoff_prob_;
   size_t cutoff_top_n_;
-  bool start_expanding_;
 
-  std::shared_ptr<Scorer> ext_scorer_;
-  std::vector<PathTrie*> prefixes_;
+  bool start_expanding_; // whether start to do beam serach, only control utt first few frames. to get accurate start point of utt.
+
+  std::vector<PathTrie*> prefixes_; // temp container for cur prefix beams
+
+  // path trie root
   std::unique_ptr<PathTrie> prefix_root_;
+  // time step tree root
   TimestepTreeNode timestep_tree_root_{nullptr, 0};
+
+  std::shared_ptr<Scorer> ext_scorer_; // shared LM rescorer
   std::unordered_map<std::string, float> hot_words_;
 
 public:

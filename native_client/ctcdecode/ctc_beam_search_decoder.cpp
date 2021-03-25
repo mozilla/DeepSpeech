@@ -13,8 +13,8 @@
 #include "path_trie.h"
 
 
-int
-DecoderState::init(const Alphabet& alphabet,
+// one utt one state
+int DecoderState::init(const Alphabet& alphabet,
                    size_t beam_size,
                    double cutoff_prob,
                    size_t cutoff_top_n,
@@ -31,13 +31,15 @@ DecoderState::init(const Alphabet& alphabet,
   cutoff_top_n_ = cutoff_top_n;
   ext_scorer_ = ext_scorer;
   hot_words_ = hot_words;
-  start_expanding_ = false;
+  start_expanding_ = false;  //only controll first few frames
 
   // init prefixes' root
-  PathTrie *root = new PathTrie;
-  root->score = root->log_prob_b_prev = 0.0;
+  PathTrie *root = new PathTrie; // `*prob*` default is -FLT_INF
+  root->score = root->log_prob_b_prev = 0.0; //prob_b = 1, prob_nb = 0
+
   prefix_root_.reset(root);
   prefix_root_->timesteps = &timestep_tree_root_;
+
   prefixes_.push_back(root);
 
   if (ext_scorer && (bool)(ext_scorer_->dictionary)) {
@@ -51,8 +53,8 @@ DecoderState::init(const Alphabet& alphabet,
   return 0;
 }
 
-void
-DecoderState::next(const double *probs,
+
+void DecoderState::next(const double *probs,
                    int time_dim,
                    int class_dim)
 {
@@ -76,6 +78,7 @@ DecoderState::next(const double *probs,
     float min_cutoff = -NUM_FLT_INF;
     bool full_beam = false;
     if (ext_scorer_) {
+      //sort by prefiex's score, in decesding order
       size_t num_prefixes = std::min(prefixes_.size(), beam_size_);
       std::partial_sort(prefixes_.begin(),
                         prefixes_.begin() + num_prefixes,
@@ -87,23 +90,28 @@ DecoderState::next(const double *probs,
       full_beam = (num_prefixes == beam_size_);
     }
 
+    // log prob after sort and pruned
     std::vector<std::pair<size_t, float>> log_prob_idx =
         get_pruned_log_probs(prob, class_dim, cutoff_prob_, cutoff_top_n_);
+
     // loop over class dim
     for (size_t index = 0; index < log_prob_idx.size(); index++) {
       auto c = log_prob_idx[index].first;
       auto log_prob_c = log_prob_idx[index].second;
 
+      // loop over beams
       for (size_t i = 0; i < prefixes_.size() && i < beam_size_; ++i) {
         auto prefix = prefixes_[i];
         if (full_beam && log_prob_c + prefix->score < min_cutoff) {
           break;
         }
         if (prefix->score == -NUM_FLT_INF) {
+          //default valud is -NUM_FLT_INF
           continue;
         }
         assert(prefix->timesteps != nullptr);
 
+        // 1. prefix not changed
         // blank
         if (c == blank_id_) {
           // compute probability of current path
@@ -120,6 +128,7 @@ DecoderState::next(const double *probs,
           continue;
         }
 
+
         // repeated character
         if (c == prefix->character) {
           // compute probability of current path
@@ -134,10 +143,12 @@ DecoderState::next(const double *probs,
               prefix->log_prob_nb_cur, log_p);
         }
 
+        // 2. prefix changed
         // get new prefix
         auto prefix_new = prefix->get_path_trie(c, log_prob_c);
-
         if (prefix_new != nullptr) {
+          // since `c` in dict
+
           // compute probability of current path
           float log_p = -NUM_FLT_INF;
 
@@ -152,9 +163,9 @@ DecoderState::next(const double *probs,
             // skip scoring the space in word based LMs
             PathTrie* prefix_to_score;
             if (ext_scorer_->is_utf8_mode()) {
-              prefix_to_score = prefix_new;
+              prefix_to_score = prefix_new; // no space, like chinese
             } else {
-              prefix_to_score = prefix;
+              prefix_to_score = prefix; // space seperate
             }
 
             // language model scoring
@@ -182,19 +193,19 @@ DecoderState::next(const double *probs,
               log_p += score;
               log_p += ext_scorer_->beta;
             }
-          }
+          } // end of lm score
 
           // combine current path with previous ones with the same prefix
           if (prefix_new->log_prob_nb_cur < log_p) {
             // record data needed to update timesteps
             // the actual update will be done if nothing better is found
             prefix_new->previous_timesteps = prefix->timesteps;
-            prefix_new->new_timestep = abs_time_step_;
+            prefix_new->new_timestep = abs_time_step_; // set time 
           }
           prefix_new->log_prob_nb_cur =
-              log_sum_exp(prefix_new->log_prob_nb_cur, log_p);
-        }
-      }  // end of loop over prefix
+              log_sum_exp(prefix_new->log_prob_nb_cur, log_p); // combine score when current path with previous ones with the same prefix
+        } // end of if prefix_new != nullptr
+      }  // end of loop over beam
     }    // end of loop over alphabet
 
     // update log probs
@@ -215,10 +226,12 @@ DecoderState::next(const double *probs,
       prefixes_.resize(beam_size_);
     }
   }  // end of loop over time
+
+  return;
 }
 
-std::vector<Output>
-DecoderState::decode(size_t num_results) const
+
+std::vector<Output> DecoderState::decode(size_t num_results) const
 {
   std::vector<PathTrie*> prefixes_copy = prefixes_;
   std::unordered_map<const PathTrie*, float> scores;
@@ -231,9 +244,9 @@ DecoderState::decode(size_t num_results) const
     for (size_t i = 0; i < beam_size_ && i < prefixes_copy.size(); ++i) {
       PathTrie* prefix = prefixes_copy[i];
       PathTrie* prefix_boundary = ext_scorer_->is_utf8_mode() ? prefix : prefix->parent;
-      if (prefix_boundary && !ext_scorer_->is_scoring_boundary(prefix_boundary, prefix->character)) {
+      if (prefix_boundary && ext_scorer_->is_scoring_boundary(prefix_boundary, prefix->character)) {
         float score = 0.0;
-        std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix);
+        std::vector<std::string> ngram = ext_scorer_->make_ngram(prefix_boundary);
         bool bos = ngram.size() < ext_scorer_->get_max_order();
         score = ext_scorer_->get_log_cond_prob(ngram, bos) * ext_scorer_->alpha;
         score += ext_scorer_->beta;
@@ -242,6 +255,8 @@ DecoderState::decode(size_t num_results) const
     }
   }
 
+
+  //sort by AM and LM score, in decesding order
   using namespace std::placeholders;
   size_t num_returned = std::min(prefixes_copy.size(), num_results);
   std::partial_sort(prefixes_copy.begin(),
@@ -263,6 +278,7 @@ DecoderState::decode(size_t num_results) const
 
   return outputs;
 }
+
 
 std::vector<Output> ctc_beam_search_decoder(
     const double *probs,

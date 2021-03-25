@@ -27,25 +27,6 @@
 static const int32_t MAGIC = 'TRIE';
 static const int32_t FILE_VERSION = 6;
 
-int
-Scorer::init(const std::string& lm_path,
-             const Alphabet& alphabet)
-{
-  set_alphabet(alphabet);
-  return load_lm(lm_path);
-}
-
-int
-Scorer::init(const std::string& lm_path,
-             const std::string& alphabet_config_path)
-{
-  int err = alphabet_.init(alphabet_config_path.c_str());
-  if (err != 0) {
-    return err;
-  }
-  setup_char_map();
-  return load_lm(lm_path);
-}
 
 void
 Scorer::set_alphabet(const Alphabet& alphabet)
@@ -108,6 +89,7 @@ int Scorer::load_lm(const std::string& lm_path)
 
 int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
 {
+  //load other metadata which append after LM model.
   int magic;
   fin.read(reinterpret_cast<char*>(&magic), sizeof(magic));
   if (magic != MAGIC) {
@@ -146,8 +128,33 @@ int Scorer::load_trie(std::ifstream& fin, const std::string& file_path)
   return DS_ERR_OK;
 }
 
+
+int
+Scorer::init(const std::string& lm_path,
+             const Alphabet& alphabet)
+{
+  set_alphabet(alphabet);
+  return load_lm(lm_path);
+}
+
+
+int
+Scorer::init(const std::string& lm_path,
+             const std::string& alphabet_config_path)
+{
+  int err = alphabet_.init(alphabet_config_path.c_str());
+  if (err != 0) {
+    return err;
+  }
+  setup_char_map();
+  return load_lm(lm_path);
+}
+
+
+
 bool Scorer::save_dictionary(const std::string& path, bool append_instead_of_overwrite)
 {
+  // save other metadata after LM or overwrite it.
   std::ios::openmode om;
   if (append_instead_of_overwrite) {
     om = std::ios::in|std::ios::out|std::ios::binary|std::ios::ate;
@@ -190,14 +197,28 @@ bool Scorer::save_dictionary(const std::string& path, bool append_instead_of_ove
   return dictionary->Write(fout, opt);
 }
 
+/*
+Char. number range  |        UTF-8 octet sequence
+   (hexadecimal)    |              (binary)
+--------------------+---------------------------------------------
+0000 0000-0000 007F | 0xxxxxxx
+0000 0080-0000 07FF | 110xxxxx 10xxxxxx
+0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+True, trigger point to do lm score
+False, do nothing
+*/
 bool Scorer::is_scoring_boundary(PathTrie* prefix, size_t new_label)
 {
-  if (is_utf8_mode()) {
+  if (is_utf8_mode()) { // for charactor based or bytes forced mode
     if (prefix->character == -1) {
       return false;
     }
     unsigned char first_byte;
+    // dist from cur bytes to first byte of a multi-byte sequence in UTF8 mode
     int distance_to_boundary = prefix->distance_to_codepoint_boundary(&first_byte, alphabet_);
+
     int needed_bytes;
     if ((first_byte >> 3) == 0x1E) {
       needed_bytes = 4;
@@ -211,17 +232,10 @@ bool Scorer::is_scoring_boundary(PathTrie* prefix, size_t new_label)
       assert(false); // invalid byte sequence. should be unreachable, disallowed by vocabulary/trie
       return false;
     }
-    return distance_to_boundary == needed_bytes;
+    return distance_to_boundary == needed_bytes; // end byte of multi-byte sequence of utf8 codepoint
   } else {
-    return new_label == SPACE_ID_;
+    return new_label == SPACE_ID_; // for english word
   }
-}
-
-double Scorer::get_log_cond_prob(const std::vector<std::string>& words,
-                                 bool bos,
-                                 bool eos)
-{
-  return get_log_cond_prob(words.begin(), words.end(), bos, eos);
 }
 
 double Scorer::get_log_cond_prob(const std::vector<std::string>::const_iterator& begin,
@@ -257,9 +271,19 @@ double Scorer::get_log_cond_prob(const std::vector<std::string>::const_iterator&
     cond_prob = language_model_->BaseScore(in_state, vocab.EndSentence(), out_state);
   }
 
-  // return loge prob
+ 
+  //ln(x) = log10(x) / log10(e)
   return cond_prob/NUM_FLT_LOGE;
 }
+
+double Scorer::get_log_cond_prob(const std::vector<std::string>& words,
+                                 bool bos,
+                                 bool eos)
+{
+   // return ln prob by LM 
+  return get_log_cond_prob(words.begin(), words.end(), bos, eos);
+}
+
 
 void Scorer::reset_params(float alpha, float beta)
 {
@@ -269,12 +293,13 @@ void Scorer::reset_params(float alpha, float beta)
 
 std::vector<std::string> Scorer::split_labels_into_scored_units(const std::vector<unsigned int>& labels)
 {
+  // vocab index to word strs
   if (labels.empty()) return {};
 
   std::string s = alphabet_.Decode(labels);
   std::vector<std::string> words;
   if (is_utf8_mode_) {
-    words = split_into_codepoints(s);
+    words = split_into_codepoints(s); // split utf8 code-point
   } else {
     words = split_str(s, " ");
   }
@@ -289,14 +314,16 @@ std::vector<std::string> Scorer::make_ngram(PathTrie* prefix)
 
   for (int order = 0; order < max_order_; order++) {
     if (!current_node || current_node->character == -1) {
+      //invalid Trie node or root node
       break;
     }
 
     std::vector<unsigned int> prefix_vec;
-
     if (is_utf8_mode_) {
+      // utf-8 bytes to utf8 char
       new_node = current_node->get_prev_grapheme(prefix_vec, alphabet_);
     } else {
+      // char to word
       new_node = current_node->get_prev_word(prefix_vec, alphabet_);
     }
     current_node = new_node->parent;

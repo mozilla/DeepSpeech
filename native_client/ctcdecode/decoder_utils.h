@@ -10,7 +10,9 @@
 
 const float NUM_FLT_INF  = std::numeric_limits<float>::max();
 const float NUM_FLT_MIN  = std::numeric_limits<float>::min();
-const float NUM_FLT_LOGE = 0.4342944819;
+
+//ln(x) = log10(x) / log10(e)
+const float NUM_FLT_LOGE = 0.4342944819; //log10(e)
 
 // inline function for validation check
 inline void check(
@@ -28,19 +30,21 @@ inline void check(
 #define VALID_CHECK_LT(x, y, info) VALID_CHECK((x) < (y), info)
 
 
-// Function template for comparing two pairs
+// Function template for comparing two pairs, reverse sort
+// sort, returns ​true if the first argument is less than (i.e. is ordered before) the second.
 template <typename T1, typename T2>
 bool pair_comp_first_rev(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) {
   return a.first > b.first;
 }
 
-// Function template for comparing two pairs
+// Function template for comparing two pairs, reverse sort
 template <typename T1, typename T2>
 bool pair_comp_second_rev(const std::pair<T1, T2> &a,
                           const std::pair<T1, T2> &b) {
   return a.second > b.second;
 }
+
 
 // Return the sum of two probabilities in log scale
 template <typename T>

@@ -18,13 +18,14 @@ PathTrie::PathTrie() {
 
   ROOT_ = -1;
   character = ROOT_;
-  exists_ = true;
+
+  exists_ = true; // init with True
+
   parent = nullptr;
 
   dictionary_ = nullptr;
   dictionary_state_ = 0;
   has_dictionary_ = false;
-
   matcher_ = nullptr;
 }
 
@@ -56,6 +57,7 @@ PathTrie* PathTrie::get_path_trie(unsigned int new_char, float cur_log_prob_c, b
       bool found = matcher_->Find(new_char + 1);
       if (!found) {
         // Adding this character causes word outside dictionary
+        // not in dic, so do nothing, return nullptr
         auto FSTZERO = fst::TropicalWeight::Zero();
         auto final_weight = dictionary_->Final(dictionary_state_);
         bool is_final = (final_weight != FSTZERO);
@@ -67,11 +69,11 @@ PathTrie* PathTrie::get_path_trie(unsigned int new_char, float cur_log_prob_c, b
         PathTrie* new_path = new PathTrie;
         new_path->character = new_char;
         new_path->parent = this;
+        new_path->log_prob_c = cur_log_prob_c;
         new_path->dictionary_ = dictionary_;
         new_path->has_dictionary_ = true;
         new_path->matcher_ = matcher_;
-        new_path->log_prob_c = cur_log_prob_c;
-
+        
         // set spell checker state
         // check to see if next state is final
         auto FSTZERO = fst::TropicalWeight::Zero();
@@ -130,6 +132,11 @@ int PathTrie::distance_to_codepoint_boundary(unsigned char *first_byte,
                                              const Alphabet& alphabet)
 {
   if (byte_is_codepoint_boundary(alphabet.DecodeSingle(character)[0])) {
+    //This mode is enabled with the --bytes_output_mode flag at training and export time. 
+    //At training time, the alphabet file is not used. 
+    //Instead, the model is forced to have 256 labels, with labels 0-254 corresponding to UTF-8 byte values 1-255. 
+    //and label 255 is used for the CTC blank symbol
+    // https://github.com/coqui-ai/STT/discussions/1806
     *first_byte = (unsigned char)character + 1;
     return 1;
   }
@@ -162,7 +169,9 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
   for (auto child : children_) {
     child.second->iterate_to_vec(output);
   }
+
   if (exists_) {
+    // update probs
     log_prob_b_prev = log_prob_b_cur;
     log_prob_nb_prev = log_prob_nb_cur;
 
@@ -171,6 +180,7 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
 
     score = log_sum_exp(log_prob_b_prev, log_prob_nb_prev);
 
+    // update `timesteps` to `new_timestep` when `previous_timesteps` != nullptr
     if (previous_timesteps != nullptr) {
       timesteps = nullptr;
       for (auto const& child : previous_timesteps->children) {
@@ -185,11 +195,15 @@ void PathTrie::iterate_to_vec(std::vector<PathTrie*>& output) {
     }
     previous_timesteps = nullptr;
 
+    // store exists prefix node
     output.push_back(this);
-  }
+  } // end of if exists_
+
+  return;
 }
 
 void PathTrie::remove() {
+  // exists is False and children is zero, then remove
   exists_ = false;
 
   if (children_.size() == 0) {
@@ -200,12 +214,14 @@ void PathTrie::remove() {
       }
     }
 
+    // remove from parent to this if need
     if (parent->children_.size() == 0 && !parent->exists_) {
       parent->remove();
     }
 
     delete this;
   }
+
 }
 
 void PathTrie::set_dictionary(std::shared_ptr<PathTrie::FstType> dictionary) {
@@ -238,7 +254,7 @@ void PathTrie::print(const Alphabet& a) {
     }
   }
   printf("\ntimesteps:\t ");
-  for (unsigned int timestep : get_history(timesteps)) {
+  for (unsigned int timestep : get_hstory(timesteps)) {
     printf("%d ", timestep);
   }
   printf("\n");

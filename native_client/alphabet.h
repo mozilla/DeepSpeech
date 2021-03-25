@@ -77,7 +77,8 @@ class UTF8Alphabet : public Alphabet
 public:
   UTF8Alphabet() {
     size_ = 255;
-    space_label_ = ' ' - 1;
+    // https://www.utf8-chartable.de/unicode-utf8-table.pl?utf8=dec&unicodeinhtml=dec
+    space_label_ = ' ' - 1; // control code-point
     for (size_t i = 0; i < size_; ++i) {
       std::string val(1, i+1);
       label_to_str_[i] = val;

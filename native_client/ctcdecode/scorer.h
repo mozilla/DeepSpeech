@@ -107,7 +107,7 @@ private:
 
   int SPACE_ID_;
   Alphabet alphabet_;
-  std::unordered_map<std::string, int> char_map_;
+  std::unordered_map<std::string, int> char_map_; //char_map_[alphabet(i)] = i + 1;
 };
 
 #endif  // SCORER_H_

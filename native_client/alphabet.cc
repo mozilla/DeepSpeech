@@ -202,6 +202,7 @@ Alphabet::Decode(const unsigned int* input, int length) const
 std::vector<unsigned int>
 Alphabet::Encode(const std::string& input) const
 {
+  // to vocab index
   std::vector<unsigned int> result;
   for (auto cp : split_into_codepoints(input)) {
     result.push_back(EncodeSingle(cp));
@@ -224,6 +225,7 @@ UTF8Alphabet::CanEncode(const std::string& input) const
 std::vector<unsigned int>
 UTF8Alphabet::Encode(const std::string& input) const
 {
+  // to bytes
   std::vector<unsigned int> result;
   for (auto byte_char : input) {
     std::string byte_str(1, byte_char);
