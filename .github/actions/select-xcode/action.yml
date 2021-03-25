@@ -1,0 +1,11 @@
+name: "Select XCode version"
+description: "Select XCode version"
+inputs:
+  version:
+    description: "XCode version"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: sudo xcode-select --switch /Applications/Xcode_${{ inputs.version }}.app
+      shell: bash

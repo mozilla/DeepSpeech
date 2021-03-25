@@ -46,7 +46,7 @@ using namespace node;
 }
 
 %typemap(argout) ModelState **retval {
-  $result = SWIGV8_ARRAY_NEW();
+  $result = SWIGV8_ARRAY_NEW(0);
   SWIGV8_AppendOutput($result, SWIG_From_int(result));
   // owned by the application. NodeJS does not guarantee the finalizer will be called so applications must call FreeMetadata themselves.
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
@@ -60,7 +60,7 @@ using namespace node;
 }
 
 %typemap(argout) StreamingState **retval {
-  $result = SWIGV8_ARRAY_NEW();
+  $result = SWIGV8_ARRAY_NEW(0);
   SWIGV8_AppendOutput($result, SWIG_From_int(result));
   // not owned, DS_FinishStream deallocates StreamingState
   %append_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*1_descriptor, 0));
@@ -70,14 +70,14 @@ using namespace node;
 %nodefaultdtor ModelState;
 
 %typemap(out) TokenMetadata* %{
-  $result = SWIGV8_ARRAY_NEW();
+  $result = SWIGV8_ARRAY_NEW(0);
   for (int i = 0; i < arg1->num_tokens; ++i) {
     SWIGV8_AppendOutput($result, SWIG_NewPointerObj(SWIG_as_voidptr(&result[i]), SWIGTYPE_p_TokenMetadata, 0));
   }
 %}
 
 %typemap(out) CandidateTranscript* %{
-  $result = SWIGV8_ARRAY_NEW();
+  $result = SWIGV8_ARRAY_NEW(0);
   for (int i = 0; i < arg1->num_transcripts; ++i) {
     SWIGV8_AppendOutput($result, SWIG_NewPointerObj(SWIG_as_voidptr(&result[i]), SWIGTYPE_p_CandidateTranscript, 0));
   }

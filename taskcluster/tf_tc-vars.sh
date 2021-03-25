@@ -74,7 +74,7 @@ elif [ "${OS}" = "Darwin" ]; then
     SHA_SUM="shasum -a 256 -c"
     WGET=wget
     TAR=gtar
-    XZ="pixz -9"
+    XZ="xz -9 -T0"
 fi;
 
 # /tmp/artifacts for docker-worker on linux,

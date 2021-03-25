@@ -1,0 +1,11 @@
+name: "Host build lib"
+description: "Host build of lib"
+inputs:
+  flavor:
+    description: "Build flavor"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: ./taskcluster/host-build.sh ${{ inputs.flavor }}
+      shell: bash
