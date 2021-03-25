@@ -3,5 +3,5 @@ description: "Package TensorFlow Build"
 runs:
   using: "composite"
   steps:
-    - run: ./taskcluster/tf_tc-package.sh
+    - run: ./ci_scripts/tf-package.sh
       shell: bash
