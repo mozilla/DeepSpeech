@@ -3,5 +3,5 @@ description: "Package of lib"
 runs:
   using: "composite"
   steps:
-    - run: ./taskcluster/package.sh
+    - run: ./ci_scripts/package.sh
       shell: bash

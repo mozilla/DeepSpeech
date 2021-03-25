@@ -7,5 +7,5 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: ./taskcluster/host-build.sh ${{ inputs.flavor }}
+    - run: ./ci_scripts/host-build.sh ${{ inputs.flavor }}
       shell: bash

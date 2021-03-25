@@ -18,5 +18,5 @@ runs:
         if [ "${{ inputs.build-flavor }}" = "tflite" ]; then
           build="_tflite"
         fi
-        ./taskcluster/tc-cpp${build}-ds-tests${{ inputs.model-kind }}.sh ${{ inputs.bitrate }}
+        ./ci_scripts/cpp${build}-ds-tests${{ inputs.model-kind }}.sh ${{ inputs.bitrate }}
       shell: bash

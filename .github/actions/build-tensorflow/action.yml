@@ -7,5 +7,5 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: ./taskcluster/tf_tc-build.sh ${{ inputs.flavor }}
+    - run: ./ci_scripts/tf-build.sh ${{ inputs.flavor }}
       shell: bash
