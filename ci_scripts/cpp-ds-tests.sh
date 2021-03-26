@@ -9,7 +9,7 @@ source $(dirname "$0")/asserts.sh
 bitrate=$1
 set_ldc_sample_filename "${bitrate}"
 
-download_material "${TASKCLUSTER_TMP_DIR}/ds"
+download_data
 
 export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 

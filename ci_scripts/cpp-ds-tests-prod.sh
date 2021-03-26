@@ -15,7 +15,9 @@ model_name=$(basename "${model_source}")
 model_source_mmap=${DEEPSPEECH_PROD_MODEL_MMAP}
 model_name_mmap=$(basename "${model_source_mmap}")
 
-download_material "${TASKCLUSTER_TMP_DIR}/ds"
+download_model_prod
+
+download_material
 
 export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
 
