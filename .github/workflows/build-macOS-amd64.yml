@@ -1,15 +1,16 @@
-name: "macOS amd64"
+name: "Build macOS amd64"
 on:
-  pull_request:
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ["Train test model"]
+    types:
+      - completed
 env:
   TASKCLUSTER_TASK_DIR: ${{ github.workspace }}
   TASKCLUSTER_ARTIFACTS: ${{ github.workspace }}/artifacts
   MACOSX_DEPLOYMENT_TARGET: "10.10"
 jobs:
   swig_macOS:
+    if: ${{ github.event.workflow_run.conclusion == "success" }}
     name: "Build SWIG for macOS"
     runs-on: macos-10.15
     steps:
@@ -39,6 +40,7 @@ jobs:
           name: ${{ github.job }}
           path: ${{ github.workspace }}/build-static/
   tensorflow_opt-macOS:
+    if: ${{ github.event.workflow_run.conclusion == "success" }}
     name: "Check cache for TensorFlow"
     runs-on: ubuntu-20.04
     outputs:
@@ -57,6 +59,7 @@ jobs:
         with:
           name: ${{ steps.get_cache_key.outputs.key }}
   build-tensorflow-macOS:
+    if: ${{ github.event.workflow_run.conclusion == "success" }}
     name: "Build TensorFlow (opt) for macOS"
     needs: tensorflow_opt-macOS
     runs-on: macos-10.15
@@ -86,6 +89,7 @@ jobs:
           path: ${{ github.workspace }}/artifacts/home.tar.xz
         if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
   build-lib_macOS:
+    if: ${{ github.event.workflow_run.conclusion == "success" }}
     name: "Build libdeepspeech.so and deepspeech C++ binary"
     runs-on: macos-10.15
     needs: [ build-tensorflow-macOS, tensorflow_opt-macOS ]
@@ -128,6 +132,7 @@ jobs:
           name: "libdeepspeech.${{ matrix.build-flavor }}.zip"
           path: ${{ github.workspace }}/artifacts/libdeepspeech.zip
   build-python-macOS:
+    if: ${{ github.event.workflow_run.conclusion == "success" }}
     name: "Build python bindings for macOS"
     runs-on: macos-10.15
     needs: [ build-lib_macOS, swig_macOS ]
@@ -171,6 +176,7 @@ jobs:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
           path: ${{ github.workspace }}/wheels/*.whl
   build-nodejs-macOS:
+    if: ${{ github.event.workflow_run.conclusion == "success" }}
     name: "Build NodeJS and ElectronJS for macOS"
     runs-on: macos-10.15
     needs: [ build-lib_macOS, swig_macOS ]
@@ -214,6 +220,7 @@ jobs:
           name: "deepspeech-${{ matrix.build-flavor }}.tar.gz"
           path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
   test-cpp-macOS:
+    if: ${{ github.event.workflow_run.conclusion == "success" }}
     name: "Test C++ binary on macOS"
     runs-on: macos-10.15
     needs: build-lib_macOS

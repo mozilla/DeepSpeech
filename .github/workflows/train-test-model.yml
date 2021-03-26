@@ -1,7 +1,77 @@
-name: dummy
-on: [push]
+name: "Train test model"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
 jobs:
-  hello:
-    runs-on: ubuntu-18.04
+  build-ctc-decoder:
+    name: "Build CTC decoder Python package for testing"
+    runs-on: ubuntu-20.04
     steps:
-      - run: echo "Hello world"
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq -y install swig
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - run: |
+          python --version
+          pip --version
+          swig -version
+      - run: |
+          make -C native_client/ctcdecode/ \
+            DS_SWIG_DEP="" SWIG_LIB="$(swig -swiglib)" \
+            NUM_PROCESSES=$(nproc) \
+            bindings
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "ds_ctcdecoder-test.whl"
+          path: ${{ github.workspace }}/native_client/ctcdecode/dist/*.whl
+      - run: |
+          make -C native_client/ctcdecode clean-keep-third-party
+  train-test-model:
+    name: "Train a test model"
+    needs: [ "build-ctc-decoder" ]
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build-flavor: ["tf", "tflite"]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - uses: actions/download-artifact@v2
+        with:
+          name: "ds_ctcdecoder-test.whl"
+      - run: |
+          python --version
+          pip --version
+      - run: |
+          pip install --upgrade pip==19.3.1 setuptools==45.0.0 wheel==0.33.6
+      - run: |
+          pip install ds_ctcdecoder-*-cp36-cp36m-manylinux1_x86_64.whl
+          DS_NODECODER=y pip install --upgrade .
+      - run: |
+          ./bin/run-tc-ldc93s1_new.sh 249 16000
+          if [ "${{ matrix.build-flavor }}" = "tflite" ]; then
+            ./bin/run-tc-ldc93s1_tflite.sh 16000
+          fi
+      - run: |
+          tar -cf - \
+            -C /tmp/ckpt/ . \
+            | xz -9 -T0 > /tmp/checkpoint.tar.xz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}.zip"
+          path: /tmp/train/output_graph.*
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "test-checkpoint.${{ matrix.build-flavor }}.zip"
+          path: /tmp/checkpoint.tar.xz
