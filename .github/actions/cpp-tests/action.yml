@@ -18,5 +18,10 @@ runs:
         if [ "${{ inputs.build-flavor }}" = "tflite" ]; then
           build="_tflite"
         fi
-        ./ci_scripts/cpp${build}-ds-tests${{ inputs.model-kind }}.sh ${{ inputs.bitrate }}
+
+        model_kind=""
+        if [ "${{ inputs.model-kind }}" = "prod" ]; then
+          model_kind="-prod"
+        fi
+        ./ci_scripts/cpp${build}-ds-tests${model_kind}.sh ${{ inputs.bitrate }}
       shell: bash

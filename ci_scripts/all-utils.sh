@@ -21,14 +21,17 @@ set_ldc_sample_filename()
   esac
 }
 
-download_data()
+download_model_prod()
 {
   local _model_source_file=$(basename "${model_source}")
   ${WGET} "${model_source}" -O - | gunzip --force > "${TASKCLUSTER_TMP_DIR}/${_model_source_file}"
 
   local _model_source_mmap_file=$(basename "${model_source_mmap}")
   ${WGET} "${model_source_mmap}" -O - | gunzip --force > "${TASKCLUSTER_TMP_DIR}/${_model_source_mmap_file}"
+}
 
+download_data()
+{
   cp ${DS_DSDIR}/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
   cp ${DS_DSDIR}/data/smoke_test/pruned_lm.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer
   cp ${DS_DSDIR}/data/smoke_test/pruned_lm.bytes.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.bytes.scorer
@@ -38,9 +41,6 @@ download_data()
 
 download_material()
 {
-  target_dir=$1
-
-  # TODO: FIXME download_native_client_files "${target_dir}"
   download_data
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav
