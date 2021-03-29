@@ -89,7 +89,6 @@ jobs:
     runs-on: macos-10.15
     strategy:
       matrix:
-        build-flavor: ["tf", "tflite"]
         bitrate: ["8k", "16k"]
     steps:
       - uses: actions/checkout@v2
@@ -124,14 +123,11 @@ jobs:
           mv data/smoke_test/LDC93S1_pcms16le_1_${bits}.wav data/smoke_test/LDC93S1.wav
 
           ./bin/run-tc-ldc93s1_new.sh 249 ${bits}
-          if [ "${{ matrix.build-flavor }}" = "tflite" ]; then
-            ./bin/run-tc-ldc93s1_tflite.sh ${bits}
-          fi
+          ./bin/run-tc-ldc93s1_tflite.sh ${bits}
       - run: |
           curl -vsSL https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/macOS.amd64.convert_graphdef_memmapped_format.xz | xz -d > /tmp/convert_graphdef_memmapped_format
           chmod +x /tmp/convert_graphdef_memmapped_format
           /tmp/convert_graphdef_memmapped_format --in_graph=/tmp/train/output_graph.pb --out_graph=/tmp/train/output_graph.pbmm
-        if: matrix.build-flavor == 'tf'
       - run: |
           tar -cf - \
             -C /tmp/ckpt/ . \
@@ -143,11 +139,15 @@ jobs:
           ls -hal /tmp/ ${{ github.workspace }}/tmp/
       - uses: actions/upload-artifact@v2
         with:
-          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: ${{ github.workspace }}/tmp/output_graph.*
+          name: "test-model.tf-${{ matrix.bitrate }}.zip"
+          path: ${{ github.workspace }}/tmp/output_graph.pb*
       - uses: actions/upload-artifact@v2
         with:
-          name: "test-checkpoint.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          name: "test-model.tflite-${{ matrix.bitrate }}.zip"
+          path: ${{ github.workspace }}/tmp/output_graph.tflite
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "test-checkpoint.${{ matrix.bitrate }}.zip"
           path: ${{ github.workspace }}/tmp/checkpoint.tar.xz
   tensorflow_opt-macOS:
     name: "Check cache for TensorFlow"
@@ -322,7 +322,7 @@ jobs:
           path: ${{ github.workspace }}/native_client/javascript/wrapper.tar.gz
       - uses: actions/upload-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}.tar.gz"
+          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
           path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
   test-cpp-macOS:
     name: "Test C++ binary on macOS"
@@ -358,8 +358,144 @@ jobs:
       - run: |
           ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
         if: matrix.models == 'test'
-      - uses: ./.github/actions/cpp-tests
+      - uses: ./.github/actions/run-tests
         with:
+          runtime: "cpp"
           build-flavor: ${{ matrix.build-flavor }}
           bitrate: ${{ matrix.bitrate }}
           model-kind: ${{ matrix.models }}
+  test-py-macOS:
+    name: "Test Python bindings on macOS"
+    runs-on: macos-10.15
+    needs: [ build-python-macOS, train-test-model ]
+    strategy:
+      matrix:
+        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.2]
+        build-flavor: ["tf", "tflite"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
+    env:
+      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          pip3 install --only-binary :all: --upgrade ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.whl
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "python"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+  test-nodejs-macOS:
+    name: "Test NodeJS bindings on macOS"
+    runs-on: macos-10.15
+    needs: [ build-nodejs-macOS, train-test-model ]
+    strategy:
+      matrix:
+        nodejs-version: [10, 11, 12, 13, 14, 15]
+        build-flavor: ["tf", "tflite"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
+    env:
+      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.nodejs-version }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "node"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+  test-electronjs-macOS:
+    name: "Test ElectronJS bindings on macOS"
+    runs-on: macos-10.15
+    needs: [ build-nodejs-macOS, train-test-model ]
+    strategy:
+      matrix:
+        electronjs-version: [5.0.13, 6.0.12, 6.1.7, 7.0.1, 7.1.8, 8.0.1, 9.0.1, 9.1.0, 9.2.0, 10.0.0, 10.1.0, 11.0.0, 12.0.0]
+        build-flavor: ["tf", "tflite"]
+        models: ["test"]
+        bitrate: ["8k", "16k"]
+    env:
+      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+      - run: |
+          npm install electron@${{ matrix.electronjs-version }}
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "electronjs"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+        timeout-minutes: 5

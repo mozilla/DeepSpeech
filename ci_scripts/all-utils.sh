@@ -106,3 +106,13 @@ verify_bazel_rebuild()
     exit 1
   fi;
 }
+
+symlink_electron()
+{
+  ln -s Electron.app/Contents/MacOS/Electron node_modules/electron/dist/node
+}
+
+export_node_bin_path()
+{
+  export PATH=$(pwd)/node_modules/.bin/:$(pwd)/node_modules/electron/dist/:$PATH
+}

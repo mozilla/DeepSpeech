@@ -432,7 +432,7 @@ run_prod_concurrent_stream_tests()
   local _bitrate=$1
 
   set +e
-  output=$(python ${TASKCLUSTER_TMP_DIR}/test_sources/concurrent_streams.py \
+  output=$(python3 ${TASKCLUSTER_TMP_DIR}/test_sources/concurrent_streams.py \
              --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} \
              --scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer \
              --audio1 ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_16000.wav \
