@@ -10,6 +10,7 @@ if [ "${OS}" = "Linux" ]; then
 fi;
 
 if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
+    export CI_TASK_DIR="$(cygpath ${CI_TASK_DIR})"
     export DS_ROOT_TASK=${CI_TASK_DIR}
     export PYENV_ROOT="${CI_TASK_DIR}/pyenv-root"
     export PLATFORM_EXE_SUFFIX=.exe

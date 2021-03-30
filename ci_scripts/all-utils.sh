@@ -109,7 +109,14 @@ verify_bazel_rebuild()
 
 symlink_electron()
 {
-  ln -s Electron.app/Contents/MacOS/Electron node_modules/electron/dist/node
+  if [ "${OS}" = "Darwin" ]; then
+    ln -s Electron.app/Contents/MacOS/Electron node_modules/electron/dist/node
+  else
+    ln -s electron "node_modules/electron/dist/node"
+    if [ -f "node_modules/electron/dist/chrome-sandbox" ]; then
+      export ELECTRON_DISABLE_SANDBOX=1
+    fi
+  fi
 }
 
 export_node_bin_path()

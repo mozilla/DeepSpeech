@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -ex
+set -o pipefail
 
 source $(dirname $0)/tf-vars.sh
 
@@ -21,7 +22,10 @@ pushd ${DS_ROOT_TASK}/tensorflow/
     fi;
 
     case "$1" in
-    "--linux-cpu"|"--darwin-cpu"|"--windows-cpu")
+    "--windows-cpu")
+        echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LIBDEEPSPEECH} ${BUILD_TARGET_LITE_LIB} --workspace_status_command="bash native_client/bazel_workspace_status_cmd.sh"
+        ;;
+    "--linux-cpu"|"--darwin-cpu")
         echo "" | TF_NEED_CUDA=0 ./configure && ${BAZEL_BUILD} ${OPT_OR_DBG} ${BAZEL_OPT_FLAGS} ${BAZEL_EXTRA_FLAGS} ${BUILD_TARGET_LIB_CPP_API} ${BUILD_TARGET_LITE_LIB}
         ;;
     "--linux-cuda"|"--windows-cuda")

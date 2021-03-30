@@ -55,7 +55,7 @@ PYTHON_PLATFORM_NAME ?= --plat-name manylinux1_x86_64
 endif
 endif
 
-ifeq ($(TARGET),host-win)
+ifeq ($(findstring _NT,$(OS)),_NT)
 TOOLCHAIN := '$(VCToolsInstallDir)\bin\Hostx64\x64\'
 TOOL_CC     := cl.exe
 TOOL_CXX    := cl.exe
