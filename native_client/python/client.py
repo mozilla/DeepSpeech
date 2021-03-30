@@ -111,6 +111,8 @@ def main():
                         help='Number of candidate transcripts to include in JSON output')
     parser.add_argument('--hot_words', type=str,
                         help='Hot-words and their boosts.')
+    parser.add_argument('--output', type=str, required=False,
+                        help='Output file')
     args = parser.parse_args()
 
     print('Loading model from file {}'.format(args.model), file=sys.stderr)
@@ -157,11 +159,16 @@ def main():
     inference_start = timer()
     # sphinx-doc: python_ref_inference_start
     if args.extended:
-        print(metadata_to_string(ds.sttWithMetadata(audio, 1).transcripts[0]))
+        output = metadata_to_string(ds.sttWithMetadata(audio, 1).transcripts[0])
     elif args.json:
-        print(metadata_json_output(ds.sttWithMetadata(audio, args.candidate_transcripts)))
+        output = metadata_json_output(ds.sttWithMetadata(audio, args.candidate_transcripts))
     else:
-        print(ds.stt(audio))
+        output = ds.stt(audio)
+    if args.output:
+        with open(args.output, 'w') as f:
+            f.write(output)
+    else:
+        print(output)
     # sphinx-doc: python_ref_inference_stop
     inference_end = timer() - inference_start
     print('Inference took %0.3fs for %0.3fs audio file.' % (inference_end, audio_length), file=sys.stderr)
