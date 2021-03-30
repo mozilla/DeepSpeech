@@ -12,28 +12,41 @@ jobs:
   swig_macOS:
     name: "Build SWIG for macOS"
     runs-on: macos-10.15
+    env:
+      swig_hash: "90cdbee6a69d13b39d734083b9f91069533b0d7b"
     steps:
       - uses: actions/checkout@v2
         with:
           repository: "swig/swig"
-          ref: "90cdbee6a69d13b39d734083b9f91069533b0d7b"
-      - run: |
-          brew install automake
+          ref: ${{ env.swig_hash }}
       - run: |
           mkdir -p build-static/
+      - uses: actions/cache@v2
+        id: swig-build-cache
+        with:
+          path: build-static/
+          key: swig-${{ runner.os }}-${{ env.swig_hash }}
+      - run: |
+          brew install automake
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           curl -sSL https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz > pcre-8.43.tar.gz
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           ./Tools/pcre-build.sh
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           sh autogen.sh
           ./configure \
             --prefix=${{ github.workspace }}/build-static/ \
             --program-prefix=ds-
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           make -j
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           make install
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ github.job }}
@@ -41,14 +54,14 @@ jobs:
   build-ctc-decoder:
     name: "Build CTC decoder Python package for testing"
     needs: [ swig_macOS ]
-    runs-on: ubuntu-20.04
+    runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v2
+      - uses: ./.github/actions/install-python-upstream
         with:
-          python-version: 3.6
+          version: 3.6.8
       - run: |
           python --version
           pip --version
@@ -62,7 +75,7 @@ jobs:
           chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
       - run: |
           make -C native_client/ctcdecode/ \
-            NUM_PROCESSES=$(nproc) \
+            NUM_PROCESSES=$(sysctl hw.ncpu |cut -d' ' -f2) \
             bindings
       - uses: actions/upload-artifact@v2
         with:
@@ -73,7 +86,7 @@ jobs:
   train-test-model:
     name: "Train a test model"
     needs: [ "build-ctc-decoder" ]
-    runs-on: ubuntu-20.04
+    runs-on: macos-10.15
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
@@ -94,7 +107,7 @@ jobs:
       - run: |
           pip install --upgrade pip==19.3.1 setuptools==45.0.0 wheel==0.33.6
       - run: |
-          pip install ds_ctcdecoder-*-cp36-cp36m-manylinux1_x86_64.whl
+          pip install ds_ctcdecoder-*-cp36-cp36m-*_x86_64.whl
           DS_NODECODER=y pip install --upgrade .
       - run: |
           bits=""
@@ -115,24 +128,27 @@ jobs:
             ./bin/run-tc-ldc93s1_tflite.sh ${bits}
           fi
       - run: |
-          curl -vsSL https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/linux.amd64.convert_graphdef_memmapped_format.xz | xz -d > /tmp/convert_graphdef_memmapped_format
+          curl -vsSL https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/macOS.amd64.convert_graphdef_memmapped_format.xz | xz -d > /tmp/convert_graphdef_memmapped_format
           chmod +x /tmp/convert_graphdef_memmapped_format
           /tmp/convert_graphdef_memmapped_format --in_graph=/tmp/train/output_graph.pb --out_graph=/tmp/train/output_graph.pbmm
         if: matrix.build-flavor == 'tf'
       - run: |
-          cp /tmp/train*/output_graph.* /tmp/
-      - run: |
           tar -cf - \
             -C /tmp/ckpt/ . \
             | xz -9 -T0 > /tmp/checkpoint.tar.xz
+      - run: |
+          mkdir -p ${{ github.workspace }}/tmp/
+          cp /tmp/train*/output_graph.* /tmp/checkpoint.tar.xz ${{ github.workspace }}/tmp/
+      - run: |
+          ls -hal /tmp/ ${{ github.workspace }}/tmp/
       - uses: actions/upload-artifact@v2
         with:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: /tmp/output_graph.*
+          path: ${{ github.workspace }}/tmp/output_graph.*
       - uses: actions/upload-artifact@v2
         with:
           name: "test-checkpoint.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: /tmp/checkpoint.tar.xz
+          path: ${{ github.workspace }}/tmp/checkpoint.tar.xz
   tensorflow_opt-macOS:
     name: "Check cache for TensorFlow"
     runs-on: ubuntu-20.04
