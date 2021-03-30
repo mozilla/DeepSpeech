@@ -40,9 +40,6 @@ elif [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     export TASKCLUSTER_ARTIFACTS="$(cygpath ${TASKCLUSTER_ARTIFACTS})"
 
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
-    export BAZEL_VC='C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC'
-    export BAZEL_SH='C:\builds\tc-workdir\msys64\usr\bin\bash'
-    export TC_WIN_BUILD_PATH='C:\builds\tc-workdir\msys64\usr\bin;C:\Python36'
     export MSYS2_ARG_CONV_EXCL='//'
 
     mkdir -p ${TASKCLUSTER_TASK_DIR}/tmp/
@@ -119,19 +116,15 @@ export TF_NEED_ROCM=0
 # This should be gcc-5, hopefully. CUDA and TensorFlow might not be happy, otherwise.
 export GCC_HOST_COMPILER_PATH=/usr/bin/gcc
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    export PYTHON_BIN_PATH=C:/Python36/python.exe
-else
-    if [ "${OS}" = "Linux" ]; then
-        source /etc/os-release
-        if [ "${ID}" = "ubuntu" -a "${VERSION_ID}" = "20.04" ]; then
-            export PYTHON_BIN_PATH=/usr/bin/python3
-	else
-            export PYTHON_BIN_PATH=/usr/bin/python2.7
-	fi
+if [ "${OS}" = "Linux" ]; then
+    source /etc/os-release
+    if [ "${ID}" = "ubuntu" -a "${VERSION_ID}" = "20.04" ]; then
+        export PYTHON_BIN_PATH=/usr/bin/python3
     else
-        export PYTHON_BIN_PATH=/usr/bin/python2.7
+            export PYTHON_BIN_PATH=/usr/bin/python2.7
     fi
+elif [ "${OS}" != "${TC_MSYS_VERSION}" ]; then
+    export PYTHON_BIN_PATH=/usr/bin/python2.7
 fi
 
 ## Below, define or export some build variables
@@ -186,15 +179,7 @@ fi
 BAZEL_IOS_ARM64_FLAGS="--config=ios_arm64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
 BAZEL_IOS_X86_64_FLAGS="--config=ios_x86_64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    # Somehow, even with Python being in the PATH, Bazel on windows struggles
-    # with '/usr/bin/env python' ...
-    #
-    # We also force TMP/TEMP otherwise Bazel will pick default Windows one
-    # under %USERPROFILE%\AppData\Local\Temp and with 8.3 file format convention
-    # it messes with cxx_builtin_include_directory
-    BAZEL_EXTRA_FLAGS="--action_env=PATH=${TC_WIN_BUILD_PATH} --action_env=TEMP=${TEMP} --action_env=TMP=${TMP}"
-else
+if [ "${OS}" != "${TC_MSYS_VERSION}" ]; then
     BAZEL_EXTRA_FLAGS="--config=noaws --config=nogcp --config=nohdfs --config=nonccl --copt=-fvisibility=hidden"
 fi
 
@@ -211,3 +196,4 @@ BUILD_TARGET_GRAPH_BENCHMARK="//tensorflow/tools/benchmark:benchmark_model"
 BUILD_TARGET_TOCO="//tensorflow/lite/toco:toco"
 BUILD_TARGET_LITE_BENCHMARK="//tensorflow/lite/tools/benchmark:benchmark_model"
 BUILD_TARGET_LITE_LIB="//tensorflow/lite/c:libtensorflowlite_c.so"
+BUILD_TARGET_LIBDEEPSPEECH="//native_client:libdeepspeech.so"

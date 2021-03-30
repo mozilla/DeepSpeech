@@ -10,6 +10,7 @@ if [ "${OS}" = "Linux" ]; then
 fi;
 
 if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+    export TASKCLUSTER_TASK_DIR="$(cygpath ${TASKCLUSTER_TASK_DIR})"
     export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
     export PYENV_ROOT="${TASKCLUSTER_TASK_DIR}/pyenv-root"
     export PLATFORM_EXE_SUFFIX=.exe
