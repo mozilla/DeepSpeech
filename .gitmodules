@@ -8,3 +8,6 @@
 [submodule "kenlm"]
 	path = kenlm
 	url = https://github.com/kpu/kenlm
+[submodule ".github/actions/wait-on-check-action"]
+	path = .github/actions/wait-on-check-action
+	url = https://github.com/lewagon/wait-on-check-action

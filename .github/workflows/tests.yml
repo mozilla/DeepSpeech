@@ -1,0 +1,19 @@
+name: "Running tests"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  fake-test-lib:
+    name: "Fake testing of lib"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+      - uses: ./.github/actions/wait-on-check-action
+        with:
+          ref: ${{ github.ref }}
+          check-name: "fake-build-lib"

@@ -1,0 +1,19 @@
+name: "Building Lib"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  fake-build-lib:
+    name: "Fake build of lib"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+      - uses: ./.github/actions/wait-on-check-action
+        with:
+          ref: ${{ github.ref }}
+          check-name: "fake-build-tensorflow"

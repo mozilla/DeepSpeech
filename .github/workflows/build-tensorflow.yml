@@ -1,0 +1,20 @@
+name: "Building TensorFlow"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  fake-build-tensorflow:
+    name: "Fake build of tensorflow"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - id: idle
+        run: |
+          for i in $(seq 120); do
+             echo $i;
+             sleep 1
+          done;

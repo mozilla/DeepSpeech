@@ -1,9 +1,9 @@
 name: "macOS amd64"
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+##on:
+##  pull_request:
+##  push:
+##    branches:
+##      - master
 env:
   TASKCLUSTER_TASK_DIR: ${{ github.workspace }}
   TASKCLUSTER_ARTIFACTS: ${{ github.workspace }}/artifacts
