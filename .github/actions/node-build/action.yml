@@ -30,12 +30,16 @@ runs:
         npm update
       shell: bash
     - run: |
+        mkdir -p tmp/headers/nodejs tmp/headers/electronjs
+      shell: bash
+    - run: |
         for node in ${{ inputs.nodejs_versions }}; do
           EXTRA_CFLAGS=${{ inputs.local_cflags }} \
           EXTRA_LDFLAGS=${{ inputs.local_ldflags }} \
           EXTRA_LIBS=${{ inputs.local_libs }} \
             make -C native_client/javascript \
               NODE_ABI_TARGET=--target=${node} \
+              NODE_DEVDIR=--devdir=tmp/headers/nodejs/${node} \
             clean node-wrapper
         done;
       shell: bash
@@ -48,6 +52,7 @@ runs:
               NODE_ABI_TARGET=--target=${electron} \
               NODE_DIST_URL=--disturl=https://electronjs.org/headers \
               NODE_RUNTIME=--runtime=electron \
+              NODE_DEVDIR=--devdir=tmp/headers/electronjs/${electron} \
             clean node-wrapper
         done;
       shell: bash

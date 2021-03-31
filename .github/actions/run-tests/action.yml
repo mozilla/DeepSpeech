@@ -1,6 +1,9 @@
-name: "C++ tests"
-description: "Running C++ binary tests"
+name: "Tests execution"
+description: "Running DeepSpeech tests"
 inputs:
+  runtime:
+    description: "Runtime to use for running test"
+    required: true
   build-flavor:
     description: "Running against TF or TFLite"
     required: true
@@ -23,5 +26,6 @@ runs:
         if [ "${{ inputs.model-kind }}" = "prod" ]; then
           model_kind="-prod"
         fi
-        ./ci_scripts/cpp${build}-ds-tests${model_kind}.sh ${{ inputs.bitrate }}
+
+        ./ci_scripts/${{ inputs.runtime }}${build}-tests${model_kind}.sh ${{ inputs.bitrate }}
       shell: bash
