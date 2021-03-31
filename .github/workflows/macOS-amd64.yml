@@ -55,6 +55,7 @@ jobs:
     name: "Build CTC decoder Python package for testing"
     needs: [ swig_macOS ]
     runs-on: macos-10.15
+    if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -87,6 +88,7 @@ jobs:
     name: "Train a test model"
     needs: [ "build-ctc-decoder" ]
     runs-on: macos-10.15
+    if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
         bitrate: ["8k", "16k"]
@@ -328,6 +330,7 @@ jobs:
     name: "Test C++ binary on macOS"
     runs-on: macos-10.15
     needs: [ build-lib_macOS, train-test-model ]
+    if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
@@ -368,6 +371,7 @@ jobs:
     name: "Test Python bindings on macOS"
     runs-on: macos-10.15
     needs: [ build-python-macOS, train-test-model ]
+    if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
         python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.2]
@@ -412,6 +416,7 @@ jobs:
     name: "Test NodeJS bindings on macOS"
     runs-on: macos-10.15
     needs: [ build-nodejs-macOS, train-test-model ]
+    if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
         nodejs-version: [10, 11, 12, 13, 14, 15]
@@ -456,6 +461,7 @@ jobs:
     name: "Test ElectronJS bindings on macOS"
     runs-on: macos-10.15
     needs: [ build-nodejs-macOS, train-test-model ]
+    if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
         electronjs-version: [5.0.13, 6.0.12, 6.1.7, 7.0.1, 7.1.8, 8.0.1, 9.0.1, 9.1.0, 9.2.0, 10.0.0, 10.1.0, 11.0.0, 12.0.0]
