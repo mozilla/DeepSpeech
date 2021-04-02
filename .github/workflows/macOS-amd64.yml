@@ -55,6 +55,9 @@ jobs:
     name: "Build CTC decoder Python package for testing"
     needs: [ swig_macOS ]
     runs-on: macos-10.15
+    strategy:
+      matrix:
+        python-version: [3.6.8]
     if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v2
@@ -62,7 +65,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/install-python-upstream
         with:
-          version: 3.6.8
+          version: ${{ matrix.python-version }}
       - run: |
           python --version
           pip --version
@@ -74,7 +77,13 @@ jobs:
           ls -hal ${{ github.workspace }}/native_client/ds-swig/bin
           ln -s ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
           chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+      - id: get_numpy
+        uses: ./.github/actions/numpy_vers
+        with:
+          pyver: ${{ matrix.python-version }}
       - run: |
+          NUMPY_BUILD_VERSION=${{ steps.get_numpy.outputs.build_version }} \
+          NUMPY_DEP_VERSION=${{ steps.get_numpy.outputs.dep_version }} \
           make -C native_client/ctcdecode/ \
             NUM_PROCESSES=$(sysctl hw.ncpu |cut -d' ' -f2) \
             bindings
@@ -276,9 +285,15 @@ jobs:
       #- uses: actions/setup-python@v2
       #  with:
       #    python-version: ${{ matrix.python-version }}
+      - id: get_numpy
+        uses: ./.github/actions/numpy_vers
+        with:
+          pyver: ${{ matrix.python-version }}
       - uses: ./.github/actions/python-build
         with:
           build_flavor: ${{ matrix.build-flavor }}
+          numpy_build: "${{ steps.get_numpy.outputs.build_version }}"
+          numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
       - uses: actions/upload-artifact@v2
         with:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
