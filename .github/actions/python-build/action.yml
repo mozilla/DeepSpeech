@@ -4,6 +4,12 @@ inputs:
   build_flavor:
     description: "Python package name"
     required: true
+  numpy_build:
+    description: "NumPy build dependecy"
+    required: true
+  numpy_dep:
+    description: "NumPy runtime dependecy"
+    required: true
   local_cflags:
     description: "CFLAGS for Python package"
     required: false
@@ -32,6 +38,8 @@ runs:
           PROJECT_NAME="deepspeech-tflite"
         fi
 
+        NUMPY_BUILD_VERSION="${{ inputs.numpy_build }}" \
+        NUMPY_DEP_VERSION="${{ inputs.numpy_dep }}" \
         EXTRA_CFLAGS=${{ inputs.local_cflags }} \
         EXTRA_LDFLAGS=${{ inputs.local_ldflags }} \
         EXTRA_LIBS=${{ inputs.local_libs }} \
