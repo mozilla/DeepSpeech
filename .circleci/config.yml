@@ -72,30 +72,6 @@ jobs:
               docker push "${DOCKERHUB_REPO}:${CIRCLE_TAG}"
             fi
 
-  lint:
-    docker:
-      - image: circleci/python:3.7.9
-    steps:
-      - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            pip install --upgrade cardboardlint pylint
-      - run:
-          name: Run linter
-          command: |
-            set -ex
-            # Check if branch can be merged with master (if failing script will stop due to set -e)
-            git config user.email "you@example.com"
-            git config user.name "Your Name"
-            git merge --no-commit --no-ff origin/master
-
-            # Undo merge changes if any
-            git reset --hard $CIRCLE_BRANCH
-
-            # Lint differences against master
-            cardboardlinter --refspec origin/master -n auto;
-
 workflows:
   version: 2
   build-deploy:
@@ -111,7 +87,3 @@ workflows:
           filters:
             tags:
               only: /.*/
-
-  lint:
-    jobs:
-      - lint
