@@ -1,0 +1,24 @@
+name: "Docker Images"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  make-docker-img:
+    name: "Build Dockerfile"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        template: ["build", "train"]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+      - run: |
+          make Dockerfile.${{ matrix.template }} \
+            DEEPSPEECH_REPO=https://github.com/${{ github.repository }} \
+            DEEPSPEECH_SHA=${{ github.sha }}
+      - run: |
+          docker build -t app:${{ matrix.template }} -f Dockerfile.${{ matrix.template }} .

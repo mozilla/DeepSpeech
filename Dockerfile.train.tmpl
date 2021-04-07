@@ -34,7 +34,7 @@ WORKDIR /
 RUN git clone $DEEPSPEECH_REPO DeepSpeech
 
 WORKDIR /DeepSpeech
-RUN git checkout $DEEPSPEECH_SHA
+RUN git fetch origin $DEEPSPEECH_SHA && git checkout $DEEPSPEECH_SHA
 
 # Build CTC decoder first, to avoid clashes on incompatible versions upgrades
 RUN cd native_client/ctcdecode && make NUM_PROCESSES=$(nproc) bindings
