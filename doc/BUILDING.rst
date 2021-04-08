@@ -16,10 +16,12 @@ It is required to use our fork of TensorFlow since it includes fixes for common 
 
 If you'd like to build the language bindings or the decoder package, you'll also need:
 
+.. _swig-dep:
 
-* `SWIG >= 3.0.12 <http://www.swig.org/>`_.
-  Unfortunately, NodeJS / ElectronJS after 10.x support on SWIG is a bit behind, and while there are pending patches proposed to upstream, it is not yet merged.
+* `SWIG >= 4.0 <http://www.swig.org/>`_.
+  Unfortunately, NodeJS / ElectronJS after 10.x support on SWIG is a bit behind, but patches have been merged and 4.1 is good.
   The proper prebuilt patched version (covering linux, windows and macOS) of SWIG should get installed under `native_client/ <native_client/>`_ as soon as you build any bindings that requires it.
+  Prebuilt versions for linux, macOS and Windows are `available (look for ds-swig*.tar.gz) <https://github.com/mozilla/DeepSpeech/releases/tag/v0.9.3>`_
 
 * `node-pre-gyp <https://github.com/mapbox/node-pre-gyp>`_ (for Node.JS bindings only)
 
@@ -141,7 +143,7 @@ This will create the package ``deepspeech-VERSION.tgz`` in ``native_client/javas
 Install the CTC decoder package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To build the ``ds_ctcdecoder`` package, you'll need the general requirements listed above (in particular SWIG). The command below builds the bindings using eight (8) processes for compilation. Adjust the parameter accordingly for more or less parallelism.
+To build the ``ds_ctcdecoder`` package, you'll need the general requirements listed above (in particular :ref:`SWIG <swig-dep>`). The command below builds the bindings using eight (8) processes for compilation. Adjust the parameter accordingly for more or less parallelism.
 
 .. code-block::
 
@@ -159,9 +161,7 @@ architectures, and you might find some help in our `discourse <https://discourse
 
 Feedback on improving this section or usage on other architectures is welcome.
 
-First, you need to build SWIG from scratch.
-Since `SWIG >= 3.0.12 <http://www.swig.org/>`_ does not include our patches please use
-https://github.com/lissyx/swig/tree/taskcluster for building SWIG from source.
+First, you need to build SWIG from scratch. See :ref:`SWIG dep <swig-dep>` for details.
 
 You can supply your prebuild SWIG using ``SWIG_DIST_URL``
 

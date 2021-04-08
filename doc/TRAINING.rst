@@ -241,11 +241,9 @@ Making a mmap-able model for inference
 The ``output_graph.pb`` model file generated in the above step will be loaded in memory to be dealt with when running inference.
 This will result in extra loading time and memory consumption. One way to avoid this is to directly read data from the disk.
 
-TensorFlow has tooling to achieve this: it requires building the target ``//tensorflow/contrib/util:convert_graphdef_memmapped_format`` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64), use ``util/taskcluster.py`` tool to download:
+TensorFlow has tooling to achieve this: it requires building the target ``//tensorflow/contrib/util:convert_graphdef_memmapped_format``. We recommend you build it from `TensorFlow r1.15 <https://github.com/tensorflow/tensorflow/tree/r1.15/>`_.
 
-.. code-block::
-
-   $ python3 util/taskcluster.py --source tensorflow --artifact convert_graphdef_memmapped_format --branch r1.15 --target .
+For convenience, builds for Linux and macOS are `available (look for file named convert_graphdef_memmapped_format) <https://github.com/mozilla/DeepSpeech/releases/tag/v0.9.3>`_
 
 Producing a mmap-able model is as simple as:
 
