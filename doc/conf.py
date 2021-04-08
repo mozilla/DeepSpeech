@@ -27,8 +27,7 @@ sys.path.insert(0, os.path.abspath('../'))
 autodoc_mock_imports = ['deepspeech']
 
 # This is in fact only relevant on ReadTheDocs, but we want to run the same way
-# on our CI as in RTD to avoid regressions on RTD that we would not catch on
-# TaskCluster
+# on our CI as in RTD to avoid regressions on RTD that we would not catch on CI
 import subprocess
 parent = subprocess.check_output("cd ../ && pwd", shell=True).decode().strip()
 os.environ["PATH"] = os.path.join(parent, 'node_modules', '.bin') + ':' + os.environ["PATH"]

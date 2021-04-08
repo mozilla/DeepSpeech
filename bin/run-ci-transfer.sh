@@ -1,7 +1,7 @@
 #!/bin/sh
 # This bash script is for running minimum working examples
 # of transfer learning for continuous integration tests
-# to be run on Taskcluster.
+# to be run on CI.
 set -xe
 
 ru_dir="./data/smoke_test/russian_sample_data"
