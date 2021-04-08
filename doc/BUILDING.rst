@@ -18,7 +18,7 @@ If you'd like to build the language bindings or the decoder package, you'll also
 
 .. _swig-dep:
 
-* `SWIG >= 4/0 <http://www.swig.org/>`_.
+* `SWIG >= 4.0 <http://www.swig.org/>`_.
   Unfortunately, NodeJS / ElectronJS after 10.x support on SWIG is a bit behind, but patches have been merged and 4.1 is good.
   The proper prebuilt patched version (covering linux, windows and macOS) of SWIG should get installed under `native_client/ <native_client/>`_ as soon as you build any bindings that requires it.
   Prebuilt versions for linux, macOS and Windows are `available (look for ds-swig*.tar.gz) <https://github.com/mozilla/DeepSpeech/releases/tag/v0.9.3>`_
