@@ -17,7 +17,7 @@ help:
 .PHONY: help pip3 Makefile
 
 pip3:
-	$(PIP_INSTALL) -r ../taskcluster/docs-requirements.txt
+	$(PIP_INSTALL) -r ../ci_scripts/docs-requirements.txt
 
 submodule:
 	git submodule update --init --remote -- ../doc/examples

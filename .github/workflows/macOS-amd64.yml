@@ -133,8 +133,8 @@ jobs:
           echo "Moving ${bits} to LDC93S1.wav"
           mv data/smoke_test/LDC93S1_pcms16le_1_${bits}.wav data/smoke_test/LDC93S1.wav
 
-          ./bin/run-tc-ldc93s1_new.sh 249 ${bits}
-          ./bin/run-tc-ldc93s1_tflite.sh ${bits}
+          ./bin/run-ci-ldc93s1_new.sh 249 ${bits}
+          ./bin/run-ci-ldc93s1_tflite.sh ${bits}
       - run: |
           curl -vsSL https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/macOS.amd64.convert_graphdef_memmapped_format.xz | xz -d > /tmp/convert_graphdef_memmapped_format
           chmod +x /tmp/convert_graphdef_memmapped_format

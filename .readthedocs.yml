@@ -14,4 +14,4 @@ sphinx:
 python:
   version: 3.7
   install:
-    - requirements: taskcluster/docs-requirements.txt
+    - requirements: ci_scripts/docs-requirements.txt

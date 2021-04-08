@@ -7,43 +7,6 @@ from pkg_resources import parse_version
 from setuptools import find_packages, setup
 
 
-def get_tc_decoder_pkg_url(version, artifacts_root):
-    assert artifacts_root
-
-    ds_version = parse_version(version)
-    branch = "v{}".format(version)
-
-    plat = platform.system().lower()
-    arch = platform.machine().lower()
-
-    if plat == 'linux' and arch == 'x86_64':
-        plat = 'manylinux1'
-
-    if plat == 'darwin':
-        plat = 'macosx_10_10'
-
-    if plat == 'windows':
-        plat = 'win'
-
-    # ABI does not contain m / mu anymore after Python 3.8
-    if sys.version_info.major == 3 and sys.version_info.minor >= 8:
-        m_or_mu = ''
-    else:
-        is_ucs2 = sys.maxunicode < 0x10ffff
-        m_or_mu = 'mu' if is_ucs2 else 'm'
-
-    pyver = ''.join(str(i) for i in sys.version_info[0:2])
-
-    return 'ds_ctcdecoder @ {artifacts_root}/ds_ctcdecoder-{ds_version}-cp{pyver}-cp{pyver}{m_or_mu}-{platform}_{arch}.whl'.format(
-        artifacts_root=artifacts_root,
-        ds_version=ds_version,
-        pyver=pyver,
-        m_or_mu=m_or_mu,
-        platform=plat,
-        arch=arch,
-    )
-
-
 def main():
     version_file = Path(__file__).parent / 'VERSION'
     with open(str(version_file)) as fin:
@@ -80,15 +43,19 @@ def main():
         'horovod[tensorflow] == 0.21.3'
     ]
 
+    # TODO: FIXME: This is likely not needed anymore given the way TC and
+    # GitHub Actions artifacts differs in how we can download them.
+    """
     # Due to pip craziness environment variables are the only consistent way to
     # get options into this script when doing `pip install`.
-    tc_decoder_artifacts_root = os.environ.get('DECODER_ARTIFACTS_ROOT', '')
-    if tc_decoder_artifacts_root:
-        # We're running inside the TaskCluster environment, override the decoder
+    ci_decoder_artifacts_root = os.environ.get('DECODER_ARTIFACTS_ROOT', '')
+    if ci_decoder_artifacts_root:
+        # We're running inside the CI environment, override the decoder
         # package URL with the one we just built.
-        decoder_pkg_url = get_tc_decoder_pkg_url(version, tc_decoder_artifacts_root)
+        decoder_pkg_url = get_ci_decoder_pkg_url(version, ci_decoder_artifacts_root)
         install_requires = install_requires_base + [decoder_pkg_url]
-    elif os.environ.get('DS_NODECODER', ''):
+    """
+    if os.environ.get('DS_NODECODER', ''):
         install_requires = install_requires_base
     else:
         install_requires = install_requires_base + decoder_pypi_dep
