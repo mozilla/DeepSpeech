@@ -14,11 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-          submodules: 'recursive'
+          fetch-depth: 1
       - run: |
           make Dockerfile.${{ matrix.template }} \
             DEEPSPEECH_REPO=https://github.com/${{ github.repository }} \
             DEEPSPEECH_SHA=${{ github.sha }}
       - run: |
-          docker build -t app:${{ matrix.template }} -f Dockerfile.${{ matrix.template }} .
+          mkdir /tmp/empty
+      - run: |
+          cd /tmp/empty; docker build -t app:${{ matrix.template }} -f ${{ github.workspace }}/Dockerfile.${{ matrix.template }} .
+      - run: |
+          docker save app:${{ matrix.template}} | zstd -o app_${{ matrix.template }}.zstd
