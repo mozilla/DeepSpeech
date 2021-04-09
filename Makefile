@@ -1,5 +1,5 @@
 DEEPSPEECH_REPO ?= https://github.com/mozilla/DeepSpeech.git
-DEEPSPEECH_SHA  ?= origin/master
+DEEPSPEECH_SHA  ?= master
 
 Dockerfile%: Dockerfile%.tmpl
 	sed \
