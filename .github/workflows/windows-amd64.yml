@@ -180,7 +180,8 @@ jobs:
       - run: |
           pip install ds_ctcdecoder-*-cp36-cp36m-manylinux1_x86_64.whl
           DS_NODECODER=y pip install --upgrade .
-      - run: |
+      - name: Run testing script
+        run: |
           bits=""
           if [ "${{ matrix.bitrate }}" = "8k" ]; then
             bits=8000
