@@ -8,6 +8,7 @@ env:
   TASKCLUSTER_TASK_DIR: ${{ github.workspace }}
   TASKCLUSTER_ARTIFACTS: ${{ github.workspace }}/artifacts
   TC_MSYS_VERSION: MSYS_NT-10.0-17763
+  MSYS2_SHELL_PATH: D:\a\_temp\msys\msys64\usr\bin
 defaults:
   run:
     shell: bash
@@ -17,7 +18,7 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -80,7 +81,7 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -269,7 +270,7 @@ jobs:
       # above, because otherwise the checkout fails when persisisting the
       # credentials for submodules due to using MSYS2 Git
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
       - run: ./ci_scripts/tf-setup.sh
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
@@ -295,7 +296,7 @@ jobs:
           fetch-depth: 0
       - uses: mozilla/msvc-dev-cmd@v1
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -344,7 +345,7 @@ jobs:
         python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.2]
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -403,7 +404,7 @@ jobs:
         build-flavor: ["tf", "tflite"]
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -462,7 +463,7 @@ jobs:
       EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -512,7 +513,7 @@ jobs:
       EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -564,7 +565,7 @@ jobs:
       EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
@@ -616,7 +617,7 @@ jobs:
       EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "D:\a\_temp\msys\msys64\usr\bin" >> $GITHUB_PATH
+        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
       - uses: mozilla/setup-msys2@v2
         with:
           msystem: MSYS
