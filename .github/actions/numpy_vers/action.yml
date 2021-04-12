@@ -62,8 +62,7 @@ runs:
                 esac
             ;;
 
-            # TODO: 'Windows*' might not be good
-            MSYS_NT-10.0-17763:x86_64)
+            ${CI_MSYS_VERSION}:x86_64)
                 case "${{ inputs.pyver }}" in
                     3.5*)
                         NUMPY_BUILD_VERSION="==1.11.0"

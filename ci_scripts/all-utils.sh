@@ -113,7 +113,8 @@ symlink_electron()
     ln -s Electron.app/Contents/MacOS/Electron node_modules/electron/dist/node
   else
     ln -s electron "node_modules/electron/dist/node"
-    if [ -f "node_modules/electron/dist/chrome-sandbox" ]; then
+
+    if [ "${OS}" = "Linux" -a -f "node_modules/electron/dist/chrome-sandbox" ]; then
       export ELECTRON_DISABLE_SANDBOX=1
     fi
   fi
