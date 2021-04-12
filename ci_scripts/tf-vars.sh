@@ -40,6 +40,8 @@ elif [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     export CI_ARTIFACTS_DIR="$(cygpath ${CI_ARTIFACTS_DIR})"
 
     export DS_ROOT_TASK=${CI_TASK_DIR}
+    export BAZEL_VC="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
+    export BAZEL_VC_FULL_VERSION="14.28.29910"
     export MSYS2_ARG_CONV_EXCL='//'
 
     mkdir -p ${CI_TASK_DIR}/tmp/
