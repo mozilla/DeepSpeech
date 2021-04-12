@@ -21,10 +21,17 @@ download_data
 node --version
 npm --version
 
+symlink_electron
+
 export_node_bin_path
 
-check_runtime_nodejs
+which electron
+which node
+
+node --version
+
+deepspeech --version
+
+check_runtime_electronjs
 
 run_prodtflite_inference_tests "${bitrate}"
-
-run_js_streaming_prodtflite_inference_tests "${bitrate}"

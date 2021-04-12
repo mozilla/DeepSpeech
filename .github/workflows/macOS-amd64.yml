@@ -335,11 +335,11 @@ jobs:
           electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
       - uses: actions/upload-artifact@v2
         with:
-          name: "nodewrapper-${{ matrix.build-flavor }}.tar.gz"
+          name: "nodewrapper-${{ matrix.build-flavor }}-macOS_amd64.tar.gz"
           path: ${{ github.workspace }}/native_client/javascript/wrapper.tar.gz
       - uses: actions/upload-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
           path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
   test-cpp-macOS:
     name: "Test C++ binary on macOS"
@@ -427,6 +427,35 @@ jobs:
           build-flavor: ${{ matrix.build-flavor }}
           bitrate: ${{ matrix.bitrate }}
           model-kind: ${{ matrix.models }}
+  repackage-nodejs-allplatforms:
+    name: "Repackage NodeJS / ElectronJS for multiplatforms"
+    runs-on: ubuntu-20.04
+    needs: [ build-nodejs-macOS ]
+    strategy:
+      matrix:
+        build-flavor: ["tf", "tflite"]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - run: |
+          mkdir -p /tmp/nodewrapper-${{ matrix.build-flavor }}-macOS_amd64/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "nodewrapper-${{ matrix.build-flavor }}-macOS_amd64.tar.gz"
+          path: /tmp/nodewrapper-macOS_amd64/
+      - run: |
+          tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-macOS_amd64/wrapper.tar.gz
+      - run: |
+          PROJECT_NAME="deepspeech"
+          if [ "${{ matrix.build-flavor }}" = "tflite" ]; then
+            PROJECT_NAME="deepspeech-tflite"
+          fi
+          make -C native_client/javascript clean npm-pack PROJECT_NAME=$PROJECT_NAME
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
   test-nodejs-macOS:
     name: "Test NodeJS bindings on macOS"
     runs-on: macos-10.15
@@ -439,6 +468,100 @@ jobs:
         build-flavor: ["tf", "tflite"]
         models: ["test"]
         bitrate: ["16k"]
+    env:
+      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.nodejs-version }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "node"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+  test-electronjs-macOS:
+    name: "Test ElectronJS bindings on macOS"
+    runs-on: macos-10.15
+    needs: [ build-nodejs-macOS, train-test-model ]
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0]
+        build-flavor: ["tf", "tflite"]
+        models: ["test"]
+        bitrate: ["16k"]
+    env:
+      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+      - run: |
+          npm install electron@${{ matrix.electronjs-version }}
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "electronjs"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+        timeout-minutes: 5
+  test-nodejs_all-macOS:
+    name: "Test MultiArchPlatform NodeJS bindings on macOS"
+    runs-on: macos-10.15
+    needs: [ repackage-nodejs-allplatforms, train-test-model ]
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        # https://nodejs.org/en/about/releases/
+        nodejs-version: [10, 15]
+        build-flavor: ["tf", "tflite"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
     env:
       TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
@@ -473,17 +596,17 @@ jobs:
           build-flavor: ${{ matrix.build-flavor }}
           bitrate: ${{ matrix.bitrate }}
           model-kind: ${{ matrix.models }}
-  test-electronjs-macOS:
-    name: "Test ElectronJS bindings on macOS"
+  test-electronjs_all-macOS:
+    name: "Test MultiArchPlatform ElectronJS bindings on macOS"
     runs-on: macos-10.15
-    needs: [ build-nodejs-macOS, train-test-model ]
+    needs: [ repackage-nodejs-allplatforms, train-test-model ]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0]
+        electronjs-version: [5.0.13, 12.0.0]
         build-flavor: ["tf", "tflite"]
-        models: ["test"]
-        bitrate: ["16k"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
     env:
       TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb

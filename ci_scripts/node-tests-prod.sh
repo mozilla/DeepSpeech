@@ -11,7 +11,6 @@ set_ldc_sample_filename "${bitrate}"
 
 model_source=${DEEPSPEECH_PROD_MODEL}
 model_name=$(basename "${model_source}")
-
 model_source_mmap=${DEEPSPEECH_PROD_MODEL_MMAP}
 model_name_mmap=$(basename "${model_source_mmap}")
 
