@@ -766,7 +766,9 @@ jobs:
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
-        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.2]
+        # Try to keep Python versions in sync with cached versions to speed things up:
+        # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.4]
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
         run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
@@ -928,7 +930,9 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.2]
+        # Try to keep Python versions in sync with cached versions to speed things up:
+        # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.4]
         build-flavor: ["tf", "tflite"]
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
