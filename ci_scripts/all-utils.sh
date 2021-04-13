@@ -24,26 +24,26 @@ set_ldc_sample_filename()
 download_model_prod()
 {
   local _model_source_file=$(basename "${model_source}")
-  ${WGET} "${model_source}" -O - | gunzip --force > "${TASKCLUSTER_TMP_DIR}/${_model_source_file}"
+  ${WGET} "${model_source}" -O - | gunzip --force > "${CI_TMP_DIR}/${_model_source_file}"
 
   local _model_source_mmap_file=$(basename "${model_source_mmap}")
-  ${WGET} "${model_source_mmap}" -O - | gunzip --force > "${TASKCLUSTER_TMP_DIR}/${_model_source_mmap_file}"
+  ${WGET} "${model_source_mmap}" -O - | gunzip --force > "${CI_TMP_DIR}/${_model_source_mmap_file}"
 }
 
 download_data()
 {
-  cp ${DS_DSDIR}/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
-  cp ${DS_DSDIR}/data/smoke_test/pruned_lm.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer
-  cp ${DS_DSDIR}/data/smoke_test/pruned_lm.bytes.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.bytes.scorer
+  cp ${DS_DSDIR}/data/smoke_test/*.wav ${CI_TMP_DIR}/
+  cp ${DS_DSDIR}/data/smoke_test/pruned_lm.scorer ${CI_TMP_DIR}/kenlm.scorer
+  cp ${DS_DSDIR}/data/smoke_test/pruned_lm.bytes.scorer ${CI_TMP_DIR}/kenlm.bytes.scorer
 
-  cp -R ${DS_DSDIR}/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
+  cp -R ${DS_DSDIR}/native_client/test ${CI_TMP_DIR}/test_sources
 }
 
 download_material()
 {
   download_data
 
-  ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav
+  ls -hal ${CI_TMP_DIR}/${model_name} ${CI_TMP_DIR}/${model_name_mmap} ${CI_TMP_DIR}/LDC93S1*.wav
 }
 
 maybe_install_xldd()
@@ -81,9 +81,9 @@ verify_bazel_rebuild()
     exit 1
   fi;
 
-  mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
+  mkdir -p ${CI_ARTIFACTS_DIR} || true
 
-  cp ${DS_DSDIR}/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
+  cp ${DS_DSDIR}/tensorflow/bazel*.log ${CI_ARTIFACTS_DIR}/
 
   spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|[for host]|unconditional execution is requested|Executing genrule //native_client:workspace_status|Compiling native_client/workspace_status.cc|Linking native_client/libdeepspeech.so' | wc -l)
   if [ "${spurious_rebuilds}" -ne 0 ]; then
@@ -95,8 +95,8 @@ verify_bazel_rebuild()
       tar xf ${DS_ROOT_TASK}/bazel-ckd-ds.tar --strip-components=4 -C ${DS_DSDIR}/ckd/tensorflow/
 
       echo "Making a diff between CKD files"
-      mkdir -p ${TASKCLUSTER_ARTIFACTS}
-      diff -urNw ${DS_DSDIR}/ckd/tensorflow/ ${DS_ROOT_TASK}/ckd/ds/ | tee ${TASKCLUSTER_ARTIFACTS}/ckd.diff
+      mkdir -p ${CI_ARTIFACTS_DIR}
+      diff -urNw ${DS_DSDIR}/ckd/tensorflow/ ${DS_ROOT_TASK}/ckd/ds/ | tee ${CI_ARTIFACTS_DIR}/ckd.diff
 
       rm -fr ${DS_DSDIR}/ckd/tensorflow/ ${DS_ROOT_TASK}/ckd/ds/
     else

@@ -26,28 +26,28 @@ if [ "${OS}" = "Linux" ]; then
     WGET=/usr/bin/wget
     TAR=tar
     XZ="pixz -9"
-elif [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    if [ -z "${TASKCLUSTER_TASK_DIR}" -o -z "${TASKCLUSTER_ARTIFACTS}" ]; then
+elif [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
+    if [ -z "${CI_TASK_DIR}" -o -z "${CI_ARTIFACTS_DIR}" ]; then
         echo "Inconsistent Windows setup: missing some vars."
-        echo "TASKCLUSTER_TASK_DIR=${TASKCLUSTER_TASK_DIR}"
-        echo "TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS}"
+        echo "CI_TASK_DIR=${CI_TASK_DIR}"
+        echo "CI_ARTIFACTS_DIR=${CI_ARTIFACTS_DIR}"
         exit 1
     fi;
 
     # Re-export with cygpath to make sure it is sane, otherwise it might trigger
     # unobvious failures with cp etc.
-    export TASKCLUSTER_TASK_DIR="$(cygpath ${TASKCLUSTER_TASK_DIR})"
-    export TASKCLUSTER_ARTIFACTS="$(cygpath ${TASKCLUSTER_ARTIFACTS})"
+    export CI_TASK_DIR="$(cygpath ${CI_TASK_DIR})"
+    export CI_ARTIFACTS_DIR="$(cygpath ${CI_ARTIFACTS_DIR})"
 
-    export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
+    export DS_ROOT_TASK=${CI_TASK_DIR}
     export BAZEL_VC='C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC'
     export BAZEL_SH='C:\builds\tc-workdir\msys64\usr\bin\bash'
     export TC_WIN_BUILD_PATH='C:\builds\tc-workdir\msys64\usr\bin;C:\Python36'
     export MSYS2_ARG_CONV_EXCL='//'
 
-    mkdir -p ${TASKCLUSTER_TASK_DIR}/tmp/
-    export TEMP=${TASKCLUSTER_TASK_DIR}/tmp/
-    export TMP=${TASKCLUSTER_TASK_DIR}/tmp/
+    mkdir -p ${CI_TASK_DIR}/tmp/
+    export TEMP=${CI_TASK_DIR}/tmp/
+    export TMP=${CI_TASK_DIR}/tmp/
 
     BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/3.1.0/bazel-3.1.0-windows-x86_64.exe
     BAZEL_SHA256=776db1f4986dacc3eda143932f00f7529f9ee65c7c1c004414c44aaa6419d0e9
@@ -59,14 +59,14 @@ elif [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
     TAR=/usr/bin/tar.exe
     XZ="xz -9 -T0"
 elif [ "${OS}" = "Darwin" ]; then
-    if [ -z "${TASKCLUSTER_TASK_DIR}" -o -z "${TASKCLUSTER_ARTIFACTS}" ]; then
+    if [ -z "${CI_TASK_DIR}" -o -z "${CI_ARTIFACTS_DIR}" ]; then
         echo "Inconsistent OSX setup: missing some vars."
-        echo "TASKCLUSTER_TASK_DIR=${TASKCLUSTER_TASK_DIR}"
-        echo "TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS}"
+        echo "CI_TASK_DIR=${CI_TASK_DIR}"
+        echo "CI_ARTIFACTS_DIR=${CI_ARTIFACTS_DIR}"
         exit 1
     fi;
 
-    export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
+    export DS_ROOT_TASK=${CI_TASK_DIR}
 
     BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/3.1.0/bazel-3.1.0-installer-darwin-x86_64.sh
     BAZEL_SHA256=5cfa97031b43432b3c742c80e2e01c41c0acdca7ba1052fc8cf1e291271bc9cd
@@ -79,7 +79,7 @@ fi;
 
 # /tmp/artifacts for docker-worker on linux,
 # and task subdir for generic-worker on osx
-export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
+export CI_ARTIFACTS_DIR=${CI_ARTIFACTS_DIR:-/tmp/artifacts}
 
 ### Define variables that needs to be exported to other processes
 
@@ -98,7 +98,7 @@ fi;
 export TF_ENABLE_XLA=0
 if [ "${OS}" = "Linux" ]; then
     TF_NEED_JEMALLOC=1
-elif [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+elif [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     TF_NEED_JEMALLOC=0
 elif [ "${OS}" = "Darwin" ]; then
     TF_NEED_JEMALLOC=0
@@ -119,7 +119,7 @@ export TF_NEED_ROCM=0
 # This should be gcc-5, hopefully. CUDA and TensorFlow might not be happy, otherwise.
 export GCC_HOST_COMPILER_PATH=/usr/bin/gcc
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     export PYTHON_BIN_PATH=C:/Python36/python.exe
 else
     if [ "${OS}" = "Linux" ]; then
@@ -145,7 +145,7 @@ fi
 # Build for generic amd64 platforms, no device-specific optimization
 # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html for targetting specific CPUs
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     OPT_FLAGS="/arch:AVX"
 else
     OPT_FLAGS="-mtune=generic -march=x86-64 -msse -msse2 -msse3 -msse4.1 -msse4.2 -mavx"
@@ -168,7 +168,7 @@ export BAZEL_OUTPUT_USER_ROOT
 NVCC_COMPUTE="3.5"
 
 ### Define build parameters/env variables that we will re-ues in sourcing scripts.
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     TF_CUDA_FLAGS="TF_CUDA_CLANG=0 TF_CUDA_VERSION=10.1 TF_CUDNN_VERSION=7.6.0 CUDNN_INSTALL_PATH=\"${CUDA_INSTALL_DIRECTORY}\" TF_CUDA_PATHS=\"${CUDA_INSTALL_DIRECTORY}\" TF_CUDA_COMPUTE_CAPABILITIES=\"${NVCC_COMPUTE}\""
 else
     TF_CUDA_FLAGS="TF_CUDA_CLANG=0 TF_CUDA_VERSION=10.1 TF_CUDNN_VERSION=7.6.0 CUDNN_INSTALL_PATH=\"${DS_ROOT_TASK}/DeepSpeech/CUDA\" TF_CUDA_PATHS=\"${DS_ROOT_TASK}/DeepSpeech/CUDA\" TF_CUDA_COMPUTE_CAPABILITIES=\"${NVCC_COMPUTE}\""
@@ -186,7 +186,7 @@ fi
 BAZEL_IOS_ARM64_FLAGS="--config=ios_arm64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
 BAZEL_IOS_X86_64_FLAGS="--config=ios_x86_64 --define=runtime=tflite --copt=-DTFLITE_WITH_RUY_GEMV"
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     # Somehow, even with Python being in the PATH, Bazel on windows struggles
     # with '/usr/bin/env python' ...
     #

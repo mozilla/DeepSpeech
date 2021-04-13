@@ -19,7 +19,7 @@ download_model_prod
 
 download_material
 
-export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
+export PATH=${CI_TMP_DIR}/ds/:$PATH
 
 check_versions
 

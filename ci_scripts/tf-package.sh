@@ -4,9 +4,9 @@ set -xe
 
 source $(dirname $0)/tf-vars.sh
 
-mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
+mkdir -p ${CI_ARTIFACTS_DIR} || true
 
-cp ${DS_ROOT_TASK}/tensorflow/bazel_*.log ${TASKCLUSTER_ARTIFACTS} || true
+cp ${DS_ROOT_TASK}/tensorflow/bazel_*.log ${CI_ARTIFACTS_DIR} || true
 
 OUTPUT_ROOT="${DS_ROOT_TASK}/tensorflow/bazel-bin"
 
@@ -19,12 +19,12 @@ for output_bin in                                                            \
     tensorflow/lite/toco/toco;
 do
     if [ -f "${OUTPUT_ROOT}/${output_bin}" ]; then
-        cp ${OUTPUT_ROOT}/${output_bin} ${TASKCLUSTER_ARTIFACTS}/
+        cp ${OUTPUT_ROOT}/${output_bin} ${CI_ARTIFACTS_DIR}/
     fi;
 done;
 
 if [ -f "${OUTPUT_ROOT}/tensorflow/lite/tools/benchmark/benchmark_model" ]; then
-    cp ${OUTPUT_ROOT}/tensorflow/lite/tools/benchmark/benchmark_model ${TASKCLUSTER_ARTIFACTS}/lite_benchmark_model
+    cp ${OUTPUT_ROOT}/tensorflow/lite/tools/benchmark/benchmark_model ${CI_ARTIFACTS_DIR}/lite_benchmark_model
 fi
 
 # It seems that bsdtar and gnutar are behaving a bit differently on the way
@@ -42,21 +42,21 @@ fi;
 #  - /Users/build-user/TaskCluster/HeavyTasks/X/ (OSX)
 #  - C:\builds\tc-workdir\ (windows)
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     export PATH=$PATH:'/c/Program Files/7-Zip/'
     pushd ${DS_ROOT_TASK}
-        7z a '-xr!.\dls\' '-xr!.\tmp\' '-xr!.\msys64\' -snl -snh -so home.tar . | 7z a -si ${TASKCLUSTER_ARTIFACTS}/home.tar.xz
+        7z a '-xr!.\dls\' '-xr!.\tmp\' '-xr!.\msys64\' -snl -snh -so home.tar . | 7z a -si ${CI_ARTIFACTS_DIR}/home.tar.xz
     popd
 else
-    ${TAR} -C ${DS_ROOT_TASK} ${TAR_EXCLUDE} -cf - . | ${XZ} > ${TASKCLUSTER_ARTIFACTS}/home.tar.xz
+    ${TAR} -C ${DS_ROOT_TASK} ${TAR_EXCLUDE} -cf - . | ${XZ} > ${CI_ARTIFACTS_DIR}/home.tar.xz
 fi
 
 if [ "${OS}" = "Linux" ]; then
     SHA_SUM_GEN="sha256sum"
-elif [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+elif [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     SHA_SUM_GEN="sha256sum"
 elif [ "${OS}" = "Darwin" ]; then
     SHA_SUM_GEN="shasum -a 256"
 fi;
 
-${SHA_SUM_GEN} ${TASKCLUSTER_ARTIFACTS}/* > ${TASKCLUSTER_ARTIFACTS}/checksums.txt
+${SHA_SUM_GEN} ${CI_ARTIFACTS_DIR}/* > ${CI_ARTIFACTS_DIR}/checksums.txt

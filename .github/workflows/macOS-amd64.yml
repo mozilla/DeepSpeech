@@ -5,8 +5,8 @@ on:
     branches:
       - master
 env:
-  TASKCLUSTER_TASK_DIR: ${{ github.workspace }}
-  TASKCLUSTER_ARTIFACTS: ${{ github.workspace }}/artifacts
+  CI_TASK_DIR: ${{ github.workspace }}
+  CI_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
   MACOSX_DEPLOYMENT_TARGET: "10.10"
 jobs:
   swig_macOS:
@@ -352,7 +352,7 @@ jobs:
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
     env:
-      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
       DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
       DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
@@ -364,17 +364,17 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: "native_client.${{ matrix.build-flavor }}.tar.xz"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
       - run: |
-          cd ${{ env.TASKCLUSTER_TMP_DIR }}
+          cd ${{ env.CI_TMP_DIR }}
           mkdir ds && cd ds && tar xf ../native_client.tar.xz
       - uses: actions/download-artifact@v2
         with:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
       - uses: ./.github/actions/run-tests
         with:
@@ -394,7 +394,7 @@ jobs:
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
     env:
-      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
       DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
       DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
@@ -409,18 +409,18 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
-          pip3 install --only-binary :all: --upgrade ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.whl
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          pip3 install --only-binary :all: --upgrade ${{ env.CI_TMP_DIR }}/deepspeech*.whl
       - uses: ./.github/actions/run-tests
         with:
           runtime: "python"
@@ -469,7 +469,7 @@ jobs:
         models: ["test"]
         bitrate: ["16k"]
     env:
-      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
       DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
       DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
@@ -484,18 +484,18 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
-          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
       - uses: ./.github/actions/run-tests
         with:
           runtime: "node"
@@ -514,7 +514,7 @@ jobs:
         models: ["test"]
         bitrate: ["16k"]
     env:
-      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
       DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
       DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
@@ -529,18 +529,18 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
-          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
       - run: |
           npm install electron@${{ matrix.electronjs-version }}
       - uses: ./.github/actions/run-tests
@@ -563,7 +563,7 @@ jobs:
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
     env:
-      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
       DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
       DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
@@ -578,18 +578,18 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: "deepspeech-${{ matrix.build-flavor }}.tgz"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
-          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
       - uses: ./.github/actions/run-tests
         with:
           runtime: "node"
@@ -608,7 +608,7 @@ jobs:
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
     env:
-      TASKCLUSTER_TMP_DIR: ${{ github.workspace }}/tmp/
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
       DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
       DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
       DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
@@ -623,18 +623,18 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: "deepspeech-${{ matrix.build-flavor }}.tgz"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
-          path: ${{ env.TASKCLUSTER_TMP_DIR }}
+          path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
+          ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
       - run: |
-          ls -hal ${{ env.TASKCLUSTER_TMP_DIR }}/
-          npm install ${{ env.TASKCLUSTER_TMP_DIR }}/deepspeech*.tgz
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
       - run: |
           npm install electron@${{ matrix.electronjs-version }}
       - uses: ./.github/actions/run-tests

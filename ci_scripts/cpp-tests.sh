@@ -11,7 +11,7 @@ set_ldc_sample_filename "${bitrate}"
 
 download_data
 
-export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
+export PATH=${CI_TMP_DIR}/ds/:$PATH
 
 check_versions
 
