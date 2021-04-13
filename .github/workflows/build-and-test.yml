@@ -254,7 +254,7 @@ jobs:
       - uses: ./.github/actions/package
       - uses: actions/upload-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.macOS.tar.xz"
           path: ${{ github.workspace }}/artifacts/native_client.tar.xz
       - uses: actions/upload-artifact@v2
         with:
@@ -274,7 +274,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/download-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.macOS.tar.xz"
           path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
       - run: |
           cd ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
@@ -308,7 +308,7 @@ jobs:
           numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
       - uses: actions/upload-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-macOS.whl"
           path: ${{ github.workspace }}/wheels/*.whl
   build-nodejs-macOS:
     name: "Build NodeJS and ElectronJS for macOS"
@@ -323,7 +323,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/download-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.macOS.tar.xz"
           path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
       - run: |
           cd ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
@@ -362,7 +362,7 @@ jobs:
           path: ${{ github.workspace }}/native_client/javascript/wrapper.tar.gz
       - uses: actions/upload-artifact@v2
         with:
-          name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-macOS.tgz"
           path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
   test-cpp-macOS:
     name: "Test C++ binary on macOS"
@@ -386,7 +386,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/download-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.macOS.tar.xz"
           path: ${{ env.CI_TMP_DIR }}
       - run: |
           cd ${{ env.CI_TMP_DIR }}
@@ -431,7 +431,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: actions/download-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-macOS.whl"
           path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
@@ -477,7 +477,7 @@ jobs:
           node-version: ${{ matrix.nodejs-version }}
       - uses: actions/download-artifact@v2
         with:
-          name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-macOS.tgz"
           path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
@@ -530,7 +530,7 @@ jobs:
           node-version: 12
       - uses: actions/download-artifact@v2
         with:
-          name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-macOS.tgz"
           path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
@@ -753,7 +753,7 @@ jobs:
       - run: ./ci_scripts/package.sh
       - uses: actions/upload-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.Windows.tar.xz"
           path: ${{ github.workspace }}/artifacts/native_client.tar.xz
       - uses: actions/upload-artifact@v2
         with:
@@ -783,7 +783,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/download-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.Windows.tar.xz"
           path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
       - run: |
           pushd tensorflow/bazel-bin/native_client/
@@ -817,7 +817,7 @@ jobs:
           numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
       - uses: actions/upload-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-Windows.whl"
           path: ${{ github.workspace }}/wheels/*.whl
   build-nodejs-Windows:
     name: "Build NodeJS/ElectronJS for Windows"
@@ -842,7 +842,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/download-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.Windows.tar.xz"
           path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
       - run: |
           pushd tensorflow/bazel-bin/native_client/
@@ -872,7 +872,7 @@ jobs:
           path: ${{ github.workspace }}/native_client/javascript/wrapper.tar.gz
       - uses: actions/upload-artifact@v2
         with:
-          name: "deepspeech_intermediate-${{ matrix.build-flavor }}.tgz"
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-Windows.tgz"
           path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
   test-cpp-Windows:
     name: "Test C++ binary on Windows"
@@ -900,7 +900,7 @@ jobs:
       - name: Download native_client.tar.xz
         uses: actions/download-artifact@v2
         with:
-          name: "native_client.${{ matrix.build-flavor }}.tar.xz"
+          name: "native_client.${{ matrix.build-flavor }}.Windows.tar.xz"
           path: ${{ env.CI_TMP_DIR }}
       - name: Extract native_client.tar.xz
         run: |
@@ -957,7 +957,7 @@ jobs:
       - uses: ./.github/actions/win-install-sox
       - uses: actions/download-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}.whl"
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-Windows.whl"
           path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
@@ -1012,7 +1012,7 @@ jobs:
       - uses: ./.github/actions/win-install-sox
       - uses: actions/download-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-Windows.tgz"
           path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
@@ -1068,7 +1068,7 @@ jobs:
       - uses: ./.github/actions/win-install-sox
       - uses: actions/download-artifact@v2
         with:
-          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-Windows.tgz"
           path: ${{ env.CI_TMP_DIR }}
       - uses: actions/download-artifact@v2
         with:
