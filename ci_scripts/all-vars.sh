@@ -9,9 +9,9 @@ if [ "${OS}" = "Linux" ]; then
     export DS_CPU_COUNT=$(nproc)
 fi;
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
-    export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
-    export PYENV_ROOT="${TASKCLUSTER_TASK_DIR}/pyenv-root"
+if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
+    export DS_ROOT_TASK=${CI_TASK_DIR}
+    export PYENV_ROOT="${CI_TASK_DIR}/pyenv-root"
     export PLATFORM_EXE_SUFFIX=.exe
     export DS_CPU_COUNT=$(nproc)
 
@@ -20,15 +20,15 @@ if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
 fi;
 
 if [ "${OS}" = "Darwin" ]; then
-    export DS_ROOT_TASK=${TASKCLUSTER_TASK_DIR}
+    export DS_ROOT_TASK=${CI_TASK_DIR}
     export DS_CPU_COUNT=$(sysctl hw.ncpu |cut -d' ' -f2)
     export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
 
     export HOMEBREW_NO_AUTO_UPDATE=1
     export BREW_URL=https://github.com/Homebrew/brew/tarball/2.2.17
 
-    export BUILDS_BREW="${TASKCLUSTER_TASK_DIR}/homebrew-builds"
-    export TESTS_BREW="${TASKCLUSTER_TASK_DIR}/homebrew-tests"
+    export BUILDS_BREW="${CI_TASK_DIR}/homebrew-builds"
+    export TESTS_BREW="${CI_TASK_DIR}/homebrew-tests"
 
     export NVM_DIR=$TESTS_BREW/.nvm/ && mkdir -p $NVM_DIR
     export PKG_CONFIG_PATH="${BUILDS_BREW}/lib/pkgconfig"
@@ -42,12 +42,12 @@ if [ "${OS}" = "Darwin" ]; then
     fi;
 fi;
 
-export TASKCLUSTER_ARTIFACTS=${TASKCLUSTER_ARTIFACTS:-/tmp/artifacts}
-export TASKCLUSTER_TMP_DIR=${TASKCLUSTER_TMP_DIR:-/tmp}
+export CI_ARTIFACTS_DIR=${CI_ARTIFACTS_DIR:-/tmp/artifacts}
+export CI_TMP_DIR=${CI_TMP_DIR:-/tmp}
 
 export ANDROID_TMP_DIR=/data/local/tmp
 
-mkdir -p ${TASKCLUSTER_TMP_DIR} || true
+mkdir -p ${CI_TMP_DIR} || true
 
 export DS_TFDIR=${DS_ROOT_TASK}/tensorflow
 export DS_DSDIR=${DS_ROOT_TASK}/
@@ -70,7 +70,7 @@ if [ "${OS}" = "Darwin" ]; then
   TAR="gtar"
 fi
 
-if [ "${OS}" = "${TC_MSYS_VERSION}" ]; then
+if [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
   WGET=/usr/bin/wget.exe
   TAR=/usr/bin/tar.exe
   XZ="xz -9 -T0 -c -"

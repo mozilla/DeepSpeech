@@ -13,13 +13,13 @@ model_source=${DEEPSPEECH_PROD_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
 model_name_mmap=$(basename "${model_source}")
 model_source_mmap=${DEEPSPEECH_PROD_MODEL_MMAP//.pbmm/.tflite}
-export DATA_TMP_DIR=${TASKCLUSTER_TMP_DIR}
+export DATA_TMP_DIR=${CI_TMP_DIR}
 
 download_model_prod
 
-download_material "${TASKCLUSTER_TMP_DIR}/ds"
+download_material "${CI_TMP_DIR}/ds"
 
-export PATH=${TASKCLUSTER_TMP_DIR}/ds/:$PATH
+export PATH=${CI_TMP_DIR}/ds/:$PATH
 
 check_versions
 
