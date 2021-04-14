@@ -20,6 +20,38 @@ defaults:
   run:
     shell: bash
 jobs:
+  # Linux jobs
+  swig_Windows_crosscompiled:
+    name: "Lin|Build SWIG for Windows"
+    runs-on: ubuntu-20.04
+    env:
+      CFLAGS: "-static-libgcc -static-libstdc++"
+      CXXFLAGS: "-static-libgcc -static-libstdc++"
+    steps:
+      - run: |
+          sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential mingw-w64
+      - uses: actions/checkout@v2
+        with:
+          repository: "lissyx/swig"
+          ref: "fec7d5d3179833e37759ffc6532f86344982e26a"
+      - run: |
+          mkdir -p build-static/
+      - run: |
+          curl -sSL https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz > pcre-8.43.tar.gz
+          ./Tools/pcre-build.sh --host=x86_64-w64-mingw32
+      - run: |
+          sh autogen.sh
+          ./configure --host=x86_64-w64-mingw32 \
+            --prefix=`pwd`/build-static/ \
+            --program-prefix=ds-
+      - run: |
+          make -j
+      - run: |
+          make install
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.job }}
+          path: ${{ github.workspace }}/build-static/
   # macOS jobs
   swig_macOS:
     name: "Mac|Build SWIG"
@@ -600,7 +632,7 @@ jobs:
           path: ${{ github.workspace }}/build-static/
   build-ctc-decoder-windows:
     name: "Win|Build CTC decoder Python package for testing"
-    needs: [swig_Windows]
+    needs: [swig_Windows_crosscompiled]
     runs-on: windows-2019
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
@@ -625,7 +657,7 @@ jobs:
           python -m pip --version
       - uses: actions/download-artifact@v2
         with:
-          name: "swig_Windows"
+          name: "swig_Windows_crosscompiled"
           path: ${{ github.workspace }}/native_client/ds-swig/
       - name: Link ds-swig into swig
         run: |
@@ -764,7 +796,7 @@ jobs:
   build-python-Windows:
     name: "Win|Build Python bindings"
     runs-on: windows-2019
-    needs: [build-lib_Windows, swig_Windows]
+    needs: [build-lib_Windows, swig_Windows_crosscompiled]
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
@@ -796,7 +828,7 @@ jobs:
           popd
       - uses: actions/download-artifact@v2
         with:
-          name: "swig_Windows"
+          name: "swig_Windows_crosscompiled"
           path: ${{ github.workspace }}/native_client/ds-swig/
       - name: Link ds-swig into swig
         run: |
@@ -826,7 +858,7 @@ jobs:
   build-nodejs-Windows:
     name: "Win|Build NodeJS/ElectronJS"
     runs-on: windows-2019
-    needs: [build-lib_Windows, swig_Windows]
+    needs: [build-lib_Windows, swig_Windows_crosscompiled]
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
@@ -855,7 +887,7 @@ jobs:
           popd
       - uses: actions/download-artifact@v2
         with:
-          name: "swig_Windows"
+          name: "swig_Windows_crosscompiled"
           path: ${{ github.workspace }}/native_client/ds-swig/
       - name: Link ds-swig into swig
         run: |
