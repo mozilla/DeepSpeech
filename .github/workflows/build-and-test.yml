@@ -579,11 +579,13 @@ jobs:
             pcre-devel
       - uses: actions/checkout@v2
         with:
-          repository: "swig/swig"
-          ref: "90cdbee6a69d13b39d734083b9f91069533b0d7b"
+          repository: "lissyx/swig"
+          ref: "fec7d5d3179833e37759ffc6532f86344982e26a"
       - run: |
           mkdir -p build-static/
       - run: |
+          export CFLAGS="-static-libgcc -static-libstdc++"
+          export CXXFLAGS="-static-libgcc -static-libstdc++"
           sh autogen.sh
           ./configure \
             --prefix=`pwd`/build-static/ \
