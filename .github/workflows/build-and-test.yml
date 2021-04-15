@@ -1308,6 +1308,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.nodejs-version }}
+      - uses: ./.github/actions/win-install-sox
       - uses: actions/download-artifact@v2
         with:
           name: "deepspeech-${{ matrix.build-flavor }}.tgz"
@@ -1363,6 +1364,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 12
+      - uses: ./.github/actions/win-install-sox
       - uses: actions/download-artifact@v2
         with:
           name: "deepspeech-${{ matrix.build-flavor }}.tgz"
