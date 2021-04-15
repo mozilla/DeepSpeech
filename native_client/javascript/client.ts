@@ -115,7 +115,6 @@ let conversionStream = bufferToStream(buffer).
 
 if (!args['stream']) {
   let audioStream = new MemoryStream();
-  conversionStream.pipe(audioStream);
   audioStream.on('finish', () => {
     let audioBuffer = audioStream.toBuffer();
 
@@ -134,9 +133,12 @@ if (!args['stream']) {
     // sphinx-doc: js_ref_inference_stop
     const inference_stop = process.hrtime(inference_start);
     console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
+  });
+  audioStream.on('close', () => {
     Ds.FreeModel(model);
     process.exit(0);
   });
+  conversionStream.pipe(audioStream);
 } else {
   let stream  = model.createStream();
   conversionStream.on('data', (chunk: Buffer) => {
