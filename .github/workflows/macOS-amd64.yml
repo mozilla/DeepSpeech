@@ -7,6 +7,7 @@ on:
 env:
   CI_TASK_DIR: ${{ github.workspace }}
   CI_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
+  CI_NODE_MODULES_NTH: 1
   MACOSX_DEPLOYMENT_TARGET: "10.10"
 jobs:
   swig_macOS:
@@ -329,6 +330,16 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 12
+      - uses: actions/cache@v2
+        id: node-headers-cache
+        with:
+          path: native_client/javascript/headers/nodejs/
+          key: node-headers-10.0.0_15.0.0
+      - uses: actions/cache@v2
+        id: electron-headers-cache
+        with:
+          path: native_client/javascript/headers/electronjs/
+          key: electron-headers-5.0.13_12.0.0
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
@@ -493,9 +504,16 @@ jobs:
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
+      - uses: actions/cache@v2
+        id: node-modules-cache
+        with:
+          path: ~/.npm/
+          key: node-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
-          npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+          npm install --verbose ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+      - run: |
+          ls -hal node_modules/deepspeech* node_modules/.bin/
       - uses: ./.github/actions/run-tests
         with:
           runtime: "node"
@@ -538,6 +556,11 @@ jobs:
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
+      - uses: actions/cache@v2
+        id: electron-modules-cache
+        with:
+          path: ~/.npm/
+          key: electron-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
           npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
@@ -587,9 +610,16 @@ jobs:
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
+      - uses: actions/cache@v2
+        id: node-modules-cache
+        with:
+          path: ~/.npm/
+          key: node-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
-          npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+          npm install --verbose ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+      - run: |
+          ls -hal node_modules/deepspeech* node_modules/.bin/
       - uses: ./.github/actions/run-tests
         with:
           runtime: "node"
@@ -632,6 +662,11 @@ jobs:
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
+      - uses: actions/cache@v2
+        id: electron-modules-cache
+        with:
+          path: ~/.npm/
+          key: electron-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
           npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz

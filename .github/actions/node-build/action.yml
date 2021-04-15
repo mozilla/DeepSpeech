@@ -39,7 +39,7 @@ runs:
           EXTRA_LIBS=${{ inputs.local_libs }} \
             make -C native_client/javascript \
               NODE_ABI_TARGET=--target=${node} \
-              NODE_DEVDIR=--devdir=tmp/headers/nodejs/${node} \
+              NODE_DEVDIR=--devdir=headers/nodejs \
             clean node-wrapper
         done;
       shell: bash
@@ -52,7 +52,7 @@ runs:
               NODE_ABI_TARGET=--target=${electron} \
               NODE_DIST_URL=--disturl=https://electronjs.org/headers \
               NODE_RUNTIME=--runtime=electron \
-              NODE_DEVDIR=--devdir=tmp/headers/electronjs/${electron} \
+              NODE_DEVDIR=--devdir=headers/electronjs \
             clean node-wrapper
         done;
       shell: bash
