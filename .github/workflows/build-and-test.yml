@@ -873,6 +873,7 @@ jobs:
           install: >-
             make
             tar
+      - uses: mozilla/msvc-dev-cmd@v1
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
@@ -943,6 +944,7 @@ jobs:
           mkdir -p ${{ env.CI_TMP_DIR }}/ds
           pushd ${{ env.CI_TMP_DIR }}/ds
           "C:/Program Files/7-Zip/7z.exe" x ../native_client.tar.xz -so | "C:/Program Files/7-Zip/7z.exe" x -aoa -si -ttar -o`pwd`
+          ls -hal
           popd
       - name: Download trained test model
         uses: actions/download-artifact@v2
