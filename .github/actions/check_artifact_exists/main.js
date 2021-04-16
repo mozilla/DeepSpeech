@@ -4,6 +4,8 @@ const AdmZip = require('adm-zip');
 const filesize = require('filesize');
 const pathname = require('path');
 const fs = require('fs');
+const { throttling } = require('@octokit/plugin-throttling');
+const { GitHub } = require('@actions/github/lib/utils');
 
 async function getGoodArtifacts(client, owner, repo, name) {
     const goodWorkflowArtifacts = await client.paginate(
@@ -57,8 +59,29 @@ async function main() {
     const path = core.getInput("path", { required: true });
     const name = core.getInput("name");
     const download = core.getInput("download");
-    const client = github.getOctokit(token)
+    const OctokitWithThrottling = GitHub.plugin(throttling);
+    const client = new OctokitWithThrottling({
+        auth: token,
+        throttle: {
+            onRateLimit: (retryAfter, options) => {
+                console.log(
+                    `Request quota exhausted for request ${options.method} ${options.url}`
+                );
 
+                // Retry twice after hitting a rate limit error, then give up
+                if (options.request.retryCount <= 2) {
+                    console.log(`Retrying after ${retryAfter} seconds!`);
+                    return true;
+                }
+            },
+            onAbuseLimit: (retryAfter, options) => {
+                // does not retry, only logs a warning
+                console.log(
+                    `Abuse detected for request ${options.method} ${options.url}`
+                );
+            },
+        },
+    });
     console.log("==> Repo:", owner + "/" + repo);
 
     const goodArtifacts = await getGoodArtifacts(client, owner, repo, name);
@@ -116,4 +139,11 @@ async function main() {
     return;
 }
 
-main();
+// We have to manually wrap the main function with a try-catch here because
+// GitHub will ignore uncatched exceptions and continue running the workflow,
+// leading to harder to diagnose errors downstream from this action.
+try {
+    main();
+} catch (error) {
+    core.setFailed(error.message);
+}

@@ -3,7 +3,10 @@
 set -xe
 
 strip() {
-  echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
+  # We strip leading carriage return due to ElectronJS on Windows producing stray
+  # characters before its output intermittently.
+  # Then we strip leading and trailing whitespace.
+  echo "$(echo $1 | tr -d $'\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
 }
 
 # This verify exact inference result
@@ -220,6 +223,17 @@ assert_correct_ldc93s1_prodmodel()
   fi;
 }
 
+assert_working_ldc93s1_prodmodel()
+{
+  if [ -z "$3" -o "$3" = "16k" ]; then
+    assert_working_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
+  fi
+
+  if [ "$3" = "8k" ]; then
+    assert_working_inference "$1" "she had to do suit in greasy wash water all year" "$2"
+  fi
+}
+
 assert_correct_ldc93s1_prodtflitemodel()
 {
   if [ -z "$3" -o "$3" = "16k" ]; then
@@ -231,14 +245,35 @@ assert_correct_ldc93s1_prodtflitemodel()
   fi;
 }
 
+assert_working_ldc93s1_prodtflitemodel()
+{
+  if [ -z "$3" -o "$3" = "16k" ]; then
+    assert_working_inference "$1" "she had her dark suit in greasy wash water all year" "$2"
+  fi;
+
+  if [ "$3" = "8k" ]; then
+    assert_working_inference "$1" "she had to do so and greasy wash water all year" "$2"
+  fi;
+}
+
 assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
 }
 
+assert_working_ldc93s1_prodmodel_stereo_44k()
+{
+  assert_working_inference "$1" "she had your dark suit in greasy wash water all year" "$2"
+}
+
 assert_correct_ldc93s1_prodtflitemodel_stereo_44k()
 {
   assert_correct_inference "$1" "she had her dark suit in greasy wash water all year" "$2"
+}
+
+assert_working_ldc93s1_prodtflitemodel_stereo_44k()
+{
+  assert_working_inference "$1" "she had her dark suit in greasy wash water all year" "$2"
 }
 
 assert_correct_warning_upsampling()
@@ -478,6 +513,31 @@ run_prod_inference_tests()
   fi;
 }
 
+# Equivalent to run_prod_inference_tests but we use assert_working* instead of assert_correct
+# ElectronJS mixes stdout and stderr and exact matching is broken
+run_electronjs_prod_inference_tests()
+{
+  local _bitrate=$1
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${CI_TMP_DIR}/${model_name} --scorer ${CI_TMP_DIR}/kenlm.scorer --audio ${CI_TMP_DIR}/${ldc93s1_sample_filename} 2>${CI_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_working_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${CI_TMP_DIR}/${model_name_mmap} --scorer ${CI_TMP_DIR}/kenlm.scorer --audio ${CI_TMP_DIR}/${ldc93s1_sample_filename} 2>${CI_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_working_ldc93s1_prodmodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
+
+  set +e
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${CI_TMP_DIR}/${model_name_mmap} --scorer ${CI_TMP_DIR}/kenlm.scorer --audio ${CI_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${CI_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_working_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
+}
+
 run_prodtflite_inference_tests()
 {
   local _bitrate=$1
@@ -507,6 +567,31 @@ run_prodtflite_inference_tests()
     set -e
     assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
   fi;
+}
+
+# Equivalent to run_prodtflite_inference_tests but we use assert_working* instead of assert_correct
+# ElectronJS mixes stdout and stderr and exact matching is broken
+run_electronjs_prodtflite_inference_tests()
+{
+  local _bitrate=$1
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${CI_TMP_DIR}/${model_name} --scorer ${CI_TMP_DIR}/kenlm.scorer --audio ${CI_TMP_DIR}/${ldc93s1_sample_filename} 2>${CI_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_working_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
+
+  set +e
+  phrase_pbmodel_withlm=$(deepspeech --model ${CI_TMP_DIR}/${model_name_mmap} --scorer ${CI_TMP_DIR}/kenlm.scorer --audio ${CI_TMP_DIR}/${ldc93s1_sample_filename} 2>${CI_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_working_ldc93s1_prodtflitemodel "${phrase_pbmodel_withlm}" "$status" "${_bitrate}"
+
+  set +e
+  phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${CI_TMP_DIR}/${model_name_mmap} --scorer ${CI_TMP_DIR}/kenlm.scorer --audio ${CI_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav 2>${CI_TMP_DIR}/stderr)
+  status=$?
+  set -e
+  assert_working_ldc93s1_prodtflitemodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}" "$status"
 }
 
 run_multi_inference_tests()

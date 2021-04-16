@@ -16,6 +16,7 @@ runs:
   steps:
     - id: numpy
       run: |
+        set -ex
         NUMPY_BUILD_VERSION="==1.7.0"
         NUMPY_DEP_VERSION=">=1.7.0"
 
@@ -61,8 +62,7 @@ runs:
                 esac
             ;;
 
-            # TODO: 'Windows*' might not be good
-            Windows*:x86_64)
+            ${CI_MSYS_VERSION}:x86_64)
                 case "${{ inputs.pyver }}" in
                     3.5*)
                         NUMPY_BUILD_VERSION="==1.11.0"

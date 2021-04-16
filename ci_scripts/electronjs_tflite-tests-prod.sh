@@ -34,4 +34,4 @@ deepspeech --version
 
 check_runtime_electronjs
 
-run_prodtflite_inference_tests "${bitrate}"
+run_electronjs_prodtflite_inference_tests "${bitrate}"

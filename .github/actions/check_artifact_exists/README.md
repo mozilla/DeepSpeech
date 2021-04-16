@@ -35,3 +35,9 @@ Hacking:
 For hacking into the action, please follow the [GitHub JavaScript
 Actions](https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action#commit-tag-and-push-your-action-to-github)
 and specifically the usage of `ncc`.
+
+```
+$ npm install
+$ npx ncc build main.js --license licenses.txt
+$ git add dist/
+```

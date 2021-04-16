@@ -55,7 +55,7 @@ PYTHON_PLATFORM_NAME ?= --plat-name manylinux1_x86_64
 endif
 endif
 
-ifeq ($(TARGET),host-win)
+ifeq ($(findstring _NT,$(OS)),_NT)
 TOOLCHAIN := '$(VCToolsInstallDir)\bin\Hostx64\x64\'
 TOOL_CC     := cl.exe
 TOOL_CXX    := cl.exe
@@ -181,7 +181,7 @@ define copy_missing_libs
         if [ "$(OS)" = "Darwin" ]; then \
             new_missing="$$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 | xargs basename -a)"; \
             missing_libs="$$missing_libs $$new_missing"; \
-	elif [ "$(OS)" = "${TC_MSYS_VERSION}" ]; then \
+    elif [ "$(OS)" = "${CI_MSYS_VERSION}" ]; then \
             missing_libs="libdeepspeech.so"; \
         else \
             missing_libs="$$missing_libs $$($(LDD) $$lib | grep 'not found' | awk '{ print $$1 }')"; \
