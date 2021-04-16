@@ -899,6 +899,16 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 12
+      - uses: actions/cache@v2
+        id: node-headers-cache
+        with:
+          path: native_client/javascript/headers/nodejs/
+          key: node-headers-win-10.0.0_15.0.0
+      - uses: actions/cache@v2
+        id: electron-headers-cache
+        with:
+          path: native_client/javascript/headers/electronjs/
+          key: electron-headers-win-5.0.13_12.0.0
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
@@ -1059,6 +1069,15 @@ jobs:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
           path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        id: node-modules-cache
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: node-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
@@ -1118,6 +1137,15 @@ jobs:
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        id: electron-modules-cache
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: electron-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - name: Install deepspeech package
         run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
@@ -1320,6 +1348,15 @@ jobs:
           name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
           path: ${{ env.CI_TMP_DIR }}
         if: matrix.models == 'test'
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        id: node-modules-cache
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: node-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
@@ -1379,6 +1416,15 @@ jobs:
       - run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
         if: matrix.models == 'test'
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        id: electron-modules-cache
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: electron-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
       - name: Install deepspeech package
         run: |
           ls -hal ${{ env.CI_TMP_DIR }}/
