@@ -26,7 +26,7 @@ package_native_client()
     win_lib="-C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so.if.lib"
   fi;
 
-  ${TAR} -cf - \
+  ${TAR} --verbose -cf - \
     -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
     ${win_lib} \
     -C ${tensorflow_dir}/bazel-bin/native_client/ generate_scorer_package \
@@ -60,7 +60,7 @@ package_native_client_ndk()
     echo "Please specify arch abi."
   fi;
 
-  ${TAR} -cf - \
+  ${TAR} --verbose -cf - \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ deepspeech \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libdeepspeech.so \
     -C ${tensorflow_dir}/bazel-bin/native_client/ generate_scorer_package \
