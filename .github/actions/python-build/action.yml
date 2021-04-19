@@ -22,12 +22,22 @@ inputs:
     description: "LIBS for Python package"
     required: false
     default: ""
+  target:
+    description: "TARGET value"
+    required: false
+    default: "host"
+  chroot:
+    description: "RASPBIAN value"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
     - run: |
         python3 --version
         pip3 --version
+        python3 -m pip install virtualenv
+        python3 -m virtualenv deepspeech-build
       shell: bash
     - run: |
         mkdir -p wheels
@@ -38,14 +48,20 @@ runs:
           PROJECT_NAME="deepspeech-tflite"
         fi
 
+        source deepspeech-build/bin/activate
+
         NUMPY_BUILD_VERSION="${{ inputs.numpy_build }}" \
         NUMPY_DEP_VERSION="${{ inputs.numpy_dep }}" \
         EXTRA_CFLAGS=${{ inputs.local_cflags }} \
         EXTRA_LDFLAGS=${{ inputs.local_ldflags }} \
         EXTRA_LIBS=${{ inputs.local_libs }} \
           make -C native_client/python/ \
+            TARGET=${{ inputs.target }} \
+            RASPBIAN=${{ inputs.chroot }} \
             SETUP_FLAGS="--project_name ${PROJECT_NAME}" \
             bindings-clean bindings
+
+        deactivate
       shell: bash
     - run: |
         cp native_client/python/dist/*.whl wheels

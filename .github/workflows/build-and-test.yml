@@ -1,9 +1,9 @@
 name: "Builds and tests"
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+##on:
+##  pull_request:
+##  push:
+##    branches:
+##      - master
 env:
   # Shared variables
   CI_TASK_DIR: ${{ github.workspace }}
@@ -32,8 +32,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential mingw-w64
       - uses: actions/checkout@v2
         with:
-          repository: "lissyx/swig"
-          ref: "fec7d5d3179833e37759ffc6532f86344982e26a"
+          repository: "swig/swig"
+          ref: "90cdbee6a69d13b39d734083b9f91069533b0d7b"
       - run: |
           mkdir -p build-static/
       - run: |

@@ -1,9 +1,9 @@
 name: "Docker Images"
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+##on:
+##  pull_request:
+##  push:
+##    branches:
+##      - master
 jobs:
   make-docker-img:
     name: "Build Dockerfile"

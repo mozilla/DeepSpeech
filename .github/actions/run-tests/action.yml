@@ -13,10 +13,15 @@ inputs:
   bitrate:
     description: "Bitrate for testing"
     required: true
+  chroot:
+    description: "Run using a chroot"
+    required: false
 runs:
   using: "composite"
   steps:
     - run: |
+        set -xe
+
         build=""
         if [ "${{ inputs.build-flavor }}" = "tflite" ]; then
           build="_tflite"
@@ -27,5 +32,10 @@ runs:
           model_kind="-prod"
         fi
 
-        ./ci_scripts/${{ inputs.runtime }}${build}-tests${model_kind}.sh ${{ inputs.bitrate }}
+        prefix="."
+        if [ ! -z "${{ inputs.chroot }}" ]; then
+          prefix="${{ inputs.chroot }}"
+        fi
+
+        ${prefix}/ci_scripts/${{ inputs.runtime }}${build}-tests${model_kind}.sh ${{ inputs.bitrate }}
       shell: bash
