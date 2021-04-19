@@ -15,7 +15,8 @@ model_name_mmap=$(basename "${model_source}")
 
 download_data
 
-which deepspeech
+export_py_bin_path
+
 deepspeech --version
 
 run_all_inference_tests

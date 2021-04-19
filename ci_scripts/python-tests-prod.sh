@@ -19,7 +19,8 @@ download_model_prod
 
 download_material
 
-which deepspeech
+export_py_bin_path
+
 deepspeech --version
 
 run_prod_inference_tests "${bitrate}"

@@ -22,10 +22,7 @@ if [ "${OS}" = "Linux" ]; then
     ANDROID_SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
     ANDROID_SDK_SHA256=92ffee5a1d98d856634e8b71132e8a95d96c83a63fde1099be3d86df3106def9
 
-    SHA_SUM="sha256sum -c --strict"
     WGET=/usr/bin/wget
-    TAR=tar
-    XZ="pixz -9"
 elif [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
     if [ -z "${CI_TASK_DIR}" -o -z "${CI_ARTIFACTS_DIR}" ]; then
         echo "Inconsistent Windows setup: missing some vars."
@@ -53,10 +50,7 @@ elif [ "${OS}" = "${CI_MSYS_VERSION}" ]; then
 
     CUDA_INSTALL_DIRECTORY=$(cygpath 'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1')
 
-    SHA_SUM="sha256sum -c --strict"
-    WGET=wget
     TAR=/usr/bin/tar.exe
-    XZ="xz -9 -T0"
 elif [ "${OS}" = "Darwin" ]; then
     if [ -z "${CI_TASK_DIR}" -o -z "${CI_ARTIFACTS_DIR}" ]; then
         echo "Inconsistent OSX setup: missing some vars."
@@ -71,10 +65,16 @@ elif [ "${OS}" = "Darwin" ]; then
     BAZEL_SHA256=5cfa97031b43432b3c742c80e2e01c41c0acdca7ba1052fc8cf1e291271bc9cd
 
     SHA_SUM="shasum -a 256 -c"
-    WGET=wget
     TAR=gtar
-    XZ="xz -9 -T0"
 fi;
+
+WGET=${WGET:-"wget"}
+TAR=${TAR:-"tar"}
+XZ=${XZ:-"xz -9 -T0"}
+ZIP=${ZIP:-"zip"}
+UNXZ=${UNXZ:-"xz -T0 -d"}
+UNGZ=${UNGZ:-"gunzip"}
+SHA_SUM=${SHA_SUM:-"sha256sum -c --strict"}
 
 # /tmp/artifacts for docker-worker on linux,
 # and task subdir for generic-worker on osx
