@@ -25,29 +25,43 @@ jobs:
     name: "Lin|Build SWIG for Windows"
     runs-on: ubuntu-20.04
     env:
-      CFLAGS: "-static-libgcc -static-libstdc++"
-      CXXFLAGS: "-static-libgcc -static-libstdc++"
+      swig_hash: "90cdbee6a69d13b39d734083b9f91069533b0d7b"
     steps:
-      - run: |
-          sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential mingw-w64
       - uses: actions/checkout@v2
         with:
-          repository: "lissyx/swig"
-          ref: "fec7d5d3179833e37759ffc6532f86344982e26a"
+          repository: "swig/swig"
+          ref: ${{ env.swig_hash }}
       - run: |
           mkdir -p build-static/
+      - uses: actions/cache@v2
+        id: swig-build-cache
+        with:
+          path: build-static/
+          key: swig-win-3-${{ env.swig_hash }}
+      - run: |
+          sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential mingw-w64
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           curl -sSL https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz > pcre-8.43.tar.gz
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
+      - run: |
           ./Tools/pcre-build.sh --host=x86_64-w64-mingw32
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           sh autogen.sh
-          ./configure --host=x86_64-w64-mingw32 \
+          CFLAGS="-static-libgcc -static-libstdc++" \
+          CXXFLAGS="-static-libgcc -static-libstdc++" \
+          ./configure \
+            --host=x86_64-w64-mingw32 \
             --prefix=`pwd`/build-static/ \
             --program-prefix=ds-
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           make -j
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           make install
+        if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ github.job }}
