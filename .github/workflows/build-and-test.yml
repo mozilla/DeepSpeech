@@ -605,45 +605,6 @@ jobs:
           model-kind: ${{ matrix.models }}
         timeout-minutes: 5
   # Windows jobs
-  swig_Windows:
-    name: "Win|Build SWIG"
-    runs-on: windows-2019
-    steps:
-      - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
-        run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
-      - uses: mozilla/setup-msys2@v2
-        with:
-          msystem: MSYS
-          update: true
-          install: >-
-            autoconf
-            automake
-            bison
-            gcc
-            git
-            make
-            pcre-devel
-      - uses: actions/checkout@v2
-        with:
-          repository: "lissyx/swig"
-          ref: "fec7d5d3179833e37759ffc6532f86344982e26a"
-      - run: |
-          mkdir -p build-static/
-      - run: |
-          export CFLAGS="-static-libgcc -static-libstdc++"
-          export CXXFLAGS="-static-libgcc -static-libstdc++"
-          sh autogen.sh
-          ./configure \
-            --prefix=`pwd`/build-static/ \
-            --program-prefix=ds-
-      - run: |
-          make -j
-      - run: |
-          make install
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ github.job }}
-          path: ${{ github.workspace }}/build-static/
   build-ctc-decoder-windows:
     name: "Win|Build CTC decoder Python package for testing"
     needs: [swig_Windows_crosscompiled]
