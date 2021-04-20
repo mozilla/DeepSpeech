@@ -4,7 +4,7 @@ set -ex
 
 export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
-    export DS_ROOT_TASK=$(/usr/bin/realpath "${HOME}")
+    export DS_ROOT_TASK=${CI_TASK_DIR}
 
     BAZEL_URL=https://github.com/bazelbuild/bazel/releases/download/3.1.0/bazel-3.1.0-installer-linux-x86_64.sh
     BAZEL_SHA256=7ba815cbac712d061fe728fef958651512ff394b2708e89f79586ec93d1185ed

@@ -4,7 +4,7 @@ set -xe
 
 export OS=$(uname)
 if [ "${OS}" = "Linux" ]; then
-    export DS_ROOT_TASK=${HOME}
+    export DS_ROOT_TASK=${CI_TASK_DIR}
     export PYENV_ROOT="${DS_ROOT_TASK}/pyenv-root"
     export DS_CPU_COUNT=$(nproc)
 fi;
