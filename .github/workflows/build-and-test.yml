@@ -606,7 +606,7 @@ jobs:
         timeout-minutes: 5
   # Windows jobs
   build-ctc-decoder-windows:
-    name: "Win|Build CTC decoder Python package for testing"
+    name: "Win|Build CTC decoder Python package"
     needs: [swig_Windows_crosscompiled]
     runs-on: windows-2019
     steps:
