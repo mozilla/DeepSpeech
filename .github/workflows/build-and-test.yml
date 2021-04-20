@@ -1675,7 +1675,7 @@ jobs:
   repackage-nodejs-allplatforms:
     name: "Repackage NodeJS / ElectronJS for multiplatforms"
     runs-on: ubuntu-20.04
-    needs: [build-nodejs-macOS, build-nodejs-Windows]
+    needs: [build-nodejs-macOS, build-nodejs-Windows, build-nodejs-Linux]
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
@@ -1694,10 +1694,15 @@ jobs:
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-Windows_amd64.tar.gz"
           path: /tmp/nodewrapper-Windows_amd64/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "nodewrapper-${{ matrix.build-flavor }}-Linux_amd64.tar.gz"
+          path: /tmp/nodewrapper-Linux_amd64/
       - name: Extract nodewrapper archives
         run: |
           tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-macOS_amd64/wrapper.tar.gz
           tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-Windows_amd64/wrapper.tar.gz
+          tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-Linux_amd64/wrapper.tar.gz
       - run: |
           PROJECT_NAME="deepspeech"
           if [ "${{ matrix.build-flavor }}" = "tflite" ]; then
@@ -1708,6 +1713,118 @@ jobs:
         with:
           name: "deepspeech-${{ matrix.build-flavor }}.tgz"
           path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
+  test-nodejs_all-Linux:
+    name: "Lin|Test MultiArchPlatform NodeJS bindings"
+    runs-on: ubuntu-20.04
+    needs: [repackage-nodejs-allplatforms, train-test-model-Linux]
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        # https://nodejs.org/en/about/releases/
+        nodejs-version: [10, 15]
+        build-flavor: ["tf", "tflite"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
+    env:
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.nodejs-version }}
+      - run: |
+          sudo apt-get install -y --no-install-recommends sox
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          path: ${{ env.CI_TMP_DIR }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.CI_TMP_DIR }}
+        if: matrix.models == 'test'
+      - uses: actions/cache@v2
+        id: node-modules-cache
+        with:
+          path: ~/.npm/
+          key: node-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
+      - run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - name: Install deepspeech package
+        run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          npm install --verbose ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+      - run: |
+          ls -hal node_modules/deepspeech* node_modules/.bin/
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "node"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+  test-electronjs_all-Linux:
+    name: "Lin|Test MultiArchPlatform ElectronJS bindings"
+    runs-on: ubuntu-20.04
+    needs: [repackage-nodejs-allplatforms, train-test-model-Linux]
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        electronjs-version: [5.0.13, 12.0.0]
+        build-flavor: ["tf", "tflite"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
+    env:
+      CI_TMP_DIR: ${{ github.workspace }}/tmp/
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - run: |
+          sudo apt-get install -y --no-install-recommends sox
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}.tgz"
+          path: ${{ env.CI_TMP_DIR }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.CI_TMP_DIR }}
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - uses: actions/cache@v2
+        id: electron-modules-cache
+        with:
+          path: ~/.npm/
+          key: electron-modules-${{ matrix.build-flavor }}-${{ runner.os }}-${{ env.CI_NODE_MODULES_NTH }}
+      - name: Install deepspeech package
+        run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          npm install ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+      - run: |
+          npm install electron@${{ matrix.electronjs-version }}
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "electronjs"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+        timeout-minutes: 5
   test-nodejs_all-macOS:
     name: "Mac|Test MultiArchPlatform NodeJS bindings"
     runs-on: macos-10.15
