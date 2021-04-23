@@ -84,7 +84,7 @@ jobs:
           path: build-static/
           key: swig-2-${{ runner.os }}-${{ env.swig_hash }}
       - run: |
-          sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential mingw-w64
+          sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential
         if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           curl -sSL https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz > pcre-8.43.tar.gz
@@ -310,7 +310,7 @@ jobs:
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
-        python-version: [3.6.13, 3.7.10, 3.8.9, 3.9.4]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -451,7 +451,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        python-version: [3.6.13, 3.7.10, 3.8.9, 3.9.4]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         build-flavor: ["tf", "tflite"]
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
