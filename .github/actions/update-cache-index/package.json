@@ -4,8 +4,8 @@
   "devDependencies": {
     "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.4",
+    "@actions/http-client": "^1.0.11",
     "@actions/github": "^4.0.0",
-    "@octokit/plugin-throttling": "^3.4.1",
     "@vercel/ncc": "^0.27.0"
   }
 }

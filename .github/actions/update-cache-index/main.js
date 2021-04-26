@@ -1,70 +1,49 @@
 const core = require("@actions/core");
 const exec = require("@actions/exec");
-const github = require("@actions/github");
 const fs = require("fs").promises;
-const { throttling } = require("@octokit/plugin-throttling");
-const { GitHub } = require("@actions/github/lib/utils");
+const github = require("@actions/github");
+const {HttpClient} = require("@actions/http-client");
+const {BearerCredentialHandler} = require("@actions/http-client/auth");
 
-async function getGoodWorkflowArtifactsFromAPI(client, owner, repo, name) {
-    const goodWorkflowArtifacts = await client.paginate(
-        "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
-        {
-            owner: owner,
-            repo: repo,
-            run_id: github.context.runId,
-            per_page: 100,
-        },
-        (workflowArtifacts) => {
-            // console.log(" ==> workflowArtifacts", workflowArtifacts);
-            return workflowArtifacts.data.filter((a) => {
-                // console.log("==> Artifact check", a);
-                return a.name == name
-            })
-        }
-    );
+function createHttpClient(userAgent) {
+  return new HttpClient(userAgent, [
+    // From https://github.com/actions/toolkit/blob/main/packages/artifact/src/internal/config-variables.ts
+    new BearerCredentialHandler(process.env.ACTIONS_RUNTIME_TOKEN)
+  ]);
+}
+
+async function getGoodWorkflowArtifactsFromAPI(name) {
+    // From https://github.com/actions/toolkit/blob/main/packages/artifact/src/internal/config-variables.ts
+    const runtimeUrl = process.env.ACTIONS_RUNTIME_URL;
+    const runId = process.env.GITHUB_RUN_ID;
+    // From https://github.com/actions/toolkit/blob/main/packages/artifact/src/internal/utils.ts
+    const apiVersion = "6.0-preview";
+    let url = `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${apiVersion}`
+
+    const client = createHttpClient("@actions/artifact-download");
+    const response = await client.get(url, {
+        "Content-Type": "application/json",
+        "Accept": `application/json;api-version=${apiVersion}`,
+    });
+
+    const allArtifacts = JSON.parse(await response.readBody()).value;
+    console.log(`==> Got ${allArtifacts.length} artifacts in response`);
+    const goodWorkflowArtifacts = allArtifacts.filter(artifact => {
+        return artifact.name === name
+    });
 
     console.log("==> maybe goodWorkflowArtifacts:", goodWorkflowArtifacts);
-    if (goodWorkflowArtifacts.length > 0) {
-        return goodWorkflowArtifacts;
-    }
-
-    // We have not been able to find a workflow artifact, it's really no good news
-    return [];
+    return goodWorkflowArtifacts;
 }
 
 async function main() {
     const token = core.getInput("github-token", {required: true});
-    const [owner, repo] = core.getInput("repo", { required: true }).split("/");
     const artifactName = core.getInput("artifact-name", {required: true});
     const localCacheIndexPath = core.getInput("local-cache-index-path", {required: true});
     const branch = core.getInput("branch");
-    const OctokitWithThrottling = GitHub.plugin(throttling);
-    const client = new OctokitWithThrottling({
-        auth: token,
-        throttle: {
-            onRateLimit: (retryAfter, options) => {
-                console.log(
-                    `Request quota exhausted for request ${options.method} ${options.url}`
-                );
-
-                // Retry twice after hitting a rate limit error, then give up
-                if (options.request.retryCount <= 2) {
-                    console.log(`Retrying after ${retryAfter} seconds!`);
-                    return true;
-                }
-            },
-            onAbuseLimit: (retryAfter, options) => {
-                // does not retry, only logs a warning
-                console.log(
-                    `Abuse detected for request ${options.method} ${options.url}`
-                );
-            },
-        },
-    });
-    console.log("==> Repo:", owner + "/" + repo);
 
     // Get artifact ID from API and cache it
-    const foundArtifacts = await getGoodWorkflowArtifactsFromAPI(client, owner, repo, artifactName);
+    const foundArtifacts = await getGoodWorkflowArtifactsFromAPI(artifactName);
     if (foundArtifacts.length === 0) {
         const msg = "==> FATAL: Could not find artifact ID from name " + artifactName;
         core.setFailed(msg);

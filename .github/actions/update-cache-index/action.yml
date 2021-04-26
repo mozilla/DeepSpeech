@@ -11,10 +11,6 @@ inputs:
     description: "GitHub token"
     required: false
     default: ${{ github.token }}
-  repo:
-    description: "Repository name with owner (like actions/checkout)"
-    required: false
-    default: ${{ github.repository }}
   branch:
     description: "Branch to push index updates to"
     required: false
