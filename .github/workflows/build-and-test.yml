@@ -234,17 +234,21 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
         if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
-      - uses: ./.github/actions/select-xcode
-        with:
-          version: "12.1.1"
-        if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
-      - uses: ./.github/actions/setup-tensorflow
-        if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
-      - uses: ./.github/actions/build-tensorflow
-        with:
-          flavor: "--darwin-cpu"
-        if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
-      - uses: ./.github/actions/package-tensorflow
+      # - uses: ./.github/actions/select-xcode
+      #   with:
+      #     version: "12.1.1"
+      #   if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
+      # - uses: ./.github/actions/setup-tensorflow
+      #   if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
+      # - uses: ./.github/actions/build-tensorflow
+      #   with:
+      #     flavor: "--darwin-cpu"
+      #   if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
+      # - uses: ./.github/actions/package-tensorflow
+      #   if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
+      - run: |
+          mkdir -p ${{ github.workspace }}/artifacts
+          touch ${{ github.workspace }}/artifacts/home.tar.xz
         if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
       - uses: actions/upload-artifact@v2
         with:
@@ -738,11 +742,15 @@ jobs:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
         run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
-      - run: ./ci_scripts/tf-setup.sh
-        if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
-      - run: ./ci_scripts/tf-build.sh "--windows-cpu"
-        if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
-      - run: ./ci_scripts/tf-package.sh
+      # - run: ./ci_scripts/tf-setup.sh
+      #   if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
+      # - run: ./ci_scripts/tf-build.sh "--windows-cpu"
+      #   if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
+      # - run: ./ci_scripts/tf-package.sh
+      #   if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
+      - run: |
+          mkdir -p artifacts
+          touch artifacts/home.tar.xz
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
       - uses: actions/upload-artifact@v2
         with:
