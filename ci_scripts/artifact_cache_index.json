@@ -1,0 +1,74 @@
+{
+    "tensorflow-opt_LinuxAarch64_23ad988fcde60fb01f9533e95004bbc4877a9143_0": {
+        "id": 54946243,
+        "node_id": "MDg6QXJ0aWZhY3Q1NDk0NjI0Mw==",
+        "name": "tensorflow-opt_LinuxAarch64_23ad988fcde60fb01f9533e95004bbc4877a9143_0",
+        "size_in_bytes": 1364178400,
+        "url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/54946243",
+        "archive_download_url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/54946243/zip",
+        "expired": false,
+        "created_at": "2021-04-19T20:44:19Z",
+        "updated_at": "2021-04-19T20:44:22Z",
+        "expires_at": "2021-07-18T20:39:08Z"
+    },
+    "tensorflow-opt_LinuxArmv7_23ad988fcde60fb01f9533e95004bbc4877a9143_0": {
+        "id": 55125926,
+        "node_id": "MDg6QXJ0aWZhY3Q1NTEyNTkyNg==",
+        "name": "tensorflow-opt_LinuxArmv7_23ad988fcde60fb01f9533e95004bbc4877a9143_0",
+        "size_in_bytes": 1342277168,
+        "url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/55125926",
+        "archive_download_url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/55125926/zip",
+        "expired": false,
+        "created_at": "2021-04-20T13:49:18Z",
+        "updated_at": "2021-04-20T13:49:24Z",
+        "expires_at": "2021-07-19T13:44:02Z"
+    },
+    "tensorflow-opt_Linux_23ad988fcde60fb01f9533e95004bbc4877a9143_2": {
+        "id": 55693514,
+        "node_id": "MDg6QXJ0aWZhY3Q1NTY5MzUxNA==",
+        "name": "tensorflow-opt_Linux_23ad988fcde60fb01f9533e95004bbc4877a9143_2",
+        "size_in_bytes": 1474920264,
+        "url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/55693514",
+        "archive_download_url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/55693514/zip",
+        "expired": false,
+        "created_at": "2021-04-22T14:39:59Z",
+        "updated_at": "2021-04-22T14:44:47Z",
+        "expires_at": "2021-07-21T14:18:22Z"
+    },
+    "tensorflow-opt_Windows_23ad988fcde60fb01f9533e95004bbc4877a9143_7": {
+        "id": 52975726,
+        "node_id": "MDg6QXJ0aWZhY3Q1Mjk3NTcyNg==",
+        "name": "tensorflow-opt_Windows_23ad988fcde60fb01f9533e95004bbc4877a9143_7",
+        "size_in_bytes": 1165757364,
+        "url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/52975726",
+        "archive_download_url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/52975726/zip",
+        "expired": false,
+        "created_at": "2021-04-10T16:01:38Z",
+        "updated_at": "2021-04-10T16:01:55Z",
+        "expires_at": "2021-07-09T15:36:05Z"
+    },
+    "tensorflow-opt_linux.armv7_23ad988fcde60fb01f9533e95004bbc4877a9143_0": {
+        "id": 55097736,
+        "node_id": "MDg6QXJ0aWZhY3Q1NTA5NzczNg==",
+        "name": "tensorflow-opt_linux.armv7_23ad988fcde60fb01f9533e95004bbc4877a9143_0",
+        "size_in_bytes": 1362704580,
+        "url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/55097736",
+        "archive_download_url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/55097736/zip",
+        "expired": false,
+        "created_at": "2021-04-20T11:40:37Z",
+        "updated_at": "2021-04-20T11:40:41Z",
+        "expires_at": "2021-07-19T11:37:50Z"
+    },
+    "tensorflow-opt_macOS_23ad988fcde60fb01f9533e95004bbc4877a9143_2": {
+        "id": 48963033,
+        "node_id": "MDg6QXJ0aWZhY3Q0ODk2MzAzMw==",
+        "name": "tensorflow-opt_macOS_23ad988fcde60fb01f9533e95004bbc4877a9143_2",
+        "size_in_bytes": 1703308252,
+        "url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/48963033",
+        "archive_download_url": "https://api.github.com/repos/mozilla/DeepSpeech/actions/artifacts/48963033/zip",
+        "expired": false,
+        "created_at": "2021-03-23T16:18:18Z",
+        "updated_at": "2021-03-23T16:18:25Z",
+        "expires_at": "2021-06-21T15:45:01Z"
+    }
+}

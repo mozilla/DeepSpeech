@@ -221,6 +221,7 @@ jobs:
         uses: ./.github/actions/check_artifact_exists
         with:
           name: ${{ steps.get_cache_key.outputs.key }}
+          local-cache-index-path: ci_scripts/artifact_cache_index.json
   build-tensorflow-macOS:
     name: "Mac|Build TensorFlow (opt)"
     needs: tensorflow_opt-macOS
@@ -250,6 +251,11 @@ jobs:
           name: ${{ needs.tensorflow_opt-macOS.outputs.cache_key }}
           path: ${{ github.workspace }}/artifacts/home.tar.xz
         if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
+      - uses: ./.github/actions/update-cache-index
+        with:
+          artifact_name: ${{ needs.tensorflow_opt-macOS.outputs.cache_key }}
+          local-cache-index-path: ci_scripts/artifact_cache_index.json
+        if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
   build-lib_macOS:
     name: "Mac|Build libdeepspeech+client"
     runs-on: macos-10.15
@@ -270,6 +276,7 @@ jobs:
         with:
           name: ${{ needs.tensorflow_opt-macOS.outputs.cache_key }}
           path: ${{ github.workspace }}/
+          local-cache-index-path: ci_scripts/artifact_cache_index.json
           download: true
         if: needs.tensorflow_opt-macOS.outputs.status == 'found'
       - run: |
@@ -696,6 +703,7 @@ jobs:
         uses: ./.github/actions/check_artifact_exists
         with:
           name: ${{ steps.get_cache_key.outputs.key }}
+          local-cache-index-path: ci_scripts/artifact_cache_index.json
   build-tensorflow-Windows:
     name: "Win|Build TensorFlow (opt)"
     needs: tensorflow_opt-Windows
@@ -741,6 +749,11 @@ jobs:
           name: ${{ needs.tensorflow_opt-Windows.outputs.cache_key }}
           path: ${{ github.workspace }}/artifacts/home.tar.xz
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
+      - uses: ./.github/actions/update-cache-index
+        with:
+          artifact_name: ${{ needs.tensorflow_opt-Windows.outputs.cache_key }}
+          local-cache-index-path: ci_scripts/artifact_cache_index.json
+        if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
   build-lib_Windows:
     name: "Win|Build libdeepspeech+client"
     runs-on: windows-2019
@@ -776,6 +789,7 @@ jobs:
         with:
           name: ${{ needs.tensorflow_opt-Windows.outputs.cache_key }}
           path: ${{ github.workspace }}/
+          local-cache-index-path: ci_scripts/artifact_cache_index.json
           download: true
         if: needs.tensorflow_opt-Windows.outputs.status == 'found'
       - run: |

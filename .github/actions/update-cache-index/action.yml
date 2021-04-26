@@ -1,0 +1,24 @@
+name: "Update local cache index with a recently uploaded artifact"
+description: "Update the cache index file in the repo with the new artifact and push it"
+inputs:
+  artifact-name:
+    description: "Artifact name"
+    required: true
+  local-cache-index-path:
+    description: "Path of local cache index JSON file"
+    required: true
+  github-token:
+    description: "GitHub token"
+    required: false
+    default: ${{ github.token }}
+  repo:
+    description: "Repository name with owner (like actions/checkout)"
+    required: false
+    default: ${{ github.repository }}
+  branch:
+    description: "Branch to push index updates to"
+    required: false
+    default: master
+runs:
+  using: "node12"
+  main: "dist/index.js"

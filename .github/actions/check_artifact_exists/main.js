@@ -3,37 +3,17 @@ const github = require('@actions/github');
 const AdmZip = require('adm-zip');
 const filesize = require('filesize');
 const pathname = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
 const { throttling } = require('@octokit/plugin-throttling');
 const { GitHub } = require('@actions/github/lib/utils');
 
-async function getGoodArtifacts(client, owner, repo, name) {
-    const goodWorkflowArtifacts = await client.paginate(
-        "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
-        {
-            owner: owner,
-            repo: repo,
-            run_id: github.context.runId,
-        },
-        (workflowArtifacts) => {
-            // console.log(" ==> workflowArtifacts", workflowArtifacts);
-            return workflowArtifacts.data.filter((a) => {
-                // console.log("==> Artifact check", a);
-                return a.name == name
-            })
-        }
-    );
-
-    console.log("==> maybe goodWorkflowArtifacts:", goodWorkflowArtifacts);
-    if (goodWorkflowArtifacts.length > 0) {
-        return goodWorkflowArtifacts;
-    }
-
+async function getGoodRepoArtifactsFromAPI(client, owner, repo, name) {
     const goodRepoArtifacts = await client.paginate(
         "GET /repos/{owner}/{repo}/actions/artifacts",
         {
             owner: owner,
             repo: repo,
+            per_page: 100,
         },
         (repoArtifacts) => {
             // console.log(" ==> repoArtifacts", repoArtifacts);
@@ -53,12 +33,29 @@ async function getGoodArtifacts(client, owner, repo, name) {
     return [];
 }
 
+async function getGoodArtifactsFromLocalIndex(client, index, name) {
+    if (name in index) {
+        const goodArtifact = index[name];
+        console.log("==> Found in local cache: " + name);
+        // Check if cached artifact has expired in the mean time
+        const liveArtifact = await client.request("GET " + goodArtifact.url);
+        if (liveArtifact.expired) {
+            console.log("==> Cached artifact has expired at " + liveArtifact.expires_at);
+            return [];
+        }
+        console.log("==> Cached artifact still live");
+        return [index[name]];
+    }
+    return [];
+}
+
 async function main() {
     const token = core.getInput("github_token", { required: true });
     const [owner, repo] = core.getInput("repo", { required: true }).split("/");
     const path = core.getInput("path", { required: true });
     const name = core.getInput("name");
     const download = core.getInput("download");
+    const localCacheIndexPath = core.getInput("local-cache-index-path");
     const OctokitWithThrottling = GitHub.plugin(throttling);
     const client = new OctokitWithThrottling({
         auth: token,
@@ -84,11 +81,28 @@ async function main() {
     });
     console.log("==> Repo:", owner + "/" + repo);
 
-    const goodArtifacts = await getGoodArtifacts(client, owner, repo, name);
-    console.log("==> goodArtifacts:", goodArtifacts);
+    let goodArtifacts = [];
+    if (localCacheIndexPath.length > 0) {
+        try {
+            const index = JSON.parse(await fs.readFile(localCacheIndexPath, "utf8"));
+            goodArtifacts = await getGoodArtifactsFromLocalIndex(client, index, name);
+            console.log("==> goodArtifactsFromLocalIndex:", goodArtifacts);
+        } catch (error) {
+            // Missing/corrupt local index? Swallow error and fallback on API below
+            console.log("==> ERROR while reading local cache index: " + error);
+            console.log("==> Falling back on API lookup");
+        }
+    }
+
+    // If the local index path wasn't specified or loading it failed, use the API
+    if (localCacheIndexPath.length === 0 || goodArtifacts.length === 0) {
+        // Missing index, fallback on API
+        goodArtifacts = await getGoodRepoArtifactsFromAPI(client, owner, repo, name);
+        console.log("==> goodArtifactsFromAPI:", goodArtifacts);
+    }
 
     let artifactStatus = "";
-        if (goodArtifacts.length === 0) {
+    if (goodArtifacts.length === 0) {
         artifactStatus = "missing";
     } else {
         artifactStatus = "found";
@@ -119,7 +133,7 @@ async function main() {
 
         const dir = name ? path : pathname.join(path, artifact.name)
 
-        fs.mkdirSync(dir, { recursive: true })
+        await fs.mkdir(dir, { recursive: true })
 
         const adm = new AdmZip(Buffer.from(zip.data))
 
@@ -140,7 +154,7 @@ async function main() {
 }
 
 // We have to manually wrap the main function with a try-catch here because
-// GitHub will ignore uncatched exceptions and continue running the workflow,
+// GitHub will ignore uncaught exceptions and continue running the workflow,
 // leading to harder to diagnose errors downstream from this action.
 try {
     main();

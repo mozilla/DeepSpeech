@@ -20,6 +20,10 @@ inputs:
     description: "Repository name with owner (like actions/checkout)"
     required: false
     default: ${{ github.repository }}
+  local-cache-index-path:
+    description: "Path of local cache index JSON file (empty to disable using it)"
+    required: false
+    default: ""
 outputs:
   status:
     description: "Status string of the artifact: 'missing' or 'found'"
