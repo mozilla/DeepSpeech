@@ -216,7 +216,7 @@ jobs:
       - id: get_cache_key
         uses: ./.github/actions/get_cache_key
         with:
-          extras: "2"
+          extras: "6"
       - id: check_artifact_exists
         uses: ./.github/actions/check_artifact_exists
         with:
@@ -253,7 +253,7 @@ jobs:
         if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
       - uses: ./.github/actions/update-cache-index
         with:
-          artifact_name: ${{ needs.tensorflow_opt-macOS.outputs.cache_key }}
+          artifact-name: ${{ needs.tensorflow_opt-macOS.outputs.cache_key }}
           local-cache-index-path: ci_scripts/artifact_cache_index.json
         if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
   build-lib_macOS:
@@ -698,7 +698,7 @@ jobs:
       - id: get_cache_key
         uses: ./.github/actions/get_cache_key
         with:
-          extras: "7"
+          extras: "11"
       - id: check_artifact_exists
         uses: ./.github/actions/check_artifact_exists
         with:
@@ -751,7 +751,7 @@ jobs:
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
       - uses: ./.github/actions/update-cache-index
         with:
-          artifact_name: ${{ needs.tensorflow_opt-Windows.outputs.cache_key }}
+          artifact-name: ${{ needs.tensorflow_opt-Windows.outputs.cache_key }}
           local-cache-index-path: ci_scripts/artifact_cache_index.json
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
   build-lib_Windows:
