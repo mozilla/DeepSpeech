@@ -8,49 +8,28 @@ const { throttling } = require('@octokit/plugin-throttling');
 const { GitHub } = require('@actions/github/lib/utils');
 
 async function getGoodArtifacts(client, owner, repo, name) {
-    const goodWorkflowArtifacts = await client.paginate(
-        "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
-        {
-            owner: owner,
-            repo: repo,
-            run_id: github.context.runId,
-        },
-        (workflowArtifacts) => {
-            // console.log(" ==> workflowArtifacts", workflowArtifacts);
-            return workflowArtifacts.data.filter((a) => {
-                // console.log("==> Artifact check", a);
-                return a.name == name
-            })
-        }
-    );
-
-    console.log("==> maybe goodWorkflowArtifacts:", goodWorkflowArtifacts);
-    if (goodWorkflowArtifacts.length > 0) {
-        return goodWorkflowArtifacts;
-    }
-
     const goodRepoArtifacts = await client.paginate(
         "GET /repos/{owner}/{repo}/actions/artifacts",
         {
             owner: owner,
             repo: repo,
+            per_page: 100,
         },
-        (repoArtifacts) => {
+        (repoArtifacts, done) => {
             // console.log(" ==> repoArtifacts", repoArtifacts);
-            return repoArtifacts.data.filter((a) => {
+            const goodArtifacts = repoArtifacts.data.filter((a) => {
                 // console.log("==> Artifact check", a);
                 return a.name == name
-            })
+            });
+            if (goodArtifacts.length > 0) {
+                done();
+            }
+            return goodArtifacts;
         }
     );
 
     console.log("==> maybe goodRepoArtifacts:", goodRepoArtifacts);
-    if (goodRepoArtifacts.length > 0) {
-        return goodRepoArtifacts;
-    }
-
-    // We have not been able to find a repo artifact, it's really no good news
-    return [];
+    return goodRepoArtifacts;
 }
 
 async function main() {
