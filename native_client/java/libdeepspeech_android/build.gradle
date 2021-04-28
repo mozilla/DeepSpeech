@@ -46,7 +46,7 @@ android {
 
     // Avoid scanning libdeepspeech_doc
     sourceSets {
-        main.java.srcDirs = [ 'src/main/java/org/deepspeech/libdeepspeech/' ]
+        main.java.srcDirs = [ '../src/main/java/org/deepspeech/libdeepspeech/' ]
     }
 }
 
