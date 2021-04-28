@@ -34,6 +34,8 @@ bool extended_metadata = false;
 
 bool json_output = false;
 
+bool init_from_array_of_bytes = false;
+
 int json_candidate_transcripts = 3;
 
 int stream_size = 0;
@@ -62,6 +64,7 @@ void PrintHelp(const char* bin)
     "\t--stream size\t\t\tRun in stream mode, output intermediate results\n"
     "\t--extended_stream size\t\t\tRun in stream mode using metadata output, output intermediate results\n"
     "\t--hot_words\t\t\tHot-words and their boosts. Word:Boost pairs are comma-separated\n"
+    "\t--init_from_bytes\t\tTest init model and scorer from array of bytes\n"
     "\t--help\t\t\t\tShow help\n"
     "\t--version\t\t\tPrint version and exits\n";
     char* version = DS_Version();
@@ -83,6 +86,7 @@ bool ProcessArgs(int argc, char** argv)
             {"t", no_argument, nullptr, 't'},
             {"extended", no_argument, nullptr, 'e'},
             {"json", no_argument, nullptr, 'j'},
+            {"init_from_bytes", no_argument, nullptr, 'B'},
             {"candidate_transcripts", required_argument, nullptr, 150},
             {"stream", required_argument, nullptr, 's'},
             {"extended_stream", required_argument, nullptr, 'S'},
@@ -138,6 +142,10 @@ bool ProcessArgs(int argc, char** argv)
 
         case 'j':
             json_output = true;
+            break;
+        
+        case 'B':
+            init_from_array_of_bytes = true;
             break;
 
         case 150:

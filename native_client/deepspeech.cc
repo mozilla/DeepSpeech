@@ -263,8 +263,10 @@ StreamingState::processBatch(const vector<float>& buf, unsigned int n_steps)
 }
 
 int
-DS_CreateModel(const char* aModelPath,
-               ModelState** retval)
+DS_CreateModel_(const char* aModelString,
+                bool init_from_bytes,
+                ModelState** retval,
+                size_t bufferSize=0)
 {
   *retval = nullptr;
 
@@ -277,7 +279,7 @@ DS_CreateModel(const char* aModelPath,
   LOGD("DeepSpeech: %s", ds_git_version());
 #endif
 
-  if (!aModelPath || strlen(aModelPath) < 1) {
+  if ( (!init_from_bytes && (strlen(aModelString) < 1)) || (init_from_bytes && (bufferSize<1))) {
     std::cerr << "No model specified, cannot continue." << std::endl;
     return DS_ERR_NO_MODEL;
   }
@@ -294,8 +296,8 @@ DS_CreateModel(const char* aModelPath,
     std::cerr << "Could not allocate model state." << std::endl;
     return DS_ERR_FAIL_CREATE_MODEL;
   }
-
-  int err = model->init(aModelPath);
+  
+  int err = model->init(aModelString, init_from_bytes, bufferSize);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -303,6 +305,22 @@ DS_CreateModel(const char* aModelPath,
   *retval = model.release();
   return DS_ERR_OK;
 }
+
+int
+DS_CreateModel(const char* aModelPath,
+               ModelState** retval)
+{
+  return DS_CreateModel_(aModelPath, false, retval);
+}
+
+int
+DS_CreateModelFromBuffer(const char* aModelBuffer,
+                         size_t bufferSize,
+                         ModelState** retval)
+{
+  return DS_CreateModel_(aModelBuffer, true, retval, bufferSize);
+}
+
 
 unsigned int
 DS_GetModelBeamWidth(const ModelState* aCtx)
@@ -330,16 +348,40 @@ DS_FreeModel(ModelState* ctx)
 }
 
 int
-DS_EnableExternalScorer(ModelState* aCtx,
-                        const char* aScorerPath)
+DS_EnableExternalScorer_(ModelState* aCtx,
+                         const char* aScorerString,
+                         bool init_from_bytes,
+                         size_t bufferSize=0)
 {
   std::unique_ptr<Scorer> scorer(new Scorer());
-  int err = scorer->init(aScorerPath, aCtx->alphabet_);
+
+  int err;
+  if (init_from_bytes)
+    err = scorer->init(std::string(aScorerString, bufferSize), init_from_bytes, aCtx->alphabet_);
+  else
+    err = scorer->init(aScorerString, init_from_bytes, aCtx->alphabet_);
+  
+  
   if (err != 0) {
     return DS_ERR_INVALID_SCORER;
   }
   aCtx->scorer_ = std::move(scorer);
   return DS_ERR_OK;
+}
+
+int
+DS_EnableExternalScorer(ModelState* aCtx,
+                        const char* aScorerPath)
+{
+  return DS_EnableExternalScorer_(aCtx, aScorerPath, false);
+}
+
+int
+DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
+                                  const char* aScorerBuffer,
+                                  size_t bufferSize)
+{
+  return DS_EnableExternalScorer_(aCtx, aScorerBuffer, true, bufferSize);
 }
 
 int

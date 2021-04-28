@@ -24,6 +24,7 @@ extern const char *kModelNames[6];
  * this header designed for use by decoder authors.
  */
 bool RecognizeBinary(const char *file, ModelType &recognized);
+bool RecognizeBinary(const char *file_data, const uint64_t file_data_size, ModelType &recognized);
 
 struct FixedWidthParameters {
   unsigned char order;
@@ -48,13 +49,20 @@ class BinaryFormat {
   public:
     explicit BinaryFormat(const Config &config);
 
+    ~BinaryFormat(){
+      file_data_ = NULL;
+    }
+
     // Reading a binary file:
     // Takes ownership of fd
     void InitializeBinary(int fd, ModelType model_type, unsigned int search_version, Parameters &params);
+    void InitializeBinary(char *file_data, ModelType model_type, unsigned int search_version, Parameters &params);
     // Used to read parts of the file to update the config object before figuring out full size.
     void ReadForConfig(void *to, std::size_t amount, uint64_t offset_excluding_header) const;
+    void ReadForConfig(void *to, std::size_t amount, uint64_t offset_excluding_header, bool useMemory) const;
     // Actually load the binary file and return a pointer to the beginning of the search area.
     void *LoadBinary(std::size_t size);
+    void *LoadBinary(std::size_t size, const uint64_t  file_size);
 
     uint64_t VocabStringReadingOffset() const {
       assert(vocab_string_offset_ != kInvalidOffset);
@@ -81,9 +89,10 @@ class BinaryFormat {
 
     // File behind memory, if any.
     util::scoped_fd file_;
+    char *file_data_;
 
     // If there is a file involved, a single mapping.
-    util::scoped_memory mapping_;
+    util::scoped_memory mapping_= new util::scoped_memory(true);
 
     // If the data is only in memory, separately allocate each because the trie
     // knows vocab's size before it knows search's size (because SRILM might
@@ -100,6 +109,7 @@ class BinaryFormat {
 };
 
 bool IsBinaryFormat(int fd);
+bool IsBinaryFormat(char *file_data, uint64_t size);
 
 } // namespace ngram
 } // namespace lm

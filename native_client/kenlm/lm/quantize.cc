@@ -38,9 +38,15 @@ const char kSeparatelyQuantizeVersion = 2;
 
 } // namespace
 
-void SeparatelyQuantize::UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config) {
+void SeparatelyQuantize::UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config, bool load_from_memory) {
   unsigned char buffer[3];
-  file.ReadForConfig(buffer, 3, offset);
+  if(load_from_memory){
+    file.ReadForConfig(buffer, 3, offset, load_from_memory);
+  }else{
+    file.ReadForConfig(buffer, 3, offset);
+  }
+  std::string strBuffer((char*)buffer,3);
+
   char version = buffer[0];
   config.prob_bits = buffer[1];
   config.backoff_bits = buffer[2];

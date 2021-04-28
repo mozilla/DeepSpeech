@@ -72,7 +72,7 @@ template <class Value> class HashedSearch {
     static const unsigned int kVersion = 0;
 
     // TODO: move probing_multiplier here with next binary file format update.
-    static void UpdateConfigFromBinary(const BinaryFormat &, const std::vector<uint64_t> &, uint64_t, Config &) {}
+    static void UpdateConfigFromBinary(const BinaryFormat &, const std::vector<uint64_t> &, uint64_t, Config &, bool) {}
 
     static uint64_t Size(const std::vector<uint64_t> &counts, const Config &config) {
       uint64_t ret = Unigram::Size(counts[0]);

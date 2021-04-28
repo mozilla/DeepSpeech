@@ -22,10 +22,21 @@ TFModelState::~TFModelState()
   }
 }
 
+int loadGraphFromBinaryData(Env* env, const char* data, size_t bufferSize,
+                          ::tensorflow::protobuf::MessageLite* proto) {  
+                            
+  std::string dataString(data, bufferSize);
+  if (!proto->ParseFromString(dataString)) {
+    std::cerr << "Can't parse data as binary proto" << std::endl;
+    return -1;
+  }
+  return 0;
+}
+
 int
-TFModelState::init(const char* model_path)
+TFModelState::init(const char* model_string, bool init_from_bytes, size_t bufferSize)
 {
-  int err = ModelState::init(model_path);
+  int err = ModelState::init(model_string, init_from_bytes, bufferSize);
   if (err != DS_ERR_OK) {
     return err;
   }
@@ -34,21 +45,28 @@ TFModelState::init(const char* model_path)
   SessionOptions options;
 
   mmap_env_.reset(new MemmappedEnv(Env::Default()));
-
-  bool is_mmap = std::string(model_path).find(".pbmm") != std::string::npos;
-  if (!is_mmap) {
-    std::cerr << "Warning: reading entire model file into memory. Transform model file into an mmapped graph to reduce heap usage." << std::endl;
-  } else {
-    status = mmap_env_->InitializeFromFile(model_path);
-    if (!status.ok()) {
-      std::cerr << status << std::endl;
-      return DS_ERR_FAIL_INIT_MMAP;
+  bool is_mmap = false;
+  if (init_from_bytes) {
+    int loadGraphStatus = loadGraphFromBinaryData(mmap_env_.get(), model_string, bufferSize, &graph_def_);
+    if (loadGraphStatus != 0) {
+      return DS_ERR_FAIL_CREATE_SESS;
     }
+  } else {
+    is_mmap = std::string(model_string).find(".pbmm") != std::string::npos;
+    if (!is_mmap) {
+      std::cerr << "Warning: reading entire model file into memory. Transform model file into an mmapped graph to reduce heap usage." << std::endl;
+    } else {
+      status = mmap_env_->InitializeFromFile(model_string);
+      if (!status.ok()) {
+        std::cerr << status << std::endl;
+        return DS_ERR_FAIL_INIT_MMAP;
+      }
 
-    options.config.mutable_graph_options()
-      ->mutable_optimizer_options()
-      ->set_opt_level(::OptimizerOptions::L0);
-    options.env = mmap_env_.get();
+      options.config.mutable_graph_options()
+        ->mutable_optimizer_options()
+        ->set_opt_level(::OptimizerOptions::L0);
+      options.env = mmap_env_.get();
+    }
   }
 
   Session* session;
@@ -59,13 +77,21 @@ TFModelState::init(const char* model_path)
   }
   session_.reset(session);
 
-  if (is_mmap) {
-    status = ReadBinaryProto(mmap_env_.get(),
-                             MemmappedFileSystem::kMemmappedPackageDefaultGraphDef,
-                             &graph_def_);
+  if (init_from_bytes){
+    if( is_mmap) {
+      std::cerr << "Load from buffer does not support .pbmm models." << std::endl;
+      return DS_ERR_MODEL_NOT_SUP_BUFFER;
+    }
   } else {
-    status = ReadBinaryProto(Env::Default(), model_path, &graph_def_);
+    if (is_mmap) {
+      status = ReadBinaryProto(mmap_env_.get(),
+                               MemmappedFileSystem::kMemmappedPackageDefaultGraphDef,
+                               &graph_def_);
+    } else {
+      status = ReadBinaryProto(Env::Default(), model_string, &graph_def_);
+    }
   }
+
   if (!status.ok()) {
     std::cerr << status << std::endl;
     return DS_ERR_FAIL_READ_PROTOBUF;
