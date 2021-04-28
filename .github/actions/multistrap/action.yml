@@ -1,0 +1,67 @@
+name: "multistrap install"
+description: "Install a system root using multistrap"
+inputs:
+  arch:
+    description: "Target arch"
+    required: true
+  packages:
+    description: "Extra packages to install"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - id: install_multistrap
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y --no-install-recommends multistrap qemu-user-static
+      shell: bash
+    - id: create_chroot
+      run: |
+        set -xe
+
+        multistrap_conf=""
+        if [ "${{ inputs.arch }}" = "armv7" ]; then
+          multistrap_conf=multistrap_raspbian_buster.conf
+          wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb && sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
+        fi
+        if [ "${{ inputs.arch }}" = "aarch64" ]; then
+          multistrap_conf=multistrap_armbian64_buster.conf
+        fi
+
+        multistrap -d ${{ env.SYSTEM_RASPBIAN }} -f ${{ github.workspace }}/native_client/${multistrap_conf}
+
+        if [ ! -z "${{ inputs.packages }}" ]; then
+          TO_MOUNT=${{ github.workspace }}
+          # Prepare target directory to bind-mount the github tree
+          mkdir -p ${{ env.SYSTEM_RASPBIAN }}/${{ github.workspace }}
+
+          # Bind-mount so that we have the same tree inside the chroot
+          for dev in ${TO_MOUNT};
+          do
+            sudo mount -o bind ${dev} ${{ env.SYSTEM_RASPBIAN }}${dev}
+          done;
+
+          # Copy some host data:
+          #   resolv.conf: for getting DNS working
+          #   passwd, group, shadow: to have user accounts and apt-get install working
+          for ff in resolv.conf passwd group shadow;
+          do
+            sudo cp /etc/${ff} ${{ env.SYSTEM_RASPBIAN }}/etc/
+          done;
+
+          # Perform apt steps.
+          # Preserving the env is required
+          sudo --preserve-env chroot ${{ env.SYSTEM_RASPBIAN }}/ apt-get update -y
+          sudo --preserve-env chroot ${{ env.SYSTEM_RASPBIAN }}/ apt-get install -y --no-install-recommends ${{ inputs.packages }}
+
+          # Cleanup apt info to save space
+          sudo --preserve-env chroot ${{ env.SYSTEM_RASPBIAN }}/ rm -fr /var/cache/apt/* /var/lib/apt/lists/*
+
+          # Unmount what has been mounted
+          for dev in ${TO_MOUNT};
+          do
+            sudo umount ${{ env.SYSTEM_RASPBIAN }}${dev}
+          done;
+        fi
+      shell: bash

@@ -135,7 +135,7 @@ jobs:
       - id: get_numpy
         uses: ./.github/actions/numpy_vers
         with:
-          pyver: 3.6.8
+          pyver: 3.6
       - name: Make decoder package
         run: |
           NUMPY_BUILD_VERSION=${{ steps.get_numpy.outputs.build_version }} \
@@ -1675,7 +1675,7 @@ jobs:
   repackage-nodejs-allplatforms:
     name: "Repackage NodeJS / ElectronJS for multiplatforms"
     runs-on: ubuntu-20.04
-    needs: [build-nodejs-macOS, build-nodejs-Windows, build-nodejs-Linux]
+    needs: [build-nodejs-macOS, build-nodejs-Windows, build-nodejs-Linux, build-nodejs-LinuxArmv7, build-nodejs-LinuxAarch64]
     strategy:
       matrix:
         build-flavor: ["tf", "tflite"]
@@ -1698,11 +1698,26 @@ jobs:
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-Linux_amd64.tar.gz"
           path: /tmp/nodewrapper-Linux_amd64/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "nodewrapper-${{ matrix.build-flavor }}-Linux_armv7.tar.gz"
+          path: /tmp/nodewrapper-Linux_armv7/
+        if: matrix.build-flavor == 'tflite'
+      - uses: actions/download-artifact@v2
+        with:
+          name: "nodewrapper-${{ matrix.build-flavor }}-Linux_aarch64.tar.gz"
+          path: /tmp/nodewrapper-Linux_aarch64/
+        if: matrix.build-flavor == 'tflite'
       - name: Extract nodewrapper archives
         run: |
           tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-macOS_amd64/wrapper.tar.gz
           tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-Windows_amd64/wrapper.tar.gz
           tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-Linux_amd64/wrapper.tar.gz
+      - name: Extract nodewrapper tflite-only archives
+        run: |
+          tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-Linux_armv7/wrapper.tar.gz
+          tar -C ${{ github.workspace }}/native_client/javascript -xzvf /tmp/nodewrapper-Linux_aarch64/wrapper.tar.gz
+        if: matrix.build-flavor == 'tflite'
       - run: |
           PROJECT_NAME="deepspeech"
           if [ "${{ matrix.build-flavor }}" = "tflite" ]; then
@@ -2067,3 +2082,814 @@ jobs:
           bitrate: ${{ matrix.bitrate }}
           model-kind: ${{ matrix.models }}
         timeout-minutes: 5
+  # Linux Armv7 and Aarch64 jobs
+  tensorflow_opt-LinuxArmv7:
+    name: "LinArmv7|Check TensorFlow cache"
+    runs-on: ubuntu-20.04
+    outputs:
+      status: ${{ steps.check_artifact_exists.outputs.status }}
+      cache_key: ${{ steps.get_cache_key.outputs.key }}
+    strategy:
+      matrix:
+        arch: [ "armv7" ]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - id: get_cache_key
+        uses: ./.github/actions/get_cache_key
+        with:
+          extras: "0"
+      - id: check_artifact_exists
+        uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ steps.get_cache_key.outputs.key }}
+  tensorflow_opt-LinuxAarch64:
+    name: "LinAarch64|Check TensorFlow cache"
+    runs-on: ubuntu-20.04
+    outputs:
+      status: ${{ steps.check_artifact_exists.outputs.status }}
+      cache_key: ${{ steps.get_cache_key.outputs.key }}
+    strategy:
+      matrix:
+        arch: [ "aarch64" ]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - id: get_cache_key
+        uses: ./.github/actions/get_cache_key
+        with:
+          extras: "0"
+      - id: check_artifact_exists
+        uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ steps.get_cache_key.outputs.key }}
+  build-tensorflow-LinuxArmv7:
+    name: "LinArmv7|Build TensorFlow (opt)"
+    needs: tensorflow_opt-LinuxArmv7
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        arch: [ "armv7" ]
+    steps:
+      - run: true
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'found'
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+      - uses: ./.github/actions/setup-tensorflow
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+      - uses: ./.github/actions/build-tensorflow
+        with:
+          flavor: "--linux-${{ matrix.arch }}"
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+      - uses: ./.github/actions/package-tensorflow
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxArmv7.outputs.cache_key }}
+          path: ${{ github.workspace }}/artifacts/home.tar.xz
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+  build-tensorflow-LinuxAarch64:
+    name: "LinAarch64|Build TensorFlow (opt)"
+    needs: tensorflow_opt-LinuxAarch64
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        arch: [ "aarch64" ]
+    steps:
+      - run: true
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'found'
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+      - uses: ./.github/actions/setup-tensorflow
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+      - uses: ./.github/actions/build-tensorflow
+        with:
+          flavor: "--linux-${{ matrix.arch }}"
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+      - uses: ./.github/actions/package-tensorflow
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/artifacts/home.tar.xz
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+  build-lib_LinuxArmv7:
+    name: "LinArmv7|Build libdeepspeech+client"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build-flavor: ["tflite"]
+        arch: [ "armv7" ]
+    needs: [ build-tensorflow-LinuxArmv7, tensorflow_opt-LinuxArmv7 ]
+    env:
+      SYSTEM_TARGET: rpi3
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-raspbian-buster
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxArmv7.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+      - uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxArmv7.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+          download: true
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'found'
+      - run: |
+          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
+          rm ${{ github.workspace }}/home.tar.xz
+      - run: |
+          git status
+      - name: "Install chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+      - uses: ./.github/actions/host-build
+        with:
+          arch: ${{ matrix.arch }}
+          flavor: ${{ matrix.build-flavor }}
+      - uses: ./.github/actions/package
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ github.workspace }}/artifacts/native_client.tar.xz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "libdeepspeech.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.zip"
+          path: ${{ github.workspace }}/artifacts/libdeepspeech.zip
+  build-lib_LinuxAarch64:
+    name: "LinAarch64|Build libdeepspeech+client"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix: 
+        build-flavor: ["tflite"]
+        arch: [ "aarch64" ]
+    needs: [ build-tensorflow-LinuxAarch64, tensorflow_opt-LinuxAarch64 ]
+    env:
+      SYSTEM_TARGET: rpi3-armv8
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-armbian64-buster
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+      - uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+          download: true
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'found'
+      - run: |
+          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
+          rm ${{ github.workspace }}/home.tar.xz
+      - run: |
+          git status
+      - name: "Install chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+      - uses: ./.github/actions/host-build
+        with:
+          arch: ${{ matrix.arch }}
+          flavor: ${{ matrix.build-flavor }}
+      - uses: ./.github/actions/package
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ github.workspace }}/artifacts/native_client.tar.xz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "libdeepspeech.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.zip"
+          path: ${{ github.workspace }}/artifacts/libdeepspeech.zip
+  build-python-LinuxArmv7:
+    name: "LinArmv7|Build python bindings"
+    runs-on: ubuntu-20.04
+    needs: [ build-lib_LinuxArmv7, swig_Linux, tensorflow_opt-LinuxArmv7 ]
+    strategy:
+      matrix:
+        build-flavor: ["tflite"]
+        python-version: [3.7]
+        arch: [ "armv7" ]
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+      SYSTEM_TARGET: rpi3
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-raspbian-buster
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+      - run: |
+          cd ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+          tar xf native_client.tar.xz
+          ls -hal
+          cd ${{ github.workspace }}/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "swig_Linux"
+          path: ${{ github.workspace }}/native_client/ds-swig/
+      - name: Link ds-swig into swig
+        run: |
+          ls -hal ${{ github.workspace }}/native_client/ds-swig/bin
+          ln -s ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+          chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxArmv7.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+      - uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxArmv7.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+          download: true
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'found'
+      - run: |
+          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
+          rm ${{ github.workspace }}/home.tar.xz
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-xldd
+        with:
+          target: ${{ env.SYSTEM_TARGET }}
+      - name: "Install chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+      - id: get_numpy
+        uses: ./.github/actions/numpy_vers
+        with:
+          pyver: ${{ matrix.python-version }}
+      - uses: ./.github/actions/python-build
+        with:
+          build_flavor: ${{ matrix.build-flavor }}
+          numpy_build: "${{ steps.get_numpy.outputs.build_version }}"
+          numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
+          target: ${{ env.SYSTEM_TARGET }}
+          chroot: ${{ env.SYSTEM_RASPBIAN }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
+          path: ${{ github.workspace }}/wheels/*.whl
+  build-nodejs-LinuxArmv7:
+    name: "LinArmv7|Build NodeJS and ElectronJS"
+    runs-on: ubuntu-20.04
+    needs: [ build-lib_LinuxArmv7, swig_Linux, tensorflow_opt-LinuxArmv7 ]
+    strategy:
+      matrix:
+        build-flavor: ["tflite"]
+        arch: [ "armv7" ]
+    env:
+      SYSTEM_TARGET: rpi3
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-raspbian-buster
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+      - run: |
+          cd ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+          tar xf native_client.tar.xz
+          ls -hal
+          cd ${{ github.workspace }}/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "swig_Linux"
+          path: ${{ github.workspace }}/native_client/ds-swig/
+      - name: Link ds-swig into swig
+        run: |
+          ls -hal ${{ github.workspace }}/native_client/ds-swig/bin
+          ln -s ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+          chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxArmv7.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'missing'
+      - uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxArmv7.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+          download: true
+        if: needs.tensorflow_opt-LinuxArmv7.outputs.status == 'found'
+      - run: |
+          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
+          rm ${{ github.workspace }}/home.tar.xz
+      - uses: ./.github/actions/install-xldd
+        with:
+          target: ${{ env.SYSTEM_TARGET }}
+      - name: "Install chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - uses: actions/cache@v2
+        id: node-headers-cache
+        with:
+          path: native_client/javascript/headers/nodejs/
+          key: node-headers-10.0.0_15.0.0
+      - uses: actions/cache@v2
+        id: electron-headers-cache
+        with:
+          path: native_client/javascript/headers/electronjs/
+          key: electron-headers-5.0.13_12.0.0
+      - uses: ./.github/actions/node-build
+        with:
+          nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          target: ${{ env.SYSTEM_TARGET }}
+          chroot: ${{ env.SYSTEM_RASPBIAN }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "nodewrapper-${{ matrix.build-flavor }}-Linux_${{ matrix.arch }}.tar.gz"
+          path: ${{ github.workspace }}/native_client/javascript/wrapper.tar.gz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-${{ matrix.arch }}.tgz"
+          path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
+  build-python-LinuxAarch64:
+    name: "LinAarch64|Build python bindings"
+    runs-on: ubuntu-20.04
+    needs: [ build-lib_LinuxAarch64, swig_Linux, tensorflow_opt-LinuxAarch64 ]
+    strategy:
+      matrix:
+        build-flavor: ["tflite"]
+        python-version: [3.7]
+        arch: [ "aarch64" ]
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+      SYSTEM_TARGET: rpi3-armv8
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-armbian64-buster
+    steps:
+      - run: |
+          sudo apt-get install -y --no-install-recommends
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+      - run: |
+          cd ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+          tar xf native_client.tar.xz
+          ls -hal
+          cd ${{ github.workspace }}/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "swig_Linux"
+          path: ${{ github.workspace }}/native_client/ds-swig/
+      - name: Link ds-swig into swig
+        run: |
+          ls -hal ${{ github.workspace }}/native_client/ds-swig/bin
+          ln -s ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+          chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+      - uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+          download: true
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'found'
+      - run: |
+          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
+          rm ${{ github.workspace }}/home.tar.xz
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-xldd
+        with:
+          target: ${{ env.SYSTEM_TARGET }}
+      - name: "Install chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+      - id: get_numpy
+        uses: ./.github/actions/numpy_vers
+        with:
+          pyver: ${{ matrix.python-version }}
+      - uses: ./.github/actions/python-build
+        with:
+          build_flavor: ${{ matrix.build-flavor }}
+          numpy_build: "${{ steps.get_numpy.outputs.build_version }}"
+          numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
+          target: ${{ env.SYSTEM_TARGET }}
+          chroot: ${{ env.SYSTEM_RASPBIAN }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
+          path: ${{ github.workspace }}/wheels/*.whl
+  build-nodejs-LinuxAarch64:
+    name: "LinAarch64|Build NodeJS and ElectronJS"
+    runs-on: ubuntu-20.04
+    needs: [ build-lib_LinuxAarch64, swig_Linux, tensorflow_opt-LinuxAarch64 ]
+    strategy:
+      matrix:
+        build-flavor: ["tflite"]
+        arch: [ "aarch64" ]
+    env:
+      SYSTEM_TARGET: rpi3-armv8
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-armbian64-buster
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+      - run: |
+          cd ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+          tar xf native_client.tar.xz
+          ls -hal
+          cd ${{ github.workspace }}/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "swig_Linux"
+          path: ${{ github.workspace }}/native_client/ds-swig/
+      - name: Link ds-swig into swig
+        run: |
+          ls -hal ${{ github.workspace }}/native_client/ds-swig/bin
+          ln -s ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+          chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+      - uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+          download: true
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'found'
+      - run: |
+          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
+          rm ${{ github.workspace }}/home.tar.xz
+      - uses: ./.github/actions/install-xldd
+        with:
+          target: ${{ env.SYSTEM_TARGET }}
+      - name: "Install chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - uses: actions/cache@v2
+        id: node-headers-cache
+        with:
+          path: native_client/javascript/headers/nodejs/
+          key: node-headers-10.0.0_15.0.0
+      - uses: actions/cache@v2
+        id: electron-headers-cache
+        with:
+          path: native_client/javascript/headers/electronjs/
+          key: electron-headers-5.0.13_12.0.0
+      - uses: ./.github/actions/node-build
+        with:
+          nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          target: ${{ env.SYSTEM_TARGET }}
+          chroot: ${{ env.SYSTEM_RASPBIAN }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "nodewrapper-${{ matrix.build-flavor }}-Linux_${{ matrix.arch }}.tar.gz"
+          path: ${{ github.workspace }}/native_client/javascript/wrapper.tar.gz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-${{ matrix.arch }}.tgz"
+          path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
+  build-test-chroot:
+    name: "Lin|Build test chroot"
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        arch: [ "armv7", "aarch64" ]
+    env:
+      CI_TMP_DIR: ${{ github.workspace }}/tmp
+      DEBIAN_FRONTEND: "noninteractive"
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/chroot-${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: "Install and setup chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+          packages: "bash wget curl sox xxd libatlas3-base libopenblas-base ca-certificates python3 python3-pip gnupg libatk1.0-0 libatk-bridge2.0-0 libcairo2 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm1 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libx11-xcb1 libxcb-dri3-0 libxcomposite1 libxcursor1 libxdamage1 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 xauth"
+      - name: "Create a chroot tarball"
+        run: |
+          sudo tar -cf - -C ${{ env.SYSTEM_RASPBIAN }}/ --one-file-system . | xz -9 -T0 > ${{ github.workspace }}/chroot.tar.xz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: chroot-${{ matrix.arch }}
+          path: ${{ github.workspace }}/chroot.tar.xz
+  test-cpp-LinuxArm:
+    name: "LinArm*|Test C++ binary"
+    runs-on: ubuntu-20.04
+    needs: [ build-lib_LinuxArmv7, build-lib_LinuxAarch64, train-test-model-Linux, build-test-chroot ]
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        arch: [ "armv7", "aarch64" ]
+        build-flavor: ["tflite"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
+    env:
+      CI_TMP_DIR: ${{ github.workspace }}/tmp
+      DEBIAN_FRONTEND: "noninteractive"
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/chroot-${{ matrix.arch }}
+    steps:
+      - name: "Install QEMU"
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends qemu-user-static
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "chroot-${{ matrix.arch }}"
+          path: ${{ env.CI_TMP_DIR }}/
+      - run: |
+          mkdir ${{ env.SYSTEM_RASPBIAN }}/
+          sudo tar -xf ${{ env.CI_TMP_DIR }}/chroot.tar.xz -C ${{ env.SYSTEM_RASPBIAN }}/
+          rm ${{ env.CI_TMP_DIR }}/chroot.tar.xz
+      - uses: actions/download-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ env.CI_TMP_DIR }}/
+      - run: |
+          cd ${{ env.CI_TMP_DIR }}/
+          mkdir ds && cd ds && tar xf ../native_client.tar.xz
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - name: "Check tests"
+        run: |
+          file ${{ env.SYSTEM_RASPBIAN }}/${{ env.CI_TMP_DIR }}/ds/*
+      - uses: ./.github/actions/chroot-bind-mount
+        with:
+          mounts: "/dev"
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "cpp"
+          chroot: "sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ ${{ github.workspace }}"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+  test-py-LinuxArm:
+    name: "LinArm*|Test Python bindings"
+    runs-on: ubuntu-20.04
+    needs: [ build-python-LinuxArmv7, build-python-LinuxAarch64, train-test-model-Linux, build-test-chroot ]
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        arch: [ "armv7", "aarch64" ]
+        python-version: [3.7]
+        build-flavor: ["tflite"]
+        models: ["test", "prod"]
+        bitrate: ["8k", "16k"]
+    env:
+      CI_TMP_DIR: ${{ github.workspace }}/tmp
+      DEBIAN_FRONTEND: "noninteractive"
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/chroot-${{ matrix.arch }}
+      PIP_EXTRA_INDEX_URL: "https://www.piwheels.org/simple https://lissyx.github.io/deepspeech-python-wheels/"
+    steps:
+      - name: "Install QEMU"
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends qemu-user-static
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "chroot-${{ matrix.arch }}"
+          path: ${{ env.CI_TMP_DIR }}/
+      - run: |
+          mkdir ${{ env.SYSTEM_RASPBIAN }}/
+          sudo tar -xf ${{ env.CI_TMP_DIR }}/chroot.tar.xz -C ${{ env.SYSTEM_RASPBIAN }}/
+          rm ${{ env.CI_TMP_DIR }}/chroot.tar.xz
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
+          path: ${{ env.CI_TMP_DIR }}/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - uses: ./.github/actions/chroot-bind-mount
+        with:
+          mounts: "/dev"
+      - run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+          ls -hal ${{ github.workspace }}/
+          ls -hal ${{ env.SYSTEM_RASPBIAN }}/${{ github.workspace }}/
+          sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ pip3 install --only-binary :all: --upgrade ${{ env.CI_TMP_DIR }}/deepspeech*.whl
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "python"
+          chroot: "sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ ${{ github.workspace }}"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+  test-nodejs-LinuxArm:
+    name: "LinArm*|Test NodeJS bindings"
+    runs-on: ubuntu-20.04
+    needs: [ build-nodejs-LinuxArmv7, build-nodejs-LinuxAarch64, train-test-model-Linux, build-test-chroot ]
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        arch: [ "armv7", "aarch64" ]
+        # https://nodejs.org/en/about/releases/
+        nodejs-version: [10, 12, 14, 15]
+        build-flavor: ["tflite"]
+        models: ["test"]
+        bitrate: ["16k"]
+    env:
+      CI_TMP_DIR: ${{ github.workspace }}/tmp
+      DEBIAN_FRONTEND: "noninteractive"
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/chroot-${{ matrix.arch }}
+    steps:
+      - name: "Install QEMU"
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends qemu-user-static
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "chroot-${{ matrix.arch }}"
+          path: ${{ env.CI_TMP_DIR }}/
+      - run: |
+          mkdir ${{ env.SYSTEM_RASPBIAN }}/
+          sudo tar -xf ${{ env.CI_TMP_DIR }}/chroot.tar.xz -C ${{ env.SYSTEM_RASPBIAN }}/
+          rm ${{ env.CI_TMP_DIR }}/chroot.tar.xz
+      - name: "Install NodeJS"
+        uses: ./.github/actions/node-install
+        with:
+          node: ${{ matrix.nodejs-version }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-${{ matrix.arch }}.tgz"
+          path: ${{ env.CI_TMP_DIR }}/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - uses: ./.github/actions/chroot-bind-mount
+        with:
+          mounts: "/dev"
+      - name: Install deepspeech package
+        run: |
+          sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ npm install --prefix ${{ github.workspace }}/ --verbose ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "node"
+          chroot: "sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ ${{ github.workspace }}"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+  test-electronjs-LinuxArm:
+    name: "LinArm*|Test ElectronJS bindings"
+    runs-on: ubuntu-20.04
+    needs: [ build-nodejs-LinuxArmv7, build-nodejs-LinuxAarch64, train-test-model-Linux, build-test-chroot ]
+    # Disable this task because it seems qemu does not work super-well with ElectronJS
+    if: ${{ github.event_name == 'disabled' }}
+    strategy:
+      matrix:
+        arch: [ "armv7", "aarch64" ]
+        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0]
+        build-flavor: ["tflite"]
+        models: ["test"]
+        bitrate: ["16k"]
+    env:
+      CI_TMP_DIR: ${{ github.workspace }}/tmp
+      DEBIAN_FRONTEND: "noninteractive"
+      DEEPSPEECH_PROD_MODEL: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pb
+      DEEPSPEECH_PROD_MODEL_MMAP: https://github.com/reuben/DeepSpeech/releases/download/v0.7.0-alpha.3/output_graph.pbmm
+      DEEPSPEECH_TEST_MODEL: ${{ github.workspace }}/tmp/output_graph.pb
+      EXPECTED_TENSORFLOW_VERSION: "TensorFlow: v2.3.0-6-g23ad988"
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/chroot-${{ matrix.arch }}
+      DISPLAY: ":99.0"
+    steps:
+      - name: "Install QEMU"
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends qemu-user-static xvfb xauth
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v2
+        with:
+          name: "chroot-${{ matrix.arch }}"
+          path: ${{ env.CI_TMP_DIR }}/
+      - run: |
+          mkdir ${{ env.SYSTEM_RASPBIAN }}/
+          sudo tar -xf ${{ env.CI_TMP_DIR }}/chroot.tar.xz -C ${{ env.SYSTEM_RASPBIAN }}/
+          rm ${{ env.CI_TMP_DIR }}/chroot.tar.xz
+      - name: "Install NodeJS"
+        uses: ./.github/actions/node-install
+        with:
+          node: 12
+      - uses: actions/download-artifact@v2
+        with:
+          name: "deepspeech_intermediate-${{ matrix.build-flavor }}-${{ matrix.arch }}.tgz"
+          path: ${{ env.CI_TMP_DIR }}/
+      - uses: actions/download-artifact@v2
+        with:
+          name: "test-model.${{ matrix.build-flavor }}-${{ matrix.bitrate }}.zip"
+          path: ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - run: |
+          ls -hal ${{ env.CI_TMP_DIR }}/
+        if: matrix.models == 'test'
+      - uses: ./.github/actions/chroot-bind-mount
+        with:
+          mounts: "/dev /proc /sys /run"
+      - name: Install deepspeech package
+        run: |
+          sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ npm install --prefix ${{ github.workspace }}/ ${{ env.CI_TMP_DIR }}/deepspeech*.tgz
+      - run: |
+          sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ npm install --prefix ${{ github.workspace }}/ electron@${{ matrix.electronjs-version }}
+      - name: "Fake X display"
+        run: |
+          sudo Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          xvfb_process=$!
+          echo $xvfb_process > ${{ env.CI_TMP_DIR }}/xvfb.pid
+          cat ${{ env.CI_TMP_DIR }}/xvfb.pid
+      - name: "Debug missing libs"
+        run: |
+          sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ ls -hal ${{ github.workspace }}/node_modules/electron/dist/electron
+          sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ ldd ${{ github.workspace }}/node_modules/electron/dist/electron
+      - uses: ./.github/actions/run-tests
+        with:
+          runtime: "electronjs"
+          chroot: "sudo --preserve-env chroot --userspec=runner:docker ${{ env.SYSTEM_RASPBIAN }}/ ${{ github.workspace }}"
+          build-flavor: ${{ matrix.build-flavor }}
+          bitrate: ${{ matrix.bitrate }}
+          model-kind: ${{ matrix.models }}
+        timeout-minutes: 5
+      - name: "Kill X"
+        run: |
+          cat ${{ env.CI_TMP_DIR }}/xvfb.pid
+          sudo kill -9 $(cat ${{ env.CI_TMP_DIR }}/xvfb.pid)

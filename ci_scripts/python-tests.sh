@@ -11,7 +11,8 @@ set_ldc_sample_filename "${bitrate}"
 
 download_data
 
-which deepspeech
+export_py_bin_path
+
 deepspeech --version
 
 run_all_inference_tests

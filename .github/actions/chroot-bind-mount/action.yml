@@ -1,0 +1,29 @@
+name: "chroot bind mount"
+description: "Bind mount into chroot"
+inputs:
+  mounts:
+    description: "Path to consider"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: install_qemu
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y --no-install-recommends qemu-user-static
+      shell: bash
+    - id: bind_mount_chroot
+      run: |
+        set -xe
+
+        # Bind-mount so that we have the same tree inside the chroot
+        for dev in ${{ github.workspace }} ${{ inputs.mounts }};
+        do
+          sudo mount -o bind ${dev} ${{ env.SYSTEM_RASPBIAN }}${dev}
+        done;
+
+          for dev in ${{ inputs.mounts }};
+          do
+            sudo mount -o bind /${dev} ${{ env.SYSTEM_RASPBIAN }}/${dev}
+          done;
+      shell: bash

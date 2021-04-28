@@ -112,9 +112,9 @@ symlink_electron()
   if [ "${OS}" = "Darwin" ]; then
     ln -s Electron.app/Contents/MacOS/Electron node_modules/electron/dist/node
   else
-    ln -s electron "node_modules/electron/dist/node"
+    ln -s electron "${DS_ROOT_TASK}/node_modules/electron/dist/node"
 
-    if [ "${OS}" = "Linux" -a -f "node_modules/electron/dist/chrome-sandbox" ]; then
+    if [ "${OS}" = "Linux" -a -f "${DS_ROOT_TASK}/node_modules/electron/dist/chrome-sandbox" ]; then
       export ELECTRON_DISABLE_SANDBOX=1
     fi
   fi
@@ -122,5 +122,10 @@ symlink_electron()
 
 export_node_bin_path()
 {
-  export PATH=$(pwd)/node_modules/.bin/:$(pwd)/node_modules/electron/dist/:$PATH
+  export PATH=${DS_ROOT_TASK}/node_modules/.bin/:${DS_ROOT_TASK}/node_modules/electron/dist/:$PATH
+}
+
+export_py_bin_path()
+{
+  export PATH=$HOME/.local/bin/:$PATH
 }

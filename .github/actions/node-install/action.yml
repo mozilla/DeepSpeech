@@ -1,0 +1,22 @@
+name: "nodejs install"
+description: "Install nodejs in a chroot"
+inputs:
+  node:
+    description: "NodeJS version"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: add_apt_source
+      run: |
+        set -ex
+        (echo "Package: nodejs" && echo "Pin: origin deb.nodesource.com" && echo "Pin-Priority: 999") > ${{ env.SYSTEM_RASPBIAN }}/etc/apt/preferences
+        echo "deb http://deb.nodesource.com/node_${{ inputs.node }}.x buster main" > ${{ env.SYSTEM_RASPBIAN }}/etc/apt/sources.list.d/nodesource.list
+        wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo --preserve-env chroot ${{ env.SYSTEM_RASPBIAN }}/ apt-key add -
+      shell: bash
+    - id: install_nodejs
+      run: |
+        set -ex
+        sudo --preserve-env chroot ${{ env.SYSTEM_RASPBIAN }}/ apt-get update -y
+        sudo --preserve-env chroot ${{ env.SYSTEM_RASPBIAN }}/ apt-get install -y nodejs
+      shell: bash
