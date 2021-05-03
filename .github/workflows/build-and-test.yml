@@ -113,13 +113,16 @@ jobs:
     needs: [ swig_Linux ]
     runs-on: ubuntu-20.04
     if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.6
+          python-version: ${{ matrix.python-version }}
       - run: |
           python --version
           pip --version
@@ -135,7 +138,7 @@ jobs:
       - id: get_numpy
         uses: ./.github/actions/numpy_vers
         with:
-          pyver: 3.6
+          pyver:  ${{ matrix.python-version }}
       - name: Make decoder package
         run: |
           NUMPY_BUILD_VERSION=${{ steps.get_numpy.outputs.build_version }} \
@@ -651,13 +654,16 @@ jobs:
     needs: [ swig_macOS ]
     runs-on: macos-10.15
     if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.2]
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: ./.github/actions/install-python-upstream
         with:
-          version: 3.6.8
+          version: ${{ matrix.python-version }}
       - run: |
           python --version
           pip --version
@@ -1146,6 +1152,9 @@ jobs:
     name: "Win|Build CTC decoder Python package"
     needs: [swig_Windows_crosscompiled]
     runs-on: windows-2019
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
         run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
@@ -1163,7 +1172,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.7.9
+          python-version: ${{ matrix.python-version }}
       - run: |
           python --version
           python -m pip --version
@@ -1212,6 +1221,9 @@ jobs:
     name: "Win|Build TensorFlow (opt)"
     needs: tensorflow_opt-Windows
     runs-on: windows-2019
+    strategy:
+      matrix:
+       python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - run: true
         if: needs.tensorflow_opt-Windows.outputs.status == 'found'
@@ -1229,7 +1241,7 @@ jobs:
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.7.9
+          python-version: ${{ matrix.python-version }}
         if: needs.tensorflow_opt-Windows.outputs.status == 'missing'
       - uses: actions/checkout@v2
         with:
@@ -1314,7 +1326,7 @@ jobs:
         build-flavor: ["tf", "tflite"]
         # Try to keep Python versions in sync with cached versions to speed things up:
         # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.4]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - name: Switch git-bash shell to MSYS2 shell by adding MSYS2 path to PATH front
         run: echo "$MSYS2_SHELL_PATH" >> $GITHUB_PATH
@@ -1490,7 +1502,7 @@ jobs:
       matrix:
         # Try to keep Python versions in sync with cached versions to speed things up:
         # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-        python-version: [3.6.8, 3.7.9, 3.8.8, 3.9.4]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         build-flavor: ["tf", "tflite"]
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
