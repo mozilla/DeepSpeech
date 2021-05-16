@@ -51,6 +51,7 @@ def create_flags():
     f.DEFINE_float('beta2', 0.999, 'beta 2 parameter of Adam optimizer')
     f.DEFINE_float('epsilon', 1e-8, 'epsilon parameter of Adam optimizer')
     f.DEFINE_float('learning_rate', 0.001, 'learning rate of Adam optimizer')
+    f.DEFINE_string('learning_rate_scheduler', "", 'the scheduler function for learning rate. \nThe function must be in the form of nested if else structure e.g. 0.01 if epoch < 10 else 1e-4 if epoch < 50 else 1e-5 \nnotice that "epoch" is a keyword in the defined function.')
 
     # Batch sizes
 
