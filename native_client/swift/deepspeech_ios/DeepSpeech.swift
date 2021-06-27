@@ -283,7 +283,10 @@ public class DeepSpeechStream {
         precondition(streamCtx != nil, "calling method on invalidated Stream")
 
         let result = DS_FinishStreamWithMetadata(streamCtx, UInt32(numResults))!
-        defer { DS_FreeMetadata(result) }
+        defer {
+            DS_FreeMetadata(result)
+            streamCtx = nil
+        }
         return DeepSpeechMetadata(fromInternal: result)
     }
 }
