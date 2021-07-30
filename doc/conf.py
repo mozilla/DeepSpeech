@@ -44,8 +44,8 @@ import semver
 
 # -- Project information -----------------------------------------------------
 
-project = u'DeepSpeech'
-copyright = '2019-2020 Mozilla Corporation, 2020 DeepSpeech authors'
+project = u'Mozilla DeepSpeech'
+copyright = '2016-2020 Mozilla Corporation, 2020 DeepSpeech authors'
 author = 'DeepSpeech authors'
 
 with open('../VERSION', 'r') as ver:
