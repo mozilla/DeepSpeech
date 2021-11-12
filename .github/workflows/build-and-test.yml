@@ -394,7 +394,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0 16.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
       - uses: actions/upload-artifact@v2
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-Linux_amd64.tar.gz"
@@ -938,7 +938,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0 16.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
       - uses: actions/upload-artifact@v2
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-macOS_amd64.tar.gz"
@@ -1424,7 +1424,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0 16.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
       - uses: actions/upload-artifact@v2
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-Windows_amd64.tar.gz"
@@ -2421,7 +2421,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
           target: ${{ env.SYSTEM_TARGET }}
           chroot: ${{ env.SYSTEM_RASPBIAN }}
       - uses: actions/upload-artifact@v2
@@ -2578,7 +2578,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
           target: ${{ env.SYSTEM_TARGET }}
           chroot: ${{ env.SYSTEM_RASPBIAN }}
       - uses: actions/upload-artifact@v2
