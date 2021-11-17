@@ -34,6 +34,7 @@ class DontBhiksha {
     static const ModelType kModelTypeAdd = static_cast<ModelType>(0);
 
     static void UpdateConfigFromBinary(const BinaryFormat &, uint64_t, Config &/*config*/) {}
+    static void UpdateConfigFromBinary(const BinaryFormat &, uint64_t, Config &, bool) {}
 
     static uint64_t Size(uint64_t /*max_offset*/, uint64_t /*max_next*/, const Config &/*config*/) { return 0; }
 
@@ -65,7 +66,7 @@ class ArrayBhiksha {
   public:
     static const ModelType kModelTypeAdd = kArrayAdd;
 
-    static void UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config);
+    static void UpdateConfigFromBinary(const BinaryFormat &file, uint64_t offset, Config &config, bool load_from_bytes);
 
     static uint64_t Size(uint64_t max_offset, uint64_t max_next, const Config &config);
 

@@ -33,6 +33,8 @@
 #include <unistd.h>
 #endif // NO_DIR
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include "deepspeech.h"
 #include "args.h"
@@ -452,8 +454,21 @@ main(int argc, char **argv)
 
   // Initialise DeepSpeech
   ModelState* ctx;
+  std::string buffer_model_str;
   // sphinx-doc: c_ref_model_start
-  int status = DS_CreateModel(model, &ctx);
+  int status;
+  if (init_from_array_of_bytes){
+    // Reading model file to a char * buffer
+    std::ifstream is_model( model, std::ios::binary );
+    std::stringstream buffer_model;
+    buffer_model << is_model.rdbuf();
+    buffer_model_str = buffer_model.str();
+    status = DS_CreateModelFromBuffer(buffer_model_str.c_str(), buffer_model_str.size(), &ctx);
+  }else {
+    // Keep old method due to backwards compatibility
+    status = DS_CreateModel(model, &ctx);
+  }
+  
   if (status != 0) {
     char* error = DS_ErrorCodeToErrorMessage(status);
     fprintf(stderr, "Could not create model: %s\n", error);
@@ -470,7 +485,18 @@ main(int argc, char **argv)
   }
 
   if (scorer) {
-    status = DS_EnableExternalScorer(ctx, scorer);
+    if (init_from_array_of_bytes){
+      // Reading scorer file to a string buffer
+      std::ifstream is_scorer(scorer, std::ios::binary );
+      std::stringstream buffer_scorer;
+      buffer_scorer << is_scorer.rdbuf();
+      std::string tmp_str_scorer = buffer_scorer.str();
+      status = DS_EnableExternalScorerFromBuffer(ctx, tmp_str_scorer.c_str(), tmp_str_scorer.size());
+    } else {
+      // Keep old method due to backwards compatibility
+      status = DS_EnableExternalScorer(ctx, scorer);
+    }
+    
     if (status != 0) {
       fprintf(stderr, "Could not enable external scorer.\n");
       return 1;
