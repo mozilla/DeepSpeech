@@ -29,7 +29,7 @@ from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from .evaluate import evaluate
 from six.moves import zip, range
 from .util.config import Config, initialize_globals
-from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation, reload_best_checkpoint
+from .util.checkpoints import drop_freeze_number_to_layers, load_or_init_graph_for_training, load_graph_for_evaluation, reload_best_checkpoint
 from .util.evaluate_tools import save_samples_json
 from .util.feeding import create_dataset, audio_to_features, audiofile_to_features
 from .util.flags import create_flags, FLAGS
@@ -322,8 +322,24 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                     # Retain tower's avg losses
                     tower_avg_losses.append(avg_loss)
 
+                    train_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+
+                    # Filter out layers if we want to freeze some
+                    if FLAGS.freeze_source_layers > 0:
+                        filter_vars = drop_freeze_number_to_layers(FLAGS.freeze_source_layers, "freeze")
+                        new_train_vars = list(train_vars)
+                        for fv in filter_vars:
+                            for tv in train_vars:
+                                if fv in tv.name:
+                                    new_train_vars.remove(tv)
+                        train_vars = new_train_vars
+                        msg = "Tower {} -  Training only variables: {}"
+                        print(msg.format(i, [v.name for v in train_vars]))
+                    else:
+                        print("Tower {} - Training all layers".format(i))
+
                     # Compute gradients for model parameters using tower's mini-batch
-                    gradients = optimizer.compute_gradients(avg_loss)
+                    gradients = optimizer.compute_gradients(avg_loss, var_list=train_vars)
 
                     # Retain tower's gradients
                     tower_gradients.append(gradients)
@@ -714,7 +730,6 @@ def train():
                             log_progress('Metrics for epoch %d on %s - loss: %f' % (epoch, source, set_loss))
 
                 print('-' * 80)
-
 
         except KeyboardInterrupt:
             pass
