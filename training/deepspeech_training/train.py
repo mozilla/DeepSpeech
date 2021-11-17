@@ -635,6 +635,13 @@ def train():
         epochs_without_improvement = 0
         try:
             for epoch in range(FLAGS.epochs):
+                if FLAGS.learning_rate_scheduler != "":
+                    try:
+                        learning_rate_var.load(eval(FLAGS.learning_rate_scheduler), session)
+                        print(f"Current learning rate at epoch {epoch}:",  learning_rate_var.eval())
+                    except Exception as e:
+                        print("I Can not use learning rate scheduler function, Error:", e)
+                        
                 # Training
                 if Config.is_master_process:
                     log_progress('Training epoch %d...' % epoch)
