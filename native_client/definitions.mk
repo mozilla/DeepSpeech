@@ -13,6 +13,7 @@ TOOL_LDD  := ldd
 TOOL_LIBEXE :=
 
 OS        := $(shell uname -s)
+PROCESSOR := $(shell uname -p)
 
 ifeq ($(findstring _NT,$(OS)),_NT)
 PLATFORM_EXE_SUFFIX := .exe
@@ -51,7 +52,11 @@ SOX_LDFLAGS     := `pkg-config --libs sox`
 endif # OS others
 PYTHON_PACKAGES := numpy${NUMPY_BUILD_VERSION}
 ifeq ($(OS),Linux)
+ifeq ($(PROCESSOR),x86_64)
 PYTHON_PLATFORM_NAME ?= --plat-name manylinux1_x86_64
+else
+PYTHON_PLATFORM_NAME ?= --plat-name linux_${PROCESSOR}
+endif
 endif
 endif
 
