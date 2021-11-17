@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential mingw-w64
         if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
-          curl -sSL https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz > pcre-8.43.tar.gz
+          curl -sSL https://sourceforge.net/projects/pcre/files/pcre/8.43/pcre-8.43.tar.gz/download > pcre-8.43.tar.gz
         if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           ./Tools/pcre-build.sh --host=x86_64-w64-mingw32
@@ -87,7 +87,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends autoconf automake bison build-essential
         if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
-          curl -sSL https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz > pcre-8.43.tar.gz
+          curl -sSL https://sourceforge.net/projects/pcre/files/pcre/8.43/pcre-8.43.tar.gz/download > pcre-8.43.tar.gz
         if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           ./Tools/pcre-build.sh
@@ -394,7 +394,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0 16.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
       - uses: actions/upload-artifact@v2
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-Linux_amd64.tar.gz"
@@ -554,7 +554,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0]
+        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0, 13.6.1, 14.2.1, 15.3.1]
         build-flavor: ["tf", "tflite"]
         models: ["test"]
         bitrate: ["16k"]
@@ -625,7 +625,7 @@ jobs:
           brew install automake
         if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
-          curl -sSL https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz > pcre-8.43.tar.gz
+          curl -sSL https://sourceforge.net/projects/pcre/files/pcre/8.43/pcre-8.43.tar.gz/download > pcre-8.43.tar.gz
         if: steps.swig-build-cache.outputs.cache-hit != 'true'
       - run: |
           ./Tools/pcre-build.sh
@@ -938,7 +938,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0 16.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
       - uses: actions/upload-artifact@v2
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-macOS_amd64.tar.gz"
@@ -1094,7 +1094,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0]
+        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0, 13.6.1, 14.2.1, 15.3.1]
         build-flavor: ["tf", "tflite"]
         models: ["test"]
         bitrate: ["16k"]
@@ -1424,7 +1424,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0 16.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
       - uses: actions/upload-artifact@v2
         with:
           name: "nodewrapper-${{ matrix.build-flavor }}-Windows_amd64.tar.gz"
@@ -1610,7 +1610,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0]
+        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0, 13.6.1, 14.2.1, 15.3.1]
         build-flavor: ["tf", "tflite"]
         models: ["test"]
         bitrate: ["16k"]
@@ -1791,7 +1791,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        electronjs-version: [5.0.13, 12.0.0]
+        electronjs-version: [5.0.13, 15.3.1]
         build-flavor: ["tf", "tflite"]
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
@@ -1901,7 +1901,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        electronjs-version: [5.0.13, 12.0.0]
+        electronjs-version: [5.0.13, 15.3.1]
         build-flavor: ["tf", "tflite"]
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
@@ -2021,7 +2021,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        electronjs-version: [5.0.13, 12.0.0]
+        electronjs-version: [5.0.13, 15.3.1]
         build-flavor: ["tf", "tflite"]
         models: ["test", "prod"]
         bitrate: ["8k", "16k"]
@@ -2421,7 +2421,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
           target: ${{ env.SYSTEM_TARGET }}
           chroot: ${{ env.SYSTEM_RASPBIAN }}
       - uses: actions/upload-artifact@v2
@@ -2578,7 +2578,7 @@ jobs:
       - uses: ./.github/actions/node-build
         with:
           nodejs_versions: "10.0.0 11.0.0 12.7.0 13.0.0 14.0.0 15.0.0"
-          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0"
+          electronjs_versions: "5.0.13 6.0.12 6.1.7 7.0.1 7.1.8 8.0.1 9.0.1 9.1.0 9.2.0 10.0.0 10.1.0 11.0.0 12.0.0 13.6.1 14.2.1 15.3.1"
           target: ${{ env.SYSTEM_TARGET }}
           chroot: ${{ env.SYSTEM_RASPBIAN }}
       - uses: actions/upload-artifact@v2
@@ -2818,7 +2818,7 @@ jobs:
     strategy:
       matrix:
         arch: [ "armv7", "aarch64" ]
-        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0]
+        electronjs-version: [5.0.13, 6.1.7, 7.1.8, 8.0.1, 9.2.0, 10.1.0, 11.0.0, 12.0.0, 13.6.1, 14.2.1, 15.3.1]
         build-flavor: ["tflite"]
         models: ["test"]
         bitrate: ["16k"]
