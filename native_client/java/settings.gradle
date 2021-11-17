@@ -1,1 +1,1 @@
-include ':app', ':libdeepspeech'
+include ':app', ':libdeepspeech_android', ':libdeepspeech_jre'
