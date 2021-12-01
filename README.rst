@@ -7,7 +7,7 @@ Project DeepSpeech
    :alt: Documentation
 
 
-.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/windows-amd64.yml/badge.svg
+.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml/badge.svg
    :target: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml
    :alt: macOS builds
 
