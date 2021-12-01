@@ -7,9 +7,9 @@ Project DeepSpeech
    :alt: Documentation
 
 
-.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml/badge.svg
-   :target: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml
-   :alt: macOS builds
+[comment]: <>.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml/badge.svg
+   [comment]: <>:target: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml
+   [comment]: <>:alt: macOS builds
 
 .. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/lint.yml/badge.svg
    :target: https://github.com/mozilla/DeepSpeech/actions/workflows/lint.yml
