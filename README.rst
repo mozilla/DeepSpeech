@@ -6,11 +6,6 @@ Project DeepSpeech
    :target: https://deepspeech.readthedocs.io/?badge=latest
    :alt: Documentation
 
-
-[comment]: <>.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml/badge.svg
-   [comment]: <>:target: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml
-   [comment]: <>:alt: macOS builds
-
 .. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/lint.yml/badge.svg
    :target: https://github.com/mozilla/DeepSpeech/actions/workflows/lint.yml
    :alt: Linters
