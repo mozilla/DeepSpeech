@@ -78,7 +78,7 @@ Please ensure you have the required `CUDA dependency <https://www.tensorflow.org
 
 It has been reported for some people failure at training:
 
-.. code-block::
+.. code-block:: bash
 
    tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution algorithm. This is probably because cuDNN failed to initialize, so try looking to see if a warning log message was printed above.
         [[{{node tower_0/conv1d/Conv2D}}]]
