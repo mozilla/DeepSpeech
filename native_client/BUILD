@@ -2,7 +2,6 @@
 
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_shared_object", "tf_copts", "lrt_if_needed")
 load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
-load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 load(
