@@ -1,0 +1,93 @@
+name: "get numpy versions"
+description: "Get proper NumPy build and runtime versions dependencies range"
+inputs:
+  pyver:
+    description: "Python version"
+    required: true
+outputs:
+  build_version:
+    description: "NumPy build dependency"
+    value: ${{ steps.numpy.outputs.build }}
+  dep_version:
+    description: "NumPy runtime dependency"
+    value: ${{ steps.numpy.outputs.dep }}
+runs:
+  using: "composite"
+  steps:
+    - id: numpy
+      run: |
+        set -ex
+        NUMPY_BUILD_VERSION="==1.7.0"
+        NUMPY_DEP_VERSION=">=1.7.0"
+
+        OS=$(uname -s)
+        ARCH=$(uname -m)
+
+        case "${OS}:${ARCH}" in
+            Linux:x86_64)
+                case "${{ inputs.pyver }}" in
+                    3.7*)
+                        NUMPY_BUILD_VERSION="==1.14.5"
+                        NUMPY_DEP_VERSION=">=1.14.5"
+                    ;;
+                    3.8*)
+                        NUMPY_BUILD_VERSION="==1.17.3"
+                        NUMPY_DEP_VERSION=">=1.17.3"
+                    ;;
+                    3.9*)
+                        NUMPY_BUILD_VERSION="==1.19.4"
+                        NUMPY_DEP_VERSION=">=1.19.4"
+                    ;;
+                esac
+            ;;
+
+            Darwin:*)
+                case "${{ inputs.pyver }}" in
+                    3.6*)
+                        NUMPY_BUILD_VERSION="==1.9.0"
+                        NUMPY_DEP_VERSION=">=1.9.0"
+                    ;;
+                    3.7*)
+                        NUMPY_BUILD_VERSION="==1.14.5"
+                        NUMPY_DEP_VERSION=">=1.14.5,<=1.17.0"
+                    ;;
+                    3.8*)
+                        NUMPY_BUILD_VERSION="==1.17.3"
+                        NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
+                    ;;
+                    3.9*)
+                        NUMPY_BUILD_VERSION="==1.19.4"
+                        NUMPY_DEP_VERSION=">=1.19.4"
+                    ;;
+                esac
+            ;;
+
+            ${CI_MSYS_VERSION}:x86_64)
+                case "${{ inputs.pyver }}" in
+                    3.5*)
+                        NUMPY_BUILD_VERSION="==1.11.0"
+                        NUMPY_DEP_VERSION=">=1.11.0,<1.12.0"
+                    ;;
+                    3.6*)
+                        NUMPY_BUILD_VERSION="==1.12.0"
+                        NUMPY_DEP_VERSION=">=1.12.0,<1.14.5"
+                    ;;
+                    3.7*)
+                        NUMPY_BUILD_VERSION="==1.14.5"
+                        NUMPY_DEP_VERSION=">=1.14.5,<=1.17.0"
+                    ;;
+                    3.8*)
+                        NUMPY_BUILD_VERSION="==1.17.3"
+                        NUMPY_DEP_VERSION=">=1.17.3,<=1.17.3"
+                    ;;
+                    3.9*)
+                        NUMPY_BUILD_VERSION="==1.19.4"
+                        NUMPY_DEP_VERSION=">=1.19.4"
+                    ;;
+                esac
+            ;;
+        esac
+
+        echo "::set-output name=build::${NUMPY_BUILD_VERSION}"
+        echo "::set-output name=dep::${NUMPY_DEP_VERSION}"
+      shell: bash

@@ -174,27 +174,7 @@ See the :ref:`TypeScript client <js-api-example>` for an example of how to use t
 Using the command-line client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To download the pre-built binaries for the ``deepspeech`` command-line (compiled C++) client, use ``util/taskcluster.py``\ :
-
-.. code-block:: bash
-
-   python3 util/taskcluster.py --target .
-
-or if you're on macOS:
-
-.. code-block:: bash
-
-   python3 util/taskcluster.py --arch osx --target .
-
-also, if you need some binaries different than current master, like ``v0.2.0-alpha.6``\ , you can use ``--branch``\ :
-
-.. code-block:: bash
-
-   python3 util/taskcluster.py --branch "v0.2.0-alpha.6" --target "."
-
-The script ``taskcluster.py`` will download ``native_client.tar.xz`` (which includes the ``deepspeech`` binary and associated libraries) and extract it into the current folder. Also, ``taskcluster.py`` will download binaries for Linux/x86_64 by default, but you can override that behavior with the ``--arch`` parameter. See the help info with ``python util/taskcluster.py -h`` for more details. Specific branches of DeepSpeech or TensorFlow can be specified as well.
-
-Alternatively you may manually download the ``native_client.tar.xz`` from the [releases](https://github.com/mozilla/DeepSpeech/releases).
+To download the pre-built binaries for the ``deepspeech`` command-line (compiled C++) client, use one of the ``native_client.tar.xz`` files from the [releases](https://github.com/mozilla/DeepSpeech/releases).
 
 Note: the following command assumes you `downloaded the pre-trained model <#getting-the-pre-trained-model>`_.
 

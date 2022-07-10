@@ -188,7 +188,7 @@ do_bazel_build()
 
   if [ "${_opt_or_dbg}" = "opt" ]; then
     if is_patched_bazel; then
-      find ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar -T -
+      find ${DS_ROOT_TASK}/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/bazel-ckd-tf.tar -T -
     fi;
   fi;
 
@@ -197,9 +197,9 @@ do_bazel_build()
 
   if [ "${_opt_or_dbg}" = "opt" ]; then
     if is_patched_bazel; then
-      find ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar -T -
+      find ${DS_ROOT_TASK}/tensorflow/bazel-out/ -iname "*.ckd" | tar -cf ${DS_ROOT_TASK}/bazel-ckd-ds.tar -T -
     fi;
-    verify_bazel_rebuild "${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel_monolithic.log"
+    verify_bazel_rebuild "${DS_ROOT_TASK}/tensorflow/bazel_monolithic.log"
   fi;
 }
 

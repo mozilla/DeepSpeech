@@ -106,10 +106,6 @@ fi
 
 mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
-pushd ${DS_ROOT_TASK}/DeepSpeech/ds/
-    git submodule --quiet sync tensorflow/ && git submodule --quiet update --init tensorflow/
-popd
-
 
 # Taken from https://www.tensorflow.org/install/source
 # Only future is needed for our builds, as we don't build the Python package

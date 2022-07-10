@@ -1,0 +1,7 @@
+name: "Package TensorFlow"
+description: "Package TensorFlow Build"
+runs:
+  using: "composite"
+  steps:
+    - run: ./ci_scripts/tf-package.sh
+      shell: bash

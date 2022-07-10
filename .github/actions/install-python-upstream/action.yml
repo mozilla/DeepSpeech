@@ -1,0 +1,30 @@
+name: "Install Python"
+description: "Installing an upstream python release"
+inputs:
+  version:
+    description: "Python version"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        set -xe
+        curl https://www.python.org/ftp/python/${{ inputs.version }}/python-${{ inputs.version }}-macosx10.9.pkg -o "python.pkg"
+    - shell: bash
+      run: ls -hal .
+    - shell: bash
+      run: |
+        set -xe
+        sudo installer -verbose -pkg python.pkg -target /
+    - shell: bash
+      run: |
+        set -xe
+        which python3
+        python3 --version
+        python3 -c "import sysconfig; print(sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET'))"
+    - shell: bash
+      name: Set up venv with upstream Python
+      run: |
+        python3 -m venv /tmp/venv
+        echo "/tmp/venv/bin" >> $GITHUB_PATH

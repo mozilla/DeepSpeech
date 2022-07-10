@@ -196,6 +196,27 @@ python3 DeepSpeech.py --train_files ./train.csv --dev_files ./dev.csv --test_fil
 
 On a Volta generation V100 GPU, automatic mixed precision speeds up DeepSpeech training and evaluation by ~30%-40%.
 
+Distributed training using Horovod
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have a capable compute architecture, it is possible to distribute the training using `Horovod <https://github.com/horovod/horovod>`_. A fast network is recommended.
+Horovod is capable of using MPI and NVIDIA's NCCL for highly optimized inter-process communication.
+It also offers `Gloo <https://github.com/facebookincubator/gloo>`_ as an easy-to-setup communication backend.
+
+For more information about setup or tuning of Horovod please visit `Horovod's documentation <https://horovod.readthedocs.io/en/stable/summary_include.html>`_.
+
+Horovod is expected to run on heterogeneous systems (e.g. different number and model type of GPUs per machine).
+However, this can cause unpredictable problems and user interaction in training code is needed.
+Therefore, we do only support homogenous systems, which means same hardware and also same software configuration (OS, drivers, MPI, NCCL, TensorFlow, ...) on each machine.
+The only exception is different number of GPUs per machine, since this can be controlled by ``horovodrun -H``.
+
+Detailed documentation how to run Horovod is provided `here <https://horovod.readthedocs.io/en/stable/running.html>`_.
+The short command to train on 4 machines using 4 GPUs each:
+
+.. code-block:: bash
+
+    horovodrun -np 16 -H server1:4,server2:4,server3:4,server4:4 python3 DeepSpeech.py --train_files [...] --horovod
+
 Checkpointing
 ^^^^^^^^^^^^^
 
@@ -220,11 +241,9 @@ Making a mmap-able model for inference
 The ``output_graph.pb`` model file generated in the above step will be loaded in memory to be dealt with when running inference.
 This will result in extra loading time and memory consumption. One way to avoid this is to directly read data from the disk.
 
-TensorFlow has tooling to achieve this: it requires building the target ``//tensorflow/contrib/util:convert_graphdef_memmapped_format`` (binaries are produced by our TaskCluster for some systems including Linux/amd64 and macOS/amd64), use ``util/taskcluster.py`` tool to download:
+TensorFlow has tooling to achieve this: it requires building the target ``//tensorflow/contrib/util:convert_graphdef_memmapped_format``. We recommend you build it from `TensorFlow r1.15 <https://github.com/tensorflow/tensorflow/tree/r1.15/>`_.
 
-.. code-block::
-
-   $ python3 util/taskcluster.py --source tensorflow --artifact convert_graphdef_memmapped_format --branch r1.15 --target .
+For convenience, builds for Linux and macOS are `available (look for file named convert_graphdef_memmapped_format) <https://github.com/mozilla/DeepSpeech/releases/tag/v0.9.3>`_
 
 Producing a mmap-able model is as simple as:
 

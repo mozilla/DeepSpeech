@@ -10,3 +10,6 @@ rm -rf windows include lm/filter lm/builder util/stream util/getopt.* python
 
 This was done in order to ensure uniqueness of double_conversion:
 git grep 'double_conversion' | cut -d':' -f1 | sort | uniq | xargs sed -ri 's/double_conversion/kenlm_double_conversion/g'
+
+Cherry-pick fix for MSVC:
+curl -vsSL https://github.com/kpu/kenlm/commit/d70e28403f07e88b276c6bd9f162d2a428530f2e.patch | git am -p1 --directory=native_client/kenlm

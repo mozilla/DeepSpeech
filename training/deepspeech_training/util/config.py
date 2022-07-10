@@ -79,12 +79,33 @@ def initialize_globals():
     # CPU device
     c.cpu_device = '/cpu:0'
 
-    # Available GPU devices
-    c.available_devices = get_available_gpus(c.session_config)
+    if FLAGS.horovod:
+        try:
+            import horovod.tensorflow as hvd
+        except ImportError as e:
+            print(
+                "Error importing Horovod. Did you installed DeepSpeech with -DNOHOROVOD? "
+                "If you do not want to use horovod, use 'from deepspeech_training import train'")
+            raise e
 
-    # If there is no GPU available, we fall back to CPU based operation
-    if not c.available_devices:
-        c.available_devices = [c.cpu_device]
+        hvd.init()
+
+        # Pin GPU to be used to process local rank (one GPU per process)
+        c.session_config.gpu_options.visible_device_list = str(hvd.local_rank())
+        c.num_devices = hvd.size()
+        c.is_master_process = True if hvd.rank() == 0 else False
+    else:
+    # # Available GPU devices
+        c.available_devices = get_available_gpus(c.session_config)
+
+        # If there is no GPU available, we fall back to CPU based operation
+        if not c.available_devices:
+            c.available_devices = [c.cpu_device]
+
+        c.num_devices = len(c.available_devices)
+
+        # If there are no horovod processes the only one should handled like horovod master
+        c.is_master_process = True
 
     if FLAGS.bytes_output_mode:
         c.alphabet = UTF8Alphabet()

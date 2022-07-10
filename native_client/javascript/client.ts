@@ -89,6 +89,15 @@ if (result.sampleRate < desired_sample_rate) {
                 `Up-sampling might produce erratic speech recognition.`);
 }
 
+function handleExit() {
+  if (process.versions.electron) {
+    const { app } = require("electron");
+    app.quit();
+  } else {
+    process.exit(0);
+  }
+}
+
 function bufferToStream(buffer: Buffer) {
   var stream = new Duplex();
   stream.push(buffer);
@@ -135,7 +144,14 @@ if (!args['stream']) {
     const inference_stop = process.hrtime(inference_start);
     console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
     Ds.FreeModel(model);
-    process.exit(0);
+    // Allow some time for resources to exhaust and ensure we finish the
+    // process anyway
+    setTimeout(() => {
+      handleExit();
+    }, 1*1000);
+  });
+  audioStream.on('close', () => {
+    handleExit();
   });
 } else {
   let stream  = model.createStream();

@@ -77,8 +77,7 @@ template <class Proxy> class ProxyIterator {
 
     std::ptrdiff_t operator-(const S &other) const { return I() - other.I(); }
 
-    Proxy operator*() { return p_; }
-    const Proxy operator*() const { return p_; }
+    Proxy operator*() const { return p_; }
     Proxy *operator->() { return &p_; }
     const Proxy *operator->() const { return &p_; }
     Proxy operator[](std::ptrdiff_t amount) const { return *(*this + amount); }

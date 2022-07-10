@@ -1,0 +1,77 @@
+name: "NodeJS binding"
+description: "Binding a nodejs binding"
+inputs:
+  nodejs_versions:
+    description: "NodeJS versions supported"
+    required: true
+  electronjs_versions:
+    description: "ElectronJS versions supported"
+    required: true
+  local_cflags:
+    description: "CFLAGS for NodeJS package"
+    required: false
+    default: ""
+  local_ldflags:
+    description: "LDFLAGS for NodeJS package"
+    required: false
+    default: ""
+  local_libs:
+    description: "LIBS for NodeJS package"
+    required: false
+    default: ""
+  target:
+    description: "TARGET value"
+    required: false
+    default: "host"
+  chroot:
+    description: "RASPBIAN value"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        node --version
+        npm --version
+      shell: bash
+    - run: |
+        npm update
+      shell: bash
+    - run: |
+        mkdir -p tmp/headers/nodejs tmp/headers/electronjs
+      shell: bash
+    - run: |
+        for node in ${{ inputs.nodejs_versions }}; do
+          EXTRA_CFLAGS=${{ inputs.local_cflags }} \
+          EXTRA_LDFLAGS=${{ inputs.local_ldflags }} \
+          EXTRA_LIBS=${{ inputs.local_libs }} \
+            make -C native_client/javascript \
+              TARGET=${{ inputs.target }} \
+              RASPBIAN=${{ inputs.chroot }} \
+              NODE_ABI_TARGET=--target=${node} \
+              NODE_DEVDIR=--devdir=headers/nodejs \
+            clean node-wrapper
+        done;
+      shell: bash
+    - run: |
+        for electron in ${{ inputs.electronjs_versions }}; do
+          EXTRA_CFLAGS=${{ inputs.local_cflags }} \
+          EXTRA_LDFLAGS=${{ inputs.local_ldflags }} \
+          EXTRA_LIBS=${{ inputs.local_libs }} \
+            make -C native_client/javascript \
+              TARGET=${{ inputs.target }} \
+              RASPBIAN=${{ inputs.chroot }} \
+              NODE_ABI_TARGET=--target=${electron} \
+              NODE_DIST_URL=--disturl=https://electronjs.org/headers \
+              NODE_RUNTIME=--runtime=electron \
+              NODE_DEVDIR=--devdir=headers/electronjs \
+            clean node-wrapper
+        done;
+      shell: bash
+    - run: |
+        make -C native_client/javascript clean npm-pack
+      shell: bash
+    - run: |
+        tar -czf native_client/javascript/wrapper.tar.gz \
+          -C native_client/javascript/ lib/
+      shell: bash

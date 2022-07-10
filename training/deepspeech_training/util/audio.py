@@ -174,6 +174,10 @@ def convert_audio(src_audio_path, dst_audio_path, file_type=None, audio_format=D
 
 
 class AudioFile:
+    """
+    Audio data file wrapper that ensures that the file is loaded with the correct sample rate, channels,
+    and width, and converts the file on the fly otherwise.
+    """
     def __init__(self, audio_path, as_path=False, audio_format=DEFAULT_FORMAT):
         self.audio_path = audio_path
         self.audio_format = audio_format
@@ -199,8 +203,8 @@ class AudioFile:
         # If the format isn't right, copy the file to local tmp dir and do the conversion on disk
         if is_remote_path(self.audio_path):
             _, self.tmp_src_file_path = tempfile.mkstemp(suffix='.wav')
-            copy_remote(self.audio_path, self.tmp_src_file_path)
-            self.audio_path = self.tmp_file_path
+            copy_remote(self.audio_path, self.tmp_src_file_path, True)
+            self.audio_path = self.tmp_src_file_path
 
         _, self.tmp_file_path = tempfile.mkstemp(suffix='.wav')
         convert_audio(self.audio_path, self.tmp_file_path, file_type='wav', audio_format=self.audio_format)
@@ -575,17 +579,26 @@ def get_dtype(audio_format):
 
 
 def pcm_to_np(pcm_data, audio_format=DEFAULT_FORMAT):
-    if audio_format.channels != 1:
-        raise ValueError('Mono-channel audio required')
+    """
+    Converts PCM data (e.g. read from a wavfile) into a mono numpy column vector
+    with values in the range [0.0, 1.0].
+    """
+    # Handles both mono and stero audio
     dtype = get_dtype(audio_format)
     samples = np.frombuffer(pcm_data, dtype=dtype)
+
+    # Read interleaved channels
+    nchannels = audio_format.channels
+    samples = samples.reshape((int(len(samples)/nchannels), nchannels))
+    
+    # Convert to 0.0-1.0 range
     samples = samples.astype(np.float32) / np.iinfo(dtype).max
-    return np.expand_dims(samples, axis=1)
+
+    # Average multi-channel clips into mono and turn into column vector
+    return np.expand_dims(np.mean(samples, axis=1), axis=1)
 
 
 def np_to_pcm(np_data, audio_format=DEFAULT_FORMAT):
-    if audio_format.channels != 1:
-        raise ValueError('Mono-channel audio required')
     dtype = get_dtype(audio_format)
     np_data = np_data.squeeze()
     np_data = np_data * np.iinfo(dtype).max

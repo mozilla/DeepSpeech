@@ -1,0 +1,18 @@
+name: "xldd install"
+description: "Install xldd"
+inputs:
+  target:
+    description: "System target"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: install_xldd
+      run: |
+        source ./ci_scripts/all-vars.sh
+        # -s required to avoid the noisy output like "Entering / Leaving directories"
+        toolchain=$(make -s -C ${DS_DSDIR}/native_client/ TARGET=${{ inputs.target }} TFDIR=${DS_TFDIR} print-toolchain)
+        if [ ! -x "${toolchain}ldd" ]; then
+          cp "${DS_DSDIR}/native_client/xldd" "${toolchain}ldd" && chmod +x "${toolchain}ldd"
+        fi
+      shell: bash

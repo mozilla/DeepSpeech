@@ -1,0 +1,41 @@
+name: "Tests execution"
+description: "Running DeepSpeech tests"
+inputs:
+  runtime:
+    description: "Runtime to use for running test"
+    required: true
+  build-flavor:
+    description: "Running against TF or TFLite"
+    required: true
+  model-kind:
+    description: "Running against CI baked or production model"
+    required: true
+  bitrate:
+    description: "Bitrate for testing"
+    required: true
+  chroot:
+    description: "Run using a chroot"
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        set -xe
+
+        build=""
+        if [ "${{ inputs.build-flavor }}" = "tflite" ]; then
+          build="_tflite"
+        fi
+
+        model_kind=""
+        if [ "${{ inputs.model-kind }}" = "prod" ]; then
+          model_kind="-prod"
+        fi
+
+        prefix="."
+        if [ ! -z "${{ inputs.chroot }}" ]; then
+          prefix="${{ inputs.chroot }}"
+        fi
+
+        ${prefix}/ci_scripts/${{ inputs.runtime }}${build}-tests${model_kind}.sh ${{ inputs.bitrate }}
+      shell: bash

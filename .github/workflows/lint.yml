@@ -1,0 +1,33 @@
+name: "Python linter"
+on:
+  pull_request:
+jobs:
+  lint:
+    name: "Running cardboardlinter"
+    runs-on: ubuntu-20.04
+    container:
+      image: python:3.9.4-slim-buster
+    steps:
+      # https://github.com/actions/checkout/issues/175#issuecomment-595410280
+      - run: |
+          apt-get -qq -y update
+          apt-get -qq -y install git
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: |
+          pip install --upgrade cardboardlint pylint
+      - run: |
+          set -ex
+          # Check if branch can be merged with master (if failing script will stop due to set -e)
+          git config user.email "you@example.com"
+          git config user.name "Your Name"
+          git merge --no-commit --no-ff origin/${{ github.base_ref }}
+      - run: |
+          set -ex
+          # Undo merge changes if any
+          git reset --hard ${{ github.sha }}
+      - run: |
+          set -ex
+          # Lint differences against master
+          cardboardlinter --refspec origin/${{ github.base_ref }} -n auto;

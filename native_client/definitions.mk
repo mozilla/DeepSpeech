@@ -55,7 +55,7 @@ PYTHON_PLATFORM_NAME ?= --plat-name manylinux1_x86_64
 endif
 endif
 
-ifeq ($(TARGET),host-win)
+ifeq ($(findstring _NT,$(OS)),_NT)
 TOOLCHAIN := '$(VCToolsInstallDir)\bin\Hostx64\x64\'
 TOOL_CC     := cl.exe
 TOOL_CXX    := cl.exe
@@ -70,9 +70,11 @@ PYTHON_PACKAGES := numpy${NUMPY_BUILD_VERSION}
 endif
 
 ifeq ($(TARGET),rpi3)
-TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroArmGcc72/bin/arm-linux-gnueabihf-
+TOOLCHAIN_DIR ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroArmGcc72/bin
+TOOLCHAIN   ?= $(TOOLCHAIN_DIR)/arm-linux-gnueabihf-
 RASPBIAN    ?= $(abspath $(NC_DIR)/../multistrap-raspbian-buster)
-CFLAGS      := -march=armv7-a -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -D_GLIBCXX_USE_CXX11_ABI=0 --sysroot $(RASPBIAN)
+# -D_XOPEN_SOURCE -D_FILE_OFFSET_BITS=64 => to avoid EOVERFLOW on readdir() with 64-bits inode
+CFLAGS      := -march=armv7-a -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -D_GLIBCXX_USE_CXX11_ABI=0 -D_XOPEN_SOURCE -D_FILE_OFFSET_BITS=64 --sysroot $(RASPBIAN)
 CXXFLAGS    := $(CFLAGS)
 LDFLAGS     := -Wl,-rpath-link,$(RASPBIAN)/lib/arm-linux-gnueabihf/ -Wl,-rpath-link,$(RASPBIAN)/usr/lib/arm-linux-gnueabihf/
 
@@ -90,7 +92,8 @@ TOOLCHAIN_LDD_OPTS   := --root $(RASPBIAN)/
 endif # ($(TARGET),rpi3)
 
 ifeq ($(TARGET),rpi3-armv8)
-TOOLCHAIN   ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroAarch64Gcc72/bin/aarch64-linux-gnu-
+TOOLCHAIN_DIR ?= ${TFDIR}/bazel-$(shell basename "${TFDIR}")/external/LinaroAarch64Gcc72/bin
+TOOLCHAIN   ?= $(TOOLCHAIN_DIR)/aarch64-linux-gnu-
 RASPBIAN    ?= $(abspath $(NC_DIR)/../multistrap-raspbian64-buster)
 CFLAGS      := -march=armv8-a -mtune=cortex-a53 -D_GLIBCXX_USE_CXX11_ABI=0 --sysroot $(RASPBIAN)
 CXXFLAGS    := $(CFLAGS)
@@ -181,7 +184,7 @@ define copy_missing_libs
         if [ "$(OS)" = "Darwin" ]; then \
             new_missing="$$( (for f in $$(otool -L $$lib 2>/dev/null | tail -n +2 | awk '{ print $$1 }' | grep -v '$$lib'); do ls -hal $$f; done;) 2>&1 | grep 'No such' | cut -d':' -f2 | xargs basename -a)"; \
             missing_libs="$$missing_libs $$new_missing"; \
-	elif [ "$(OS)" = "${TC_MSYS_VERSION}" ]; then \
+    elif [ "$(OS)" = "${CI_MSYS_VERSION}" ]; then \
             missing_libs="libdeepspeech.so"; \
         else \
             missing_libs="$$missing_libs $$($(LDD) $$lib | grep 'not found' | awk '{ print $$1 }')"; \
@@ -209,11 +212,11 @@ endef
 SWIG_DIST_URL ?=
 ifeq ($(SWIG_DIST_URL),)
 ifeq ($(findstring Linux,$(OS)),Linux)
-SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.linux.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
+SWIG_DIST_URL := "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/ds-swig.linux.amd64.tar.gz"
 else ifeq ($(findstring Darwin,$(OS)),Darwin)
-SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.darwin.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
+SWIG_DIST_URL := "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/ds-swig.darwin.amd64.tar.gz"
 else ifeq ($(findstring _NT,$(OS)),_NT)
-SWIG_DIST_URL := "https://community-tc.services.mozilla.com/api/index/v1/task/project.deepspeech.swig.win.amd64.1a4c14945012f1282c2eddc174fb7674d5295de8.0/artifacts/public/ds-swig.tar.gz"
+SWIG_DIST_URL := "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/ds-swig.win.amd64.tar.gz"
 else
 $(error There is no prebuilt SWIG available for your platform. Please produce one and set SWIG_DIST_URL.)
 endif # findstring()
@@ -224,7 +227,7 @@ SWIG_ROOT ?= $(abspath $(shell dirname "$(lastword $(MAKEFILE_LIST))"))/ds-swig
 ifeq ($(findstring _NT,$(OS)),_NT)
 SWIG_ROOT ?= $(shell cygpath -u "$(SWIG_ROOT)")
 endif
-SWIG_LIB ?= $(SWIG_ROOT)/share/swig/4.0.2/
+SWIG_LIB ?= $(SWIG_ROOT)/share/swig/4.1.0/
 
 SWIG_BIN := swig$(PLATFORM_EXE_SUFFIX)
 DS_SWIG_BIN := ds-swig$(PLATFORM_EXE_SUFFIX)

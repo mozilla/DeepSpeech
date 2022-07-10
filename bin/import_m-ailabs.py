@@ -26,7 +26,7 @@ MAX_SECS = 15
 
 ARCHIVE_DIR_NAME = "{language}"
 ARCHIVE_NAME = "{language}.tgz"
-ARCHIVE_URL = "http://www.caito.de/data/Training/stt_tts/" + ARCHIVE_NAME
+ARCHIVE_URL = "https://data.solak.de/data/Training/stt_tts/" + ARCHIVE_NAME
 
 
 def _download_and_preprocess_data(target_dir):

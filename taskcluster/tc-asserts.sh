@@ -227,7 +227,7 @@ assert_correct_ldc93s1_prodtflitemodel()
   fi;
 
   if [ "$3" = "8k" ]; then
-    assert_correct_inference "$1" "she had to do so in greasy wash water all year" "$2"
+    assert_correct_inference "$1" "she had to do so and greasy wash water all year" "$2"
   fi;
 }
 

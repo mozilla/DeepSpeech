@@ -1,0 +1,15 @@
+name: "Run build lib"
+description: "Run build of lib"
+inputs:
+  arch:
+    description: "Target arch for loading script (host/armv7/aarch64)"
+    required: false
+    default: "host"
+  flavor:
+    description: "Build flavor"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: ./ci_scripts/${{ inputs.arch }}-build.sh ${{ inputs.flavor }}
+      shell: bash

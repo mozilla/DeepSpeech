@@ -1,0 +1,28 @@
+name: "check/download artifacts"
+description: "Check and download that an artifact exists"
+inputs:
+  name:
+    description: "Artifact name"
+    required: true
+  github_token:
+    description: "GitHub token"
+    required: false
+    default: ${{ github.token }}
+  download:
+    description: "Should we download?"
+    required: false
+    default: false
+  path:
+    description: "Where to unpack the artifact"
+    required: false
+    default: "./"
+  repo:
+    description: "Repository name with owner (like actions/checkout)"
+    required: false
+    default: ${{ github.repository }}
+outputs:
+  status:
+    description: "Status string of the artifact: 'missing' or 'found'"
+runs:
+  using: "node12"
+  main: "dist/index.js"

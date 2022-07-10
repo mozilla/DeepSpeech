@@ -1,0 +1,12 @@
+{
+  "name": "check_artifact_exists",
+  "main": "main.js",
+  "devDependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0",
+    "@octokit/plugin-throttling": "^3.4.1",
+    "@vercel/ncc": "^0.27.0",
+    "adm-zip": "^0.5.2",
+    "filesize": "^6.1.0"
+  }
+}

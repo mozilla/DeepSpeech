@@ -1,0 +1,7 @@
+name: "Package lib"
+description: "Package of lib"
+runs:
+  using: "composite"
+  steps:
+    - run: ./ci_scripts/package.sh
+      shell: bash

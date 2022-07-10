@@ -100,18 +100,18 @@ download_data()
   local _model_source_mmap_file=$(basename "${model_source_mmap}")
   ${WGET} "${model_source_mmap}" -O - | gunzip --force > "${TASKCLUSTER_TMP_DIR}/${_model_source_mmap_file}"
 
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/pruned_lm.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/pruned_lm.bytes.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.bytes.scorer
+  cp ${DS_DSDIR}/data/smoke_test/*.wav ${TASKCLUSTER_TMP_DIR}/
+  cp ${DS_DSDIR}/data/smoke_test/pruned_lm.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.scorer
+  cp ${DS_DSDIR}/data/smoke_test/pruned_lm.bytes.scorer ${TASKCLUSTER_TMP_DIR}/kenlm.bytes.scorer
 
-  cp -R ${DS_ROOT_TASK}/DeepSpeech/ds/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
+  cp -R ${DS_DSDIR}/native_client/test ${TASKCLUSTER_TMP_DIR}/test_sources
 }
 
 download_material()
 {
   target_dir=$1
 
-  download_native_client_files "${target_dir}"
+  # TODO: FIXME download_native_client_files "${target_dir}"
   download_data
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav
@@ -154,22 +154,22 @@ verify_bazel_rebuild()
 
   mkdir -p ${TASKCLUSTER_ARTIFACTS} || true
 
-  cp ${DS_ROOT_TASK}/DeepSpeech/ds/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
+  cp ${DS_DSDIR}/tensorflow/bazel*.log ${TASKCLUSTER_ARTIFACTS}/
 
   spurious_rebuilds=$(grep 'Executing action' "${bazel_explain_file}" | grep 'Compiling' | grep -v -E 'no entry in the cache|[for host]|unconditional execution is requested|Executing genrule //native_client:workspace_status|Compiling native_client/workspace_status.cc|Linking native_client/libdeepspeech.so' | wc -l)
   if [ "${spurious_rebuilds}" -ne 0 ]; then
     echo "Bazel rebuilds some file it should not, please check."
 
     if is_patched_bazel; then
-      mkdir -p ${DS_ROOT_TASK}/DeepSpeech/ckd/ds ${DS_ROOT_TASK}/DeepSpeech/ckd/tf
-      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-tf.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
-      tar xf ${DS_ROOT_TASK}/DeepSpeech/bazel-ckd-ds.tar --strip-components=4 -C ${DS_ROOT_TASK}/DeepSpeech/ds/ckd/tensorflow/
+      mkdir -p ${DS_ROOT_TASK}/ckd/ds ${DS_ROOT_TASK}/ckd/tf
+      tar xf ${DS_ROOT_TASK}/bazel-ckd-tf.tar --strip-components=4 -C ${DS_ROOT_TASK}/ckd/ds/
+      tar xf ${DS_ROOT_TASK}/bazel-ckd-ds.tar --strip-components=4 -C ${DS_DSDIR}/ckd/tensorflow/
 
       echo "Making a diff between CKD files"
       mkdir -p ${TASKCLUSTER_ARTIFACTS}
-      diff -urNw ${DS_ROOT_TASK}/DeepSpeech/ds/ckd/tensorflow/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/ | tee ${TASKCLUSTER_ARTIFACTS}/ckd.diff
+      diff -urNw ${DS_DSDIR}/ckd/tensorflow/ ${DS_ROOT_TASK}/ckd/ds/ | tee ${TASKCLUSTER_ARTIFACTS}/ckd.diff
 
-      rm -fr ${DS_ROOT_TASK}/DeepSpeech/ds/ckd/tensorflow/ ${DS_ROOT_TASK}/DeepSpeech/ckd/ds/
+      rm -fr ${DS_DSDIR}/ckd/tensorflow/ ${DS_ROOT_TASK}/ckd/ds/
     else
       echo "Cannot get CKD information from release, please use patched Bazel"
     fi;

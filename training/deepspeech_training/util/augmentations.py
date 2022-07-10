@@ -191,7 +191,7 @@ def apply_sample_augmentations(samples,
     process_ahead : int
         Number of samples to pre-process ahead of time.
     clock : float
-        Start or fixed clock value between 0.0 and 1.0 for the first or all samples. Has to be <= than clock_to.
+        Start or fixed clock value between 0.0 and 1.0 for the first or all samples. Has to be <= than final_clock.
     final_clock : float
         Final clock value between 0.0 and 1.0 for the last sample. Has to be >= than clock.
         Requires samples.__len__ attribute.

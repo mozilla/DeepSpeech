@@ -1,0 +1,27 @@
+name: "Docker Images"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  make-docker-img:
+    name: "Build Dockerfile"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        template: ["build", "train"]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - run: |
+          make Dockerfile.${{ matrix.template }} \
+            DEEPSPEECH_REPO=https://github.com/${{ github.repository }} \
+            DEEPSPEECH_SHA=${{ github.sha }}
+      - run: |
+          mkdir /tmp/empty
+      - run: |
+          cd /tmp/empty; docker build -t app:${{ matrix.template }} -f ${{ github.workspace }}/Dockerfile.${{ matrix.template }} .
+      - run: |
+          docker save app:${{ matrix.template}} | zstd -o app_${{ matrix.template }}.zstd
