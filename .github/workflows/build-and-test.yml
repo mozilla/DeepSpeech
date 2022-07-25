@@ -606,7 +606,7 @@ jobs:
   # macOS jobs
   swig_macOS:
     name: "Mac|Build SWIG"
-    runs-on: macos-10.15
+    runs-on: macos-11
     env:
       swig_hash: "90cdbee6a69d13b39d734083b9f91069533b0d7b"
     steps:
@@ -649,7 +649,7 @@ jobs:
   build-ctc-decoder-macos:
     name: "Mac|Build CTC decoder Python package for testing"
     needs: [ swig_macOS ]
-    runs-on: macos-10.15
+    runs-on: macos-11
     if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v2
@@ -690,7 +690,7 @@ jobs:
   train-test-model-macOS:
     name: "Mac|Train a test model"
     needs: [ "build-ctc-decoder-macos" ]
-    runs-on: macos-10.15
+    runs-on: macos-11
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
@@ -775,7 +775,7 @@ jobs:
   build-tensorflow-macOS:
     name: "Mac|Build TensorFlow (opt)"
     needs: tensorflow_opt-macOS
-    runs-on: macos-10.15
+    runs-on: macos-11
     steps:
       - run: true
         if: needs.tensorflow_opt-macOS.outputs.status == 'found'
@@ -803,7 +803,7 @@ jobs:
         if: needs.tensorflow_opt-macOS.outputs.status == 'missing'
   build-lib_macOS:
     name: "Mac|Build libdeepspeech+client"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ build-tensorflow-macOS, tensorflow_opt-macOS ]
     strategy:
       matrix:
@@ -845,7 +845,7 @@ jobs:
           path: ${{ github.workspace }}/artifacts/libdeepspeech.zip
   build-python-macOS:
     name: "Mac|Build python bindings"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ build-lib_macOS, swig_macOS ]
     strategy:
       matrix:
@@ -895,7 +895,7 @@ jobs:
           path: ${{ github.workspace }}/wheels/*.whl
   build-nodejs-macOS:
     name: "Mac|Build NodeJS and ElectronJS"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ build-lib_macOS, swig_macOS ]
     strategy:
       matrix:
@@ -949,7 +949,7 @@ jobs:
           path: ${{ github.workspace }}/native_client/javascript/deepspeech-*.tgz
   test-cpp-macOS:
     name: "Mac|Test C++ binary"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ build-lib_macOS, train-test-model-macOS ]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
@@ -990,7 +990,7 @@ jobs:
           model-kind: ${{ matrix.models }}
   test-py-macOS:
     name: "Mac|Test Python bindings"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ build-python-macOS, train-test-model-macOS ]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
@@ -1035,7 +1035,7 @@ jobs:
           model-kind: ${{ matrix.models }}
   test-nodejs-macOS:
     name: "Mac|Test NodeJS bindings"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ build-nodejs-macOS, train-test-model-macOS ]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
@@ -1089,7 +1089,7 @@ jobs:
           model-kind: ${{ matrix.models }}
   test-electronjs-macOS:
     name: "Mac|Test ElectronJS bindings"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ build-nodejs-macOS, train-test-model-macOS ]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
@@ -1842,7 +1842,7 @@ jobs:
         timeout-minutes: 5
   test-nodejs_all-macOS:
     name: "Mac|Test MultiArchPlatform NodeJS bindings"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ repackage-nodejs-allplatforms, train-test-model-macOS ]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
@@ -1896,7 +1896,7 @@ jobs:
           model-kind: ${{ matrix.models }}
   test-electronjs_all-macOS:
     name: "Mac|Test MultiArchPlatform ElectronJS bindings"
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [ repackage-nodejs-allplatforms, train-test-model-macOS ]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
