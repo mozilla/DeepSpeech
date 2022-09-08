@@ -24,8 +24,8 @@ def character_based():
     return is_character_based
 
 def objective(trial):
-    FLAGS.lm_alpha = trial.suggest_uniform('lm_alpha', 0, FLAGS.lm_alpha_max)
-    FLAGS.lm_beta = trial.suggest_uniform('lm_beta', 0, FLAGS.lm_beta_max)
+    FLAGS.lm_alpha = trial.suggest_float('lm_alpha', 0, FLAGS.lm_alpha_max)
+    FLAGS.lm_beta = trial.suggest_float('lm_beta', 0, FLAGS.lm_beta_max)
 
     is_character_based = trial.study.user_attrs['is_character_based']
 
