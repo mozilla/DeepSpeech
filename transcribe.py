@@ -4,14 +4,15 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import sys
-import json
+import json.load
+import json.dump
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import tensorflow.compat.v1.logging as tflogging
 tflogging.set_verbosity(tflogging.ERROR)
 import logging
 logging.getLogger('sox').setLevel(logging.ERROR)
-import glob
+import glob.glob
 
 from deepspeech_training.util.audio import AudioFile
 from deepspeech_training.util.config import Config, initialize_globals
