@@ -4,4 +4,4 @@ sphinx==2.4.4
 #FIXME: switch back to upstream sphinx-js when https://github.com/mozilla/sphinx-js/pull/135 is merged or the issue is fixed otherwise
 git+git://github.com/reuben/sphinx-js.git@a24775935443d21028ee4a7025a407c78030c4e7#egg=sphinx-js
 sphinx-rtd-theme==0.4.3
-pygments==2.7.4
+pygments==2.15.0
