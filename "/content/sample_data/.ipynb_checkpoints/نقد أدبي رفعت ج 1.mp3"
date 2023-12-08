@@ -1,0 +1,23 @@
+pip install deepspeech
+import deepspeech
+import wave
+
+# تحديد ملف النموذج وملف الصوت
+model_path = "path/to/deepspeech-0.9.3-models.pbmm"
+scorer_path = "path/to/deepspeech-0.9.3-models.scorer"
+audio_file_path = ""/content/sample_data/.ipynb_checkpoints/نقد أدبي رفعت ج 1.mp3""
+
+# تهيئة DeepSpeech
+model = deepspeech.Model(model_path)
+model.enableExternalScorer(scorer_path)
+
+# فتح ملف الصوت
+with wave.open(audio_file_path, 'rb') as audio_file:
+    audio_data = audio_file.readframes(audio_file.getnframes())
+    sample_rate = audio_file.getframerate()
+
+# تحويل الصوت إلى نص
+text = model.stt(audio_data)
+
+# طباعة النص
+print("Transcription:", text)
