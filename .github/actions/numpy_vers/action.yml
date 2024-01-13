@@ -88,6 +88,6 @@ runs:
             ;;
         esac
 
-        echo "::set-output name=build::${NUMPY_BUILD_VERSION}"
-        echo "::set-output name=dep::${NUMPY_DEP_VERSION}"
+        echo "build=${NUMPY_BUILD_VERSION}" >> $GITHUB_OUTPUT
+        echo "dep=${NUMPY_DEP_VERSION}" >> $GITHUB_OUTPUT
       shell: bash

@@ -29,5 +29,5 @@ runs:
         SHA=$(git submodule status ${SUBMODULE} | sed -e 's/^-//g' -e 's/^+//g' -e 's/^U//g' | awk '{ print $1 }')
 
         KEY=${SUBMODULE}-${FLAVOR}_${OSARCH}_${SHA}_${{ inputs.extras }}
-        echo "::set-output name=key::${KEY}"
+        echo "key=${KEY}" >> $GITHUB_OUTPUT
       shell: bash
