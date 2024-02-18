@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 
@@ -12,7 +11,6 @@ import sys
 
 from deepspeech import Model
 from deepspeech_training.util.evaluate_tools import calculate_and_print_report
-from deepspeech_training.util.flags import create_flags
 from functools import partial
 from multiprocessing import JoinableQueue, Process, cpu_count, Manager
 from six.moves import zip, range
@@ -52,7 +50,7 @@ def tflite_worker(model, scorer, queue_in, queue_out, gpu_mask):
         print(queue_out.qsize(), end='\r') # Update the current progress
         queue_in.task_done()
 
-def main(args, _):
+def main(args):
     manager = Manager()
     work_todo = JoinableQueue()   # this is where we are going to store input data
     work_done = manager.Queue()  # this where we are gonna push them out
@@ -80,7 +78,7 @@ def main(args, _):
             if not os.path.isabs(row['wav_filename']):
                 row['wav_filename'] = os.path.join(os.path.dirname(args.csv), row['wav_filename'])
             work_todo.put({'filename': row['wav_filename'], 'transcript': row['transcript']})
-            wav_filenames.extend(row['wav_filename'])
+            wav_filenames.append(row['wav_filename'])
 
     print('Totally %d wav entries found in csv\n' % count)
     work_todo.join()
@@ -122,5 +120,5 @@ def parse_args():
     return args
 
 if __name__ == '__main__':
-    create_flags()
-    absl.app.run(partial(main, parse_args()))
+    absl.app.run(main, parse_args())
+
