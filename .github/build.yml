@@ -1,0 +1,43 @@
+name: Build libdeepspeech.dll
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Bazel
+      uses: bazelbuild/setup-bazel@v1
+      with:
+        bazel-version: 3.7.2
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential wget git python3-pip curl gnupg zip unzip
+        pip3 install deepspeech numpy scipy
+
+    - name: Download and install Boost
+      run: |
+        wget -qO- https://boostorg.jfrog.io/artifactory/main/release/1.85.0/source/boost_1_85_0.tar.gz | tar xvz -C /usr/local
+        cd /usr/local/boost_1_85_0
+        ./bootstrap.sh
+        ./b2 install
+
+    - name: Build libdeepspeech.dll
+      run: |
+        cd DeepSpeech
+        bazel build //native_client:libdeepspeech.dll
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: libdeepspeech.dll
+        path: DeepSpeech/bazel-bin/native_client/libdeepspeech.dll
