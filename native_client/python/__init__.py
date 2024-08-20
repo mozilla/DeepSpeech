@@ -9,13 +9,12 @@ if platform.system().lower() == "windows":
 
     # On Windows, we can't rely on RPATH being set to $ORIGIN/lib/ or on
     # @loader_path/lib
-    if hasattr(os, 'add_dll_directory'):
-        # Starting with Python 3.8 this properly handles the problem
-        os.add_dll_directory(dslib_path)
+    add_dll_dir = getattr(os, "add_dll_directory", None)
+
+    if callable(add_dll_dir):
+        add_dll_dir(dslib_path)
     else:
-        # Before Pythin 3.8 we need to change the PATH to include the proper
-        # directory for the dynamic linker
-        os.environ['PATH'] = dslib_path + ';' + os.environ['PATH']
+        os.environ["PATH"] = os.pathsep.join(dslib_path, os.environ["PATH"])
 
 import deepspeech
 
