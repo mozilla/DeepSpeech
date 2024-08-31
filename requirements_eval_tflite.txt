@@ -6,3 +6,5 @@ progressbar2==3.47.0
 python-utils==2.3.0
 six==1.13.0
 pandas==0.25.3
+tqdm
+mutliprocessing
