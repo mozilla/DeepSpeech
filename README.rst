@@ -5,7 +5,7 @@ Project DeepSpeech
    :target: https://deepspeech.readthedocs.io/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml/badge.svg
+.. image:: https://img.shields.io/github/actions/workflow/status/mozilla/DeepSpeech/macOS-amd64.yml?branch=main
    :target: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml
    :alt: macOS Build Status
    :class: badge
