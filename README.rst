@@ -1,6 +1,10 @@
+Status
+======
+
+This project is now discontinued.
+
 Project DeepSpeech
 ==================
-
 
 .. image:: https://readthedocs.org/projects/deepspeech/badge/?version=latest
    :target: https://deepspeech.readthedocs.io/?badge=latest
