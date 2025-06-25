@@ -38,11 +38,12 @@ template <class Quant, class Bhiksha> class TrieSearch {
 
     static const unsigned int kVersion = 1;
 
-    static void UpdateConfigFromBinary(const BinaryFormat &file, const std::vector<uint64_t> &counts, uint64_t offset, Config &config) {
-      Quant::UpdateConfigFromBinary(file, offset, config);
+    static void UpdateConfigFromBinary(const BinaryFormat &file, const std::vector<uint64_t> &counts, uint64_t offset, Config &config, bool load_from_memory) {
+      Quant::UpdateConfigFromBinary(file, offset, config, load_from_memory);
+
       // Currently the unigram pointers are not compresssed, so there will only be a header for order > 2.
       if (counts.size() > 2)
-        Bhiksha::UpdateConfigFromBinary(file, offset + Quant::Size(counts.size(), config) + Unigram::Size(counts[0]), config);
+        Bhiksha::UpdateConfigFromBinary(file, offset + Quant::Size(counts.size(), config) + Unigram::Size(counts[0]), config, load_from_memory);
     }
 
     static uint64_t Size(const std::vector<uint64_t> &counts, const Config &config) {

@@ -1,6 +1,8 @@
 #ifndef DEEPSPEECH_H
 #define DEEPSPEECH_H
 
+#include <string>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,6 +76,7 @@ typedef struct Metadata {
   APPLY(DS_ERR_SCORER_NO_TRIE,          0x2007, "Reached end of scorer file before loading vocabulary trie.") \
   APPLY(DS_ERR_SCORER_INVALID_TRIE,     0x2008, "Invalid magic in trie header.") \
   APPLY(DS_ERR_SCORER_VERSION_MISMATCH, 0x2009, "Scorer file version does not match expected version.") \
+  APPLY(DS_ERR_MODEL_NOT_SUP_BUFFER,    0x2010, "Load from buffer does not support memorymaped models.") \
   APPLY(DS_ERR_FAIL_INIT_MMAP,          0x3000, "Failed to initialize memory mapped model.") \
   APPLY(DS_ERR_FAIL_INIT_SESS,          0x3001, "Failed to initialize the session.") \
   APPLY(DS_ERR_FAIL_INTERPRETER,        0x3002, "Interpreter failed.") \
@@ -96,7 +99,7 @@ DS_FOR_EACH_ERROR(DEFINE)
 };
 
 /**
- * @brief An object providing an interface to a trained DeepSpeech model.
+ * @brief An object providing an interface to a trained DeepSpeech model. Maintained for not breaking backwards compatibility
  *
  * @param aModelPath The path to the frozen model graph.
  * @param[out] retval a ModelState pointer
@@ -106,6 +109,20 @@ DS_FOR_EACH_ERROR(DEFINE)
 DEEPSPEECH_EXPORT
 int DS_CreateModel(const char* aModelPath,
                    ModelState** retval);
+
+/**
+ * @brief An object providing an interface to a trained DeepSpeech model, loaded from buffer.
+ *
+ * @param aModelBuffer The buffer containing the content of frozen model graph.
+ * @param[out] retval a ModelState pointer
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+DEEPSPEECH_EXPORT
+int DS_CreateModelFromBuffer(const char* aModelBuffer,
+                             size_t bufferSize,
+                             ModelState** retval);
+
 
 /**
  * @brief Get beam width value used by the model. If {@link DS_SetModelBeamWidth}
@@ -161,6 +178,20 @@ int DS_EnableExternalScorer(ModelState* aCtx,
                             const char* aScorerPath);
 
 /**
+ * @brief Enable decoding using an external scorer loaded from buffer.
+ *
+ * @param aCtx The ModelState pointer for the model being changed.
+ * @param aScorerBuffer The buffer containing the content of an external-scorer file.
+ *
+ * @return Zero on success, non-zero on failure (invalid arguments).
+ */
+DEEPSPEECH_EXPORT
+int DS_EnableExternalScorerFromBuffer(ModelState* aCtx,
+                                      const char* aScorerBuffer,
+                                      size_t bufferSize);
+
+
+/**
  * @brief Add a hot-word and its boost.
  *
  * Words that don't occur in the scorer (e.g. proper nouns) or strings that contain spaces won't be taken into account.
@@ -197,6 +228,8 @@ int DS_EraseHotWord(ModelState* aCtx,
  */
 DEEPSPEECH_EXPORT
 int DS_ClearHotWords(ModelState* aCtx);
+
+
 
 /**
  * @brief Disable decoding using an external scorer.
