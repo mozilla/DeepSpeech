@@ -1,0 +1,54 @@
+# Install necessary dependencies
+pip install -r requirements_eval_tflite.txt
+
+# Replace 'YOUR_MODEL.pb' with the path to your Bangla model file
+MODEL_PATH='YOUR_MODEL.pb'
+LANGUAGE_MODEL='path_to_your_language_model'
+
+# Evaluate the model
+python -u DeepSpeech.py \
+  --alphabet_config_path=alphabet.txt \
+  --lm_binary_path=$LANGUAGE_MODEL \
+  --lm_trie_path=trie \
+  --model $MODEL_PATH \
+  --test_files=test.csv \
+  --scorer_path=scorer
+import os
+import argparse
+import subprocess
+import shutil
+
+def train_bangla_language_model(data_dir, output_dir):
+    # Define paths
+    alphabet_path = 'alphabet.txt'
+    lm_binary_path = 'lm.binary'
+    lm_trie_path = 'trie'
+
+    # Generate alphabet file
+    with open(alphabet_path, 'w', encoding='utf-8') as f:
+        f.write('ঀঁংঃঅআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়০১২৩৪৫৬৭৮৯\n')
+
+    # Train the language model
+    print('Training language model...')
+    subprocess.call(['./kenlm/build/bin/lmplz', '--order', '5', '--arpa', lm_binary_path, '--text', os.path.join(data_dir, 'text.txt'), '--discount_fallback'])
+
+    # Build the language model trie
+    print('Building language model trie...')
+    subprocess.call(['./DeepSpeech.py', '--alphabet_config_path', alphabet_path, '--lm_binary_path', lm_binary_path, '--lm_trie_path', lm_trie_path])
+
+    # Move generated files to output directory
+    shutil.move(alphabet_path, os.path.join(output_dir, alphabet_path))
+    shutil.move(lm_binary_path, os.path.join(output_dir, lm_binary_path))
+    shutil.move(lm_trie_path, os.path.join(output_dir, lm_trie_path))
+
+    print('Training completed. Language model files saved to', output_dir)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Train a Bangla language model for DeepSpeech.')
+    parser.add_argument('data_dir', type=str, help='Path to the directory containing audio and text data.')
+    parser.add_argument('output_dir', type=str, help='Path to the output directory to save the trained model files.')
+    args = parser.parse_args()
+
+    train_bangla_language_model(args.data_dir, args.output_dir)
+    ./train_bangla_language_model.py /path/to/data_dir /path/to/output_dir
+
