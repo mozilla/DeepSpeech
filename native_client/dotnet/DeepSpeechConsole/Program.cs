@@ -81,8 +81,8 @@ namespace CSharpExamples
                     }
 
                     string audioFile = audio ?? "arctic_a0024.wav";
-                    var waveBuffer = new WaveBuffer(File.ReadAllBytes(audioFile));
-                    using (var waveInfo = new WaveFileReader(audioFile))
+                    var waveBuffer = new NAudio.Wave.WaveBuffer(File.ReadAllBytes(audioFile));
+                    using (var waveInfo = new NAudio.Wave.WaveFileReader(audioFile))
                     {
                         Console.WriteLine("Running inference....");
 
