@@ -95,7 +95,8 @@ def create_flags():
 
     # Transfer Learning
 
-    f.DEFINE_integer('drop_source_layers', 0, 'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output ==2, etc)')
+    f.DEFINE_integer('drop_source_layers', 0, 'single integer for how many layers to drop from source model (to drop just output == 1, drop penultimate and output == 2, etc)')
+    f.DEFINE_integer('freeze_source_layers', 0, 'freeze layer weights (to freeze all but output == 1, freeze all but penultimate and output == 2, etc). Normally used in combination with "drop_source_layers" flag and should be used in a two step training (first drop and freeze layers and train a few epochs, second continue without both flags)')
 
     # Exporting
 
