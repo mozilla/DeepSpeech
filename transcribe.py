@@ -12,6 +12,8 @@ tflogging.set_verbosity(tflogging.ERROR)
 import logging
 logging.getLogger('sox').setLevel(logging.ERROR)
 import glob
+from tqdm import tqdm
+from _multiprocessing import Process
 
 from deepspeech_training.util.audio import AudioFile
 from deepspeech_training.util.config import Config, initialize_globals
@@ -73,14 +75,14 @@ def transcribe_file(audio_path, tlog_path):
 
 
 def transcribe_many(src_paths,dst_paths):
-    pbar = create_progressbar(prefix='Transcribing files | ', max_value=len(src_paths)).start()
+    pbar = tqdm(total=len(src_paths), desc='Transcribing files', unit='file')
     for i in range(len(src_paths)):
         p = Process(target=transcribe_file, args=(src_paths[i], dst_paths[i]))
         p.start()
         p.join()
-        log_progress('Transcribed file {} of {} from "{}" to "{}"'.format(i + 1, len(src_paths), src_paths[i], dst_paths[i]))
-        pbar.update(i)
-    pbar.finish()
+        log_progress(f'Transcribed file {i + 1} of {len(src_paths)} from "{src_paths[i]}" to "{dst_paths[i]}"')
+        pbar.update(1)
+    pbar.close()
 
 
 def transcribe_one(src_path, dst_path):
